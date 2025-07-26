@@ -5,8 +5,6 @@ from deps.pxd.sexp import parse, deatomize, Atom
 
 
 
-
-
 # Routine for converting S-expressions of database entries into a more usable Python value.
 
 def parse_entry(entry):
@@ -205,14 +203,10 @@ for mcu in TARGETS.mcus:
             # Multiple placeholders in the tag; organize entries by their values for the placeholders using a namedtuple.
             #
             # e.g.
-            # (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1PEN) (UNIT = 1) (CHANNEL = p))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][Placeholders(UNIT = 1, CHANNEL = 'p')]
-            # (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1QEN) (UNIT = 1) (CHANNEL = q))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][Placeholders(UNIT = 1, CHANNEL = 'q')]
-            # (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1SEN) (UNIT = 1) (CHANNEL = s))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][Placeholders(UNIT = 1, CHANNEL = 's')]
+            # (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1PEN) (UNIT = 1) (CHANNEL = p))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 'p')]
+            # (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1QEN) (UNIT = 1) (CHANNEL = q))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 'q')]
+            # (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1SEN) (UNIT = 1) (CHANNEL = s))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 's')]
             #
-            # Note that the example above uses "Placeholders", but that's just for illustration;
-            # the actual usage would depend upon creating another namedtuple constructor with the
-            # same placeholders layout and making an instance using that constructor to create the
-            # key in order to index.
 
             case _:
 
@@ -226,13 +220,3 @@ for mcu in TARGETS.mcus:
                     }) : record
                     for record in records
                 }
-
-
-
-
-for mcu, db in SYSTEM_DATABASE.items():
-    print(mcu)
-    for a, b in db.items():
-        print()
-        print(f'\t{a}')
-        print(f'\t\t{b}')
