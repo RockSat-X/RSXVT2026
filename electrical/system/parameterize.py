@@ -105,10 +105,10 @@ def SYSTEM_PARAMETERIZE(target, options):
         success = func()
 
         if not success:
-            raise RuntimeError(ErrorLift(f'Could not bruteforce configurations that satisfies the system parameterization.'))
+            raise RuntimeError(ErrorLift(f'Could not brute-force configurations that satisfies the system parameterization.'))
 
         configurations |= draft
-        draft           = None  # Clear so bruteforced configuration values won't accidentally be referenced.
+        draft           = None  # Clear so brute-forced configuration values won't accidentally be referenced.
 
 
 
