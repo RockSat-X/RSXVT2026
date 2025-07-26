@@ -28,7 +28,7 @@ def SYSTEM_PARAMETERIZE(target, options):
     # To ensure we use every option in SYSTEM_OPTIONS, we have a helper function to record every access to it
     # that we then verify at the very end; a default value can also be supplied if the option is not in SYSTEM_OPTIONS.
 
-    used_options = set()
+    used_options = OrdSet()
 
     def opts(option, *default):
 
