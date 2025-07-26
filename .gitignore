@@ -13,3 +13,6 @@ data/
 _autosave-*.kicad_pcb
 fp-info-cache
 \#auto_saved_files\#
+
+# Visual Studio Code.
+.vscode/settings.json
