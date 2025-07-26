@@ -3,7 +3,7 @@
 
 import enum
 from deps.pxd.utils            import root, coalesce, mk_dict, repr_in_c, find_dupe, ljusts, Obj, Record, Table, OrdSet, ErrorLift
-from deps.pxd.log              import log
+from deps.pxd.log              import log, did_you_mean
 from deps.pxd.metapreprocessor import MetaError
 
 
@@ -249,7 +249,19 @@ class TargetTuple(tuple):
 
     # Get a specific target by name.
     def get(self, target_name):
-        target, = (target for target in self if target.name == target_name)
+
+        if not (matches := [target for target in self if target.name == target_name]):
+            did_you_mean(
+                f'Couldn\'t find target by the name of "{target_name}".',
+                target_name,
+                (target.name for target in TARGETS),
+                ansi = 'fg_red',
+                tag = '[ERROR]'
+            )
+            raise MetaError
+
+        target, = matches
+
         return target
 
 
