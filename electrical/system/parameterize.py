@@ -1,6 +1,6 @@
-#meta SYSTEM_PARAMETERIZE : SYSTEM_OPTIONS, SYSTEM_DATABASE
+#meta SYSTEM_PARAMETERIZE : SYSTEM_DATABASE
 
-def SYSTEM_PARAMETERIZE(target):
+def SYSTEM_PARAMETERIZE(target, options):
 
     ################################################################################################################################
 
@@ -56,8 +56,8 @@ def SYSTEM_PARAMETERIZE(target):
 
         # We found the option in SYSTEM_OPTIONS.
 
-        if option in SYSTEM_OPTIONS[target.name]:
-            return SYSTEM_OPTIONS[target.name][option]
+        if option in options:
+            return options[option]
 
 
 
@@ -593,7 +593,7 @@ def SYSTEM_PARAMETERIZE(target):
     # Parameterization of the system is done!
     #
 
-    if leftovers := SYSTEM_OPTIONS[target.name].keys() - used_options:
+    if leftovers := options.keys() - used_options:
         log(f'[WARNING] There are leftover {mcu} options: {leftovers}.', ansi = 'fg_yellow')
 
     return dict(configurations)
