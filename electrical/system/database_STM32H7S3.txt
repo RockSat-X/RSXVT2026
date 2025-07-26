@@ -1,4 +1,9 @@
 (
+    (systick_reload           (SysTick LOAD RELOAD   ) (minmax: 1 `(1 << 24) - 1`))
+    (systick_use_cpu_ck       (SysTick CTRL CLKSOURCE)                            )
+    (systick_counter          (SysTick VAL  CURRENT  ) (minmax: 0 `(1 << 32) - 1`))
+    (systick_interrupt_enable (SysTick CTRL TICKINT  )                            )
+    (systick_enable           (SysTick CTRL ENABLE   )                            )
 
     # @/pg 354/fig 40/`H7S3rm`.
     (PLL_UNITS (value: (
@@ -43,7 +48,7 @@
     (flash_latency (FLASH ACR LATENCY) (minmax: 0b0000 0b1111))
 
     # @/pg 378/fig 51/`H7S3rm`.
-    (systick_clock_source (SysTick CTRL CLKSOURCE) (value: (
+    (systick_clock_source_cpu_ck_multiplier (SysTick CTRL CLKSOURCE) (value: (
         (False `1 / 8`) # SysTick can use the SCGU's predivider of 8.
         (True   1     ) # ARMv7-M allows for SysTick to use CPU clock directly.
     )))
