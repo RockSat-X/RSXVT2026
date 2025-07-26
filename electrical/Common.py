@@ -277,7 +277,7 @@ TARGETS = TargetTuple((
         mcu               = 'STM32H7S3',
         source_file_paths = root('''
             ./electrical/SandboxNucleoH7S3L8.c
-            ./electrical/Prelude.S
+            ./electrical/system/Prelude.S
         '''),
         stack_size = 8192, # TODO This might be removed depending on how FreeRTOS works.
     ),

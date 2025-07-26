@@ -531,7 +531,7 @@ def build(
                 -E
                 -x c
                 -o {repr(str(root(BUILD, target.name, 'link.ld')))}
-                {repr(str(root('./electrical/link.ld')))}
+                {repr(str(root('./electrical/system/link.ld')))}
         ''')
 
         # Link object files.
