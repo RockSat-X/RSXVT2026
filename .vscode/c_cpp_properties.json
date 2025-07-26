@@ -7,7 +7,7 @@
             "cStandard"        : "c23",
             "intelliSenseMode" : "gcc-arm",
             "includePath"      : [
-                "${workspaceFolder}/electrical/build/meta",
+                "${workspaceFolder}/build/meta",
                 "${workspaceFolder}/deps/CMSIS_6/CMSIS/Core/Include",
                 "${workspaceFolder}/deps/cmsis_device_h7s3l8/Include"
             ],
