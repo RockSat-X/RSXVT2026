@@ -20,13 +20,6 @@ delay_nop(u32 count)
     }
 }
 
-static void
-delay(u32 ms)
-{
-    u32 end = systick_ms + ms;
-    while (systick_ms < end);
-}
-
 #define sorry panic_(false);
 #define panic panic_(true)
 static noret void
