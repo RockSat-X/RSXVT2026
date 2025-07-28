@@ -305,6 +305,32 @@
         (lse_ck    0b101)
     )))
 
+    # @/pg 501/sec 7.8.48/`H7S3rm`.
+    (GPIO_PORT_ENABLE_REGISTER (value: 'AHB4ENR'))
+
+    # @/pg 583/sec 10.4.1/`H7S3rm`.
+    (GPIO_MODE (value: (
+        (input     0b00)
+        (output    0b01)
+        (alternate 0b10)
+        (analog    0b11)
+    )))
+
+    # @/pg 583/sec 10.4.3/`H7S3rm`.
+    (GPIO_SPEED (value: (
+        (low       0b00)
+        (medium    0b01)
+        (high      0b10)
+        (very_high 0b11)
+    )))
+
+    # @/pg 584/sec 10.4.4/`H7S3rm`.
+    (GPIO_PULL (value: (
+        (None  0b00)
+        (up    0b01)
+        (down  0b10)
+    )))
+
     # @/pg 2134/sec 48.7.1/`H7S3rm`.
     (iwdg_key (IWDG KR KEY) (value: (
         0xAAAA
