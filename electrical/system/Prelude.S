@@ -130,16 +130,31 @@ HANDLER_Reset:
 
                 ''')
 
-                if entry is None:
+                match entry:
+
+
 
                     # No interrupt handler here.
-                    Meta.line('.word 0')
 
-                else:
+                    case None:
+                        Meta.line('.word 0')
 
-                    Meta.line(
-                        f'.word HANDLER_{entry}'                           , # Insert the address of the handler routine.
-                        f'.weak HANDLER_{entry}'                           , # If there exists an implementation of the handler, use it.
-                        f'.set  HANDLER_{entry}, HANDLER_Default_indirect' , # Otherwise, use the default handler.
-                    )
+
+
+                    # These interrupt routines are implemented by FreeRTOS.
+
+                    case 'SysTick' : Meta.line('.word xPortSysTickHandler')
+                    case 'SVCall'  : Meta.line('.word vPortSVCHandler'    )
+                    case 'PendSV'  : Meta.line('.word xPortPendSVHandler' )
+
+
+
+                    # These interrupt routines will be implemented by the user, if at all.
+
+                    case _:
+                        Meta.line(
+                            f'.word HANDLER_{entry}'                           , # Insert the address of the handler routine.
+                            f'.weak HANDLER_{entry}'                           , # If there exists an implementation of the handler, use it.
+                            f'.set  HANDLER_{entry}, HANDLER_Default_indirect' , # Otherwise, use the default handler.
+                        )
     */
