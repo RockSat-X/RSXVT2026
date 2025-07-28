@@ -279,6 +279,11 @@ TARGETS = TargetTuple((
             ./electrical/SandboxNucleoH7S3L8.c
             ./electrical/system/Prelude.S
         '''),
+        include_file_paths = (
+            root('./deps/cmsis_device_h7s3l8/Include'),
+            root('./deps/FreeRTOS_Kernel/include'),
+            root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1'),
+        ),
         stack_size = 8192, # TODO This might be removed depending on how FreeRTOS works.
     ),
 
@@ -333,10 +338,11 @@ for target in TARGETS:
 
     # Additional search paths for the compiler to search through for #includes.
 
-    include_file_paths = (
+    include_file_paths = target.include_file_paths + (
         root(BUILD, 'meta'),
         root('./deps/CMSIS_6/CMSIS/Core/Include'),
-        root('./deps/cmsis_device_h7s3l8/Include'),
+        root('./deps'),
+        root('./electrical'),
     )
 
 

@@ -1,4 +1,9 @@
 #include <stm32h7s3xx.h>
+#include <FreeRTOS_Kernel/tasks.c>
+#include <FreeRTOS_Kernel/queue.c>
+#include <FreeRTOS_Kernel/list.c>
+#include <FreeRTOS_Kernel/portable/MemMang/heap_1.c>
+#include <port.c>
 #include "defs.h"
 #include "misc.c"
 #include "SYSTEM_init.meta"
