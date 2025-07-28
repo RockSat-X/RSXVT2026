@@ -1,5 +1,4 @@
 #define configCPU_CLOCK_HZ                                     SYSTEM_CPU_CK_FREQ
-#define configSYSTICK_CLOCK_HZ                                 SYSTEM_SYSTICK_KERNEL_FREQ
 #define configTICK_RATE_HZ                                     100
 #define configUSE_PREEMPTION                                   1
 #define configUSE_TIME_SLICING                                 0
