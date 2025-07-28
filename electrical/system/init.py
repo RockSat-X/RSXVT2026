@@ -1,8 +1,6 @@
 #include "SYSTEM_init.meta"
 #meta
 
-import collections
-
 @Meta.ifs(SYSTEM_OPTIONS, style = '#if')
 def _(system_options):
 
@@ -11,9 +9,13 @@ def _(system_options):
 
     yield f'TARGET_NAME_IS_{target_name}'
 
+
+
+    # Output the system initialization routine where we configure the low-level MCU stuff.
+
     with Meta.enter('''
         extern void
         SYSTEM_init(void)
     '''):
         configuration = SYSTEM_PARAMETERIZE(target, options)
-        SYSTEM_CONFIGURIZE (target, configuration)
+        SYSTEM_CONFIGURIZE(target, configuration)
