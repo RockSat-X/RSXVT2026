@@ -1,4 +1,4 @@
-#meta root, ljusts, coalesce, mk_dict, OrdSet, Obj, Record, Table, log, MetaError, ErrorLift, CMSIS_SET, CMSIS_WRITE, CMSIS_SPINLOCK, TARGETS :
+#meta root, ljusts, coalesce, mk_dict, find_dupe, OrdSet, Obj, Record, Table, log, MetaError, ErrorLift, CMSIS_SET, CMSIS_WRITE, CMSIS_SPINLOCK, TARGETS :
 # TODO Provide explaination on how this file works?
 
 import enum
