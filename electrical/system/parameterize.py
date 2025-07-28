@@ -2,6 +2,10 @@
 
 def SYSTEM_PARAMETERIZE(target, options):
 
+    defines = []
+
+
+
     ################################################################################################################################
 
 
@@ -189,6 +193,12 @@ def SYSTEM_PARAMETERIZE(target, options):
 
     for clock in clocks:
         tree[clock] = opts(clock, 0)
+
+
+
+    # Export defines.
+
+    defines += [('SYSTEM_CPU_CK_FREQ', tree.cpu_ck)]
 
 
 
@@ -568,9 +578,9 @@ def SYSTEM_PARAMETERIZE(target, options):
 
         for draft.systick_use_cpu_ck, cpu_ck_multiplier in database['systick_clock_source_cpu_ck_multiplier'].VALUE:
 
-            systick_clock_source_freq = tree.cpu_ck * cpu_ck_multiplier
+            tree.systick_kernel_freq = tree.cpu_ck * cpu_ck_multiplier
 
-            draft.systick_reload = systick_clock_source_freq / tree.systick_ck - 1
+            draft.systick_reload = tree.systick_kernel_freq / tree.systick_ck - 1
 
             if not draft.systick_reload.is_integer():
                 continue # SysTick's reload value wouldn't be a whole number.
@@ -586,6 +596,8 @@ def SYSTEM_PARAMETERIZE(target, options):
 
     brute(parameterize_systick, 'systick_reload', 'systick_use_cpu_ck')
 
+    defines += [('SYSTEM_SYSTICK_KERNEL_FREQ', tree.systick_kernel_freq)]
+
 
 
     ################################################################################################################################
@@ -596,4 +608,4 @@ def SYSTEM_PARAMETERIZE(target, options):
     if leftovers := options.keys() - used_options:
         log(f'[WARNING] There are leftover {mcu} options: {leftovers}.', ansi = 'fg_yellow')
 
-    return dict(configurations)
+    return dict(configurations), defines

@@ -17,5 +17,10 @@ def _(system_options):
         extern void
         SYSTEM_init(void)
     '''):
-        configuration = SYSTEM_PARAMETERIZE(target, options)
+
+        configuration, defines = SYSTEM_PARAMETERIZE(target, options)
+
+        for name, expansion in defines:
+            Meta.define(name, expansion)
+
         SYSTEM_CONFIGURIZE(target, configuration)
