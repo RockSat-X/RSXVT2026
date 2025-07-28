@@ -393,17 +393,17 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
-    put_title('SysTick')
+    if cfgs('systick_enable'):
 
+        put_title('SysTick')
 
-
-    CMSIS_SET(
-        cfgs('systick_reload'          , ... ), # Modulation of the counter.
-        cfgs('systick_use_cpu_ck'      , ... ), # Use CPU clock or the vendor-provided one.
-        cfgs('systick_counter'         , 0   ), # "The SYST_CVR value is UNKNOWN on reset." @/pg 620/sec B3.3.1/`ARMv7-M`.
-        cfgs('systick_interrupt_enable', True), # Enable SysTick interrupt, triggered at every overflow.
-        cfgs('systick_enable'          , True), # Enable SysTick counter.
-    )
+        CMSIS_SET(
+            cfgs('systick_reload'          , ... ), # Modulation of the counter.
+            cfgs('systick_use_cpu_ck'      , ... ), # Use CPU clock or the vendor-provided one.
+            cfgs('systick_counter'         , 0   ), # "The SYST_CVR value is UNKNOWN on reset." @/pg 620/sec B3.3.1/`ARMv7-M`.
+            cfgs('systick_interrupt_enable', True), # Enable SysTick interrupt, triggered at every overflow.
+            cfgs('systick_enable'          , True), # Enable SysTick counter.
+        )
 
 
 

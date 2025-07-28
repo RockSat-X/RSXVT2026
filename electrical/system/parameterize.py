@@ -576,6 +576,11 @@ def SYSTEM_PARAMETERIZE(target, options):
 
     def parameterize_systick():
 
+        draft.systick_enable = tree.systick_ck != 0
+
+        if not draft.systick_enable:
+            return True # SysTick won't be configured.
+
         for draft.systick_use_cpu_ck, cpu_ck_multiplier in database['systick_clock_source_cpu_ck_multiplier'].VALUE:
 
             tree.systick_kernel_freq = tree.cpu_ck * cpu_ck_multiplier
@@ -594,9 +599,7 @@ def SYSTEM_PARAMETERIZE(target, options):
 
 
 
-    brute(parameterize_systick, 'systick_reload', 'systick_use_cpu_ck')
-
-    defines += [('SYSTEM_SYSTICK_KERNEL_FREQ', tree.systick_kernel_freq)]
+    brute(parameterize_systick, 'systick_enable', 'systick_reload', 'systick_use_cpu_ck')
 
 
 
