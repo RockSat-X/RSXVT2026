@@ -2,6 +2,7 @@
 #include "defs.h"
 #include "misc.c"
 #include "SYSTEM_init.meta"
+#include "system/gpios.c"
 
 extern void
 HANDLER_Default(void)
@@ -19,6 +20,7 @@ extern noret void
 main(void)
 {
     SYSTEM_init();
+    GPIO_init();
 
     for(;;);
 }
