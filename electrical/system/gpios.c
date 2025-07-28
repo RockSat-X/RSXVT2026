@@ -169,7 +169,7 @@
 
         # Find the CSV file that STM32CubeMX can provide to get all of the alternate functions for GPIOs.
 
-        gpio_afsel_file_path = root(f'./electrical/system/gpio_afsel_{mcu}.csv')
+        gpio_afsel_file_path = root(f'./deps/mcu/{mcu}_gpios.csv')
 
         if not gpio_afsel_file_path.is_file():
             assert False, f'File `{gpio_afsel_file_path}` does not exist; use STM32CubeMX to generate the CSV file (clear pinout!).'

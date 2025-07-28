@@ -102,7 +102,7 @@ HANDLER_Reset:
 
             # Load the file which details the list of all interrupt routines supported by the MCU.
 
-            interrupt_vector_table_file = root(f'./electrical/system/interrupt_vector_table_{mcu}.txt')
+            interrupt_vector_table_file = root(f'./deps/mcu/{mcu}_interrupt_vector_table.txt')
 
             if not interrupt_vector_table_file.is_file():
                 with log(ansi = 'fg_red'):

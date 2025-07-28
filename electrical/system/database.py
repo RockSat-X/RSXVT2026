@@ -150,7 +150,7 @@ for mcu in TARGETS.mcus:
 
     # The database for the MCU is expressed as an S-expression in a separate text file that we then parse.
 
-    database_file_path = root(f'./electrical/system/database_{mcu}.txt')
+    database_file_path = root(f'./deps/mcu/{mcu}_database.txt')
 
     if not database_file_path.is_file():
         assert False
