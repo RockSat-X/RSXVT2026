@@ -26,3 +26,42 @@ delay(u32 ms)
     u32 end = systick_ms + ms;
     while (systick_ms < end);
 }
+
+#define sorry panic_(false);
+#define panic panic_(true)
+static noret void
+panic_(b32 hard_error)
+{
+    __disable_irq();
+
+    if (hard_error)
+    {
+        GPIO_HIGH(led_red);
+    }
+    else
+    {
+        GPIO_HIGH(led_yellow);
+    }
+
+    for (;;) // Here, the timing of the blinking is so that it is noticable even with different CPU clock speeds.
+    {
+        u32 i = 10'000'000;
+
+        for (; i > 1'000; i /= 2)
+        {
+            for (u32 j = 0; j < 8; j += 1)
+            {
+                delay_nop(i);
+
+                if (hard_error)
+                {
+                    GPIO_TOGGLE(led_red);
+                }
+                else
+                {
+                    GPIO_TOGGLE(led_yellow);
+                }
+            }
+        }
+    }
+}
