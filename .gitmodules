@@ -6,3 +6,7 @@
 	path = deps/CMSIS_6
 	url = https://github.com/ARM-software/CMSIS_6.git
 	branch = main
+[submodule "deps/FreeRTOS_Kernel"]
+	path = deps/FreeRTOS_Kernel
+	url = https://github.com/FreeRTOS/FreeRTOS-Kernel
+	branch = main
