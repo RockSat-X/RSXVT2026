@@ -8,20 +8,26 @@
 #include <FreeRTOS_Kernel/list.c>
 #include <port.c>
 
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 extern void
 HANDLER_Default(void)
 {
     for(;;);
 }
 
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define STACK_SIZE_A (400 / sizeof(u32))
-StaticTask_t xTaskBuffer_A          = {0};
-StackType_t  xStack_A[STACK_SIZE_A] = {0};
+
 
 static noret void
-vTaskCode_A(void*)
+task_a(void*)
 {
     for(;;)
     {
@@ -30,14 +36,14 @@ vTaskCode_A(void*)
     }
 }
 
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define STACK_SIZE_B (400 / sizeof(u32))
-StaticTask_t xTaskBuffer_B          = {0};
-StackType_t  xStack_B[STACK_SIZE_B] = {0};
+
 
 static noret void
-vTaskCode_B(void*)
+task_b(void*)
 {
     for(;;)
     {
@@ -46,14 +52,14 @@ vTaskCode_B(void*)
     }
 }
 
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define STACK_SIZE_C (400 / sizeof(u32))
-StaticTask_t xTaskBuffer_C          = {0};
-StackType_t  xStack_C[STACK_SIZE_C] = {0};
+
 
 static noret void
-vTaskCode_C(void*)
+task_c(void*)
 {
     for(;;)
     {
@@ -62,7 +68,11 @@ vTaskCode_C(void*)
     }
 }
 
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 
 extern noret void
 main(void)
@@ -70,9 +80,32 @@ main(void)
     SYSTEM_init();
     GPIO_init();
 
-    TaskHandle_t xHandle_A = xTaskCreateStatic(vTaskCode_A, "This is Task A", STACK_SIZE_A, nullptr, tskIDLE_PRIORITY, xStack_A, &xTaskBuffer_A);
-    TaskHandle_t xHandle_B = xTaskCreateStatic(vTaskCode_B, "This is Task B", STACK_SIZE_B, nullptr, tskIDLE_PRIORITY, xStack_B, &xTaskBuffer_B);
-    TaskHandle_t xHandle_C = xTaskCreateStatic(vTaskCode_C, "This is Task C", STACK_SIZE_C, nullptr, tskIDLE_PRIORITY, xStack_C, &xTaskBuffer_C);
+    #include "tasks.meta"
+    /* #meta
+
+        for task_name, stack_size, priority in (
+            ('task_a', 400, 'tskIDLE_PRIORITY'),
+            ('task_b', 400, 'tskIDLE_PRIORITY'),
+            ('task_c', 400, 'tskIDLE_PRIORITY'),
+        ):
+            Meta.line(f'''
+                static StackType_t  {task_name}_stack[({stack_size} / sizeof(u32))] = {{0}};
+                static StaticTask_t {task_name}_buffer = {{0}};
+                TaskHandle_t        {task_name}_handle =
+                    xTaskCreateStatic
+                    (
+                        {task_name},
+                        "{task_name}",
+                        countof({task_name}_stack),
+                        nullptr,
+                        {priority},
+                        {task_name}_stack,
+                        &{task_name}_buffer
+                    );
+            ''')
+
+    */
+
     vTaskStartScheduler();
 
     panic;
