@@ -175,7 +175,7 @@
         (16_000_000 0b11)
     )))
 
-    # @/pg 377/sec 8.7.10/`H7S3rm`.
+    # @/pg 438/sec 7.8.10/`H7S3rm`.
     (pll{UNIT}_predivider (RCC PLLCKSELR DIVM1) (minmax: 1 63) (UNIT = 1))
     (pll{UNIT}_predivider (RCC PLLCKSELR DIVM2) (minmax: 1 63) (UNIT = 2))
     (pll{UNIT}_predivider (RCC PLLCKSELR DIVM3) (minmax: 1 63) (UNIT = 3))
