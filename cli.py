@@ -86,7 +86,7 @@ def require(*needed_programs):
                 if shutil.which(program) is not None:
                     log(f'            - [located] {program}', ansi = 'fg_green')
                 else:
-                    log(f'            - [missing_program] {program}')
+                    log(f'            - [missing] {program}')
 
     # Arm GNU Toolchain.
     elif missing_program in (roster := [
@@ -108,7 +108,7 @@ def require(*needed_programs):
                 if shutil.which(program) is not None:
                     log(f'            - [located] {program}', ansi = 'fg_green')
                 else:
-                    log(f'            - [missing_program] {program}')
+                    log(f'            - [missing] {program}')
 
     # Picocom.
     elif missing_program in (roster := [
