@@ -1,0 +1,77 @@
+{
+    "version"        : "0.2.0",
+    "configurations" : [
+        {
+            "name"                    : "ST-LINK: Build and flash firmware.",
+            "type"                    : "cortex-debug",
+            "request"                 : "launch",
+            "servertype"              : "external",                                  // @/`External GDB-Server`.
+            "preLaunchTask"           : "Build the firmware and make a GDB-server.", // "
+            "gdbTarget"               : "localhost:61234",                           // "
+            "overrideRestartCommands" : ["monitor reset"],                           // "
+            "overrideLaunchCommands"  : ["load"],                                    // "
+            "executable"              : "./build/SandboxNucleoH7S3L8/SandboxNucleoH7S3L8.elf",
+            "breakAfterReset"         : false,
+        },
+        {
+            "name"                    : "ST-LINK: Build and flash firmware and stop at first instruction.",
+            "type"                    : "cortex-debug",
+            "request"                 : "launch",
+            "servertype"              : "external",                                  // @/`External GDB-Server`.
+            "preLaunchTask"           : "Build the firmware and make a GDB-server.", // "
+            "gdbTarget"               : "localhost:61234",                           // "
+            "overrideRestartCommands" : ["monitor reset"],                           // "
+            "overrideLaunchCommands"  : ["load"],                                    // "
+            "executable"              : "./build/SandboxNucleoH7S3L8/SandboxNucleoH7S3L8.elf",
+            "breakAfterReset"         : true,
+        },
+        {
+            "name"                    : "ST-LINK: Build and flash firmware and stop at main.",
+            "type"                    : "cortex-debug",
+            "request"                 : "launch",
+            "servertype"              : "external",                                  // @/`External GDB-Server`.
+            "preLaunchTask"           : "Build the firmware and make a GDB-server.", // "
+            "gdbTarget"               : "localhost:61234",                           // "
+            "overrideRestartCommands" : ["monitor reset"],                           // "
+            "overrideLaunchCommands"  : ["load"],                                    // "
+            "executable"              : "./build/SandboxNucleoH7S3L8/SandboxNucleoH7S3L8.elf",
+            "runToEntryPoint"         : "main",
+        },
+        {
+            "name"                    : "ST-LINK: Halt firmware and attach debugger.",
+            "type"                    : "cortex-debug",
+            "request"                 : "attach",
+            "servertype"              : "external",           // @/`External GDB-Server`.
+            "preLaunchTask"           : "Make a GDB-server.", // "
+            "gdbTarget"               : "localhost:61234",    // "
+            "overrideRestartCommands" : ["monitor reset"],    // "
+            "executable"              : "./build/SandboxNucleoH7S3L8/SandboxNucleoH7S3L8.elf",
+        },
+    ],
+}
+
+//////////////////////////////////////////////////////////////// Notes ////////////////////////////////////////////////////////////////
+
+// @/by Phuc Doan/on 2025-july-21/`External GDB-Server`:
+//
+// We use the cli.py script to create the GDB-server via ST-LINK_gdbserver
+// to which Visual Studio Code can use GDB to attach and debug the firmware.
+// While the entire debugging setup can be done entirely within VSC and
+// with the Cortex-Debug extension, this creates a unnecessary dependency on
+// having to use VSC itself.
+//
+// Some notes:
+//
+//     - By default, ST-LINK_gdbserver creates a port of "localhost:61234".
+//
+//     - By default, Cortex-Debug uses the command "monitor reset halt" to do a reset,
+//       but ST-LINK_gdbserver doesn't recognize this, but "monitor reset" seems to work.
+//
+//     - When launching, we reflash the firmware onto the microcontroller when the
+//       GDB session starts. There is a small chance, however, that the reflashing
+//       can fail, to which the solution is simply to just try again.
+//       We could try to rebuild and reflash the firmware *before* starting the GDB
+//       session, but then the MCU will be running some of the code before GDB can attach.
+//       Perhaps a solution to this is somehow make STM32_Programmer_CLI halt the core
+//       after flashing the new firmware, but I've spent 5-10 minutes trying to do this
+//       and nothing seems to work, but I could just be missing something small.

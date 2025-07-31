@@ -1,0 +1,86 @@
+{
+    "version" : "2.0.0",
+    "tasks"   : [
+        {
+            "label"          : "Build the firmware.", // Use CTRL-SHIFT-B to build.
+            "type"           : "shell",
+            "command"        : "./cli.py",
+            "args"           : ["build"],
+            "problemMatcher" : [],
+            "group"          : {
+                "kind"       : "build",
+                "isDefault"  : true,
+            },
+        },
+        {
+            "label"          : "Flash the firmware.",
+            "type"           : "shell",
+            "command"        : "./cli.py",
+            "args"           : ["flash"],
+            "problemMatcher" : [],
+        },
+        { // @/`Deferred Task`.
+            "label"     : "Make a GDB-server.",
+            "dependsOn" : ["Make a GDB-server (deferred)."],
+        },
+        {
+            "label"          : "Make a GDB-server (deferred).",
+            "type"           : "shell",
+            "command"        : "./cli.py",
+            "args"           : ["debug", "--just-gdbserver"],
+            "isBackground"   : true,
+            "hide"           : true,
+            "problemMatcher" : [ // @/`problemMatcher`.
+                {
+                    "pattern": [
+                        {
+                            "regexp"   : ".",
+                            "file"     : 1,
+                            "location" : 2,
+                            "message"  : 3,
+                        },
+                    ],
+                    "background": {
+                        "activeOnStart" : true,
+                        "beginsPattern" : ".",
+                        "endsPattern"   : ".",
+                    },
+                },
+            ],
+        },
+        {
+            "label"        : "Build the firmware and make a GDB-server.",
+            "dependsOn"    : ["Build the firmware.", "Make a GDB-server."],
+            "dependsOrder" : "sequence",
+            "hide"         : true,
+        },
+    ]
+}
+
+//////////////////////////////////////////////////////////////// Notes ////////////////////////////////////////////////////////////////
+
+// @/by Phuc Doan/on 2025-july-20/`problemMatcher`:
+// @/url:`https://stackoverflow.com/a/54017304`.
+//
+// Visual Studio Code is absolute dogwater in that it forces you to define a problem-matcher for tasks that
+// run in the background (so it can find error messages and such in the output, I guess) even if you don't need it.
+// If we don't define one, then either a pop-up will appear where VSC complains about this or the start of the
+// debug session is delayed by ~5 seconds unnecessarily.
+// I've tried null, [], and "", but to actually get around this, a dummy problem-matcher is needed.
+// I doubt this is the best solution, but right now it works.
+
+// @/by Phuc Doan/on 2025-july-20/`Deferred Task`:
+//
+// For some inexplicable reason, sometimes starting a debugging session will not work because of the
+// "problemMatcher" not letting the background task be marked as "done" so that the GDB session can begin (I think).
+// As a result, starting a debugging session might work at first, but after ending it and starting a new one,
+// the GDB-server would be created but then VSC never move on from it to actually start debugging.
+//
+// Modifying the values in the Visual Studio Code JSON files and saving (and then maybe reverting them back)
+// seems to kick out of this bugged state, which suggests this is a problem with VSC and not with the cli.py script.
+//
+// The solution I found after banging my head around this?
+// To wrap the GDB-server task with a compound task.
+// With that, debugging is now much more consistent.
+//
+// As of writing, I was using VSC on version 1.102.1.

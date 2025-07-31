@@ -1,0 +1,25 @@
+{
+    "version"        : 4,
+    "configurations" : [
+        { // @/`IntelliSense Definition`.
+            "name"             : "",
+            "compilerPath"     : "arm-none-eabi-gcc",
+            "cStandard"        : "c23",
+            "intelliSenseMode" : "gcc-arm",
+            "includePath"      : [
+                "${workspaceFolder}/build/meta",
+                "${workspaceFolder}/deps/CMSIS_6/CMSIS/Core/Include",
+                "${workspaceFolder}/deps/cmsis_device_h7s3l8/Include"
+            ],
+            "defines": [
+            ]
+        }
+    ]
+}
+
+//////////////////////////////////////////////////////////////// Notes ////////////////////////////////////////////////////////////////
+
+// @/by Phuc Doan/on 2025-july-24/`IntelliSense Definition`:
+// The IntelliSense here is not very well tested;
+// it seems to work, but as of now, I'm not going to put in the effort to ensure
+// it continues to work and work well at that.
