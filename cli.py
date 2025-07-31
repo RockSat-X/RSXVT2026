@@ -421,7 +421,7 @@ def build(
 
     elapsed = 0
 
-    def metadirective_callback(info):
+    def metadirective_callback(index, meta_directives):
 
         nonlocal elapsed
 
@@ -429,7 +429,7 @@ def build(
 
         # Log information about the meta-directive that we're about to evaluate.
 
-        export_preview = ', '.join(info.exports)
+        export_preview = ', '.join(meta_directives[index].exports)
 
         if export_preview:
 
@@ -440,13 +440,13 @@ def build(
 
 
         log('| {nth}/{count} | {src} : {line} |{export_preview}'.format(
-            count          = len(info.meta_directives),
+            count          = len(meta_directives),
             export_preview = export_preview,
             **ljusts({
                 'nth'  : meta_directive_i + 1,
                 'src'  : meta_directive.source_file_path,
-                'line' : meta_directive.header_line_number,
-            } for meta_directive_i, meta_directive in enumerate(info.meta_directives))[info.index],
+                'line' : meta_directive.meta_header_line_number,
+            } for meta_directive_i, meta_directive in enumerate(meta_directives))[index],
         ))
 
 
@@ -472,9 +472,9 @@ def build(
 
     try:
         deps.pxd.metapreprocessor.do(
-            output_dir_path   = root(BUILD, 'meta'),
-            source_file_paths = metapreprocessor_file_paths,
-            callback          = metadirective_callback,
+            output_directory_path = root(BUILD, 'meta'),
+            source_file_paths     = metapreprocessor_file_paths,
+            callback              = metadirective_callback,
         )
     except deps.pxd.metapreprocessor.MetaError as err:
         sys.exit(err)
