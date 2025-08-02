@@ -10,7 +10,7 @@
             "gdbTarget"               : "localhost:61234",                           // "
             "overrideRestartCommands" : ["monitor reset"],                           // "
             "overrideLaunchCommands"  : ["load"],                                    // "
-            "executable"              : "./build/SandboxNucleoH7S3L8/SandboxNucleoH7S3L8.elf",
+            "executable"              : "./build/${input:TARGET}/${input:TARGET}.elf",
             "breakAfterReset"         : false,
         },
         {
@@ -22,7 +22,7 @@
             "gdbTarget"               : "localhost:61234",                           // "
             "overrideRestartCommands" : ["monitor reset"],                           // "
             "overrideLaunchCommands"  : ["load"],                                    // "
-            "executable"              : "./build/SandboxNucleoH7S3L8/SandboxNucleoH7S3L8.elf",
+            "executable"              : "./build/${input:TARGET}/${input:TARGET}.elf",
             "breakAfterReset"         : true,
         },
         {
@@ -34,7 +34,7 @@
             "gdbTarget"               : "localhost:61234",                           // "
             "overrideRestartCommands" : ["monitor reset"],                           // "
             "overrideLaunchCommands"  : ["load"],                                    // "
-            "executable"              : "./build/SandboxNucleoH7S3L8/SandboxNucleoH7S3L8.elf",
+            "executable"              : "./build/${input:TARGET}/${input:TARGET}.elf",
             "runToEntryPoint"         : "main",
         },
         {
@@ -45,7 +45,7 @@
             "preLaunchTask"           : "Make a GDB-server.", // "
             "gdbTarget"               : "localhost:61234",    // "
             "overrideRestartCommands" : ["monitor reset"],    // "
-            "executable"              : "./build/SandboxNucleoH7S3L8/SandboxNucleoH7S3L8.elf",
+            "executable"              : "./build/${input:TARGET}/${input:TARGET}.elf",
         },
     ],
 }

@@ -1,11 +1,18 @@
 {
     "version" : "2.0.0",
+    "inputs": [
+        {
+            "id"          : "TARGET",
+            "type"        : "promptString",
+            "description" : "The target to build, flash, and debug.",
+        }
+    ],
     "tasks"   : [
         {
             "label"          : "Build the firmware.", // Use CTRL-SHIFT-B to build.
             "type"           : "shell",
             "command"        : "./cli.py",
-            "args"           : ["build"],
+            "args"           : ["build", "${input:TARGET}"],
             "problemMatcher" : [],
             "group"          : {
                 "kind"       : "build",
@@ -16,7 +23,7 @@
             "label"          : "Flash the firmware.",
             "type"           : "shell",
             "command"        : "./cli.py",
-            "args"           : ["flash"],
+            "args"           : ["flash", "${input:TARGET}"],
             "problemMatcher" : [],
         },
         { // @/`Deferred Task`.
