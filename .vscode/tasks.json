@@ -11,8 +11,8 @@
         {
             "label"          : "Build the firmware.", // Use CTRL-SHIFT-B to build.
             "type"           : "shell",
-            "command"        : "./cli.py",
-            "args"           : ["build", "${input:TARGET}"],
+            "command"        : "python",
+            "args"           : ["./cli.py", "build", "${input:TARGET}"],
             "problemMatcher" : [],
             "group"          : {
                 "kind"       : "build",
@@ -22,8 +22,8 @@
         {
             "label"          : "Flash the firmware.",
             "type"           : "shell",
-            "command"        : "./cli.py",
-            "args"           : ["flash", "${input:TARGET}"],
+            "command"        : "python",
+            "args"           : ["./cli.py", "flash", "${input:TARGET}"],
             "problemMatcher" : [],
         },
         { // @/`Deferred Task`.
@@ -33,8 +33,8 @@
         {
             "label"          : "Make a GDB-server (deferred).",
             "type"           : "shell",
-            "command"        : "./cli.py",
-            "args"           : ["debug", "--just-gdbserver"],
+            "command"        : "python",
+            "args"           : ["./cli.py", "debug", "--just-gdbserver"],
             "isBackground"   : true,
             "hide"           : true,
             "problemMatcher" : [ // @/`problemMatcher`.
