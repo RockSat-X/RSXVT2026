@@ -4,7 +4,7 @@
         {
             "id"          : "TARGET",
             "type"        : "promptString",
-            "description" : "The target to build, flash, and debug.",
+            "description" : "The target to build, flash, and debug; an empty input will select the target automatically.",
         }
     ],
     "tasks"   : [
