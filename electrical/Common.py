@@ -1,4 +1,4 @@
-#meta types, root, justify, coalesce, mk_dict, find_dupe, OrderedSet, ContainedNamespace, AllocatingNamespace, log, ANSI, CMSIS_SET, CMSIS_WRITE, CMSIS_SPINLOCK, TARGETS :
+#meta types, root, justify, coalesce, mk_dict, find_dupe, OrderedSet, ContainedNamespace, AllocatingNamespace, log, ANSI, CMSIS_SET, CMSIS_WRITE, CMSIS_SPINLOCK, STLINK_BAUD, TARGETS :
 # TODO Provide explaination on how this file works?
 
 import types
@@ -224,6 +224,13 @@ def CMSIS_SPINLOCK(*spinlocks):
 
 
 ################################################################################################################################
+
+
+#
+# Communication speed with the ST-Link.
+#
+
+STLINK_BAUD = 1_000_000
 
 
 

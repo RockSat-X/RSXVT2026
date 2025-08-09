@@ -37,7 +37,7 @@ except ModuleNotFoundError as error:
 
 # Common definitions with the meta-preprocessor.
 
-from electrical.Common import TARGETS, BUILD
+from electrical.Common import STLINK_BAUD, TARGETS, BUILD
 
 
 
@@ -810,6 +810,65 @@ def debug(parameters):
         bash                  = f'set -m; {gdbserver} 1> /dev/null 2> /dev/null & {gdb}',
         powershell            = f'{gdbserver} & {gdb}',
         keyboard_interrupt_ok = True, # Happens whenever we halt execution in GDB using CTRL-C.
+    )
+
+
+
+################################################################################################################################
+
+
+
+@ui(
+    {
+        'description' : 'Open the COM serial port of the ST-Link.',
+    },
+)
+def talk(parameters):
+
+    if sys.platform == 'linux':
+        require('picocom')
+
+    stlink = request_stlinks(specific_one = True)
+
+    execute(
+
+
+
+        # Picocom's pretty good!
+
+        bash = f'''
+            picocom --baud={STLINK_BAUD} --quiet --imap=lfcrlf {stlink.comport.device}
+        ''',
+
+
+
+        # The only reason why PowerShell is used here is because there's no convenient way
+        # in Python to read a single character from STDIN with no blocking and buffering.
+        # Furthermore, the serial port on Windows seem to be buffered up, so data before the
+        # port is opened for reading is available to fetch; PySerial only returns data sent after
+        # the port is opened.
+
+        powershell = f'''
+            $port = new-Object System.IO.Ports.SerialPort {stlink.comport.device},{STLINK_BAUD},None,8,one;
+            $port.Open();
+            try {{
+                while ($true) {{
+                    Write-Host -NoNewline $port.ReadExisting();
+                    if ([System.Console]::KeyAvailable) {{
+                        $port.Write([System.Console]::ReadKey($true).KeyChar);
+                    }}
+                    Start-Sleep -Milliseconds 1;
+                }}
+            }} finally {{
+                $port.Close();
+            }}
+        ''',
+
+
+
+        # Whenever we close the port using CTRL-C, a KeyboardInterrupt exception is raised as a false-positive.
+
+        keyboard_interrupt_ok = True,
     )
 
 

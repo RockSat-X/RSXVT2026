@@ -19,7 +19,7 @@
             'apb2_ck'       : 150_000_000,
             'apb4_ck'       : 150_000_000,
             'apb5_ck'       : 150_000_000,
-            'usart3_baud'   :   1_000_000,
+            'usart3_baud'   : STLINK_BAUD,
         },
 
     }
@@ -27,11 +27,13 @@
     GPIOS = MK_GPIOS({
 
         'SandboxNucleoH7S3L8' : (
-            ('led_red'   , 'B7' , 'output'    , { 'initlvl' : False }),
-            ('led_yellow', 'D13', 'output'    , { 'initlvl' : False }),
-            ('led_green' , 'D10', 'output'    , { 'initlvl' : False }),
-            ('swdio'     , 'A13', 'reserved'  , {                   }),
-            ('swclk'     , 'A14', 'reserved'  , {                   }),
+            ('led_red'   , 'B7' , 'output'    , { 'initlvl' : False       }),
+            ('led_yellow', 'D13', 'output'    , { 'initlvl' : False       }),
+            ('led_green' , 'D10', 'output'    , { 'initlvl' : False       }),
+            ('jig_tx'    , 'D8' , 'alternate' , { 'altfunc' : 'USART3_TX' }),
+            ('jig_rx'    , 'D9' , 'alternate' , { 'altfunc' : 'USART3_RX' }),
+            ('swdio'     , 'A13', 'reserved'  , {                         }),
+            ('swclk'     , 'A14', 'reserved'  , {                         }),
         ),
 
     })
@@ -111,3 +113,28 @@
 
 
 #include "system/defs.h"
+
+
+
+//////////////////////////////////////////////////////////////// jig.c ////////////////////////////////////////////////////////////////
+
+
+
+struct Jig
+{
+    volatile u32  reception_reader;
+    volatile u32  reception_writer;
+    volatile char reception_buffer[1 << 5];
+};
+
+
+
+//////////////////////////////////////////////////////////////// Globals ////////////////////////////////////////////////////////////////
+
+
+
+#if TARGET_NAME_IS_SandboxNucleoH7S3L8
+
+    static struct Jig _JIG = {0};
+
+#endif
