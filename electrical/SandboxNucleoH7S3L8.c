@@ -1,6 +1,5 @@
 #include <stm32h7s3xx.h>
 #include "defs.h"
-#include "SYSTEM_init.meta"
 #include "system/gpios.c"
 #include "misc.c"
 #include <FreeRTOS_Kernel/tasks.c>
