@@ -610,6 +610,6 @@ def SYSTEM_PARAMETERIZE(target, options):
     #
 
     if leftovers := options.keys() - used_options:
-        log(ANSI(f'[WARNING] There are leftover {mcu} options: {leftovers}.', 'fg_yellow'))
+        log(ANSI(f'[WARNING] There are leftover {target.mcu} options: {leftovers}.', 'fg_yellow'))
 
     return dict(configurations), defines
