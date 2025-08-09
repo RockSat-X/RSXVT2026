@@ -8,11 +8,13 @@ JIG_tx_raw(u8* data, i32 length)
     }
 }
 
+
+
+#define JIG_tx(...) fctprintf(&_JIG_fctprintf_callback, nullptr, __VA_ARGS__)
 static void
-JIG_tx(char* format)
+_JIG_fctprintf_callback(char character, void*)
 {
-    i32 length = strlen(format);
-    JIG_tx_raw((u8*) format, length);
+    JIG_tx_raw(&(u8) { character }, 1);
 }
 
 
