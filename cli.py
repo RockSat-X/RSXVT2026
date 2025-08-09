@@ -192,7 +192,6 @@ def require(*needed_programs):
 
 
 ################################################################################################################################
-
 #
 # Routine for logging out ST-Links as a table.
 #
@@ -223,6 +222,7 @@ def log_stlinks(stlinks):
 
 
 
+################################################################################################################################
 #
 # Routine for finding ST-Links.
 #
@@ -233,14 +233,17 @@ def request_stlinks(
     specific_probe_index = None,
 ):
 
+
+
     # Parse output of STM32_Programmer_CLI's findings.
-    #
-    # e.g.
-    #     ST-Link Probe 0 :
-    #        ST-LINK SN  : 003F00493133510F37363734
-    #        ST-LINK FW  : V3J15M7
-    #        Access Port Number  : 2
-    #        Board Name  : NUCLEO-H7S3L8
+    # e.g:
+    # >
+    # >    ST-Link Probe 0 :
+    # >       ST-LINK SN  : 003F00493133510F37363734
+    # >       ST-LINK FW  : V3J15M7
+    # >       Access Port Number  : 2
+    # >       Board Name  : NUCLEO-H7S3L8
+    # >
 
     require('STM32_Programmer_CLI')
 
@@ -316,6 +319,7 @@ def request_stlinks(
 
 
 
+################################################################################################################################
 #
 # Routine for executing shell commands.
 #
@@ -381,27 +385,27 @@ def execute(
         command = ['pwsh', '-Command', command]
 
     try:
-        exit_code = subprocess.call(command, shell = True)
+        subprocess_exit_code = subprocess.call(command, shell = True)
     except KeyboardInterrupt:
         if keyboard_interrupt_ok:
-            exit_code = None
+            subprocess_exit_code = None
         else:
             raise
 
-    if exit_code and not nonzero_exit_code_ok:
+    if subprocess_exit_code and not nonzero_exit_code_ok:
         log()
-        log(ANSI(f'[ERROR] Shell command exited with a non-zero code of {exit_code}.', 'fg_red'))
-        raise ExitCode(exit_code)
+        log(ANSI(f'[ERROR] Shell command exited with a non-zero code of {subprocess_exit_code}.', 'fg_red'))
+        raise ExitCode(subprocess_exit_code)
 
-    return exit_code
+    return subprocess_exit_code
 
 
 
-#
-# This Python script's user-interface constructor.
-#
+################################################################################################################################
 
-def ui_hook(verb, parameters):
+
+
+def ui_verb_hook(verb, parameters):
 
     start = time.time()
     yield
@@ -411,10 +415,12 @@ def ui_hook(verb, parameters):
         log()
         log(f'> "{verb.name}" took: {elapsed :.3f}s')
 
+
+
 ui = deps.pxd.ui.UI(
     f'{root(pathlib.Path(__file__).name)}',
     f'The command line program (pronounced "clippy").',
-    ui_hook,
+    ui_verb_hook,
 )
 
 
@@ -425,7 +431,7 @@ ui = deps.pxd.ui.UI(
 
 @ui(
     {
-        'description' : f'Delete all build artifacts.',
+        'description' : 'Delete all build artifacts.',
     },
 )
 def clean(parameters):
@@ -482,10 +488,13 @@ def build(parameters):
 
     # Logging routine for outputting nice dividers in stdout.
 
-    def log_header(header):
-        log()
-        log(ANSI(f'{'>' * 32} {header} {'<' * 32}', 'bold', 'fg_bright_black'))
-        log()
+    def log_header(message):
+
+        log(f'''
+
+            {ANSI(f'{'>' * 32} {message} {'<' * 32}', 'bold', 'fg_bright_black')}
+
+        ''')
 
 
 
@@ -510,7 +519,7 @@ def build(parameters):
 
 
 
-        # Log information about the meta-directive that we're about to evaluate.
+        # Show some of the symbols that this meta-directive will export.
 
         export_preview = ', '.join(meta_directives[index].exports)
 
@@ -521,6 +530,9 @@ def build(parameters):
 
             export_preview = ' ' + export_preview
 
+
+
+        # Log the evaluation of the meta-directive.
 
         just_nth, just_src, just_line = justify(
             (
@@ -535,7 +547,7 @@ def build(parameters):
 
 
 
-        # Record how long it took to run this meta-directive.
+        # Record how long it takes to run this meta-directive.
 
         start  = time.time()
         output = yield
@@ -546,7 +558,6 @@ def build(parameters):
             log(ANSI(f'^ {delta :.3}s', 'fg_yellow')) # Warn that this meta-directive took quite a while to execute.
 
         elapsed += delta
-
 
 
 
@@ -568,7 +579,7 @@ def build(parameters):
     log(ANSI(f'# Meta-preprocessor : {elapsed :.3f}s.', 'fg_magenta'))
 
     if parameters.metapreprocess_only:
-        return
+        raise ExitCode(0)
 
 
 
@@ -660,27 +671,10 @@ def build(parameters):
         'name'        : 'target',
         'description' : 'Name of the target MCU to program.',
         'type'        : { target.name : target for target in TARGETS },
-        'default'     : None,
+        'default'     : TARGETS[0] if len(TARGETS) == 1 else ...,
     },
 )
 def flash(parameters):
-
-    # If there's only one target that can be programmed, use that by default.
-
-    if parameters.target is None:
-
-        if len(TARGETS) >= 2:
-            ui.help(subcommand_name = 'flash')
-            log()
-            with ANSI('fg_red'):
-                log('[ERROR] Please specify the target to flash; see the list of targets above.')
-            raise ExitCode(1)
-
-        target, = TARGETS
-
-    else:
-
-        target = parameters.target
 
 
 
@@ -693,33 +687,49 @@ def flash(parameters):
 
     while True:
 
+
+
         # Maxed out attempts?
+
         if attempts == 3:
-            log()
             with ANSI('fg_red'):
-                log('[ERROR] Failed to flash; this might be because...')
-                log('        - the binary file haven\'t been built yet.')
-                log('        - the ST-Link is being used by a another program.')
-                log('        - the ST-Link has disconnected.')
-                log('        - ... or something else entirely!')
+                log('''
+
+                    [ERROR] Failed to flash; this might be because...
+                            - the binary file haven\'t been built yet.
+                            - the ST-Link is being used by a another program.
+                            - the ST-Link has disconnected.
+                            - ... or something else entirely!
+                ''')
             raise ExitCode(1)
 
+
+
         # Not the first try?
+
         elif attempts:
-            log()
-            log(ANSI('[WARNING] Failed to flash (maybe due to verification error); trying again...', 'fg_yellow'))
-            log()
+            log('''
+
+                {ANSI('[WARNING] Failed to flash (maybe due to verification error); trying again...', 'fg_yellow')}
+
+            ''')
+
+
 
         # Try flashing.
+
         exit_code = execute(f'''
             STM32_Programmer_CLI
                 --connect port=SWD index={stlink.probe_index}
-                --download {repr(str(root(BUILD, target.name, target.name + '.bin')))} 0x08000000
+                --download {repr(str(root(BUILD, parameters.target.name, parameters.target.name + '.bin')))} 0x08000000
                 --verify
                 --start
         ''', nonzero_exit_code_ok = True)
 
+
+
         # Try again if needed.
+
         if exit_code:
             attempts += 1
         else:
@@ -739,7 +749,7 @@ def flash(parameters):
         'name'        : 'target',
         'description' : 'Name of target MCU to debug.',
         'type'        : { target.name : target for target in TARGETS },
-        'default'     : None,
+        'default'     : TARGETS[0] if len(TARGETS) == 1 else ...,
     },
     {
         'name'        : 'just_gdbserver',
@@ -749,6 +759,8 @@ def flash(parameters):
     },
 )
 def debug(parameters):
+
+
 
     # Set up the GDB-server.
 
@@ -776,31 +788,12 @@ def debug(parameters):
 
 
 
-    # If there's only one target that can be programmed, use that by default.
-
-    if parameters.target is None:
-
-        if len(TARGETS) >= 2:
-            ui.help(subcommand_name = 'debug')
-            log()
-            with ANSI('fg_red'):
-                log('[ERROR] Please specify the target to debug; see the list of targets above.')
-            raise ExitCode(1)
-
-        target, = TARGETS
-
-    else:
-
-        target = parameters.target
-
-
-
     # Set up GDB.
 
     require('arm-none-eabi-gdb')
 
     gdb_init = f'''
-        file {repr(str(root(BUILD, target.name, target.name + '.elf').as_posix()))}
+        file {repr(str(root(BUILD, parameters.target.name, parameters.target.name + '.elf').as_posix()))}
         target extended-remote localhost:61234
         with pagination off -- focus cmd
     '''
@@ -816,7 +809,7 @@ def debug(parameters):
     execute(
         bash                  = f'set -m; {gdbserver} 1> /dev/null 2> /dev/null & {gdb}',
         powershell            = f'{gdbserver} & {gdb}',
-        keyboard_interrupt_ok = True, # Whenever we halt execution in GDB using CTRL-C, a KeyboardInterrupt exception is raised, but this is a false-positive.
+        keyboard_interrupt_ok = True, # Happens whenever we halt execution in GDB using CTRL-C.
     )
 
 
