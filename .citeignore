@@ -1,0 +1,6 @@
+.git/
+build/
+deps/
+!deps/pxd/
+!deps/mcu/
+*.swp

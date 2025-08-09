@@ -268,7 +268,6 @@ def SYSTEM_PARAMETERIZE(target, options):
     # Built-in oscillators.
     #
     # @/pg 354/fig 40/`H7S3rm`.
-    # @/pg 319/fig 45/`H730rm`.
     #
 
 
@@ -278,19 +277,16 @@ def SYSTEM_PARAMETERIZE(target, options):
 
         # General high-speed-internal oscillator. TODO Handle other frequencies.
         # @/pg 361/sec 7.5.2/`H7S3rm`.
-        # @/pg 322/sec 8.5.2/`H730rm`.
         configurations.hsi_enable = opts('hsi_enable')
         tree.hsi_ck               = 64_000_000 if configurations.hsi_enable else 0
 
         # High-speed-internal oscillator (48MHz).
         # @/pg 363/sec 7.5.2/`H7S3rm`.
-        # @/pg 324/sec 8.5.2/`H730rm`.
         configurations.hsi48_enable = opts('hsi48_enable')
         tree.hsi48_ck               = 48_000_000 if configurations.hsi48_enable else 0
 
         # "Clock Security System" oscillator (fixed at ~4MHz).
         # @/pg 362/sec 7.5.2/`H7S3rm`.
-        # @/pg 323/sec 8.5.2/`H730rm`.
         configurations.csi_enable = opts('csi_enable')
         tree.csi_ck               = 4_000_000 if configurations.csi_enable else 0
 
@@ -322,7 +318,6 @@ def SYSTEM_PARAMETERIZE(target, options):
     # Parameterize the PLL subsystem.
     #
     # @/pg 371/fig 48/`H7S3rm`. @/pg 354/fig 40/`H7S3rm`.
-    # @/pg 327/fig 47/`H730rm`. @/pg 319/fig 45/`H730rm`.
     #
 
 
@@ -484,7 +479,6 @@ def SYSTEM_PARAMETERIZE(target, options):
     # Parameterize the System Clock Generation Unit.
     #
     # @/pg 378/fig 51/`H7S3rm`.
-    # @/pg 332/fig 49/`H730rm`.
     #
 
 
@@ -575,9 +569,8 @@ def SYSTEM_PARAMETERIZE(target, options):
     #
     # Parameterize SysTick.
     #
-    # @/pg 620/sec B3.3/`ARMv7-M`.
+    # @/pg 620/sec B3.3/`Armv7-M`.
     # @/pg 378/fig 51/`H7S3rm`.
-    # @/pg 332/fig 49/`H730rm`.
     #
 
 

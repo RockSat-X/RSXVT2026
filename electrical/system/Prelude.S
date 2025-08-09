@@ -3,7 +3,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// @/on 2025-july-25/by:`Phuc Doan`.
+// @/by:`Phuc Doan`.
 // The "HANDLER_Default_indirect" here just simply calls "HANDLER_Default" that's defined in a different object file.
 // This is due to the fact that every interrupt routine is a weak symbol which the user can overwrite by defining the symbol;
 // if the user doesn't do so, then the weak symbol defaults to "HANDLER_Default_indirect".
@@ -69,9 +69,9 @@ HANDLER_Reset:
     // Must be done here since GCC can emit vector push/pop instructions on entering main
     // that'd otherwise emit an illegal instruction fault.
 
-    ldr r0, =0xE000ED88                     // CPACR register address. @/pg 597/tbl B3-4/`ARMv7-M`.
+    ldr r0, =0xE000ED88                     // CPACR register address. @/pg 597/tbl B3-4/`Armv7-M`.
     ldr r1, [r0]
-    orr r1, r1, (0b11 << 22) | (0b11 << 20) // Full access to coprocessor 10 and 11. @/pg 614/sec B3.2.20/`ARMv7-M`.
+    orr r1, r1, (0b11 << 22) | (0b11 << 20) // Full access to coprocessor 10 and 11. @/pg 614/sec B3.2.20/`Armv7-M`.
     str r1, [r0]
 
 

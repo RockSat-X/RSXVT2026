@@ -66,7 +66,7 @@
 
 //////////////////////////////////////////////////////////////// Notes ////////////////////////////////////////////////////////////////
 
-// @/by Phuc Doan/on 2025-july-20/`problemMatcher`:
+// @/`problemMatcher`:
 // @/url:`https://stackoverflow.com/a/54017304`.
 //
 // Visual Studio Code is absolute dogwater in that it forces you to define a problem-matcher for tasks that
@@ -76,7 +76,7 @@
 // I've tried null, [], and "", but to actually get around this, a dummy problem-matcher is needed.
 // I doubt this is the best solution, but right now it works.
 
-// @/by Phuc Doan/on 2025-july-20/`Deferred Task`:
+// @/`Deferred Task`:
 //
 // For some inexplicable reason, sometimes starting a debugging session will not work because of the
 // "problemMatcher" not letting the background task be marked as "done" so that the GDB session can begin (I think).

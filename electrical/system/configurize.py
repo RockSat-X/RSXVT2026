@@ -159,7 +159,6 @@ def SYSTEM_CONFIGURIZE(target, configurations):
     # time for the data stored in the flash memory to stablize for read operations;
     # this delay varies based on voltage and clock frequency.
     # @/pg 210/sec 5.3.7/`H7S3rm`.
-    # @/pg 159/sec 4.3.8/`H730rm`.
 
     put_title('Flash')
 
@@ -195,7 +194,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
     # The power supply setup must be configured first before configuring VOS or the system clock frequency.
     # @/pg 323/sec 6.8.4/`H7S3rm`.
-    # @/pg 287/sec 6.8.4/`H730rm`.
+
     CMSIS_SET(
         cfgs(configuration, ...)
         for configuration in (
@@ -400,7 +399,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
         CMSIS_SET(
             cfgs('systick_reload'          , ... ), # Modulation of the counter.
             cfgs('systick_use_cpu_ck'      , ... ), # Use CPU clock or the vendor-provided one.
-            cfgs('systick_counter'         , 0   ), # "The SYST_CVR value is UNKNOWN on reset." @/pg 620/sec B3.3.1/`ARMv7-M`.
+            cfgs('systick_counter'         , 0   ), # "The SYST_CVR value is UNKNOWN on reset." @/pg 620/sec B3.3.1/`Armv7-M`.
             cfgs('systick_interrupt_enable', True), # Enable SysTick interrupt, triggered at every overflow.
             cfgs('systick_enable'          , True), # Enable SysTick counter.
         )

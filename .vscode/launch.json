@@ -52,7 +52,7 @@
 
 //////////////////////////////////////////////////////////////// Notes ////////////////////////////////////////////////////////////////
 
-// @/by Phuc Doan/on 2025-july-21/`External GDB-Server`:
+// @/`External GDB-Server`:
 //
 // We use the cli.py script to create the GDB-server via ST-LINK_gdbserver
 // to which Visual Studio Code can use GDB to attach and debug the firmware.
