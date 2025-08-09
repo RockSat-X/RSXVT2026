@@ -1,7 +1,7 @@
 #define CONCAT_(X, Y) X##Y
 #define CONCAT(X, Y)  CONCAT_(X, Y)
 
-ENTRY(HANDLER_Reset) /* Just to indicate where program execution would begin for debugging purposes; doesn't actually affect anything. */
+ENTRY(__INTERRUPT_Reset) /* Just to indicate where program execution would begin for debugging purposes; doesn't actually affect anything. */
 
 MEMORY
 {

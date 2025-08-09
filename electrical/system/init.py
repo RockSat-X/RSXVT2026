@@ -34,4 +34,3 @@ def _(target):
 
     for name, expansion in defines:
         Meta.define(name, expansion)
-

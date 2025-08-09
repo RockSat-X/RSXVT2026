@@ -14,8 +14,7 @@
 
 
 
-extern void
-HANDLER_Default(void)
+INTERRUPT(Default)
 {
     for(;;);
 }

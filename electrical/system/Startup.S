@@ -1,13 +1,14 @@
 .syntax unified
 
 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // @/by:`Phuc Doan`.
-// The "HANDLER_Default_indirect" here just simply calls "HANDLER_Default" that's defined in a different object file.
+// The "__INTERRUPT_Default_indirect" here just simply calls "__INTERRUPT_Default" that's defined in a different object file.
 // This is due to the fact that every interrupt routine is a weak symbol which the user can overwrite by defining the symbol;
-// if the user doesn't do so, then the weak symbol defaults to "HANDLER_Default_indirect".
-// The reason why it's not "HANDLER_Default" itself is because "HANDLER_Default" is a symbol that's also defined in a separate
+// if the user doesn't do so, then the weak symbol defaults to "__INTERRUPT_Default_indirect".
+// The reason why it's not "__INTERRUPT_Default" itself is because "__INTERRUPT_Default" is a symbol that's also defined in a separate
 // object file, and the limitation of weak symbols restrict it so that its default value can only be to something that's within
 // the same object file the weak symbol is defined in.
 // Annoying!
@@ -15,8 +16,8 @@
 
 .section .text
 .thumb_func
-HANDLER_Default_indirect:
-    b HANDLER_Default
+__INTERRUPT_Default_indirect:
+    b __INTERRUPT_Default
 
 
 
@@ -26,8 +27,8 @@ HANDLER_Default_indirect:
 
 .section .text
 .thumb_func
-.global HANDLER_Reset
-HANDLER_Reset:
+.global __INTERRUPT_Reset
+__INTERRUPT_Reset:
 
 
 
@@ -89,10 +90,12 @@ HANDLER_Reset:
 .section .vector_table, "a"
 
     .word LINK_stack_addr
-    .word HANDLER_Reset
+    .word __INTERRUPT_Reset
 
     #include "interrupt_vector_table.meta"
-    /* #meta
+    /* #meta USER_DEFINED_INTERRUPTS
+
+        USER_DEFINED_INTERRUPTS = { mcu : ['Default'] for mcu in TARGETS.mcus }
 
         @Meta.ifs(TARGETS.mcus, style = '#if')
         def _(mcu):
@@ -153,9 +156,12 @@ HANDLER_Reset:
                     # These interrupt routines will be implemented by the user, if at all.
 
                     case _:
+
                         Meta.line(
-                            f'.word HANDLER_{entry}'                           , # Insert the address of the handler routine.
-                            f'.weak HANDLER_{entry}'                           , # If there exists an implementation of the handler, use it.
-                            f'.set  HANDLER_{entry}, HANDLER_Default_indirect' , # Otherwise, use the default handler.
+                            f'.word __INTERRUPT_{entry}'                               , # Insert the address of the handler routine.
+                            f'.weak __INTERRUPT_{entry}'                               , # If there exists an implementation of the handler, use it.
+                            f'.set  __INTERRUPT_{entry}, __INTERRUPT_Default_indirect' , # Otherwise, use the default handler.
                         )
+
+                        USER_DEFINED_INTERRUPTS[mcu] += [entry]
     */
