@@ -2,9 +2,9 @@
 
 /* #meta SYSTEM_OPTIONS, GPIOS : MK_GPIOS
 
-    SYSTEM_OPTIONS = Obj(
+    SYSTEM_OPTIONS = {
 
-        SandboxNucleoH7S3L8 = {
+        'SandboxNucleoH7S3L8' : {
             'hsi_enable'    : True,
             'hsi48_enable'  : True,
             'csi_enable'    : True,
@@ -19,11 +19,11 @@
             'apb5_ck'       : 150_000_000,
         },
 
-    )
+    }
 
-    GPIOS = MK_GPIOS(
+    GPIOS = MK_GPIOS({
 
-        SandboxNucleoH7S3L8 = (
+        'SandboxNucleoH7S3L8' : (
             ('led_red'   , 'B7' , 'output'    , { 'initlvl' : False }),
             ('led_yellow', 'D13', 'output'    , { 'initlvl' : False }),
             ('led_green' , 'D10', 'output'    , { 'initlvl' : False }),
@@ -31,7 +31,7 @@
             ('swclk'     , 'A14', 'reserved'  , {                   }),
         ),
 
-    )
+    })
 
 */
 
@@ -94,5 +94,3 @@
 #include "system/cmsis.c"
 
 //////////////////////////////////////////////////////////////// Globals ////////////////////////////////////////////////////////////////
-
-

@@ -32,7 +32,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
     # cfgs('flash_latency', ...   )   ->   ('FLASH', 'ACR', 'LATENCY', configurations['flash_latency'])
     # cfgs('flash_latency', 0b1111)   ->   ('FLASH', 'ACR', 'LATENCY', 0b1111)
 
-    used_configurations = OrdSet()
+    used_configurations = OrderedSet()
 
     def cfgs(tag, *value, **placeholder_values):
 
@@ -42,13 +42,13 @@ def SYSTEM_CONFIGURIZE(target, configurations):
         # e.g.
         # cfgs('pll{UNIT}_input_range', UNIT = 3)
 
-        placeholders = OrdSet(re.findall('{(.*?)}', tag))
+        placeholders = OrderedSet(re.findall('{(.*?)}', tag))
 
-        if differences := list(OrdSet(placeholders) - OrdSet(placeholder_values.keys())):
-            raise ValueError(ErrorLift(f'Tag "{tag}" is missing the value for the placeholder "{differences[0]}".'))
+        if differences := list(OrderedSet(placeholders) - placeholder_values.keys()):
+            raise ValueError(f'Tag "{tag}" is missing the value for the placeholder "{differences[0]}".')
 
-        if differences := list(OrdSet(placeholder_values.keys()) - OrdSet(placeholders)):
-            raise ValueError(ErrorLift(f'Tag "{tag}" has no placeholder "{differences[0]}".'))
+        if differences := list(OrderedSet(placeholder_values.keys()) - placeholders):
+            raise ValueError(f'Tag "{tag}" has no placeholder "{differences[0]}".')
 
 
 
@@ -65,9 +65,9 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
             if configuration not in configurations:
                 if placeholders:
-                    raise ValueError(ErrorLift(f'For {target.mcu}, the tag "{tag}" expanded to the undefined configuration "{configuration}".'))
+                    raise ValueError(f'For {target.mcu}, the tag "{tag}" expanded to the undefined configuration "{configuration}".')
                 else:
-                    raise ValueError(ErrorLift(f'For {target.mcu}, configuration "{configuration}" was not provided.'))
+                    raise ValueError(f'For {target.mcu}, configuration "{configuration}" was not provided.')
 
             used_configurations |= { configuration }
 
@@ -83,7 +83,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
             if tag not in database:
-                raise ValueError(ErrorLift(f'For {target.mcu}, no system database entry was found with the tag of "{tag}".'))
+                raise ValueError(f'For {target.mcu}, no system database entry was found with the tag of "{tag}".')
 
             match len(placeholders):
 
@@ -149,7 +149,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
             # Ill-defined arguments.
 
             case _:
-                raise ValueError(ErrorLift(f'Either nothing, "...", or a single value should be given for the argument; got: {value}.'))
+                raise ValueError(f'Either nothing, "...", or a single value should be given for the argument; got: {value}.')
 
 
 
@@ -412,5 +412,5 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
     # Ensure we've used all the configurations given.
 
-    if leftovers := OrdSet(key for key, value in configurations.items() if value is not None) - used_configurations:
+    if leftovers := OrderedSet(key for key, value in configurations.items() if value is not None) - used_configurations:
         log(f'[WARNING] There are leftover {target.mcu} configurations: {leftovers}.', ansi = 'fg_yellow')

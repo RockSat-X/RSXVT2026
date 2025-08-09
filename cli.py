@@ -16,7 +16,7 @@ try:
     import deps.pxd.ui
     import deps.pxd.metapreprocessor
     import deps.pxd.cite
-    from deps.pxd.log   import log
+    from deps.pxd.log   import log, ANSI
     from deps.pxd.utils import *
 except ModuleNotFoundError as error:
     print(f'[ERROR] Could not import "{error.name}"; maybe the Git submodules need to be initialized/updated? Try doing:')
@@ -44,9 +44,9 @@ def import_pyserial():
         import serial
         import serial.tools.list_ports
     except ModuleNotFoundError as error:
-        with log(ansi = 'fg_red'):
+        with ANSI('fg_red'):
             log(f'[ERROR] Python got {type(error).__name__} ({error}); try doing:')
-            log(f'        > pip install pyserial', ansi = 'bold')
+            log(ANSI('        > pip install pyserial', 'bold'))
         sys.exit(1)
 
     return serial, serial.tools.list_ports
@@ -68,9 +68,9 @@ def require(*needed_programs):
     if missing_program in (roster := [
         'pwsh',
     ]):
-        with log(ansi = 'fg_red'):
+        with ANSI('fg_red'):
             log(f'[ERROR] Python couldn\'t find "pwsh" in your PATH; have you installed PowerShell yet?')
-            log(f'        > https://apps.microsoft.com/detail/9MZ1SNWT0N5D', ansi = 'bold')
+            log(ANSI(f'        > https://apps.microsoft.com/detail/9MZ1SNWT0N5D', 'bold'))
             log(f'        Installing PowerShell via Windows Store is the most convenient way.')
 
     # STM32CubeCLT.
@@ -78,13 +78,13 @@ def require(*needed_programs):
         'STM32_Programmer_CLI',
         'ST-LINK_gdbserver'
     ]):
-        with log(ansi = 'fg_red'):
+        with ANSI('fg_red'):
             log(f'[ERROR] Python couldn\'t find "{missing_program}" in your PATH; have you installed STM32CubeCLT yet?')
-            log(f'        > https://www.st.com/en/development-tools/stm32cubeclt.html', ansi = 'bold')
+            log(ANSI(f'        > https://www.st.com/en/development-tools/stm32cubeclt.html', 'bold'))
             log(f'        Install and then make sure all of these commands are available in your PATH:')
             for program in roster:
                 if shutil.which(program) is not None:
-                    log(f'            - [located] {program}', ansi = 'fg_green')
+                    log(ANSI(f'            - [located] {program}', 'fg_green'))
                 else:
                     log(f'            - [missing] {program}')
 
@@ -95,18 +95,18 @@ def require(*needed_programs):
         'arm-none-eabi-objcopy',
         'arm-none-eabi-gdb',
     ]):
-        with log(ansi = 'fg_red'):
+        with ANSI('fg_red'):
             log(f'[ERROR] Python couldn\'t find "{missing_program}" in your PATH; have you installed the Arm GNU toolchain (version 14.2.Rel1, December 10, 2024) yet?')
-            log(f'        > website : https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads', ansi = 'fg_bright_red')
+            log(ANSI(f'        > website : https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads', 'fg_bright_red'))
             for platform, url in (
                 ('win32', 'https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-mingw-w64-x86_64-arm-none-eabi.exe'),
                 ('linux', 'https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi.tar.xz'       ),
             ):
-                log(f'        > {platform.ljust(len('website'))} : {url}', ansi = ('bold', 'fg_bright_red') if sys.platform == platform else 'fg_bright_red')
+                log(ANSI(f'        > {platform.ljust(len('website'))} : {url}', *(['bold', 'fg_bright_red'] if sys.platform == platform else ['fg_bright_red'])))
             log(f'        Install/unzip and then make sure all of these commands are available in your PATH:')
             for program in roster:
                 if shutil.which(program) is not None:
-                    log(f'            - [located] {program}', ansi = 'fg_green')
+                    log(ANSI(f'            - [located] {program}', 'fg_green'))
                 else:
                     log(f'            - [missing] {program}')
 
@@ -114,10 +114,10 @@ def require(*needed_programs):
     elif missing_program in (roster := [
         'picocom'
     ]):
-        with log(ansi = 'fg_red'):
+        with ANSI('fg_red'):
             log(f'[ERROR] Python couldn\'t find "{missing_program}" in your PATH; have you installed it yet?')
             log(f'        If you\'re on a Debian-based distro, this is just simply:')
-            log(f'        > sudo apt install picocom', ansi = 'bold')
+            log(ANSI(f'        > sudo apt install picocom', 'bold'))
             log(f'        Otherwise, you should only be getting this message on some other Linux distribution, ')
             log(f'        to which I have faith in you to figure this out on your own.')
 
@@ -125,17 +125,17 @@ def require(*needed_programs):
     elif missing_program in (roster := [
         'make'
     ]):
-        with log(ansi = 'fg_red'):
+        with ANSI('fg_red'):
             log(f'[ERROR] Python couldn\'t find "{missing_program}" in your PATH; have you installed it yet?')
             log(f'        If you\'re on a Windows system, run the following command and restart your shell:')
-            log(f'        > winget install ezwinports.make', ansi = 'bold')
+            log(ANSI(f'        > winget install ezwinports.make', 'bold'))
 
     # Not implemented.
     else:
-        with log(ansi = 'fg_red'):
+        with ANSI('fg_red'):
             log(f'[ERROR] Python couldn\'t find "{missing_program}" in your PATH; have you installed it yet?')
 
-    sys.exit(1)
+    raise deps.pxd.ui.ExitCode(1)
 
 
 
@@ -147,17 +147,27 @@ def require(*needed_programs):
 
 def log_stlinks(stlinks):
 
-    header, rows = ljusts(({
-        'Probe Index'   : stlink.probe_index,
-        'Board Name'    : stlink.board_name,
-        'Device'        : stlink.comport.device,
-        'Description'   : stlink.comport.description,
-        'Serial Number' : stlink.serial_number,
-    } for stlink in stlinks), include_keys = True)
-
-    log(f'| {' | '.join(header)} |')
-    for row in rows:
-        log(f'| {' | '.join(row.values())} |')
+    for justs in justify(
+        [
+            (
+                ('<', 'Probe Index'  ),
+                ('<', 'Board Name'   ),
+                ('<', 'Device'       ),
+                ('<', 'Description'  ),
+                ('<', 'Serial Number'),
+            ),
+        ] + [
+            (
+                ('<', stlink.probe_index        ),
+                ('<', stlink.board_name         ),
+                ('<', stlink.comport.device     ),
+                ('<', stlink.comport.description),
+                ('<', stlink.serial_number      ),
+            )
+            for stlink in stlinks
+        ]
+    ):
+        log(f'| {' | '.join(justs)} |')
 
 
 
@@ -213,14 +223,14 @@ def request_stlinks(
     if specific_probe_index is not None:
 
         if not stlinks:
-            log(f'[ERROR] No ST-Links found.', ansi = 'fg_red')
-            sys.exit(1)
+            log(ANSI(f'[ERROR] No ST-Links found.', 'fg_red'))
+            raise deps.pxd.ui.ExitCode(1)
 
         if not (matches := [stlink for stlink in stlinks if stlink.probe_index == specific_probe_index]):
             log_stlinks(stlinks)
             log()
-            log(f'[ERROR] No ST-Links found with probe index of "{specific_probe_index}".', ansi = 'fg_red')
-            sys.exit(1)
+            log(ANSI(f'[ERROR] No ST-Links found with probe index of "{specific_probe_index}".', 'fg_red'))
+            raise deps.pxd.ui.ExitCode(1)
 
         stlink, = matches
 
@@ -233,14 +243,14 @@ def request_stlinks(
     if specific_one:
 
         if not stlinks:
-            log(f'[ERROR] No ST-Links found.', ansi = 'fg_red')
-            sys.exit(1)
+            log(ANSI(f'[ERROR] No ST-Links found.', 'fg_red'))
+            raise deps.pxd.ui.ExitCode(1)
 
         if len(stlinks) >= 2:
             log_stlinks(stlinks)
             log()
-            log(f'[ERROR] Multiple ST-Links found; I don\'t know which one to use.', ansi = 'fg_red')
-            sys.exit(1)
+            log(ANSI(f'[ERROR] Multiple ST-Links found; I don\'t know which one to use.', 'fg_red'))
+            raise deps.pxd.ui.ExitCode(1)
 
         stlink, = stlinks
 
@@ -309,9 +319,11 @@ def execute(
     lexer_parts            = list(lexer)
     command                = ' '.join(lexer_parts)
 
-    log(f'$ {lexer_parts[0]}'    , end = '', ansi = 'fg_bright_green')
-    log(' '                      , end = ''                          )
-    log(' '.join(lexer_parts[1:]),                                   )
+    log(
+        '{} {}',
+        ANSI(f'$ {lexer_parts[0]}', 'fg_bright_green'),
+        ' '.join(lexer_parts[1:]),
+    )
 
     if use_powershell:
         command = ['pwsh', '-Command', command]
@@ -326,8 +338,8 @@ def execute(
 
     if exit_code and not nonzero_exit_code_ok:
         log()
-        log(f'[ERROR] Shell command exited with a non-zero code of {exit_code}.', ansi = 'fg_red')
-        sys.exit(exit_code)
+        log(ANSI(f'[ERROR] Shell command exited with a non-zero code of {exit_code}.', 'fg_red'))
+        raise deps.pxd.ui.ExitCode(exit_code)
 
     return exit_code
 
@@ -337,7 +349,7 @@ def execute(
 # This Python script's user-interface constructor.
 #
 
-def ui_hook(subcmd_name):
+def ui_hook(verb, parameters):
 
     start = time.time()
     yield
@@ -345,7 +357,7 @@ def ui_hook(subcmd_name):
 
     if (elapsed := end - start) >= 0.5:
         log()
-        log(f'> "{subcmd_name}" took: {elapsed :.3f}s')
+        log(f'> "{verb.name}" took: {elapsed :.3f}s')
 
 ui = deps.pxd.ui.UI(
     f'{root(pathlib.Path(__file__).name)}',
@@ -359,8 +371,12 @@ ui = deps.pxd.ui.UI(
 
 
 
-@ui(f'Delete all build artifacts.')
-def clean():
+@ui(
+    {
+        'description' : f'Delete all build artifacts.',
+    },
+)
+def clean(parameters):
 
     directories = [
         BUILD,
@@ -382,18 +398,33 @@ def clean():
 
 
 
-@ui('Compile and generate the binary for flashing.')
-def build(
-    specific_target_name : ([target.name for target in TARGETS], 'Target program to build; otherwise, build entire project.') = None,
-    metapreprocess_only  : (bool                               , 'Run the meta-preprocessor; no compiling and linking.'     ) = False
-):
+@ui(
+    {
+        'description' : 'Compile and generate the binary for flashing.',
+    },
+    {
+        'name'        : 'target',
+        'description' : 'Name of target program to build; otherwise, build entire project.',
+        'type'        : { target.name : target for target in TARGETS },
+        'default'     : None,
+    },
+    {
+        'name'        : 'metapreprocess_only',
+        'description' : 'Run the meta-preprocessor; no compiling and linking.',
+        'type'        : bool,
+        'default'     : False,
+    },
+)
+def build(parameters):
+
+
 
     # Determine the targets we're building for.
 
-    if specific_target_name is None:
+    if parameters.target is None:
         targets = TARGETS
     else:
-        targets = [TARGETS.get(specific_target_name)]
+        targets = [parameters.target]
 
 
 
@@ -401,7 +432,7 @@ def build(
 
     def log_header(header):
         log()
-        log(f'{'>' * 32} {header} {'<' * 32}', ansi = ('bold', 'fg_bright_black'))
+        log(ANSI(f'{'>' * 32} {header} {'<' * 32}', 'bold', 'fg_bright_black'))
         log()
 
 
@@ -439,15 +470,16 @@ def build(
             export_preview = ' ' + export_preview
 
 
-        log('| {nth}/{count} | {src} : {line} |{export_preview}'.format(
-            count          = len(meta_directives),
-            export_preview = export_preview,
-            **ljusts({
-                'nth'  : meta_directive_i + 1,
-                'src'  : meta_directive.source_file_path,
-                'line' : meta_directive.meta_header_line_number,
-            } for meta_directive_i, meta_directive in enumerate(meta_directives))[index],
-        ))
+        just_nth, just_src, just_line = justify(
+            (
+                ('<', meta_directive_i + 1                  ),
+                ('<', meta_directive.source_file_path       ),
+                ('<', meta_directive.meta_header_line_number),
+            )
+            for meta_directive_i, meta_directive in enumerate(meta_directives)
+        )[index]
+
+        log(f'| {just_nth}/{len(meta_directives)} | {just_src} : {just_line} |{export_preview}')
 
 
 
@@ -459,7 +491,7 @@ def build(
         delta  = end - start
 
         if delta > 0.050:
-            log(f'^ {delta :.3}s', ansi = 'fg_yellow') # Warn that this meta-directive took quite a while to execute.
+            log(ANSI(f'^ {delta :.3}s', 'fg_yellow')) # Warn that this meta-directive took quite a while to execute.
 
         elapsed += delta
 
@@ -476,13 +508,14 @@ def build(
             source_file_paths     = metapreprocessor_file_paths,
             callback              = metadirective_callback,
         )
-    except deps.pxd.metapreprocessor.MetaError as err:
-        sys.exit(err)
+    except deps.pxd.metapreprocessor.MetaError as error:
+        error.dump()
+        raise deps.pxd.ui.ExitCode(1)
 
     log()
-    log(f'# Meta-preprocessor : {elapsed :.3f}s.', ansi = 'fg_magenta')
+    log(ANSI(f'# Meta-preprocessor : {elapsed :.3f}s.', 'fg_magenta'))
 
-    if metapreprocess_only:
+    if parameters.metapreprocess_only:
         return
 
 
@@ -567,27 +600,35 @@ def build(
 
 
 
-@ui('Flash the binary to the MCU.')
-def flash(
-    specific_target_name : ([target.name for target in TARGETS], 'Target MCU to program.') = None,
-):
+@ui(
+    {
+        'description' : 'Flash the binary to the MCU.',
+    },
+    {
+        'name'        : 'target',
+        'description' : 'Name of the target MCU to program.',
+        'type'        : { target.name : target for target in TARGETS },
+        'default'     : None,
+    },
+)
+def flash(parameters):
 
     # If there's only one target that can be programmed, use that by default.
 
-    if specific_target_name is None:
+    if parameters.target is None:
 
         if len(TARGETS) >= 2:
             ui.help(subcommand_name = 'flash')
             log()
-            with log(ansi = 'fg_red'):
+            with ANSI('fg_red'):
                 log('[ERROR] Please specify the target to flash; see the list of targets above.')
-            sys.exit(1)
+            raise deps.pxd.ui.ExitCode(1)
 
         target, = TARGETS
 
     else:
 
-        target = TARGETS.get(specific_target_name)
+        target = parameters.target
 
 
 
@@ -603,18 +644,18 @@ def flash(
         # Maxed out attempts?
         if attempts == 3:
             log()
-            with log(ansi = 'fg_red'):
+            with ANSI('fg_red'):
                 log('[ERROR] Failed to flash; this might be because...')
                 log('        - the binary file haven\'t been built yet.')
                 log('        - the ST-Link is being used by a another program.')
                 log('        - the ST-Link has disconnected.')
                 log('        - ... or something else entirely!')
-            sys.exit(1)
+            raise deps.pxd.ui.ExitCode(1)
 
         # Not the first try?
         elif attempts:
             log()
-            log('[WARNING] Failed to flash (maybe due to verification error); trying again...', ansi = 'fg_yellow')
+            log(ANSI('[WARNING] Failed to flash (maybe due to verification error); trying again...', 'fg_yellow'))
             log()
 
         # Try flashing.
@@ -638,11 +679,24 @@ def flash(
 
 
 
-@ui('Set up a debugging session.')
-def debug(
-    specific_target_name : ([target.name for target in TARGETS], 'Target MCU to debug.')                              = None,
-    just_gdbserver       : (bool, 'Just set up the GDB-server and nothing else; mainly used for Visual Studio Code.') = False
-):
+@ui(
+    {
+        'description' : 'Set up a debugging session.',
+    },
+    {
+        'name'        : 'target',
+        'description' : 'Name of target MCU to debug.',
+        'type'        : { target.name : target for target in TARGETS },
+        'default'     : None,
+    },
+    {
+        'name'        : 'just_gdbserver',
+        'description' : 'Just set up the GDB-server and nothing else; mainly used for Visual Studio Code.',
+        'type'        : bool,
+        'default'     : None,
+    },
+)
+def debug(parameters):
 
     # Set up the GDB-server.
 
@@ -664,7 +718,7 @@ def debug(
             --attach
     '''
 
-    if just_gdbserver:
+    if parameters.just_gdbserver:
         execute(gdbserver, keyboard_interrupt_ok = True)
         return
 
@@ -672,20 +726,20 @@ def debug(
 
     # If there's only one target that can be programmed, use that by default.
 
-    if specific_target_name is None:
+    if parameters.target is None:
 
         if len(TARGETS) >= 2:
             ui.help(subcommand_name = 'debug')
             log()
-            with log(ansi = 'fg_red'):
+            with ANSI('fg_red'):
                 log('[ERROR] Please specify the target to debug; see the list of targets above.')
-            sys.exit(1)
+            raise deps.pxd.ui.ExitCode(1)
 
         target, = TARGETS
 
     else:
 
-        target = TARGETS.get(specific_target_name)
+        target = parameters.target
 
 
 
@@ -719,12 +773,25 @@ def debug(
 
 
 
-@ui('Search and list for any ST-Links connected to the computer.', name = 'stlinks')
-def _():
+@ui(
+    {
+        'name'        : 'stlinks',
+        'description' : 'Search and list for any ST-Links connected to the computer.',
+    },
+)
+def _(parameters):
     if stlinks := request_stlinks():
         log_stlinks(stlinks)
     else:
         log('No ST-Link detected by STM32_Programmer_CLI.')
+
+
+
+################################################################################################################################
+
+
+
+ui(deps.pxd.cite.ui)
 
 
 

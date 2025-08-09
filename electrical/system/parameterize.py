@@ -19,12 +19,18 @@ def SYSTEM_PARAMETERIZE(target, options):
     # As we parameterize, we keep track of clock frequencies we have so far in the clock-tree.
     # e.g. tree['pll2_q_ck'] -> 200_000_000 Hz.
 
-    tree = Record({ None : 0 }) # So that: tree[None] -> 0 Hz.
+    tree = AllocatingNamespace({ None : 0 }) # So that: tree[None] -> 0 Hz.
 
     def log_tree(): # Routine to help debug the clock tree if needed.
         log()
-        for row in ljusts((key, f'{value :,}') for key, value in tree):
-            log('| {0} | {1} Hz |'.format(*row), ansi = 'fg_yellow')
+        for just in justify(
+            (
+                ('<', key          ),
+                ('<', f'{value :,}'),
+            )
+            for key, value in tree
+        ):
+            log(ANSI('| {} | {} Hz |', 'fg_yellow'), *just)
         log()
 
 
@@ -32,7 +38,7 @@ def SYSTEM_PARAMETERIZE(target, options):
     # To ensure we use every option in SYSTEM_OPTIONS, we have a helper function to record every access to it
     # that we then verify at the very end; a default value can also be supplied if the option is not in SYSTEM_OPTIONS.
 
-    used_options = OrdSet()
+    used_options = OrderedSet()
 
     def opts(option, *default):
 
@@ -52,9 +58,7 @@ def SYSTEM_PARAMETERIZE(target, options):
         # opts('cpu_ck', None) -> If no "cpu_ck" in SYSTEM_OPTIONS, then "None".
 
         if len(default) >= 2:
-            raise ValueError(ErrorLift(
-                f'Either zero or one argument should be given for the default value; got {len(default)}: {default}.'
-            ))
+            raise ValueError(f'Either zero or one argument should be given for the default value; got {len(default)}: {default}.')
 
 
 
@@ -75,7 +79,7 @@ def SYSTEM_PARAMETERIZE(target, options):
         # No option in SYSTEM_OPTION nor fallback default!
 
         else:
-            raise ValueError(ErrorLift(f'For {target.mcu}, no system option "{option}" was found.'))
+            raise ValueError(f'For {target.mcu}, no system option "{option}" was found.')
 
 
 
@@ -83,12 +87,18 @@ def SYSTEM_PARAMETERIZE(target, options):
     # to initialize the MCU to the specifications of SYSTEM_OPTIONS, so we'll be recording that too.
     # e.g. configurations['pll1_q_divider'] -> 256
 
-    configurations = Record()
+    configurations = AllocatingNamespace()
 
     def log_configurations(): # Routine to help debug the configuration record if needed.
         log()
-        for row in ljusts(configurations):
-            log('| {0} | {1} |'.format(*row), ansi = 'fg_yellow')
+        for row in justify(
+            (
+                ('<', key  ),
+                ('<', value),
+            )
+            for key, value in configurations
+        ):
+            log(ANSI('| {} | {} |', 'fg_yellow'), *row)
         log()
 
 
@@ -104,12 +114,12 @@ def SYSTEM_PARAMETERIZE(target, options):
 
         nonlocal draft, configurations
 
-        draft = Obj(configuration_names)
+        draft = ContainedNamespace(configuration_names)
 
         success = func()
 
         if not success:
-            raise RuntimeError(ErrorLift(f'Could not brute-force configurations that satisfies the system parameterization.'))
+            raise RuntimeError(f'Could not brute-force configurations that satisfies the system parameterization.')
 
         configurations |= draft
         draft           = None  # Clear so brute-forced configuration values won't accidentally be referenced.
@@ -139,7 +149,7 @@ def SYSTEM_PARAMETERIZE(target, options):
             for mcu in mcus:
 
                 if mcu in per_mcus:
-                    raise ValueError(ErrorLift(f'There\'s already a case for {mcu}.'))
+                    raise ValueError(f'There\'s already a case for {mcu}.')
 
                 per_mcus[mcu] = function
 
@@ -152,9 +162,7 @@ def SYSTEM_PARAMETERIZE(target, options):
         function = per_mcus.get(target.mcu, None)
 
         if function is None:
-            raise RuntimeError(ErrorLift(
-                f'Microcontroller {target.mcu} not yet handled here; supported cases: {list(per_mcus.keys())}.'
-            ))
+            raise RuntimeError(f'MCU {target.mcu} not yet handled here; supported cases: {list(per_mcus.keys())}.')
 
         function()
 
@@ -609,6 +617,6 @@ def SYSTEM_PARAMETERIZE(target, options):
     #
 
     if leftovers := options.keys() - used_options:
-        log(f'[WARNING] There are leftover {mcu} options: {leftovers}.', ansi = 'fg_yellow')
+        log(ANSI(f'[WARNING] There are leftover {mcu} options: {leftovers}.', 'fg_yellow'))
 
     return dict(configurations), defines

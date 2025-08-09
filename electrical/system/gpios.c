@@ -2,8 +2,6 @@
 
 /* #meta MK_GPIOS
 
-
-
     # The routine to create a single GPIO instance.
 
     def mk_gpio(entry):
@@ -14,7 +12,7 @@
 
         # The layout of a GPIO instance.
 
-        gpio = Obj(
+        gpio = types.SimpleNamespace(
             name       = name,
             pin        = pin,
             mode       = mode,
@@ -116,7 +114,7 @@
 
     # The routine to define the table of GPIOs for every target.
 
-    def MK_GPIOS(**target_entries):
+    def MK_GPIOS(target_entries):
 
         table = {
             target_name : tuple(map(mk_gpio, entries))
@@ -125,10 +123,10 @@
 
         for gpios in table.values():
 
-            if (name := find_dupe(gpio.name for gpio in gpios)) is not None:
+            if (name := find_dupe(gpio.name for gpio in gpios)) is not ...:
                 assert False, f'GPIO name `{name}` used more than once.'
 
-            if (pin := find_dupe(gpio.pin for gpio in gpios if gpio.pin is not None)) is not None:
+            if (pin := find_dupe(gpio.pin for gpio in gpios if gpio.pin is not None)) is not ...:
                 assert False, f'Pin `{gpio.pin}` used more than once.'
 
         return table
@@ -305,7 +303,7 @@
 
             CMSIS_SET(
                 ('RCC', SYSTEM_DATABASE[target.mcu]['GPIO_PORT_ENABLE_REGISTER'].VALUE, f'GPIO{port}EN', True)
-                for port in sorted(OrdSet(gpio.port for gpio in gpios if gpio.pin is not None))
+                for port in sorted(OrderedSet(gpio.port for gpio in gpios if gpio.pin is not None))
             )
 
 
