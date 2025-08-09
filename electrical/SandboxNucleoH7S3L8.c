@@ -1,5 +1,9 @@
 #include <stm32h7s3xx.h>
 #include <string.h>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wundef"
+#include <printf/printf.c>
+#pragma GCC diagnostic pop
 #include "defs.h"
 #include "system/gpios.c"
 #include "misc.c"
@@ -71,7 +75,6 @@ task_c(void*)
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 
 extern noret void

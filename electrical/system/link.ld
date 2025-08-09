@@ -31,9 +31,6 @@ SECTIONS
         *(.rodata*)
     } > FLASH
 
-    .eh_frame_output_section  : { *(.eh_frame*)  } > FLASH
-    .ARM_exidx_output_section : { *(.ARM.exidx*) } > FLASH
-
     /**************************************************************** RAM ****************************************************************/
 
     .stack_output_section : ALIGN(32) /* For MPU region alignment. TODO If we're going to use the MPU to detect stack overflow? */
@@ -48,7 +45,7 @@ SECTIONS
     {
         LINK_data_load_addr_start = LOADADDR(.data_output_section);
         LINK_data_virt_addr_start = .;
-        *(.data)
+        *(.data*)
         .                       = ALIGN(4);
         LINK_data_virt_addr_end = .;
 
@@ -58,7 +55,7 @@ SECTIONS
     .bss_output_section : ALIGN(4)
     {
         LINK_bss_addr_start = .;
-        *(.bss)
+        *(.bss*)
         .                 = ALIGN(4);
         LINK_bss_addr_end = .;
 

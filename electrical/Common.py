@@ -352,6 +352,7 @@ for target in TARGETS:
         root('./deps/CMSIS_6/CMSIS/Core/Include'),
         root('./deps'),
         root('./electrical'),
+        root('./deps/printf/src'),
     )
 
 
@@ -371,25 +372,28 @@ for target in TARGETS:
 
 
 
-    # The target's final set of compiler flags.
+    # The target's final set of compiler flags. @/`Linker Garbage Collection`.
 
-    target.compiler_flags = f'''
-        {architecture_flags}
-        -O0
-        -ggdb3
-        -std=gnu23
-        -fmax-errors=1
-        -fno-strict-aliasing
-        -fno-eliminate-unused-debug-types
-        {'\n'.join(f'-D {name}={value}'    for name, value in defines                  )}
-        {'\n'.join(f'-W{name}'             for name        in enabled_warnings .split())}
-        {'\n'.join(f'-Wno-{name}'          for name        in disabled_warnings.split())}
-        {'\n'.join(f'-I {repr(str(path))}' for path        in include_file_paths       )}
-    '''
+    target.compiler_flags = (
+        f'''
+            {architecture_flags}
+            -O0
+            -ggdb3
+            -std=gnu23
+            -fmax-errors=1
+            -fno-strict-aliasing
+            -fno-eliminate-unused-debug-types
+            {'\n'.join(f'-D {name}={value}'    for name, value in defines                  )}
+            {'\n'.join(f'-W{name}'             for name        in enabled_warnings .split())}
+            {'\n'.join(f'-Wno-{name}'          for name        in disabled_warnings.split())}
+            {'\n'.join(f'-I {repr(str(path))}' for path        in include_file_paths       )}
+            -ffunction-sections
+        '''
+    )
 
 
 
-    # The target's final set of linker flags.
+    # The target's final set of linker flags. @/`Linker Garbage Collection`.
 
     target.linker_flags = f'''
         {architecture_flags}
@@ -397,4 +401,21 @@ for target in TARGETS:
         -lgcc
         -lc
         -Xlinker --fatal-warnings
+        -Xlinker --gc-sections
     '''
+
+
+
+################################################################################################################################
+
+# @/`Linker Garbage Collection`:
+#
+# The `-ffunction-sections` makes the compiler generate a section for every function.
+# This will allow the linker to later on garbage-collect any unused functions via `--gc-sections`.
+# This isn't necessarily for space-saving reasons, but for letting us compile with libraries without
+# necessarily defining all user-side functions until we use a library function that'd depend upon it.
+# An example would be `putchar_` for eyalroz's `printf` library.
+#
+# There's a similar thing for data with the flag `-fdata-sections`, but if we do this, then we won't be
+# able to reference any variables that end up being garbage-collected when we debug. This isn't a big
+# deal, but it is annoying when it happens, so we'll skip out on GC'ing data and only do functions.
