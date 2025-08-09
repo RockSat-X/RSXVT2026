@@ -97,7 +97,7 @@ __INTERRUPT_Reset:
 
         USER_DEFINED_INTERRUPTS = { mcu : ['Default'] for mcu in TARGETS.mcus }
 
-        @Meta.ifs(TARGETS.mcus, style = '#if')
+        @Meta.ifs(TARGETS.mcus, '#if')
         def _(mcu):
 
             yield f'TARGET_MCU_IS_{mcu}'

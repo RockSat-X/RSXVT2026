@@ -253,16 +253,14 @@
 
 
     # Generate code to initialize and use the GPIOs in C.
-    # TODO Use SYTEM_DATABASE.
+    # TODO Use SYSTEM_DATABASE.
 
-    @Meta.ifs(GPIOS, style = '#if')
-    def _(target_name):
+    @Meta.ifs(TARGETS, '#if')
+    def _(target):
 
-        target_name = target_name
-        gpios       = GPIOS[target_name]
-        target      = TARGETS.get(target_name)
+        yield f'TARGET_NAME_IS_{target.name}'
 
-        yield f'TARGET_NAME_IS_{target_name}'
+        gpios = GPIOS[target.name]
 
 
 
@@ -368,7 +366,7 @@
                     continue # Not applicable.
 
                 if (gpio.port, gpio.number, gpio.altfunc) not in GPIO_AFSEL[target.mcu]:
-                    raise ValueError(f'GPIO pin "{gpio.pin}" for {target.mcu} ({target_name}) has no alternate function "{gpio.altfunc}".')
+                    raise ValueError(f'GPIO pin "{gpio.pin}" for {target.mcu} ({target.name}) has no alternate function "{gpio.altfunc}".')
 
 
 
