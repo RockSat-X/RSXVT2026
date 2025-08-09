@@ -36,6 +36,8 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
     used_configurations = OrderedSet()
 
+    CfgFmt = collections.namedtuple('CfgFmt', ('database_expansion', 'configuration_expansion')) # @/`About CfgFmt`.
+
     def cfgs(tag, *value, **placeholder_values):
 
 
@@ -56,6 +58,20 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
+        # @/`About CfgFmt`.
+
+        placeholder_values_for_configuration = {
+            name : value.configuration_expansion if isinstance(value, CfgFmt) else value
+            for name, value in placeholder_values.items()
+        }
+
+        placeholder_values_for_database = {
+            name : value.database_expansion if isinstance(value, CfgFmt) else value
+            for name, value in placeholder_values.items()
+        }
+
+
+
         # Get the value from "configurations", if needed.
         # e.g:
         # >
@@ -68,7 +84,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
             nonlocal used_configurations
 
-            configuration = tag.format(**placeholder_values)
+            configuration = tag.format(**placeholder_values_for_configuration)
 
             if configuration not in configurations:
                 if placeholders:
@@ -89,7 +105,6 @@ def SYSTEM_CONFIGURIZE(target, configurations):
         # >
 
         def find_database_entry():
-
 
             if tag not in database:
                 raise ValueError(f'For {target.mcu}, no system database entry was found with the tag of "{tag}".')
@@ -117,7 +132,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
                 case 1:
 
-                    placeholder_value = placeholder_values[placeholders[0]]
+                    placeholder_value = placeholder_values_for_database[placeholders[0]]
 
                     if placeholder_value not in database[tag]:
                         raise ValueError(f'Placeholder ({placeholders[0]} = {repr(placeholder_value)}) is not an option for database entry {repr(tag)}.')
@@ -133,8 +148,8 @@ def SYSTEM_CONFIGURIZE(target, configurations):
                 # >
 
                 case _:
-                    Placeholders = collections.namedtuple('Placeholders', placeholder_values.keys())
-                    return database[tag][Placeholders(**placeholder_values)]
+                    Placeholders = collections.namedtuple('Placeholders', placeholder_values_for_database.keys())
+                    return database[tag][Placeholders(**placeholder_values_for_database)]
 
 
 
@@ -447,3 +462,53 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
     if leftovers := OrderedSet(key for key, value in configurations.items() if value is not None) - used_configurations:
         log(ANSI(f'[WARNING] There are leftover {target.mcu} configurations: {leftovers}.', 'fg_yellow'))
+
+
+
+################################################################################################################################
+
+# @/`About CfgFmt`:
+#
+# The placeholder value can actually be different based on whether or not
+# we're looking into `configurations` or if we're looking up in `SYSTEM_DATABASE`.
+# Most of the time it's the same, but the subtle requirement for this case is that
+# the placeholder value for `configuration` needs to be something that can turn into
+# a string that looks nice as a result, but keys into `SYSTEM_DATABASE` can be any arbritary value.
+#
+# e.g:
+# >
+# >    (uxart_{UNITS}_clock_source (RCC CCIPR2 UART278SEL) (UNITS = ((usart 2) (uart 7) (uart 8))) (value: (...)))
+# >                                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# >                                                         Let's take this database entry as an example.
+# >
+# >
+# >    database['uxart_{UNITS}_clock_source'][(('usart', 2), ('uart', 7), ('uart' 8))]
+# >                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# >                                Look-ups into the database is done using a tuple as expected.
+# >
+# >
+# >    configurations["uxart_(('usart', 2), ('uart', 7), ('uart' 8))_clock_source"]
+# >                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# >               If we naively do the same for the key into `configurations`,
+# >               we'd be doing something stupid like this instead; while we could
+# >               accept this artifact, it's best to format it into something more
+# >               readable for debugging reasons.
+# >
+# >
+# >    configurations['uxart_2_7_8_clock_source']
+# >                          ^^^^^
+# >               Something like this is more understable and
+# >               might reflect the reference manual more.
+# >
+# >
+# >    units = (('usart', 2), ('uart', 7), ('uart' 8))
+# >    ns    = '2_7_8'
+# >    cfgs('uxart_{UNITS}_clock_source', ..., UNITS = CfgFmt(units, ns))
+# >                                                    ^^^^^^^^^^^^^^^^^
+# >                                          Thus, this is how we'd handle this situation.
+# >
+# >
+#
+# Of course, we could elimate this entire issue by accepting the artifact,
+# but for now I think the look of this is worth the complication;
+# we can revisit this in the future.
