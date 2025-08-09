@@ -100,7 +100,7 @@ __INTERRUPT_Reset:
 
             yield f'TARGET_MCU_IS_{mcu}'
 
-            for interrupt_i, interrupt in enumerate(INTERRUPTS[mcu]):
+            for interrupt_i, interrupt_name in enumerate(INTERRUPTS[mcu]):
 
 
 
@@ -108,7 +108,7 @@ __INTERRUPT_Reset:
 
                 Meta.line(f'''
 
-                    // [{interrupt_i - 14}] {interrupt}.
+                    // [{interrupt_i - 14}] {'Reserved' if interrupt_name is None else interrupt_name}.
 
                 ''')
 
@@ -116,15 +116,15 @@ __INTERRUPT_Reset:
 
                 # No interrupt handler here.
 
-                if interrupt is None:
+                if interrupt_name is None:
                     Meta.line('.word 0')
 
 
 
                 # These interrupt routines are implemented by FreeRTOS.
 
-                elif interrupt in INTERRUPTS_FOR_FREERTOS:
-                    Meta.line(f'.word {INTERRUPTS_FOR_FREERTOS[interrupt]}')
+                elif interrupt_name in INTERRUPTS_FOR_FREERTOS:
+                    Meta.line(f'.word {INTERRUPTS_FOR_FREERTOS[interrupt_name]}')
 
 
 
@@ -132,9 +132,9 @@ __INTERRUPT_Reset:
 
                 else:
                     Meta.line(
-                        f'.word __INTERRUPT_{interrupt}'                               , # Insert the address of the handler routine.
-                        f'.weak __INTERRUPT_{interrupt}'                               , # If there exists an implementation of the handler, use it.
-                        f'.set  __INTERRUPT_{interrupt}, __INTERRUPT_Default_indirect' , # Otherwise, use the default handler.
+                        f'.word __INTERRUPT_{interrupt_name}'                               , # Insert the address of the handler routine.
+                        f'.weak __INTERRUPT_{interrupt_name}'                               , # If there exists an implementation of the handler, use it.
+                        f'.set  __INTERRUPT_{interrupt_name}, __INTERRUPT_Default_indirect' , # Otherwise, use the default handler.
                     )
 
     */
