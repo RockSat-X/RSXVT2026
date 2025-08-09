@@ -11,6 +11,190 @@ from deps.pxd.log   import log, ANSI
 
 
 
+#
+# Communication speed with the ST-Link.
+#
+
+STLINK_BAUD = 1_000_000
+
+
+
+#
+# Build directory where all build artifacts will be dumped to.
+#
+
+BUILD = root('./build')
+
+
+
+#
+# Specialized tuple so that we can have a tuple of different firmware targets,
+# but also some additional properties to make it easy to work with.
+#
+
+class TargetTuple(tuple):
+
+
+
+    def __new__(cls, elements):
+        return super(TargetTuple, cls).__new__(cls, elements)
+
+
+
+    def __init__(self, elements):
+        self.mcus = OrderedSet(target.mcu for target in self) # Set of all MCUs in use.
+
+
+
+    # Get a specific target by name.
+
+    def get(self, target_name):
+
+        if not (matches := [target for target in self if target.name == target_name]):
+            raise ValueError(f'Undefined target: {repr(target_name)}.')
+
+        target, = matches
+
+        return target
+
+
+
+#
+# Basic description of each of our firmware targets.
+#
+
+TARGETS = TargetTuple((
+
+    types.SimpleNamespace(
+        name              = 'SandboxNucleoH7S3L8',
+        mcu               = 'STM32H7S3',
+        cmsis_file_path   = root('./deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h'),
+        source_file_paths = root('''
+            ./electrical/SandboxNucleoH7S3L8.c
+            ./electrical/system/Startup.S
+        '''),
+        include_file_paths = (
+            root('./deps/cmsis_device_h7s3l8/Include'),
+            root('./deps/FreeRTOS_Kernel/include'),
+            root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1'),
+        ),
+        stack_size = 8192, # TODO This might be removed depending on how FreeRTOS works.
+    ),
+
+))
+
+
+
+#
+# Figure out the compiler and linker flags for each firmware target.
+#
+
+for target in TARGETS:
+
+
+
+    # Flags for both the compiler and linker.
+
+    architecture_flags = '''
+        -mcpu=cortex-m7
+        -mfloat-abi=hard
+    '''
+
+
+
+    # Warning configurations.
+
+    enabled_warnings = '''
+        error
+        all
+        extra
+        switch-enum
+        undef
+        fatal-errors
+        strict-prototypes
+        shadow
+        switch-default
+    '''
+
+    disabled_warnings = '''
+        unused-function
+        main
+        double-promotion
+        conversion
+        unused-variable
+        unused-parameter
+        comment
+        unused-but-set-variable
+        format-zero-length
+        unused-label
+    '''
+
+
+    # Additional search paths for the compiler to search through for #includes.
+
+    include_file_paths = target.include_file_paths + (
+        root(BUILD, 'meta'),
+        root('./deps/CMSIS_6/CMSIS/Core/Include'),
+        root('./deps'),
+        root('./electrical'),
+        root('./deps/printf/src'),
+    )
+
+
+
+    # Additional macro defines.
+
+    defines = [
+        ('TARGET_NAME'    , target.name      ),
+        ('LINK_stack_size', target.stack_size),
+    ]
+
+    for other in TARGETS:
+        defines += [
+            (f'TARGET_NAME_IS_{other.name}', int(other.name == target.name)),
+            (f'TARGET_MCU_IS_{other.mcu}'  , int(other.mcu  == target.mcu )),
+        ]
+
+
+
+    # The target's final set of compiler flags. @/`Linker Garbage Collection`.
+
+    target.compiler_flags = (
+        f'''
+            {architecture_flags}
+            -O0
+            -ggdb3
+            -std=gnu23
+            -fmax-errors=1
+            -fno-strict-aliasing
+            -fno-eliminate-unused-debug-types
+            {'\n'.join(f'-D {name}={value}'    for name, value in defines                  )}
+            {'\n'.join(f'-W{name}'             for name        in enabled_warnings .split())}
+            {'\n'.join(f'-Wno-{name}'          for name        in disabled_warnings.split())}
+            {'\n'.join(f'-I {repr(str(path))}' for path        in include_file_paths       )}
+            -ffunction-sections
+        '''
+    )
+
+
+
+    # The target's final set of linker flags. @/`Linker Garbage Collection`.
+
+    target.linker_flags = f'''
+        {architecture_flags}
+        -nostdlib
+        -lgcc
+        -lc
+        -Xlinker --fatal-warnings
+        -Xlinker --gc-sections
+    '''
+
+
+
+################################################################################################################################
+
+
+
 class CMSIS_MODIFY:
 
     # This class is just a support to define CMSIS_SET and CMSIS_WRITE in the meta-preprocessor;
@@ -220,189 +404,6 @@ def CMSIS_SPINLOCK(*spinlocks):
             case True  : Meta.line(f'while (!CMSIS_GET({section}, {register}, {field}));')
             case False : Meta.line(f'while (CMSIS_GET({section}, {register}, {field}));')
             case _     : Meta.line(f'while (CMSIS_GET({section}, {register}, {field}) != {value});')
-
-
-
-################################################################################################################################
-
-
-#
-# Communication speed with the ST-Link.
-#
-
-STLINK_BAUD = 1_000_000
-
-
-
-#
-# Build directory where all build artifacts will be dumped to.
-#
-
-BUILD = root('./build')
-
-
-
-#
-# Specialized tuple so that we can have a tuple of different firmware targets,
-# but also some additional properties to make it easy to work with.
-#
-
-class TargetTuple(tuple):
-
-
-
-    def __new__(cls, elements):
-        return super(TargetTuple, cls).__new__(cls, elements)
-
-
-
-    def __init__(self, elements):
-        self.mcus = OrderedSet(target.mcu for target in self) # Set of all MCUs in use.
-
-
-
-    # Get a specific target by name.
-
-    def get(self, target_name):
-
-        if not (matches := [target for target in self if target.name == target_name]):
-            raise ValueError(f'Undefined target: {repr(target_name)}.')
-
-        target, = matches
-
-        return target
-
-
-
-#
-# Basic description of each of our firmware targets.
-#
-
-TARGETS = TargetTuple((
-
-    types.SimpleNamespace(
-        name              = 'SandboxNucleoH7S3L8',
-        mcu               = 'STM32H7S3',
-        cmsis_file_path   = root('./deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h'),
-        source_file_paths = root('''
-            ./electrical/SandboxNucleoH7S3L8.c
-            ./electrical/system/Startup.S
-        '''),
-        include_file_paths = (
-            root('./deps/cmsis_device_h7s3l8/Include'),
-            root('./deps/FreeRTOS_Kernel/include'),
-            root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1'),
-        ),
-        stack_size = 8192, # TODO This might be removed depending on how FreeRTOS works.
-    ),
-
-))
-
-
-
-#
-# Figure out the compiler and linker flags for each firmware target.
-#
-
-for target in TARGETS:
-
-
-
-    # Flags for both the compiler and linker.
-
-    architecture_flags = '''
-        -mcpu=cortex-m7
-        -mfloat-abi=hard
-    '''
-
-
-
-    # Warning configurations.
-
-    enabled_warnings = '''
-        error
-        all
-        extra
-        switch-enum
-        undef
-        fatal-errors
-        strict-prototypes
-        shadow
-        switch-default
-    '''
-
-    disabled_warnings = '''
-        unused-function
-        main
-        double-promotion
-        conversion
-        unused-variable
-        unused-parameter
-        comment
-        unused-but-set-variable
-        format-zero-length
-        unused-label
-    '''
-
-
-    # Additional search paths for the compiler to search through for #includes.
-
-    include_file_paths = target.include_file_paths + (
-        root(BUILD, 'meta'),
-        root('./deps/CMSIS_6/CMSIS/Core/Include'),
-        root('./deps'),
-        root('./electrical'),
-        root('./deps/printf/src'),
-    )
-
-
-
-    # Additional macro defines.
-
-    defines = [
-        ('TARGET_NAME'    , target.name      ),
-        ('LINK_stack_size', target.stack_size),
-    ]
-
-    for other in TARGETS:
-        defines += [
-            (f'TARGET_NAME_IS_{other.name}', int(other.name == target.name)),
-            (f'TARGET_MCU_IS_{other.mcu}'  , int(other.mcu  == target.mcu )),
-        ]
-
-
-
-    # The target's final set of compiler flags. @/`Linker Garbage Collection`.
-
-    target.compiler_flags = (
-        f'''
-            {architecture_flags}
-            -O0
-            -ggdb3
-            -std=gnu23
-            -fmax-errors=1
-            -fno-strict-aliasing
-            -fno-eliminate-unused-debug-types
-            {'\n'.join(f'-D {name}={value}'    for name, value in defines                  )}
-            {'\n'.join(f'-W{name}'             for name        in enabled_warnings .split())}
-            {'\n'.join(f'-Wno-{name}'          for name        in disabled_warnings.split())}
-            {'\n'.join(f'-I {repr(str(path))}' for path        in include_file_paths       )}
-            -ffunction-sections
-        '''
-    )
-
-
-
-    # The target's final set of linker flags. @/`Linker Garbage Collection`.
-
-    target.linker_flags = f'''
-        {architecture_flags}
-        -nostdlib
-        -lgcc
-        -lc
-        -Xlinker --fatal-warnings
-        -Xlinker --gc-sections
-    '''
 
 
 
