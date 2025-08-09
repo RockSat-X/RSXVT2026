@@ -2,7 +2,7 @@
 
 
 
-/* #meta SYSTEM_OPTIONS, GPIOS : MK_GPIOS
+/* #meta SYSTEM_OPTIONS, GPIOS, NVIC_TABLE : MK_GPIOS
 
     SYSTEM_OPTIONS = {
 
@@ -34,6 +34,14 @@
         ),
 
     })
+
+    NVIC_TABLE = {
+
+        'SandboxNucleoH7S3L8' : (
+            ('USART3', 0),
+        ),
+
+    }
 
 */
 

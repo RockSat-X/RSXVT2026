@@ -36,6 +36,16 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
+#if TARGET_MCU_IS_STM32H7S3
+
+    // For the full contiguous field. @/pg 2476/sec 53.8.6/`H7S3rm`.
+    #define USART_BRR_BRR_Pos 0
+    #define USART_BRR_BRR_Msk (0xFFFF << USART_BRR_BRR_Pos)
+
+#endif
+
+
+
 #include "cmsis_patches.meta"
 /* #meta
 
@@ -96,8 +106,15 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-#include "INTERRUPT.meta"
-/* #meta INTERRUPTS, INTERRUPTS_FOR_FREERTOS
+#define NVIC_ENABLE(NAME)        ((void) (NVIC->ISER[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32))) // @/pg 628/sec B3.4.4/`ARMv7-M`.
+#define NVIC_DISABLE(NAME)       ((void) (NVIC->ICER[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32))) // @/pg 628/sec B3.4.4/`ARMv7-M`.
+#define NVIC_SET_PENDING(NAME)   ((void) (NVIC->ISPR[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32))) // @/pg 629/sec B3.4.6/`ARMv7-M`.
+#define NVIC_CLEAR_PENDING(NAME) ((void) (NVIC->ICPR[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32))) // @/pg 630/sec B3.4.7/`ARMv7-M`.
+
+
+
+#include "interrupts.meta"
+/* #meta INTERRUPTS, INTERRUPTS_FOR_FREERTOS : NVIC_TABLE
 
 
 
@@ -151,6 +168,69 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
                 continue
 
             Meta.define('INTERRUPT', ('INTERRUPT'), f'extern void __INTERRUPT_{interrupt}(void)', INTERRUPT = interrupt)
+
+
+
+    # Set up NVIC.
+
+    @Meta.ifs(TARGETS, '#if')
+    def _(target):
+
+        yield f'TARGET_NAME_IS_{target.name}'
+
+
+
+        # Enumeration to make the NVIC macros only
+        # work on interrupts defined in NVIC_TABLE.
+
+        Meta.enums(
+            'NVICInterrupt',
+            'u32',
+            ((interrupt, f'{interrupt}_IRQn') for interrupt, niceness in NVIC_TABLE[target.name]),
+        )
+
+
+
+        # We verify that the *_IRQn enumeration defined by CMSIS
+        # matches up with our table of interrupts.
+
+        with Meta.enter('static_assert'):
+
+            for nvic_table_entry_i, (interrupt, niceness) in enumerate(NVIC_TABLE[target.name]):
+
+                if interrupt not in INTERRUPTS[target.mcu]:
+                    raise ValueError(f'Unknown interrupt: {repr(interrupt)}.')
+
+                expected_irq = INTERRUPTS[target.mcu].index(interrupt) - 14
+                last_entry   = nvic_table_entry_i == len(NVIC_TABLE[target.name]) - 1
+
+                Meta.line(f'NVICInterrupt_{interrupt} == {expected_irq}{',' if last_entry else ' &&'}')
+
+            Meta.line('''
+                "Mismatch between CMSIS's definition of interrupt numbers and the meta-preprocessor's."
+            ''')
+
+
+
+        # Initialize the priorities of the defined NVIC interrupts.
+
+        with Meta.enter('''
+            extern void
+            NVIC_init(void)
+        '''):
+
+            for interrupt, niceness in NVIC_TABLE[target.name]:
+
+                # We'll be safe and use the fact that ARMv7-M supports
+                # at least 3 bits for the interrupt priority starting MSb. @/pg 526/sec B1.5.4/`ARMv7-M`.
+
+                assert 0b000 <= niceness <= 0b111
+
+
+
+                # Set priority of NVIC interrupt.
+
+                Meta.line(f'NVIC->IPR[NVICInterrupt_{interrupt}] = {niceness} << 5;')
 
 */
 
