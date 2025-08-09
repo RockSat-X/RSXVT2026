@@ -1,7 +1,9 @@
 #include <stm32h7s3xx.h>
+#include <string.h>
 #include "defs.h"
 #include "system/gpios.c"
 #include "misc.c"
+#include "jig.c"
 #include <FreeRTOS_Kernel/tasks.c>
 #include <FreeRTOS_Kernel/queue.c>
 #include <FreeRTOS_Kernel/list.c>
@@ -15,7 +17,7 @@
 
 INTERRUPT(Default)
 {
-    for(;;);
+    panic;
 }
 
 
@@ -75,8 +77,30 @@ task_c(void*)
 extern noret void
 main(void)
 {
-    SYSTEM_init();
     GPIO_init();
+    NVIC_init();
+    SYSTEM_init();
+    JIG_init();
+
+
+
+    ////////////////////////////////////////////////////////////////
+
+
+
+    #if 1 // Stop FreeRTOS.
+        for (;;)
+        {
+            GPIO_TOGGLE(led_green);
+            delay_nop(100'000'000);
+        }
+    #endif
+
+
+
+    ////////////////////////////////////////////////////////////////
+
+
 
     #include "tasks.meta"
     /* #meta
