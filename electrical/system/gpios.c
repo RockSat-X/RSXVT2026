@@ -171,8 +171,8 @@
 
         if not gpio_afsel_file_path.is_file():
             raise RuntimeError(
-                'File "{gpio_afsel_file_path}" does not exist; '
-                'use STM32CubeMX to generate the CSV file (also clear the pinout!).'
+                f'File "{gpio_afsel_file_path}" does not exist; '
+                f'use STM32CubeMX to generate the CSV file (also clear the pinout!).'
             )
 
 

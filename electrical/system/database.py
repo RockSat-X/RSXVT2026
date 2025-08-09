@@ -145,8 +145,8 @@ for mcu in TARGETS.mcus:
 
     if not database_file_path.is_file():
         raise RuntimeError(
-            'File "{database_file_path}" does not exist; '
-            'a file of S-expressions is needed to describe the properties of the MCU.'
+            f'File "{database_file_path}" does not exist; '
+            f'a file of S-expressions is needed to describe the properties of the MCU.'
         )
 
     for tag, records in coalesce(map(parse_entry, parse_sexp(database_file_path.read_text()))):
