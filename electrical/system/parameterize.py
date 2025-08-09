@@ -110,13 +110,13 @@ def SYSTEM_PARAMETERIZE(target, options):
 
     draft = None
 
-    def brute(func, *configuration_names):
+    def brute(function, configuration_names):
 
         nonlocal draft, configurations
 
         draft = ContainedNamespace(configuration_names)
 
-        success = func()
+        success = function()
 
         if not success:
             raise RuntimeError(f'Could not brute-force configurations that satisfies the system parameterization.')
@@ -470,7 +470,7 @@ def SYSTEM_PARAMETERIZE(target, options):
         for suffix in ('enable', 'predivider', 'multiplier', 'input_range'):
             draft_configuration_names += [f'pll{unit}_{suffix}']
 
-    brute(parameterize_plls, *draft_configuration_names)
+    brute(parameterize_plls, draft_configuration_names)
 
 
 
@@ -556,12 +556,12 @@ def SYSTEM_PARAMETERIZE(target, options):
 
      # Begin brute-forcing.
 
-    brute(parameterize_scgu,
+    brute(parameterize_scgu, (
         'scgu_clock_source',
         'cpu_divider',
         'axi_ahb_divider',
-        *[f'apb{unit}_divider' for unit in database['APB_UNITS'].VALUE],
-    )
+        *(f'apb{unit}_divider' for unit in database['APB_UNITS'].VALUE),
+    ))
 
 
 
@@ -600,6 +600,7 @@ def SYSTEM_PARAMETERIZE(target, options):
 
 
 
+    brute(parameterize_systick, ('systick_enable', 'systick_reload', 'systick_use_cpu_ck'))
     brute(parameterize_systick, 'systick_enable', 'systick_reload', 'systick_use_cpu_ck')
 
 
