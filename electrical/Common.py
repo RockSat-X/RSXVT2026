@@ -66,18 +66,14 @@ class TargetTuple(tuple):
 TARGETS = TargetTuple((
 
     types.SimpleNamespace(
-        name              = 'SandboxNucleoH7S3L8',
-        mcu               = 'STM32H7S3',
-        cmsis_file_path   = root('./deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h'),
-        source_file_paths = root('''
+        name               = 'SandboxNucleoH7S3L8',
+        mcu                = 'STM32H7S3',
+        cmsis_file_path    = root('./deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h'),
+        freertos_file_path = root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1'),
+        source_file_paths  = root('''
             ./electrical/SandboxNucleoH7S3L8.c
             ./electrical/system/Startup.S
         '''),
-        include_file_paths = (
-            root('./deps/cmsis_device_h7s3l8/Include'),
-            root('./deps/FreeRTOS_Kernel/include'),
-            root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1'),
-        ),
         stack_size = 8192, # TODO This might be removed depending on how FreeRTOS works.
     ),
 
@@ -132,12 +128,14 @@ for target in TARGETS:
 
     # Additional search paths for the compiler to search through for #includes.
 
-    include_file_paths = target.include_file_paths + (
+    include_file_paths = (
         root(BUILD, 'meta'),
         root('./deps/CMSIS_6/CMSIS/Core/Include'),
-        root('./deps'),
-        root('./electrical'),
+        root('./deps/FreeRTOS_Kernel/include'),
         root('./deps/printf/src'),
+        root('.'),            # For <deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h> and such.
+        root('./electrical'), # For <FreeRTOSConfig.h>.
+        target.freertos_file_path,
     )
 
 
@@ -145,8 +143,9 @@ for target in TARGETS:
     # Additional macro defines.
 
     defines = [
-        ('TARGET_NAME'    , target.name      ),
-        ('LINK_stack_size', target.stack_size),
+        ('TARGET_NAME'         , target.name                  ),
+        ('LINK_stack_size'     , target.stack_size            ),
+        ('STM32_CMSIS_DEVICE_H', f'<{target.cmsis_file_path}>'),
     ]
 
     for other in TARGETS:
@@ -168,10 +167,10 @@ for target in TARGETS:
             -fmax-errors=1
             -fno-strict-aliasing
             -fno-eliminate-unused-debug-types
-            {'\n'.join(f'-D {name}={value}'    for name, value in defines                  )}
-            {'\n'.join(f'-W{name}'             for name        in enabled_warnings .split())}
-            {'\n'.join(f'-Wno-{name}'          for name        in disabled_warnings.split())}
-            {'\n'.join(f'-I {repr(str(path))}' for path        in include_file_paths       )}
+            {'\n'.join(f'-D {name}={repr(value)}' for name, value in defines                  )}
+            {'\n'.join(f'-W{name}'                for name        in enabled_warnings .split())}
+            {'\n'.join(f'-Wno-{name}'             for name        in disabled_warnings.split())}
+            {'\n'.join(f'-I {repr(str(path))}'    for path        in include_file_paths       )}
             -ffunction-sections
         '''
     )

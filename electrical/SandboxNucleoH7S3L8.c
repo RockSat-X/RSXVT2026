@@ -1,4 +1,4 @@
-#include <stm32h7s3xx.h>
+#include STM32_CMSIS_DEVICE_H
 #include <string.h>
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wundef"
@@ -8,9 +8,9 @@
 #include "system/gpios.c"
 #include "misc.c"
 #include "jig.c"
-#include <FreeRTOS_Kernel/tasks.c>
-#include <FreeRTOS_Kernel/queue.c>
-#include <FreeRTOS_Kernel/list.c>
+#include <deps/FreeRTOS_Kernel/tasks.c>
+#include <deps/FreeRTOS_Kernel/queue.c>
+#include <deps/FreeRTOS_Kernel/list.c>
 #include <port.c>
 
 
