@@ -97,16 +97,59 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 #include "INTERRUPT.meta"
-/* #meta
+/* #meta INTERRUPTS, INTERRUPTS_FOR_FREERTOS
 
-    # @/`Enforcing existence of interrupt handlers`:
+
+
+    # Load the file which details the list of all interrupt routines supported by the MCU.
+
+    INTERRUPTS = {}
+
+    for mcu in TARGETS.mcus:
+
+        interrupt_vector_table_file = root(f'./deps/mcu/{mcu}_interrupt_vector_table.txt')
+
+        if not interrupt_vector_table_file.is_file():
+            raise RuntimeError(
+                f'File "{interrupt_vector_table_file}" does not exist. '
+                f'This is needed so I know what the interrupt vector table for {mcu} looks like. '
+                f'See the reference manual for {mcu}.'
+            )
+
+        INTERRUPTS[mcu] = [
+            entry.strip()
+            for entry in interrupt_vector_table_file.read_text().splitlines()
+            if entry.strip()
+            if not entry.strip().startswith('#')
+        ]
+
+
+
+    # Some interrupts will be hijacked by FreeRTOS.
+
+    INTERRUPTS_FOR_FREERTOS = {
+        'SysTick' : 'xPortSysTickHandler',
+        'SVCall'  : 'vPortSVCHandler'    ,
+        'PendSV'  : 'xPortPendSVHandler' ,
+    }
+
+
+
+    # @/`Enforcing existence of interrupt handlers`.
 
     @Meta.ifs(TARGETS.mcus, '#if')
     def _(mcu):
 
         yield f'TARGET_MCU_IS_{mcu}'
 
-        for interrupt in USER_DEFINED_INTERRUPTS[mcu]:
+        for interrupt in ['Default'] + INTERRUPTS[mcu]:
+
+            if interrupt == 'Reserved':
+                continue
+
+            if interrupt in INTERRUPTS_FOR_FREERTOS:
+                continue
+
             Meta.define('INTERRUPT', ('INTERRUPT'), f'extern void __INTERRUPT_{interrupt}(void)', INTERRUPT = interrupt)
 
 */

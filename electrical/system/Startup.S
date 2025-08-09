@@ -93,75 +93,48 @@ __INTERRUPT_Reset:
     .word __INTERRUPT_Reset
 
     #include "interrupt_vector_table.meta"
-    /* #meta USER_DEFINED_INTERRUPTS
-
-        USER_DEFINED_INTERRUPTS = { mcu : ['Default'] for mcu in TARGETS.mcus }
+    /* #meta
 
         @Meta.ifs(TARGETS.mcus, '#if')
         def _(mcu):
 
             yield f'TARGET_MCU_IS_{mcu}'
 
-
-
-            # Load the file which details the list of all interrupt routines supported by the MCU.
-
-            interrupt_vector_table_file = root(f'./deps/mcu/{mcu}_interrupt_vector_table.txt')
-
-            if not interrupt_vector_table_file.is_file():
-                with log(ansi = 'fg_red'):
-                    log(f'[ERROR] Couldn\'t find "{interrupt_vector_table_file}"!')
-                    log(f'        This is needed so I know what the interrupt vector table for {mcu} looks like.')
-                    log(f'        See the reference manual for {mcu}.')
-                raise MetaError
+            for interrupt_i, interrupt in enumerate(INTERRUPTS[mcu]):
 
 
 
-            # Parse the entries.
-
-            entries = [entry.strip() for entry in interrupt_vector_table_file.read_text().splitlines()]
-            entries = [None if entry == 'Reserved' else entry for entry in entries if not entry.startswith('#')]
-
-
-
-            # Generate the assembly to define the interrupt vector table.
-
-            for entryi, entry in enumerate(entries):
+                # Nice header.
 
                 Meta.line(f'''
 
-                    // [{entryi - 14}] {'Reserved' if entry is None else entry}.
+                    // [{interrupt_i - 14}] {interrupt}.
 
                 ''')
 
-                match entry:
+
+
+                # No interrupt handler here.
+
+                if interrupt == 'Reserved':
+                    Meta.line('.word 0')
 
 
 
-                    # No interrupt handler here.
+                # These interrupt routines are implemented by FreeRTOS.
 
-                    case None:
-                        Meta.line('.word 0')
-
-
-
-                    # These interrupt routines are implemented by FreeRTOS.
-
-                    case 'SysTick' : Meta.line('.word xPortSysTickHandler')
-                    case 'SVCall'  : Meta.line('.word vPortSVCHandler'    )
-                    case 'PendSV'  : Meta.line('.word xPortPendSVHandler' )
+                elif interrupt in INTERRUPTS_FOR_FREERTOS:
+                    Meta.line(f'.word {INTERRUPTS_FOR_FREERTOS[interrupt]}')
 
 
 
-                    # These interrupt routines will be implemented by the user, if at all.
+                # These interrupt routines will be implemented by the user, if at all.
 
-                    case _:
+                else:
+                    Meta.line(
+                        f'.word __INTERRUPT_{interrupt}'                               , # Insert the address of the handler routine.
+                        f'.weak __INTERRUPT_{interrupt}'                               , # If there exists an implementation of the handler, use it.
+                        f'.set  __INTERRUPT_{interrupt}, __INTERRUPT_Default_indirect' , # Otherwise, use the default handler.
+                    )
 
-                        Meta.line(
-                            f'.word __INTERRUPT_{entry}'                               , # Insert the address of the handler routine.
-                            f'.weak __INTERRUPT_{entry}'                               , # If there exists an implementation of the handler, use it.
-                            f'.set  __INTERRUPT_{entry}, __INTERRUPT_Default_indirect' , # Otherwise, use the default handler.
-                        )
-
-                        USER_DEFINED_INTERRUPTS[mcu] += [entry]
     */
