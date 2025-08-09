@@ -409,7 +409,8 @@ def SYSTEM_CONFIGURIZE(target, configurations):
     ################################################################################################################################
 
 
+
     # Ensure we've used all the configurations given.
 
     if leftovers := OrderedSet(key for key, value in configurations.items() if value is not None) - used_configurations:
-        log(f'[WARNING] There are leftover {target.mcu} configurations: {leftovers}.', ansi = 'fg_yellow')
+        log(ANSI(f'[WARNING] There are leftover {target.mcu} configurations: {leftovers}.', 'fg_yellow'))
