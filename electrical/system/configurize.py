@@ -458,6 +458,44 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
+    for uxart_units in database['UXARTS'].VALUE:
+
+
+
+        # See if the set of UxART peripherals is used.
+
+        ns = '_'.join(str(number) for peripheral, number in uxart_units)
+
+        if cfgs(f'uxart_{ns}_clock_source') is None:
+            continue
+
+        put_title(' / '.join(f'{peripheral.upper()}{number}' for peripheral, number in uxart_units))
+
+
+
+        # Configure the UxART peripherals' clock source.
+
+        CMSIS_SET(cfgs('uxart_{UNITS}_clock_source', ..., UNITS = CfgFmt(uxart_units, ns)))
+
+
+
+        # Output the macros to initialize the baud-dividers.
+
+        for peripheral, number in uxart_units:
+
+            baud_divider = cfgs(f'{peripheral}{number}_baud_divider')
+
+            if baud_divider is None:
+                continue
+
+            Meta.define(f'{peripheral.upper()}{number}_BRR_BRR_init', baud_divider)
+
+
+
+    ################################################################################################################################
+
+
+
     # Ensure we've used all the configurations given.
 
     if leftovers := OrderedSet(key for key, value in configurations.items() if value is not None) - used_configurations:
