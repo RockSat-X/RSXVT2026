@@ -84,7 +84,7 @@
             # this obviously allows for ADC/DAC usage, but it can also serve as a power-saving measure.
 
             case 'analog':
-                assert False # TODO
+                raise NotImplementedError
 
 
 
@@ -98,15 +98,15 @@
 
             # Unknown GPIO mode.
 
-            case _:
-                assert False
+            case unknown:
+                raise ValueError(f'GPIO "{name}" has unknown mode: {repr(unknown)}.')
 
 
 
         # Done processing this GPIO entry!
 
         if properties:
-            assert False, f'GPIO {name} has leftover properties: {properties}.'
+            raise ValueError(f'GPIO "{name}" has leftover properties: {properties}.')
 
         return gpio
 
@@ -124,10 +124,10 @@
         for gpios in table.values():
 
             if (name := find_dupe(gpio.name for gpio in gpios)) is not ...:
-                assert False, f'GPIO name `{name}` used more than once.'
+                raise ValueError(f'GPIO name "{name}" used more than once.')
 
             if (pin := find_dupe(gpio.pin for gpio in gpios if gpio.pin is not None)) is not ...:
-                assert False, f'Pin `{gpio.pin}` used more than once.'
+                raise ValueError(f'GPIO pin "gpio.pin" used more than once.')
 
         return table
 
@@ -170,7 +170,10 @@
         gpio_afsel_file_path = root(f'./deps/mcu/{mcu}_gpios.csv')
 
         if not gpio_afsel_file_path.is_file():
-            assert False, f'File `{gpio_afsel_file_path}` does not exist; use STM32CubeMX to generate the CSV file (clear pinout!).'
+            raise RuntimeError(
+                'File "{gpio_afsel_file_path}" does not exist; '
+                'use STM32CubeMX to generate the CSV file (also clear the pinout!).'
+            )
 
 
 
@@ -202,8 +205,7 @@
                     port   = pin[1]
                     number = int(pin[2:])
 
-                    if not pin.startswith('P') or not ('A' <= port <= 'Z'):
-                        assert False
+                    assert pin.startswith('P') and ('A' <= port <= 'Z')
 
 
 
@@ -366,7 +368,7 @@
                     continue # Not applicable.
 
                 if (gpio.port, gpio.number, gpio.altfunc) not in GPIO_AFSEL[target.mcu]:
-                    assert False, f"Pin {gpio.pin} on {target.mcu} ({target_name}) doesn't have alternate function `{gpio.altfunc}`."
+                    raise ValueError(f'GPIO pin "{gpio.pin}" for {target.mcu} ({target_name}) has no alternate function "{gpio.altfunc}".')
 
 
 

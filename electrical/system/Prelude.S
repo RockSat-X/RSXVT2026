@@ -96,6 +96,7 @@ HANDLER_Reset:
 
         @Meta.ifs(TARGETS.mcus, style = '#if')
         def _(mcu):
+
             yield f'TARGET_MCU_IS_{mcu}'
 
 

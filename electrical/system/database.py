@@ -13,10 +13,6 @@ def parse_entry(entry):
 
     # Get the entry tag and parameters.
 
-    if not entry:
-        assert False
-
-
     tag, *parameters = entry
     record           = AllocatingNamespace()
 
@@ -123,7 +119,7 @@ def parse_entry(entry):
         # Leftover entry parameters.
 
         case _:
-            assert False
+            raise ValueError(f'Leftover parameters: {repr(parameters)}.')
 
 
 
@@ -148,7 +144,10 @@ for mcu in TARGETS.mcus:
     database_file_path = root(f'./deps/mcu/{mcu}_database.txt')
 
     if not database_file_path.is_file():
-        assert False
+        raise RuntimeError(
+            'File "{database_file_path}" does not exist; '
+            'a file of S-expressions is needed to describe the properties of the MCU.'
+        )
 
     for tag, records in coalesce(map(parse_entry, parse_sexp(database_file_path.read_text()))):
 
@@ -165,7 +164,6 @@ for mcu in TARGETS.mcus:
                 f'For {mcu}, multiple database entries were found with the tag "{tag}"; '
                 f'there should be a {{...}} in the string.'
             )
-            assert False
 
 
 
