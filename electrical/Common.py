@@ -278,7 +278,7 @@ TARGETS = TargetTuple((
         mcu               = 'STM32H7S3',
         source_file_paths = root('''
             ./electrical/SandboxNucleoH7S3L8.c
-            ./electrical/system/Prelude.S
+            ./electrical/system/Startup.S
         '''),
         include_file_paths = (
             root('./deps/cmsis_device_h7s3l8/Include'),
