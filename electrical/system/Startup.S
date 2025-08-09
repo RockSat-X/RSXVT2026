@@ -116,7 +116,7 @@ __INTERRUPT_Reset:
 
                 # No interrupt handler here.
 
-                if interrupt == 'Reserved':
+                if interrupt is None:
                     Meta.line('.word 0')
 
 

@@ -106,10 +106,10 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-#define NVIC_ENABLE(NAME)        ((void) (NVIC->ISER[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32))) // @/pg 628/sec B3.4.4/`ARMv7-M`.
-#define NVIC_DISABLE(NAME)       ((void) (NVIC->ICER[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32))) // @/pg 628/sec B3.4.4/`ARMv7-M`.
-#define NVIC_SET_PENDING(NAME)   ((void) (NVIC->ISPR[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32))) // @/pg 629/sec B3.4.6/`ARMv7-M`.
-#define NVIC_CLEAR_PENDING(NAME) ((void) (NVIC->ICPR[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32))) // @/pg 630/sec B3.4.7/`ARMv7-M`.
+#define NVIC_ENABLE(NAME)        ((void) (NVIC->ISER[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32))) // @/pg 628/sec B3.4.4/`Armv7-M`.
+#define NVIC_DISABLE(NAME)       ((void) (NVIC->ICER[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32))) // @/pg 628/sec B3.4.4/`Armv7-M`.
+#define NVIC_SET_PENDING(NAME)   ((void) (NVIC->ISPR[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32))) // @/pg 629/sec B3.4.6/`Armv7-M`.
+#define NVIC_CLEAR_PENDING(NAME) ((void) (NVIC->ICPR[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32))) // @/pg 630/sec B3.4.7/`Armv7-M`.
 
 
 
@@ -118,27 +118,70 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-    # Load the file which details the list of all interrupt routines supported by the MCU.
+    # Parse the targets' CMSIS header files to get the list of interrupts on the microcontroller.
 
     INTERRUPTS = {}
 
-    for mcu in TARGETS.mcus:
+    for target in TARGETS:
 
-        interrupt_vector_table_file = root(f'./deps/mcu/{mcu}_interrupt_vector_table.txt')
 
-        if not interrupt_vector_table_file.is_file():
-            raise RuntimeError(
-                f'File "{interrupt_vector_table_file}" does not exist. '
-                f'This is needed so I know what the interrupt vector table for {mcu} looks like. '
-                f'See the reference manual for {mcu}.'
-            )
 
-        INTERRUPTS[mcu] = [
-            entry.strip()
-            for entry in interrupt_vector_table_file.read_text().splitlines()
-            if entry.strip()
-            if not entry.strip().startswith('#')
-        ]
+        # The CMSIS header for the microcontroller will define its interrupts with an enumeration;
+        # we find the enumeration members so we can automatically get the list of interrupt names
+        # and the corresponding numbers.
+        # e.g:
+        # >
+        # >    typedef enum
+        # >    {
+        # >        Reset_IRQn          = -15,
+        # >        NonMaskableInt_IRQn = -14,
+        # >        ...
+        # >        FDCAN2_IT0_IRQn     = 154,
+        # >        FDCAN2_IT1_IRQn     = 155
+        # >    } IRQn_Type;
+        # >
+
+        irqn_enumeration = {}
+
+        for line in target.cmsis_file_path.read_text().splitlines():
+
+            match line.split():
+
+                case [interrupt_name, '=', interrupt_number, *_] if '_IRQn' in interrupt_name:
+
+                    interrupt_name   = interrupt_name.removesuffix('_IRQn')
+                    interrupt_number = int(interrupt_number.removesuffix(','))
+
+                    assert interrupt_number not in irqn_enumeration
+                    irqn_enumeration[interrupt_number] = interrupt_name
+
+
+
+        # The first interrupt should be the reset exception defined by Armv7-M.
+        # Note that the reset exception has an *exception number* of 1 (@/pg 525/tbl B1-4/`Armv7-M`),
+        # but the *interrupt number* is defined to be the *exception number - 16* (@/pg 625/sec B3.4.1/`Armv7-M`).
+
+        irqn_enumeration = sorted(irqn_enumeration.items())
+        assert irqn_enumeration[0] == (-15, 'Reset')
+
+
+
+        # We then omit the reset interrupt because we will typically handle it specially.
+
+        irqn_enumeration = irqn_enumeration[1:]
+
+
+
+        # To get a contigious sequence of interrupt names,
+        # including interrupt numbers that are reserved,
+        # we create a list for all interrupt numbers between the lowest and highest.
+
+        INTERRUPTS[target.mcu] = [None] * (irqn_enumeration[-1][0] - irqn_enumeration[0][0] + 1)
+
+        for interrupt_number, interrupt_name in irqn_enumeration:
+            INTERRUPTS[target.mcu][interrupt_number - irqn_enumeration[0][0]] = interrupt_name
+
+        INTERRUPTS[target.mcu] = tuple(INTERRUPTS[target.mcu])
 
 
 
@@ -152,16 +195,39 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-    # @/`Enforcing existence of interrupt handlers`.
+    # If trying to define an interrupt handler and one makes a typo,
+    # then the function end up not replacing the weak symbol that's
+    # in place of the interrupt handler in the interrupt vector table,
+    # which can end up as a confusing bug. To prevent that, we will use a
+    # macro to set up the function prototype of the interrupt handler,
+    # and if a typo is made, then a compiler error will be generated.
+    # e.g:
+    # >
+    # >    INTERRUPT(TIM13)          <- If "TIM13" interrupt exists, then ok!
+    # >    {
+    # >        ...
+    # >    }
+    # >
+    # >    INTERRUPT(TIM14)          <- If "TIM14" interrupt doesn't exists, then compiler error here; good!
+    # >    {
+    # >        ...
+    # >    }
+    # >
+    # >    extern void
+    # >    __INTERRUPT_TIM14(void)   <- This will always compile, even if "TIM14" doesn't exist; bad!
+    # >    {
+    # >        ...
+    # >    }
+    # >
 
     @Meta.ifs(TARGETS.mcus, '#if')
     def _(mcu):
 
         yield f'TARGET_MCU_IS_{mcu}'
 
-        for interrupt in ['Default'] + INTERRUPTS[mcu]:
+        for interrupt in ('Default',) + INTERRUPTS[mcu]:
 
-            if interrupt == 'Reserved':
+            if interrupt is None:
                 continue
 
             if interrupt in INTERRUPTS_FOR_FREERTOS:
@@ -191,27 +257,6 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-        # We verify that the *_IRQn enumeration defined by CMSIS
-        # matches up with our table of interrupts.
-
-        with Meta.enter('static_assert'):
-
-            for nvic_table_entry_i, (interrupt, niceness) in enumerate(NVIC_TABLE[target.name]):
-
-                if interrupt not in INTERRUPTS[target.mcu]:
-                    raise ValueError(f'Unknown interrupt: {repr(interrupt)}.')
-
-                expected_irq = INTERRUPTS[target.mcu].index(interrupt) - 14
-                last_entry   = nvic_table_entry_i == len(NVIC_TABLE[target.name]) - 1
-
-                Meta.line(f'NVICInterrupt_{interrupt} == {expected_irq}{',' if last_entry else ' &&'}')
-
-            Meta.line('''
-                "Mismatch between CMSIS's definition of interrupt numbers and the meta-preprocessor's."
-            ''')
-
-
-
         # Initialize the priorities of the defined NVIC interrupts.
 
         with Meta.enter('''
@@ -221,8 +266,10 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
             for interrupt, niceness in NVIC_TABLE[target.name]:
 
-                # We'll be safe and use the fact that ARMv7-M supports
-                # at least 3 bits for the interrupt priority starting MSb. @/pg 526/sec B1.5.4/`ARMv7-M`.
+
+
+                # We'll be safe and use the fact that Armv7-M supports
+                # at least 3 bits for the interrupt priority starting MSb. @/pg 526/sec B1.5.4/`Armv7-M`.
 
                 assert 0b000 <= niceness <= 0b111
 
@@ -277,34 +324,3 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
         for name, expansion in defines:
             Meta.define(name, expansion)
 */
-
-
-
-//////////////////////////////////////////////////////////////// Notes ////////////////////////////////////////////////////////////////
-
-// @/`Enforcing existence of interrupt handlers`:
-//
-// If trying to define an interrupt handler and one makes a typo,
-// then the function end up not replacing the weak symbol that's
-// in place of the interrupt handler in the interrupt vector table,
-// which can end up as a confusing bug. To prevent that, we will use a
-// macro to set up the function prototype of the interrupt handler,
-// and if a typo is made, then a compiler error will be generated.
-// e.g:
-// >
-// >    INTERRUPT(TIM13)   <- If "TIM13" interrupt exists, then ok!
-// >    {
-// >        ...
-// >    }
-// >
-// >    INTERRUPT(TIM14)   <- If "TIM14" interrupt doesn't exists, then compiler error here; good!
-// >    {
-// >        ...
-// >    }
-// >
-// >    extern void
-// >    __INTERRUPT_TIM14(void)   <- This will always compile, even if "TIM14" doesn't exist; bad!
-// >    {
-// >        ...
-// >    }
-// >

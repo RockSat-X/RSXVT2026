@@ -276,6 +276,7 @@ TARGETS = TargetTuple((
     types.SimpleNamespace(
         name              = 'SandboxNucleoH7S3L8',
         mcu               = 'STM32H7S3',
+        cmsis_file_path   = root('./deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h'),
         source_file_paths = root('''
             ./electrical/SandboxNucleoH7S3L8.c
             ./electrical/system/Startup.S
