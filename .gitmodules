@@ -10,3 +10,7 @@
 	path = deps/FreeRTOS_Kernel
 	url = https://github.com/FreeRTOS/FreeRTOS-Kernel
 	branch = main
+[submodule "deps/printf"]
+	path = deps/printf
+	url = https://github.com/eyalroz/printf
+	branch = master

@@ -1,11 +1,18 @@
 {
     "version" : "2.0.0",
+    "inputs": [
+        {
+            "id"          : "TARGET",
+            "type"        : "promptString",
+            "description" : "The target to build, flash, and debug; an empty input will select the target automatically.",
+        }
+    ],
     "tasks"   : [
         {
             "label"          : "Build the firmware.", // Use CTRL-SHIFT-B to build.
             "type"           : "shell",
-            "command"        : "./cli.py",
-            "args"           : ["build"],
+            "command"        : "python",
+            "args"           : ["./cli.py", "build", "${input:TARGET}"],
             "problemMatcher" : [],
             "group"          : {
                 "kind"       : "build",
@@ -15,8 +22,8 @@
         {
             "label"          : "Flash the firmware.",
             "type"           : "shell",
-            "command"        : "./cli.py",
-            "args"           : ["flash"],
+            "command"        : "python",
+            "args"           : ["./cli.py", "flash", "${input:TARGET}"],
             "problemMatcher" : [],
         },
         { // @/`Deferred Task`.
@@ -26,8 +33,8 @@
         {
             "label"          : "Make a GDB-server (deferred).",
             "type"           : "shell",
-            "command"        : "./cli.py",
-            "args"           : ["debug", "--just-gdbserver"],
+            "command"        : "python",
+            "args"           : ["./cli.py", "debug", "--just-gdbserver"],
             "isBackground"   : true,
             "hide"           : true,
             "problemMatcher" : [ // @/`problemMatcher`.
@@ -59,7 +66,7 @@
 
 //////////////////////////////////////////////////////////////// Notes ////////////////////////////////////////////////////////////////
 
-// @/by Phuc Doan/on 2025-july-20/`problemMatcher`:
+// @/`problemMatcher`:
 // @/url:`https://stackoverflow.com/a/54017304`.
 //
 // Visual Studio Code is absolute dogwater in that it forces you to define a problem-matcher for tasks that
@@ -69,7 +76,7 @@
 // I've tried null, [], and "", but to actually get around this, a dummy problem-matcher is needed.
 // I doubt this is the best solution, but right now it works.
 
-// @/by Phuc Doan/on 2025-july-20/`Deferred Task`:
+// @/`Deferred Task`:
 //
 // For some inexplicable reason, sometimes starting a debugging session will not work because of the
 // "problemMatcher" not letting the background task be marked as "done" so that the GDB session can begin (I think).

@@ -25,49 +25,72 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
-    # This helper routine can be used to look up a value in "configurations" or look up in the database to find the location of a register;
+    # This helper routine can be used to look up a value in `configurations` or look up in the database to find the location of a register;
     # the value in the section-register-field-value tuple can also be changed to something else.
-    # e.g.
-    # cfgs('flash_latency'        )   ->   configurations['flash_latency']
-    # cfgs('flash_latency', ...   )   ->   ('FLASH', 'ACR', 'LATENCY', configurations['flash_latency'])
-    # cfgs('flash_latency', 0b1111)   ->   ('FLASH', 'ACR', 'LATENCY', 0b1111)
+    # e.g:
+    # >
+    # >    cfgs('flash_latency'        )   ->   configurations['flash_latency']
+    # >    cfgs('flash_latency', ...   )   ->   ('FLASH', 'ACR', 'LATENCY', configurations['flash_latency'])
+    # >    cfgs('flash_latency', 0b1111)   ->   ('FLASH', 'ACR', 'LATENCY', 0b1111)
+    # >
 
-    used_configurations = OrdSet()
+    used_configurations = OrderedSet()
+
+    CfgFmt = collections.namedtuple('CfgFmt', ('database_expansion', 'configuration_expansion')) # @/`About CfgFmt`.
 
     def cfgs(tag, *value, **placeholder_values):
 
 
 
         # Make sure all placeholders in the tag are given.
-        # e.g.
-        # cfgs('pll{UNIT}_input_range', UNIT = 3)
+        # e.g:
+        # >
+        # >    cfgs('pll{UNIT}_input_range', UNIT = 3)
+        # >
 
-        placeholders = OrdSet(re.findall('{(.*?)}', tag))
+        placeholders = OrderedSet(re.findall('{(.*?)}', tag))
 
-        if differences := list(OrdSet(placeholders) - OrdSet(placeholder_values.keys())):
-            raise ValueError(ErrorLift(f'Tag "{tag}" is missing the value for the placeholder "{differences[0]}".'))
+        if differences := list(OrderedSet(placeholders) - placeholder_values.keys()):
+            raise ValueError(f'Tag "{tag}" is missing the value for the placeholder "{differences[0]}".')
 
-        if differences := list(OrdSet(placeholder_values.keys()) - OrdSet(placeholders)):
-            raise ValueError(ErrorLift(f'Tag "{tag}" has no placeholder "{differences[0]}".'))
+        if differences := list(OrderedSet(placeholder_values.keys()) - placeholders):
+            raise ValueError(f'Tag "{tag}" has no placeholder "{differences[0]}".')
 
 
 
-        # Get the value from "configurations", if needed.
-        # e.g.
-        # cfgs('flash_latency'        )   ->   configurations['flash_latency']
-        # cfgs('flash_latency', ...   )   ->   ('FLASH', 'ACR', 'LATENCY', configurations['flash_latency'])
+        # @/`About CfgFmt`.
+
+        placeholder_values_for_configuration = {
+            name : value.configuration_expansion if isinstance(value, CfgFmt) else value
+            for name, value in placeholder_values.items()
+        }
+
+        placeholder_values_for_database = {
+            name : value.database_expansion if isinstance(value, CfgFmt) else value
+            for name, value in placeholder_values.items()
+        }
+
+
+
+        # Get the value from `configurations`, if needed.
+        # e.g:
+        # >
+        # >    cfgs('flash_latency'        )   ->   configurations['flash_latency']
+        # >    cfgs('flash_latency', ...   )   ->   ('FLASH', 'ACR', 'LATENCY', configurations['flash_latency'])
+        # >
+        #
 
         def find_configuration_value():
 
             nonlocal used_configurations
 
-            configuration = tag.format(**placeholder_values)
+            configuration = tag.format(**placeholder_values_for_configuration)
 
             if configuration not in configurations:
                 if placeholders:
-                    raise ValueError(ErrorLift(f'For {target.mcu}, the tag "{tag}" expanded to the undefined configuration "{configuration}".'))
+                    raise ValueError(f'For {target.mcu}, the tag "{tag}" expanded to the undefined configuration "{configuration}".')
                 else:
-                    raise ValueError(ErrorLift(f'For {target.mcu}, configuration "{configuration}" was not provided.'))
+                    raise ValueError(f'For {target.mcu}, configuration "{configuration}" was not provided.')
 
             used_configurations |= { configuration }
 
@@ -76,41 +99,57 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
         # Find the database entry that has the desired tag and placeholder values, if needed.
-        # e.g.
-        # cfgs('pll{UNIT}_predivider', UNIT = 2)   ->   (pll{UNIT}_predivider (RCC PLLCKSELR DIVM2) (minmax: 1 63) (UNIT = 2))
+        # e.g:
+        # >
+        # >    cfgs('pll{UNIT}_predivider', UNIT = 2)   ->   (pll{UNIT}_predivider (RCC PLLCKSELR DIVM2) (minmax: 1 63) (UNIT = 2))
+        # >
 
         def find_database_entry():
 
-
             if tag not in database:
-                raise ValueError(ErrorLift(f'For {target.mcu}, no system database entry was found with the tag of "{tag}".'))
+                raise ValueError(f'For {target.mcu}, no system database entry was found with the tag of "{tag}".')
 
             match len(placeholders):
 
 
 
                 # No placeholders, so we just do a direct look-up.
-                # cfgs('cpu_divider')   ->   SYSTEM_DATBASE[mcu]['cpu_divider']
+                # e.g:
+                # >
+                # >    cfgs('cpu_divider')   ->   SYSTEM_DATBASE[mcu]['cpu_divider']
+                # >
+
                 case 0:
                     return database[tag]
 
 
 
                 # Single placeholder, so we get the entry based on the solely provided keyword-argument.
-                # e.g.
-                # cfgs('pll{UNIT}_predivider', UNIT = 2)   ->   SYSTEM_DATBASE[mcu]['pll{UNIT}_predivider'][2]
+                # e.g:
+                # >
+                # >    cfgs('pll{UNIT}_predivider', UNIT = 2)   ->   SYSTEM_DATBASE[mcu]['pll{UNIT}_predivider'][2]
+                # >
 
                 case 1:
-                    return database[tag][placeholder_values[placeholders[0]]]
+
+                    placeholder_value = placeholder_values_for_database[placeholders[0]]
+
+                    if placeholder_value not in database[tag]:
+                        raise ValueError(f'Placeholder ({placeholders[0]} = {repr(placeholder_value)}) is not an option for database entry {repr(tag)}.')
+
+                    return database[tag][placeholder_value]
 
 
 
                 # Multiple placeholders, so we get the entry based on the provided keyword-arguments.
-                # e.g.
-                # cfgs('pll{UNIT}{CHANNEL}_enable', UNIT = 2, CHANNEL = 'q')   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][Placeholders(UNIT = 2, CHANNEL = 'q')]
+                # e.g:
+                # >
+                # >    cfgs('pll{UNIT}{CHANNEL}_enable', UNIT = 2, CHANNEL = 'q')   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][Placeholders(UNIT = 2, CHANNEL = 'q')]
+                # >
+
                 case _:
-                    Placeholders = collections.namedtuple('Placeholders', placeholder_values.keys())
-                    return database[tag][Placeholders(**placeholder_values)]
+                    Placeholders = collections.namedtuple('Placeholders', placeholder_values_for_database.keys())
+                    return database[tag][Placeholders(**placeholder_values_for_database)]
 
 
 
@@ -120,16 +159,22 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
-            # Get the value from "configurations" directly.
-            # cfgs('flash_latency')   ->   configurations['flash_latency']
+            # Get the value from `configurations` directly.
+            # e.g:
+            # >
+            # >    cfgs('flash_latency')   ->   configurations['flash_latency']
+            # >
 
             case []:
                 return find_configuration_value()
 
 
 
-            # Get the value from "configurations" and append it to the register's location tuple.
-            # cfgs('flash_latency', ...)   ->   ('FLASH', 'ACR', 'LATENCY', configurations['flash_latency'])
+            # Get the value from `configurations` and append it to the register's location tuple.
+            # e.g:
+            # >
+            # >    cfgs('flash_latency', ...)   ->   ('FLASH', 'ACR', 'LATENCY', configurations['flash_latency'])
+            # >
 
             case [builtins.Ellipsis]:
                 entry = find_database_entry()
@@ -138,7 +183,10 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
             # Append the desired value to the register's location tuple.
-            # cfgs('flash_latency', 0b1111)   ->   ('FLASH', 'ACR', 'LATENCY', 0b1111)
+            # e.g:
+            # >
+            # >    cfgs('flash_latency', 0b1111)   ->   ('FLASH', 'ACR', 'LATENCY', 0b1111)
+            # >
 
             case [value]:
                 entry = find_database_entry()
@@ -149,7 +197,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
             # Ill-defined arguments.
 
             case _:
-                raise ValueError(ErrorLift(f'Either nothing, "...", or a single value should be given for the argument; got: {value}.'))
+                raise ValueError(f'Either nothing, "...", or a single value should be given for the argument; got: {value}.')
 
 
 
@@ -159,7 +207,6 @@ def SYSTEM_CONFIGURIZE(target, configurations):
     # time for the data stored in the flash memory to stablize for read operations;
     # this delay varies based on voltage and clock frequency.
     # @/pg 210/sec 5.3.7/`H7S3rm`.
-    # @/pg 159/sec 4.3.8/`H730rm`.
 
     put_title('Flash')
 
@@ -195,7 +242,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
     # The power supply setup must be configured first before configuring VOS or the system clock frequency.
     # @/pg 323/sec 6.8.4/`H7S3rm`.
-    # @/pg 287/sec 6.8.4/`H730rm`.
+
     CMSIS_SET(
         cfgs(configuration, ...)
         for configuration in (
@@ -400,7 +447,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
         CMSIS_SET(
             cfgs('systick_reload'          , ... ), # Modulation of the counter.
             cfgs('systick_use_cpu_ck'      , ... ), # Use CPU clock or the vendor-provided one.
-            cfgs('systick_counter'         , 0   ), # "The SYST_CVR value is UNKNOWN on reset." @/pg 620/sec B3.3.1/`ARMv7-M`.
+            cfgs('systick_counter'         , 0   ), # "The SYST_CVR value is UNKNOWN on reset." @/pg 620/sec B3.3.1/`Armv7-M`.
             cfgs('systick_interrupt_enable', True), # Enable SysTick interrupt, triggered at every overflow.
             cfgs('systick_enable'          , True), # Enable SysTick counter.
         )
@@ -410,7 +457,96 @@ def SYSTEM_CONFIGURIZE(target, configurations):
     ################################################################################################################################
 
 
+
+    for uxart_units in database['UXARTS'].VALUE:
+
+
+
+        # See if the set of UxART peripherals is used.
+
+        ns = '_'.join(str(number) for peripheral, number in uxart_units)
+
+        if cfgs(f'uxart_{ns}_clock_source') is None:
+            continue
+
+        put_title(' / '.join(f'{peripheral.upper()}{number}' for peripheral, number in uxart_units))
+
+
+
+        # Configure the UxART peripherals' clock source.
+
+        CMSIS_SET(cfgs('uxart_{UNITS}_clock_source', ..., UNITS = CfgFmt(uxart_units, ns)))
+
+
+
+        # Output the macros to initialize the baud-dividers.
+
+        for peripheral, number in uxart_units:
+
+            baud_divider = cfgs(f'{peripheral}{number}_baud_divider')
+
+            if baud_divider is None:
+                continue
+
+            Meta.define(f'{peripheral.upper()}{number}_BRR_BRR_init', baud_divider)
+
+
+
+    ################################################################################################################################
+
+
+
     # Ensure we've used all the configurations given.
 
-    if leftovers := OrdSet(key for key, value in configurations.items() if value is not None) - used_configurations:
-        log(f'[WARNING] There are leftover {target.mcu} configurations: {leftovers}.', ansi = 'fg_yellow')
+    if leftovers := OrderedSet(key for key, value in configurations.items() if value is not None) - used_configurations:
+        log(ANSI(f'[WARNING] There are leftover {target.mcu} configurations: {leftovers}.', 'fg_yellow'))
+
+
+
+################################################################################################################################
+
+# @/`About CfgFmt`:
+#
+# The placeholder value can actually be different based on whether or not
+# we're looking into `configurations` or if we're looking up in `SYSTEM_DATABASE`.
+# Most of the time it's the same, but the subtle requirement for this case is that
+# the placeholder value for `configuration` needs to be something that can turn into
+# a string that looks nice as a result, but keys into `SYSTEM_DATABASE` can be any arbritary value.
+#
+# e.g:
+# >
+# >    (uxart_{UNITS}_clock_source (RCC CCIPR2 UART278SEL) (UNITS = ((usart 2) (uart 7) (uart 8))) (value: (...)))
+# >                                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# >                                                         Let's take this database entry as an example.
+# >
+# >
+# >    database['uxart_{UNITS}_clock_source'][(('usart', 2), ('uart', 7), ('uart' 8))]
+# >                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# >                                Look-ups into the database is done using a tuple as expected.
+# >
+# >
+# >    configurations["uxart_(('usart', 2), ('uart', 7), ('uart' 8))_clock_source"]
+# >                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# >               If we naively do the same for the key into `configurations`,
+# >               we'd be doing something stupid like this instead; while we could
+# >               accept this artifact, it's best to format it into something more
+# >               readable for debugging reasons.
+# >
+# >
+# >    configurations['uxart_2_7_8_clock_source']
+# >                          ^^^^^
+# >               Something like this is more understable and
+# >               might reflect the reference manual more.
+# >
+# >
+# >    units = (('usart', 2), ('uart', 7), ('uart' 8))
+# >    ns    = '2_7_8'
+# >    cfgs('uxart_{UNITS}_clock_source', ..., UNITS = CfgFmt(units, ns))
+# >                                                    ^^^^^^^^^^^^^^^^^
+# >                                          Thus, this is how we'd handle this situation.
+# >
+# >
+#
+# Of course, we could elimate this entire issue by accepting the artifact,
+# but for now I think the look of this is worth the complication;
+# we can revisit this in the future.

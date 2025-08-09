@@ -1,10 +1,9 @@
-#meta root, ljusts, coalesce, mk_dict, find_dupe, OrdSet, Obj, Record, Table, log, MetaError, ErrorLift, CMSIS_SET, CMSIS_WRITE, CMSIS_SPINLOCK, TARGETS :
+#meta types, root, justify, coalesce, mk_dict, find_dupe, OrderedSet, ContainedNamespace, AllocatingNamespace, log, ANSI, CMSIS_SET, CMSIS_WRITE, CMSIS_SPINLOCK, STLINK_BAUD, TARGETS :
 # TODO Provide explaination on how this file works?
 
-import enum
-from deps.pxd.utils            import root, ljusts, coalesce, mk_dict, repr_in_c, find_dupe, ljusts, Obj, Record, Table, OrdSet, ErrorLift
-from deps.pxd.log              import log, did_you_mean
-from deps.pxd.metapreprocessor import MetaError
+import types
+from deps.pxd.utils import root, justify, coalesce, mk_dict, c_repr, find_dupe, ContainedNamespace, AllocatingNamespace, OrderedSet
+from deps.pxd.log   import log, ANSI
 
 
 
@@ -16,6 +15,7 @@ class CMSIS_MODIFY:
 
     # This class is just a support to define CMSIS_SET and CMSIS_WRITE in the meta-preprocessor;
     # the only difference in the output is which CMSIS_SET/WRITE macro is being used.
+
     def __init__(self, macro):
         self.macro = macro
 
@@ -23,6 +23,7 @@ class CMSIS_MODIFY:
 
     # The most common usage of CMSIS_SET/WRITE in the meta-preprocessor is to mimic
     # how the CMSIS_SET/WRITE macros would be called in C code.
+
     def __call__(self, *modifies):
 
 
@@ -31,17 +32,20 @@ class CMSIS_MODIFY:
         # CMSIS_SET(
         #     ('SDMMC', 'DCTRL', 'DTEN', True),   ->   CMSIS_SET('SDMMC', 'DCTRL', 'DTEN', True)
         # )
+
         if len(modifies) == 1:
             modifies, = modifies
 
 
 
         # e.g. CMSIS_SET(x for x in xs)
+
         modifies = tuple(modifies)
 
 
 
         # e.g. CMSIS_SET(())
+
         if len(modifies) == 0:
             return
 
@@ -55,6 +59,7 @@ class CMSIS_MODIFY:
         #     'DTDIR' , False  ,            ('SDMMC', 'DCTRL', 'DTMODE', 0b10 ),
         #     'DTMODE', 0b10   ,        )
         # )
+
         if not isinstance(modifies[0], tuple):
             modifies = tuple(
                 (modifies[0], modifies[1], modifies[i], modifies[i + 1])
@@ -76,10 +81,11 @@ class CMSIS_MODIFY:
         #                                                     CMSIS_SET(
         #                                                         ('I2C', 'CR1', 'DNF', 0b1001),
         #                                                     )
-        modifies = coalesce(
-            ((section, register), (field, repr_in_c(value)))
+
+        modifies = mk_dict(coalesce(
+            ((section, register), (field, c_repr(value)))
             for section, register, field, value in modifies
-        )
+        ))
 
 
 
@@ -92,21 +98,21 @@ class CMSIS_MODIFY:
         #     ('SDMMC', 'DCTRL' , 'DTDIR'   , False ),
         #     ('I2C'  , 'CR1'   , 'DNF'     , 0b0110), <- Duplicate field!
         # )
+
         for (section, register), field_values in modifies.items():
-            if (field := find_dupe(field for field, value in field_values)) is not None:
-                raise ValueError(ErrorLift(f'Modifying field "{field}" more than once.'))
+            if (field := find_dupe(field for field, value in field_values)) is not ...:
+                raise ValueError(f'Modifying field "{field}" more than once.')
 
 
 
-        #
         # Output the proper call to the CMSIS_SET/WRITE macro.
-        #
 
         for (section, register), field_values in modifies.items():
             match field_values:
 
                 # Single-lined output.
                 # e.g. CMSIS_SET(a, b, c, d)
+
                 case [(field, value)]:
                     Meta.line(f'''
                         {self.macro}({section}, {register}, {field}, {value});
@@ -120,10 +126,17 @@ class CMSIS_MODIFY:
                 #     e, f,
                 #     g, h,
                 # )
+
                 case _:
                     with Meta.enter(self.macro, '(', ');'):
-                        for columns in ljusts(((section, register), *field_values)):
-                            Meta.line(f'{', '.join(columns)},')
+                        for just_lhs, just_rhs in justify(
+                            (
+                                ('<', lhs),
+                                ('<', rhs),
+                            )
+                            for lhs, rhs in ((section, register), *field_values)
+                        ):
+                            Meta.line(f'{just_lhs}, {just_rhs},')
 
 
 
@@ -162,20 +175,8 @@ class CMSIS_MODIFY:
         self.modifies = []
         return self.modifies
 
-    def __exit__(self, *dont_care_about_exceptions):
-
-        try:
-            self(self.modifies)
-
-        except Exception as err:
-
-            # TODO This is an ugly way just so that the dumped stacktrace will be at the most useful place.
-            if err.args and isinstance(err.args[0], ErrorLift):
-                lifted_err = type(err).__new__(type(err))
-                type(err).__init__(lifted_err, *err.args)
-                raise lifted_err from err
-            else:
-                raise
+    def __exit__(self, *exception_info):
+        self(self.modifies)
 
 CMSIS_SET   = CMSIS_MODIFY('CMSIS_SET'  )
 CMSIS_WRITE = CMSIS_MODIFY('CMSIS_WRITE')
@@ -225,6 +226,13 @@ def CMSIS_SPINLOCK(*spinlocks):
 ################################################################################################################################
 
 
+#
+# Communication speed with the ST-Link.
+#
+
+STLINK_BAUD = 1_000_000
+
+
 
 #
 # Build directory where all build artifacts will be dumped to.
@@ -241,24 +249,24 @@ BUILD = root('./build')
 
 class TargetTuple(tuple):
 
+
+
     def __new__(cls, elements):
         return super(TargetTuple, cls).__new__(cls, elements)
 
+
+
     def __init__(self, elements):
-        self.mcus = OrdSet(target.mcu for target in self) # Set of all MCUs in use.
+        self.mcus = OrderedSet(target.mcu for target in self) # Set of all MCUs in use.
+
+
 
     # Get a specific target by name.
+
     def get(self, target_name):
 
         if not (matches := [target for target in self if target.name == target_name]):
-            did_you_mean(
-                f'Couldn\'t find target by the name of "{target_name}".',
-                target_name,
-                (target.name for target in TARGETS),
-                ansi = 'fg_red',
-                tag = '[ERROR]'
-            )
-            raise MetaError
+            raise ValueError(f'Undefined target: {repr(target_name)}.')
 
         target, = matches
 
@@ -272,12 +280,13 @@ class TargetTuple(tuple):
 
 TARGETS = TargetTuple((
 
-    Record(
+    types.SimpleNamespace(
         name              = 'SandboxNucleoH7S3L8',
         mcu               = 'STM32H7S3',
+        cmsis_file_path   = root('./deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h'),
         source_file_paths = root('''
             ./electrical/SandboxNucleoH7S3L8.c
-            ./electrical/system/Prelude.S
+            ./electrical/system/Startup.S
         '''),
         include_file_paths = (
             root('./deps/cmsis_device_h7s3l8/Include'),
@@ -343,6 +352,7 @@ for target in TARGETS:
         root('./deps/CMSIS_6/CMSIS/Core/Include'),
         root('./deps'),
         root('./electrical'),
+        root('./deps/printf/src'),
     )
 
 
@@ -362,25 +372,28 @@ for target in TARGETS:
 
 
 
-    # The target's final set of compiler flags.
+    # The target's final set of compiler flags. @/`Linker Garbage Collection`.
 
-    target.compiler_flags = f'''
-        {architecture_flags}
-        -O0
-        -ggdb3
-        -std=gnu23
-        -fmax-errors=1
-        -fno-strict-aliasing
-        -fno-eliminate-unused-debug-types
-        {'\n'.join(f'-D {name}={value}'    for name, value in defines                  )}
-        {'\n'.join(f'-W{name}'             for name        in enabled_warnings .split())}
-        {'\n'.join(f'-Wno-{name}'          for name        in disabled_warnings.split())}
-        {'\n'.join(f'-I {repr(str(path))}' for path        in include_file_paths       )}
-    '''
+    target.compiler_flags = (
+        f'''
+            {architecture_flags}
+            -O0
+            -ggdb3
+            -std=gnu23
+            -fmax-errors=1
+            -fno-strict-aliasing
+            -fno-eliminate-unused-debug-types
+            {'\n'.join(f'-D {name}={value}'    for name, value in defines                  )}
+            {'\n'.join(f'-W{name}'             for name        in enabled_warnings .split())}
+            {'\n'.join(f'-Wno-{name}'          for name        in disabled_warnings.split())}
+            {'\n'.join(f'-I {repr(str(path))}' for path        in include_file_paths       )}
+            -ffunction-sections
+        '''
+    )
 
 
 
-    # The target's final set of linker flags.
+    # The target's final set of linker flags. @/`Linker Garbage Collection`.
 
     target.linker_flags = f'''
         {architecture_flags}
@@ -388,4 +401,21 @@ for target in TARGETS:
         -lgcc
         -lc
         -Xlinker --fatal-warnings
+        -Xlinker --gc-sections
     '''
+
+
+
+################################################################################################################################
+
+# @/`Linker Garbage Collection`:
+#
+# The `-ffunction-sections` makes the compiler generate a section for every function.
+# This will allow the linker to later on garbage-collect any unused functions via `--gc-sections`.
+# This isn't necessarily for space-saving reasons, but for letting us compile with libraries without
+# necessarily defining all user-side functions until we use a library function that'd depend upon it.
+# An example would be `putchar_` for eyalroz's `printf` library.
+#
+# There's a similar thing for data with the flag `-fdata-sections`, but if we do this, then we won't be
+# able to reference any variables that end up being garbage-collected when we debug. This isn't a big
+# deal, but it is annoying when it happens, so we'll skip out on GC'ing data and only do functions.

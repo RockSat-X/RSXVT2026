@@ -17,14 +17,23 @@ def SYSTEM_PARAMETERIZE(target, options):
 
 
     # As we parameterize, we keep track of clock frequencies we have so far in the clock-tree.
-    # e.g. tree['pll2_q_ck'] -> 200_000_000 Hz.
+    # e.g:
+    # >
+    # >    tree['pll2_q_ck']   ->   200_000_000 Hz
+    # >
 
-    tree = Record({ None : 0 }) # So that: tree[None] -> 0 Hz.
+    tree = AllocatingNamespace({ None : 0 }) # So that: tree[None] -> 0 Hz.
 
     def log_tree(): # Routine to help debug the clock tree if needed.
         log()
-        for row in ljusts((key, f'{value :,}') for key, value in tree):
-            log('| {0} | {1} Hz |'.format(*row), ansi = 'fg_yellow')
+        for just in justify(
+            (
+                ('<', key          ),
+                ('<', f'{value :,}'),
+            )
+            for key, value in tree
+        ):
+            log(ANSI('| {} | {} Hz |', 'fg_yellow'), *just)
         log()
 
 
@@ -32,7 +41,7 @@ def SYSTEM_PARAMETERIZE(target, options):
     # To ensure we use every option in SYSTEM_OPTIONS, we have a helper function to record every access to it
     # that we then verify at the very end; a default value can also be supplied if the option is not in SYSTEM_OPTIONS.
 
-    used_options = OrdSet()
+    used_options = OrderedSet()
 
     def opts(option, *default):
 
@@ -47,14 +56,14 @@ def SYSTEM_PARAMETERIZE(target, options):
 
 
         # The default value could be None, so allow that, we need to use varadic arguments.
-        # e.g.
-        # opts('cpu_ck'      ) -> There must be "cpu_ck" in SYSTEM_OPTIONS.
-        # opts('cpu_ck', None) -> If no "cpu_ck" in SYSTEM_OPTIONS, then "None".
+        # e.g:
+        # >
+        # >    opts('cpu_ck'      )   ->   There must be 'cpu_ck' in SYSTEM_OPTIONS.
+        # >    opts('cpu_ck', None)   ->   If no 'cpu_ck' in SYSTEM_OPTIONS, then `None`.
+        # >
 
         if len(default) >= 2:
-            raise ValueError(ErrorLift(
-                f'Either zero or one argument should be given for the default value; got {len(default)}: {default}.'
-            ))
+            raise ValueError(f'Either zero or one argument should be given for the default value; got {len(default)}: {default}.')
 
 
 
@@ -75,41 +84,50 @@ def SYSTEM_PARAMETERIZE(target, options):
         # No option in SYSTEM_OPTION nor fallback default!
 
         else:
-            raise ValueError(ErrorLift(f'For {target.mcu}, no system option "{option}" was found.'))
+            raise ValueError(f'For {target.mcu}, no system option "{option}" was found.')
 
 
 
     # The point of parameterization is to determine what the register values should be in order
     # to initialize the MCU to the specifications of SYSTEM_OPTIONS, so we'll be recording that too.
-    # e.g. configurations['pll1_q_divider'] -> 256
+    # e.g:
+    # >
+    # >    configurations['pll1_q_divider']   ->   256
+    # >
 
-    configurations = Record()
+    configurations = AllocatingNamespace()
 
     def log_configurations(): # Routine to help debug the configuration record if needed.
         log()
-        for row in ljusts(configurations):
-            log('| {0} | {1} |'.format(*row), ansi = 'fg_yellow')
+        for row in justify(
+            (
+                ('<', key  ),
+                ('<', value),
+            )
+            for key, value in configurations
+        ):
+            log(ANSI('| {} | {} |', 'fg_yellow'), *row)
         log()
 
 
 
     # To brute-force the clock tree, we have to try a lot of possible register values to see what sticks.
-    # To do this in a convenient way, "draft" will accumulate configuration values to be eventually
-    # inserted into "configurations" itself. Since "draft" is a variable at this scope-level, any function
+    # To do this in a convenient way, `draft` will accumulate configuration values to be eventually
+    # inserted into `configurations` itself. Since `draft` is a variable at this scope-level, any function
     # can modify it, no matter how deep we might be in the brute-forcing stack-trace.
 
     draft = None
 
-    def brute(func, *configuration_names):
+    def brute(function, configuration_names):
 
         nonlocal draft, configurations
 
-        draft = Obj(configuration_names)
+        draft = ContainedNamespace(configuration_names)
 
-        success = func()
+        success = function()
 
         if not success:
-            raise RuntimeError(ErrorLift(f'Could not brute-force configurations that satisfies the system parameterization.'))
+            raise RuntimeError(f'Could not brute-force configurations that satisfies the system parameterization.')
 
         configurations |= draft
         draft           = None  # Clear so brute-forced configuration values won't accidentally be referenced.
@@ -117,7 +135,10 @@ def SYSTEM_PARAMETERIZE(target, options):
 
 
     # Helper routines for database entries that are min-max ranges.
-    # e.g. (sdmmc_kernel_freq (minmax: 0 200_000_000))
+    # e.g:
+    # >
+    # >    (sdmmc_kernel_freq (minmax: 0 200_000_000))
+    # >
 
     def in_minmax(value, entry):
         return entry.MIN <= value <= entry.MAX
@@ -139,7 +160,7 @@ def SYSTEM_PARAMETERIZE(target, options):
             for mcu in mcus:
 
                 if mcu in per_mcus:
-                    raise ValueError(ErrorLift(f'There\'s already a case for {mcu}.'))
+                    raise ValueError(f'There\'s already a case for {mcu}.')
 
                 per_mcus[mcu] = function
 
@@ -152,9 +173,7 @@ def SYSTEM_PARAMETERIZE(target, options):
         function = per_mcus.get(target.mcu, None)
 
         if function is None:
-            raise RuntimeError(ErrorLift(
-                f'Microcontroller {target.mcu} not yet handled here; supported cases: {list(per_mcus.keys())}.'
-            ))
+            raise RuntimeError(f'MCU {target.mcu} not yet handled here; supported cases: {list(per_mcus.keys())}.')
 
         function()
 
@@ -260,7 +279,6 @@ def SYSTEM_PARAMETERIZE(target, options):
     # Built-in oscillators.
     #
     # @/pg 354/fig 40/`H7S3rm`.
-    # @/pg 319/fig 45/`H730rm`.
     #
 
 
@@ -270,19 +288,16 @@ def SYSTEM_PARAMETERIZE(target, options):
 
         # General high-speed-internal oscillator. TODO Handle other frequencies.
         # @/pg 361/sec 7.5.2/`H7S3rm`.
-        # @/pg 322/sec 8.5.2/`H730rm`.
         configurations.hsi_enable = opts('hsi_enable')
         tree.hsi_ck               = 64_000_000 if configurations.hsi_enable else 0
 
         # High-speed-internal oscillator (48MHz).
         # @/pg 363/sec 7.5.2/`H7S3rm`.
-        # @/pg 324/sec 8.5.2/`H730rm`.
         configurations.hsi48_enable = opts('hsi48_enable')
         tree.hsi48_ck               = 48_000_000 if configurations.hsi48_enable else 0
 
         # "Clock Security System" oscillator (fixed at ~4MHz).
         # @/pg 362/sec 7.5.2/`H7S3rm`.
-        # @/pg 323/sec 8.5.2/`H730rm`.
         configurations.csi_enable = opts('csi_enable')
         tree.csi_ck               = 4_000_000 if configurations.csi_enable else 0
 
@@ -314,7 +329,6 @@ def SYSTEM_PARAMETERIZE(target, options):
     # Parameterize the PLL subsystem.
     #
     # @/pg 371/fig 48/`H7S3rm`. @/pg 354/fig 40/`H7S3rm`.
-    # @/pg 327/fig 47/`H730rm`. @/pg 319/fig 45/`H730rm`.
     #
 
 
@@ -467,7 +481,7 @@ def SYSTEM_PARAMETERIZE(target, options):
         for suffix in ('enable', 'predivider', 'multiplier', 'input_range'):
             draft_configuration_names += [f'pll{unit}_{suffix}']
 
-    brute(parameterize_plls, *draft_configuration_names)
+    brute(parameterize_plls, draft_configuration_names)
 
 
 
@@ -476,7 +490,6 @@ def SYSTEM_PARAMETERIZE(target, options):
     # Parameterize the System Clock Generation Unit.
     #
     # @/pg 378/fig 51/`H7S3rm`.
-    # @/pg 332/fig 49/`H730rm`.
     #
 
 
@@ -554,12 +567,12 @@ def SYSTEM_PARAMETERIZE(target, options):
 
      # Begin brute-forcing.
 
-    brute(parameterize_scgu,
+    brute(parameterize_scgu, (
         'scgu_clock_source',
         'cpu_divider',
         'axi_ahb_divider',
-        *[f'apb{unit}_divider' for unit in database['APB_UNITS'].VALUE],
-    )
+        *(f'apb{unit}_divider' for unit in database['APB_UNITS'].VALUE),
+    ))
 
 
 
@@ -567,9 +580,8 @@ def SYSTEM_PARAMETERIZE(target, options):
     #
     # Parameterize SysTick.
     #
-    # @/pg 620/sec B3.3/`ARMv7-M`.
+    # @/pg 620/sec B3.3/`Armv7-M`.
     # @/pg 378/fig 51/`H7S3rm`.
-    # @/pg 332/fig 49/`H730rm`.
     #
 
 
@@ -599,7 +611,107 @@ def SYSTEM_PARAMETERIZE(target, options):
 
 
 
-    brute(parameterize_systick, 'systick_enable', 'systick_reload', 'systick_use_cpu_ck')
+    brute(parameterize_systick, ('systick_enable', 'systick_reload', 'systick_use_cpu_ck'))
+
+
+
+    ################################################################################################################################
+    #
+    # Parameterize the UxART peripherals.
+    #
+    # @/pg 394/fig 56/`H7S3rm`.
+    #
+
+
+
+    # Some UxART peripherals are tied together in hardware where they would all share the same clock source.
+    # Each can still have a different baud rate by changing their respective baud-rate divider,
+    # but nonetheless, we must process each set of connected UxART peripherals as a whole.
+
+    for uxart_units in database['UXARTS'].VALUE:
+
+        ns = '_'.join(str(number) for peripheral, number in uxart_units)
+
+
+
+        # See if we can get the baud-divider for this UxART unit.
+
+        def parameterize_uxart(uxart_clock_source_freq, uxart_unit):
+
+            peripheral, number = uxart_unit
+            uxartn             = f'{peripheral}{number}'
+
+
+
+            # See if this UxART peripheral is even needed.
+
+            needed_baud = opts(f'{uxartn}_baud', None)
+
+            if needed_baud is None:
+                return True
+
+
+
+            # Check if the needed divider is valid.
+
+            needed_divider = uxart_clock_source_freq / needed_baud
+
+            if not needed_divider.is_integer():
+                return False
+
+            needed_divider = int(needed_divider)
+
+            if not in_minmax(needed_divider, database['uxart_baud_divider']):
+                return False
+
+
+
+            # We found the desired divider!
+
+            draft[f'{uxartn}_baud_divider'] = int(needed_divider)
+
+            return True
+
+
+
+
+        # See if we can parameterize this set of UxART peripherals.
+
+        def parameterize_uxarts():
+
+
+
+            # Check if this set of UxARTs even needs to be configured for.
+
+            using_uxarts = any(
+                opts(f'{peripheral}{number}_baud', None) is not None
+                for peripheral, number in uxart_units
+            )
+
+            if not using_uxarts:
+                return True
+
+
+
+            # Try every available clock source for this set of UxART peripherals and see what sticks.
+
+            for uxart_clock_source_name, draft[f'uxart_{ns}_clock_source'] in database['uxart_{UNITS}_clock_source'][uxart_units].VALUE:
+
+                uxart_clock_source_freq = tree[uxart_clock_source_name]
+                every_uxart_satisfied   = all(parameterize_uxart(uxart_clock_source_freq, uxart_unit) for uxart_unit in uxart_units)
+
+                if every_uxart_satisfied:
+                    return True
+
+
+
+        # Brute force the UxART peripherals to find the needed
+        # clock source and the respective baud-dividers.
+
+        brute(parameterize_uxarts, (
+            f'uxart_{ns}_clock_source',
+            *(f'{peripheral}{number}_baud_divider' for peripheral, number in uxart_units),
+        ))
 
 
 
@@ -609,6 +721,6 @@ def SYSTEM_PARAMETERIZE(target, options):
     #
 
     if leftovers := options.keys() - used_options:
-        log(f'[WARNING] There are leftover {mcu} options: {leftovers}.', ansi = 'fg_yellow')
+        log(ANSI(f'[WARNING] There are leftover {target.mcu} options: {leftovers}.', 'fg_yellow'))
 
     return dict(configurations), defines

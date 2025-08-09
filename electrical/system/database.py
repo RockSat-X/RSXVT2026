@@ -1,7 +1,7 @@
 #meta SYSTEM_DATABASE
 
 import collections, re
-from deps.pxd.sexp import parse, deatomize, Atom
+from deps.pxd.sexp import parse_sexp, Unquoted
 
 
 
@@ -13,13 +13,8 @@ def parse_entry(entry):
 
     # Get the entry tag and parameters.
 
-    if not entry:
-        assert False
-
-
     tag, *parameters = entry
-    tag              = tag.string
-    record           = Record()
+    record           = AllocatingNamespace()
 
 
 
@@ -33,16 +28,16 @@ def parse_entry(entry):
 
             # The entry value is directly given.
 
-            case (Atom('value:'), value):
-                record.VALUE = deatomize(value)
+            case (Unquoted('value:'), value):
+                record.VALUE = value
 
 
 
             # The entry value is an inclusive range.
 
-            case (Atom('minmax:'), minimum, maximum):
-                record.MIN = deatomize(minimum)
-                record.MAX = deatomize(maximum)
+            case (Unquoted('minmax:'), minimum, maximum):
+                record.MIN = minimum
+                record.MAX = maximum
 
 
 
@@ -79,11 +74,7 @@ def parse_entry(entry):
             # Entry properties are typically used for filling in placeholders in the entry tag.
             # e.g. (pll{UNIT}_ready (RCC CR PLL3RDY) (UNIT = 3))
 
-            case (property_name, Atom('='), property_value):
-
-                property_name  = deatomize(property_name)
-                property_value = deatomize(property_value)
-
+            case (property_name, Unquoted('='), property_value):
                 record[property_name] = property_value
 
 
@@ -119,16 +110,16 @@ def parse_entry(entry):
         # e.g. (iwdg_stopped_during_debug (DBGMCU APB4FZR DBG_IWDG))
 
         case [(section, register, field)]:
-            record.SECTION  = deatomize(section)
-            record.REGISTER = deatomize(register)
-            record.FIELD    = deatomize(field)
+            record.SECTION  = section
+            record.REGISTER = register
+            record.FIELD    = field
 
 
 
         # Leftover entry parameters.
 
         case _:
-            assert False
+            raise ValueError(f'Leftover parameters: {repr(parameters)}.')
 
 
 
@@ -153,9 +144,12 @@ for mcu in TARGETS.mcus:
     database_file_path = root(f'./deps/mcu/{mcu}_database.txt')
 
     if not database_file_path.is_file():
-        assert False
+        raise RuntimeError(
+            'File "{database_file_path}" does not exist; '
+            'a file of S-expressions is needed to describe the properties of the MCU.'
+        )
 
-    for tag, records in coalesce(map(parse_entry, parse(database_file_path.read_text()))).items():
+    for tag, records in coalesce(map(parse_entry, parse_sexp(database_file_path.read_text()))):
 
 
 
@@ -163,14 +157,13 @@ for mcu in TARGETS.mcus:
         # e.g.
         # 'pll{UNIT}{CHANNEL}_enable'   ->   { 'UNIT', 'CHANNEL' }
 
-        placeholders = OrdSet(re.findall('{(.*?)}', tag))
+        placeholders = OrderedSet(re.findall('{(.*?)}', tag))
 
         if not placeholders and len(records) >= 2:
             raise ValueError(
                 f'For {mcu}, multiple database entries were found with the tag "{tag}"; '
                 f'there should be a {{...}} in the string.'
             )
-            assert False
 
 
 

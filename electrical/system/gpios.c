@@ -2,8 +2,6 @@
 
 /* #meta MK_GPIOS
 
-
-
     # The routine to create a single GPIO instance.
 
     def mk_gpio(entry):
@@ -14,7 +12,7 @@
 
         # The layout of a GPIO instance.
 
-        gpio = Obj(
+        gpio = types.SimpleNamespace(
             name       = name,
             pin        = pin,
             mode       = mode,
@@ -86,7 +84,7 @@
             # this obviously allows for ADC/DAC usage, but it can also serve as a power-saving measure.
 
             case 'analog':
-                assert False # TODO
+                raise NotImplementedError
 
 
 
@@ -100,15 +98,15 @@
 
             # Unknown GPIO mode.
 
-            case _:
-                assert False
+            case unknown:
+                raise ValueError(f'GPIO "{name}" has unknown mode: {repr(unknown)}.')
 
 
 
         # Done processing this GPIO entry!
 
         if properties:
-            assert False, f'GPIO {name} has leftover properties: {properties}.'
+            raise ValueError(f'GPIO "{name}" has leftover properties: {properties}.')
 
         return gpio
 
@@ -116,7 +114,7 @@
 
     # The routine to define the table of GPIOs for every target.
 
-    def MK_GPIOS(**target_entries):
+    def MK_GPIOS(target_entries):
 
         table = {
             target_name : tuple(map(mk_gpio, entries))
@@ -125,11 +123,11 @@
 
         for gpios in table.values():
 
-            if (name := find_dupe(gpio.name for gpio in gpios)) is not None:
-                assert False, f'GPIO name `{name}` used more than once.'
+            if (name := find_dupe(gpio.name for gpio in gpios)) is not ...:
+                raise ValueError(f'GPIO name "{name}" used more than once.')
 
-            if (pin := find_dupe(gpio.pin for gpio in gpios if gpio.pin is not None)) is not None:
-                assert False, f'Pin `{gpio.pin}` used more than once.'
+            if (pin := find_dupe(gpio.pin for gpio in gpios if gpio.pin is not None)) is not ...:
+                raise ValueError(f'GPIO pin "gpio.pin" used more than once.')
 
         return table
 
@@ -172,7 +170,10 @@
         gpio_afsel_file_path = root(f'./deps/mcu/{mcu}_gpios.csv')
 
         if not gpio_afsel_file_path.is_file():
-            assert False, f'File `{gpio_afsel_file_path}` does not exist; use STM32CubeMX to generate the CSV file (clear pinout!).'
+            raise RuntimeError(
+                'File "{gpio_afsel_file_path}" does not exist; '
+                'use STM32CubeMX to generate the CSV file (also clear the pinout!).'
+            )
 
 
 
@@ -204,8 +205,7 @@
                     port   = pin[1]
                     number = int(pin[2:])
 
-                    if not pin.startswith('P') or not ('A' <= port <= 'Z'):
-                        assert False
+                    assert pin.startswith('P') and ('A' <= port <= 'Z')
 
 
 
@@ -253,16 +253,14 @@
 
 
     # Generate code to initialize and use the GPIOs in C.
-    # TODO Use SYTEM_DATABASE.
+    # TODO Use SYSTEM_DATABASE.
 
-    @Meta.ifs(GPIOS, style = '#if')
-    def _(target_name):
+    @Meta.ifs(TARGETS, '#if')
+    def _(target):
 
-        target_name = target_name
-        gpios       = GPIOS[target_name]
-        target      = TARGETS.get(target_name)
+        yield f'TARGET_NAME_IS_{target.name}'
 
-        yield f'TARGET_NAME_IS_{target_name}'
+        gpios = GPIOS[target.name]
 
 
 
@@ -305,7 +303,7 @@
 
             CMSIS_SET(
                 ('RCC', SYSTEM_DATABASE[target.mcu]['GPIO_PORT_ENABLE_REGISTER'].VALUE, f'GPIO{port}EN', True)
-                for port in sorted(OrdSet(gpio.port for gpio in gpios if gpio.pin is not None))
+                for port in sorted(OrderedSet(gpio.port for gpio in gpios if gpio.pin is not None))
             )
 
 
@@ -368,7 +366,7 @@
                     continue # Not applicable.
 
                 if (gpio.port, gpio.number, gpio.altfunc) not in GPIO_AFSEL[target.mcu]:
-                    assert False, f"Pin {gpio.pin} on {target.mcu} ({target_name}) doesn't have alternate function `{gpio.altfunc}`."
+                    raise ValueError(f'GPIO pin "{gpio.pin}" for {target.mcu} ({target.name}) has no alternate function "{gpio.altfunc}".')
 
 
 

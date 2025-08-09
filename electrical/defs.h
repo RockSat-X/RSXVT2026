@@ -1,10 +1,12 @@
 //////////////////////////////////////////////////////////////// Configurations ////////////////////////////////////////////////////////////////
 
-/* #meta SYSTEM_OPTIONS, GPIOS : MK_GPIOS
 
-    SYSTEM_OPTIONS = Obj(
 
-        SandboxNucleoH7S3L8 = {
+/* #meta SYSTEM_OPTIONS, GPIOS, NVIC_TABLE : MK_GPIOS
+
+    SYSTEM_OPTIONS = {
+
+        'SandboxNucleoH7S3L8' : {
             'hsi_enable'    : True,
             'hsi48_enable'  : True,
             'csi_enable'    : True,
@@ -17,25 +19,40 @@
             'apb2_ck'       : 150_000_000,
             'apb4_ck'       : 150_000_000,
             'apb5_ck'       : 150_000_000,
+            'usart3_baud'   : STLINK_BAUD,
         },
 
-    )
+    }
 
-    GPIOS = MK_GPIOS(
+    GPIOS = MK_GPIOS({
 
-        SandboxNucleoH7S3L8 = (
-            ('led_red'   , 'B7' , 'output'    , { 'initlvl' : False }),
-            ('led_yellow', 'D13', 'output'    , { 'initlvl' : False }),
-            ('led_green' , 'D10', 'output'    , { 'initlvl' : False }),
-            ('swdio'     , 'A13', 'reserved'  , {                   }),
-            ('swclk'     , 'A14', 'reserved'  , {                   }),
+        'SandboxNucleoH7S3L8' : (
+            ('led_red'   , 'B7' , 'output'    , { 'initlvl' : False       }),
+            ('led_yellow', 'D13', 'output'    , { 'initlvl' : False       }),
+            ('led_green' , 'D10', 'output'    , { 'initlvl' : False       }),
+            ('jig_tx'    , 'D8' , 'alternate' , { 'altfunc' : 'USART3_TX' }),
+            ('jig_rx'    , 'D9' , 'alternate' , { 'altfunc' : 'USART3_RX' }),
+            ('swdio'     , 'A13', 'reserved'  , {                         }),
+            ('swclk'     , 'A14', 'reserved'  , {                         }),
         ),
 
-    )
+    })
+
+    NVIC_TABLE = {
+
+        'SandboxNucleoH7S3L8' : (
+            ('USART3', 0),
+        ),
+
+    }
 
 */
 
+
+
 //////////////////////////////////////////////////////////////// Primitives ////////////////////////////////////////////////////////////////
+
+
 
 #define false                   0
 #define true                    1
@@ -89,10 +106,35 @@
 
 */
 
+
+
 //////////////////////////////////////////////////////////////// Miscellaneous ////////////////////////////////////////////////////////////////
 
-#include "system/cmsis.c"
+
+
+#include "system/defs.h"
+
+
+
+//////////////////////////////////////////////////////////////// jig.c ////////////////////////////////////////////////////////////////
+
+
+
+struct Jig
+{
+    volatile u32  reception_reader;
+    volatile u32  reception_writer;
+    volatile char reception_buffer[1 << 5];
+};
+
+
 
 //////////////////////////////////////////////////////////////// Globals ////////////////////////////////////////////////////////////////
 
 
+
+#if TARGET_NAME_IS_SandboxNucleoH7S3L8
+
+    static struct Jig _JIG = {0};
+
+#endif
