@@ -116,7 +116,13 @@ def SYSTEM_CONFIGURIZE(target, configurations):
                 # >
 
                 case 1:
-                    return database[tag][placeholder_values[placeholders[0]]]
+
+                    placeholder_value = placeholder_values[placeholders[0]]
+
+                    if placeholder_value not in database[tag]:
+                        raise ValueError(f'Placeholder ({placeholders[0]} = {repr(placeholder_value)}) is not an option for database entry {repr(tag)}.')
+
+                    return database[tag][placeholder_value]
 
 
 
