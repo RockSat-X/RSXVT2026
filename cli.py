@@ -1,58 +1,70 @@
 #! /usr/bin/env python3
 
-#
+
+
+################################################################################################################################
+
+
+
 # Built-in modules.
-#
 
 import types, sys, shlex, pathlib, shutil, subprocess, time
 
 
 
-#
 # The PXD module.
-#
 
 try:
-    import deps.pxd.ui
+
     import deps.pxd.metapreprocessor
     import deps.pxd.cite
-    from deps.pxd.log   import log, ANSI
-    from deps.pxd.utils import *
+    from   deps.pxd.ui    import ExitCode
+    from   deps.pxd.log   import log, ANSI, Indent
+    from   deps.pxd.utils import root, justify
+
 except ModuleNotFoundError as error:
+
+    if 'pxd' not in error.name:
+        raise # Likely a bug in the PXD module.
+
     print(f'[ERROR] Could not import "{error.name}"; maybe the Git submodules need to be initialized/updated? Try doing:')
     print(f'        > git submodule update --init --recursive')
     print(f'        If this still doesn\'t work, please raise an issue.')
+
     sys.exit(1)
 
 
 
-#
 # Common definitions with the meta-preprocessor.
-#
 
 from electrical.Common import TARGETS, BUILD
 
 
 
-#
 # Import handler for PySerial.
-#
 
 def import_pyserial():
 
     try:
+
         import serial
         import serial.tools.list_ports
+
     except ModuleNotFoundError as error:
-        with ANSI('fg_red'):
-            log(f'[ERROR] Python got {type(error).__name__} ({error}); try doing:')
-            log(ANSI('        > pip install pyserial', 'bold'))
-        sys.exit(1)
+
+        with ANSI('fg_red'), Indent('[ERROR] ', hanging = True):
+            log(f'''
+                Python got {type(error).__name__} ({error}); try doing:
+                {ANSI('> pip install pyserial', 'bold')}
+            ''')
+
+        raise ExitCode(1)
 
     return serial, serial.tools.list_ports
 
 
 
+################################################################################################################################
 #
 # Routine for ensuring the user has the required programs on their machine (and provide good error messages if not).
 #
@@ -64,78 +76,118 @@ def require(*needed_programs):
     if not missing_program:
         return # The required programs were found on the machine.
 
-    # PowerShell.
-    if missing_program in (roster := [
-        'pwsh',
-    ]):
-        with ANSI('fg_red'):
-            log(f'[ERROR] Python couldn\'t find "pwsh" in your PATH; have you installed PowerShell yet?')
-            log(ANSI(f'        > https://apps.microsoft.com/detail/9MZ1SNWT0N5D', 'bold'))
-            log(f'        Installing PowerShell via Windows Store is the most convenient way.')
 
-    # STM32CubeCLT.
-    elif missing_program in (roster := [
-        'STM32_Programmer_CLI',
-        'ST-LINK_gdbserver'
-    ]):
-        with ANSI('fg_red'):
-            log(f'[ERROR] Python couldn\'t find "{missing_program}" in your PATH; have you installed STM32CubeCLT yet?')
-            log(ANSI(f'        > https://www.st.com/en/development-tools/stm32cubeclt.html', 'bold'))
-            log(f'        Install and then make sure all of these commands are available in your PATH:')
+
+    with ANSI('fg_red'), Indent('[ERROR] ', hanging = True):
+
+
+
+        # PowerShell.
+
+        if missing_program in (roster := [
+            'pwsh',
+        ]):
+
+            log(f'''
+                Python couldn\'t find "{missing_program}" in your PATH; have you installed PowerShell yet?
+                {ANSI(f'> https://apps.microsoft.com/detail/9MZ1SNWT0N5D', 'bold')}
+                Installing PowerShell via Windows Store is the most convenient way.
+            ''')
+
+
+
+        # STM32CubeCLT.
+
+        elif missing_program in (roster := [
+            'STM32_Programmer_CLI',
+            'ST-LINK_gdbserver'
+        ]):
+
+            log(f'''
+                Python couldn't find "{missing_program}" in your PATH; have you installed STM32CubeCLT yet?
+                {ANSI(f'> https://www.st.com/en/development-tools/stm32cubeclt.html', 'bold')}
+                Install and then make sure all of these commands are available in your PATH:
+            ''')
+
             for program in roster:
                 if shutil.which(program) is not None:
-                    log(ANSI(f'            - [located] {program}', 'fg_green'))
+                    log(ANSI(f'    - [located] {program}', 'fg_green'))
                 else:
-                    log(f'            - [missing] {program}')
+                    log(f'    - [missing] {program}')
 
-    # Arm GNU Toolchain.
-    elif missing_program in (roster := [
-        'arm-none-eabi-gcc',
-        'arm-none-eabi-cpp',
-        'arm-none-eabi-objcopy',
-        'arm-none-eabi-gdb',
-    ]):
-        with ANSI('fg_red'):
-            log(f'[ERROR] Python couldn\'t find "{missing_program}" in your PATH; have you installed the Arm GNU toolchain (version 14.2.Rel1, December 10, 2024) yet?')
-            log(ANSI(f'        > website : https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads', 'fg_bright_red'))
+
+
+        # Arm GNU Toolchain.
+
+        elif missing_program in (roster := [
+            'arm-none-eabi-gcc',
+            'arm-none-eabi-cpp',
+            'arm-none-eabi-objcopy',
+            'arm-none-eabi-gdb',
+        ]):
+
+            log(f'''
+                Python couldn't find "{missing_program}" in your PATH; have you installed the Arm GNU toolchain (version 14.2.Rel1, December 10, 2024) yet?
+                {ANSI(f'> website : https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads', 'fg_bright_red')}
+            ''')
+
             for platform, url in (
                 ('win32', 'https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-mingw-w64-x86_64-arm-none-eabi.exe'),
                 ('linux', 'https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi.tar.xz'       ),
             ):
-                log(ANSI(f'        > {platform.ljust(len('website'))} : {url}', *(['bold', 'fg_bright_red'] if sys.platform == platform else ['fg_bright_red'])))
-            log(f'        Install/unzip and then make sure all of these commands are available in your PATH:')
+                log(ANSI(
+                    f'> {platform}   : {url}',
+                    *(['bold', 'fg_bright_red'] if sys.platform == platform else ['fg_bright_red'])
+                ))
+
+            log('Install/unzip and then make sure all of these commands are available in your PATH:')
+
             for program in roster:
                 if shutil.which(program) is not None:
-                    log(ANSI(f'            - [located] {program}', 'fg_green'))
+                    log(ANSI(f'    - [located] {program}', 'fg_green'))
                 else:
-                    log(f'            - [missing] {program}')
+                    log(f'    - [missing] {program}')
 
-    # Picocom.
-    elif missing_program in (roster := [
-        'picocom'
-    ]):
-        with ANSI('fg_red'):
-            log(f'[ERROR] Python couldn\'t find "{missing_program}" in your PATH; have you installed it yet?')
-            log(f'        If you\'re on a Debian-based distro, this is just simply:')
-            log(ANSI(f'        > sudo apt install picocom', 'bold'))
-            log(f'        Otherwise, you should only be getting this message on some other Linux distribution, ')
-            log(f'        to which I have faith in you to figure this out on your own.')
 
-    # Make.
-    elif missing_program in (roster := [
-        'make'
-    ]):
-        with ANSI('fg_red'):
-            log(f'[ERROR] Python couldn\'t find "{missing_program}" in your PATH; have you installed it yet?')
-            log(f'        If you\'re on a Windows system, run the following command and restart your shell:')
-            log(ANSI(f'        > winget install ezwinports.make', 'bold'))
 
-    # Not implemented.
-    else:
-        with ANSI('fg_red'):
-            log(f'[ERROR] Python couldn\'t find "{missing_program}" in your PATH; have you installed it yet?')
+        # Picocom.
 
-    raise deps.pxd.ui.ExitCode(1)
+        elif missing_program in (roster := [
+            'picocom'
+        ]):
+
+            log(f'''
+                Python couldn't find "{missing_program}" in your PATH; have you installed it yet?
+                If you're on a Debian-based distro, this is just simply:
+                {ANSI(f'> sudo apt install picocom', 'bold')}
+                Otherwise, you should only be getting this message on some other Linux distribution
+                to which I have faith in you to figure this out on your own.
+            ''')
+
+
+
+        # Make.
+
+        elif missing_program in (roster := [
+            'make'
+        ]):
+
+            log(f'''
+                Python couldn't find "{missing_program}" in your PATH; have you installed it yet?
+                If you're on a Windows system, run the following command and restart your shell:
+                {ANSI(f'> winget install ezwinports.make', 'bold')}
+            ''')
+
+
+
+        # Not implemented.
+
+        else:
+            log(f'Python couldn\'t find "{missing_program}" in your PATH; have you installed it yet?')
+
+
+
+    raise ExitCode(1)
 
 
 
@@ -224,13 +276,13 @@ def request_stlinks(
 
         if not stlinks:
             log(ANSI(f'[ERROR] No ST-Links found.', 'fg_red'))
-            raise deps.pxd.ui.ExitCode(1)
+            raise ExitCode(1)
 
         if not (matches := [stlink for stlink in stlinks if stlink.probe_index == specific_probe_index]):
             log_stlinks(stlinks)
             log()
             log(ANSI(f'[ERROR] No ST-Links found with probe index of "{specific_probe_index}".', 'fg_red'))
-            raise deps.pxd.ui.ExitCode(1)
+            raise ExitCode(1)
 
         stlink, = matches
 
@@ -244,13 +296,13 @@ def request_stlinks(
 
         if not stlinks:
             log(ANSI(f'[ERROR] No ST-Links found.', 'fg_red'))
-            raise deps.pxd.ui.ExitCode(1)
+            raise ExitCode(1)
 
         if len(stlinks) >= 2:
             log_stlinks(stlinks)
             log()
             log(ANSI(f'[ERROR] Multiple ST-Links found; I don\'t know which one to use.', 'fg_red'))
-            raise deps.pxd.ui.ExitCode(1)
+            raise ExitCode(1)
 
         stlink, = stlinks
 
@@ -339,7 +391,7 @@ def execute(
     if exit_code and not nonzero_exit_code_ok:
         log()
         log(ANSI(f'[ERROR] Shell command exited with a non-zero code of {exit_code}.', 'fg_red'))
-        raise deps.pxd.ui.ExitCode(exit_code)
+        raise ExitCode(exit_code)
 
     return exit_code
 
@@ -510,7 +562,7 @@ def build(parameters):
         )
     except deps.pxd.metapreprocessor.MetaError as error:
         error.dump()
-        raise deps.pxd.ui.ExitCode(1)
+        raise ExitCode(1)
 
     log()
     log(ANSI(f'# Meta-preprocessor : {elapsed :.3f}s.', 'fg_magenta'))
@@ -622,7 +674,7 @@ def flash(parameters):
             log()
             with ANSI('fg_red'):
                 log('[ERROR] Please specify the target to flash; see the list of targets above.')
-            raise deps.pxd.ui.ExitCode(1)
+            raise ExitCode(1)
 
         target, = TARGETS
 
@@ -650,7 +702,7 @@ def flash(parameters):
                 log('        - the ST-Link is being used by a another program.')
                 log('        - the ST-Link has disconnected.')
                 log('        - ... or something else entirely!')
-            raise deps.pxd.ui.ExitCode(1)
+            raise ExitCode(1)
 
         # Not the first try?
         elif attempts:
@@ -733,7 +785,7 @@ def debug(parameters):
             log()
             with ANSI('fg_red'):
                 log('[ERROR] Please specify the target to debug; see the list of targets above.')
-            raise deps.pxd.ui.ExitCode(1)
+            raise ExitCode(1)
 
         target, = TARGETS
 
