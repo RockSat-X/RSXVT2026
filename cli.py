@@ -821,9 +821,23 @@ def debug(parameters):
 @ui(
     {
         'description' : 'Open the COM serial port of the ST-Link.',
+        'help'        : ...,
     },
 )
 def talk(parameters):
+
+
+
+    if parameters.help:
+
+        match sys.platform:
+            case 'linux' : log('<ctrl-a ctrl-q> Exit.')
+            case 'win32' : log('<ctrl-c> Exit.')
+            case 'win32' : log('<ctrl-c> Exit (maybe?).')
+
+        return
+
+
 
     if sys.platform == 'linux':
         require('picocom')
