@@ -58,8 +58,8 @@ def SYSTEM_PARAMETERIZE(target, options):
         # The default value could be None, so allow that, we need to use varadic arguments.
         # e.g:
         # >
-        # >    opts('cpu_ck'      )   ->   There must be "cpu_ck" in SYSTEM_OPTIONS.
-        # >    opts('cpu_ck', None)   ->   If no "cpu_ck" in SYSTEM_OPTIONS, then `None`.
+        # >    opts('cpu_ck'      )   ->   There must be 'cpu_ck' in SYSTEM_OPTIONS.
+        # >    opts('cpu_ck', None)   ->   If no 'cpu_ck' in SYSTEM_OPTIONS, then `None`.
         # >
 
         if len(default) >= 2:
@@ -112,8 +112,8 @@ def SYSTEM_PARAMETERIZE(target, options):
 
 
     # To brute-force the clock tree, we have to try a lot of possible register values to see what sticks.
-    # To do this in a convenient way, "draft" will accumulate configuration values to be eventually
-    # inserted into "configurations" itself. Since "draft" is a variable at this scope-level, any function
+    # To do this in a convenient way, `draft` will accumulate configuration values to be eventually
+    # inserted into `configurations` itself. Since `draft` is a variable at this scope-level, any function
     # can modify it, no matter how deep we might be in the brute-forcing stack-trace.
 
     draft = None

@@ -25,7 +25,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
-    # This helper routine can be used to look up a value in "configurations" or look up in the database to find the location of a register;
+    # This helper routine can be used to look up a value in `configurations` or look up in the database to find the location of a register;
     # the value in the section-register-field-value tuple can also be changed to something else.
     # e.g:
     # >
@@ -72,7 +72,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
-        # Get the value from "configurations", if needed.
+        # Get the value from `configurations`, if needed.
         # e.g:
         # >
         # >    cfgs('flash_latency'        )   ->   configurations['flash_latency']
@@ -159,7 +159,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
-            # Get the value from "configurations" directly.
+            # Get the value from `configurations` directly.
             # e.g:
             # >
             # >    cfgs('flash_latency')   ->   configurations['flash_latency']
@@ -170,7 +170,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
-            # Get the value from "configurations" and append it to the register's location tuple.
+            # Get the value from `configurations` and append it to the register's location tuple.
             # e.g:
             # >
             # >    cfgs('flash_latency', ...)   ->   ('FLASH', 'ACR', 'LATENCY', configurations['flash_latency'])
