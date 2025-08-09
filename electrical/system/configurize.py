@@ -27,10 +27,12 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
     # This helper routine can be used to look up a value in "configurations" or look up in the database to find the location of a register;
     # the value in the section-register-field-value tuple can also be changed to something else.
-    # e.g.
-    # cfgs('flash_latency'        )   ->   configurations['flash_latency']
-    # cfgs('flash_latency', ...   )   ->   ('FLASH', 'ACR', 'LATENCY', configurations['flash_latency'])
-    # cfgs('flash_latency', 0b1111)   ->   ('FLASH', 'ACR', 'LATENCY', 0b1111)
+    # e.g:
+    # >
+    # >    cfgs('flash_latency'        )   ->   configurations['flash_latency']
+    # >    cfgs('flash_latency', ...   )   ->   ('FLASH', 'ACR', 'LATENCY', configurations['flash_latency'])
+    # >    cfgs('flash_latency', 0b1111)   ->   ('FLASH', 'ACR', 'LATENCY', 0b1111)
+    # >
 
     used_configurations = OrderedSet()
 
@@ -39,8 +41,10 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
         # Make sure all placeholders in the tag are given.
-        # e.g.
-        # cfgs('pll{UNIT}_input_range', UNIT = 3)
+        # e.g:
+        # >
+        # >    cfgs('pll{UNIT}_input_range', UNIT = 3)
+        # >
 
         placeholders = OrderedSet(re.findall('{(.*?)}', tag))
 
@@ -53,9 +57,12 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
         # Get the value from "configurations", if needed.
-        # e.g.
-        # cfgs('flash_latency'        )   ->   configurations['flash_latency']
-        # cfgs('flash_latency', ...   )   ->   ('FLASH', 'ACR', 'LATENCY', configurations['flash_latency'])
+        # e.g:
+        # >
+        # >    cfgs('flash_latency'        )   ->   configurations['flash_latency']
+        # >    cfgs('flash_latency', ...   )   ->   ('FLASH', 'ACR', 'LATENCY', configurations['flash_latency'])
+        # >
+        #
 
         def find_configuration_value():
 
@@ -76,8 +83,10 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
         # Find the database entry that has the desired tag and placeholder values, if needed.
-        # e.g.
-        # cfgs('pll{UNIT}_predivider', UNIT = 2)   ->   (pll{UNIT}_predivider (RCC PLLCKSELR DIVM2) (minmax: 1 63) (UNIT = 2))
+        # e.g:
+        # >
+        # >    cfgs('pll{UNIT}_predivider', UNIT = 2)   ->   (pll{UNIT}_predivider (RCC PLLCKSELR DIVM2) (minmax: 1 63) (UNIT = 2))
+        # >
 
         def find_database_entry():
 
@@ -90,15 +99,21 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
                 # No placeholders, so we just do a direct look-up.
-                # cfgs('cpu_divider')   ->   SYSTEM_DATBASE[mcu]['cpu_divider']
+                # e.g:
+                # >
+                # >    cfgs('cpu_divider')   ->   SYSTEM_DATBASE[mcu]['cpu_divider']
+                # >
+
                 case 0:
                     return database[tag]
 
 
 
                 # Single placeholder, so we get the entry based on the solely provided keyword-argument.
-                # e.g.
-                # cfgs('pll{UNIT}_predivider', UNIT = 2)   ->   SYSTEM_DATBASE[mcu]['pll{UNIT}_predivider'][2]
+                # e.g:
+                # >
+                # >    cfgs('pll{UNIT}_predivider', UNIT = 2)   ->   SYSTEM_DATBASE[mcu]['pll{UNIT}_predivider'][2]
+                # >
 
                 case 1:
                     return database[tag][placeholder_values[placeholders[0]]]
@@ -106,8 +121,11 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
                 # Multiple placeholders, so we get the entry based on the provided keyword-arguments.
-                # e.g.
-                # cfgs('pll{UNIT}{CHANNEL}_enable', UNIT = 2, CHANNEL = 'q')   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][Placeholders(UNIT = 2, CHANNEL = 'q')]
+                # e.g:
+                # >
+                # >    cfgs('pll{UNIT}{CHANNEL}_enable', UNIT = 2, CHANNEL = 'q')   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][Placeholders(UNIT = 2, CHANNEL = 'q')]
+                # >
+
                 case _:
                     Placeholders = collections.namedtuple('Placeholders', placeholder_values.keys())
                     return database[tag][Placeholders(**placeholder_values)]
@@ -121,7 +139,10 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
             # Get the value from "configurations" directly.
-            # cfgs('flash_latency')   ->   configurations['flash_latency']
+            # e.g:
+            # >
+            # >    cfgs('flash_latency')   ->   configurations['flash_latency']
+            # >
 
             case []:
                 return find_configuration_value()
@@ -129,7 +150,10 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
             # Get the value from "configurations" and append it to the register's location tuple.
-            # cfgs('flash_latency', ...)   ->   ('FLASH', 'ACR', 'LATENCY', configurations['flash_latency'])
+            # e.g:
+            # >
+            # >    cfgs('flash_latency', ...)   ->   ('FLASH', 'ACR', 'LATENCY', configurations['flash_latency'])
+            # >
 
             case [builtins.Ellipsis]:
                 entry = find_database_entry()
@@ -138,7 +162,10 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
             # Append the desired value to the register's location tuple.
-            # cfgs('flash_latency', 0b1111)   ->   ('FLASH', 'ACR', 'LATENCY', 0b1111)
+            # e.g:
+            # >
+            # >    cfgs('flash_latency', 0b1111)   ->   ('FLASH', 'ACR', 'LATENCY', 0b1111)
+            # >
 
             case [value]:
                 entry = find_database_entry()

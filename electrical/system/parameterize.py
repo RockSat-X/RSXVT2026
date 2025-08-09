@@ -17,7 +17,10 @@ def SYSTEM_PARAMETERIZE(target, options):
 
 
     # As we parameterize, we keep track of clock frequencies we have so far in the clock-tree.
-    # e.g. tree['pll2_q_ck'] -> 200_000_000 Hz.
+    # e.g:
+    # >
+    # >    tree['pll2_q_ck']   ->   200_000_000 Hz
+    # >
 
     tree = AllocatingNamespace({ None : 0 }) # So that: tree[None] -> 0 Hz.
 
@@ -53,9 +56,11 @@ def SYSTEM_PARAMETERIZE(target, options):
 
 
         # The default value could be None, so allow that, we need to use varadic arguments.
-        # e.g.
-        # opts('cpu_ck'      ) -> There must be "cpu_ck" in SYSTEM_OPTIONS.
-        # opts('cpu_ck', None) -> If no "cpu_ck" in SYSTEM_OPTIONS, then "None".
+        # e.g:
+        # >
+        # >    opts('cpu_ck'      )   ->   There must be "cpu_ck" in SYSTEM_OPTIONS.
+        # >    opts('cpu_ck', None)   ->   If no "cpu_ck" in SYSTEM_OPTIONS, then `None`.
+        # >
 
         if len(default) >= 2:
             raise ValueError(f'Either zero or one argument should be given for the default value; got {len(default)}: {default}.')
@@ -85,7 +90,10 @@ def SYSTEM_PARAMETERIZE(target, options):
 
     # The point of parameterization is to determine what the register values should be in order
     # to initialize the MCU to the specifications of SYSTEM_OPTIONS, so we'll be recording that too.
-    # e.g. configurations['pll1_q_divider'] -> 256
+    # e.g:
+    # >
+    # >    configurations['pll1_q_divider']   ->   256
+    # >
 
     configurations = AllocatingNamespace()
 
@@ -127,7 +135,10 @@ def SYSTEM_PARAMETERIZE(target, options):
 
 
     # Helper routines for database entries that are min-max ranges.
-    # e.g. (sdmmc_kernel_freq (minmax: 0 200_000_000))
+    # e.g:
+    # >
+    # >    (sdmmc_kernel_freq (minmax: 0 200_000_000))
+    # >
 
     def in_minmax(value, entry):
         return entry.MIN <= value <= entry.MAX
