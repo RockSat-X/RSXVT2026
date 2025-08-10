@@ -1,4 +1,7 @@
 @/`RSX`     : RockSat-X User Guide (August 31, 2023) (Rev-Draft) (https://www.nasa.gov/wp-content/uploads/2022/09/rocksat-x-user-guide-2024.pdf).
-@/`Armv7-M` : Arm v7-M Architecture Reference Manual (15 Feburary 2021) (Ninth release).
+@/`Armv7-M` : Armv7-M Architecture Reference Manual (15 Feburary 2021) (Ninth release).
+@/`Armv8-M` : Armv8-M Architecture Reference Manual (17/12/2021) (Eighteenth release).
 @/`H7S3rm`  : STM32H7Rx/7Sx Reference Manual (December 2024) (RM0477) (Rev 8).
 @/`H7S3ds`  : STM32H7S3x8 STM32H7S7x8 Data Sheet (November 2024) (DS14359) (Rev 4)
+@/`H533rm`  : STM32H523/33xx, STM32H562/63xx, and STM32H573xx Reference Manual (April 2025) (RM0481) (Rev 4).
+@/`H533ds`  : STM32H533xx Data Sheet (November 2024) (DS14539) (Rev 2).
