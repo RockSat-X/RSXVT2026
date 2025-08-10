@@ -31,7 +31,7 @@ main(void)
 {
     GPIO_init();
     NVIC_init();
-    // TODO: SYSTEM_init();
+    SYSTEM_init();
     // TODO: JIG_init();
 
     for (;;)

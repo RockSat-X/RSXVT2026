@@ -243,17 +243,26 @@ def SYSTEM_CONFIGURIZE(target, configurations):
     # The power supply setup must be configured first before configuring VOS or the system clock frequency.
     # @/pg 323/sec 6.8.4/`H7S3rm`.
 
-    CMSIS_SET(
-        cfgs(configuration, ...)
-        for configuration in (
-            'smps_output_level',
-            'smps_forced_on',
-            'smps_enable',
-            'ldo_enable',
-            'power_management_bypass',
-        )
-        if cfgs(configuration) is not None
-    )
+    match target.mcu:
+
+        case 'STM32H7S3L8H6':
+            fields = (
+                'smps_output_level',
+                'smps_forced_on',
+                'smps_enable',
+                'ldo_enable',
+                'power_management_bypass',
+            )
+
+        case 'STM32H533RET6':
+            fields = (
+                'ldo_enable',
+                'power_management_bypass',
+            )
+
+        case _: raise NotImplementedError
+
+    CMSIS_SET(cfgs(field, ...) for field in fields if cfgs(field) is not None)
 
 
 
@@ -331,15 +340,49 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
-        # Set the clock source shared for all PLLs.
+        match target.mcu:
 
-        sets += [cfgs('pll_clock_source', ...)]
+
+
+            case 'STM32H7S3L8H6':
+
+                # Set the clock source shared for all PLLs.
+
+                sets += [cfgs('pll_clock_source', ...)]
+
+
+
+            case 'STM32H533RET6':
+                pass
+
+
+
+            case _: raise NotImplementedError
 
 
 
         # Configure each PLL.
 
         for unit, channels in database['PLL_UNITS'].VALUE:
+
+            match target.mcu:
+
+
+
+                case 'STM32H7S3L8H6':
+                    pass
+
+
+
+                case 'STM32H533RET6':
+
+                    # Set the clock source for this PLL unit.
+
+                    sets += [cfgs('pll{UNIT}_clock_source', ..., UNIT = unit)]
+
+
+
+                case _: raise NotImplementedError
 
 
 
@@ -409,18 +452,22 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
     # Configure the SCGU registers.
 
-    CMSIS_SET(
+    match target.mcu:
 
-        # Divider for the CPU clock.
-        cfgs('cpu_divider', ...),
+        case 'STM32H7S3L8H6':
+            CMSIS_SET(
+                cfgs('cpu_divider', ...),
+                cfgs('axi_ahb_divider', ...),
+                *(cfgs('apb{UNIT}_divider', ..., UNIT = unit) for unit in database['APB_UNITS'].VALUE),
+            )
 
-        # There's then the AXI/AHB bus divider.
-        cfgs('axi_ahb_divider', ...),
+        case 'STM32H533RET6':
+            CMSIS_SET(
+                cfgs('cpu_divider', ...),
+                *(cfgs('apb{UNIT}_divider', ..., UNIT = unit) for unit in database['APB_UNITS'].VALUE),
+            )
 
-        # Then after that, we have the dividers for APBs.
-        *(cfgs('apb{UNIT}_divider', ..., UNIT = unit) for unit in database['APB_UNITS'].VALUE),
-
-    )
+        case _: raise NotImplementedError
 
 
 

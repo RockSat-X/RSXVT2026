@@ -21,6 +21,34 @@
     (axi_ahb_freq     (minmax:           0 250_000_000)) # "
     (apb_freq         (minmax:           0 250_000_000)) # "
 
+    # @/pg 318/sec 7.11.1/`H533rm`.
+    (flash_programming_delay (FLASH ACR WRHIGHFREQ) (value: (
+        0b00
+        0b01
+        0b10
+    )))
+    (flash_latency (FLASH ACR LATENCY) (minmax: 0b0000 0b1111))
+
+    (internal_voltage_scaling (PWR VOSCR VOS      )) # @/pg 438/sec 10.11.4/`H533rm`.
+    (current_active_vos       (PWR VOSSR ACTVOS   )) # @/pg 439/sec 10.11.5/`H533rm`.
+    (current_active_vos_ready (PWR VOSSR ACTVOSRDY)) # "
+    (ldo_enable               (PWR SCCR  LDOEN    )) # @/pg 443/sec 10.11.10/`H533rm`.
+    (power_management_bypass  (PWR SCCR  BYPASS   )) # "
+
+    # @/pg 481/sec 11.8.1/`H533rm`.
+    (pll{UNIT}_ready  (RCC CR PLL3RDY ) (UNIT = 3))
+    (pll{UNIT}_enable (RCC CR PLL3ON  ) (UNIT = 3))
+    (pll{UNIT}_ready  (RCC CR PLL2RDY ) (UNIT = 2))
+    (pll{UNIT}_enable (RCC CR PLL2ON  ) (UNIT = 2))
+    (pll{UNIT}_ready  (RCC CR PLL1RDY ) (UNIT = 1))
+    (pll{UNIT}_enable (RCC CR PLL1ON  ) (UNIT = 1))
+    (hsi48_ready      (RCC CR HSI48RDY)           )
+    (hsi48_enable     (RCC CR HSI48ON )           )
+    (csi_ready        (RCC CR CSIRDY  )           )
+    (csi_enable       (RCC CR CSION   )           )
+    (hsi_ready        (RCC CR HSIRDY  )           )
+    (hsi_enable       (RCC CR HSION   )           )
+
     # @/pg 486/sec 11.8.5/`H533rm`.
     (effective_scgu_clock_source (RCC CFGR1 SWS) (value: (
         (hsi_ck    0b000)
@@ -52,8 +80,11 @@
     )))
 
     # @/pg 491/sec 11.8.7/`H533rm`.
-    (pll{UNIT}_predivider   (RCC PLL1CFGR PLL1M  ) (UNIT = 1) (minmax: 1 63))
-    (pll{UNIT}_clock_source (RCC PLL1CFGR PLL1SRC) (UNIT = 1) (value: (
+    (pll{UNIT}{CHANNEL}_enable (RCC PLL1CFGR PLL1REN) (UNIT = 1) (CHANNEL = r))
+    (pll{UNIT}{CHANNEL}_enable (RCC PLL1CFGR PLL1QEN) (UNIT = 1) (CHANNEL = q))
+    (pll{UNIT}{CHANNEL}_enable (RCC PLL1CFGR PLL1PEN) (UNIT = 1) (CHANNEL = p))
+    (pll{UNIT}_predivider      (RCC PLL1CFGR PLL1M  ) (UNIT = 1) (minmax: 1 63))
+    (pll{UNIT}_clock_source    (RCC PLL1CFGR PLL1SRC) (UNIT = 1) (value: (
         (None   0b00)
         (hsi_ck 0b01)
         (csi_ck 0b10)
@@ -68,8 +99,11 @@
     )))
 
     # @/pg 492/sec 11.8.8/`H533rm`.
-    (pll{UNIT}_predivider   (RCC PLL2CFGR PLL2M  ) (UNIT = 2) (minmax: 1 63))
-    (pll{UNIT}_clock_source (RCC PLL2CFGR PLL2SRC) (UNIT = 2) (value: (
+    (pll{UNIT}{CHANNEL}_enable (RCC PLL2CFGR PLL2REN) (UNIT = 2) (CHANNEL = r))
+    (pll{UNIT}{CHANNEL}_enable (RCC PLL2CFGR PLL2QEN) (UNIT = 2) (CHANNEL = q))
+    (pll{UNIT}{CHANNEL}_enable (RCC PLL2CFGR PLL2PEN) (UNIT = 2) (CHANNEL = p))
+    (pll{UNIT}_predivider      (RCC PLL2CFGR PLL2M  ) (UNIT = 2) (minmax: 1 63))
+    (pll{UNIT}_clock_source    (RCC PLL2CFGR PLL2SRC) (UNIT = 2) (value: (
         (None   0b00)
         (hsi_ck 0b01)
         (csi_ck 0b10)
@@ -84,8 +118,11 @@
     )))
 
     # @/pg 494/sec 11.8.9/`H533rm`.
-    (pll{UNIT}_predivider   (RCC PLL3CFGR PLL3M  ) (UNIT = 3) (minmax: 1 63))
-    (pll{UNIT}_clock_source (RCC PLL3CFGR PLL3SRC) (UNIT = 3) (value: (
+    (pll{UNIT}{CHANNEL}_enable (RCC PLL3CFGR PLL3REN) (UNIT = 3) (CHANNEL = r))
+    (pll{UNIT}{CHANNEL}_enable (RCC PLL3CFGR PLL3QEN) (UNIT = 3) (CHANNEL = q))
+    (pll{UNIT}{CHANNEL}_enable (RCC PLL3CFGR PLL3PEN) (UNIT = 3) (CHANNEL = p))
+    (pll{UNIT}_predivider      (RCC PLL3CFGR PLL3M  ) (UNIT = 3) (minmax: 1 63))
+    (pll{UNIT}_clock_source    (RCC PLL3CFGR PLL3SRC) (UNIT = 3) (value: (
         (None   0b00)
         (hsi_ck 0b01)
         (csi_ck 0b10)

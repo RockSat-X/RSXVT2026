@@ -253,7 +253,7 @@ def SYSTEM_PARAMETERIZE(target, options):
 
         case 'STM32H533RET6': # @/pg 407/fig 42/`H533rm`.
 
-            configurations.smps_enable             = False
+            # Note that the SMPS is not available. @/pg 402/sec 10.2/`H533rm`.
             configurations.ldo_enable              = True
             configurations.power_management_bypass = False
 

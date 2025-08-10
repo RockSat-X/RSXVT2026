@@ -44,6 +44,12 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 #endif
 
+#if TARGET_MCU_IS_STM32H533RET6
+
+    #define RCC_CCIPR5_CKPERSEL_ RCC_CCIPR5_CKERPSEL_ // Typo.
+
+#endif
+
 
 
 #include "cmsis_patches.meta"
@@ -295,9 +301,6 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
         yield f'TARGET_NAME_IS_{target.name}'
 
-
-        if target.mcu == 'STM32H533RET6':
-            return # TODO.
 
 
         # Output the system initialization routine where we configure the low-level MCU stuff.
