@@ -44,7 +44,6 @@ extern noret void
 main(void)
 {
     GPIO_init();
-    NVIC_init();
     SYSTEM_init();
     // TODO: JIG_init();
 
