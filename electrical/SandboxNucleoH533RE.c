@@ -12,6 +12,7 @@
 #include <deps/FreeRTOS_Kernel/queue.c>
 #include <deps/FreeRTOS_Kernel/list.c>
 #include <port.c>
+#include <portasm.c>
 
 
 

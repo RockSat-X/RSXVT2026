@@ -95,12 +95,22 @@ TARGETS = TargetTuple((
 
 MCUS = {
     'STM32H7S3L8H6' : types.SimpleNamespace(
-        cmsis_file_path    = root('./deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h'),
-        freertos_file_path = root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1'),
+        cmsis_file_path     = root('./deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h'),
+        freertos_file_path  = root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1'),
+        freertos_interrupts = {
+            'SysTick' : 'xPortSysTickHandler',
+            'SVCall'  : 'vPortSVCHandler'    ,
+            'PendSV'  : 'xPortPendSVHandler' ,
+        },
     ),
     'STM32H533RET6' : types.SimpleNamespace(
-        cmsis_file_path    = root('./deps/cmsis-device-h5/Include/stm32h533xx.h'),
-        freertos_file_path = root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
+        cmsis_file_path     = root('./deps/cmsis-device-h5/Include/stm32h533xx.h'),
+        freertos_file_path  = root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
+        freertos_interrupts = {
+            'SysTick' : 'SysTick_Handler',
+            'SVCall'  : 'SVC_Handler'    ,
+            'PendSV'  : 'PendSV_Handler' ,
+        },
     ),
 }
 

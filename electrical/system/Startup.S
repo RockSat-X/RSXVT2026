@@ -100,6 +100,8 @@ __INTERRUPT_Reset:
 
             yield f'TARGET_MCU_IS_{mcu}'
 
+            freertos_interrupts_placed = OrderedSet()
+
             for interrupt_i, interrupt_name in enumerate(INTERRUPTS[mcu]):
 
 
@@ -123,8 +125,11 @@ __INTERRUPT_Reset:
 
                 # These interrupt routines are implemented by FreeRTOS.
 
-                elif interrupt_name in INTERRUPTS_FOR_FREERTOS:
-                    Meta.line(f'.word {INTERRUPTS_FOR_FREERTOS[interrupt_name]}')
+                elif interrupt_name in MCUS[mcu].freertos_interrupts:
+
+                    Meta.line(f'.word {MCUS[mcu].freertos_interrupts[interrupt_name]}')
+
+                    freertos_interrupts_placed |= { interrupt_name }
 
 
 
@@ -136,5 +141,12 @@ __INTERRUPT_Reset:
                         f'.weak __INTERRUPT_{interrupt_name}'                               , # If there exists an implementation of the handler, use it.
                         f'.set  __INTERRUPT_{interrupt_name}, __INTERRUPT_Default_indirect' , # Otherwise, use the default handler.
                     )
+
+
+
+            # Ensure all FreeRTOS interrupts have been placed in the IVT.
+
+            if missing := OrderedSet(MCUS[mcu].freertos_interrupts.keys()) - freertos_interrupts_placed:
+                raise RuntimeError(f'FreeRTOS interrupts missing in {mcu} interrupt vector table: {list(missing)}.')
 
     */

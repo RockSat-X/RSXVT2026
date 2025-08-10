@@ -114,7 +114,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 #include "interrupts.meta"
-/* #meta INTERRUPTS, INTERRUPTS_FOR_FREERTOS : NVIC_TABLE
+/* #meta INTERRUPTS : NVIC_TABLE
 
 
 
@@ -185,26 +185,6 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-    # Some interrupts will be hijacked by FreeRTOS.
-
-    INTERRUPTS_FOR_FREERTOS = {
-
-        'STM32H7S3L8H6' : {
-            'SysTick' : 'xPortSysTickHandler',
-            'SVCall'  : 'vPortSVCHandler'    ,
-            'PendSV'  : 'xPortPendSVHandler' ,
-        },
-
-        'STM32H533RET6' : {
-            'SysTick' : 'SysTick_Handler',
-            'SVCall'  : 'SVC_Handler'    ,
-            'PendSV'  : 'PendSV_Handler' ,
-        },
-
-    }
-
-
-
     # If trying to define an interrupt handler and one makes a typo,
     # then the function end up not replacing the weak symbol that's
     # in place of the interrupt handler in the interrupt vector table,
@@ -240,7 +220,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
             if interrupt is None:
                 continue
 
-            if interrupt in INTERRUPTS_FOR_FREERTOS:
+            if interrupt in MCUS[mcu].freertos_interrupts:
                 continue
 
             Meta.define('INTERRUPT', ('INTERRUPT'), f'extern void __INTERRUPT_{interrupt}(void)', INTERRUPT = interrupt)
