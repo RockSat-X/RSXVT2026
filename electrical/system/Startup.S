@@ -97,14 +97,28 @@ __INTERRUPT_Reset:
     #include "interrupt_vector_table.meta"
     /* #meta
 
-        @Meta.ifs(MCUS, '#if')
-        def _(mcu):
 
-            yield f'TARGET_MCU_IS_{mcu}'
 
-            freertos_interrupts_placed = OrderedSet()
+        # Ensure all FreeRTOS interrupts has a place in the IVT.
 
-            for interrupt_i, interrupt_name in enumerate(INTERRUPTS[mcu]):
+        for mcu in MCUS:
+            if missing := [
+                interrupt
+                for freertos_interrupt in MCUS[mcu].freertos_interrupts
+                if freertos_interrupt not in INTERRUPTS[mcu]
+            ]:
+                raise RuntimeError(f'FreeRTOS interrupts missing in {mcu} interrupt vector table: {list(missing)}.')
+
+
+
+        # Make the IVT.
+
+        @Meta.ifs(TARGETS, '#if')
+        def _(target):
+
+            yield f'TARGET_NAME_IS_{target.name}'
+
+            for interrupt_i, interrupt_name in enumerate(INTERRUPTS[target.mcu]):
 
 
 
@@ -125,13 +139,13 @@ __INTERRUPT_Reset:
 
 
 
-                # These interrupt routines are implemented by FreeRTOS.
+                # This interrupt will be supplied by FreeRTOS,
+                # unless we're configuring SysTick which FreeRTOS uses by default,
+                # to which we won't be considering FreeRTOS at all.
 
-                elif interrupt_name in MCUS[mcu].freertos_interrupts:
+                elif interrupt_name in MCUS[target.mcu].freertos_interrupts and 'systick_ck' not in SYSTEM_OPTIONS[target.name]:
 
-                    Meta.line(f'.word {MCUS[mcu].freertos_interrupts[interrupt_name]}')
-
-                    freertos_interrupts_placed |= { interrupt_name }
+                    Meta.line(f'.word {MCUS[target.mcu].freertos_interrupts[interrupt_name]}')
 
 
 
@@ -143,12 +157,5 @@ __INTERRUPT_Reset:
                         f'.weak __INTERRUPT_{interrupt_name}'                               , # If there exists an implementation of the handler, use it.
                         f'.set  __INTERRUPT_{interrupt_name}, __INTERRUPT_Default_indirect' , # Otherwise, use the default handler.
                     )
-
-
-
-            # Ensure all FreeRTOS interrupts have been placed in the IVT.
-
-            if missing := OrderedSet(MCUS[mcu].freertos_interrupts.keys()) - freertos_interrupts_placed:
-                raise RuntimeError(f'FreeRTOS interrupts missing in {mcu} interrupt vector table: {list(missing)}.')
 
     */

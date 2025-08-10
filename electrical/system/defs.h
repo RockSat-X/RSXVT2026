@@ -122,7 +122,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 #include "interrupts.meta"
-/* #meta INTERRUPTS : NVIC_TABLE
+/* #meta INTERRUPTS : NVIC_TABLE, SYSTEM_OPTIONS
 
 
 
@@ -220,17 +220,21 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
     # >    }
     # >
 
-    @Meta.ifs(MCUS, '#if')
-    def _(mcu):
+    @Meta.ifs(TARGETS, '#if')
+    def _(target):
 
-        yield f'TARGET_MCU_IS_{mcu}'
+        yield f'TARGET_NAME_IS_{target.name}'
 
-        for interrupt in ('Default',) + INTERRUPTS[mcu]:
+        for interrupt in ('Default',) + INTERRUPTS[target.mcu]:
 
             if interrupt is None:
+                # This interrupt is reserved.
                 continue
 
-            if interrupt in MCUS[mcu].freertos_interrupts:
+            if interrupt in MCUS[target.mcu].freertos_interrupts and 'systick_ck' not in SYSTEM_OPTIONS[target.name]:
+                # This interrupt will be supplied by FreeRTOS,
+                # unless we're configuring SysTick which FreeRTOS uses by default,
+                # to which we won't be considering FreeRTOS at all.
                 continue
 
             Meta.define('INTERRUPT', ('INTERRUPT'), f'extern void __INTERRUPT_{interrupt}(void)', INTERRUPT = interrupt)
