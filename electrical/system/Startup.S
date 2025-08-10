@@ -95,7 +95,7 @@ __INTERRUPT_Reset:
     #include "interrupt_vector_table.meta"
     /* #meta
 
-        @Meta.ifs(TARGETS.mcus, '#if')
+        @Meta.ifs(MCUS, '#if')
         def _(mcu):
 
             yield f'TARGET_MCU_IS_{mcu}'

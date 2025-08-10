@@ -41,11 +41,6 @@ class TargetTuple(tuple):
 
 
 
-    def __init__(self, elements):
-        self.mcus = OrderedSet(target.mcu for target in self) # Set of all MCUs in use.
-
-
-
     # Get a specific target by name.
 
     def get(self, target_name):

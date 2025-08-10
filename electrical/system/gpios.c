@@ -159,7 +159,7 @@
 
     GPIO_AFSEL = {}
 
-    for mcu in TARGETS.mcus:
+    for mcu in MCUS:
 
         GPIO_AFSEL[mcu] = []
 

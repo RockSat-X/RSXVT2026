@@ -118,11 +118,11 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-    # Parse the targets' CMSIS header files to get the list of interrupts on the microcontroller.
+    # Parse the CMSIS header files to get the list of interrupts on the microcontroller.
 
     INTERRUPTS = {}
 
-    for target in TARGETS:
+    for mcu in MCUS:
 
 
 
@@ -143,7 +143,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
         irqn_enumeration = {}
 
-        for line in MCUS[target.mcu].cmsis_file_path.read_text().splitlines():
+        for line in MCUS[mcu].cmsis_file_path.read_text().splitlines():
 
             match line.split():
 
@@ -176,12 +176,12 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
         # including interrupt numbers that are reserved,
         # we create a list for all interrupt numbers between the lowest and highest.
 
-        INTERRUPTS[target.mcu] = [None] * (irqn_enumeration[-1][0] - irqn_enumeration[0][0] + 1)
+        INTERRUPTS[mcu] = [None] * (irqn_enumeration[-1][0] - irqn_enumeration[0][0] + 1)
 
         for interrupt_number, interrupt_name in irqn_enumeration:
-            INTERRUPTS[target.mcu][interrupt_number - irqn_enumeration[0][0]] = interrupt_name
+            INTERRUPTS[mcu][interrupt_number - irqn_enumeration[0][0]] = interrupt_name
 
-        INTERRUPTS[target.mcu] = tuple(INTERRUPTS[target.mcu])
+        INTERRUPTS[mcu] = tuple(INTERRUPTS[mcu])
 
 
 
@@ -210,7 +210,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
     # >    }
     # >
 
-    @Meta.ifs(TARGETS.mcus, '#if')
+    @Meta.ifs(MCUS, '#if')
     def _(mcu):
 
         yield f'TARGET_MCU_IS_{mcu}'
@@ -316,4 +316,5 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
         for name, expansion in defines:
             Meta.define(name, expansion)
+
 */

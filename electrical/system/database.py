@@ -133,7 +133,7 @@ def parse_entry(entry):
 
 SYSTEM_DATABASE = {}
 
-for mcu in TARGETS.mcus:
+for mcu in MCUS:
 
     SYSTEM_DATABASE[mcu] = {}
 
