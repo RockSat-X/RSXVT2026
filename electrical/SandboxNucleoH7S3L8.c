@@ -98,7 +98,7 @@ main(void)
 
 
 
-    #include "tasks.meta"
+    #include "SandboxNucleoH7S3L8_tasks.meta"
     /* #meta
 
         for task_name, stack_size, priority in (
