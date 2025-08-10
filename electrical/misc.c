@@ -24,6 +24,26 @@ spinlock_nop(u32 count)
 
 
 
+#if false
+
+    static volatile u32 epoch_ms = 0;
+
+    INTERRUPT(SysTick)
+    {
+        epoch_ms += 1;
+    }
+
+    static void
+    spinlock_ms(u32 duration_ms)
+    {
+        u32 start_ms = epoch_ms;
+        while (epoch_ms - start_ms < duration_ms);
+    }
+
+#endif
+
+
+
 #define sorry halt_(false); // @/`Halting`.
 #define panic halt_(true)   // "
 static noret void           // "
