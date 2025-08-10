@@ -149,15 +149,3 @@ struct Jig
     volatile u32  reception_writer;
     volatile char reception_buffer[1 << 5];
 };
-
-
-
-//////////////////////////////////////////////////////////////// Globals ////////////////////////////////////////////////////////////////
-
-
-
-#if TARGET_NAME_IS_SandboxNucleoH7S3L8
-
-    static struct Jig _JIG = {0};
-
-#endif
