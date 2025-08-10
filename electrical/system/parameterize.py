@@ -148,39 +148,6 @@ def SYSTEM_PARAMETERIZE(target, options):
 
 
 
-    # How things are parameterize will vary MCU to MCU obviously,
-    # so we define the routines using decorators and select the appropriate one based on the target MCU.
-
-    per_mcus = {}
-
-    def PerMCU(*mcus):
-
-        def decorator(function):
-
-            for mcu in mcus:
-
-                if mcu in per_mcus:
-                    raise ValueError(f'There\'s already a case for {mcu}.')
-
-                per_mcus[mcu] = function
-
-        return decorator
-
-    def handle_mcu():
-
-        nonlocal per_mcus
-
-        function = per_mcus.get(target.mcu, None)
-
-        if function is None:
-            raise RuntimeError(f'MCU {target.mcu} not yet handled here; supported cases: {list(per_mcus.keys())}.')
-
-        function()
-
-        per_mcus = {} # Flush the set of routines so we can do the next set.
-
-
-
     ################################################################################################################################
 
 
@@ -188,11 +155,10 @@ def SYSTEM_PARAMETERIZE(target, options):
     # Some clock frequencies are dictated by SYSTEM_OPTIONS, so we can just immediately add them to the tree.
     # We'll check later on to make sure that the frequencies are actually solvable.
 
-    clocks = [
-        'cpu_ck',
-        'axi_ahb_ck',
-        'systick_ck',
-    ]
+    match target.mcu:
+        case 'STM32H7S3L8H6' : clocks = ['cpu_ck', 'systick_ck', 'axi_ahb_ck']
+        case 'STM32H533RET6' : clocks = ['cpu_ck', 'systick_ck']
+        case _               : raise NotImplementedError
 
 
 
@@ -232,19 +198,33 @@ def SYSTEM_PARAMETERIZE(target, options):
 
 
 
-    @PerMCU('STM32H7S3L8H6')
-    def _():
+    match target.mcu:
 
-        configurations.flash_latency            = '0x7'  # @/pg 211/tbl 29/`H7S3rm`.
-        configurations.flash_programming_delay  = '0b11' # "
-        configurations.internal_voltage_scaling = {      # @/pg 327/sec 6.8.6/`H7S3rm`.
-            'low'  : 0,
-            'high' : 1,
-        }['high']
+        case 'STM32H7S3L8H6':
+
+            configurations.flash_latency            = '0x7'  # @/pg 211/tbl 29/`H7S3rm`.
+            configurations.flash_programming_delay  = '0b11' # "
+            configurations.internal_voltage_scaling = {      # @/pg 327/sec 6.8.6/`H7S3rm`.
+                'low'  : 0,
+                'high' : 1,
+            }['high']
 
 
 
-    handle_mcu()
+        case 'STM32H533RET6':
+
+            configurations.flash_latency            = 5      # @/pg 252/tbl 45/`H533rm`.
+            configurations.flash_programming_delay  = '0b10' # "
+            configurations.internal_voltage_scaling = {      # @/pg 438/sec 10.11.4/`H533rm`.
+                'VOS3' : '0b00',
+                'VOS2' : '0b01',
+                'VOS1' : '0b10',
+                'VOS0' : '0b11',
+            }['VOS0']
+
+
+
+        case _: raise NotImplementedError
 
 
 
@@ -259,18 +239,27 @@ def SYSTEM_PARAMETERIZE(target, options):
 
 
 
-    @PerMCU('STM32H7S3L8H6') # @/pg 285/fig 21/`H7S3rm`. @/pg 286/tbl 44/`H7S3rm`.
-    def _():
+    match target.mcu:
 
-        configurations.smps_output_level       = None
-        configurations.smps_forced_on          = None
-        configurations.smps_enable             = False
-        configurations.ldo_enable              = True
-        configurations.power_management_bypass = False
+        case 'STM32H7S3L8H6': # @/pg 285/fig 21/`H7S3rm`. @/pg 286/tbl 44/`H7S3rm`.
+
+            configurations.smps_output_level       = None
+            configurations.smps_forced_on          = None
+            configurations.smps_enable             = False
+            configurations.ldo_enable              = True
+            configurations.power_management_bypass = False
 
 
 
-    handle_mcu()
+        case 'STM32H533RET6': # @/pg 407/fig 42/`H533rm`.
+
+            configurations.smps_enable             = False
+            configurations.ldo_enable              = True
+            configurations.power_management_bypass = False
+
+
+
+        case _: raise NotImplementedError
 
 
 
@@ -283,31 +272,75 @@ def SYSTEM_PARAMETERIZE(target, options):
 
 
 
-    @PerMCU('STM32H7S3L8H6')
-    def _():
+    match target.mcu:
 
-        # General high-speed-internal oscillator. TODO Handle other frequencies.
-        # @/pg 361/sec 7.5.2/`H7S3rm`.
-        configurations.hsi_enable = opts('hsi_enable')
-        tree.hsi_ck               = 64_000_000 if configurations.hsi_enable else 0
+        case 'STM32H7S3L8H6':
 
-        # High-speed-internal oscillator (48MHz).
-        # @/pg 363/sec 7.5.2/`H7S3rm`.
-        configurations.hsi48_enable = opts('hsi48_enable')
-        tree.hsi48_ck               = 48_000_000 if configurations.hsi48_enable else 0
+            # General high-speed-internal oscillator. TODO Handle other frequencies.
+            # @/pg 361/sec 7.5.2/`H7S3rm`.
 
-        # "Clock Security System" oscillator (fixed at ~4MHz).
-        # @/pg 362/sec 7.5.2/`H7S3rm`.
-        configurations.csi_enable = opts('csi_enable')
-        tree.csi_ck               = 4_000_000 if configurations.csi_enable else 0
-
-        # TODO Not implemented yet; here because of the brute-forcing later on.
-        tree.hse_ck = 0
-        tree.lse_ck = 0
+            configurations.hsi_enable = opts('hsi_enable', None)
+            tree.hsi_ck               = 64_000_000 if configurations.hsi_enable else 0
 
 
 
-    handle_mcu()
+            # High-speed-internal oscillator (48MHz).
+            # @/pg 363/sec 7.5.2/`H7S3rm`.
+
+            configurations.hsi48_enable = opts('hsi48_enable', None)
+            tree.hsi48_ck               = 48_000_000 if configurations.hsi48_enable else 0
+
+
+
+            # "Clock Security System" oscillator (fixed at ~4MHz).
+            # @/pg 362/sec 7.5.2/`H7S3rm`.
+
+            configurations.csi_enable = opts('csi_enable', None)
+            tree.csi_ck               = 4_000_000 if configurations.csi_enable else 0
+
+
+
+            # TODO Not implemented yet; here because of the brute-forcing later on.
+
+            tree.hse_ck = 0
+            tree.lse_ck = 0
+
+
+
+        case 'STM32H533RET6':
+
+            # General high-speed-internal oscillator. TODO Handle other frequencies.
+            # @/pg 458/sec 11.4.2/`H533rm`.
+
+            configurations.hsi_enable = opts('hsi_enable', None)
+            tree.hsi_ck               = 32_000_000 if configurations.hsi_enable else 0
+
+
+
+            # High-speed-internal oscillator (48MHz).
+            # @/pg 460/sec 11.4.4/`H533rm`.
+
+            configurations.hsi48_enable = opts('hsi48_enable', None)
+            tree.hsi48_ck               = 48_000_000 if configurations.hsi48_enable else 0
+
+
+
+            # "Clock Security System" oscillator (fixed at ~4MHz).
+            # @/pg 459/sec 11.4.3/`H533rm`.
+
+            configurations.csi_enable = opts('csi_enable', None)
+            tree.csi_ck               = 4_000_000 if configurations.csi_enable else 0
+
+
+
+            # TODO Not implemented yet; here because of the brute-forcing later on.
+
+            tree.hse_ck = 0
+            tree.lse_ck = 0
+
+
+
+        case _: raise NotImplementedError
 
 
 
@@ -329,13 +362,14 @@ def SYSTEM_PARAMETERIZE(target, options):
     # Parameterize the PLL subsystem.
     #
     # @/pg 371/fig 48/`H7S3rm`. @/pg 354/fig 40/`H7S3rm`.
+    # @/pg 461/fig 55/`H533rm`. @/pg 456/fig 52/`H533rm`.
     #
 
 
 
     # Verify the values for the PLL options.
 
-    for pll_unit, pll_channels in database['PLL_UNITS']:
+    for pll_unit, pll_channels in database['PLL_UNITS'].VALUE:
 
         for pll_channel in pll_channels:
 
@@ -450,28 +484,59 @@ def SYSTEM_PARAMETERIZE(target, options):
 
 
 
-    # Brute-forcing of every PLL unit by trying every input clock source to the PLLs.
+    # Brute-forcing every PLL unit.
 
     def parameterize_plls():
 
-        for pll_clock_source_name, draft.pll_clock_source in database['pll_clock_source'].VALUE:
+        match target.mcu:
 
-            pll_clock_source_freq = tree[pll_clock_source_name]
-            every_pll_satisfied   = all(
-                parameterize_plln(units, pll_clock_source_freq)
-                for units, channels in database['PLL_UNITS'].VALUE
-            )
 
-            if every_pll_satisfied:
+
+            # All of the PLL units share the same clock source.
+
+            case 'STM32H7S3L8H6':
+
+                for pll_clock_source_name, draft.pll_clock_source in database['pll_clock_source'].VALUE:
+
+                    pll_clock_source_freq = tree[pll_clock_source_name]
+                    every_pll_satisfied   = all(
+                        parameterize_plln(units, pll_clock_source_freq)
+                        for units, channels in database['PLL_UNITS'].VALUE
+                    )
+
+                    if every_pll_satisfied:
+                        return True
+
+
+
+            # Each PLL unit have their own clock source.
+
+            case 'STM32H533RET6':
+
+                for pll_unit, pll_clock_sources in database['pll{UNIT}_clock_source'].items():
+
+                    plln_satisfied = any(
+                        parameterize_plln(pll_unit, tree[pll_clock_source_name])
+                        for pll_clock_source_name, draft[f'pll{pll_unit}_clock_source'] in pll_clock_sources.VALUE
+                    )
+
+                    if not plln_satisfied:
+                        return False
+
                 return True
+
+
+
+            case _: raise NotImplementedError
 
 
 
     # Begin brute-forcing.
 
-    draft_configuration_names = [
-        'pll_clock_source'
-    ]
+    match target.mcu:
+        case 'STM32H7S3L8H6' : draft_configuration_names = ['pll_clock_source']
+        case 'STM32H533RET6' : draft_configuration_names = [f'pll{unit}_clock_source' for unit, channels in database['PLL_UNITS'].VALUE]
+        case _               : raise NotImplementedError
 
     for unit, channels in database['PLL_UNITS'].VALUE:
 
@@ -499,12 +564,20 @@ def SYSTEM_PARAMETERIZE(target, options):
     if not in_minmax(tree.cpu_ck, database['cpu_freq']):
         raise ValueError(f'CPU clock frequency is out-of-range: {tree.cpu_ck :_}Hz.')
 
-    if not in_minmax(tree.axi_ahb_ck, database['axi_ahb_freq']):
-        raise ValueError(f'Bus frequency is out-of-bounds: {tree.axi_ahb_ck :_}Hz.')
-
     for unit in database['APB_UNITS'].VALUE:
         if not in_minmax(tree[f'apb{unit}_ck'], database['apb_freq']):
             raise ValueError(f'APB{unit} frequency is out-of-bounds: {tree[f'apb{unit}_ck'] :_}Hz.')
+
+    match target.mcu:
+
+        case 'STM32H7S3L8H6':
+
+            if not in_minmax(tree.axi_ahb_ck, database['axi_ahb_freq']):
+                raise ValueError(f'Bus frequency is out-of-bounds: {tree.axi_ahb_ck :_}Hz.')
+
+        case 'STM32H533RET6':
+
+            pass
 
 
 
@@ -541,12 +614,26 @@ def SYSTEM_PARAMETERIZE(target, options):
 
             # Try to parameterize for the AXI/AHB busses.
 
-            needed_axi_ahb_divider = tree.cpu_ck / tree.axi_ahb_ck
-            draft.axi_ahb_divider  = mk_dict(database['axi_ahb_divider'].VALUE).get(needed_axi_ahb_divider, None)
-            axi_ahb_divider_found  = draft.axi_ahb_divider is not None
+            match target.mcu:
 
-            if not axi_ahb_divider_found:
-                continue
+                case 'STM32H7S3L8H6':
+
+                    needed_axi_ahb_divider = tree.cpu_ck / tree.axi_ahb_ck
+                    draft.axi_ahb_divider  = mk_dict(database['axi_ahb_divider'].VALUE).get(needed_axi_ahb_divider, None)
+                    axi_ahb_divider_found  = draft.axi_ahb_divider is not None
+
+                    if not axi_ahb_divider_found:
+                        continue
+
+
+
+                case 'STM32H533RET6':
+
+                    tree.axi_ahb_ck = tree.cpu_ck
+
+
+
+                case _: raise NotImplementedError
 
 
 
@@ -570,7 +657,7 @@ def SYSTEM_PARAMETERIZE(target, options):
     brute(parameterize_scgu, (
         'scgu_clock_source',
         'cpu_divider',
-        'axi_ahb_divider',
+        'axi_ahb_divider', # TODO.
         *(f'apb{unit}_divider' for unit in database['APB_UNITS'].VALUE),
     ))
 
@@ -583,6 +670,7 @@ def SYSTEM_PARAMETERIZE(target, options):
     # @/pg 620/sec B3.3/`Armv7-M`.
     # @/pg 297/sec B11.1/`Armv8-M`.
     # @/pg 378/fig 51/`H7S3rm`.
+    # TODO STMH533RET6 can have an external clock source for SysTick.
     #
 
 
@@ -618,7 +706,7 @@ def SYSTEM_PARAMETERIZE(target, options):
 
     ################################################################################################################################
     #
-    # Parameterize the UxART peripherals.
+    # Parameterize the UxART peripherals. TODO Consider maximum kernel frequency.
     #
     # @/pg 394/fig 56/`H7S3rm`.
     #

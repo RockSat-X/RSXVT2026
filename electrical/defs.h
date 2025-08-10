@@ -22,8 +22,16 @@
             'usart3_baud'   : STLINK_BAUD,
         },
 
-        'SandboxNucleoH533RE' : (
-        ),
+        'SandboxNucleoH533RE' : {
+            'hsi_enable'    : True,
+            'hsi48_enable'  : True,
+            'csi_enable'    : True,
+            'pll1_p_ck'     : 250_000_000,
+            'cpu_ck'        : 250_000_000,
+            'apb1_ck'       : 250_000_000,
+            'apb2_ck'       : 250_000_000,
+            'apb3_ck'       : 250_000_000,
+        },
 
     }
 

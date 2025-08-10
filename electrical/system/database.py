@@ -125,7 +125,7 @@ def parse_entry(entry):
 
     # Finished parsing for the tag and record from the S-expression of the entry.
 
-    return tag, record
+    return tag, types.SimpleNamespace(record)
 
 
 
@@ -189,7 +189,7 @@ for mcu in MCUS:
             # (pll{UNIT}_predivider (RCC PLLCKSELR DIVM3) (minmax: 1 63) (UNIT = 3))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][3]
 
             case 1:
-                SYSTEM_DATABASE[mcu][tag] = mk_dict((record[placeholders[0]], record) for record in records)
+                SYSTEM_DATABASE[mcu][tag] = mk_dict((record.__dict__[placeholders[0]], record) for record in records)
 
 
 
@@ -208,7 +208,7 @@ for mcu in MCUS:
                 SYSTEM_DATABASE[mcu][tag] = {
                     Placeholders(**{
                         key : value
-                        for key, value in record
+                        for key, value in record.__dict__.items()
                         if key in placeholders
                     }) : record
                     for record in records
