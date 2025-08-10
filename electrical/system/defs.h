@@ -143,7 +143,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
         irqn_enumeration = {}
 
-        for line in target.cmsis_file_path.read_text().splitlines():
+        for line in MCUS[target.mcu].cmsis_file_path.read_text().splitlines():
 
             match line.split():
 

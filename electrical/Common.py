@@ -1,4 +1,4 @@
-#meta types, root, justify, coalesce, mk_dict, find_dupe, OrderedSet, ContainedNamespace, AllocatingNamespace, log, ANSI, CMSIS_SET, CMSIS_WRITE, CMSIS_SPINLOCK, STLINK_BAUD, TARGETS :
+#meta types, root, justify, coalesce, mk_dict, find_dupe, OrderedSet, ContainedNamespace, AllocatingNamespace, log, ANSI, CMSIS_SET, CMSIS_WRITE, CMSIS_SPINLOCK, STLINK_BAUD, TARGETS, MCUS :
 # TODO Provide explaination on how this file works?
 
 import types
@@ -68,8 +68,6 @@ TARGETS = TargetTuple((
     types.SimpleNamespace(
         name               = 'SandboxNucleoH7S3L8',
         mcu                = 'STM32H7S3L8H6',
-        cmsis_file_path    = root('./deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h'),
-        freertos_file_path = root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1'),
         source_file_paths  = root('''
             ./electrical/SandboxNucleoH7S3L8.c
             ./electrical/system/Startup.S
@@ -80,8 +78,6 @@ TARGETS = TargetTuple((
     types.SimpleNamespace(
         name               = 'SandboxNucleoH533RE',
         mcu                = 'STM32H533RET6',
-        cmsis_file_path    = root('./deps/cmsis-device-h5/Include/stm32h533xx.h'),
-        freertos_file_path = root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
         source_file_paths  = root('''
             ./electrical/SandboxNucleoH533RE.c
             ./electrical/system/Startup.S
@@ -90,6 +86,23 @@ TARGETS = TargetTuple((
     ),
 
 ))
+
+
+
+#
+# Supported microcontrollers.
+#
+
+MCUS = {
+    'STM32H7S3L8H6' : types.SimpleNamespace(
+        cmsis_file_path    = root('./deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h'),
+        freertos_file_path = root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1'),
+    ),
+    'STM32H533RET6' : types.SimpleNamespace(
+        cmsis_file_path    = root('./deps/cmsis-device-h5/Include/stm32h533xx.h'),
+        freertos_file_path = root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
+    ),
+}
 
 
 
@@ -147,7 +160,7 @@ for target in TARGETS:
         root('./deps/printf/src'),
         root('.'),            # For <deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h> and such.
         root('./electrical'), # For <FreeRTOSConfig.h>.
-        target.freertos_file_path,
+        MCUS[target.mcu].freertos_file_path,
     )
 
 
@@ -155,9 +168,9 @@ for target in TARGETS:
     # Additional macro defines.
 
     defines = [
-        ('TARGET_NAME'         , target.name                  ),
-        ('LINK_stack_size'     , target.stack_size            ),
-        ('STM32_CMSIS_DEVICE_H', f'<{target.cmsis_file_path}>'),
+        ('TARGET_NAME'         , target.name                            ),
+        ('LINK_stack_size'     , target.stack_size                      ),
+        ('STM32_CMSIS_DEVICE_H', f'<{MCUS[target.mcu].cmsis_file_path}>'),
     ]
 
     for other in TARGETS:
