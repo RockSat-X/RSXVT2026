@@ -40,6 +40,12 @@
         ),
 
         'SandboxNucleoH533RE' : (
+            ('led_green' , 'A5' , 'output'    , { 'initlvl' : False       }),
+            ('jig_tx'    , 'A2' , 'alternate' , { 'altfunc' : 'USART2_TX' }),
+            ('jig_rx'    , 'A3' , 'alternate' , { 'altfunc' : 'USART2_RX' }),
+            ('swdio'     , 'A13', 'reserved'  , {                         }),
+            ('swclk'     , 'A14', 'reserved'  , {                         }),
+            ('button'    , 'C13', 'input'     , { 'pull'    : None        }),
         ),
 
     })

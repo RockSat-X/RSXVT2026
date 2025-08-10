@@ -29,6 +29,16 @@ INTERRUPT(Default)
 extern noret void
 main(void)
 {
-    for(;;);
+    GPIO_init();
+    NVIC_init();
+    // TODO: SYSTEM_init();
+    // TODO: JIG_init();
+
+    for (;;)
+    {
+        GPIO_TOGGLE(led_green);
+        delay_nop(10'000'000);
+    }
+
     panic;
 }

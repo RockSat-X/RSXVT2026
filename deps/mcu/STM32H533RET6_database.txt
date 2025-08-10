@@ -1,2 +1,12 @@
 (
+    # @/pg 518/sec 11.8.27/`H533rm`.
+    (GPIO_PORT_ENABLE_REGISTER (value: AHB2ENR))
+
+    # @/pg 586/sec 13.4.1/`H533rm`.
+    (GPIO_MODE (value: (
+        (input     0b00)
+        (output    0b01)
+        (alternate 0b10)
+        (analog    0b11)
+    )))
 )

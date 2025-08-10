@@ -306,7 +306,7 @@
     )))
 
     # @/pg 501/sec 7.8.48/`H7S3rm`.
-    (GPIO_PORT_ENABLE_REGISTER (value: 'AHB4ENR'))
+    (GPIO_PORT_ENABLE_REGISTER (value: AHB4ENR))
 
     # @/pg 583/sec 10.4.1/`H7S3rm`.
     (GPIO_MODE (value: (
