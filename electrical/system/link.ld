@@ -5,13 +5,13 @@ ENTRY(__INTERRUPT_Reset) /* Just to indicate where program execution would begin
 
 MEMORY
 {
-    #if TARGET_MCU_IS_STM32H7S3 /* @/pg 151/fig 3/`H7S3rm`. */
+    #if TARGET_MCU_IS_STM32H7S3L8H6 /* @/pg 151/fig 3/`H7S3rm`. */
         AXI_SRAM (rw) : ORIGIN = 0x24000000, LENGTH = 456K
         DTCM     (rw) : ORIGIN = 0x20000000, LENGTH = 64K /* TODO There's actually 192K worth of memory available to use, but we might have to program the option bytes? */
         FLASH    (rx) : ORIGIN = 0x08000000, LENGTH = 64K
     #endif
 
-    #if TARGET_MCU_IS_STM32H533RET /* @/pg 117/fig 3/`H533rm`. */
+    #if TARGET_MCU_IS_STM32H533RET6 /* @/pg 117/fig 3/`H533rm`. */
         SRAM     (rw) : ORIGIN = 0x0A000000, LENGTH = 256K
         FLASH    (rx) : ORIGIN = 0x08000000, LENGTH = 64K
     #endif

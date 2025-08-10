@@ -27,7 +27,7 @@ panic_(b32 hard_error)
 {
     __disable_irq();
 
-    #if TARGET_MCU_IS_STM32H7S3
+    #if TARGET_MCU_IS_STM32H7S3L8H6
 
         if (hard_error)
         {

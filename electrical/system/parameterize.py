@@ -232,7 +232,7 @@ def SYSTEM_PARAMETERIZE(target, options):
 
 
 
-    @PerMCU('STM32H7S3')
+    @PerMCU('STM32H7S3L8H6')
     def _():
 
         configurations.flash_latency            = '0x7'  # @/pg 211/tbl 29/`H7S3rm`.
@@ -259,7 +259,7 @@ def SYSTEM_PARAMETERIZE(target, options):
 
 
 
-    @PerMCU('STM32H7S3') # @/pg 285/fig 21/`H7S3rm`. @/pg 286/tbl 44/`H7S3rm`.
+    @PerMCU('STM32H7S3L8H6') # @/pg 285/fig 21/`H7S3rm`. @/pg 286/tbl 44/`H7S3rm`.
     def _():
 
         configurations.smps_output_level       = None
@@ -283,7 +283,7 @@ def SYSTEM_PARAMETERIZE(target, options):
 
 
 
-    @PerMCU('STM32H7S3')
+    @PerMCU('STM32H7S3L8H6')
     def _():
 
         # General high-speed-internal oscillator. TODO Handle other frequencies.

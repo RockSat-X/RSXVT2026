@@ -36,7 +36,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-#if TARGET_MCU_IS_STM32H7S3
+#if TARGET_MCU_IS_STM32H7S3L8H6
 
     // For the full contiguous field. @/pg 2476/sec 53.8.6/`H7S3rm`.
     #define USART_BRR_BRR_Pos 0
@@ -189,13 +189,13 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
     INTERRUPTS_FOR_FREERTOS = {
 
-        'STM32H7S3' : {
+        'STM32H7S3L8H6' : {
             'SysTick' : 'xPortSysTickHandler',
             'SVCall'  : 'vPortSVCHandler'    ,
             'PendSV'  : 'xPortPendSVHandler' ,
         },
 
-        'STM32H533RET' : {
+        'STM32H533RET6' : {
             'SysTick' : 'SysTick_Handler',
             'SVCall'  : 'SVC_Handler'    ,
             'PendSV'  : 'PendSV_Handler' ,
@@ -306,7 +306,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
         yield f'TARGET_NAME_IS_{target.name}'
 
 
-        if target.mcu == 'STM32H533RET':
+        if target.mcu == 'STM32H533RET6':
             return # TODO.
 
 
