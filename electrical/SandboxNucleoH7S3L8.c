@@ -1,7 +1,5 @@
 #include STM32_CMSIS_DEVICE_H
 #include "defs.h"
-#include "system/gpios.c"
-#include "misc.c"
 #include "jig.c"
 #include <deps/FreeRTOS_Kernel/tasks.c>
 #include <deps/FreeRTOS_Kernel/queue.c>
