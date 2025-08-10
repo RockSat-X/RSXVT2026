@@ -14,17 +14,6 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
-    # Helper routine to make the output look nice and well divided.
-
-    def put_title(title):
-        Meta.line(f'''
-
-            {"/" * 64} {title} {"/" * 64}
-
-        ''')
-
-
-
     # This helper routine can be used to look up a value in `configurations` or look up in the database to find the location of a register;
     # the value in the section-register-field-value tuple can also be changed to something else.
     # e.g:

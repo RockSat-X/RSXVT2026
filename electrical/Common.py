@@ -1,4 +1,4 @@
-#meta types, root, justify, coalesce, mk_dict, find_dupe, OrderedSet, ContainedNamespace, AllocatingNamespace, log, ANSI, CMSIS_SET, CMSIS_WRITE, CMSIS_SPINLOCK, STLINK_BAUD, TARGETS, MCUS :
+#meta types, root, justify, coalesce, mk_dict, find_dupe, put_title, OrderedSet, ContainedNamespace, AllocatingNamespace, log, ANSI, CMSIS_SET, CMSIS_WRITE, CMSIS_SPINLOCK, STLINK_BAUD, TARGETS, MCUS :
 # TODO Provide explaination on how this file works?
 
 import types
@@ -433,6 +433,32 @@ def CMSIS_SPINLOCK(*spinlocks):
             case True  : Meta.line(f'while (!CMSIS_GET({section}, {register}, {field}));')
             case False : Meta.line(f'while (CMSIS_GET({section}, {register}, {field}));')
             case _     : Meta.line(f'while (CMSIS_GET({section}, {register}, {field}) != {value});')
+
+
+
+################################################################################################################################
+
+
+
+# Helper routine to make the output look nice and well divided.
+
+def put_title(title = None):
+
+    if title is None:
+
+        Meta.line(f'''
+
+            {"/" * 128}
+
+        ''')
+
+    else:
+
+        Meta.line(f'''
+
+            {"/" * 64} {title} {"/" * 64}
+
+        ''')
 
 
 
