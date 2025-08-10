@@ -77,6 +77,18 @@ TARGETS = TargetTuple((
         stack_size = 8192, # TODO This might be removed depending on how FreeRTOS works.
     ),
 
+    types.SimpleNamespace(
+        name               = 'SandboxNucleoH533RE',
+        mcu                = 'STM32H533RET',
+        cmsis_file_path    = root('./deps/cmsis-device-h5/Include/stm32h533xx.h'),
+        freertos_file_path = root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
+        source_file_paths  = root('''
+            ./electrical/SandboxNucleoH533RE.c
+            ./electrical/system/Startup.S
+        '''),
+        stack_size = 8192, # TODO This might be removed depending on how FreeRTOS works.
+    ),
+
 ))
 
 

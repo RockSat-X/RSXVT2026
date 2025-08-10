@@ -188,9 +188,19 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
     # Some interrupts will be hijacked by FreeRTOS.
 
     INTERRUPTS_FOR_FREERTOS = {
-        'SysTick' : 'xPortSysTickHandler',
-        'SVCall'  : 'vPortSVCHandler'    ,
-        'PendSV'  : 'xPortPendSVHandler' ,
+
+        'STM32H7S3' : {
+            'SysTick' : 'xPortSysTickHandler',
+            'SVCall'  : 'vPortSVCHandler'    ,
+            'PendSV'  : 'xPortPendSVHandler' ,
+        },
+
+        'STM32H533RET' : {
+            'SysTick' : 'SysTick_Handler',
+            'SVCall'  : 'SVC_Handler'    ,
+            'PendSV'  : 'PendSV_Handler' ,
+        },
+
     }
 
 
@@ -295,6 +305,9 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
         yield f'TARGET_NAME_IS_{target.name}'
 
+
+        if target.mcu == 'STM32H533RET':
+            return # TODO.
 
 
         # Output the system initialization routine where we configure the low-level MCU stuff.

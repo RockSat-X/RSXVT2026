@@ -27,34 +27,40 @@ panic_(b32 hard_error)
 {
     __disable_irq();
 
-    if (hard_error)
-    {
-        GPIO_HIGH(led_red);
-    }
-    else
-    {
-        GPIO_HIGH(led_yellow);
-    }
+    #if TARGET_MCU_IS_STM32H7S3
 
-    for (;;) // Here, the timing of the blinking is so that it is noticable even with different CPU clock speeds.
-    {
-        u32 i = 10'000'000;
-
-        for (; i > 1'000; i /= 2)
+        if (hard_error)
         {
-            for (u32 j = 0; j < 8; j += 1)
-            {
-                delay_nop(i);
+            GPIO_HIGH(led_red);
+        }
+        else
+        {
+            GPIO_HIGH(led_yellow);
+        }
 
-                if (hard_error)
+        for (;;) // Here, the timing of the blinking is so that it is noticable even with different CPU clock speeds.
+        {
+            u32 i = 10'000'000;
+
+            for (; i > 1'000; i /= 2)
+            {
+                for (u32 j = 0; j < 8; j += 1)
                 {
-                    GPIO_TOGGLE(led_red);
-                }
-                else
-                {
-                    GPIO_TOGGLE(led_yellow);
+                    delay_nop(i);
+
+                    if (hard_error)
+                    {
+                        GPIO_TOGGLE(led_red);
+                    }
+                    else
+                    {
+                        GPIO_TOGGLE(led_yellow);
+                    }
                 }
             }
         }
-    }
+
+    #endif
+
+    for(;;); // Panic! Something horrible has happened!
 }

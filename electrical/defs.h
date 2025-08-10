@@ -22,6 +22,9 @@
             'usart3_baud'   : STLINK_BAUD,
         },
 
+        'SandboxNucleoH533RE' : (
+        ),
+
     }
 
     GPIOS = MK_GPIOS({
@@ -36,12 +39,18 @@
             ('swclk'     , 'A14', 'reserved'  , {                         }),
         ),
 
+        'SandboxNucleoH533RE' : (
+        ),
+
     })
 
     NVIC_TABLE = {
 
         'SandboxNucleoH7S3L8' : (
             ('USART3', 0),
+        ),
+
+        'SandboxNucleoH533RE' : (
         ),
 
     }

@@ -1,0 +1,38 @@
+#include STM32_CMSIS_DEVICE_H
+#include <string.h>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wundef"
+#include <printf/printf.c>
+#pragma GCC diagnostic pop
+#include "defs.h"
+#include "system/gpios.c"
+#include "misc.c"
+// TODO: #include "jig.c"
+#include <deps/FreeRTOS_Kernel/tasks.c>
+#include <deps/FreeRTOS_Kernel/queue.c>
+#include <deps/FreeRTOS_Kernel/list.c>
+#include <port.c>
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+INTERRUPT(Default)
+{
+    panic;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+extern noret void
+main(void)
+{
+    for(;;);
+    panic;
+}
