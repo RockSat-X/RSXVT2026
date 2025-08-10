@@ -90,7 +90,7 @@ main(void)
         for (;;)
         {
             GPIO_TOGGLE(led_green);
-            delay_nop(100'000'000);
+            spinlock_nop(100'000'000);
         }
     #endif
 

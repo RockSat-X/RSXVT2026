@@ -37,7 +37,7 @@ main(void)
     for (;;)
     {
         GPIO_TOGGLE(led_green);
-        delay_nop(10'000'000);
+        spinlock_nop(10'000'000);
     }
 
     panic;

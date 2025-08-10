@@ -1,7 +1,9 @@
 #define nop() __asm__("nop")
 
+
+
 static void
-delay_nop(u32 count)
+spinlock_nop(u32 count)
 {
     // This is unrolled so that the branch penalty will be reduced.
     // Otherwise, the amount of delay that this procedure will produce
@@ -46,7 +48,7 @@ panic_(b32 hard_error)
             {
                 for (u32 j = 0; j < 8; j += 1)
                 {
-                    delay_nop(i);
+                    spinlock_nop(i);
 
                     if (hard_error)
                     {
