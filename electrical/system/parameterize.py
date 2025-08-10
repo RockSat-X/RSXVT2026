@@ -669,8 +669,6 @@ def SYSTEM_PARAMETERIZE(target, options):
     #
     # @/pg 620/sec B3.3/`Armv7-M`.
     # @/pg 297/sec B11.1/`Armv8-M`.
-    # @/pg 378/fig 51/`H7S3rm`.
-    # TODO STMH533RET6 can have an external clock source for SysTick.
     #
 
 
@@ -682,21 +680,59 @@ def SYSTEM_PARAMETERIZE(target, options):
         if not draft.systick_enable:
             return True # SysTick won't be configured.
 
-        for draft.systick_use_cpu_ck, cpu_ck_multiplier in database['systick_clock_source_cpu_ck_multiplier'].VALUE:
+        for draft.systick_use_cpu_ck in database['systick_use_cpu_ck'].VALUE:
 
-            tree.systick_kernel_freq = tree.cpu_ck * cpu_ck_multiplier
 
-            draft.systick_reload = tree.systick_kernel_freq / tree.systick_ck - 1
 
-            if not draft.systick_reload.is_integer():
-                continue # SysTick's reload value wouldn't be a whole number.
+            # SysTick will use the CPU's frequency.
+            # @/pg 621/sec B3.3.3/`Armv7-M`.
+            # @/pg 1859/sec D1.2.238/`Armv8-M`.
 
-            draft.systick_reload = int(draft.systick_reload)
+            if draft.systick_use_cpu_ck:
+                frequencies = lambda: [tree.cpu_ck]
 
-            if not in_minmax(draft.systick_reload, database['systick_reload']):
-                continue # SysTick's reload value would be out of range.
 
-            return True
+
+            # SysTick will use an implementation defined clock source.
+
+            else:
+
+                match target.mcu:
+
+
+
+                    case 'STM32H7S3L8H6': # @/pg 378/fig 51/`H7S3rm`.
+
+                        frequencies = lambda: [tree.cpu_ck / 8]
+
+
+
+                    case 'STM32H533RET6': # @/pg 456/fig 52/`H533rm`.
+
+                        # TODO Figure out how to do this.
+                        frequencies = lambda: []
+
+
+
+                    case _: raise NotImplementedError
+
+
+
+            # Try out the different kernel frequencies and see what sticks.
+
+            for tree.systick_kernel_freq in frequencies():
+
+                draft.systick_reload = tree.systick_kernel_freq / tree.systick_ck - 1
+
+                if not draft.systick_reload.is_integer():
+                    continue # SysTick's reload value wouldn't be a whole number.
+
+                draft.systick_reload = int(draft.systick_reload)
+
+                if not in_minmax(draft.systick_reload, database['systick_reload']):
+                    continue # SysTick's reload value would be out of range.
+
+                return True
 
 
 

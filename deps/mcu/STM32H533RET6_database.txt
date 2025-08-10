@@ -1,4 +1,10 @@
 (
+    (systick_reload           (SysTick LOAD RELOAD   ) (minmax: 1 `(1 << 24) - 1`))
+    (systick_use_cpu_ck       (SysTick CTRL CLKSOURCE)                            )
+    (systick_counter          (SysTick VAL  CURRENT  ) (minmax: 0 `(1 << 32) - 1`))
+    (systick_interrupt_enable (SysTick CTRL TICKINT  )                            )
+    (systick_enable           (SysTick CTRL ENABLE   )                            )
+
     # @/pg 456/fig 52/`H533rm`.
     (APB_UNITS (value: (1 2 3)))
 

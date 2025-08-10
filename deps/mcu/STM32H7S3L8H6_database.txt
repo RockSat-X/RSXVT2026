@@ -47,12 +47,6 @@
     )))
     (flash_latency (FLASH ACR LATENCY) (minmax: 0b0000 0b1111))
 
-    # @/pg 378/fig 51/`H7S3rm`.
-    (systick_clock_source_cpu_ck_multiplier (SysTick CTRL CLKSOURCE) (value: (
-        (False `1 / 8`) # SysTick can use the SCGU's predivider of 8.
-        (True   1     ) # ARMv7-M allows for SysTick to use CPU clock directly.
-    )))
-
     # @/pg 407/tbl 67/`H7S3rm`.
     (timer_hclk_ratio (value: (
         ((0b000 0b0) `1    `)
