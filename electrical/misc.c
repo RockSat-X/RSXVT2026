@@ -22,16 +22,19 @@ spinlock_nop(u32 count)
     }
 }
 
-#define sorry panic_(false);
-#define panic panic_(true)
-static noret void
-panic_(b32 hard_error)
+
+
+#define sorry halt_(false); // @/`Halting`.
+#define panic halt_(true)   // "
+static noret void           // "
+halt_(b32 panicking)        // "
 {
     __disable_irq();
 
-    #if TARGET_MCU_IS_STM32H7S3L8H6
 
-        if (hard_error)
+    #if TARGET_NAME_IS_SandboxNucleoH7S3L8
+
+        if (panicking)
         {
             GPIO_HIGH(led_red);
         }
@@ -40,7 +43,7 @@ panic_(b32 hard_error)
             GPIO_HIGH(led_yellow);
         }
 
-        for (;;) // Here, the timing of the blinking is so that it is noticable even with different CPU clock speeds.
+        for (;;)
         {
             u32 i = 10'000'000;
 
@@ -50,7 +53,7 @@ panic_(b32 hard_error)
                 {
                     spinlock_nop(i);
 
-                    if (hard_error)
+                    if (panicking)
                     {
                         GPIO_TOGGLE(led_red);
                     }
@@ -64,5 +67,84 @@ panic_(b32 hard_error)
 
     #endif
 
+    #if TARGET_NAME_IS_SandboxNucleoH533RE
+
+        for (;;)
+        {
+            u32 i = 10'000'000;
+
+            for (; i > 1'000; i /= 2)
+            {
+                for (u32 j = 0; j < 4; j += 1)
+                {
+                    GPIO_HIGH(led_green);
+                    spinlock_nop(i);
+
+                    GPIO_LOW(led_green);
+                    spinlock_nop(i * (panicking ? 1 : 4));
+                }
+            }
+        }
+
+    #endif
+
     for(;;); // Panic! Something horrible has happened!
 }
+
+
+
+//////////////////////////////////////////////////////////////// Notes /////////////////////////////////////////////////////////////////
+
+// @/`Halting`:
+//
+//
+//
+// A `sorry` is used for code-paths that haven't been implemented yet.
+// Eventually, when we want things to be production-ready, we replace
+// all `sorry`s that we can with proper code, or at the very least, a `panic`.
+// e.g:
+// >
+// >    if (is_sd_card_mounted_yet())
+// >    {
+// >        do_stuff();
+// >    }
+// >    else
+// >    {
+// >        sorry   <- Note that `sorry` is specifically defined to be able to
+// >                   be written without the terminating semicolon. This is
+// >                   purely aesthetic; it makes `sorry` look very out-of-place.
+// >    }
+// >
+//
+//
+//
+// A `panic` is for absolute irrecoverable error conditions,
+// like stack overflows or a function given ill-formed parameters.
+// In other words, stuff like: "something horrible happened.
+// I don't know how we got here. We need to reset!".
+// It is useful to make this distinction from `sorry` because we can
+// scan through the code-base and see what stuff is work-in-progress or just
+// an irrecoverable error condition.
+// e.g:
+// >
+// >    switch (option)
+// >    {
+// >        case Option_A: ...
+// >        case Option_B: ...
+// >        case Option_C: ...
+// >        default: panic;     <- The compiler will enforce switch-statements to be exhaustive
+// >                               for enumerations. The compiler will also enforce all
+// >                               switch-statements to have a `default` case even if we are
+// >                               exhaustive. In the event that the enumeration `option` is somehow
+// >                               not any of the valid values, we will trigger a `panic` rather than
+// >                               have the switch-statement silently pass.
+// >    }
+// >
+//
+//
+//
+// When a `sorry` or `panic` is triggered during deployment, the microcontroller will undergo a reset
+// through the watchdog timer (TODO). During development, however, we'd like for the controller to actually
+// stop dead in its track (rather than reset) so that we can debug. To make it even more useful,
+// the microcontroller can also blink an LED indicating whether or not a `panic` or a `sorry` condition has
+// occured; how this is implemented, if at all, is entirely dependent upon the target.
