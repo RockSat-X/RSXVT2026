@@ -447,7 +447,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
         CMSIS_SET(
             cfgs('systick_reload'          , ... ), # Modulation of the counter.
             cfgs('systick_use_cpu_ck'      , ... ), # Use CPU clock or the vendor-provided one.
-            cfgs('systick_counter'         , 0   ), # "The SYST_CVR value is UNKNOWN on reset." @/pg 620/sec B3.3.1/`Armv7-M`.
+            cfgs('systick_counter'         , 0   ), # SYST_CVR value is UNKNOWN on reset. @/pg 621/tbl B3-7/`Armv7-M`. @/pg 1861/sec D1.2.239/`Armv8-M`.
             cfgs('systick_interrupt_enable', True), # Enable SysTick interrupt, triggered at every overflow.
             cfgs('systick_enable'          , True), # Enable SysTick counter.
         )

@@ -69,10 +69,12 @@ __INTERRUPT_Reset:
     // Enable the floating point coprocessor.
     // Must be done here since GCC can emit vector push/pop instructions on entering main
     // that'd otherwise emit an illegal instruction fault.
+    // @/pg 597/tbl B3-4/`Armv7-M`.
+    // @/pg 1488/sec D1.2.14/`Armv8-M`.
 
-    ldr r0, =0xE000ED88                     // CPACR register address. @/pg 597/tbl B3-4/`Armv7-M`.
+    ldr r0, =0xE000ED88                     // CPACR register address.
     ldr r1, [r0]
-    orr r1, r1, (0b11 << 22) | (0b11 << 20) // Full access to coprocessor 10 and 11. @/pg 614/sec B3.2.20/`Armv7-M`.
+    orr r1, r1, (0b11 << 22) | (0b11 << 20) // Full access to coprocessor 10 and 11.
     str r1, [r0]
 
 

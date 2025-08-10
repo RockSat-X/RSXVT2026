@@ -106,10 +106,12 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-#define NVIC_ENABLE(NAME)        ((void) (NVIC->ISER[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32))) // @/pg 628/sec B3.4.4/`Armv7-M`.
-#define NVIC_DISABLE(NAME)       ((void) (NVIC->ICER[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32))) // @/pg 628/sec B3.4.4/`Armv7-M`.
-#define NVIC_SET_PENDING(NAME)   ((void) (NVIC->ISPR[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32))) // @/pg 629/sec B3.4.6/`Armv7-M`.
-#define NVIC_CLEAR_PENDING(NAME) ((void) (NVIC->ICPR[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32))) // @/pg 630/sec B3.4.7/`Armv7-M`.
+// @/pg 626/tbl B3-8/`Armv7-M`.
+// @/pg 1452/tbl D1.1.10/`Armv8-M`.
+#define NVIC_ENABLE(NAME)        ((void) (NVIC->ISER[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32)))
+#define NVIC_DISABLE(NAME)       ((void) (NVIC->ICER[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32)))
+#define NVIC_SET_PENDING(NAME)   ((void) (NVIC->ISPR[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32)))
+#define NVIC_CLEAR_PENDING(NAME) ((void) (NVIC->ICPR[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32)))
 
 
 
@@ -157,9 +159,11 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-        # The first interrupt should be the reset exception defined by Armv7-M.
-        # Note that the reset exception has an *exception number* of 1 (@/pg 525/tbl B1-4/`Armv7-M`),
-        # but the *interrupt number* is defined to be the *exception number - 16* (@/pg 625/sec B3.4.1/`Armv7-M`).
+        # The first interrupt should be the reset exception defined by Armv7-M/Armv8-M.
+        # Note that the reset exception has an (exception number) of 1,
+        # but the *interrupt number* is defined to be the (exception number - 16).
+        # @/pg 525/tbl B1-4/`Armv7-M`.   @/pg 143/sec B3.30/`Armv8-M`.
+        # @/pg 625/sec B3.4.1/`Armv7-M`. @/pg 1855/sec D1.2.236/`Armv8-M`.
 
         irqn_enumeration = sorted(irqn_enumeration.items())
         assert irqn_enumeration[0] == (-15, 'Reset')
@@ -259,7 +263,13 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
                 # We'll be safe and use the fact that Armv7-M supports
-                # at least 3 bits for the interrupt priority starting MSb. @/pg 526/sec B1.5.4/`Armv7-M`.
+                # at least 3 bits for the interrupt priority starting MSb.
+
+                # The Armv7-M architecture guarantees minimum of 3 priority bits,
+                # while the Armv8-M guarantees minimum of 2; for now, we'll appeal
+                # to the lowest common denominator here.
+                # @/pg 526/sec B1.5.4/`Armv7-M`.
+                # @/pg 86/sec B3.9/`Armv8-M`.
 
                 assert 0b000 <= niceness <= 0b111
 

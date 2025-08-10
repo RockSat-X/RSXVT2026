@@ -581,6 +581,7 @@ def SYSTEM_PARAMETERIZE(target, options):
     # Parameterize SysTick.
     #
     # @/pg 620/sec B3.3/`Armv7-M`.
+    # @/pg 297/sec B11.1/`Armv8-M`.
     # @/pg 378/fig 51/`H7S3rm`.
     #
 
