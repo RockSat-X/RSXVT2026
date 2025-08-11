@@ -116,7 +116,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 #include "interrupts.meta"
-/* #meta INTERRUPTS : NVIC_TABLE, SYSTEM_OPTIONS
+/* #meta INTERRUPTS : SYSTEM_OPTIONS
 
 
 
@@ -395,7 +395,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
             # @/pg 626/tbl B3-8/`Armv7-M`.
             # @/pg 1452/tbl D1.1.10/`Armv8-M`.
 
-            for interrupt, niceness in NVIC_TABLE[target.name]:
+            for interrupt, niceness in SYSTEM_OPTIONS[target.name]['interrupt_priorities']:
                 for macro, register in (
                     ('NVIC_ENABLE'       , 'ISER'),
                     ('NVIC_DISABLE'      , 'ICER'),
@@ -417,7 +417,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
             # @/pg 526/sec B1.5.4/`Armv7-M`.
             # @/pg 86/sec B3.9/`Armv8-M`.
 
-            for interrupt, niceness in NVIC_TABLE[target.name]:
+            for interrupt, niceness in SYSTEM_OPTIONS[target.name]['interrupt_priorities']:
                 assert 0b00 <= niceness <= 0b11
                 Meta.line(f'NVIC->IPR[{interrupt}_IRQn] = {niceness} << 6;')
 

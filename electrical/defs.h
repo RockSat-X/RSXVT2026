@@ -2,7 +2,7 @@
 
 
 
-/* #meta SYSTEM_OPTIONS, NVIC_TABLE
+/* #meta SYSTEM_OPTIONS
 
     SYSTEM_OPTIONS = {
 
@@ -31,6 +31,9 @@
                 ('swdio'     , 'A13', 'reserved'  , {                         }),
                 ('swclk'     , 'A14', 'reserved'  , {                         }),
             ),
+            'interrupt_priorities' : (
+                ('USART3', 0),
+            ),
 
         },
 
@@ -53,18 +56,9 @@
                 ('swclk'     , 'A14', 'reserved'  , {                         }),
                 ('button'    , 'C13', 'input'     , { 'pull'    : None        }),
             ),
+            'interrupt_priorities' : (
+            ),
         },
-
-    }
-
-    NVIC_TABLE = {
-
-        'SandboxNucleoH7S3L8' : (
-            ('USART3', 0),
-        ),
-
-        'SandboxNucleoH533RE' : (
-        ),
 
     }
 
