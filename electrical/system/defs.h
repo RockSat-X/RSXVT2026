@@ -112,12 +112,6 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-// @/pg 626/tbl B3-8/`Armv7-M`.
-// @/pg 1452/tbl D1.1.10/`Armv8-M`.
-#define NVIC_ENABLE(NAME)        ((void) (NVIC->ISER[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32)))
-#define NVIC_DISABLE(NAME)       ((void) (NVIC->ICER[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32)))
-#define NVIC_SET_PENDING(NAME)   ((void) (NVIC->ISPR[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32)))
-#define NVIC_CLEAR_PENDING(NAME) ((void) (NVIC->ICPR[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32)))
 
 
 
@@ -269,16 +263,6 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-        # Enumeration to make the NVIC macros only work on interrupts defined in NVIC_TABLE.
-
-        Meta.enums(
-            'NVICInterrupt',
-            'u32',
-            ((interrupt, f'{interrupt}_IRQn') for interrupt, niceness in NVIC_TABLE[target.name]),
-        )
-
-
-
         # Output the system initialization routine where we configure the low-level MCU stuff.
 
         with Meta.enter('''
@@ -415,6 +399,27 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
+            # Make macros to control the interrupt in NVIC.
+            # @/pg 626/tbl B3-8/`Armv7-M`.
+            # @/pg 1452/tbl D1.1.10/`Armv8-M`.
+
+            put_title('NVIC')
+
+            for interrupt, niceness in NVIC_TABLE[target.name]:
+                for macro, register in (
+                    ('NVIC_ENABLE'       , 'ISER'),
+                    ('NVIC_DISABLE'      , 'ICER'),
+                    ('NVIC_SET_PENDING'  , 'ISPR'),
+                    ('NVIC_CLEAR_PENDING', 'ICPR'),
+                ):
+                    Meta.define(
+                        macro, ('INTERRUPT'),
+                        f'((void) (NVIC->{register}[{interrupt}_IRQn / 32] = 1 << ({interrupt}_IRQn % 32)))',
+                        INTERRUPT = interrupt
+                    )
+
+
+
             # Set the priorities of the defined NVIC interrupts.
             # Note that the Armv7-M architecture guarantees minimum of 3 priority bits,
             # while the Armv8-M guarantees minimum of 2; for now, we'll appeal
@@ -422,11 +427,9 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
             # @/pg 526/sec B1.5.4/`Armv7-M`.
             # @/pg 86/sec B3.9/`Armv8-M`.
 
-            put_title('NVIC Priorities')
-
             for interrupt, niceness in NVIC_TABLE[target.name]:
                 assert 0b00 <= niceness <= 0b11
-                Meta.line(f'NVIC->IPR[NVICInterrupt_{interrupt}] = {niceness} << 6;')
+                Meta.line(f'NVIC->IPR[{interrupt}_IRQn] = {niceness} << 6;')
 
 
 
