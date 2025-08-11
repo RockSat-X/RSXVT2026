@@ -2,8 +2,6 @@
 
 def SYSTEM_PARAMETERIZE(target, options):
 
-    defines = []
-
 
 
     ################################################################################################################################
@@ -178,12 +176,6 @@ def SYSTEM_PARAMETERIZE(target, options):
 
     for clock in clocks:
         tree[clock] = opts(clock, 0)
-
-
-
-    # Export defines.
-
-    defines += [('SYSTEM_CPU_CK_FREQ', tree.cpu_ck)]
 
 
 
@@ -848,4 +840,4 @@ def SYSTEM_PARAMETERIZE(target, options):
     if leftovers := options.keys() - used_options:
         log(ANSI(f'[WARNING] There are leftover {target.mcu} options: {leftovers}.', 'fg_yellow'))
 
-    return dict(configurations), defines
+    return dict(configurations), tree

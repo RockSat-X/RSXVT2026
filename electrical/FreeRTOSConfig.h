@@ -1,5 +1,5 @@
 #if TARGET_NAME_IS_SandboxNucleoH7S3L8
-    #define configCPU_CLOCK_HZ                                     SYSTEM_CPU_CK_FREQ
+    #define configCPU_CLOCK_HZ                                     CLOCK_TREE_FREQUENCY_OF_cpu_ck
     #define configTICK_RATE_HZ                                     100
     #define configUSE_PREEMPTION                                   1
     #define configUSE_TIME_SLICING                                 0
@@ -71,7 +71,7 @@
     #define configENABLE_FPU                                       1
     #define configENABLE_MPU                                       0
     #define configENABLE_TRUSTZONE                                 0
-    #define configCPU_CLOCK_HZ                                     SYSTEM_CPU_CK_FREQ
+    #define configCPU_CLOCK_HZ                                     CLOCK_TREE_FREQUENCY_OF_cpu_ck
     #define configTICK_RATE_HZ                                     100
     #define configUSE_PREEMPTION                                   1
     #define configUSE_TIME_SLICING                                 0

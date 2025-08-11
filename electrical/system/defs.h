@@ -429,7 +429,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
             # Figure out the register values relating to the clock-tree.
 
-            configuration, defines = SYSTEM_PARAMETERIZE(target, SYSTEM_OPTIONS[target.name])
+            configuration, tree = SYSTEM_PARAMETERIZE(target, SYSTEM_OPTIONS[target.name])
 
 
 
@@ -439,11 +439,19 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-        # We also make defines so that the C code can use the results
-        # of the parameterization and configuration procedure (e.g. the resulting CPU frequency).
+            # Export the frequencies we found for the clock-tree.
 
-        for name, expansion in defines:
-            Meta.define(name, expansion)
+            put_title('Clock-Tree')
+
+            for macro, expansion in justify(
+                (
+                    ('<', f'CLOCK_TREE_FREQUENCY_OF_{name}' ),
+                    ('>', f'{frequency:,}'.replace(',', "'")),
+                )
+                for name, frequency in tree
+                if name is not None
+            ):
+                Meta.define(macro, f'({expansion})')
 
 */
 
