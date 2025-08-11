@@ -1,4 +1,4 @@
-#meta SYSTEM_DATABASE
+#meta SYSTEM_DATABASE, verify_and_get_placeholders_in_tag_order
 
 import collections, re
 from deps.pxd.sexp import parse_sexp, Unquoted
@@ -129,29 +129,41 @@ def parse_entry(entry):
 
 
 
+# Helper routine to make sure all placeholders in a tag are supplied.
+# e.g:
+# >
+# >    verify_and_get_placeholders('pll{UNIT}_input_range', UNIT = 3)
+# >                                     ^^^^----------------^^^^^^^^
+# >
+#
+# The returned placeholder names will be given in the order they appear in the tag.
+# e.g:
+# >
+# >    verify_and_get_placeholders('pll{UNIT}{CHANNEL}_enable', CHANNEL = 'q', UNIT = 3)   ->   { 'UNIT', 'CHANNEL' }
+# >                                    ^^^^^^^^^^^^^^^--------------------------------------------^^^^^^^^^^^^^^^^^
+# >
+
+def verify_and_get_placeholders_in_tag_order(tag, **placeholders):
+
+    names = OrderedSet(re.findall('{(.*?)}', tag))
+
+    if differences := names - placeholders.keys():
+        raise ValueError(f'Tag "{tag}" is missing the value for the placeholder "{differences[0]}".')
+
+    if differences := OrderedSet(placeholders.keys()) - names:
+        raise ValueError(f'Tag "{tag}" has no placeholder "{differences[0]}".')
+
+    return names
+
+
+
 # The database for a given target will just be a dictionary with a specialized query method.
 
 class SystemDatabaseTarget(dict):
 
     def query(self, tag, **placeholder_values):
 
-
-
-        # Make sure all placeholders in the tag are given.
-        # e.g:
-        # >
-        # >    query('pll{UNIT}_input_range', UNIT = 3)
-        # >               ^^^^----------------^^^^^^^^
-        # >
-
-        ordered_placeholder_names = OrderedSet(re.findall('{(.*?)}', tag))
-
-        if differences := ordered_placeholder_names - placeholder_values.keys():
-            raise ValueError(f'Tag "{tag}" is missing the value for the placeholder "{differences[0]}".')
-
-        if differences := OrderedSet(placeholder_values.keys()) - ordered_placeholder_names:
-            raise ValueError(f'Tag "{tag}" has no placeholder "{differences[0]}".')
-
+        placeholder_names = verify_and_get_placeholders_in_tag_order(tag, **placeholder_values)
 
 
         # Find the database entries and determine which entry we should return
@@ -178,7 +190,7 @@ class SystemDatabaseTarget(dict):
         if tag not in self:
             raise ValueError(f'No entry has tag: {repr(tag)}.')
 
-        key = tuple(placeholder_values[name] for name in ordered_placeholder_names)
+        key = tuple(placeholder_values[name] for name in placeholder_names)
 
 
 
