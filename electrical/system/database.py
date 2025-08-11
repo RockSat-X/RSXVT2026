@@ -28,16 +28,16 @@ def parse_entry(entry):
 
             # The entry value is directly given.
 
-            case (Unquoted('value:'), value):
-                record.VALUE = value
+            case (Unquoted('.value'), value):
+                record.value = value
 
 
 
             # The entry value is an inclusive range.
 
-            case (Unquoted('minmax:'), minimum, maximum):
-                record.MIN = minimum
-                record.MAX = maximum
+            case (Unquoted('.minmax'), minimum, maximum):
+                record.min = minimum
+                record.max = maximum
 
 
 
@@ -57,7 +57,7 @@ def parse_entry(entry):
     # No structured entry value found, so we assume it's just something like a True/False 1-bit register.
 
     else:
-        record.VALUE = (False, True)
+        record.value = (False, True)
 
 
 

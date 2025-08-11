@@ -140,10 +140,10 @@ def SYSTEM_PARAMETERIZE(target):
     # >
 
     def in_minmax(value, entry):
-        return entry.MIN <= value <= entry.MAX
+        return entry.min <= value <= entry.max
 
     def range_minmax(entry):
-        return range(entry.MIN, entry.MAX + 1)
+        return range(entry.min, entry.max + 1)
 
 
 
@@ -163,13 +163,13 @@ def SYSTEM_PARAMETERIZE(target):
 
     # This includes peripheral busses (e.g. APB3).
 
-    clocks += [f'apb{n}_ck' for n in database['APB_UNITS'].VALUE]
+    clocks += [f'apb{n}_ck' for n in database['APB_UNITS'].value]
 
 
 
     # This includes each PLL channel (e.g. PLL2R).
 
-    clocks += [f'pll{n}_{channel}_ck' for n, channels in database['PLL_UNITS'].VALUE for channel in channels]
+    clocks += [f'pll{n}_{channel}_ck' for n, channels in database['PLL_UNITS'].value for channel in channels]
 
 
 
@@ -345,7 +345,7 @@ def SYSTEM_PARAMETERIZE(target):
 
 
     per_ck_source                = opts('per_ck_source', None)
-    configurations.per_ck_source = mk_dict(database['per_ck_source'].VALUE)[per_ck_source]
+    configurations.per_ck_source = mk_dict(database['per_ck_source'].value)[per_ck_source]
     tree.per_ck                  = tree[per_ck_source]
 
 
@@ -362,7 +362,7 @@ def SYSTEM_PARAMETERIZE(target):
 
     # Verify the values for the PLL options.
 
-    for pll_unit, pll_channels in database['PLL_UNITS'].VALUE:
+    for pll_unit, pll_channels in database['PLL_UNITS'].value:
 
         for pll_channel in pll_channels:
 
@@ -421,7 +421,7 @@ def SYSTEM_PARAMETERIZE(target):
 
             draft[f'pll{pll_unit}_input_range'] = next((
                 option
-                for upper_freq_range, option in database['pll{UNIT}_input_range'][pll_unit].VALUE
+                for upper_freq_range, option in database['pll{UNIT}_input_range'][pll_unit].value
                 if pll_reference_freq < upper_freq_range
             ), None)
 
@@ -453,7 +453,7 @@ def SYSTEM_PARAMETERIZE(target):
 
         pll_is_used = not all(
             opts(f'pll{pll_unit}_{pll_channel}_ck', None) is None
-            for pll_channel in mk_dict(database['PLL_UNITS'].VALUE)[pll_unit]
+            for pll_channel in mk_dict(database['PLL_UNITS'].value)[pll_unit]
         )
 
         draft[f'pll{pll_unit}_enable'] = pll_is_used
@@ -469,7 +469,7 @@ def SYSTEM_PARAMETERIZE(target):
 
             every_plln_satisfied = all(
                 parameterize_plln_channel(pll_unit, pll_vco_freq, pll_channel)
-                for pll_channel in mk_dict(database['PLL_UNITS'].VALUE)[pll_unit]
+                for pll_channel in mk_dict(database['PLL_UNITS'].value)[pll_unit]
             )
 
             if every_plln_satisfied:
@@ -489,12 +489,12 @@ def SYSTEM_PARAMETERIZE(target):
 
             case 'STM32H7S3L8H6':
 
-                for pll_clock_source_name, draft.pll_clock_source in database['pll_clock_source'].VALUE:
+                for pll_clock_source_name, draft.pll_clock_source in database['pll_clock_source'].value:
 
                     pll_clock_source_freq = tree[pll_clock_source_name]
                     every_pll_satisfied   = all(
                         parameterize_plln(units, pll_clock_source_freq)
-                        for units, channels in database['PLL_UNITS'].VALUE
+                        for units, channels in database['PLL_UNITS'].value
                     )
 
                     if every_pll_satisfied:
@@ -510,7 +510,7 @@ def SYSTEM_PARAMETERIZE(target):
 
                     plln_satisfied = any(
                         parameterize_plln(pll_unit, tree[pll_clock_source_name])
-                        for pll_clock_source_name, draft[f'pll{pll_unit}_clock_source'] in pll_clock_sources.VALUE
+                        for pll_clock_source_name, draft[f'pll{pll_unit}_clock_source'] in pll_clock_sources.value
                     )
 
                     if not plln_satisfied:
@@ -528,10 +528,10 @@ def SYSTEM_PARAMETERIZE(target):
 
     match target.mcu:
         case 'STM32H7S3L8H6' : draft_configuration_names = ['pll_clock_source']
-        case 'STM32H533RET6' : draft_configuration_names = [f'pll{unit}_clock_source' for unit, channels in database['PLL_UNITS'].VALUE]
+        case 'STM32H533RET6' : draft_configuration_names = [f'pll{unit}_clock_source' for unit, channels in database['PLL_UNITS'].value]
         case _               : raise NotImplementedError
 
-    for unit, channels in database['PLL_UNITS'].VALUE:
+    for unit, channels in database['PLL_UNITS'].value:
 
         for channel in channels:
             draft_configuration_names += [f'pll{unit}_{channel}_divider']
@@ -557,7 +557,7 @@ def SYSTEM_PARAMETERIZE(target):
     if not in_minmax(tree.cpu_ck, database['cpu_freq']):
         raise ValueError(f'CPU clock frequency is out-of-range: {tree.cpu_ck :_}Hz.')
 
-    for unit in database['APB_UNITS'].VALUE:
+    for unit in database['APB_UNITS'].value:
         if not in_minmax(tree[f'apb{unit}_ck'], database['apb_freq']):
             raise ValueError(f'APB{unit} frequency is out-of-bounds: {tree[f'apb{unit}_ck'] :_}Hz.')
 
@@ -579,7 +579,7 @@ def SYSTEM_PARAMETERIZE(target):
     def parameterize_apbx(unit):
 
         needed_apbx_divider         = tree.axi_ahb_ck / tree[f'apb{unit}_ck']
-        draft[f'apb{unit}_divider'] = mk_dict(database['apb{UNIT}_divider'][unit].VALUE).get(needed_apbx_divider, None)
+        draft[f'apb{unit}_divider'] = mk_dict(database['apb{UNIT}_divider'][unit].value).get(needed_apbx_divider, None)
         apbx_divider_found          = draft[f'apb{unit}_divider'] is not None
 
         return apbx_divider_found
@@ -590,14 +590,14 @@ def SYSTEM_PARAMETERIZE(target):
 
     def parameterize_scgu():
 
-        for scgu_clock_source_name, draft.scgu_clock_source in database['scgu_clock_source'].VALUE:
+        for scgu_clock_source_name, draft.scgu_clock_source in database['scgu_clock_source'].value:
 
 
 
             # Try to parameterize for the CPU.
 
             needed_cpu_divider = tree[scgu_clock_source_name] / tree.cpu_ck
-            draft.cpu_divider  = mk_dict(database['cpu_divider'].VALUE).get(needed_cpu_divider, None)
+            draft.cpu_divider  = mk_dict(database['cpu_divider'].value).get(needed_cpu_divider, None)
             cpu_divider_found  = draft.cpu_divider is not None
 
             if not cpu_divider_found:
@@ -612,7 +612,7 @@ def SYSTEM_PARAMETERIZE(target):
                 case 'STM32H7S3L8H6':
 
                     needed_axi_ahb_divider = tree.cpu_ck / tree.axi_ahb_ck
-                    draft.axi_ahb_divider  = mk_dict(database['axi_ahb_divider'].VALUE).get(needed_axi_ahb_divider, None)
+                    draft.axi_ahb_divider  = mk_dict(database['axi_ahb_divider'].value).get(needed_axi_ahb_divider, None)
                     axi_ahb_divider_found  = draft.axi_ahb_divider is not None
 
                     if not axi_ahb_divider_found:
@@ -632,7 +632,7 @@ def SYSTEM_PARAMETERIZE(target):
 
             # Try to parameterize for each APB bus.
 
-            every_apb_satisfied = all(parameterize_apbx(unit) for unit in database['APB_UNITS'].VALUE)
+            every_apb_satisfied = all(parameterize_apbx(unit) for unit in database['APB_UNITS'].value)
 
             if not every_apb_satisfied:
                 continue
@@ -651,7 +651,7 @@ def SYSTEM_PARAMETERIZE(target):
         'scgu_clock_source',
         'cpu_divider',
         'axi_ahb_divider', # TODO.
-        *(f'apb{unit}_divider' for unit in database['APB_UNITS'].VALUE),
+        *(f'apb{unit}_divider' for unit in database['APB_UNITS'].value),
     ))
 
 
@@ -673,7 +673,7 @@ def SYSTEM_PARAMETERIZE(target):
         if not draft.systick_enable:
             return True # SysTick won't be configured.
 
-        for draft.systick_use_cpu_ck in database['systick_use_cpu_ck'].VALUE:
+        for draft.systick_use_cpu_ck in database['systick_use_cpu_ck'].value:
 
 
 
@@ -746,7 +746,7 @@ def SYSTEM_PARAMETERIZE(target):
     # Each can still have a different baud rate by changing their respective baud-rate divider,
     # but nonetheless, we must process each set of connected UxART peripherals as a whole.
 
-    for uxart_units in database['UXARTS'].VALUE:
+    for uxart_units in database['UXARTS'].value:
 
         ns = '_'.join(str(number) for peripheral, number in uxart_units)
 
@@ -813,7 +813,7 @@ def SYSTEM_PARAMETERIZE(target):
 
             # Try every available clock source for this set of UxART peripherals and see what sticks.
 
-            for uxart_clock_source_name, draft[f'uxart_{ns}_clock_source'] in database['uxart_{UNITS}_clock_source'][uxart_units].VALUE:
+            for uxart_clock_source_name, draft[f'uxart_{ns}_clock_source'] in database['uxart_{UNITS}_clock_source'][uxart_units].value:
 
                 uxart_clock_source_freq = tree[uxart_clock_source_name]
                 every_uxart_satisfied   = all(parameterize_uxart(uxart_clock_source_freq, uxart_unit) for uxart_unit in uxart_units)

@@ -298,7 +298,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
             # Enable GPIO ports that have defined pins.
 
             CMSIS_SET(
-                ('RCC', SYSTEM_DATABASE[target.mcu]['GPIO_PORT_ENABLE_REGISTER'].VALUE, f'GPIO{port}EN', True)
+                ('RCC', SYSTEM_DATABASE[target.mcu]['GPIO_PORT_ENABLE_REGISTER'].value, f'GPIO{port}EN', True)
                 for port in sorted(OrderedSet(gpio.port for gpio in gpios if gpio.pin is not None))
             )
 
@@ -331,7 +331,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
                     f'GPIO{gpio.port}',
                     'OSPEEDR',
                     f'OSPEED{gpio.number}',
-                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_SPEED'].VALUE)[gpio.speed]
+                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_SPEED'].value)[gpio.speed]
                 )
                 for gpio in gpios
                 if gpio.pin is not None and gpio.speed is not None
@@ -346,7 +346,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
                     f'GPIO{gpio.port}',
                     'PUPDR',
                     f'PUPD{gpio.number}',
-                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_PULL'].VALUE)[gpio.pull]
+                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_PULL'].value)[gpio.pull]
                 )
                 for gpio in gpios
                 if gpio.pin is not None and gpio.pull is not None
@@ -377,7 +377,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
                     f'GPIO{gpio.port}',
                     'MODER',
                     f'MODE{gpio.number}',
-                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_MODE'].VALUE)[gpio.mode]
+                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_MODE'].value)[gpio.mode]
                 )
                 for gpio in gpios
                 if gpio.pin is not None and gpio.mode not in (None, 'reserved')

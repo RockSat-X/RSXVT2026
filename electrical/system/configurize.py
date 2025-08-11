@@ -352,7 +352,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
         # Configure each PLL.
 
-        for unit, channels in database['PLL_UNITS'].VALUE:
+        for unit, channels in database['PLL_UNITS'].value:
 
             match target.mcu:
 
@@ -416,13 +416,13 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
     # Enable each PLL unit that is to be used.
 
-    CMSIS_SET(cfgs('pll{UNIT}_enable', ..., UNIT = unit) for unit, channels in database['PLL_UNITS'].VALUE)
+    CMSIS_SET(cfgs('pll{UNIT}_enable', ..., UNIT = unit) for unit, channels in database['PLL_UNITS'].value)
 
 
 
     # Ensure each enabled PLL unit has stabilized.
 
-    for unit, channels in database['PLL_UNITS'].VALUE:
+    for unit, channels in database['PLL_UNITS'].value:
 
         pllx_enable = cfgs('pll{UNIT}_enable', UNIT = unit)
 
@@ -447,13 +447,13 @@ def SYSTEM_CONFIGURIZE(target, configurations):
             CMSIS_SET(
                 cfgs('cpu_divider', ...),
                 cfgs('axi_ahb_divider', ...),
-                *(cfgs('apb{UNIT}_divider', ..., UNIT = unit) for unit in database['APB_UNITS'].VALUE),
+                *(cfgs('apb{UNIT}_divider', ..., UNIT = unit) for unit in database['APB_UNITS'].value),
             )
 
         case 'STM32H533RET6':
             CMSIS_SET(
                 cfgs('cpu_divider', ...),
-                *(cfgs('apb{UNIT}_divider', ..., UNIT = unit) for unit in database['APB_UNITS'].VALUE),
+                *(cfgs('apb{UNIT}_divider', ..., UNIT = unit) for unit in database['APB_UNITS'].value),
             )
 
         case _: raise NotImplementedError
@@ -494,7 +494,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
-    for uxart_units in database['UXARTS'].VALUE:
+    for uxart_units in database['UXARTS'].value:
 
 
 
