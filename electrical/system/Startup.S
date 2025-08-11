@@ -69,10 +69,12 @@ __INTERRUPT_Reset:
     // Enable the floating point coprocessor.
     // Must be done here since GCC can emit vector push/pop instructions on entering main
     // that'd otherwise emit an illegal instruction fault.
+    // @/pg 597/tbl B3-4/`Armv7-M`.
+    // @/pg 1488/sec D1.2.14/`Armv8-M`.
 
-    ldr r0, =0xE000ED88                     // CPACR register address. @/pg 597/tbl B3-4/`Armv7-M`.
+    ldr r0, =0xE000ED88                     // CPACR register address.
     ldr r1, [r0]
-    orr r1, r1, (0b11 << 22) | (0b11 << 20) // Full access to coprocessor 10 and 11. @/pg 614/sec B3.2.20/`Armv7-M`.
+    orr r1, r1, (0b11 << 22) | (0b11 << 20) // Full access to coprocessor 10 and 11.
     str r1, [r0]
 
 
@@ -95,12 +97,28 @@ __INTERRUPT_Reset:
     #include "interrupt_vector_table.meta"
     /* #meta
 
-        @Meta.ifs(TARGETS.mcus, '#if')
-        def _(mcu):
 
-            yield f'TARGET_MCU_IS_{mcu}'
 
-            for interrupt_i, interrupt_name in enumerate(INTERRUPTS[mcu]):
+        # Ensure all FreeRTOS interrupts has a place in the IVT.
+
+        for mcu in MCUS:
+            if missing := [
+                interrupt
+                for freertos_interrupt in MCUS[mcu].freertos_interrupts
+                if freertos_interrupt not in INTERRUPTS[mcu]
+            ]:
+                raise RuntimeError(f'FreeRTOS interrupts missing in {mcu} interrupt vector table: {list(missing)}.')
+
+
+
+        # Make the IVT.
+
+        @Meta.ifs(TARGETS, '#if')
+        def _(target):
+
+            yield f'TARGET_NAME_IS_{target.name}'
+
+            for interrupt_i, interrupt_name in enumerate(INTERRUPTS[target.mcu]):
 
 
 
@@ -121,10 +139,16 @@ __INTERRUPT_Reset:
 
 
 
-                # These interrupt routines are implemented by FreeRTOS.
+                # This interrupt will be supplied by FreeRTOS,
+                # unless we're configuring SysTick which FreeRTOS uses by default,
+                # to which we won't be considering FreeRTOS at all.
 
-                elif interrupt_name in INTERRUPTS_FOR_FREERTOS:
-                    Meta.line(f'.word {INTERRUPTS_FOR_FREERTOS[interrupt_name]}')
+                elif (
+                    interrupt_name in MCUS[target.mcu].freertos_interrupts
+                    and 'systick_ck' not in target.clock_tree
+                ):
+
+                    Meta.line(f'.word {MCUS[target.mcu].freertos_interrupts[interrupt_name]}')
 
 
 

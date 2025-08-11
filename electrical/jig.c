@@ -1,3 +1,18 @@
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wundef"
+#include <printf/printf.c>
+#pragma GCC diagnostic pop
+
+
+
+static struct Jig _JIG = {0};
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 static void
 JIG_tx_raw(u8* data, i32 length)
 {
@@ -48,7 +63,7 @@ JIG_init(void)
 
 
 
-INTERRUPT(USART3)
+INTERRUPT_USART3
 {
 
 

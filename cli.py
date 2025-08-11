@@ -37,7 +37,7 @@ except ModuleNotFoundError as error:
 
 # Common definitions with the meta-preprocessor.
 
-from electrical.Common import STLINK_BAUD, TARGETS, BUILD
+from electrical.Shared import *
 
 
 
@@ -593,16 +593,19 @@ def build(parameters):
 
         log_header(f'Compiling "{target.name}"')
 
-        for src in target.source_file_paths:
+        for source_i, source in enumerate(target.source_file_paths):
 
-            obj = root(BUILD, target.name, src.stem + '.o')
+            object = root(BUILD, target.name, source.stem + '.o')
 
-            obj.parent.mkdir(parents = True, exist_ok = True)
+            object.parent.mkdir(parents = True, exist_ok = True)
+
+            if source_i:
+                log()
 
             execute(f'''
                 arm-none-eabi-gcc
-                    -o {repr(str(obj))}
-                    -c {repr(str(src))}
+                    -o {repr(str(object))}
+                    -c {repr(str(source))}
                     {target.compiler_flags}
             ''')
 
@@ -630,17 +633,21 @@ def build(parameters):
                 {repr(str(root('./electrical/system/link.ld')))}
         ''')
 
+        log()
+
         # Link object files.
         execute(f'''
             arm-none-eabi-gcc
                 -o {repr(str(root(BUILD, target.name, target.name + '.elf')))}
                 -T {repr(str(root(BUILD, target.name, 'link.ld')))}
                 {' '.join(
-                    repr(str(root(BUILD, target.name, src.stem + '.o')))
-                    for src in target.source_file_paths
+                    repr(str(root(BUILD, target.name, source.stem + '.o')))
+                    for source in target.source_file_paths
                 )}
                 {target.linker_flags}
         ''')
+
+        log()
 
         # Turn ELF into raw binary.
         execute(f'''

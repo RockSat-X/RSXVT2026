@@ -28,16 +28,16 @@ def parse_entry(entry):
 
             # The entry value is directly given.
 
-            case (Unquoted('value:'), value):
-                record.VALUE = value
+            case (Unquoted('.value'), value):
+                record.value = value
 
 
 
             # The entry value is an inclusive range.
 
-            case (Unquoted('minmax:'), minimum, maximum):
-                record.MIN = minimum
-                record.MAX = maximum
+            case (Unquoted('.minmax'), minimum, maximum):
+                record.min = minimum
+                record.max = maximum
 
 
 
@@ -57,7 +57,7 @@ def parse_entry(entry):
     # No structured entry value found, so we assume it's just something like a True/False 1-bit register.
 
     else:
-        record.VALUE = (False, True)
+        record.value = (False, True)
 
 
 
@@ -125,7 +125,7 @@ def parse_entry(entry):
 
     # Finished parsing for the tag and record from the S-expression of the entry.
 
-    return tag, record
+    return tag, types.SimpleNamespace(record)
 
 
 
@@ -133,7 +133,7 @@ def parse_entry(entry):
 
 SYSTEM_DATABASE = {}
 
-for mcu in TARGETS.mcus:
+for mcu in MCUS:
 
     SYSTEM_DATABASE[mcu] = {}
 
@@ -145,8 +145,8 @@ for mcu in TARGETS.mcus:
 
     if not database_file_path.is_file():
         raise RuntimeError(
-            'File "{database_file_path}" does not exist; '
-            'a file of S-expressions is needed to describe the properties of the MCU.'
+            f'File "{database_file_path}" does not exist; '
+            f'a file of S-expressions is needed to describe the properties of the MCU.'
         )
 
     for tag, records in coalesce(map(parse_entry, parse_sexp(database_file_path.read_text()))):
@@ -189,7 +189,7 @@ for mcu in TARGETS.mcus:
             # (pll{UNIT}_predivider (RCC PLLCKSELR DIVM3) (minmax: 1 63) (UNIT = 3))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][3]
 
             case 1:
-                SYSTEM_DATABASE[mcu][tag] = mk_dict((record[placeholders[0]], record) for record in records)
+                SYSTEM_DATABASE[mcu][tag] = mk_dict((record.__dict__[placeholders[0]], record) for record in records)
 
 
 
@@ -208,7 +208,7 @@ for mcu in TARGETS.mcus:
                 SYSTEM_DATABASE[mcu][tag] = {
                     Placeholders(**{
                         key : value
-                        for key, value in record
+                        for key, value in record.__dict__.items()
                         if key in placeholders
                     }) : record
                     for record in records

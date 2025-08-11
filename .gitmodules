@@ -14,3 +14,7 @@
 	path = deps/printf
 	url = https://github.com/eyalroz/printf
 	branch = master
+[submodule "deps/cmsis-device-h5"]
+	path = deps/cmsis-device-h5
+	url = https://github.com/STMicroelectronics/cmsis-device-h5
+	branch = main

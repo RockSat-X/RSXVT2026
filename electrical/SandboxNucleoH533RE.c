@@ -1,10 +1,11 @@
 #include STM32_CMSIS_DEVICE_H
 #include "defs.h"
-#include "jig.c"
+// TODO: #include "jig.c"
 #include <deps/FreeRTOS_Kernel/tasks.c>
 #include <deps/FreeRTOS_Kernel/queue.c>
 #include <deps/FreeRTOS_Kernel/list.c>
 #include <port.c>
+#include <portasm.c>
 
 
 
@@ -29,39 +30,7 @@ task_a(void*)
     for(;;)
     {
         GPIO_TOGGLE(led_green);
-        vTaskDelay(10);
-    }
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-static noret void
-task_b(void*)
-{
-    for(;;)
-    {
-        GPIO_TOGGLE(led_yellow);
-        vTaskDelay(15);
-    }
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-static noret void
-task_c(void*)
-{
-    for(;;)
-    {
-        GPIO_TOGGLE(led_red);
-        vTaskDelay(20);
+        vTaskDelay(100);
     }
 }
 
@@ -75,7 +44,7 @@ extern noret void
 main(void)
 {
     SYSTEM_init();
-    JIG_init();
+    // TODO: JIG_init();
 
 
 
@@ -83,7 +52,7 @@ main(void)
 
 
 
-    #if 1 // Stop FreeRTOS.
+    #if 0 // Stop FreeRTOS.
         for (;;)
         {
             GPIO_TOGGLE(led_green);
@@ -97,13 +66,11 @@ main(void)
 
 
 
-    #include "SandboxNucleoH7S3L8_tasks.meta"
+    #include "SandboxNucleoH533RE_tasks.meta"
     /* #meta
 
         for task_name, stack_size, priority in (
             ('task_a', 400, 'tskIDLE_PRIORITY'),
-            ('task_b', 400, 'tskIDLE_PRIORITY'),
-            ('task_c', 400, 'tskIDLE_PRIORITY'),
         ):
             Meta.line(f'''
                 static StackType_t  {task_name}_stack[({stack_size} / sizeof(u32))] = {{0}};

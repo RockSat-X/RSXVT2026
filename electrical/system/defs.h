@@ -36,11 +36,17 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-#if TARGET_MCU_IS_STM32H7S3
+#if TARGET_MCU_IS_STM32H7S3L8H6
 
     // For the full contiguous field. @/pg 2476/sec 53.8.6/`H7S3rm`.
     #define USART_BRR_BRR_Pos 0
     #define USART_BRR_BRR_Msk (0xFFFF << USART_BRR_BRR_Pos)
+
+#endif
+
+#if TARGET_MCU_IS_STM32H533RET6
+
+    #define RCC_CCIPR5_CKPERSEL_ RCC_CCIPR5_CKERPSEL_ // Typo.
 
 #endif
 
@@ -106,23 +112,16 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-#define NVIC_ENABLE(NAME)        ((void) (NVIC->ISER[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32))) // @/pg 628/sec B3.4.4/`Armv7-M`.
-#define NVIC_DISABLE(NAME)       ((void) (NVIC->ICER[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32))) // @/pg 628/sec B3.4.4/`Armv7-M`.
-#define NVIC_SET_PENDING(NAME)   ((void) (NVIC->ISPR[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32))) // @/pg 629/sec B3.4.6/`Armv7-M`.
-#define NVIC_CLEAR_PENDING(NAME) ((void) (NVIC->ICPR[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32))) // @/pg 630/sec B3.4.7/`Armv7-M`.
-
-
-
 #include "interrupts.meta"
-/* #meta INTERRUPTS, INTERRUPTS_FOR_FREERTOS : NVIC_TABLE
+/* #meta INTERRUPTS
 
 
 
-    # Parse the targets' CMSIS header files to get the list of interrupts on the microcontroller.
+    # Parse the CMSIS header files to get the list of interrupts on the microcontroller.
 
     INTERRUPTS = {}
 
-    for target in TARGETS:
+    for mcu in MCUS:
 
 
 
@@ -143,7 +142,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
         irqn_enumeration = {}
 
-        for line in target.cmsis_file_path.read_text().splitlines():
+        for line in MCUS[mcu].cmsis_file_path.read_text().splitlines():
 
             match line.split():
 
@@ -157,9 +156,11 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-        # The first interrupt should be the reset exception defined by Armv7-M.
-        # Note that the reset exception has an *exception number* of 1 (@/pg 525/tbl B1-4/`Armv7-M`),
-        # but the *interrupt number* is defined to be the *exception number - 16* (@/pg 625/sec B3.4.1/`Armv7-M`).
+        # The first interrupt should be the reset exception defined by Armv7-M/Armv8-M.
+        # Note that the reset exception has an (exception number) of 1,
+        # but the *interrupt number* is defined to be the (exception number - 16).
+        # @/pg 525/tbl B1-4/`Armv7-M`.   @/pg 143/sec B3.30/`Armv8-M`.
+        # @/pg 625/sec B3.4.1/`Armv7-M`. @/pg 1855/sec D1.2.236/`Armv8-M`.
 
         irqn_enumeration = sorted(irqn_enumeration.items())
         assert irqn_enumeration[0] == (-15, 'Reset')
@@ -176,22 +177,12 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
         # including interrupt numbers that are reserved,
         # we create a list for all interrupt numbers between the lowest and highest.
 
-        INTERRUPTS[target.mcu] = [None] * (irqn_enumeration[-1][0] - irqn_enumeration[0][0] + 1)
+        INTERRUPTS[mcu] = [None] * (irqn_enumeration[-1][0] - irqn_enumeration[0][0] + 1)
 
         for interrupt_number, interrupt_name in irqn_enumeration:
-            INTERRUPTS[target.mcu][interrupt_number - irqn_enumeration[0][0]] = interrupt_name
+            INTERRUPTS[mcu][interrupt_number - irqn_enumeration[0][0]] = interrupt_name
 
-        INTERRUPTS[target.mcu] = tuple(INTERRUPTS[target.mcu])
-
-
-
-    # Some interrupts will be hijacked by FreeRTOS.
-
-    INTERRUPTS_FOR_FREERTOS = {
-        'SysTick' : 'xPortSysTickHandler',
-        'SVCall'  : 'vPortSVCHandler'    ,
-        'PendSV'  : 'xPortPendSVHandler' ,
-    }
+        INTERRUPTS[mcu] = tuple(INTERRUPTS[mcu])
 
 
 
@@ -203,12 +194,12 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
     # and if a typo is made, then a compiler error will be generated.
     # e.g:
     # >
-    # >    INTERRUPT(TIM13)          <- If "TIM13" interrupt exists, then ok!
+    # >    INTERRUPT_TIM13           <- If "TIM13" interrupt exists, then ok!
     # >    {
     # >        ...
     # >    }
     # >
-    # >    INTERRUPT(TIM14)          <- If "TIM14" interrupt doesn't exists, then compiler error here; good!
+    # >    INTERRUPT_TIM14           <- If "TIM14" interrupt doesn't exists, then compiler error here; good!
     # >    {
     # >        ...
     # >    }
@@ -220,64 +211,24 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
     # >    }
     # >
 
-    @Meta.ifs(TARGETS.mcus, '#if')
-    def _(mcu):
-
-        yield f'TARGET_MCU_IS_{mcu}'
-
-        for interrupt in ('Default',) + INTERRUPTS[mcu]:
-
-            if interrupt is None:
-                continue
-
-            if interrupt in INTERRUPTS_FOR_FREERTOS:
-                continue
-
-            Meta.define('INTERRUPT', ('INTERRUPT'), f'extern void __INTERRUPT_{interrupt}(void)', INTERRUPT = interrupt)
-
-
-
-    # Set up NVIC.
-
     @Meta.ifs(TARGETS, '#if')
     def _(target):
 
         yield f'TARGET_NAME_IS_{target.name}'
 
+        for interrupt in ('Default',) + INTERRUPTS[target.mcu]:
 
+            if interrupt is None:
+                # This interrupt is reserved.
+                continue
 
-        # Enumeration to make the NVIC macros only
-        # work on interrupts defined in NVIC_TABLE.
+            if interrupt in MCUS[target.mcu].freertos_interrupts and 'systick_ck' not in target.clock_tree:
+                # This interrupt will be supplied by FreeRTOS,
+                # unless we're configuring SysTick which FreeRTOS uses by default,
+                # to which we won't be considering FreeRTOS at all.
+                continue
 
-        Meta.enums(
-            'NVICInterrupt',
-            'u32',
-            ((interrupt, f'{interrupt}_IRQn') for interrupt, niceness in NVIC_TABLE[target.name]),
-        )
-
-
-
-        # Initialize the priorities of the defined NVIC interrupts.
-
-        with Meta.enter('''
-            extern void
-            NVIC_init(void)
-        '''):
-
-            for interrupt, niceness in NVIC_TABLE[target.name]:
-
-
-
-                # We'll be safe and use the fact that Armv7-M supports
-                # at least 3 bits for the interrupt priority starting MSb. @/pg 526/sec B1.5.4/`Armv7-M`.
-
-                assert 0b000 <= niceness <= 0b111
-
-
-
-                # Set priority of NVIC interrupt.
-
-                Meta.line(f'NVIC->IPR[NVICInterrupt_{interrupt}] = {niceness} << 5;')
+            Meta.define(f'INTERRUPT_{interrupt}', f'extern void __INTERRUPT_{interrupt}(void)')
 
 */
 
@@ -290,14 +241,24 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 #include "SYSTEM_init.meta"
 /* #meta
 
+
+
+    # Macros to make using GPIOs in C easy. TODO Use SYSTEM_DATABASE.
+
+    Meta.define('GPIO_HIGH'  , ('NAME'         ), '((void) (CONCAT(GPIO, _PORT_FOR_GPIO_WRITE(NAME))->BSRR = CONCAT(GPIO_BSRR_BS, _NUMBER_FOR_GPIO_WRITE(NAME))))')
+    Meta.define('GPIO_LOW'   , ('NAME'         ), '((void) (CONCAT(GPIO, _PORT_FOR_GPIO_WRITE(NAME))->BSRR = CONCAT(GPIO_BSRR_BR, _NUMBER_FOR_GPIO_WRITE(NAME))))')
+    Meta.define('GPIO_TOGGLE', ('NAME'         ), '((void) (CONCAT(GPIO, _PORT_FOR_GPIO_WRITE(NAME))->ODR ^= CONCAT(GPIO_ODR_OD , _NUMBER_FOR_GPIO_WRITE(NAME))))')
+    Meta.define('GPIO_SET'   , ('NAME', 'VALUE'), '((void) ((VALUE) ? GPIO_HIGH(NAME) : GPIO_LOW(NAME)))')
+    Meta.define('GPIO_READ'  , ('NAME'         ), '(!!(CONCAT(GPIO, _PORT_FOR_GPIO_READ(NAME))->IDR & CONCAT(GPIO_IDR_ID, _NUMBER_FOR_GPIO_READ(NAME))))')
+
+
+
+    # Initialize the target's GPIOs, interrupts, clock-tree, etc.
+
     @Meta.ifs(TARGETS, '#if')
     def _(target):
 
         yield f'TARGET_NAME_IS_{target.name}'
-
-
-
-        # Output the system initialization routine where we configure the low-level MCU stuff.
 
         with Meta.enter('''
             extern void
@@ -306,21 +267,618 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-            # Figure out the register values.
+            ################################ GPIOs ################################
 
-            configuration, defines = SYSTEM_PARAMETERIZE(target, SYSTEM_OPTIONS[target.name])
+            put_title('GPIOs')
+
+            gpios = PROCESS_GPIOS(target)
 
 
 
-            # Figure out the procedure to set the register values.
+            # Macros to make GPIOs easy to use.
+
+            for gpio in gpios:
+
+                if gpio.pin is None:
+                    continue
+
+                if gpio.mode in ('input', 'alternate'):
+                    Meta.define('_PORT_FOR_GPIO_READ'  , ('NAME'), gpio.port  , NAME = gpio.name)
+                    Meta.define('_NUMBER_FOR_GPIO_READ', ('NAME'), gpio.number, NAME = gpio.name)
+
+                if gpio.mode == 'output':
+                    Meta.define('_PORT_FOR_GPIO_WRITE'  , ('NAME'), gpio.port  , NAME = gpio.name)
+                    Meta.define('_NUMBER_FOR_GPIO_WRITE', ('NAME'), gpio.number, NAME = gpio.name)
+
+
+
+            # Enable GPIO ports that have defined pins.
+
+            CMSIS_SET(
+                ('RCC', SYSTEM_DATABASE[target.mcu]['GPIO_PORT_ENABLE_REGISTER'].value, f'GPIO{port}EN', True)
+                for port in sorted(OrderedSet(gpio.port for gpio in gpios if gpio.pin is not None))
+            )
+
+
+
+            # Set output type (push-pull/open-drain).
+
+            CMSIS_SET(
+                (f'GPIO{gpio.port}', 'OTYPER', f'OT{gpio.number}', gpio.open_drain)
+                for gpio in gpios
+                if gpio.pin is not None and gpio.open_drain is not None
+            )
+
+
+
+            # Set initial output level.
+
+            CMSIS_SET(
+                (f'GPIO{gpio.port}', 'ODR', f'OD{gpio.number}', gpio.initlvl)
+                for gpio in gpios
+                if gpio.pin is not None and gpio.initlvl is not None
+            )
+
+
+
+            # Set drive strength.
+
+            CMSIS_SET(
+                (
+                    f'GPIO{gpio.port}',
+                    'OSPEEDR',
+                    f'OSPEED{gpio.number}',
+                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_SPEED'].value)[gpio.speed]
+                )
+                for gpio in gpios
+                if gpio.pin is not None and gpio.speed is not None
+            )
+
+
+
+            # Set pull configuration.
+
+            CMSIS_SET(
+                (
+                    f'GPIO{gpio.port}',
+                    'PUPDR',
+                    f'PUPD{gpio.number}',
+                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_PULL'].value)[gpio.pull]
+                )
+                for gpio in gpios
+                if gpio.pin is not None and gpio.pull is not None
+            )
+
+
+
+            # Set alternative function; must be done before setting pin mode
+            # so that the alternate function pin will start off properly.
+
+            CMSIS_WRITE(
+                (
+                    f'GPIO_AFR{('L', 'H')[gpio.number // 8]}',
+                    f'GPIO{gpio.port}->AFR[{gpio.number // 8}]',
+                    f'AFSEL{gpio.number}',
+                    gpio.afsel
+                )
+                for gpio in gpios
+                if gpio.afsel is not None
+            )
+
+
+
+            # Set pin mode.
+
+            CMSIS_SET(
+                (
+                    f'GPIO{gpio.port}',
+                    'MODER',
+                    f'MODE{gpio.number}',
+                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_MODE'].value)[gpio.mode]
+                )
+                for gpio in gpios
+                if gpio.pin is not None and gpio.mode not in (None, 'reserved')
+            )
+
+
+
+            ################################ NVIC ################################
+
+            put_title('NVIC')
+
+
+
+            # Make macros to control the interrupt in NVIC.
+            # @/pg 626/tbl B3-8/`Armv7-M`.
+            # @/pg 1452/tbl D1.1.10/`Armv8-M`.
+
+            for interrupt, niceness in target.interrupt_priorities:
+                for macro, register in (
+                    ('NVIC_ENABLE'       , 'ISER'),
+                    ('NVIC_DISABLE'      , 'ICER'),
+                    ('NVIC_SET_PENDING'  , 'ISPR'),
+                    ('NVIC_CLEAR_PENDING', 'ICPR'),
+                ):
+                    Meta.define(
+                        macro, ('INTERRUPT'),
+                        f'((void) (NVIC->{register}[{interrupt}_IRQn / 32] = 1 << ({interrupt}_IRQn % 32)))',
+                        INTERRUPT = interrupt
+                    )
+
+
+
+            # Set the priorities of the defined NVIC interrupts.
+            # Note that the Armv7-M architecture guarantees minimum of 3 priority bits,
+            # while the Armv8-M guarantees minimum of 2; for now, we'll appeal
+            # to the lowest common denominator here.
+            # @/pg 526/sec B1.5.4/`Armv7-M`.
+            # @/pg 86/sec B3.9/`Armv8-M`.
+
+            for interrupt, niceness in target.interrupt_priorities:
+                assert 0b00 <= niceness <= 0b11
+                Meta.line(f'NVIC->IPR[{interrupt}_IRQn] = {niceness} << 6;')
+
+
+
+            ################################ Clock-Tree ################################
+
+
+
+            # Figure out the register values relating to the clock-tree.
+
+            configuration, tree = SYSTEM_PARAMETERIZE(target)
+
+
+
+            # Figure out the procedure to set the register values for the clock-tree.
 
             SYSTEM_CONFIGURIZE(target, configuration)
 
 
 
-        # We also make defines so that the C code can use the results
-        # of the parameterization and configuration procedure (e.g. the resulting CPU frequency).
+            # Export the frequencies we found for the clock-tree.
 
-        for name, expansion in defines:
-            Meta.define(name, expansion)
+            put_title('Clock-Tree')
+
+            for macro, expansion in justify(
+                (
+                    ('<', f'CLOCK_TREE_FREQUENCY_OF_{name}' ),
+                    ('>', f'{frequency:,}'.replace(',', "'")),
+                )
+                for name, frequency in tree
+                if name is not None
+            ):
+                Meta.define(macro, f'({expansion})')
+
 */
+
+
+
+//////////////////////////////////////////////////////////////// GPIO Construction ////////////////////////////////////////////////////////////////
+
+
+
+/* #meta PROCESS_GPIOS
+
+    import csv
+
+
+
+    # We create a table to map GPIO pin and alternate function names to alternate function codes.
+    # e.g:
+    # >
+    # >    ('A', 0, 'UART4_TX')   ->   0b1000
+    # >
+
+    GPIO_AFSEL = {}
+
+    for mcu in MCUS:
+
+        GPIO_AFSEL[mcu] = []
+
+
+
+        # Find the CSV file that STM32CubeMX can provide to get all of the alternate functions for GPIOs.
+
+        gpio_afsel_file_path = root(f'./deps/mcu/{mcu}_gpios.csv')
+
+        if not gpio_afsel_file_path.is_file():
+            raise RuntimeError(
+                f'File "{gpio_afsel_file_path}" does not exist; '
+                f'use STM32CubeMX to generate the CSV file (also clear the pinout!).'
+            )
+
+
+
+        # Process the CSV file.
+
+        for entry in csv.DictReader(gpio_afsel_file_path.read_text().splitlines()):
+
+            match entry['Type']:
+
+
+
+                # Most GPIOs we care about are the I/O ones.
+
+                case 'I/O':
+
+                    # Some GPIO names are suffixed with additional things, like for instance:
+                    #     PC14-OSC32_IN(OSC32_IN)
+                    #     PH1-OSC_OUT(PH1)
+                    #     PA14(JTCK/SWCLK)
+                    #     PC2_C
+                    # So we need to format it slightly so that we just get the port letter and pin number.
+
+                    pin    = entry['Name']
+                    pin    = pin.split('-', 1)[0]
+                    pin    = pin.split('(', 1)[0]
+                    pin    = pin.split('_', 1)[0]
+                    port   = pin[1]
+                    number = int(pin[2:])
+
+                    assert pin.startswith('P') and ('A' <= port <= 'Z')
+
+
+
+                    # Gather all the alternate functions of the GPIO, if any.
+
+                    for afsel_code in range(16):
+
+                        if not entry[f'AF{afsel_code}']: # Skip empty cells.
+                            continue
+
+                        GPIO_AFSEL[mcu] += [
+                            ((port, number, afsel_name), afsel_code)
+                            for afsel_name in entry[f'AF{afsel_code}'].split('/') # Some have multiple names for the same AFSEL code (e.g. "I2S3_CK/SPI3_SCK").
+                        ]
+
+
+
+
+                # TODO Maybe use this information to ensure the PCB footprint is correct?
+
+                case 'Power' | 'Reset' | 'Boot':
+                    pass
+
+
+
+                # TODO I have no idea what this is.
+
+                case 'MonoIO':
+                    pass
+
+
+
+                # Unknown GPIO type in the CSV; doesn't neccessarily mean an error though.
+
+                case _:
+                    pass # TODO Warn.
+
+
+
+        # Done processing the CSV file; now we have a mapping of GPIO pin
+        # and alternate function name to the alternate function code.
+
+        GPIO_AFSEL[mcu] = mk_dict(GPIO_AFSEL[mcu])
+
+
+
+    # The routine to create a single GPIO instance.
+
+    def mk_gpio(target, entry):
+
+        name, pin, mode, properties = entry
+
+
+
+        # The layout of a GPIO instance.
+
+        gpio = types.SimpleNamespace(
+            name       = name,
+            pin        = pin,
+            mode       = mode,
+            port       = None,
+            number     = None,
+            speed      = None,
+            pull       = None,
+            open_drain = None,
+            initlvl    = None,
+            altfunc    = None,
+            afsel      = None,
+        )
+
+
+
+        # If the pin of the GPIO is given, split it into its port and number parts (e.g. 'A10' -> ('A', 10)).
+        # The pin can be left unspecified as `None`, which is useful for when we don't know where
+        # the pin will be end up being at but we want to at least have it still be in the table.
+
+        if pin is not None:
+            gpio.port   = pin[0]
+            gpio.number = int(pin[1:])
+
+
+
+        # Handle the GPIO mode.
+
+        match mode:
+
+
+
+            # A simple input GPIO to read digital voltage levels.
+
+            case 'input':
+
+                # The pull-direction must be specified in order to prevent accidentally defining a floating GPIO pin.
+                gpio.pull = properties.pop('pull')
+
+
+
+            # A simple output GPIO that can be driven low or high.
+
+            case 'output':
+
+                # The initial voltage level must be specified so the user remembers to take it into consideration.
+                gpio.initlvl = properties.pop('initlvl')
+
+                # Other optional properties.
+                gpio.speed      = properties.pop('speed'     , None)
+                gpio.open_drain = properties.pop('open_drain', None)
+
+
+
+
+            # This GPIO would typically be used for some peripheral functionality (e.g. SPI clock output).
+
+            case 'alternate':
+
+                # Alternate GPIOs are denoted by a string like "UART8_TX" to indicate its alternate function.
+                gpio.altfunc = properties.pop('altfunc')
+
+                # Other optional properties.
+                gpio.speed      = properties.pop('speed'     , None)
+                gpio.pull       = properties.pop('pull'      , None)
+                gpio.open_drain = properties.pop('open_drain', None)
+
+
+
+            # An analog GPIO would have its Schmit trigger function disabled;
+            # this obviously allows for ADC/DAC usage, but it can also serve as a power-saving measure.
+
+            case 'analog':
+                raise NotImplementedError
+
+
+
+            # A GPIO that's marked as "reserved" is often useful for marking a particular pin as something
+            # that shouldn't be used because it has an important functionality (e.g. JTAG debug).
+
+            case 'reserved':
+                properties = {} # Don't care what properties this reserved GPIO has.
+
+
+
+            # Unknown GPIO mode.
+
+            case unknown:
+                raise ValueError(f'GPIO "{name}" has unknown mode: {repr(unknown)}.')
+
+
+
+        # Determine the GPIO's alternate function code.
+
+        if gpio.pin is not None and gpio.altfunc is not None:
+
+            gpio.afsel = GPIO_AFSEL[target.mcu].get((gpio.port, gpio.number, gpio.altfunc), None)
+
+            if gpio.afsel is None:
+                raise ValueError(
+                    f'GPIO pin {repr(gpio.pin)} for {target.mcu} ({target.name}) '
+                    'has no alternate function {repr(gpio.altfunc)}.'
+                )
+
+
+
+        # Done processing this GPIO entry!
+
+        if properties:
+            raise ValueError(f'GPIO "{name}" has leftover properties: {properties}.')
+
+        return gpio
+
+
+
+    # The routine to ensure the list of GPIOs make sense for the target.
+
+    def PROCESS_GPIOS(target):
+
+        gpios = tuple(mk_gpio(target, entry) for entry in target.gpios)
+
+        if (name := find_dupe(gpio.name for gpio in gpios)) is not ...:
+            raise ValueError(f'GPIO name {repr(name)} used more than once.')
+
+        if (pin := find_dupe(gpio.pin for gpio in gpios if gpio.pin is not None)) is not ...:
+            raise ValueError(f'GPIO pin {repr(pin)} used more than once.')
+
+        return gpios
+
+*/
+
+
+
+//////////////////////////////////////////////////////////////// Low-Level Routines ////////////////////////////////////////////////////////////////
+
+
+
+#define nop() __asm__("nop")
+
+
+
+static void
+spinlock_nop(u32 count)
+{
+    // This is unrolled so that the branch penalty will be reduced.
+    // Otherwise, the amount of delay that this procedure will produce
+    // will be more inconsistent (potentially due to flash cache reasons?).
+    for (u32 nop = 0; nop < count; nop += 256)
+    {
+        #define NOP4   nop(); nop(); nop(); nop();
+        #define NOP16  NOP4   NOP4   NOP4   NOP4
+        #define NOP64  NOP16  NOP16  NOP16  NOP16
+        #define NOP256 NOP64  NOP64  NOP64  NOP64
+        NOP256
+        #undef NOP4
+        #undef NOP16
+        #undef NOP64
+        #undef NOP256
+    }
+}
+
+
+
+#if false
+
+    static volatile u32 epoch_ms = 0;
+
+    INTERRUPT_SysTick
+    {
+        epoch_ms += 1;
+    }
+
+    static void
+    spinlock_ms(u32 duration_ms)
+    {
+        u32 start_ms = epoch_ms;
+        while (epoch_ms - start_ms < duration_ms);
+    }
+
+#endif
+
+
+
+#define sorry halt_(false); // @/`Halting`.
+#define panic halt_(true)   // "
+static noret void           // "
+halt_(b32 panicking)        // "
+{
+    __disable_irq();
+
+
+    #if TARGET_NAME_IS_SandboxNucleoH7S3L8
+
+        if (panicking)
+        {
+            GPIO_HIGH(led_red);
+        }
+        else
+        {
+            GPIO_HIGH(led_yellow);
+        }
+
+        for (;;)
+        {
+            u32 i = 10'000'000;
+
+            for (; i > 1'000; i /= 2)
+            {
+                for (u32 j = 0; j < 8; j += 1)
+                {
+                    spinlock_nop(i);
+
+                    if (panicking)
+                    {
+                        GPIO_TOGGLE(led_red);
+                    }
+                    else
+                    {
+                        GPIO_TOGGLE(led_yellow);
+                    }
+                }
+            }
+        }
+
+    #endif
+
+    #if TARGET_NAME_IS_SandboxNucleoH533RE
+
+        for (;;)
+        {
+            u32 i = 10'000'000;
+
+            for (; i > 1'000; i /= 2)
+            {
+                for (u32 j = 0; j < 4; j += 1)
+                {
+                    GPIO_HIGH(led_green);
+                    spinlock_nop(i);
+
+                    GPIO_LOW(led_green);
+                    spinlock_nop(i * (panicking ? 1 : 4));
+                }
+            }
+        }
+
+    #endif
+
+    for(;;); // Panic! Something horrible has happened!
+}
+
+
+
+//////////////////////////////////////////////////////////////// Notes /////////////////////////////////////////////////////////////////
+
+
+
+// @/`Halting`:
+//
+//
+//
+// A `sorry` is used for code-paths that haven't been implemented yet.
+// Eventually, when we want things to be production-ready, we replace
+// all `sorry`s that we can with proper code, or at the very least, a `panic`.
+// e.g:
+// >
+// >    if (is_sd_card_mounted_yet())
+// >    {
+// >        do_stuff();
+// >    }
+// >    else
+// >    {
+// >        sorry   <- Note that `sorry` is specifically defined to be able to
+// >                   be written without the terminating semicolon. This is
+// >                   purely aesthetic; it makes `sorry` look very out-of-place.
+// >    }
+// >
+//
+//
+//
+// A `panic` is for absolute irrecoverable error conditions,
+// like stack overflows or a function given ill-formed parameters.
+// In other words, stuff like: "something horrible happened.
+// I don't know how we got here. We need to reset!".
+// It is useful to make this distinction from `sorry` because we can
+// scan through the code-base and see what stuff is work-in-progress or just
+// an irrecoverable error condition.
+// e.g:
+// >
+// >    switch (option)
+// >    {
+// >        case Option_A: ...
+// >        case Option_B: ...
+// >        case Option_C: ...
+// >        default: panic;     <- The compiler will enforce switch-statements to be exhaustive
+// >                               for enumerations. The compiler will also enforce all
+// >                               switch-statements to have a `default` case even if we are
+// >                               exhaustive. In the event that the enumeration `option` is somehow
+// >                               not any of the valid values, we will trigger a `panic` rather than
+// >                               have the switch-statement silently pass.
+// >    }
+// >
+//
+//
+//
+// When a `sorry` or `panic` is triggered during deployment, the microcontroller will undergo a reset
+// through the watchdog timer (TODO). During development, however, we'd like for the controller to actually
+// stop dead in its track (rather than reset) so that we can debug. To make it even more useful,
+// the microcontroller can also blink an LED indicating whether or not a `panic` or a `sorry` condition has
+// occured; how this is implemented, if at all, is entirely dependent upon the target.

@@ -1,55 +1,3 @@
-//////////////////////////////////////////////////////////////// Configurations ////////////////////////////////////////////////////////////////
-
-
-
-/* #meta SYSTEM_OPTIONS, GPIOS, NVIC_TABLE : MK_GPIOS
-
-    SYSTEM_OPTIONS = {
-
-        'SandboxNucleoH7S3L8' : {
-            'hsi_enable'    : True,
-            'hsi48_enable'  : True,
-            'csi_enable'    : True,
-            'per_ck_source' : 'hsi_ck',
-            'pll1_p_ck'     : 600_000_000,
-            'pll2_s_ck'     : 200_000_000,
-            'cpu_ck'        : 600_000_000,
-            'axi_ahb_ck'    : 300_000_000,
-            'apb1_ck'       : 150_000_000,
-            'apb2_ck'       : 150_000_000,
-            'apb4_ck'       : 150_000_000,
-            'apb5_ck'       : 150_000_000,
-            'usart3_baud'   : STLINK_BAUD,
-        },
-
-    }
-
-    GPIOS = MK_GPIOS({
-
-        'SandboxNucleoH7S3L8' : (
-            ('led_red'   , 'B7' , 'output'    , { 'initlvl' : False       }),
-            ('led_yellow', 'D13', 'output'    , { 'initlvl' : False       }),
-            ('led_green' , 'D10', 'output'    , { 'initlvl' : False       }),
-            ('jig_tx'    , 'D8' , 'alternate' , { 'altfunc' : 'USART3_TX' }),
-            ('jig_rx'    , 'D9' , 'alternate' , { 'altfunc' : 'USART3_RX' }),
-            ('swdio'     , 'A13', 'reserved'  , {                         }),
-            ('swclk'     , 'A14', 'reserved'  , {                         }),
-        ),
-
-    })
-
-    NVIC_TABLE = {
-
-        'SandboxNucleoH7S3L8' : (
-            ('USART3', 0),
-        ),
-
-    }
-
-*/
-
-
-
 //////////////////////////////////////////////////////////////// Primitives ////////////////////////////////////////////////////////////////
 
 
@@ -126,15 +74,3 @@ struct Jig
     volatile u32  reception_writer;
     volatile char reception_buffer[1 << 5];
 };
-
-
-
-//////////////////////////////////////////////////////////////// Globals ////////////////////////////////////////////////////////////////
-
-
-
-#if TARGET_NAME_IS_SandboxNucleoH7S3L8
-
-    static struct Jig _JIG = {0};
-
-#endif

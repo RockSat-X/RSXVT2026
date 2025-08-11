@@ -14,17 +14,6 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
-    # Helper routine to make the output look nice and well divided.
-
-    def put_title(title):
-        Meta.line(f'''
-
-            {"/" * 64} {title} {"/" * 64}
-
-        ''')
-
-
-
     # This helper routine can be used to look up a value in `configurations` or look up in the database to find the location of a register;
     # the value in the section-register-field-value tuple can also be changed to something else.
     # e.g:
@@ -243,17 +232,26 @@ def SYSTEM_CONFIGURIZE(target, configurations):
     # The power supply setup must be configured first before configuring VOS or the system clock frequency.
     # @/pg 323/sec 6.8.4/`H7S3rm`.
 
-    CMSIS_SET(
-        cfgs(configuration, ...)
-        for configuration in (
-            'smps_output_level',
-            'smps_forced_on',
-            'smps_enable',
-            'ldo_enable',
-            'power_management_bypass',
-        )
-        if cfgs(configuration) is not None
-    )
+    match target.mcu:
+
+        case 'STM32H7S3L8H6':
+            fields = (
+                'smps_output_level',
+                'smps_forced_on',
+                'smps_enable',
+                'ldo_enable',
+                'power_management_bypass',
+            )
+
+        case 'STM32H533RET6':
+            fields = (
+                'ldo_enable',
+                'power_management_bypass',
+            )
+
+        case _: raise NotImplementedError
+
+    CMSIS_SET(cfgs(field, ...) for field in fields if cfgs(field) is not None)
 
 
 
@@ -331,15 +329,49 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
-        # Set the clock source shared for all PLLs.
+        match target.mcu:
 
-        sets += [cfgs('pll_clock_source', ...)]
+
+
+            case 'STM32H7S3L8H6':
+
+                # Set the clock source shared for all PLLs.
+
+                sets += [cfgs('pll_clock_source', ...)]
+
+
+
+            case 'STM32H533RET6':
+                pass
+
+
+
+            case _: raise NotImplementedError
 
 
 
         # Configure each PLL.
 
-        for unit, channels in database['PLL_UNITS'].VALUE:
+        for unit, channels in database['PLL_UNITS'].value:
+
+            match target.mcu:
+
+
+
+                case 'STM32H7S3L8H6':
+                    pass
+
+
+
+                case 'STM32H533RET6':
+
+                    # Set the clock source for this PLL unit.
+
+                    sets += [cfgs('pll{UNIT}_clock_source', ..., UNIT = unit)]
+
+
+
+                case _: raise NotImplementedError
 
 
 
@@ -384,13 +416,13 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
     # Enable each PLL unit that is to be used.
 
-    CMSIS_SET(cfgs('pll{UNIT}_enable', ..., UNIT = unit) for unit, channels in database['PLL_UNITS'].VALUE)
+    CMSIS_SET(cfgs('pll{UNIT}_enable', ..., UNIT = unit) for unit, channels in database['PLL_UNITS'].value)
 
 
 
     # Ensure each enabled PLL unit has stabilized.
 
-    for unit, channels in database['PLL_UNITS'].VALUE:
+    for unit, channels in database['PLL_UNITS'].value:
 
         pllx_enable = cfgs('pll{UNIT}_enable', UNIT = unit)
 
@@ -409,18 +441,22 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
     # Configure the SCGU registers.
 
-    CMSIS_SET(
+    match target.mcu:
 
-        # Divider for the CPU clock.
-        cfgs('cpu_divider', ...),
+        case 'STM32H7S3L8H6':
+            CMSIS_SET(
+                cfgs('cpu_divider', ...),
+                cfgs('axi_ahb_divider', ...),
+                *(cfgs('apb{UNIT}_divider', ..., UNIT = unit) for unit in database['APB_UNITS'].value),
+            )
 
-        # There's then the AXI/AHB bus divider.
-        cfgs('axi_ahb_divider', ...),
+        case 'STM32H533RET6':
+            CMSIS_SET(
+                cfgs('cpu_divider', ...),
+                *(cfgs('apb{UNIT}_divider', ..., UNIT = unit) for unit in database['APB_UNITS'].value),
+            )
 
-        # Then after that, we have the dividers for APBs.
-        *(cfgs('apb{UNIT}_divider', ..., UNIT = unit) for unit in database['APB_UNITS'].VALUE),
-
-    )
+        case _: raise NotImplementedError
 
 
 
@@ -447,7 +483,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
         CMSIS_SET(
             cfgs('systick_reload'          , ... ), # Modulation of the counter.
             cfgs('systick_use_cpu_ck'      , ... ), # Use CPU clock or the vendor-provided one.
-            cfgs('systick_counter'         , 0   ), # "The SYST_CVR value is UNKNOWN on reset." @/pg 620/sec B3.3.1/`Armv7-M`.
+            cfgs('systick_counter'         , 0   ), # SYST_CVR value is UNKNOWN on reset. @/pg 621/tbl B3-7/`Armv7-M`. @/pg 1861/sec D1.2.239/`Armv8-M`.
             cfgs('systick_interrupt_enable', True), # Enable SysTick interrupt, triggered at every overflow.
             cfgs('systick_enable'          , True), # Enable SysTick counter.
         )
@@ -458,7 +494,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
-    for uxart_units in database['UXARTS'].VALUE:
+    for uxart_units in database['UXARTS'].value:
 
 
 
