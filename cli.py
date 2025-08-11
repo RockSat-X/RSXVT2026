@@ -37,7 +37,7 @@ except ModuleNotFoundError as error:
 
 # Common definitions with the meta-preprocessor.
 
-from electrical.Common import STLINK_BAUD, TARGETS, BUILD
+from electrical.Shared import *
 
 
 
