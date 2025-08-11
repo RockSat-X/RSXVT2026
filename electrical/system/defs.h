@@ -256,14 +256,12 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
+    # Initialize the target's GPIOs, interrupts, clock-tree, etc.
+
     @Meta.ifs(TARGETS, '#if')
     def _(target):
 
         yield f'TARGET_NAME_IS_{target.name}'
-
-
-
-        # Output the system initialization routine where we configure the low-level MCU stuff.
 
         with Meta.enter('''
             extern void
@@ -272,7 +270,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-            # Initialize the GPIOs. TODO Use SYSTEM_DATABASE.
+            ################################ GPIOs ################################
 
             put_title('GPIOs')
 
@@ -284,24 +282,12 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
             for gpio in gpios:
 
-
-
-                # Skip GPIOs with no defined pin yet.
-
                 if gpio.pin is None:
                     continue
-
-
-
-                # Macros to allow reading from applicable GPIO pins.
 
                 if gpio.mode in ('input', 'alternate'):
                     Meta.define('_PORT_FOR_GPIO_READ'  , ('NAME'), gpio.port  , NAME = gpio.name)
                     Meta.define('_NUMBER_FOR_GPIO_READ', ('NAME'), gpio.number, NAME = gpio.name)
-
-
-
-                # Macros to control output GPIO pins.
 
                 if gpio.mode == 'output':
                     Meta.define('_PORT_FOR_GPIO_WRITE'  , ('NAME'), gpio.port  , NAME = gpio.name)
@@ -338,7 +324,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-            # Set GPIO drive strength.
+            # Set drive strength.
 
             CMSIS_SET(
                 (
@@ -353,7 +339,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-            # Set pull up/pull down/float configuration.
+            # Set pull configuration.
 
             CMSIS_SET(
                 (
@@ -368,7 +354,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-            # Set alternative function; must be done before setting pin type
+            # Set alternative function; must be done before setting pin mode
             # so that the alternate function pin will start off properly.
 
             CMSIS_WRITE(
@@ -384,7 +370,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-            # Set GPIO pin mode.
+            # Set pin mode.
 
             CMSIS_SET(
                 (
@@ -399,11 +385,15 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
+            ################################ NVIC ################################
+
+            put_title('NVIC')
+
+
+
             # Make macros to control the interrupt in NVIC.
             # @/pg 626/tbl B3-8/`Armv7-M`.
             # @/pg 1452/tbl D1.1.10/`Armv8-M`.
-
-            put_title('NVIC')
 
             for interrupt, niceness in NVIC_TABLE[target.name]:
                 for macro, register in (
@@ -430,6 +420,10 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
             for interrupt, niceness in NVIC_TABLE[target.name]:
                 assert 0b00 <= niceness <= 0b11
                 Meta.line(f'NVIC->IPR[{interrupt}_IRQn] = {niceness} << 6;')
+
+
+
+            ################################ Clock-Tree ################################
 
 
 
@@ -466,8 +460,10 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
     # We create a table to map GPIO pin and alternate function names to alternate function codes.
-    # e.g.
-    # ('A', 0, 'UART4_TX') -> 0b1000
+    # e.g:
+    # >
+    # >    ('A', 0, 'UART4_TX')   ->   0b1000
+    # >
 
     GPIO_AFSEL = {}
 
@@ -500,8 +496,6 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
                 # Most GPIOs we care about are the I/O ones.
 
                 case 'I/O':
-
-
 
                     # Some GPIO names are suffixed with additional things, like for instance:
                     #     PC14-OSC32_IN(OSC32_IN)
