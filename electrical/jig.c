@@ -8,27 +8,6 @@
 static struct Jig _JIG = {0};
 
 
-#if TARGET_NAME_IS_SandboxNucleoH7S3L8
-    #define UxART_STLINK                                USART3
-    #define UxART_STLINK_                               USART3_
-    #define UxART_STLINK_IRQn                           USART3_IRQn
-    #define UxART_STLINK_BRR_BRR_init                   USART3_BRR_BRR_init
-    #define INTERRUPT_UxART_STLINK                      INTERRUPT_USART3
-    #define __MACRO_OVERLOAD__NVIC_ENABLE__UxART_STLINK __MACRO_OVERLOAD__NVIC_ENABLE__USART3
-    static const struct CMSISPutTuple UxART_STLINK_EN = { .dst = &RCC->APB1ENR1, .pos = RCC_APB1ENR1_USART3EN_Pos, .msk = RCC_APB1ENR1_USART3EN_Msk };
-#endif
-
-#if TARGET_NAME_IS_SandboxNucleoH533RE
-    #define UxART_STLINK                                USART2
-    #define UxART_STLINK_                               USART2_
-    #define UxART_STLINK_IRQn                           USART2_IRQn
-    #define UxART_STLINK_BRR_BRR_init                   USART2_BRR_BRR_init
-    #define INTERRUPT_UxART_STLINK                      INTERRUPT_USART2
-    #define __MACRO_OVERLOAD__NVIC_ENABLE__UxART_STLINK __MACRO_OVERLOAD__NVIC_ENABLE__USART2
-    static const struct CMSISPutTuple UxART_STLINK_EN = { .dst = &RCC->APB1LENR, .pos = RCC_APB1LENR_USART2EN_Pos, .msk = RCC_APB1LENR_USART2EN_Msk };
-#endif
-
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

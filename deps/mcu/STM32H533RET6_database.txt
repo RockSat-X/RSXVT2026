@@ -167,6 +167,9 @@
     # @/pg 518/sec 11.8.27/`H533rm`.
     (GPIO_PORT_ENABLE_REGISTER (.value AHB2ENR))
 
+    # @/pg 521/sec 11.8.29/`H533rm`.
+    (uxart_{UNIT}_enable (RCC APB1LENR USART2EN) (UNIT = 2))
+
     # @/pg 541/sec 11.8.40/`H533rm`.
     (uxart_{UNITS}_clock_source (RCC CCIPR1 USART2SEL) (UNITS = ((usart 2))) (.value (
         (apb1_ck    0b000)

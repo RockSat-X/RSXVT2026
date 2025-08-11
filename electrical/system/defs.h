@@ -58,6 +58,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 #include "cmsis_patches.meta"
 /* #meta
 
+    # @/`CMSIS Suffix Dropping`:
     # Define macros to map things like "I2C1_" to "I2C_".
     # This makes using CMSIS_SET/GET a whole lot easier
     # because CMSIS definitions like "I2C_CR1_PE_Pos"
@@ -82,10 +83,12 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
         # Some peripherals furthermore have subunits that also need this suffix-chopping to be done too.
-        # e.g.
-        # "DMAMUX5_RequestGenerator7_" -> "DMAMUX_"
-        # "DMAMUX6_RequestGenerator0_" -> "DMAMUX_"
-        # "DMAMUX6_RequestGenerator1_" -> "DMAMUX_"
+        # e.g:
+        # >
+        # >    DMAMUX5_RequestGenerator7_   ->   DMAMUX_
+        # >    DMAMUX6_RequestGenerator0_   ->   DMAMUX_
+        # >    DMAMUX6_RequestGenerator1_   ->   DMAMUX_
+        # >
 
         PERIPHERAL_WITH_SUBUNITS = (
             ('DMA'   , '{unit}_Stream{subunit}'          ),
@@ -107,6 +110,84 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
         for suffix in units:
             Meta.define(f'{peripheral}{suffix}_', f'{peripheral}_')
+
+
+
+    # Handle aliasing of peripheral names.
+
+    @Meta.ifs(TARGETS, '#if')
+    def _(target):
+
+        yield f'TARGET_NAME_IS_{target.name}'
+
+        for alias in target.aliases:
+
+
+
+            # @/`CMSIS Suffix Dropping`.
+
+            terms = [
+                '{}',
+                '{}_',
+            ]
+
+
+
+            # The necessary macros to make working with interrupts smooth.
+
+            for interrupt in alias.interrupts:
+                terms += [f'INTERRUPT_{interrupt}']
+                terms += [f'{interrupt}_IRQn']
+                terms += [f'__MACRO_OVERLOAD__NVIC_ENABLE__{interrupt}']
+
+
+
+            # Make the macros with the substituted names.
+            # e.g:
+            # >
+            # >                     {}_BRR_BRR_init   ->       {}_BRR_BRR_init
+            # >    MyAliasedPeripheral_BRR_BRR_init   ->   USART2_BRR_BRR_init
+            # >    ^^^^^^^^^^^^^^^^^^^                     ^^^^^^
+            # >
+
+            terms += alias.terms
+
+            for term in terms:
+                Meta.define(
+                    term.format(alias.moniker),
+                    term.format(alias.actual )
+                )
+
+
+
+            # Make constants to reference the desired register fields.
+            # e.g:
+            # >
+            # >                                      Put('{}_EN', 'uxart_{UNIT}_enable', UNIT = 2)
+            # >                                            ^      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            # >                                            |                   |
+            # >                                          vvvvvvvvvvvvvvv       |
+            # >    static constexpr struct CMSISPutTuple UxART_STLINK_EN =     |
+            # >        {                                                       |
+            # >            .dst = &RCC->APB1LENR,               <              |
+            # >            .pos = RCC_APB1LENR_USART2EN_Pos,    <--------------|
+            # >            .msk = RCC_APB1LENR_USART2EN_Msk     <
+            # >        };
+            # >
+
+            for name, args, kwargs in alias.puts:
+
+                entry = SYSTEM_DATABASE[target.mcu].query(*args, **kwargs)
+
+                Meta.line(f'''
+                    static const struct CMSISPutTuple {name.format(alias.moniker)} =
+                        {{
+                            .dst = &{entry.SECTION}->{entry.REGISTER},
+                            .pos = {entry.SECTION}_{entry.REGISTER}_{entry.FIELD}_Pos,
+                            .msk = {entry.SECTION}_{entry.REGISTER}_{entry.FIELD}_Msk
+                        }};
+                ''')
+
 */
 
 
