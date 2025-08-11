@@ -129,13 +129,104 @@ def parse_entry(entry):
 
 
 
+# The database for a given target will just be a dictionary with a specialized query method.
+
+class SystemDatabaseTarget(dict):
+
+    def query(self, tag, **placeholder_values):
+
+
+
+        # Make sure all placeholders in the tag are given.
+        # e.g:
+        # >
+        # >    query('pll{UNIT}_input_range', UNIT = 3)
+        # >               ^^^^----------------^^^^^^^^
+        # >
+
+        ordered_placeholder_names = OrderedSet(re.findall('{(.*?)}', tag))
+
+        if differences := ordered_placeholder_names - placeholder_values.keys():
+            raise ValueError(f'Tag "{tag}" is missing the value for the placeholder "{differences[0]}".')
+
+        if differences := OrderedSet(placeholder_values.keys()) - ordered_placeholder_names:
+            raise ValueError(f'Tag "{tag}" has no placeholder "{differences[0]}".')
+
+
+
+        # Find the database entries and determine which entry we should return
+        # based on the placeholder values.
+        # Note that the order of the placeholder values is important.
+        # e.g:
+        # >
+        # >    query('pll{UNIT}{CHANNEL}_enable', UNIT = 2, CHANNEL = 'q')
+        # >                                       ~~~~~~~~~~~~~~~~~~~~~~~
+        # >                                                          |
+        # >                                                          v
+        # >                                                      ~~~~~~~~
+        # >    SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(2, 'q')]    <- Expected.
+        # >
+        # >
+        # >    query('pll{UNIT}{CHANNEL}_enable', CHANNEL = 'q', UNIT = 2)
+        # >                                       ~~~~~~~~~~~~~~~~~~~~~~~
+        # >                                                          |
+        # >                                                          v
+        # >                                                      ~~~~~~~~
+        # >    SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][('q', 2)]    <- Uh oh!
+        # >
+
+        if tag not in self:
+            raise ValueError(f'No entry has tag: {repr(tag)}.')
+
+        key = tuple(placeholder_values[name] for name in ordered_placeholder_names)
+
+
+
+        # No placeholders, so we just do a direct look-up.
+        # e.g:
+        # >
+        # >    query('cpu_divider')   ->   SYSTEM_DATABASE[mcu]['cpu_divider']
+        # >
+
+        if len(key) == 0:
+            return self[tag]
+
+
+
+        # Single placeholder, so we get the entry based on the solely provided keyword-argument.
+        # e.g:
+        # >
+        # >    query('pll{UNIT}_predivider', UNIT = 2)   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][2]
+        # >
+
+        if len(key) == 1:
+            key, = key
+
+
+
+        # Multiple placeholders, so we get the entry based on the provided keyword-arguments in tag-order.
+        # e.g:
+        # >
+        # >    query('pll{UNIT}{CHANNEL}_enable', UNIT = 2, CHANNEL = 'q')   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(2, 'q')]
+        # >
+
+        if key not in self[tag]:
+            raise ValueError(f'Placeholders {', '.join(
+                f'({name} = {repr(value)})'
+                for name, value in placeholder_values.items()
+            )} is not an option for database entry {repr(tag)}.')
+
+        return self[tag][key]
+
+
+
 # Create a database for each MCU in use.
 
 SYSTEM_DATABASE = {}
 
 for mcu in MCUS:
 
-    SYSTEM_DATABASE[mcu] = {}
+    SYSTEM_DATABASE[mcu] = SystemDatabaseTarget()
 
 
 
@@ -194,12 +285,12 @@ for mcu in MCUS:
 
 
             # Multiple placeholders in the tag; organize entries by their values for the placeholders using a namedtuple.
-            #
-            # e.g.
-            # (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1PEN) (UNIT = 1) (CHANNEL = p))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 'p')]
-            # (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1QEN) (UNIT = 1) (CHANNEL = q))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 'q')]
-            # (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1SEN) (UNIT = 1) (CHANNEL = s))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 's')]
-            #
+            # e.g:
+            # >
+            # > (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1PEN) (UNIT = 1) (CHANNEL = p))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 'p')]
+            # > (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1QEN) (UNIT = 1) (CHANNEL = q))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 'q')]
+            # > (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1SEN) (UNIT = 1) (CHANNEL = s))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 's')]
+            # >
 
             case _:
 
