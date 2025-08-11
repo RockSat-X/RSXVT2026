@@ -112,9 +112,6 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-
-
-
 #include "interrupts.meta"
 /* #meta INTERRUPTS
 
@@ -197,12 +194,12 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
     # and if a typo is made, then a compiler error will be generated.
     # e.g:
     # >
-    # >    INTERRUPT(TIM13)          <- If "TIM13" interrupt exists, then ok!
+    # >    INTERRUPT_TIM13           <- If "TIM13" interrupt exists, then ok!
     # >    {
     # >        ...
     # >    }
     # >
-    # >    INTERRUPT(TIM14)          <- If "TIM14" interrupt doesn't exists, then compiler error here; good!
+    # >    INTERRUPT_TIM14           <- If "TIM14" interrupt doesn't exists, then compiler error here; good!
     # >    {
     # >        ...
     # >    }
@@ -231,7 +228,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
                 # to which we won't be considering FreeRTOS at all.
                 continue
 
-            Meta.define('INTERRUPT', ('INTERRUPT'), f'extern void __INTERRUPT_{interrupt}(void)', INTERRUPT = interrupt)
+            Meta.define(f'INTERRUPT_{interrupt}', f'extern void __INTERRUPT_{interrupt}(void)')
 
 */
 
@@ -743,7 +740,7 @@ spinlock_nop(u32 count)
 
     static volatile u32 epoch_ms = 0;
 
-    INTERRUPT(SysTick)
+    INTERRUPT_SysTick
     {
         epoch_ms += 1;
     }

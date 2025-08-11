@@ -13,7 +13,7 @@
 
 
 
-INTERRUPT(Default)
+INTERRUPT_Default
 {
     panic;
 }

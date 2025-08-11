@@ -63,7 +63,7 @@ JIG_init(void)
 
 
 
-INTERRUPT(USART3)
+INTERRUPT_USART3
 {
 
 
