@@ -225,7 +225,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
                 # This interrupt is reserved.
                 continue
 
-            if interrupt in MCUS[target.mcu].freertos_interrupts and 'systick_ck' not in SYSTEM_OPTIONS[target.name]:
+            if interrupt in MCUS[target.mcu].freertos_interrupts and 'systick_ck' not in SYSTEM_OPTIONS[target.name]['clock_tree']:
                 # This interrupt will be supplied by FreeRTOS,
                 # unless we're configuring SysTick which FreeRTOS uses by default,
                 # to which we won't be considering FreeRTOS at all.
@@ -274,7 +274,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
             put_title('GPIOs')
 
-            gpios = GPIOS[target.name]
+            gpios = PROCESS_GPIOS(target)
 
 
 
@@ -429,7 +429,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
             # Figure out the register values relating to the clock-tree.
 
-            configuration, tree = SYSTEM_PARAMETERIZE(target, SYSTEM_OPTIONS[target.name])
+            configuration, tree = SYSTEM_PARAMETERIZE(target)
 
 
 
@@ -461,7 +461,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-/* #meta MK_GPIOS, GPIO_AFSEL
+/* #meta PROCESS_GPIOS : SYSTEM_OPTIONS
 
     import csv
 
@@ -691,24 +691,19 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-    # The routine to define the table of GPIOs for every target.
+    # The routine to ensure the list of GPIOs make sense for the target.
 
-    def MK_GPIOS(target_entries):
+    def PROCESS_GPIOS(target):
 
-        table = {
-            target_name : tuple(mk_gpio(TARGETS.get(target_name), entry) for entry in entries)
-            for target_name, entries in target_entries.items()
-        }
+        gpios = tuple(mk_gpio(target, entry) for entry in SYSTEM_OPTIONS[target.name]['gpios'])
 
-        for gpios in table.values():
+        if (name := find_dupe(gpio.name for gpio in gpios)) is not ...:
+            raise ValueError(f'GPIO name {repr(name)} used more than once.')
 
-            if (name := find_dupe(gpio.name for gpio in gpios)) is not ...:
-                raise ValueError(f'GPIO name {repr(name)} used more than once.')
+        if (pin := find_dupe(gpio.pin for gpio in gpios if gpio.pin is not None)) is not ...:
+            raise ValueError(f'GPIO pin {repr(pin)} used more than once.')
 
-            if (pin := find_dupe(gpio.pin for gpio in gpios if gpio.pin is not None)) is not ...:
-                raise ValueError(f'GPIO pin {repr(pin)} used more than once.')
-
-        return table
+        return gpios
 
 */
 

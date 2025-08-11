@@ -2,61 +2,60 @@
 
 
 
-/* #meta SYSTEM_OPTIONS, GPIOS, NVIC_TABLE : MK_GPIOS
+/* #meta SYSTEM_OPTIONS, NVIC_TABLE
 
     SYSTEM_OPTIONS = {
 
         'SandboxNucleoH7S3L8' : {
-            'hsi_enable'    : True,
-            'hsi48_enable'  : True,
-            'csi_enable'    : True,
-            'per_ck_source' : 'hsi_ck',
-            'pll1_p_ck'     : 600_000_000,
-            'pll2_s_ck'     : 200_000_000,
-            'cpu_ck'        : 600_000_000,
-            'axi_ahb_ck'    : 300_000_000,
-            'apb1_ck'       : 150_000_000,
-            'apb2_ck'       : 150_000_000,
-            'apb4_ck'       : 150_000_000,
-            'apb5_ck'       : 150_000_000,
-            'usart3_baud'   : STLINK_BAUD,
+            'clock_tree' : {
+                'hsi_enable'    : True,
+                'hsi48_enable'  : True,
+                'csi_enable'    : True,
+                'per_ck_source' : 'hsi_ck',
+                'pll1_p_ck'     : 600_000_000,
+                'pll2_s_ck'     : 200_000_000,
+                'cpu_ck'        : 600_000_000,
+                'axi_ahb_ck'    : 300_000_000,
+                'apb1_ck'       : 150_000_000,
+                'apb2_ck'       : 150_000_000,
+                'apb4_ck'       : 150_000_000,
+                'apb5_ck'       : 150_000_000,
+                'usart3_baud'   : STLINK_BAUD,
+            },
+            'gpios' : (
+                ('led_red'   , 'B7' , 'output'    , { 'initlvl' : False       }),
+                ('led_yellow', 'D13', 'output'    , { 'initlvl' : False       }),
+                ('led_green' , 'D10', 'output'    , { 'initlvl' : False       }),
+                ('jig_tx'    , 'D8' , 'alternate' , { 'altfunc' : 'USART3_TX' }),
+                ('jig_rx'    , 'D9' , 'alternate' , { 'altfunc' : 'USART3_RX' }),
+                ('swdio'     , 'A13', 'reserved'  , {                         }),
+                ('swclk'     , 'A14', 'reserved'  , {                         }),
+            ),
+
         },
 
         'SandboxNucleoH533RE' : {
-            'hsi_enable'    : True,
-            'hsi48_enable'  : True,
-            'csi_enable'    : True,
-            'pll1_p_ck'     : 250_000_000,
-            'cpu_ck'        : 250_000_000,
-            'apb1_ck'       : 250_000_000,
-            'apb2_ck'       : 250_000_000,
-            'apb3_ck'       : 250_000_000,
+            'clock_tree' : {
+                'hsi_enable'    : True,
+                'hsi48_enable'  : True,
+                'csi_enable'    : True,
+                'pll1_p_ck'     : 250_000_000,
+                'cpu_ck'        : 250_000_000,
+                'apb1_ck'       : 250_000_000,
+                'apb2_ck'       : 250_000_000,
+                'apb3_ck'       : 250_000_000,
+            },
+            'gpios' : (
+                ('led_green' , 'A5' , 'output'    , { 'initlvl' : False       }),
+                ('jig_tx'    , 'A2' , 'alternate' , { 'altfunc' : 'USART2_TX' }),
+                ('jig_rx'    , 'A3' , 'alternate' , { 'altfunc' : 'USART2_RX' }),
+                ('swdio'     , 'A13', 'reserved'  , {                         }),
+                ('swclk'     , 'A14', 'reserved'  , {                         }),
+                ('button'    , 'C13', 'input'     , { 'pull'    : None        }),
+            ),
         },
 
     }
-
-    GPIOS = MK_GPIOS({
-
-        'SandboxNucleoH7S3L8' : (
-            ('led_red'   , 'B7' , 'output'    , { 'initlvl' : False       }),
-            ('led_yellow', 'D13', 'output'    , { 'initlvl' : False       }),
-            ('led_green' , 'D10', 'output'    , { 'initlvl' : False       }),
-            ('jig_tx'    , 'D8' , 'alternate' , { 'altfunc' : 'USART3_TX' }),
-            ('jig_rx'    , 'D9' , 'alternate' , { 'altfunc' : 'USART3_RX' }),
-            ('swdio'     , 'A13', 'reserved'  , {                         }),
-            ('swclk'     , 'A14', 'reserved'  , {                         }),
-        ),
-
-        'SandboxNucleoH533RE' : (
-            ('led_green' , 'A5' , 'output'    , { 'initlvl' : False       }),
-            ('jig_tx'    , 'A2' , 'alternate' , { 'altfunc' : 'USART2_TX' }),
-            ('jig_rx'    , 'A3' , 'alternate' , { 'altfunc' : 'USART2_RX' }),
-            ('swdio'     , 'A13', 'reserved'  , {                         }),
-            ('swclk'     , 'A14', 'reserved'  , {                         }),
-            ('button'    , 'C13', 'input'     , { 'pull'    : None        }),
-        ),
-
-    })
 
     NVIC_TABLE = {
 

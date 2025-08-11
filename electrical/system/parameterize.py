@@ -1,6 +1,6 @@
-#meta SYSTEM_PARAMETERIZE : SYSTEM_DATABASE
+#meta SYSTEM_PARAMETERIZE : SYSTEM_DATABASE, SYSTEM_OPTIONS
 
-def SYSTEM_PARAMETERIZE(target, options):
+def SYSTEM_PARAMETERIZE(target):
 
 
 
@@ -36,9 +36,10 @@ def SYSTEM_PARAMETERIZE(target, options):
 
 
 
-    # To ensure we use every option in SYSTEM_OPTIONS, we have a helper function to record every access to it
-    # that we then verify at the very end; a default value can also be supplied if the option is not in SYSTEM_OPTIONS.
+    # To ensure we use every option in `SYSTEM_OPTIONS`, we have a helper function to record every access to it
+    # that we then verify at the very end; a default value can also be supplied if the option is not in `SYSTEM_OPTIONS`.
 
+    options      = SYSTEM_OPTIONS[target.name]['clock_tree']
     used_options = OrderedSet()
 
     def opts(option, *default):
@@ -56,8 +57,8 @@ def SYSTEM_PARAMETERIZE(target, options):
         # The default value could be None, so allow that, we need to use varadic arguments.
         # e.g:
         # >
-        # >    opts('cpu_ck'      )   ->   There must be 'cpu_ck' in SYSTEM_OPTIONS.
-        # >    opts('cpu_ck', None)   ->   If no 'cpu_ck' in SYSTEM_OPTIONS, then `None`.
+        # >    opts('cpu_ck'      )   ->   There must be 'cpu_ck' in `SYSTEM_OPTIONS`.
+        # >    opts('cpu_ck', None)   ->   If no 'cpu_ck' in `SYSTEM_OPTIONS`, then `None`.
         # >
 
         if len(default) >= 2:
@@ -65,7 +66,7 @@ def SYSTEM_PARAMETERIZE(target, options):
 
 
 
-        # We found the option in SYSTEM_OPTIONS.
+        # We found the option in `SYSTEM_OPTIONS`.
 
         if option in options:
             return options[option]
@@ -87,7 +88,7 @@ def SYSTEM_PARAMETERIZE(target, options):
 
 
     # The point of parameterization is to determine what the register values should be in order
-    # to initialize the MCU to the specifications of SYSTEM_OPTIONS, so we'll be recording that too.
+    # to initialize the MCU to the specifications of `SYSTEM_OPTIONS`, so we'll be recording that too.
     # e.g:
     # >
     # >    configurations['pll1_q_divider']   ->   256
@@ -150,7 +151,7 @@ def SYSTEM_PARAMETERIZE(target, options):
 
 
 
-    # Some clock frequencies are dictated by SYSTEM_OPTIONS, so we can just immediately add them to the tree.
+    # Some clock frequencies are dictated by `SYSTEM_OPTIONS`, so we can just immediately add them to the tree.
     # We'll check later on to make sure that the frequencies are actually solvable.
 
     match target.mcu:
@@ -172,7 +173,7 @@ def SYSTEM_PARAMETERIZE(target, options):
 
 
 
-    # If SYSTEM_OPTIONS doesn't specify the frequency, we just assume it's disabled and won't be used.
+    # If `SYSTEM_OPTIONS` doesn't specify the frequency, we just assume it's disabled and won't be used.
 
     for clock in clocks:
         tree[clock] = opts(clock, 0)

@@ -143,7 +143,10 @@ __INTERRUPT_Reset:
                 # unless we're configuring SysTick which FreeRTOS uses by default,
                 # to which we won't be considering FreeRTOS at all.
 
-                elif interrupt_name in MCUS[target.mcu].freertos_interrupts and 'systick_ck' not in SYSTEM_OPTIONS[target.name]:
+                elif (
+                    interrupt_name in MCUS[target.mcu].freertos_interrupts
+                    and 'systick_ck' not in SYSTEM_OPTIONS[target.name]['clock_tree']
+                ):
 
                     Meta.line(f'.word {MCUS[target.mcu].freertos_interrupts[interrupt_name]}')
 
