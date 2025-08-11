@@ -69,34 +69,39 @@ TARGETS = (
 
         stack_size = 8192, # TODO This might be removed depending on how FreeRTOS works.
 
+        aliases = {
+            'UxART_STLINK' : 'USART3',
+        },
+
         clock_tree = {
-            'hsi_enable'    : True,
-            'hsi48_enable'  : True,
-            'csi_enable'    : True,
-            'per_ck_source' : 'hsi_ck',
-            'pll1_p_ck'     : 600_000_000,
-            'pll2_s_ck'     : 200_000_000,
-            'cpu_ck'        : 600_000_000,
-            'axi_ahb_ck'    : 300_000_000,
-            'apb1_ck'       : 150_000_000,
-            'apb2_ck'       : 150_000_000,
-            'apb4_ck'       : 150_000_000,
-            'apb5_ck'       : 150_000_000,
-            'usart3_baud'   : STLINK_BAUD,
+            'hsi_enable'          : True,
+            'hsi48_enable'        : True,
+            'csi_enable'          : True,
+            'per_ck_source'       : 'hsi_ck',
+            'pll1_p_ck'           : 600_000_000,
+            'pll2_s_ck'           : 200_000_000,
+            'cpu_ck'              : 600_000_000,
+            'axi_ahb_ck'          : 300_000_000,
+            'apb1_ck'             : 150_000_000,
+            'apb2_ck'             : 150_000_000,
+            'apb4_ck'             : 150_000_000,
+            'apb5_ck'             : 150_000_000,
+            'usart3_baud'         : STLINK_BAUD,
+            '{UxART_STLINK}_baud' : STLINK_BAUD
         },
 
         gpios = (
             ('led_red'   , 'B7' , 'output'    , { 'initlvl' : False       }),
             ('led_yellow', 'D13', 'output'    , { 'initlvl' : False       }),
             ('led_green' , 'D10', 'output'    , { 'initlvl' : False       }),
-            ('jig_tx'    , 'D8' , 'alternate' , { 'altfunc' : 'USART3_TX' }),
-            ('jig_rx'    , 'D9' , 'alternate' , { 'altfunc' : 'USART3_RX' }),
+            ('jig_tx'    , 'D8' , 'alternate' , { 'altfunc' : 'USART3_TX' }), # TODO: '{UxART_STLINK}_TX'
+            ('jig_rx'    , 'D9' , 'alternate' , { 'altfunc' : 'USART3_RX' }), # TODO: '{UxART_STLINK}_RX'
             ('swdio'     , 'A13', 'reserved'  , {                         }),
             ('swclk'     , 'A14', 'reserved'  , {                         }),
         ),
 
         interrupt_priorities = (
-            ('USART3', 0),
+            ('USART3', 0), # TODO: '{UxART_STLINK}'
         ),
 
     ),
@@ -112,27 +117,34 @@ TARGETS = (
 
         stack_size = 8192, # TODO This might be removed depending on how FreeRTOS works.
 
+        aliases = {
+            'UxART_STLINK' : 'USART2',
+        },
+
         clock_tree = {
-            'hsi_enable'   : True,
-            'hsi48_enable' : True,
-            'csi_enable'   : True,
-            'pll1_p_ck'    : 250_000_000,
-            'cpu_ck'       : 250_000_000,
-            'apb1_ck'      : 250_000_000,
-            'apb2_ck'      : 250_000_000,
-            'apb3_ck'      : 250_000_000,
+            'hsi_enable'          : True,
+            'hsi48_enable'        : True,
+            'csi_enable'          : True,
+            'pll1_p_ck'           : 250_000_000,
+            'cpu_ck'              : 250_000_000,
+            'apb1_ck'             : 250_000_000,
+            'apb2_ck'             : 250_000_000,
+            'apb3_ck'             : 250_000_000,
+            'usart2_baud'         : STLINK_BAUD,
+            '{UxART_STLINK}_baud' : STLINK_BAUD
         },
 
         gpios = (
             ('led_green' , 'A5' , 'output'    , { 'initlvl' : False       }),
-            ('jig_tx'    , 'A2' , 'alternate' , { 'altfunc' : 'USART2_TX' }),
-            ('jig_rx'    , 'A3' , 'alternate' , { 'altfunc' : 'USART2_RX' }),
+            ('jig_tx'    , 'A2' , 'alternate' , { 'altfunc' : 'USART2_TX' }), # TODO: '{UxART_STLINK}_TX'
+            ('jig_rx'    , 'A3' , 'alternate' , { 'altfunc' : 'USART2_RX' }), # TODO: '{UxART_STLINK}_RX'
             ('swdio'     , 'A13', 'reserved'  , {                         }),
             ('swclk'     , 'A14', 'reserved'  , {                         }),
             ('button'    , 'C13', 'input'     , { 'pull'    : None        }),
         ),
 
         interrupt_priorities = (
+            ('USART2', 0), # TODO: '{UxART_STLINK}'
         ),
 
     ),
