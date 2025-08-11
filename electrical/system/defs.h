@@ -319,160 +319,9 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-/* #meta MK_GPIOS
-
-    # The routine to create a single GPIO instance.
-
-    def mk_gpio(entry):
-
-        name, pin, mode, properties = entry
-
-
-
-        # The layout of a GPIO instance.
-
-        gpio = types.SimpleNamespace(
-            name       = name,
-            pin        = pin,
-            mode       = mode,
-            port       = None,
-            number     = None,
-            speed      = None,
-            pull       = None,
-            open_drain = None,
-            initlvl    = None,
-            altfunc    = None,
-        )
-
-
-
-        # If the pin of the GPIO is given, split it into its port and number parts (e.g. 'A10' -> ('A', 10)).
-        # The pin can be left unspecified as `None`, which is useful for when we don't know where
-        # the pin will be end up being at but we want to at least have it still be in the table.
-
-        if pin is not None:
-            gpio.port   = pin[0]
-            gpio.number = int(pin[1:])
-
-
-
-        # Handle the GPIO mode.
-
-        match mode:
-
-
-
-            # A simple input GPIO to read digital voltage levels.
-
-            case 'input':
-
-                # The pull-direction must be specified in order to prevent accidentally defining a floating GPIO pin.
-                gpio.pull = properties.pop('pull')
-
-
-
-            # A simple output GPIO that can be driven low or high.
-
-            case 'output':
-
-                # The initial voltage level must be specified so the user remembers to take it into consideration.
-                gpio.initlvl = properties.pop('initlvl')
-
-                # Other optional properties.
-                gpio.speed      = properties.pop('speed'     , None)
-                gpio.open_drain = properties.pop('open_drain', None)
-
-
-
-
-            # This GPIO would typically be used for some peripheral functionality (e.g. SPI clock output).
-
-            case 'alternate':
-
-                # Alternate GPIOs are denoted by a string like "UART8_TX" to indicate its alternate function.
-                gpio.altfunc = properties.pop('altfunc')
-
-                # Other optional properties.
-                gpio.speed      = properties.pop('speed'     , None)
-                gpio.pull       = properties.pop('pull'      , None)
-                gpio.open_drain = properties.pop('open_drain', None)
-
-
-
-            # An analog GPIO would have its Schmit trigger function disabled;
-            # this obviously allows for ADC/DAC usage, but it can also serve as a power-saving measure.
-
-            case 'analog':
-                raise NotImplementedError
-
-
-
-            # A GPIO that's marked as "reserved" is often useful for marking a particular pin as something
-            # that shouldn't be used because it has an important functionality (e.g. JTAG debug).
-
-            case 'reserved':
-                properties = {} # Don't care what properties this reserved GPIO has.
-
-
-
-            # Unknown GPIO mode.
-
-            case unknown:
-                raise ValueError(f'GPIO "{name}" has unknown mode: {repr(unknown)}.')
-
-
-
-        # Done processing this GPIO entry!
-
-        if properties:
-            raise ValueError(f'GPIO "{name}" has leftover properties: {properties}.')
-
-        return gpio
-
-
-
-    # The routine to define the table of GPIOs for every target.
-
-    def MK_GPIOS(target_entries):
-
-        table = {
-            target_name : tuple(map(mk_gpio, entries))
-            for target_name, entries in target_entries.items()
-        }
-
-        for gpios in table.values():
-
-            if (name := find_dupe(gpio.name for gpio in gpios)) is not ...:
-                raise ValueError(f'GPIO name "{name}" used more than once.')
-
-            if (pin := find_dupe(gpio.pin for gpio in gpios if gpio.pin is not None)) is not ...:
-                raise ValueError(f'GPIO pin "gpio.pin" used more than once.')
-
-        return table
-
-*/
-
-
-
-//////////////////////////////////////////////////////////////// GPIO Initialization ////////////////////////////////////////////////////////////////
-
-
-
-#include "GPIO_init.meta"
-/* #meta
+/* #meta MK_GPIOS, GPIO_AFSEL
 
     import csv
-
-
-
-    # Macros to make using GPIOs in C easy.
-    # TODO Use SYTEM_DATABASE.
-
-    Meta.define('GPIO_HIGH'  , ('NAME'         ), '((void) (CONCAT(GPIO, _PORT_FOR_GPIO_WRITE(NAME))->BSRR = CONCAT(GPIO_BSRR_BS, _NUMBER_FOR_GPIO_WRITE(NAME))))')
-    Meta.define('GPIO_LOW'   , ('NAME'         ), '((void) (CONCAT(GPIO, _PORT_FOR_GPIO_WRITE(NAME))->BSRR = CONCAT(GPIO_BSRR_BR, _NUMBER_FOR_GPIO_WRITE(NAME))))')
-    Meta.define('GPIO_TOGGLE', ('NAME'         ), '((void) (CONCAT(GPIO, _PORT_FOR_GPIO_WRITE(NAME))->ODR ^= CONCAT(GPIO_ODR_OD , _NUMBER_FOR_GPIO_WRITE(NAME))))')
-    Meta.define('GPIO_SET'   , ('NAME', 'VALUE'), '((void) ((VALUE) ? GPIO_HIGH(NAME) : GPIO_LOW(NAME)))')
-    Meta.define('GPIO_READ'  , ('NAME'         ), '(!!(CONCAT(GPIO, _PORT_FOR_GPIO_READ(NAME))->IDR & CONCAT(GPIO_IDR_ID, _NUMBER_FOR_GPIO_READ(NAME))))')
 
 
 
@@ -572,6 +421,176 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
         # and alternate function name to the alternate function code.
 
         GPIO_AFSEL[mcu] = mk_dict(GPIO_AFSEL[mcu])
+
+
+
+
+    # The routine to create a single GPIO instance.
+
+    def mk_gpio(target, entry):
+
+        name, pin, mode, properties = entry
+
+
+
+        # The layout of a GPIO instance.
+
+        gpio = types.SimpleNamespace(
+            name       = name,
+            pin        = pin,
+            mode       = mode,
+            port       = None,
+            number     = None,
+            speed      = None,
+            pull       = None,
+            open_drain = None,
+            initlvl    = None,
+            altfunc    = None,
+            afsel      = None,
+        )
+
+
+
+        # If the pin of the GPIO is given, split it into its port and number parts (e.g. 'A10' -> ('A', 10)).
+        # The pin can be left unspecified as `None`, which is useful for when we don't know where
+        # the pin will be end up being at but we want to at least have it still be in the table.
+
+        if pin is not None:
+            gpio.port   = pin[0]
+            gpio.number = int(pin[1:])
+
+
+
+        # Handle the GPIO mode.
+
+        match mode:
+
+
+
+            # A simple input GPIO to read digital voltage levels.
+
+            case 'input':
+
+                # The pull-direction must be specified in order to prevent accidentally defining a floating GPIO pin.
+                gpio.pull = properties.pop('pull')
+
+
+
+            # A simple output GPIO that can be driven low or high.
+
+            case 'output':
+
+                # The initial voltage level must be specified so the user remembers to take it into consideration.
+                gpio.initlvl = properties.pop('initlvl')
+
+                # Other optional properties.
+                gpio.speed      = properties.pop('speed'     , None)
+                gpio.open_drain = properties.pop('open_drain', None)
+
+
+
+
+            # This GPIO would typically be used for some peripheral functionality (e.g. SPI clock output).
+
+            case 'alternate':
+
+                # Alternate GPIOs are denoted by a string like "UART8_TX" to indicate its alternate function.
+                gpio.altfunc = properties.pop('altfunc')
+
+                # Other optional properties.
+                gpio.speed      = properties.pop('speed'     , None)
+                gpio.pull       = properties.pop('pull'      , None)
+                gpio.open_drain = properties.pop('open_drain', None)
+
+
+
+            # An analog GPIO would have its Schmit trigger function disabled;
+            # this obviously allows for ADC/DAC usage, but it can also serve as a power-saving measure.
+
+            case 'analog':
+                raise NotImplementedError
+
+
+
+            # A GPIO that's marked as "reserved" is often useful for marking a particular pin as something
+            # that shouldn't be used because it has an important functionality (e.g. JTAG debug).
+
+            case 'reserved':
+                properties = {} # Don't care what properties this reserved GPIO has.
+
+
+
+            # Unknown GPIO mode.
+
+            case unknown:
+                raise ValueError(f'GPIO "{name}" has unknown mode: {repr(unknown)}.')
+
+
+
+        # Determine the GPIO's alternate function code.
+
+        if gpio.pin is not None and gpio.altfunc is not None:
+
+            gpio.afsel = GPIO_AFSEL[target.mcu].get((gpio.port, gpio.number, gpio.altfunc), None)
+
+            if gpio.afsel is None:
+                raise ValueError(
+                    f'GPIO pin {repr(gpio.pin)} for {target.mcu} ({target.name}) '
+                    'has no alternate function {repr(gpio.altfunc)}.'
+                )
+
+
+
+        # Done processing this GPIO entry!
+
+        if properties:
+            raise ValueError(f'GPIO "{name}" has leftover properties: {properties}.')
+
+        return gpio
+
+
+
+    # The routine to define the table of GPIOs for every target.
+
+    def MK_GPIOS(target_entries):
+
+        table = {
+            target_name : tuple(mk_gpio(TARGETS.get(target_name), entry) for entry in entries)
+            for target_name, entries in target_entries.items()
+        }
+
+        for gpios in table.values():
+
+            if (name := find_dupe(gpio.name for gpio in gpios)) is not ...:
+                raise ValueError(f'GPIO name {repr(name)} used more than once.')
+
+            if (pin := find_dupe(gpio.pin for gpio in gpios if gpio.pin is not None)) is not ...:
+                raise ValueError(f'GPIO pin {repr(pin)} used more than once.')
+
+        return table
+
+*/
+
+
+
+//////////////////////////////////////////////////////////////// GPIO Initialization ////////////////////////////////////////////////////////////////
+
+
+
+#include "GPIO_init.meta"
+/* #meta
+
+
+
+
+    # Macros to make using GPIOs in C easy.
+    # TODO Use SYSTEM_DATABASE.
+
+    Meta.define('GPIO_HIGH'  , ('NAME'         ), '((void) (CONCAT(GPIO, _PORT_FOR_GPIO_WRITE(NAME))->BSRR = CONCAT(GPIO_BSRR_BS, _NUMBER_FOR_GPIO_WRITE(NAME))))')
+    Meta.define('GPIO_LOW'   , ('NAME'         ), '((void) (CONCAT(GPIO, _PORT_FOR_GPIO_WRITE(NAME))->BSRR = CONCAT(GPIO_BSRR_BR, _NUMBER_FOR_GPIO_WRITE(NAME))))')
+    Meta.define('GPIO_TOGGLE', ('NAME'         ), '((void) (CONCAT(GPIO, _PORT_FOR_GPIO_WRITE(NAME))->ODR ^= CONCAT(GPIO_ODR_OD , _NUMBER_FOR_GPIO_WRITE(NAME))))')
+    Meta.define('GPIO_SET'   , ('NAME', 'VALUE'), '((void) ((VALUE) ? GPIO_HIGH(NAME) : GPIO_LOW(NAME)))')
+    Meta.define('GPIO_READ'  , ('NAME'         ), '(!!(CONCAT(GPIO, _PORT_FOR_GPIO_READ(NAME))->IDR & CONCAT(GPIO_IDR_ID, _NUMBER_FOR_GPIO_READ(NAME))))')
 
 
 
@@ -681,18 +700,6 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-            # Ensure the alternate function is defined in the lookup table.
-
-            for gpio in gpios:
-
-                if gpio.pin is None or gpio.altfunc is None:
-                    continue # Not applicable.
-
-                if (gpio.port, gpio.number, gpio.altfunc) not in GPIO_AFSEL[target.mcu]:
-                    raise ValueError(f'GPIO pin "{gpio.pin}" for {target.mcu} ({target.name}) has no alternate function "{gpio.altfunc}".')
-
-
-
             # Set alternative function; must be done before setting pin type
             # so that the alternate function pin will start off properly.
 
@@ -701,10 +708,10 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
                     f'GPIO_AFR{('L', 'H')[gpio.number // 8]}',
                     f'GPIO{gpio.port}->AFR[{gpio.number // 8}]',
                     f'AFSEL{gpio.number}',
-                    GPIO_AFSEL[target.mcu][(gpio.port, gpio.number, gpio.altfunc)]
+                    gpio.afsel
                 )
                 for gpio in gpios
-                if gpio.pin is not None and gpio.altfunc is not None
+                if gpio.afsel is not None
             )
 
 
