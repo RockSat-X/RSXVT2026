@@ -250,6 +250,18 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 #include "SYSTEM_init.meta"
 /* #meta
 
+
+
+    # Macros to make using GPIOs in C easy. TODO Use SYSTEM_DATABASE.
+
+    Meta.define('GPIO_HIGH'  , ('NAME'         ), '((void) (CONCAT(GPIO, _PORT_FOR_GPIO_WRITE(NAME))->BSRR = CONCAT(GPIO_BSRR_BS, _NUMBER_FOR_GPIO_WRITE(NAME))))')
+    Meta.define('GPIO_LOW'   , ('NAME'         ), '((void) (CONCAT(GPIO, _PORT_FOR_GPIO_WRITE(NAME))->BSRR = CONCAT(GPIO_BSRR_BR, _NUMBER_FOR_GPIO_WRITE(NAME))))')
+    Meta.define('GPIO_TOGGLE', ('NAME'         ), '((void) (CONCAT(GPIO, _PORT_FOR_GPIO_WRITE(NAME))->ODR ^= CONCAT(GPIO_ODR_OD , _NUMBER_FOR_GPIO_WRITE(NAME))))')
+    Meta.define('GPIO_SET'   , ('NAME', 'VALUE'), '((void) ((VALUE) ? GPIO_HIGH(NAME) : GPIO_LOW(NAME)))')
+    Meta.define('GPIO_READ'  , ('NAME'         ), '(!!(CONCAT(GPIO, _PORT_FOR_GPIO_READ(NAME))->IDR & CONCAT(GPIO_IDR_ID, _NUMBER_FOR_GPIO_READ(NAME))))')
+
+
+
     @Meta.ifs(TARGETS, '#if')
     def _(target):
 
@@ -276,6 +288,133 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
+            # Initialize the GPIOs. TODO Use SYSTEM_DATABASE.
+
+            put_title('GPIOs')
+
+            gpios = GPIOS[target.name]
+
+
+
+            # Macros to make GPIOs easy to use.
+
+            for gpio in gpios:
+
+
+
+                # Skip GPIOs with no defined pin yet.
+
+                if gpio.pin is None:
+                    continue
+
+
+
+                # Macros to allow reading from applicable GPIO pins.
+
+                if gpio.mode in ('input', 'alternate'):
+                    Meta.define('_PORT_FOR_GPIO_READ'  , ('NAME'), gpio.port  , NAME = gpio.name)
+                    Meta.define('_NUMBER_FOR_GPIO_READ', ('NAME'), gpio.number, NAME = gpio.name)
+
+
+
+                # Macros to control output GPIO pins.
+
+                if gpio.mode == 'output':
+                    Meta.define('_PORT_FOR_GPIO_WRITE'  , ('NAME'), gpio.port  , NAME = gpio.name)
+                    Meta.define('_NUMBER_FOR_GPIO_WRITE', ('NAME'), gpio.number, NAME = gpio.name)
+
+
+
+            # Enable GPIO ports that have defined pins.
+
+            CMSIS_SET(
+                ('RCC', SYSTEM_DATABASE[target.mcu]['GPIO_PORT_ENABLE_REGISTER'].VALUE, f'GPIO{port}EN', True)
+                for port in sorted(OrderedSet(gpio.port for gpio in gpios if gpio.pin is not None))
+            )
+
+
+
+            # Set output type (push-pull/open-drain).
+
+            CMSIS_SET(
+                (f'GPIO{gpio.port}', 'OTYPER', f'OT{gpio.number}', gpio.open_drain)
+                for gpio in gpios
+                if gpio.pin is not None and gpio.open_drain is not None
+            )
+
+
+
+            # Set initial output level.
+
+            CMSIS_SET(
+                (f'GPIO{gpio.port}', 'ODR', f'OD{gpio.number}', gpio.initlvl)
+                for gpio in gpios
+                if gpio.pin is not None and gpio.initlvl is not None
+            )
+
+
+
+            # Set GPIO drive strength.
+
+            CMSIS_SET(
+                (
+                    f'GPIO{gpio.port}',
+                    'OSPEEDR',
+                    f'OSPEED{gpio.number}',
+                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_SPEED'].VALUE)[gpio.speed]
+                )
+                for gpio in gpios
+                if gpio.pin is not None and gpio.speed is not None
+            )
+
+
+
+            # Set pull up/pull down/float configuration.
+
+            CMSIS_SET(
+                (
+                    f'GPIO{gpio.port}',
+                    'PUPDR',
+                    f'PUPD{gpio.number}',
+                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_PULL'].VALUE)[gpio.pull]
+                )
+                for gpio in gpios
+                if gpio.pin is not None and gpio.pull is not None
+            )
+
+
+
+            # Set alternative function; must be done before setting pin type
+            # so that the alternate function pin will start off properly.
+
+            CMSIS_WRITE(
+                (
+                    f'GPIO_AFR{('L', 'H')[gpio.number // 8]}',
+                    f'GPIO{gpio.port}->AFR[{gpio.number // 8}]',
+                    f'AFSEL{gpio.number}',
+                    gpio.afsel
+                )
+                for gpio in gpios
+                if gpio.afsel is not None
+            )
+
+
+
+            # Set GPIO pin mode.
+
+            CMSIS_SET(
+                (
+                    f'GPIO{gpio.port}',
+                    'MODER',
+                    f'MODE{gpio.number}',
+                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_MODE'].VALUE)[gpio.mode]
+                )
+                for gpio in gpios
+                if gpio.pin is not None and gpio.mode not in (None, 'reserved')
+            )
+
+
+
             # Set the priorities of the defined NVIC interrupts.
             # Note that the Armv7-M architecture guarantees minimum of 3 priority bits,
             # while the Armv8-M guarantees minimum of 2; for now, we'll appeal
@@ -283,13 +422,11 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
             # @/pg 526/sec B1.5.4/`Armv7-M`.
             # @/pg 86/sec B3.9/`Armv8-M`.
 
-            if NVIC_TABLE[target.name]:
+            put_title('NVIC Priorities')
 
-                put_title('NVIC Priorities')
-
-                for interrupt, niceness in NVIC_TABLE[target.name]:
-                    assert 0b00 <= niceness <= 0b11
-                    Meta.line(f'NVIC->IPR[NVICInterrupt_{interrupt}] = {niceness} << 6;')
+            for interrupt, niceness in NVIC_TABLE[target.name]:
+                assert 0b00 <= niceness <= 0b11
+                Meta.line(f'NVIC->IPR[NVICInterrupt_{interrupt}] = {niceness} << 6;')
 
 
 
@@ -421,7 +558,6 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
         # and alternate function name to the alternate function code.
 
         GPIO_AFSEL[mcu] = mk_dict(GPIO_AFSEL[mcu])
-
 
 
 
@@ -568,166 +704,6 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
                 raise ValueError(f'GPIO pin {repr(pin)} used more than once.')
 
         return table
-
-*/
-
-
-
-//////////////////////////////////////////////////////////////// GPIO Initialization ////////////////////////////////////////////////////////////////
-
-
-
-#include "GPIO_init.meta"
-/* #meta
-
-
-
-
-    # Macros to make using GPIOs in C easy.
-    # TODO Use SYSTEM_DATABASE.
-
-    Meta.define('GPIO_HIGH'  , ('NAME'         ), '((void) (CONCAT(GPIO, _PORT_FOR_GPIO_WRITE(NAME))->BSRR = CONCAT(GPIO_BSRR_BS, _NUMBER_FOR_GPIO_WRITE(NAME))))')
-    Meta.define('GPIO_LOW'   , ('NAME'         ), '((void) (CONCAT(GPIO, _PORT_FOR_GPIO_WRITE(NAME))->BSRR = CONCAT(GPIO_BSRR_BR, _NUMBER_FOR_GPIO_WRITE(NAME))))')
-    Meta.define('GPIO_TOGGLE', ('NAME'         ), '((void) (CONCAT(GPIO, _PORT_FOR_GPIO_WRITE(NAME))->ODR ^= CONCAT(GPIO_ODR_OD , _NUMBER_FOR_GPIO_WRITE(NAME))))')
-    Meta.define('GPIO_SET'   , ('NAME', 'VALUE'), '((void) ((VALUE) ? GPIO_HIGH(NAME) : GPIO_LOW(NAME)))')
-    Meta.define('GPIO_READ'  , ('NAME'         ), '(!!(CONCAT(GPIO, _PORT_FOR_GPIO_READ(NAME))->IDR & CONCAT(GPIO_IDR_ID, _NUMBER_FOR_GPIO_READ(NAME))))')
-
-
-
-    # Generate code to initialize and use the GPIOs in C.
-    # TODO Use SYSTEM_DATABASE.
-
-    @Meta.ifs(TARGETS, '#if')
-    def _(target):
-
-        yield f'TARGET_NAME_IS_{target.name}'
-
-        gpios = GPIOS[target.name]
-
-
-
-        # Macros to make GPIOs easy to use.
-
-        for gpio in gpios:
-
-
-
-            # Skip GPIOs with no defined pin yet.
-
-            if gpio.pin is None:
-                continue
-
-
-
-            # Macros to allow reading from applicable GPIO pins.
-
-            if gpio.mode in ('input', 'alternate'):
-                Meta.define('_PORT_FOR_GPIO_READ'  , ('NAME'), gpio.port  , NAME = gpio.name)
-                Meta.define('_NUMBER_FOR_GPIO_READ', ('NAME'), gpio.number, NAME = gpio.name)
-
-
-
-            # Macros to control output GPIO pins.
-
-            if gpio.mode == 'output':
-                Meta.define('_PORT_FOR_GPIO_WRITE'  , ('NAME'), gpio.port  , NAME = gpio.name)
-                Meta.define('_NUMBER_FOR_GPIO_WRITE', ('NAME'), gpio.number, NAME = gpio.name)
-
-
-
-        # Initialization procedure for GPIOs.
-
-        with Meta.enter('static void\nGPIO_init(void)'):
-
-
-
-            # Enable GPIO ports that have defined pins.
-
-            CMSIS_SET(
-                ('RCC', SYSTEM_DATABASE[target.mcu]['GPIO_PORT_ENABLE_REGISTER'].VALUE, f'GPIO{port}EN', True)
-                for port in sorted(OrderedSet(gpio.port for gpio in gpios if gpio.pin is not None))
-            )
-
-
-
-            # Set output type (push-pull/open-drain).
-
-            CMSIS_SET(
-                (f'GPIO{gpio.port}', 'OTYPER', f'OT{gpio.number}', gpio.open_drain)
-                for gpio in gpios
-                if gpio.pin is not None and gpio.open_drain is not None
-            )
-
-
-
-            # Set initial output level.
-
-            CMSIS_SET(
-                (f'GPIO{gpio.port}', 'ODR', f'OD{gpio.number}', gpio.initlvl)
-                for gpio in gpios
-                if gpio.pin is not None and gpio.initlvl is not None
-            )
-
-
-
-            # Set GPIO drive strength.
-
-            CMSIS_SET(
-                (
-                    f'GPIO{gpio.port}',
-                    'OSPEEDR',
-                    f'OSPEED{gpio.number}',
-                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_SPEED'].VALUE)[gpio.speed]
-                )
-                for gpio in gpios
-                if gpio.pin is not None and gpio.speed is not None
-            )
-
-
-
-            # Set pull up/pull down/float configuration.
-
-            CMSIS_SET(
-                (
-                    f'GPIO{gpio.port}',
-                    'PUPDR',
-                    f'PUPD{gpio.number}',
-                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_PULL'].VALUE)[gpio.pull]
-                )
-                for gpio in gpios
-                if gpio.pin is not None and gpio.pull is not None
-            )
-
-
-
-            # Set alternative function; must be done before setting pin type
-            # so that the alternate function pin will start off properly.
-
-            CMSIS_WRITE(
-                (
-                    f'GPIO_AFR{('L', 'H')[gpio.number // 8]}',
-                    f'GPIO{gpio.port}->AFR[{gpio.number // 8}]',
-                    f'AFSEL{gpio.number}',
-                    gpio.afsel
-                )
-                for gpio in gpios
-                if gpio.afsel is not None
-            )
-
-
-
-            # Set GPIO pin mode.
-
-            CMSIS_SET(
-                (
-                    f'GPIO{gpio.port}',
-                    'MODER',
-                    f'MODE{gpio.number}',
-                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_MODE'].VALUE)[gpio.mode]
-                )
-                for gpio in gpios
-                if gpio.pin is not None and gpio.mode not in (None, 'reserved')
-            )
 
 */
 

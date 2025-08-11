@@ -43,7 +43,6 @@ task_a(void*)
 extern noret void
 main(void)
 {
-    GPIO_init();
     SYSTEM_init();
     // TODO: JIG_init();
 
