@@ -245,12 +245,14 @@ for mcu in MCUS:
 
 
         # Determine the placeholders in the entry's tag.
-        # e.g.
-        # 'pll{UNIT}{CHANNEL}_enable'   ->   { 'UNIT', 'CHANNEL' }
+        # e.g:
+        # >
+        # >    'pll{UNIT}{CHANNEL}_enable'   ->   { 'UNIT', 'CHANNEL' }
+        # >
 
-        placeholders = OrderedSet(re.findall('{(.*?)}', tag))
+        ordered_placeholders = OrderedSet(re.findall('{(.*?)}', tag))
 
-        if not placeholders and len(records) >= 2:
+        if not ordered_placeholders and len(records) >= 2:
             raise ValueError(
                 f'For {mcu}, multiple database entries were found with the tag "{tag}"; '
                 f'there should be a {{...}} in the string.'
@@ -260,47 +262,47 @@ for mcu in MCUS:
 
         # Based on the placeholder count, we grouped together all of the database entries that have the same tag.
 
-        match len(placeholders):
+        match list(ordered_placeholders):
 
 
 
             # No placeholder in the tag, so the user should expect a single entry when querying.
-            # e.g.
-            # (iwdg_stopped_during_debug (DBGMCU APB4FZR DBG_IWDG))   ->   SYSTEM_DATABASE[mcu]['iwdg_stopped_during_debug']
+            # e.g:
+            # >
+            # >    (iwdg_stopped_during_debug (DBGMCU APB4FZR DBG_IWDG))   ->   SYSTEM_DATABASE[mcu]['iwdg_stopped_during_debug']
+            # >
 
-            case 0:
+            case []:
                 SYSTEM_DATABASE[mcu][tag], = records
 
 
 
-            # Single placeholder in the tag; organize entries by their value for the placeholder.
-            # e.g.
-            # (pll{UNIT}_predivider (RCC PLLCKSELR DIVM1) (minmax: 1 63) (UNIT = 1))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][1]
-            # (pll{UNIT}_predivider (RCC PLLCKSELR DIVM2) (minmax: 1 63) (UNIT = 2))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][2]
-            # (pll{UNIT}_predivider (RCC PLLCKSELR DIVM3) (minmax: 1 63) (UNIT = 3))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][3]
-
-            case 1:
-                SYSTEM_DATABASE[mcu][tag] = mk_dict((record.__dict__[placeholders[0]], record) for record in records)
-
-
-
-            # Multiple placeholders in the tag; organize entries by their values for the placeholders using a namedtuple.
+            # Single placeholder in the tag.
             # e.g:
             # >
-            # > (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1PEN) (UNIT = 1) (CHANNEL = p))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 'p')]
-            # > (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1QEN) (UNIT = 1) (CHANNEL = q))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 'q')]
-            # > (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1SEN) (UNIT = 1) (CHANNEL = s))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 's')]
+            # >    (pll{UNIT}_predivider (RCC PLLCKSELR DIVM1) (minmax: 1 63) (UNIT = 1))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][1]
+            # >    (pll{UNIT}_predivider (RCC PLLCKSELR DIVM2) (minmax: 1 63) (UNIT = 2))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][2]
+            # >    (pll{UNIT}_predivider (RCC PLLCKSELR DIVM3) (minmax: 1 63) (UNIT = 3))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][3]
+            # >
+
+            case [placeholder]:
+                SYSTEM_DATABASE[mcu][tag] = mk_dict(
+                    (record.__dict__[placeholder], record)
+                    for record in records
+                )
+
+
+
+            # Multiple placeholders in the tag.
+            # e.g:
+            # >
+            # >    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1PEN) (UNIT = 1) (CHANNEL = p))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 'p')]
+            # >    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1QEN) (UNIT = 1) (CHANNEL = q))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 'q')]
+            # >    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1SEN) (UNIT = 1) (CHANNEL = s))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 's')]
             # >
 
             case _:
-
-                Placeholders = collections.namedtuple('Placeholders', placeholders)
-
-                SYSTEM_DATABASE[mcu][tag] = {
-                    Placeholders(**{
-                        key : value
-                        for key, value in record.__dict__.items()
-                        if key in placeholders
-                    }) : record
+                SYSTEM_DATABASE[mcu][tag] = mk_dict(
+                    (tuple(record.__dict__[placeholder] for placeholder in ordered_placeholders), record)
                     for record in records
-                }
+                )
