@@ -1,4 +1,4 @@
-#meta SYSTEM_CONFIGURIZE : SYSTEM_DATABASE
+#meta SYSTEM_CONFIGURIZE : SYSTEM_DATABASE, verify_and_get_placeholders_in_tag_order
 
 import re, collections, builtins
 
@@ -31,23 +31,9 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
-        # Make sure all placeholders in the tag are given.
-        # e.g:
-        # >
-        # >    cfgs('pll{UNIT}_input_range', UNIT = 3)
-        # >
-
-        placeholders = OrderedSet(re.findall('{(.*?)}', tag))
-
-        if differences := list(OrderedSet(placeholders) - placeholder_values.keys()):
-            raise ValueError(f'Tag "{tag}" is missing the value for the placeholder "{differences[0]}".')
-
-        if differences := list(OrderedSet(placeholder_values.keys()) - placeholders):
-            raise ValueError(f'Tag "{tag}" has no placeholder "{differences[0]}".')
-
-
-
         # @/`About CfgFmt`.
+
+        verify_and_get_placeholders_in_tag_order(tag, **placeholder_values)
 
         placeholder_values_for_configuration = {
             name : value.configuration_expansion if isinstance(value, CfgFmt) else value
@@ -64,8 +50,8 @@ def SYSTEM_CONFIGURIZE(target, configurations):
         # Get the value from `configurations`, if needed.
         # e.g:
         # >
-        # >    cfgs('flash_latency'        )   ->   configurations['flash_latency']
-        # >    cfgs('flash_latency', ...   )   ->   ('FLASH', 'ACR', 'LATENCY', configurations['flash_latency'])
+        # >    cfgs('flash_latency'     )   ->                               configurations['flash_latency']
+        # >    cfgs('flash_latency', ...)   ->   ('FLASH', 'ACR', 'LATENCY', configurations['flash_latency'])
         # >
         #
 
@@ -76,7 +62,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
             configuration = tag.format(**placeholder_values_for_configuration)
 
             if configuration not in configurations:
-                if placeholders:
+                if placeholder_values:
                     raise ValueError(f'For {target.mcu}, the tag "{tag}" expanded to the undefined configuration "{configuration}".')
                 else:
                     raise ValueError(f'For {target.mcu}, configuration "{configuration}" was not provided.')
@@ -84,61 +70,6 @@ def SYSTEM_CONFIGURIZE(target, configurations):
             used_configurations |= { configuration }
 
             return configurations[configuration]
-
-
-
-        # Find the database entry that has the desired tag and placeholder values, if needed.
-        # e.g:
-        # >
-        # >    cfgs('pll{UNIT}_predivider', UNIT = 2)   ->   (pll{UNIT}_predivider (RCC PLLCKSELR DIVM2) (minmax: 1 63) (UNIT = 2))
-        # >
-
-        def find_database_entry():
-
-            if tag not in database:
-                raise ValueError(f'For {target.mcu}, no system database entry was found with the tag of "{tag}".')
-
-            match len(placeholders):
-
-
-
-                # No placeholders, so we just do a direct look-up.
-                # e.g:
-                # >
-                # >    cfgs('cpu_divider')   ->   SYSTEM_DATBASE[mcu]['cpu_divider']
-                # >
-
-                case 0:
-                    return database[tag]
-
-
-
-                # Single placeholder, so we get the entry based on the solely provided keyword-argument.
-                # e.g:
-                # >
-                # >    cfgs('pll{UNIT}_predivider', UNIT = 2)   ->   SYSTEM_DATBASE[mcu]['pll{UNIT}_predivider'][2]
-                # >
-
-                case 1:
-
-                    placeholder_value = placeholder_values_for_database[placeholders[0]]
-
-                    if placeholder_value not in database[tag]:
-                        raise ValueError(f'Placeholder ({placeholders[0]} = {repr(placeholder_value)}) is not an option for database entry {repr(tag)}.')
-
-                    return database[tag][placeholder_value]
-
-
-
-                # Multiple placeholders, so we get the entry based on the provided keyword-arguments.
-                # e.g:
-                # >
-                # >    cfgs('pll{UNIT}{CHANNEL}_enable', UNIT = 2, CHANNEL = 'q')   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][Placeholders(UNIT = 2, CHANNEL = 'q')]
-                # >
-
-                case _:
-                    Placeholders = collections.namedtuple('Placeholders', placeholder_values_for_database.keys())
-                    return database[tag][Placeholders(**placeholder_values_for_database)]
 
 
 
@@ -166,7 +97,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
             # >
 
             case [builtins.Ellipsis]:
-                entry = find_database_entry()
+                entry = database.query(tag, **placeholder_values_for_database)
                 return (entry.SECTION, entry.REGISTER, entry.FIELD, find_configuration_value())
 
 
@@ -178,7 +109,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
             # >
 
             case [value]:
-                entry = find_database_entry()
+                entry = database.query(tag, **placeholder_values_for_database)
                 return (entry.SECTION, entry.REGISTER, entry.FIELD, value)
 
 
