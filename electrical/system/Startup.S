@@ -145,7 +145,7 @@ __INTERRUPT_Reset:
 
                 elif (
                     interrupt_name in MCUS[target.mcu].freertos_interrupts
-                    and 'systick_ck' not in SYSTEM_OPTIONS[target.name]['clock_tree']
+                    and 'systick_ck' not in target.clock_tree
                 ):
 
                     Meta.line(f'.word {MCUS[target.mcu].freertos_interrupts[interrupt_name]}')

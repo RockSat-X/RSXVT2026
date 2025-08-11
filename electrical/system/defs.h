@@ -116,7 +116,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 #include "interrupts.meta"
-/* #meta INTERRUPTS : SYSTEM_OPTIONS
+/* #meta INTERRUPTS
 
 
 
@@ -225,7 +225,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
                 # This interrupt is reserved.
                 continue
 
-            if interrupt in MCUS[target.mcu].freertos_interrupts and 'systick_ck' not in SYSTEM_OPTIONS[target.name]['clock_tree']:
+            if interrupt in MCUS[target.mcu].freertos_interrupts and 'systick_ck' not in target.clock_tree:
                 # This interrupt will be supplied by FreeRTOS,
                 # unless we're configuring SysTick which FreeRTOS uses by default,
                 # to which we won't be considering FreeRTOS at all.
@@ -395,7 +395,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
             # @/pg 626/tbl B3-8/`Armv7-M`.
             # @/pg 1452/tbl D1.1.10/`Armv8-M`.
 
-            for interrupt, niceness in SYSTEM_OPTIONS[target.name]['interrupt_priorities']:
+            for interrupt, niceness in target.interrupt_priorities:
                 for macro, register in (
                     ('NVIC_ENABLE'       , 'ISER'),
                     ('NVIC_DISABLE'      , 'ICER'),
@@ -417,7 +417,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
             # @/pg 526/sec B1.5.4/`Armv7-M`.
             # @/pg 86/sec B3.9/`Armv8-M`.
 
-            for interrupt, niceness in SYSTEM_OPTIONS[target.name]['interrupt_priorities']:
+            for interrupt, niceness in target.interrupt_priorities:
                 assert 0b00 <= niceness <= 0b11
                 Meta.line(f'NVIC->IPR[{interrupt}_IRQn] = {niceness} << 6;')
 
@@ -461,7 +461,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-/* #meta PROCESS_GPIOS : SYSTEM_OPTIONS
+/* #meta PROCESS_GPIOS
 
     import csv
 
@@ -695,7 +695,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
     def PROCESS_GPIOS(target):
 
-        gpios = tuple(mk_gpio(target, entry) for entry in SYSTEM_OPTIONS[target.name]['gpios'])
+        gpios = tuple(mk_gpio(target, entry) for entry in target.gpios)
 
         if (name := find_dupe(gpio.name for gpio in gpios)) is not ...:
             raise ValueError(f'GPIO name {repr(name)} used more than once.')
