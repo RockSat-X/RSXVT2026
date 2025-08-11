@@ -228,11 +228,12 @@ for target in TARGETS:
             -fmax-errors=1
             -fno-strict-aliasing
             -fno-eliminate-unused-debug-types
+            -ffunction-sections
+            -fcompare-debug-second
             {'\n'.join(f'-D {name}={repr(value)}' for name, value in defines                  )}
             {'\n'.join(f'-W{name}'                for name        in enabled_warnings .split())}
             {'\n'.join(f'-Wno-{name}'             for name        in disabled_warnings.split())}
             {'\n'.join(f'-I {repr(str(path))}'    for path        in include_file_paths       )}
-            -ffunction-sections
         '''
     )
 
