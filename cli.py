@@ -101,25 +101,6 @@ def require(*needed_programs):
         elif missing_program in (roster := [
             'STM32_Programmer_CLI',
             'ST-LINK_gdbserver'
-        ]):
-
-            log(f'''
-                Python couldn't find "{missing_program}" in your PATH; have you installed STM32CubeCLT yet?
-                {ANSI(f'> https://www.st.com/en/development-tools/stm32cubeclt.html', 'bold')}
-                Install and then make sure all of these commands are available in your PATH:
-            ''')
-
-            for program in roster:
-                if shutil.which(program) is not None:
-                    log(ANSI(f'    - [located] {program}', 'fg_green'))
-                else:
-                    log(f'    - [missing] {program}')
-
-
-
-        # Arm GNU Toolchain.
-
-        elif missing_program in (roster := [
             'arm-none-eabi-gcc',
             'arm-none-eabi-cpp',
             'arm-none-eabi-objcopy',
@@ -127,20 +108,10 @@ def require(*needed_programs):
         ]):
 
             log(f'''
-                Python couldn't find "{missing_program}" in your PATH; have you installed the Arm GNU toolchain (version 14.2.Rel1, December 10, 2024) yet?
-                {ANSI(f'> website : https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads', 'fg_bright_red')}
+                Python couldn't find "{missing_program}" in your PATH; have you installed STM32CubeCLT yet?
+                {ANSI(f'> https://www.st.com/en/development-tools/stm32cubeclt.html', 'bold')}
+                Install and then make sure all of these commands are available in your PATH:
             ''')
-
-            for platform, url in (
-                ('win32', 'https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-mingw-w64-x86_64-arm-none-eabi.exe'),
-                ('linux', 'https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi.tar.xz'       ),
-            ):
-                log(ANSI(
-                    f'> {platform}   : {url}',
-                    *(['bold', 'fg_bright_red'] if sys.platform == platform else ['fg_bright_red'])
-                ))
-
-            log('Install/unzip and then make sure all of these commands are available in your PATH:')
 
             for program in roster:
                 if shutil.which(program) is not None:
