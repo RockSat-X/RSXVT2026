@@ -3,7 +3,6 @@
 ## Action Items.
 
 - [ ] Onboarding.
-    - [ ] All members in the RockSat-X program must be a "U.S. Person".[^us-persons]
     - [ ] All members finishing "Onboarding the Git Workflow".
 
 [^us-persons]: ``(@/pg 7/sec 1.2/`RSX`)``.
