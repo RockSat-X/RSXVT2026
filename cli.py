@@ -100,7 +100,7 @@ def require(*needed_programs):
 
         elif missing_program in (roster := [
             'STM32_Programmer_CLI',
-            'ST-LINK_gdbserver'
+            'ST-LINK_gdbserver',
             'arm-none-eabi-gcc',
             'arm-none-eabi-cpp',
             'arm-none-eabi-objcopy',
