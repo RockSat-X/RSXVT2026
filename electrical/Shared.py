@@ -224,7 +224,7 @@ for target in TARGETS:
             {architecture_flags}
             -O0
             -ggdb3
-            -std=gnu23
+            -std=gnu2x
             -fmax-errors=1
             -fno-strict-aliasing
             -fno-eliminate-unused-debug-types
