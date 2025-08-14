@@ -108,8 +108,9 @@ def require(*needed_programs):
         ]):
 
             log(f'''
-                Python couldn't find "{missing_program}" in your PATH; have you installed STM32CubeCLT yet?
+                Python couldn't find "{missing_program}" in your PATH; have you installed STM32CubeCLT 1.19.0 yet?
                 {ANSI(f'> https://www.st.com/en/development-tools/stm32cubeclt.html', 'bold')}
+                Note that the installation is behind a login-wall.
                 Install and then make sure all of these commands are available in your PATH:
             ''')
 
