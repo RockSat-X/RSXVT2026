@@ -229,9 +229,9 @@ for target in TARGETS:
     # Additional macro defines.
 
     defines = [
-        ('TARGET_NAME'         , target.name                            ),
-        ('LINK_stack_size'     , target.stack_size                      ),
-        ('STM32_CMSIS_DEVICE_H', f'<{MCUS[target.mcu].cmsis_file_path}>'),
+        ('TARGET_NAME'         , target.name                                       ),
+        ('LINK_stack_size'     , target.stack_size                                 ),
+        ('STM32_CMSIS_DEVICE_H', f'<{MCUS[target.mcu].cmsis_file_path.as_posix()}>'),
     ]
 
     for other in TARGETS:
@@ -249,16 +249,16 @@ for target in TARGETS:
             {architecture_flags}
             -O0
             -ggdb3
-            -std=gnu23
+            -std=gnu2x
             -fmax-errors=1
             -fno-strict-aliasing
             -fno-eliminate-unused-debug-types
             -ffunction-sections
             -fcompare-debug-second
-            {'\n'.join(f'-D {name}={repr(value)}' for name, value in defines                  )}
-            {'\n'.join(f'-W{name}'                for name        in enabled_warnings .split())}
-            {'\n'.join(f'-Wno-{name}'             for name        in disabled_warnings.split())}
-            {'\n'.join(f'-I {repr(str(path))}'    for path        in include_file_paths       )}
+            {'\n'.join(f'-D {name}="{value}"'    for name, value in defines                  )}
+            {'\n'.join(f'-W{name}'               for name        in enabled_warnings .split())}
+            {'\n'.join(f'-Wno-{name}'            for name        in disabled_warnings.split())}
+            {'\n'.join(f'-I "{path.as_posix()}"' for path        in include_file_paths       )}
         '''
     )
 
