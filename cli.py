@@ -100,26 +100,7 @@ def require(*needed_programs):
 
         elif missing_program in (roster := [
             'STM32_Programmer_CLI',
-            'ST-LINK_gdbserver'
-        ]):
-
-            log(f'''
-                Python couldn't find "{missing_program}" in your PATH; have you installed STM32CubeCLT yet?
-                {ANSI(f'> https://www.st.com/en/development-tools/stm32cubeclt.html', 'bold')}
-                Install and then make sure all of these commands are available in your PATH:
-            ''')
-
-            for program in roster:
-                if shutil.which(program) is not None:
-                    log(ANSI(f'    - [located] {program}', 'fg_green'))
-                else:
-                    log(f'    - [missing] {program}')
-
-
-
-        # Arm GNU Toolchain.
-
-        elif missing_program in (roster := [
+            'ST-LINK_gdbserver',
             'arm-none-eabi-gcc',
             'arm-none-eabi-cpp',
             'arm-none-eabi-objcopy',
@@ -127,20 +108,11 @@ def require(*needed_programs):
         ]):
 
             log(f'''
-                Python couldn't find "{missing_program}" in your PATH; have you installed the Arm GNU toolchain (version 14.2.Rel1, December 10, 2024) yet?
-                {ANSI(f'> website : https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads', 'fg_bright_red')}
+                Python couldn't find "{missing_program}" in your PATH; have you installed STM32CubeCLT 1.19.0 yet?
+                {ANSI(f'> https://www.st.com/en/development-tools/stm32cubeclt.html', 'bold')}
+                Note that the installation is behind a login-wall.
+                Install and then make sure all of these commands are available in your PATH:
             ''')
-
-            for platform, url in (
-                ('win32', 'https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-mingw-w64-x86_64-arm-none-eabi.exe'),
-                ('linux', 'https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi.tar.xz'       ),
-            ):
-                log(ANSI(
-                    f'> {platform}   : {url}',
-                    *(['bold', 'fg_bright_red'] if sys.platform == platform else ['fg_bright_red'])
-                ))
-
-            log('Install/unzip and then make sure all of these commands are available in your PATH:')
 
             for program in roster:
                 if shutil.which(program) is not None:
@@ -345,7 +317,7 @@ def execute(
     match sys.platform:
 
         case 'win32':
-            use_powershell = cmd is None
+            use_powershell = cmd is None and powershell is not None
             command        = powershell if use_powershell else cmd
 
         case _:
@@ -446,7 +418,7 @@ def clean(parameters):
                 rm -rf {repr(str(directory))}
             ''',
             cmd = f'''
-                if exist {repr(str(directory))} rmdir /S /Q {repr(str(directory))}
+                if exist "{directory}" rmdir /S /Q "{directory}"
             ''',
         )
 
@@ -604,8 +576,8 @@ def build(parameters):
 
             execute(f'''
                 arm-none-eabi-gcc
-                    -o {repr(str(object))}
-                    -c {repr(str(source))}
+                    -o "{object.as_posix()}"
+                    -c "{source.as_posix()}"
                     {target.compiler_flags}
             ''')
 
@@ -629,8 +601,8 @@ def build(parameters):
                 {target.compiler_flags}
                 -E
                 -x c
-                -o {repr(str(root(BUILD, target.name, 'link.ld')))}
-                {repr(str(root('./electrical/system/link.ld')))}
+                -o "{root(BUILD, target.name, 'link.ld').as_posix()}"
+                "{root('./electrical/system/link.ld').as_posix()}"
         ''')
 
         log()
@@ -638,10 +610,10 @@ def build(parameters):
         # Link object files.
         execute(f'''
             arm-none-eabi-gcc
-                -o {repr(str(root(BUILD, target.name, target.name + '.elf')))}
-                -T {repr(str(root(BUILD, target.name, 'link.ld')))}
+                -o "{root(BUILD, target.name, target.name + '.elf').as_posix()}"
+                -T "{root(BUILD, target.name, 'link.ld').as_posix()}"
                 {' '.join(
-                    repr(str(root(BUILD, target.name, source.stem + '.o')))
+                    f'"{root(BUILD, target.name, source.stem + '.o').as_posix()}"'
                     for source in target.source_file_paths
                 )}
                 {target.linker_flags}
@@ -654,8 +626,8 @@ def build(parameters):
             arm-none-eabi-objcopy
                 -S
                 -O binary
-                {repr(str(root(BUILD, target.name, target.name + '.elf')))}
-                {repr(str(root(BUILD, target.name, target.name + '.bin')))}
+                "{root(BUILD, target.name, target.name + '.elf').as_posix()}"
+                "{root(BUILD, target.name, target.name + '.bin').as_posix()}"
         ''')
 
 
@@ -728,7 +700,7 @@ def flash(parameters):
         exit_code = execute(f'''
             STM32_Programmer_CLI
                 --connect port=SWD index={stlink.probe_index}
-                --download {repr(str(root(BUILD, parameters.target.name, parameters.target.name + '.bin')))} 0x08000000
+                --download "{root(BUILD, parameters.target.name, parameters.target.name + '.bin').as_posix()}" 0x08000000
                 --verify
                 --start
         ''', nonzero_exit_code_ok = True)

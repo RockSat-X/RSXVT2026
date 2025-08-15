@@ -125,7 +125,7 @@ def parse_entry(entry):
 
     # Finished parsing for the tag and record from the S-expression of the entry.
 
-    return tag, types.SimpleNamespace(record)
+    return tag, types.SimpleNamespace(**record.__dict__)
 
 
 
