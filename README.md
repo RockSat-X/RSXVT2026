@@ -118,11 +118,11 @@ Here are some important things to consider:
       - One 16-bit parallel interface.[^parallel-interface]
 
   - Mechanical specifications.
-    - Weight budget of 30±1 lb (13.6±0.5 kg). :small_red_triangle:
-    - Height budget of 10.75 in (27.3 cm). :small_red_triangle:
+    - Weight budget of 30±1 lb (13.6±0.5 kg) (for full experiment slot). :small_red_triangle:
+    - Height budget of 10.75 in (27.3 cm) (for full experiment slot). :small_red_triangle:
     - Center of gravity within 1 in (2.5 cm) of deck-plate's normal. :small_red_triangle:
     - Withstand ~25 G in all directions with impulses of ~50 G in the thrust axis. :small_red_triangle:
-    - Maximum deployment speed of 1 in/s (2.5 cm/s). :small_red_triangle:
+    - Maximum deployment speed of 1 in/s (2.5 cm/s) (faster speeds can be approved). :small_red_triangle:
     - Speculated reentry temperature of at least 500 °F (260 °C).
     - Experiment will be subjected to vibration testing. :small_red_triangle:
       - Thrust axis sweeping between 10Hz and 144Hz up to 3 in/s (7.6 cm/s).
