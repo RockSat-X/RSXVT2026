@@ -317,7 +317,7 @@ def execute(
     match sys.platform:
 
         case 'win32':
-            use_powershell = cmd is None
+            use_powershell = cmd is None and powershell is not None
             command        = powershell if use_powershell else cmd
 
         case _:
@@ -418,7 +418,7 @@ def clean(parameters):
                 rm -rf {repr(str(directory))}
             ''',
             cmd = f'''
-                if exist {repr(str(directory))} rmdir /S /Q {repr(str(directory))}
+                if exist "{directory}" rmdir /S /Q "{directory}"
             ''',
         )
 
@@ -576,8 +576,8 @@ def build(parameters):
 
             execute(f'''
                 arm-none-eabi-gcc
-                    -o {repr(str(object))}
-                    -c {repr(str(source))}
+                    -o "{object.as_posix()}"
+                    -c "{source.as_posix()}"
                     {target.compiler_flags}
             ''')
 
@@ -601,8 +601,8 @@ def build(parameters):
                 {target.compiler_flags}
                 -E
                 -x c
-                -o {repr(str(root(BUILD, target.name, 'link.ld')))}
-                {repr(str(root('./electrical/system/link.ld')))}
+                -o "{root(BUILD, target.name, 'link.ld').as_posix()}"
+                "{root('./electrical/system/link.ld').as_posix()}"
         ''')
 
         log()
@@ -610,10 +610,10 @@ def build(parameters):
         # Link object files.
         execute(f'''
             arm-none-eabi-gcc
-                -o {repr(str(root(BUILD, target.name, target.name + '.elf')))}
-                -T {repr(str(root(BUILD, target.name, 'link.ld')))}
+                -o "{root(BUILD, target.name, target.name + '.elf').as_posix()}"
+                -T "{root(BUILD, target.name, 'link.ld').as_posix()}"
                 {' '.join(
-                    repr(str(root(BUILD, target.name, source.stem + '.o')))
+                    f'"{root(BUILD, target.name, source.stem + '.o').as_posix()}"'
                     for source in target.source_file_paths
                 )}
                 {target.linker_flags}
@@ -626,8 +626,8 @@ def build(parameters):
             arm-none-eabi-objcopy
                 -S
                 -O binary
-                {repr(str(root(BUILD, target.name, target.name + '.elf')))}
-                {repr(str(root(BUILD, target.name, target.name + '.bin')))}
+                "{root(BUILD, target.name, target.name + '.elf').as_posix()}"
+                "{root(BUILD, target.name, target.name + '.bin').as_posix()}"
         ''')
 
 
@@ -700,7 +700,7 @@ def flash(parameters):
         exit_code = execute(f'''
             STM32_Programmer_CLI
                 --connect port=SWD index={stlink.probe_index}
-                --download {repr(str(root(BUILD, parameters.target.name, parameters.target.name + '.bin')))} 0x08000000
+                --download "{root(BUILD, parameters.target.name, parameters.target.name + '.bin').as_posix()}" 0x08000000
                 --verify
                 --start
         ''', nonzero_exit_code_ok = True)
