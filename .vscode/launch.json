@@ -10,7 +10,7 @@
             "gdbTarget"               : "localhost:61234",                           // "
             "overrideRestartCommands" : ["monitor reset"],                           // "
             "overrideLaunchCommands"  : ["load"],                                    // "
-            "executable"              : "./build/${input:TARGET}/${input:TARGET}.elf",
+            "executable"              : "./build/${config:TARGET}/${config:TARGET}.elf",
             "breakAfterReset"         : false,
         },
         {
@@ -22,7 +22,7 @@
             "gdbTarget"               : "localhost:61234",                           // "
             "overrideRestartCommands" : ["monitor reset"],                           // "
             "overrideLaunchCommands"  : ["load"],                                    // "
-            "executable"              : "./build/${input:TARGET}/${input:TARGET}.elf",
+            "executable"              : "./build/${config:TARGET}/${config:TARGET}.elf",
             "breakAfterReset"         : true,
         },
         {
@@ -34,7 +34,7 @@
             "gdbTarget"               : "localhost:61234",                           // "
             "overrideRestartCommands" : ["monitor reset"],                           // "
             "overrideLaunchCommands"  : ["load"],                                    // "
-            "executable"              : "./build/${input:TARGET}/${input:TARGET}.elf",
+            "executable"              : "./build/${config:TARGET}/${config:TARGET}.elf",
             "runToEntryPoint"         : "main",
         },
         {
@@ -45,7 +45,7 @@
             "preLaunchTask"           : "Make a GDB-server.", // "
             "gdbTarget"               : "localhost:61234",    // "
             "overrideRestartCommands" : ["monitor reset"],    // "
-            "executable"              : "./build/${input:TARGET}/${input:TARGET}.elf",
+            "executable"              : "./build/${config:TARGET}/${config:TARGET}.elf",
         },
     ],
 }

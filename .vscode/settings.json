@@ -1,0 +1,5 @@
+{
+    // Set this to the name of the target you want to build, flash, and debug to.
+    // See `cli.py help build` for more information.
+    "TARGET": "",
+}
