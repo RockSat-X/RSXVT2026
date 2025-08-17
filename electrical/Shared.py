@@ -56,7 +56,7 @@ MCUS = {
 # Basic description of each of our firmware targets.
 #
 
-TARGETS = (
+TARGETS = ( # @/`Defining a TARGET`.
 
     types.SimpleNamespace(
 
@@ -80,19 +80,19 @@ TARGETS = (
         ),
 
         clock_tree = {
-            'hsi_enable'          : True,
-            'hsi48_enable'        : True,
-            'csi_enable'          : True,
-            'per_ck_source'       : 'hsi_ck',
-            'pll1_p_ck'           : 600_000_000,
-            'pll2_s_ck'           : 200_000_000,
-            'cpu_ck'              : 600_000_000,
-            'axi_ahb_ck'          : 300_000_000,
-            'apb1_ck'             : 150_000_000,
-            'apb2_ck'             : 150_000_000,
-            'apb4_ck'             : 150_000_000,
-            'apb5_ck'             : 150_000_000,
-            'usart3_baud'         : STLINK_BAUD,
+            'hsi_enable'    : True,
+            'hsi48_enable'  : True,
+            'csi_enable'    : True,
+            'per_ck_source' : 'hsi_ck',
+            'pll1_p_ck'     : 600_000_000,
+            'pll2_s_ck'     : 200_000_000,
+            'cpu_ck'        : 600_000_000,
+            'axi_ahb_ck'    : 300_000_000,
+            'apb1_ck'       : 150_000_000,
+            'apb2_ck'       : 150_000_000,
+            'apb4_ck'       : 150_000_000,
+            'apb5_ck'       : 150_000_000,
+            'usart3_baud'   : STLINK_BAUD,
         },
 
         gpios = (
@@ -275,6 +275,63 @@ for target in TARGETS:
 
 
 ################################################################################################################################
+
+
+
+# This meta-directive typically contains definitions for things that'll be used both in other meta-directives and also in `cli.py`.
+# Stuff like the ST-Link baud rate is defined here because the clock-tree is automated by a meta-directive in order to
+# configure the UART for the right clock speed and also so that `cli.py talk` can open the serial port to the right baud.
+
+
+
+# @/`Defining a TARGET`:
+#
+# A target is essentially a program for a specific microcontroller in mind.
+# For this project, we'll have a target for the flight computer, camera subsystems, and maybe some other stuff.
+# As of writing, this is what defines a target:
+#
+#     - name                 = Self-explanatory; the unique name of the target.
+#
+#     - mcu                  = The full commerical part number of an STM32 microcontroller as seen in `MCUS`.
+#                              Technically, the last few suffixes are not necessary because they just indicate the
+#                              flash size and operating temperature and stuff, but I think it's a hassle to deal with
+#                              different variations of MCU "names", so just might as well use the whole thing even if
+#                              it ends up being redundant later on.
+#
+#     - source_file_paths    = Source files that the build system will compile each of and then link all together.
+#
+#     - stack_size           = The amount of bytes to reserve for the main stack,
+#                              although I think this might be deprecated once I do
+#                              more research into FreeRTOS' configurations (TODO).
+#
+#     - clock_tree           = Options relating to configuring the MCU's clock-tree.
+#                              The available options right now is pretty undocumented since it
+#                              heavily depends upon the implementation of `SYSTEM_PARAMETERIZE`;
+#                              things there are still non-comprehensive and quite experimental.
+#                              Nonetheless, some of the stuff should be self-explanatory, like
+#                              if you want to change the baud rate of a UART peripheral or something,
+#                              then it's pretty easy to do right here; but if you have a lot of questions,
+#                              then you should probably see `SYSTEM_PARAMETERIZE` anyways.
+#
+#     - gpios                = This is where we define the GPIOs of our target; what input/outputs it has,
+#                              which pins are being used for what particular peripherals, and maybe other
+#                              stuff too like the slew rate or pull up/down configuration.
+#                              This table of GPIOs is very useful, because later on when we make our PCBs,
+#                              we can write a meta-directive to verify that the PCB matches our GPIO table (TODO).
+#
+#     - interrupt_priorities = This table defines the interrupts that'll need to be configured in the NVIC.
+#                              Any time you're writing a driver for a peripheral,
+#                              and that peripheral uses interrupts, you should add an entry to this table.
+#                              Once you do so, macros will be created to allow the interrupt to be enabled
+#                              in the NVIC.
+#                              It should be noted that the priority value of interrupts work on a niceless level,
+#                              so the lower the numbre is, the higher priority it actually is.
+#
+# It's also useful to have a "sandbox" target where it's pretty much just a demo program for a NUCLEO board;
+# some LEDS blinking, maybe reacting to button presses, and printing out to serial port.
+# This is just so we can easily test things out whenever we're writing some new drivers or something.
+
+
 
 # @/`Linker Garbage Collection`:
 #

@@ -1,18 +1,11 @@
 {
     "version" : "2.0.0",
-    "inputs": [
-        {
-            "id"          : "TARGET",
-            "type"        : "promptString",
-            "description" : "The target to build, flash, and debug; an empty input will select the target automatically.",
-        }
-    ],
-    "tasks"   : [
+    "tasks" : [
         {
             "label"          : "Build the firmware.", // Use CTRL-SHIFT-B to build.
             "type"           : "shell",
             "command"        : "python",
-            "args"           : ["./cli.py", "build", "${input:TARGET}"],
+            "args"           : ["./cli.py", "build", "${config:TARGET}"],
             "problemMatcher" : [],
             "group"          : {
                 "kind"       : "build",
@@ -23,7 +16,7 @@
             "label"          : "Flash the firmware.",
             "type"           : "shell",
             "command"        : "python",
-            "args"           : ["./cli.py", "flash", "${input:TARGET}"],
+            "args"           : ["./cli.py", "flash", "${config:TARGET}"],
             "problemMatcher" : [],
         },
         { // @/`Deferred Task`.
@@ -34,7 +27,7 @@
             "label"          : "Make a GDB-server (deferred).",
             "type"           : "shell",
             "command"        : "python",
-            "args"           : ["./cli.py", "debug", "--just-gdbserver"],
+            "args"           : ["./cli.py", "debug", "${config:TARGET}", "--just-gdbserver"],
             "isBackground"   : true,
             "hide"           : true,
             "problemMatcher" : [ // @/`problemMatcher`.

@@ -913,6 +913,13 @@ halt_(b32 panicking)        // "
 
 
 
+// This file (and this includes the entire folder) contains
+// definitions for stuff that's quite low-level and technical.
+// Most of it is just infrastructure to make programming the
+// higher-level stuff on STM32s very pain-free and fun.
+
+
+
 // @/`Halting`:
 //
 //

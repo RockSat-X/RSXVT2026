@@ -74,3 +74,31 @@ struct Jig
     volatile u32  reception_writer;
     volatile char reception_buffer[1 << 5];
 };
+
+
+
+//////////////////////////////////////////////////////////////// Notes ////////////////////////////////////////////////////////////////
+
+
+
+// This header file is where the majority of all definitions, across all targets, should be placed.
+//
+// The way compilation works for this project is that we do a unity build.
+// This means rather than have a bunch of `.h` and `.c` files that are compiled to create object files that we then all link together,
+// we rather just have one big thing that we just compile as an entire program (although we do have some smaller object files we
+// nonetheless link to for technical reasons, see "Startup.S").
+//
+// The benefit of this approach is that things are much, much simpler. No more forward declarations to do. Just define the function
+// and types somewhere and it'll work out. Making changes is much easier, and the overall compilation is straight-forward.
+// Yes, I understand the idea behind the parallelism of compilation and incremental builds, but I personally believe these techniques
+// and tools are completely misused, especially in an educational context like this.
+// I'd go on a rant here, but I'll save it for another day.
+//
+// The only tricky thing to look out for a build like this is that we're always building for multiple targets.
+// That is, we'll develop firmware for multiple flight computers, camera subsystems, even small sandboxes.
+// Thus, if someone introduces a refactor or a half-baked feature for a particular target, it'll technically affect ALL targets.
+// For example, if someone refactored the SPI driver while working on the flight computer MCU, then without any `#if` to do otherwise,
+// this refactored SPI driver will also be in the camera subsystem MCU, which is untested for the new driver.
+//
+// Overall, this is just the nature of things. We'll be implementing a lot of code from the ground up,
+// and in doing so, we'll be doing a lot of tests to ensure quality!
