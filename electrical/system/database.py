@@ -1,6 +1,6 @@
 #meta SYSTEM_DATABASE, verify_and_get_placeholders_in_tag_order
 
-import collections, re
+import re
 from deps.pxd.sexp import parse_sexp
 
 
