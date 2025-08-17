@@ -1,4 +1,4 @@
-#meta SYSTEM_DATABASE, verify_and_get_fields_in_tag_order
+#meta SYSTEM_DATABASE, verify_and_get_field_names_in_tag_order
 
 import re
 from deps.pxd.sexp import parse_sexp
@@ -174,11 +174,11 @@ def parse_entry(entry):
 # Helper routine to make sure all fields in a tag are supplied.
 # e.g:
 # >
-# >    verify_and_get_fields_in_tag_order('pll{UNIT}{CHANNEL}_enable', { 'CHANNEL' : 'q', 'UNIT' : 3 })
-# >                                           ^^^^^^^^^^^^^^^----------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# >    verify_and_get_field_names_in_tag_order('pll{UNIT}{CHANNEL}_enable', { 'CHANNEL' : 'q', 'UNIT' : 3 })
+# >                                                ^^^^^^^^^^^^^^^----------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 # >
 
-def verify_and_get_fields_in_tag_order(tag, given_fields):
+def verify_and_get_field_names_in_tag_order(tag, given_fields):
 
     tag_field_names   = OrderedSet(re.findall('{(.*?)}', tag))
     given_field_names = OrderedSet(given_fields.keys())
@@ -206,7 +206,7 @@ class SystemDatabaseTarget(dict):
         if field_values is None:
             field_values = {}
 
-        field_names = verify_and_get_fields_in_tag_order(tag, field_values)
+        field_names = verify_and_get_field_names_in_tag_order(tag, field_values)
 
 
 

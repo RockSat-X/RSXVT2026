@@ -1,4 +1,4 @@
-#meta SYSTEM_CONFIGURIZE : SYSTEM_DATABASE, verify_and_get_fields_in_tag_order
+#meta SYSTEM_CONFIGURIZE : SYSTEM_DATABASE, verify_and_get_field_names_in_tag_order
 
 import re, collections, builtins
 
@@ -33,7 +33,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
         # @/`About CfgFmt`.
 
-        verify_and_get_fields_in_tag_order(tag, field_values)
+        verify_and_get_field_names_in_tag_order(tag, field_values)
 
         field_values_for_configuration = {
             name : value.configuration_expansion if isinstance(value, CfgFmt) else value
