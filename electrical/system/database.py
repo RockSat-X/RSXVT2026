@@ -5,11 +5,11 @@ from deps.pxd.sexp import parse_sexp
 
 
 
-################################################################################################################################
+################################################################################
 
 
 
-# Routine for converting S-expressions of database entries into a more usable Python value.
+# Convert a database entry in S-expression form into a more usable Python value.
 # e.g:
 # >
 # >    (pll{UNIT}_predivider (RCC PLL2CFGR PLL2M) (UNIT : 2) (.minmax 1 63))
@@ -24,7 +24,7 @@ from deps.pxd.sexp import parse_sexp
 # >                          )
 # >
 
-def parse_entry(entry):
+def parse_entry(sexp):
 
 
 
@@ -36,8 +36,8 @@ def parse_entry(entry):
     # >     Tag.                 Attributes.
     # >
 
-    tag, *attributes = entry
-    record           = AllocatingNamespace()
+    tag, *attributes = sexp
+    entry            = AllocatingNamespace()
 
 
 
@@ -62,7 +62,7 @@ def parse_entry(entry):
             # >
 
             case ('.value', value):
-                record.value = value
+                entry.value = value
 
 
 
@@ -74,8 +74,8 @@ def parse_entry(entry):
             # >
 
             case ('.minmax', minimum, maximum):
-                record.minimum = minimum
-                record.maximum = maximum
+                entry.minimum = minimum
+                entry.maximum = maximum
 
 
 
@@ -92,14 +92,15 @@ def parse_entry(entry):
 
 
 
-    # No dotted entry value found, so we assume it's just something like a True/False 1-bit register.
+    # No dotted entry value found, so we assume it's just
+    # something like a True/False 1-bit register.
     # e.g:
     # >
     # >    (current_active_vos_ready (PWR SR1 ACTVOSRDY))
     # >
 
     else:
-        record.value = (False, True)
+        entry.value = (False, True)
 
 
 
@@ -117,7 +118,7 @@ def parse_entry(entry):
         match attribute := attributes[attribute_i]:
 
             case (attribute_name, ':', attribute_value):
-                record[attribute_name] = attribute_value
+                entry[attribute_name] = attribute_value
 
             case _:
                 attribute_i += 1
@@ -140,17 +141,17 @@ def parse_entry(entry):
 
 
 
-        # The entry is also provided with a location.
+        # The entry is also provided with a section-register-field location.
         # e.g:
         # >
-        # >    (pll{UNIT}_predivider (RCC PLL2CFGR PLL2M) (UNIT : 2) (.minmax 1 63))
-        # >                          ^^^^^^^^^^^^^^^^^^^^
+        # >    (current_active_vos_ready (PWR SR1 ACTVOSRDY))
+        # >                              ^^^^^^^^^^^^^^^^^^^
         # >
 
         case [(section, register, field)]:
-            record.section  = section
-            record.register = register
-            record.field    = field
+            entry.section  = section
+            entry.register = register
+            entry.field    = field
 
 
 
@@ -163,19 +164,19 @@ def parse_entry(entry):
 
     # Finished parsing the database entry!
 
-    return tag, types.SimpleNamespace(**record.__dict__)
+    return tag, types.SimpleNamespace(**entry.__dict__)
 
 
 
-################################################################################################################################
+################################################################################
 
 
 
 # Helper routine to make sure all fields in a tag are supplied.
 # e.g:
 # >
-# >    verify_and_get_field_names_in_tag_order('pll{UNIT}{CHANNEL}_enable', { 'CHANNEL' : 'q', 'UNIT' : 3 })
-# >                                                ^^^^^^^^^^^^^^^----------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# >    ('pll{UNIT}{CHANNEL}_enable', { 'CHANNEL' : 'q', 'UNIT' : 3 })
+# >         ^^^^^^^^^^^^^^^----------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 # >
 
 def verify_and_get_field_names_in_tag_order(tag, given_fields):
@@ -184,27 +185,32 @@ def verify_and_get_field_names_in_tag_order(tag, given_fields):
     given_field_names = OrderedSet(given_fields.keys())
 
     if differences := tag_field_names - given_field_names:
-        raise ValueError(f'Tag {repr(tag)} is missing the value for the field {repr(differences[0])}.')
+        raise ValueError(
+            f'Tag {repr(tag)} is missing the value '
+            f'for the field {repr(differences[0])}.'
+        )
 
     if differences := given_field_names - tag_field_names:
-        raise ValueError(f'Tag {repr(tag)} has no field {repr(differences[0])}.')
+        raise ValueError(
+            f'Tag {repr(tag)} has no field {repr(differences[0])}.'
+        )
 
     return tag_field_names
 
 
 
-################################################################################################################################
+################################################################################
 
 
 
 # The MCU database will be a dictionary with a helper method.
 # e.g:
 # >
-# >    SYSTEM_DATABASE[mcu].query('pll{UNIT}{CHANNEL}_enable', { 'UNIT' : 2, 'CHANNEL' : 'q' })
-# >                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# >                           |
-# >                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # >    SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(2, 'q')]
+# >                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# >                           |
+# >    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# >    .query('pll{UNIT}{CHANNEL}_enable', { 'UNIT' : 2, 'CHANNEL' : 'q' })
 # >
 
 class SystemDatabaseTarget(dict):
@@ -283,7 +289,7 @@ class SystemDatabaseTarget(dict):
 
 
 
-################################################################################################################################
+################################################################################
 
 
 
@@ -295,17 +301,21 @@ for mcu in MCUS:
 
 
 
-    # The MCU database is defined as an S-expression in a separate text file that we parse.
+    # The MCU database is defined as an S-expression
+    # in a separate text file that we parse.
 
     database_file_path = root(f'./deps/mcu/{mcu}_database.txt')
 
     if not database_file_path.is_file():
         raise RuntimeError(
             f'File "{database_file_path}" does not exist; '
-            f'a file of S-expressions is needed to describe the properties of the MCU.'
+            f'a file of S-expressions is needed to describe '
+            f'the properties of the MCU.'
         )
 
-    for tag, entries in coalesce(map(parse_entry, parse_sexp(database_file_path.read_text()))):
+    for tag, entries in coalesce(
+        map(parse_entry, parse_sexp(database_file_path.read_text()))
+    ):
 
 
 
@@ -321,7 +331,8 @@ for mcu in MCUS:
         if not field_names and len(entries) >= 2:
             raise ValueError(
                 f'For {repr(mcu)}, '
-                f'multiple database entries were found with the tag {repr(tag)}; '
+                f'multiple database entries were found '
+                f'with the tag {repr(tag)}; '
                 f'there should be a {{...}} in the tag.'
             )
 
@@ -334,7 +345,8 @@ for mcu in MCUS:
 
 
 
-            # A field-less tag should be enough to uniquely determine the database entry.
+            # A field-less tag should be enough to
+            # uniquely determine the database entry.
             # e.g:
             # >
             # >    (iwdg_stopped_during_debug (DBGMCU APB4FZR DBG_IWDG))
@@ -381,18 +393,23 @@ for mcu in MCUS:
 
             case _:
                 SYSTEM_DATABASE[mcu][tag] = mk_dict(
-                    (tuple(entry.__dict__[field_name] for field_name in field_names), entry)
+                    (
+                        tuple(entry.__dict__[name] for name in field_names),
+                        entry
+                    )
                     for entry in entries
                 )
 
 
 
-################################################################################################################################
+################################################################################
 
 
 
 # This meta-directive creates what I call the "database" for a microcontroller.
-# The so-called database simply contains information from the MCU's reference manual and datasheet.
+# The so-called database simply contains information from the MCU's reference
+# manual and datasheet.
+#
 # For instance, things like:
 #
 #     - the maximum bus frequency,
