@@ -493,7 +493,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 #
 # e.g:
 # >
-# >    (uxart_{UNITS}_clock_source (RCC CCIPR2 UART278SEL) (UNITS = ((usart 2) (uart 7) (uart 8))) (value: (...)))
+# >    (uxart_{UNITS}_clock_source (RCC CCIPR2 UART278SEL) (UNITS : ((usart 2) (uart 7) (uart 8))) (value: (...)))
 # >                                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 # >                                                         Let's take this database entry as an example.
 # >
@@ -519,7 +519,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 # >
 # >    units = (('usart', 2), ('uart', 7), ('uart' 8))
 # >    ns    = '2_7_8'
-# >    cfgs('uxart_{UNITS}_clock_source', ..., UNITS = CfgFmt(units, ns))
+# >    cfgs('uxart_{UNITS}_clock_source', ..., UNITS : CfgFmt(units, ns))
 # >                                                    ^^^^^^^^^^^^^^^^^
 # >                                          Thus, this is how we'd handle this situation.
 # >

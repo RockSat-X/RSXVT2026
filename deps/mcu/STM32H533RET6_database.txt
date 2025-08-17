@@ -46,12 +46,12 @@
     (power_management_bypass  (PWR SCCR  BYPASS   )) # "
 
     # @/pg 481/sec 11.8.1/`H533rm`.
-    (pll{UNIT}_ready  (RCC CR PLL3RDY ) (UNIT = 3))
-    (pll{UNIT}_enable (RCC CR PLL3ON  ) (UNIT = 3))
-    (pll{UNIT}_ready  (RCC CR PLL2RDY ) (UNIT = 2))
-    (pll{UNIT}_enable (RCC CR PLL2ON  ) (UNIT = 2))
-    (pll{UNIT}_ready  (RCC CR PLL1RDY ) (UNIT = 1))
-    (pll{UNIT}_enable (RCC CR PLL1ON  ) (UNIT = 1))
+    (pll{UNIT}_ready  (RCC CR PLL3RDY ) (UNIT : 3))
+    (pll{UNIT}_enable (RCC CR PLL3ON  ) (UNIT : 3))
+    (pll{UNIT}_ready  (RCC CR PLL2RDY ) (UNIT : 2))
+    (pll{UNIT}_enable (RCC CR PLL2ON  ) (UNIT : 2))
+    (pll{UNIT}_ready  (RCC CR PLL1RDY ) (UNIT : 1))
+    (pll{UNIT}_enable (RCC CR PLL1ON  ) (UNIT : 1))
     (hsi48_ready      (RCC CR HSI48RDY)           )
     (hsi48_enable     (RCC CR HSI48ON )           )
     (csi_ready        (RCC CR CSIRDY  )           )
@@ -74,9 +74,9 @@
     )))
 
     # @/pg 488/sec 11.8.6/`H533rm`.
-    (apb{UNIT}_divider (RCC CFGR2 PPRE3) (.value ((1 0b000) (2 0b100) (4 0b101) (8 0b110) (16 0b111))) (UNIT = 3))
-    (apb{UNIT}_divider (RCC CFGR2 PPRE2) (.value ((1 0b000) (2 0b100) (4 0b101) (8 0b110) (16 0b111))) (UNIT = 2))
-    (apb{UNIT}_divider (RCC CFGR2 PPRE1) (.value ((1 0b000) (2 0b100) (4 0b101) (8 0b110) (16 0b111))) (UNIT = 1))
+    (apb{UNIT}_divider (RCC CFGR2 PPRE3) (.value ((1 0b000) (2 0b100) (4 0b101) (8 0b110) (16 0b111))) (UNIT : 3))
+    (apb{UNIT}_divider (RCC CFGR2 PPRE2) (.value ((1 0b000) (2 0b100) (4 0b101) (8 0b110) (16 0b111))) (UNIT : 2))
+    (apb{UNIT}_divider (RCC CFGR2 PPRE1) (.value ((1 0b000) (2 0b100) (4 0b101) (8 0b110) (16 0b111))) (UNIT : 1))
     (cpu_divider       (RCC CFGR2 HPRE ) (.value (
         (1   0b0000) # Low three bits are don't-care.
         (2   0b1000)
@@ -90,17 +90,17 @@
     )))
 
     # @/pg 491/sec 11.8.7/`H533rm`.
-    (pll{UNIT}{CHANNEL}_enable (RCC PLL1CFGR PLL1REN) (UNIT = 1) (CHANNEL = r))
-    (pll{UNIT}{CHANNEL}_enable (RCC PLL1CFGR PLL1QEN) (UNIT = 1) (CHANNEL = q))
-    (pll{UNIT}{CHANNEL}_enable (RCC PLL1CFGR PLL1PEN) (UNIT = 1) (CHANNEL = p))
-    (pll{UNIT}_predivider      (RCC PLL1CFGR PLL1M  ) (UNIT = 1) (.minmax 1 63))
-    (pll{UNIT}_clock_source    (RCC PLL1CFGR PLL1SRC) (UNIT = 1) (.value (
+    (pll{UNIT}{CHANNEL}_enable (RCC PLL1CFGR PLL1REN) (UNIT : 1) (CHANNEL : r))
+    (pll{UNIT}{CHANNEL}_enable (RCC PLL1CFGR PLL1QEN) (UNIT : 1) (CHANNEL : q))
+    (pll{UNIT}{CHANNEL}_enable (RCC PLL1CFGR PLL1PEN) (UNIT : 1) (CHANNEL : p))
+    (pll{UNIT}_predivider      (RCC PLL1CFGR PLL1M  ) (UNIT : 1) (.minmax 1 63))
+    (pll{UNIT}_clock_source    (RCC PLL1CFGR PLL1SRC) (UNIT : 1) (.value (
         (None   0b00)
         (hsi_ck 0b01)
         (csi_ck 0b10)
         (hse_ck 0b11)
     )))
-    (pll{UNIT}_input_range (RCC PLL1CFGR PLL1RGE) (UNIT = 1) (.value (
+    (pll{UNIT}_input_range (RCC PLL1CFGR PLL1RGE) (UNIT : 1) (.value (
         ( 1_000_000 None)
         ( 2_000_000 None) # Can be '0b00', but only for medium VCO. @/pg 124/tbl 47/`H533rm`.
         ( 4_000_000 0b01)
@@ -109,17 +109,17 @@
     )))
 
     # @/pg 492/sec 11.8.8/`H533rm`.
-    (pll{UNIT}{CHANNEL}_enable (RCC PLL2CFGR PLL2REN) (UNIT = 2) (CHANNEL = r))
-    (pll{UNIT}{CHANNEL}_enable (RCC PLL2CFGR PLL2QEN) (UNIT = 2) (CHANNEL = q))
-    (pll{UNIT}{CHANNEL}_enable (RCC PLL2CFGR PLL2PEN) (UNIT = 2) (CHANNEL = p))
-    (pll{UNIT}_predivider      (RCC PLL2CFGR PLL2M  ) (UNIT = 2) (.minmax 1 63))
-    (pll{UNIT}_clock_source    (RCC PLL2CFGR PLL2SRC) (UNIT = 2) (.value (
+    (pll{UNIT}{CHANNEL}_enable (RCC PLL2CFGR PLL2REN) (UNIT : 2) (CHANNEL : r))
+    (pll{UNIT}{CHANNEL}_enable (RCC PLL2CFGR PLL2QEN) (UNIT : 2) (CHANNEL : q))
+    (pll{UNIT}{CHANNEL}_enable (RCC PLL2CFGR PLL2PEN) (UNIT : 2) (CHANNEL : p))
+    (pll{UNIT}_predivider      (RCC PLL2CFGR PLL2M  ) (UNIT : 2) (.minmax 1 63))
+    (pll{UNIT}_clock_source    (RCC PLL2CFGR PLL2SRC) (UNIT : 2) (.value (
         (None   0b00)
         (hsi_ck 0b01)
         (csi_ck 0b10)
         (hse_ck 0b11)
     )))
-    (pll{UNIT}_input_range (RCC PLL2CFGR PLL2RGE) (UNIT = 2) (.value (
+    (pll{UNIT}_input_range (RCC PLL2CFGR PLL2RGE) (UNIT : 2) (.value (
         ( 1_000_000 None)
         ( 2_000_000 None) # Can be '0b00', but only for medium VCO. @/pg 124/tbl 47/`H533rm`.
         ( 4_000_000 0b01)
@@ -128,17 +128,17 @@
     )))
 
     # @/pg 494/sec 11.8.9/`H533rm`.
-    (pll{UNIT}{CHANNEL}_enable (RCC PLL3CFGR PLL3REN) (UNIT = 3) (CHANNEL = r))
-    (pll{UNIT}{CHANNEL}_enable (RCC PLL3CFGR PLL3QEN) (UNIT = 3) (CHANNEL = q))
-    (pll{UNIT}{CHANNEL}_enable (RCC PLL3CFGR PLL3PEN) (UNIT = 3) (CHANNEL = p))
-    (pll{UNIT}_predivider      (RCC PLL3CFGR PLL3M  ) (UNIT = 3) (.minmax 1 63))
-    (pll{UNIT}_clock_source    (RCC PLL3CFGR PLL3SRC) (UNIT = 3) (.value (
+    (pll{UNIT}{CHANNEL}_enable (RCC PLL3CFGR PLL3REN) (UNIT : 3) (CHANNEL : r))
+    (pll{UNIT}{CHANNEL}_enable (RCC PLL3CFGR PLL3QEN) (UNIT : 3) (CHANNEL : q))
+    (pll{UNIT}{CHANNEL}_enable (RCC PLL3CFGR PLL3PEN) (UNIT : 3) (CHANNEL : p))
+    (pll{UNIT}_predivider      (RCC PLL3CFGR PLL3M  ) (UNIT : 3) (.minmax 1 63))
+    (pll{UNIT}_clock_source    (RCC PLL3CFGR PLL3SRC) (UNIT : 3) (.value (
         (None   0b00)
         (hsi_ck 0b01)
         (csi_ck 0b10)
         (hse_ck 0b11)
     )))
-    (pll{UNIT}_input_range (RCC PLL3CFGR PLL3RGE) (UNIT = 3) (.value (
+    (pll{UNIT}_input_range (RCC PLL3CFGR PLL3RGE) (UNIT : 3) (.value (
         ( 1_000_000 None)
         ( 2_000_000 None) # Can be '0b00', but only for medium VCO. @/pg 124/tbl 47/`H533rm`.
         ( 4_000_000 0b01)
@@ -147,31 +147,31 @@
     )))
 
     # @/pg 496/sec 11.8.10/`H533rm`.
-    (pll{UNIT}{CHANNEL}_divider (RCC PLL1DIVR PLL1R) (.minmax 1 128) (UNIT = 1) (CHANNEL = r))
-    (pll{UNIT}{CHANNEL}_divider (RCC PLL1DIVR PLL1Q) (.minmax 1 128) (UNIT = 1) (CHANNEL = q))
-    (pll{UNIT}{CHANNEL}_divider (RCC PLL1DIVR PLL1P) (.minmax 1 128) (UNIT = 1) (CHANNEL = p))
-    (pll{UNIT}_multiplier       (RCC PLL1DIVR PLL1N) (.minmax 4 512) (UNIT = 1)              )
+    (pll{UNIT}{CHANNEL}_divider (RCC PLL1DIVR PLL1R) (.minmax 1 128) (UNIT : 1) (CHANNEL : r))
+    (pll{UNIT}{CHANNEL}_divider (RCC PLL1DIVR PLL1Q) (.minmax 1 128) (UNIT : 1) (CHANNEL : q))
+    (pll{UNIT}{CHANNEL}_divider (RCC PLL1DIVR PLL1P) (.minmax 1 128) (UNIT : 1) (CHANNEL : p))
+    (pll{UNIT}_multiplier       (RCC PLL1DIVR PLL1N) (.minmax 4 512) (UNIT : 1)              )
 
     # @/pg 497/sec 11.8.12/`H533rm`.
-    (pll{UNIT}{CHANNEL}_divider (RCC PLL2DIVR PLL2R) (.minmax 1 128) (UNIT = 2) (CHANNEL = r))
-    (pll{UNIT}{CHANNEL}_divider (RCC PLL2DIVR PLL2Q) (.minmax 1 128) (UNIT = 2) (CHANNEL = q))
-    (pll{UNIT}{CHANNEL}_divider (RCC PLL2DIVR PLL2P) (.minmax 1 128) (UNIT = 2) (CHANNEL = p))
-    (pll{UNIT}_multiplier       (RCC PLL2DIVR PLL2N) (.minmax 4 512) (UNIT = 2)              )
+    (pll{UNIT}{CHANNEL}_divider (RCC PLL2DIVR PLL2R) (.minmax 1 128) (UNIT : 2) (CHANNEL : r))
+    (pll{UNIT}{CHANNEL}_divider (RCC PLL2DIVR PLL2Q) (.minmax 1 128) (UNIT : 2) (CHANNEL : q))
+    (pll{UNIT}{CHANNEL}_divider (RCC PLL2DIVR PLL2P) (.minmax 1 128) (UNIT : 2) (CHANNEL : p))
+    (pll{UNIT}_multiplier       (RCC PLL2DIVR PLL2N) (.minmax 4 512) (UNIT : 2)              )
 
     # @/pg 499/sec 11.8.14/`H533rm`.
-    (pll{UNIT}{CHANNEL}_divider (RCC PLL3DIVR PLL3R) (.minmax 1 128) (UNIT = 3) (CHANNEL = r))
-    (pll{UNIT}{CHANNEL}_divider (RCC PLL3DIVR PLL3Q) (.minmax 1 128) (UNIT = 3) (CHANNEL = q))
-    (pll{UNIT}{CHANNEL}_divider (RCC PLL3DIVR PLL3P) (.minmax 1 128) (UNIT = 3) (CHANNEL = p))
-    (pll{UNIT}_multiplier       (RCC PLL3DIVR PLL3N) (.minmax 4 512) (UNIT = 3)              )
+    (pll{UNIT}{CHANNEL}_divider (RCC PLL3DIVR PLL3R) (.minmax 1 128) (UNIT : 3) (CHANNEL : r))
+    (pll{UNIT}{CHANNEL}_divider (RCC PLL3DIVR PLL3Q) (.minmax 1 128) (UNIT : 3) (CHANNEL : q))
+    (pll{UNIT}{CHANNEL}_divider (RCC PLL3DIVR PLL3P) (.minmax 1 128) (UNIT : 3) (CHANNEL : p))
+    (pll{UNIT}_multiplier       (RCC PLL3DIVR PLL3N) (.minmax 4 512) (UNIT : 3)              )
 
     # @/pg 518/sec 11.8.27/`H533rm`.
     (GPIO_PORT_ENABLE_REGISTER (.value AHB2ENR))
 
     # @/pg 521/sec 11.8.29/`H533rm`.
-    (uxart_{UNIT}_enable (RCC APB1LENR USART2EN) (UNIT = 2))
+    (uxart_{UNIT}_enable (RCC APB1LENR USART2EN) (UNIT : 2))
 
     # @/pg 541/sec 11.8.40/`H533rm`.
-    (uxart_{UNITS}_clock_source (RCC CCIPR1 USART2SEL) (UNITS = ((usart 2))) (.value (
+    (uxart_{UNITS}_clock_source (RCC CCIPR1 USART2SEL) (UNITS : ((usart 2))) (.value (
         (apb1_ck    0b000)
         (pll2_q_ck  0b001)
         (pll3_q_ck  0b010)
@@ -180,7 +180,7 @@
         (None       0b110)
         # TODO: (lse_ck     0b101)
     )))
-    (uxart_{UNITS}_clock_source (RCC CCIPR1 USART3SEL) (UNITS = ((usart 3))) (.value (
+    (uxart_{UNITS}_clock_source (RCC CCIPR1 USART3SEL) (UNITS : ((usart 3))) (.value (
         (apb1_ck    0b000)
         (pll2_q_ck  0b001)
         (pll3_q_ck  0b010)
@@ -189,7 +189,7 @@
         (None       0b110)
         # TODO: (lse_ck     0b101)
     )))
-    (uxart_{UNITS}_clock_source (RCC CCIPR1 USART6SEL) (UNITS = ((usart 6))) (.value (
+    (uxart_{UNITS}_clock_source (RCC CCIPR1 USART6SEL) (UNITS : ((usart 6))) (.value (
         (apb1_ck    0b000)
         (pll2_q_ck  0b001)
         (pll3_q_ck  0b010)

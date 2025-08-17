@@ -72,9 +72,9 @@ def parse_entry(entry):
 
 
             # Entry properties are typically used for filling in placeholders in the entry tag.
-            # e.g. (pll{UNIT}_ready (RCC CR PLL3RDY) (UNIT = 3))
+            # e.g. (pll{UNIT}_ready (RCC CR PLL3RDY) (UNIT : 3))
 
-            case (property_name, '=', property_value):
+            case (property_name, ':', property_value):
                 record[property_name] = property_value
 
 
@@ -132,14 +132,14 @@ def parse_entry(entry):
 # Helper routine to make sure all placeholders in a tag are supplied.
 # e.g:
 # >
-# >    verify_and_get_placeholders('pll{UNIT}_input_range', UNIT = 3)
+# >    verify_and_get_placeholders('pll{UNIT}_input_range', UNIT : 3)
 # >                                     ^^^^----------------^^^^^^^^
 # >
 #
 # The returned placeholder names will be given in the order they appear in the tag.
 # e.g:
 # >
-# >    verify_and_get_placeholders('pll{UNIT}{CHANNEL}_enable', CHANNEL = 'q', UNIT = 3)   ->   { 'UNIT', 'CHANNEL' }
+# >    verify_and_get_placeholders('pll{UNIT}{CHANNEL}_enable', CHANNEL : 'q', UNIT : 3)   ->   { 'UNIT', 'CHANNEL' }
 # >                                    ^^^^^^^^^^^^^^^--------------------------------------------^^^^^^^^^^^^^^^^^
 # >
 
@@ -171,7 +171,7 @@ class SystemDatabaseTarget(dict):
         # Note that the order of the placeholder values is important.
         # e.g:
         # >
-        # >    query('pll{UNIT}{CHANNEL}_enable', UNIT = 2, CHANNEL = 'q')
+        # >    query('pll{UNIT}{CHANNEL}_enable', UNIT : 2, CHANNEL : 'q')
         # >                                       ~~~~~~~~~~~~~~~~~~~~~~~
         # >                                                          |
         # >                                                          v
@@ -179,7 +179,7 @@ class SystemDatabaseTarget(dict):
         # >    SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(2, 'q')]    <- Expected.
         # >
         # >
-        # >    query('pll{UNIT}{CHANNEL}_enable', CHANNEL = 'q', UNIT = 2)
+        # >    query('pll{UNIT}{CHANNEL}_enable', CHANNEL : 'q', UNIT : 2)
         # >                                       ~~~~~~~~~~~~~~~~~~~~~~~
         # >                                                          |
         # >                                                          v
@@ -208,7 +208,7 @@ class SystemDatabaseTarget(dict):
         # Single placeholder, so we get the entry based on the solely provided keyword-argument.
         # e.g:
         # >
-        # >    query('pll{UNIT}_predivider', UNIT = 2)   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][2]
+        # >    query('pll{UNIT}_predivider', UNIT : 2)   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][2]
         # >
 
         if len(key) == 1:
@@ -219,7 +219,7 @@ class SystemDatabaseTarget(dict):
         # Multiple placeholders, so we get the entry based on the provided keyword-arguments in tag-order.
         # e.g:
         # >
-        # >    query('pll{UNIT}{CHANNEL}_enable', UNIT = 2, CHANNEL = 'q')   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(2, 'q')]
+        # >    query('pll{UNIT}{CHANNEL}_enable', UNIT : 2, CHANNEL : 'q')   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(2, 'q')]
         # >
 
         if key not in self[tag]:
@@ -292,9 +292,9 @@ for mcu in MCUS:
             # Single placeholder in the tag.
             # e.g:
             # >
-            # >    (pll{UNIT}_predivider (RCC PLLCKSELR DIVM1) (minmax: 1 63) (UNIT = 1))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][1]
-            # >    (pll{UNIT}_predivider (RCC PLLCKSELR DIVM2) (minmax: 1 63) (UNIT = 2))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][2]
-            # >    (pll{UNIT}_predivider (RCC PLLCKSELR DIVM3) (minmax: 1 63) (UNIT = 3))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][3]
+            # >    (pll{UNIT}_predivider (RCC PLLCKSELR DIVM1) (minmax: 1 63) (UNIT : 1))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][1]
+            # >    (pll{UNIT}_predivider (RCC PLLCKSELR DIVM2) (minmax: 1 63) (UNIT : 2))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][2]
+            # >    (pll{UNIT}_predivider (RCC PLLCKSELR DIVM3) (minmax: 1 63) (UNIT : 3))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][3]
             # >
 
             case [placeholder]:
@@ -308,9 +308,9 @@ for mcu in MCUS:
             # Multiple placeholders in the tag.
             # e.g:
             # >
-            # >    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1PEN) (UNIT = 1) (CHANNEL = p))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 'p')]
-            # >    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1QEN) (UNIT = 1) (CHANNEL = q))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 'q')]
-            # >    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1SEN) (UNIT = 1) (CHANNEL = s))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 's')]
+            # >    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1PEN) (UNIT : 1) (CHANNEL : p))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 'p')]
+            # >    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1QEN) (UNIT : 1) (CHANNEL : q))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 'q')]
+            # >    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1SEN) (UNIT : 1) (CHANNEL : s))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 's')]
             # >
 
             case _:
