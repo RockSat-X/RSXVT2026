@@ -6,27 +6,56 @@ from deps.pxd.sexp import parse_sexp
 
 
 # Routine for converting S-expressions of database entries into a more usable Python value.
+# e.g:
+# >
+# >    (pll{UNIT}_predivider (RCC PLL2CFGR PLL2M) (UNIT : 2) (.minmax 1 63))
+# >     ^^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# >     Tag.                 types.SimpleNamespace(
+# >                              section  = 'RCC',
+# >                              register = 'PLL2CFGR',
+# >                              field    = 'PLL2M',
+# >                              UNIT     = 2,
+# >                              min      = 1,
+# >                              max      = 63,
+# >                          )
+# >
 
 def parse_entry(entry):
 
 
 
-    # Get the entry tag and parameters.
+    # Get the tag and attributes.
+    # e.g:
+    # >
+    # >    (pll{UNIT}_predivider (RCC PLL2CFGR PLL2M) (UNIT : 2) (.minmax 1 63))
+    # >     ^^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    # >     Tag.                 Attributes.
+    # >
 
-    tag, *parameters = entry
+    tag, *attributes = entry
     record           = AllocatingNamespace()
 
 
 
-    # Look for the structured entry value.
+    # Look for the dotted attribute which will represent the value of the entry.
+    # e.g:
+    # >
+    # >    (pll{UNIT}_predivider (RCC PLL2CFGR PLL2M) (UNIT : 2) (.minmax 1 63))
+    # >                                                          ^^^^^^^^^^^^^^
+    # >
 
-    for parameter_i, parameter in enumerate(parameters):
+    for attribute_i, attribute in enumerate(attributes):
 
-        match parameter:
+        match attribute:
 
 
 
             # The entry value is directly given.
+            # e.g:
+            # >
+            # >    (APB_UNITS (.value (1 2 4 5)))
+            # >               ^^^^^^^^^^^^^^^^^^
+            # >
 
             case ('.value', value):
                 record.value = value
@@ -34,6 +63,11 @@ def parse_entry(entry):
 
 
             # The entry value is an inclusive range.
+            # e.g:
+            # >
+            # >    (flash_latency (FLASH ACR LATENCY) (.minmax 0b0000 0b1111))
+            # >                                       ^^^^^^^^^^^^^^^^^^^^^^^
+            # >
 
             case ('.minmax', minimum, maximum):
                 record.minimum = minimum
@@ -41,61 +75,57 @@ def parse_entry(entry):
 
 
 
-            # This entry parameter is something else which we'll process later.
+            # This entry attribute is something else which we'll process later.
 
             case _: continue
 
 
 
-        # We found and processed the structured entry value; no need to process it again.
+        # We found and processed the entry value; no need to process it again.
 
-        del parameters[parameter_i]
+        del attributes[attribute_i]
         break
 
 
 
-    # No structured entry value found, so we assume it's just something like a True/False 1-bit register.
+    # No dotted entry value found, so we assume it's just something like a True/False 1-bit register.
+    # e.g:
+    # >
+    # >    (current_active_vos_ready (PWR SR1 ACTVOSRDY))
+    # >
 
     else:
         record.value = (False, True)
 
 
 
-    # We then look for entry properties to extend the entry record.
+    # We then look for tag-substitution attributes.
+    # e.g:
+    # >
+    # >    (pll{UNIT}_ready (RCC CR PLL3RDY) (UNIT : 3))
+    # >         ^^^^-------------------------^^^^^^^^^^
+    # >
 
-    parameter_i = 0
+    attribute_i = 0
 
-    while parameter_i < len(parameters):
+    while attribute_i < len(attributes):
 
-        match parameter := parameters[parameter_i]:
+        match attribute := attributes[attribute_i]:
 
-
-
-            # Entry properties are typically used for filling in placeholders in the entry tag.
-            # e.g. (pll{UNIT}_ready (RCC CR PLL3RDY) (UNIT : 3))
-
-            case (property_name, ':', property_value):
-                record[property_name] = property_value
-
-
-
-            # This entry parameter is not a property; just skip it.
+            case (attribute_name, ':', attribute_value):
+                record[attribute_name] = attribute_value
 
             case _:
-                parameter_i += 1
+                attribute_i += 1
                 continue
 
-
-
-        # We found and processed the entry property; no need to process it again.
-
-        del parameters[parameter_i]
+        del attributes[attribute_i]
 
 
 
-    # Process the remaining entry parameters.
+    # Process the remaining attributes.
 
-    match parameters:
+    match attributes:
 
 
 
@@ -107,7 +137,11 @@ def parse_entry(entry):
 
 
         # The entry is also provided with a location.
-        # e.g. (iwdg_stopped_during_debug (DBGMCU APB4FZR DBG_IWDG))
+        # e.g:
+        # >
+        # >    (pll{UNIT}_predivider (RCC PLL2CFGR PLL2M) (UNIT : 2) (.minmax 1 63))
+        # >                          ^^^^^^^^^^^^^^^^^^^^
+        # >
 
         case [(section, register, field)]:
             record.section  = section
@@ -116,14 +150,14 @@ def parse_entry(entry):
 
 
 
-        # Leftover entry parameters.
+        # Leftover attributes.
 
         case _:
-            raise ValueError(f'Leftover parameters: {repr(parameters)}.')
+            raise ValueError(f'Leftover attributes: {repr(attributes)}.')
 
 
 
-    # Finished parsing for the tag and record from the S-expression of the entry.
+    # Finished parsing the database entry!
 
     return tag, types.SimpleNamespace(**record.__dict__)
 
