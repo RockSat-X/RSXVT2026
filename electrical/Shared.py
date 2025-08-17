@@ -304,6 +304,16 @@ for target in TARGETS:
 #                              although I think this might be deprecated once I do
 #                              more research into FreeRTOS' configurations (TODO).
 #
+#     - aliases              = The purpose of this field is to make it easy to refer to a peripheral "generically"
+#                              by using a custom name like "UxART_STLINK" instead of "USART3".
+#                              While this makes it more clear what a particular peripheral is meant to be used for,
+#                              its true purpose is to make code that uses this peripheral more applicable to different targets.
+#                              In the example of "UxART_STLINK", some targets might have it be "USART3" while others be "UART2".
+#                              Rather than reimplement code to use slightly different peripheral names and numberings,
+#                              all code can just refer to "UxART_STLINK", and a bunch of macros and global constants will do the
+#                              mapping magically. This is a very experimental feature right now, however, so you can just completely
+#                              ignore this. I'm planning to make it much simpler to use and less contrived.
+#
 #     - clock_tree           = Options relating to configuring the MCU's clock-tree.
 #                              The available options right now is pretty undocumented since it
 #                              heavily depends upon the implementation of `SYSTEM_PARAMETERIZE`;
