@@ -541,6 +541,17 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 ################################################################################################################################
 
+
+
+# In this meta-directive, we take the configuration values from `SYSTEM_PARAMETERIZE` and generate
+# code to set the registers in the right order.
+#
+# Order matters because some clock sources depend on other clock sources, so we have to respect that.
+#
+# More details at @/`About Parameterization`.
+
+
+
 # @/`About CfgFmt`:
 #
 # The placeholder value can actually be different based on whether or not

@@ -213,3 +213,41 @@ for mcu in MCUS:
                     }) : record
                     for record in records
                 }
+
+
+
+################################################################################################################################
+
+
+
+# This meta-directive creates what I call the "database" for a microcontroller.
+# The so-called database simply contains information from the MCU's reference manual and datasheet.
+# For instance, things like:
+#
+#     - the maximum bus frequency,
+#     - the available clock sources for a particular PLL unit,
+#     - the range of predividers for making the baud of a UART peripheral,
+#     - the register to enable an internal oscillator,
+#     - etc.
+#
+# The database is extremely useful for porting across different microcontrollers
+# because, first, obviously the specifications values will be different,
+# but more importantly, the naming convention is different.
+#
+# One reference manual might use the field name "PLL3ON" to enable PLL3,
+# while a different RM might use the field name "PLL3EN" instead.
+# To account for this, the database organizes everything by "tags",
+# so rather than use names like "PLL3ON" or "PLL3EN", we instead use the
+# more human readable key of "pll_{UNIT}_enable".
+# The placeholder "{UNIT}" would be eventually replaced with 3 later on,
+# so this makes using the tag "pll_{UNIT}_enable" very natural because we often
+# iterate over the other PLL units too.
+#
+# This layer of abstraction makes it very easy to read/modify registers
+# across multiple different microcontroller models without getting bogged
+# down by the different values and naming conventions.
+#
+# The way the database is defined is in "deps/mcu/<MCU>_database.txt" which
+# is just a S-expression file. I'm not going to go into detail how the syntax
+# exactly works here since I think it's pretty self-explanatory.
+# If you're curious just read the Python code above and play with it!

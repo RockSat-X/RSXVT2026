@@ -897,3 +897,14 @@ ui(deps.pxd.cite.ui)
 
 
 exit(ui.invoke(sys.argv[1:]))
+
+
+
+################################################################################################################################
+
+
+
+# This is the main Python script that we will be using to pretty much do everything on this project.
+# This includes building, flashing, debugging, opening serial ports, and much more in the future.
+# A lot of this is magic made by the PXD library, so if you'd like to extend this script with more verbs,
+# then please checkout the PXD library and/or read the existing code here as reference.
