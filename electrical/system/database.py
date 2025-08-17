@@ -287,8 +287,6 @@ class SystemDatabaseTarget(dict):
 
 
 
-# Create a database for each MCU in use.
-
 SYSTEM_DATABASE = {}
 
 for mcu in MCUS:
@@ -297,7 +295,7 @@ for mcu in MCUS:
 
 
 
-    # The database for the MCU is expressed as an S-expression in a separate text file that we then parse.
+    # The MCU database is defined as an S-expression in a separate text file that we parse.
 
     database_file_path = root(f'./deps/mcu/{mcu}_database.txt')
 
@@ -307,71 +305,84 @@ for mcu in MCUS:
             f'a file of S-expressions is needed to describe the properties of the MCU.'
         )
 
-    for tag, records in coalesce(map(parse_entry, parse_sexp(database_file_path.read_text()))):
+    for tag, entries in coalesce(map(parse_entry, parse_sexp(database_file_path.read_text()))):
 
 
 
         # Determine the fields in the entry's tag.
         # e.g:
         # >
-        # >    'pll{UNIT}{CHANNEL}_enable'   ->   { 'UNIT', 'CHANNEL' }
+        # >    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1PEN) (UNIT : 1) (CHANNEL : p))
+        # >         ^^^^  ^^^^^^^
         # >
 
-        ordered_fields = OrderedSet(re.findall('{(.*?)}', tag))
+        field_names = OrderedSet(re.findall('{(.*?)}', tag))
 
-        if not ordered_fields and len(records) >= 2:
+        if not field_names and len(entries) >= 2:
             raise ValueError(
-                f'For {mcu}, multiple database entries were found with the tag "{tag}"; '
-                f'there should be a {{...}} in the string.'
+                f'For {repr(mcu)}, '
+                f'multiple database entries were found with the tag {repr(tag)}; '
+                f'there should be a {{...}} in the tag.'
             )
 
 
 
-        # Based on the field count, we grouped together all of the database entries that have the same tag.
+        # We figure out how to group all of the
+        # database entries with the same tag together.
 
-        match list(ordered_fields):
+        match list(field_names):
 
 
 
-            # No field in the tag, so the user should expect a single entry when querying.
+            # A field-less tag should be enough to uniquely determine the database entry.
             # e.g:
             # >
-            # >    (iwdg_stopped_during_debug (DBGMCU APB4FZR DBG_IWDG))   ->   SYSTEM_DATABASE[mcu]['iwdg_stopped_during_debug']
+            # >    (iwdg_stopped_during_debug (DBGMCU APB4FZR DBG_IWDG))
+            # >     ~~~~~~~~~~~~~~~~~~~~~~~~~
+            # >                            |
+            # >                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            # >    SYSTEM_DATABASE[mcu]['iwdg_stopped_during_debug']
             # >
 
             case []:
-                SYSTEM_DATABASE[mcu][tag], = records
+                SYSTEM_DATABASE[mcu][tag], = entries
 
 
 
-            # Single field in the tag.
+            # A tag with a single field means we'll need a single field-value.
             # e.g:
             # >
-            # >    (pll{UNIT}_predivider (RCC PLLCKSELR DIVM1) (minmax: 1 63) (UNIT : 1))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][1]
-            # >    (pll{UNIT}_predivider (RCC PLLCKSELR DIVM2) (minmax: 1 63) (UNIT : 2))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][2]
-            # >    (pll{UNIT}_predivider (RCC PLLCKSELR DIVM3) (minmax: 1 63) (UNIT : 3))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][3]
+            # >    (pll{UNIT}_predivider (RCC PLLCKSELR DIVM1) (minmax: 1 63) (UNIT : 1))
+            # >     ~~~~~~~~~~~~~~~~~~~~                                      ~~~~~~~~~~
+            # >              |                                                     |
+            # >              |--------------------|             |------------------|
+            # >                                   |             |
+            # >                         ~~~~~~~~~~~~~~~~~~~~~~  ~
+            # >    SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][1]
             # >
 
-            case [field]:
+            case [field_name]:
                 SYSTEM_DATABASE[mcu][tag] = mk_dict(
-                    (record.__dict__[field], record)
-                    for record in records
+                    (entry.__dict__[field_name], entry)
+                    for entry in entries
                 )
 
 
 
-            # Multiple fields in the tag.
+            # A tag with multiple fields means we'll need a tuple of field-values.
             # e.g:
             # >
-            # >    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1PEN) (UNIT : 1) (CHANNEL : p))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 'p')]
-            # >    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1QEN) (UNIT : 1) (CHANNEL : q))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 'q')]
-            # >    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1SEN) (UNIT : 1) (CHANNEL : s))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 's')]
+            # >    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1PEN) (UNIT : 1) (CHANNEL : p))
+            # >     ~~~~~~~~~~~~~~~~~~~~~~~~~                       ~~~~~~~~~~~~~~~~~~~~~~~~
+            # >                           |                             |
+            # >                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~  ~~~~~~~~
+            # >    SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 'p')]
             # >
 
             case _:
                 SYSTEM_DATABASE[mcu][tag] = mk_dict(
-                    (tuple(record.__dict__[field] for field in ordered_fields), record)
-                    for record in records
+                    (tuple(entry.__dict__[field_name] for field_name in field_names), entry)
+                    for entry in entries
                 )
 
 
