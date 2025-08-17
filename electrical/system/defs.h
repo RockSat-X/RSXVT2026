@@ -177,7 +177,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
             for name, tag, substitutions in alias.puts:
 
-                entry = SYSTEM_DATABASE[target.mcu].query(tag, **substitutions)
+                entry = SYSTEM_DATABASE[target.mcu].query(tag, substitutions)
 
                 Meta.line(f'''
                     static const struct CMSISPutTuple {name.format(alias.moniker)} =

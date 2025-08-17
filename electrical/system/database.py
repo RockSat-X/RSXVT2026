@@ -201,25 +201,29 @@ def verify_and_get_fields_in_tag_order(tag, given_fields):
 
 class SystemDatabaseTarget(dict):
 
-    def query(self, tag, **field_values):
+    def query(self, tag, field_values = None):
+
+        if field_values is None:
+            field_values = {}
 
         field_names = verify_and_get_fields_in_tag_order(tag, field_values)
+
 
 
         # Find the database entries and determine which entry we should return based on the field values.
         # Note that the order of the fields is important.
         # e.g:
         # >
-        # >    query('pll{UNIT}{CHANNEL}_enable', UNIT : 2, CHANNEL : 'q')
-        # >                                       ~~~~~~~~~~~~~~~~~~~~~~~
+        # >    query('pll{UNIT}{CHANNEL}_enable', { 'UNIT' : 2, 'CHANNEL' : 'q' })
+        # >                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # >                                                          |
         # >                                                          v
         # >                                                      ~~~~~~~~
         # >    SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(2, 'q')]    <- Expected.
         # >
         # >
-        # >    query('pll{UNIT}{CHANNEL}_enable', CHANNEL : 'q', UNIT : 2)
-        # >                                       ~~~~~~~~~~~~~~~~~~~~~~~
+        # >    query('pll{UNIT}{CHANNEL}_enable', { 'CHANNEL' : 'q', 'UNIT' : 2 })
+        # >                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # >                                                          |
         # >                                                          v
         # >                                                      ~~~~~~~~
@@ -247,7 +251,7 @@ class SystemDatabaseTarget(dict):
         # Single field, so we get the entry based on the solely provided keyword-argument.
         # e.g:
         # >
-        # >    query('pll{UNIT}_predivider', UNIT : 2)   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][2]
+        # >    query('pll{UNIT}_predivider', { 'UNIT' : 2 })   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][2]
         # >
 
         if len(key) == 1:
@@ -258,7 +262,7 @@ class SystemDatabaseTarget(dict):
         # Multiple fields, so we get the entry based on the provided keyword-arguments in tag-order.
         # e.g:
         # >
-        # >    query('pll{UNIT}{CHANNEL}_enable', UNIT : 2, CHANNEL : 'q')   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(2, 'q')]
+        # >    query('pll{UNIT}{CHANNEL}_enable', { 'UNIT' : 2, 'CHANNEL' : 'q' })   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(2, 'q')]
         # >
 
         if key not in self[tag]:
