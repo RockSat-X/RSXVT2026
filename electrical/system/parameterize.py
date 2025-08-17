@@ -842,3 +842,53 @@ def SYSTEM_PARAMETERIZE(target):
         log(ANSI(f'[WARNING] There are leftover {target.mcu} options: {leftovers}.', 'fg_yellow'))
 
     return dict(configurations), tree
+
+
+
+################################################################################################################################
+
+
+
+# @/`About Parameterization`:
+# This meta-directive figures out the register values needed to configure the MCU's clock-tree,
+# but without necessarily worrying about the proper order that the register values should be written in.
+#
+# The latter is for `SYSTEM_CONFIGURIZE` in "./configurize.py" to do,
+# but here in `SYSTEM_PARAMETERIZE`, we essentially perform brute-forcing so
+# that we have the CPU be clocked at the desired frequency,
+# the SPI clock be clocking at the rate we want, and so forth.
+#
+# As it turns out, the algorithm to brute-force the clock-tree the very similar
+# across all STM32 microcontrollers. Of course, there are some differences,
+# but most of the logic is heavily overlapped.
+# This is especially true when we have `SYSTEM_DATABASE` to abstract over the details like
+# the exact min/max frequencies allowed and what range is multipliers/dividers are permitted.
+#
+# While this meta-directive would have one of the most complicated jobs,
+# what it exactly does is still pretty straight-forward and modular.
+# It is divided into small, independent sections, so if you're looking into extending
+# this meta-directive, look at how the existing logic work, copy-paste it, and adjust the
+# logic through trial and error.
+# Remember, the goal of this meta-directive is to figure out what the register values should be
+# (which often mean you need to add new entries to the MCU's database);
+# once you have that down, you can move onto `SYSTEM_CONFIGURIZE` and generate the appropriate code.
+#
+# This process is more time-consuming than scary really.
+# Obviously, before you do any of this, you should have existing
+# code that proves the parameterization and configuration works
+# (e.g. manually configuring I2C clock sources and dividers before using meta-directives to automate it).
+#
+# In an ideal world, there'd be a GUI to configure the clock-tree,
+# rather than what is being done now with this Python code stuff.
+# This is what STM32CubeMX does, actually, but it's incredibly slow
+# and hostile towards the user, so I suggest we make something better
+# than Cube. This side-mission, however, will take a lot of effort
+# considering the design challenges. For instance, every microcontroller
+# has really niche constraints; one example might be how a SDMMC divider
+# can only be an even number (or 1) if a PLL divider is 1 (or something
+# like that) because a 50% duty cycle is required. Really oddly specific
+# stuff like that. So if we were to create a new and better GUI, it'd have
+# to be extremely flexible with its logic, but in doing so, we must also
+# ensure it's absurdly fast when it comes to brute-forcing. Like, so fast
+# that we always do brute-forcing every time a build the project!
+# One day. Dream big.

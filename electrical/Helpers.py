@@ -271,3 +271,14 @@ def CMSIS_SPINLOCK(*spinlocks):
             case True  : Meta.line(f'while (!CMSIS_GET({section}, {register}, {field}));')
             case False : Meta.line(f'while (CMSIS_GET({section}, {register}, {field}));')
             case _     : Meta.line(f'while (CMSIS_GET({section}, {register}, {field}) != {value});')
+
+
+
+################################################################################################################################
+
+
+
+# This file is the meta-directive where we
+# define any global functions/constants
+# for all other meta-directives to have
+# without having them to explicitly import it.

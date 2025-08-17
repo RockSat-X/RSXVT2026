@@ -32,7 +32,7 @@ __INTERRUPT_Reset:
 
 
 
-    // Move bytes from LMA to VMA for the data section.
+    // For global variables that are initially non-zero, we copy it from flash and write it into RAM.
 
     ldr r0, =LINK_data_load_addr_start
     ldr r1, =LINK_data_virt_addr_start
@@ -50,7 +50,7 @@ __INTERRUPT_Reset:
 
 
 
-    // Zero-initialize BSS section.
+    // For any global variables that are initially zero, we zero out that part of the RAM.
 
     mov r0, 0
     ldr r1, =LINK_bss_addr_start
@@ -210,14 +210,41 @@ __INTERRUPT_Reset:
 // different from, say, 0x0800'0004.
 //
 // In fact, what most STM32s do is make the flash memory at 0x0800'0000 be also the same at 0x0000'0000!
-// So when the CPU performs sends a read/write command to the bus, the bus will quietly map addresses starting
-// at 0x0000'0000 to the region starting at 0x0800'0000.
+// So when the CPU performs sends a read/write command to the bus, the bus will quietly map addresses
+// starting at 0x0000'0000 to the region starting at 0x0800'0000.
 //
-// In other words, when we flash the MCU at 0x0800'0000, the CPU will read the same content both at 0x0000'0000 and at 0x0800'0000!
+// In other words, when we flash the MCU at 0x0800'0000,
+// the CPU will read the same content both at 0x0000'0000 and at 0x0800'0000!
 //
 // Now, hopefully you're curious as to why this is done at all, and it's actually for good reason.
-// Memory mapping is very powerful, but for this specific instance, it's so we can have different bootloaders if needed.
-// Address 0x0000'0000 need not be mapped to the flash 0x0800'0000;
+// Memory mapping is very powerful, but for this specific instance, it's so we can have different
+// bootloaders if needed. Address 0x0000'0000 need not be mapped to the flash 0x0800'0000;
 // in fact, depending on the BOOT0 pin of the microcontroller,
 // the 0x0000'0000 region might be redirected to the MCU's built-in bootloader.
 // This is very useful for whenever we brick our MCU!
+//
+// Anyways, the initial SP and PC values at 0x0000'0000 and 0x0000'0004 are actually part of
+// a much larger structure, that structure being the interrupt vector table.
+// The interrupt vector table is just a massive look-up table for whenever a particular event happens,
+// like a timer counter overflowing, a SPI buffer TX-buffer empty, etc,
+// the CPU knows what to immediately do next.
+// To see the full list of interrupts, check out "build/interrupt_vector_table.meta".
+// Most of the interrupts we'll never use, but we still have to put something there,
+// so have a default interrupt handler to deal with that.
+//
+// At 0x0000'0004, we put the address of our "reset interrupt handler".
+// It's not actually really an interrupt handler; it's just where code will start executing
+// when a reset event happens, but it's the terminology that's used sometimes.
+//
+// Anyways, before we can go into `main`, we have to do some quick prep work.
+// This pretty much involves initializing global variables and turning on the FPU;
+// the reason why we turn on the FPU is because FPU instructions can pop/push a large amount
+// of data all at once, so it's more efficient to use something like that than non-FPU instructions.
+// This startup code is pretty straight-forward; in C++, it's much more complicated, because
+// a bunch of constructors and destructors have to be invoked before `main` can start.
+// When you get to application-space programs, like making a Windows program, even more
+// complicated OS-specific stuff happens like loading DLLs and whatnot.
+//
+// In conclusion, this file makes a interrupt vector table of the addresses to interrupt handlers
+// and some code to initialize stuff before we start `main`. This file is rarely ever changed,
+// but it's cool to see how stuff works under the hood!
