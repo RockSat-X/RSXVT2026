@@ -1,4 +1,4 @@
-#meta SYSTEM_CONFIGURIZE : SYSTEM_DATABASE, verify_and_get_placeholders_in_tag_order
+#meta SYSTEM_CONFIGURIZE : SYSTEM_DATABASE, verify_and_get_fields_in_tag_order
 
 import re, collections, builtins
 
@@ -27,22 +27,22 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
     CfgFmt = collections.namedtuple('CfgFmt', ('database_expansion', 'configuration_expansion')) # @/`About CfgFmt`.
 
-    def cfgs(tag, *value, **placeholder_values):
+    def cfgs(tag, *value, **field_values):
 
 
 
         # @/`About CfgFmt`.
 
-        verify_and_get_placeholders_in_tag_order(tag, **placeholder_values)
+        verify_and_get_fields_in_tag_order(tag, field_values)
 
-        placeholder_values_for_configuration = {
+        field_values_for_configuration = {
             name : value.configuration_expansion if isinstance(value, CfgFmt) else value
-            for name, value in placeholder_values.items()
+            for name, value in field_values.items()
         }
 
-        placeholder_values_for_database = {
+        field_values_for_database = {
             name : value.database_expansion if isinstance(value, CfgFmt) else value
-            for name, value in placeholder_values.items()
+            for name, value in field_values.items()
         }
 
 
@@ -59,10 +59,10 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
             nonlocal used_configurations
 
-            configuration = tag.format(**placeholder_values_for_configuration)
+            configuration = tag.format(**field_values_for_configuration)
 
             if configuration not in configurations:
-                if placeholder_values:
+                if field_values:
                     raise ValueError(f'For {target.mcu}, the tag "{tag}" expanded to the undefined configuration "{configuration}".')
                 else:
                     raise ValueError(f'For {target.mcu}, configuration "{configuration}" was not provided.')
@@ -97,7 +97,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
             # >
 
             case [builtins.Ellipsis]:
-                entry = database.query(tag, **placeholder_values_for_database)
+                entry = database.query(tag, **field_values_for_database)
                 return (entry.section, entry.register, entry.field, find_configuration_value())
 
 
@@ -109,7 +109,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
             # >
 
             case [value]:
-                entry = database.query(tag, **placeholder_values_for_database)
+                entry = database.query(tag, **field_values_for_database)
                 return (entry.section, entry.register, entry.field, value)
 
 
@@ -485,10 +485,10 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 # @/`About CfgFmt`:
 #
-# The placeholder value can actually be different based on whether or not
+# The field value can actually be different based on whether or not
 # we're looking into `configurations` or if we're looking up in `SYSTEM_DATABASE`.
 # Most of the time it's the same, but the subtle requirement for this case is that
-# the placeholder value for `configuration` needs to be something that can turn into
+# the field value for `configuration` needs to be something that can turn into
 # a string that looks nice as a result, but keys into `SYSTEM_DATABASE` can be any arbritary value.
 #
 # e.g:

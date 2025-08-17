@@ -1,4 +1,4 @@
-#meta SYSTEM_DATABASE, verify_and_get_placeholders_in_tag_order
+#meta SYSTEM_DATABASE, verify_and_get_fields_in_tag_order
 
 import re
 from deps.pxd.sexp import parse_sexp
@@ -99,7 +99,7 @@ def parse_entry(entry):
 
 
 
-    # We then look for tag-substitution attributes.
+    # We then look for field-value attributes.
     # e.g:
     # >
     # >    (pll{UNIT}_ready (RCC CR PLL3RDY) (UNIT : 3))
@@ -166,26 +166,26 @@ def parse_entry(entry):
 # Helper routine to make sure all placeholders in a tag are supplied.
 # e.g:
 # >
-# >    verify_and_get_placeholders('pll{UNIT}_input_range', UNIT : 3)
-# >                                     ^^^^----------------^^^^^^^^
+# >    verify_and_get_fields_in_tag_order('pll{UNIT}_input_range', { 'UNIT' : 3 })
+# >                                            ^^^^----------------^^^^^^^^^^^^^^
 # >
 #
-# The returned placeholder names will be given in the order they appear in the tag.
+# The returned field-names will be given in the order they appear in the tag.
 # e.g:
 # >
-# >    verify_and_get_placeholders('pll{UNIT}{CHANNEL}_enable', CHANNEL : 'q', UNIT : 3)   ->   { 'UNIT', 'CHANNEL' }
-# >                                    ^^^^^^^^^^^^^^^--------------------------------------------^^^^^^^^^^^^^^^^^
+# >    verify_and_get_fields_in_tag_order('pll{UNIT}{CHANNEL}_enable', { 'CHANNEL' : 'q', 'UNIT' : 3 })   ->   { 'UNIT', 'CHANNEL' }
+# >                                           ^^^^^^^^^^^^^^^----------------------------------------------------^^^^^^^^^^^^^^^^^
 # >
 
-def verify_and_get_placeholders_in_tag_order(tag, **placeholders):
+def verify_and_get_fields_in_tag_order(tag, fields = {}):
 
     names = OrderedSet(re.findall('{(.*?)}', tag))
 
-    if differences := names - placeholders.keys():
-        raise ValueError(f'Tag "{tag}" is missing the value for the placeholder "{differences[0]}".')
+    if differences := names - fields.keys():
+        raise ValueError(f'Tag "{tag}" is missing the value for the field "{differences[0]}".')
 
-    if differences := OrderedSet(placeholders.keys()) - names:
-        raise ValueError(f'Tag "{tag}" has no placeholder "{differences[0]}".')
+    if differences := OrderedSet(fields.keys()) - names:
+        raise ValueError(f'Tag "{tag}" has no field "{differences[0]}".')
 
     return names
 
@@ -195,14 +195,13 @@ def verify_and_get_placeholders_in_tag_order(tag, **placeholders):
 
 class SystemDatabaseTarget(dict):
 
-    def query(self, tag, **placeholder_values):
+    def query(self, tag, **field_values):
 
-        placeholder_names = verify_and_get_placeholders_in_tag_order(tag, **placeholder_values)
+        field_names = verify_and_get_fields_in_tag_order(tag, field_values)
 
 
-        # Find the database entries and determine which entry we should return
-        # based on the placeholder values.
-        # Note that the order of the placeholder values is important.
+        # Find the database entries and determine which entry we should return based on the field values.
+        # Note that the order of the fields is important.
         # e.g:
         # >
         # >    query('pll{UNIT}{CHANNEL}_enable', UNIT : 2, CHANNEL : 'q')
@@ -224,11 +223,11 @@ class SystemDatabaseTarget(dict):
         if tag not in self:
             raise ValueError(f'No entry has tag: {repr(tag)}.')
 
-        key = tuple(placeholder_values[name] for name in placeholder_names)
+        key = tuple(field_values[name] for name in field_names)
 
 
 
-        # No placeholders, so we just do a direct look-up.
+        # No fields, so we just do a direct look-up.
         # e.g:
         # >
         # >    query('cpu_divider')   ->   SYSTEM_DATABASE[mcu]['cpu_divider']
@@ -239,7 +238,7 @@ class SystemDatabaseTarget(dict):
 
 
 
-        # Single placeholder, so we get the entry based on the solely provided keyword-argument.
+        # Single field, so we get the entry based on the solely provided keyword-argument.
         # e.g:
         # >
         # >    query('pll{UNIT}_predivider', UNIT : 2)   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][2]
@@ -250,16 +249,16 @@ class SystemDatabaseTarget(dict):
 
 
 
-        # Multiple placeholders, so we get the entry based on the provided keyword-arguments in tag-order.
+        # Multiple fields, so we get the entry based on the provided keyword-arguments in tag-order.
         # e.g:
         # >
         # >    query('pll{UNIT}{CHANNEL}_enable', UNIT : 2, CHANNEL : 'q')   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(2, 'q')]
         # >
 
         if key not in self[tag]:
-            raise ValueError(f'Placeholders {', '.join(
+            raise ValueError(f'Fields {', '.join(
                 f'({name} = {repr(value)})'
-                for name, value in placeholder_values.items()
+                for name, value in field_values.items()
             )} is not an option for database entry {repr(tag)}.')
 
         return self[tag][key]
@@ -290,15 +289,15 @@ for mcu in MCUS:
 
 
 
-        # Determine the placeholders in the entry's tag.
+        # Determine the fields in the entry's tag.
         # e.g:
         # >
         # >    'pll{UNIT}{CHANNEL}_enable'   ->   { 'UNIT', 'CHANNEL' }
         # >
 
-        ordered_placeholders = OrderedSet(re.findall('{(.*?)}', tag))
+        ordered_fields = OrderedSet(re.findall('{(.*?)}', tag))
 
-        if not ordered_placeholders and len(records) >= 2:
+        if not ordered_fields and len(records) >= 2:
             raise ValueError(
                 f'For {mcu}, multiple database entries were found with the tag "{tag}"; '
                 f'there should be a {{...}} in the string.'
@@ -306,13 +305,13 @@ for mcu in MCUS:
 
 
 
-        # Based on the placeholder count, we grouped together all of the database entries that have the same tag.
+        # Based on the field count, we grouped together all of the database entries that have the same tag.
 
-        match list(ordered_placeholders):
+        match list(ordered_fields):
 
 
 
-            # No placeholder in the tag, so the user should expect a single entry when querying.
+            # No field in the tag, so the user should expect a single entry when querying.
             # e.g:
             # >
             # >    (iwdg_stopped_during_debug (DBGMCU APB4FZR DBG_IWDG))   ->   SYSTEM_DATABASE[mcu]['iwdg_stopped_during_debug']
@@ -323,7 +322,7 @@ for mcu in MCUS:
 
 
 
-            # Single placeholder in the tag.
+            # Single field in the tag.
             # e.g:
             # >
             # >    (pll{UNIT}_predivider (RCC PLLCKSELR DIVM1) (minmax: 1 63) (UNIT : 1))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][1]
@@ -331,15 +330,15 @@ for mcu in MCUS:
             # >    (pll{UNIT}_predivider (RCC PLLCKSELR DIVM3) (minmax: 1 63) (UNIT : 3))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][3]
             # >
 
-            case [placeholder]:
+            case [field]:
                 SYSTEM_DATABASE[mcu][tag] = mk_dict(
-                    (record.__dict__[placeholder], record)
+                    (record.__dict__[field], record)
                     for record in records
                 )
 
 
 
-            # Multiple placeholders in the tag.
+            # Multiple fields in the tag.
             # e.g:
             # >
             # >    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1PEN) (UNIT : 1) (CHANNEL : p))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 'p')]
@@ -349,7 +348,7 @@ for mcu in MCUS:
 
             case _:
                 SYSTEM_DATABASE[mcu][tag] = mk_dict(
-                    (tuple(record.__dict__[placeholder] for placeholder in ordered_placeholders), record)
+                    (tuple(record.__dict__[field] for field in ordered_fields), record)
                     for record in records
                 )
 
@@ -378,7 +377,7 @@ for mcu in MCUS:
 # To account for this, the database organizes everything by "tags",
 # so rather than use names like "PLL3ON" or "PLL3EN", we instead use the
 # more human readable key of "pll_{UNIT}_enable".
-# The placeholder "{UNIT}" would be eventually replaced with 3 later on,
+# The field "{UNIT}" would be eventually replaced with 3 later on,
 # so this makes using the tag "pll_{UNIT}_enable" very natural because we often
 # iterate over the other PLL units too.
 #
