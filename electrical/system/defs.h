@@ -36,17 +36,20 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-#if TARGET_MCU_IS_STM32H7S3L8H6
+#if TARGET_MCU_IS_STM32H7S3L8H6 || TARGET_MCU_IS_STM32H533RET6
 
-    // For the full contiguous field. @/pg 2476/sec 53.8.6/`H7S3rm`.
-    #define USART_BRR_BRR_Pos 0
-    #define USART_BRR_BRR_Msk (0xFFFF << USART_BRR_BRR_Pos)
+    #define USART_BRR_BRR_Pos 0                             // For the full contiguous field.
+    #define USART_BRR_BRR_Msk (0xFFFF << USART_BRR_BRR_Pos) // "
 
 #endif
 
 #if TARGET_MCU_IS_STM32H533RET6
 
-    #define RCC_CCIPR5_CKPERSEL_ RCC_CCIPR5_CKERPSEL_ // Typo.
+    #define RCC_CCIPR5_CKPERSEL_ RCC_CCIPR5_CKERPSEL_         // Typo.
+    #define USART_TDR_TDR_Pos    0                            // Position and mask not given.
+    #define USART_TDR_TDR_Msk    (0x1FF << USART_TDR_TDR_Pos) // "
+    #define USART_RDR_TDR_Pos    0                            // "
+    #define USART_RDR_TDR_Msk    (0x1FF << USART_RDR_TDR_Pos) // "
 
 #endif
 
@@ -55,6 +58,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 #include "cmsis_patches.meta"
 /* #meta
 
+    # @/`CMSIS Suffix Dropping`:
     # Define macros to map things like "I2C1_" to "I2C_".
     # This makes using CMSIS_SET/GET a whole lot easier
     # because CMSIS definitions like "I2C_CR1_PE_Pos"
@@ -79,10 +83,12 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
         # Some peripherals furthermore have subunits that also need this suffix-chopping to be done too.
-        # e.g.
-        # "DMAMUX5_RequestGenerator7_" -> "DMAMUX_"
-        # "DMAMUX6_RequestGenerator0_" -> "DMAMUX_"
-        # "DMAMUX6_RequestGenerator1_" -> "DMAMUX_"
+        # e.g:
+        # >
+        # >    DMAMUX5_RequestGenerator7_   ->   DMAMUX_
+        # >    DMAMUX6_RequestGenerator0_   ->   DMAMUX_
+        # >    DMAMUX6_RequestGenerator1_   ->   DMAMUX_
+        # >
 
         PERIPHERAL_WITH_SUBUNITS = (
             ('DMA'   , '{unit}_Stream{subunit}'          ),
@@ -104,6 +110,84 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
         for suffix in units:
             Meta.define(f'{peripheral}{suffix}_', f'{peripheral}_')
+
+
+
+    # Handle aliasing of peripheral names.
+
+    @Meta.ifs(TARGETS, '#if')
+    def _(target):
+
+        yield f'TARGET_NAME_IS_{target.name}'
+
+        for alias in target.aliases:
+
+
+
+            # @/`CMSIS Suffix Dropping`.
+
+            terms = [
+                '{}',
+                '{}_',
+            ]
+
+
+
+            # The necessary macros to make working with interrupts smooth.
+
+            for interrupt in alias.interrupts:
+                terms += [f'INTERRUPT_{interrupt}']
+                terms += [f'{interrupt}_IRQn']
+                terms += [f'__MACRO_OVERLOAD__NVIC_ENABLE__{interrupt}']
+
+
+
+            # Make the macros with the substituted names.
+            # e.g:
+            # >
+            # >                     {}_BRR_BRR_init   ->       {}_BRR_BRR_init
+            # >    MyAliasedPeripheral_BRR_BRR_init   ->   USART2_BRR_BRR_init
+            # >    ^^^^^^^^^^^^^^^^^^^                     ^^^^^^
+            # >
+
+            terms += alias.terms
+
+            for term in terms:
+                Meta.define(
+                    term.format(alias.moniker),
+                    term.format(alias.actual )
+                )
+
+
+
+            # Make constants to reference the desired register fields.
+            # e.g:
+            # >
+            # >                                         ('{}_EN', 'uxart_{UNIT}_enable', { 'UNIT' : 2 })
+            # >                                            ^      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            # >                                            |                   |
+            # >                                          vvvvvvvvvvvvvvv       |
+            # >    static constexpr struct CMSISPutTuple UxART_STLINK_EN =     |
+            # >        {                                                       |
+            # >            .dst = &RCC->APB1LENR,               <              |
+            # >            .pos = RCC_APB1LENR_USART2EN_Pos,    <--------------|
+            # >            .msk = RCC_APB1LENR_USART2EN_Msk     <
+            # >        };
+            # >
+
+            for name, tag, placeholders in alias.puts:
+
+                entry = SYSTEM_DATABASE[target.mcu].query(tag, **placeholders)
+
+                Meta.line(f'''
+                    static const struct CMSISPutTuple {name.format(alias.moniker)} =
+                        {{
+                            .dst = &{entry.SECTION}->{entry.REGISTER},
+                            .pos = {entry.SECTION}_{entry.REGISTER}_{entry.FIELD}_Pos,
+                            .msk = {entry.SECTION}_{entry.REGISTER}_{entry.FIELD}_Msk
+                        }};
+                ''')
+
 */
 
 

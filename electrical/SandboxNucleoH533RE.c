@@ -1,6 +1,6 @@
 #include STM32_CMSIS_DEVICE_H
 #include "defs.h"
-// TODO: #include "jig.c"
+#include "jig.c"
 #include <deps/FreeRTOS_Kernel/tasks.c>
 #include <deps/FreeRTOS_Kernel/queue.c>
 #include <deps/FreeRTOS_Kernel/list.c>
@@ -44,7 +44,7 @@ extern noret void
 main(void)
 {
     SYSTEM_init();
-    // TODO: JIG_init();
+    JIG_init();
 
 
 

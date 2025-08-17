@@ -69,6 +69,16 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         stack_size = 8192, # TODO This might be removed depending on how FreeRTOS works.
 
+        aliases = (
+            types.SimpleNamespace(
+                moniker    = 'UxART_STLINK',
+                actual     = 'USART3',
+                terms      = ['{}_BRR_BRR_init'],
+                interrupts = ['{}'],
+                puts       = [('{}_EN', 'uxart_{UNIT}_enable', { 'UNIT' : 3 })]
+            ),
+        ),
+
         clock_tree = {
             'hsi_enable'    : True,
             'hsi48_enable'  : True,
@@ -112,6 +122,16 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         stack_size = 8192, # TODO This might be removed depending on how FreeRTOS works.
 
+        aliases = (
+            types.SimpleNamespace(
+                moniker    = 'UxART_STLINK',
+                actual     = 'USART2',
+                terms      = ['{}_BRR_BRR_init'],
+                interrupts = ['{}'],
+                puts       = [('{}_EN', 'uxart_{UNIT}_enable', { 'UNIT' : 2 })]
+            ),
+        ),
+
         clock_tree = {
             'hsi_enable'   : True,
             'hsi48_enable' : True,
@@ -121,6 +141,7 @@ TARGETS = ( # @/`Defining a TARGET`.
             'apb1_ck'      : 250_000_000,
             'apb2_ck'      : 250_000_000,
             'apb3_ck'      : 250_000_000,
+            'usart2_baud'  : STLINK_BAUD,
         },
 
         gpios = (
@@ -133,6 +154,7 @@ TARGETS = ( # @/`Defining a TARGET`.
         ),
 
         interrupt_priorities = (
+            ('USART2', 0),
         ),
 
     ),
@@ -228,11 +250,12 @@ for target in TARGETS:
             -fmax-errors=1
             -fno-strict-aliasing
             -fno-eliminate-unused-debug-types
+            -ffunction-sections
+            -fcompare-debug-second
             {'\n'.join(f'-D {name}="{value}"'    for name, value in defines                  )}
             {'\n'.join(f'-W{name}'               for name        in enabled_warnings .split())}
             {'\n'.join(f'-Wno-{name}'            for name        in disabled_warnings.split())}
             {'\n'.join(f'-I "{path.as_posix()}"' for path        in include_file_paths       )}
-            -ffunction-sections
         '''
     )
 
@@ -280,6 +303,16 @@ for target in TARGETS:
 #     - stack_size           = The amount of bytes to reserve for the main stack,
 #                              although I think this might be deprecated once I do
 #                              more research into FreeRTOS' configurations (TODO).
+#
+#     - aliases              = The purpose of this field is to make it easy to refer to a peripheral "generically"
+#                              by using a custom name like "UxART_STLINK" instead of "USART3".
+#                              While this makes it more clear what a particular peripheral is meant to be used for,
+#                              its true purpose is to make code that uses this peripheral more applicable to different targets.
+#                              In the example of "UxART_STLINK", some targets might have it be "USART3" while others be "UART2".
+#                              Rather than reimplement code to use slightly different peripheral names and numberings,
+#                              all code can just refer to "UxART_STLINK", and a bunch of macros and global constants will do the
+#                              mapping magically. This is a very experimental feature right now, however, so you can just completely
+#                              ignore this. I'm planning to make it much simpler to use and less contrived.
 #
 #     - clock_tree           = Options relating to configuring the MCU's clock-tree.
 #                              The available options right now is pretty undocumented since it

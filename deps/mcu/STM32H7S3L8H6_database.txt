@@ -302,6 +302,9 @@
     # @/pg 501/sec 7.8.48/`H7S3rm`.
     (GPIO_PORT_ENABLE_REGISTER (.value AHB4ENR))
 
+    # @/pg 505/sec 7.8.50/`H7S3rm`.
+    (uxart_{UNIT}_enable (RCC APB1ENR1 USART3EN) (UNIT = 3))
+
     # @/pg 583/sec 10.4.1/`H7S3rm`.
     (GPIO_MODE (.value (
         (input     0b00)

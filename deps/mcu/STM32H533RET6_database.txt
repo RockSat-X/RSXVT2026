@@ -15,10 +15,14 @@
         (3 (p q r))
     )))
 
-    # @/pg 52/tbl 10/`H533ds`.
+    # @/pg 52/tbl 10/`H533ds`. @/pg 456/fig 52/`H533rm`.
     (UXARTS (.value (
-        ((usart 1) (usart 2) (usart 3) (usart 6))
-        ((uart  4) (uart  5))
+        ((usart 1))
+        ((usart 2))
+        ((usart 3))
+        ((uart  4))
+        ((uart  5))
+        ((usart 6))
     )))
 
     (pll_channel_freq (.minmax   1_000_000 250_000_000)) # @/pg 124/tbl 47/`H533ds`. TODO We're assuming a high internal voltage and wide range.
@@ -163,12 +167,36 @@
     # @/pg 518/sec 11.8.27/`H533rm`.
     (GPIO_PORT_ENABLE_REGISTER (.value AHB2ENR))
 
-    # @/pg 586/sec 13.4.1/`H533rm`.
-    (GPIO_MODE (.value (
-        (input     0b00)
-        (output    0b01)
-        (alternate 0b10)
-        (analog    0b11)
+    # @/pg 521/sec 11.8.29/`H533rm`.
+    (uxart_{UNIT}_enable (RCC APB1LENR USART2EN) (UNIT = 2))
+
+    # @/pg 541/sec 11.8.40/`H533rm`.
+    (uxart_{UNITS}_clock_source (RCC CCIPR1 USART2SEL) (UNITS = ((usart 2))) (.value (
+        (apb1_ck    0b000)
+        (pll2_q_ck  0b001)
+        (pll3_q_ck  0b010)
+        (hsi_ker_ck 0b011)
+        (csi_ker_ck 0b100)
+        (None       0b110)
+        # TODO: (lse_ck     0b101)
+    )))
+    (uxart_{UNITS}_clock_source (RCC CCIPR1 USART3SEL) (UNITS = ((usart 3))) (.value (
+        (apb1_ck    0b000)
+        (pll2_q_ck  0b001)
+        (pll3_q_ck  0b010)
+        (hsi_ker_ck 0b011)
+        (csi_ker_ck 0b100)
+        (None       0b110)
+        # TODO: (lse_ck     0b101)
+    )))
+    (uxart_{UNITS}_clock_source (RCC CCIPR1 USART6SEL) (UNITS = ((usart 6))) (.value (
+        (apb1_ck    0b000)
+        (pll2_q_ck  0b001)
+        (pll3_q_ck  0b010)
+        (hsi_ker_ck 0b011)
+        (csi_ker_ck 0b100)
+        (None       0b110)
+        # TODO: (lse_ck     0b101)
     )))
 
     # @/pg 549/sec 11.8.44/`H533rm`. TODO hse_ck.
@@ -177,4 +205,15 @@
         (csi_ck 0b01)
         (None   0b11)
     )))
+
+    # @/pg 586/sec 13.4.1/`H533rm`.
+    (GPIO_MODE (.value (
+        (input     0b00)
+        (output    0b01)
+        (alternate 0b10)
+        (analog    0b11)
+    )))
+
+    # @/pg 2315/sec 50.8.6/`H533rm`.
+    (uxart_baud_divider (USART BRR BRR) (.minmax 1 `1 << 16`))
 )
