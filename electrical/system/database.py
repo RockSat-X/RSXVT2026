@@ -1,7 +1,7 @@
 #meta SYSTEM_DATABASE, verify_and_get_placeholders_in_tag_order
 
 import collections, re
-from deps.pxd.sexp import parse_sexp, Unquoted
+from deps.pxd.sexp import parse_sexp
 
 
 
@@ -28,14 +28,14 @@ def parse_entry(entry):
 
             # The entry value is directly given.
 
-            case (Unquoted('.value'), value):
+            case ('.value', value):
                 record.value = value
 
 
 
             # The entry value is an inclusive range.
 
-            case (Unquoted('.minmax'), minimum, maximum):
+            case ('.minmax', minimum, maximum):
                 record.min = minimum
                 record.max = maximum
 
@@ -74,7 +74,7 @@ def parse_entry(entry):
             # Entry properties are typically used for filling in placeholders in the entry tag.
             # e.g. (pll{UNIT}_ready (RCC CR PLL3RDY) (UNIT = 3))
 
-            case (property_name, Unquoted('='), property_value):
+            case (property_name, '=', property_value):
                 record[property_name] = property_value
 
 
