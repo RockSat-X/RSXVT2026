@@ -56,9 +56,6 @@ MCUS = {
 # Basic description of each of our firmware targets.
 #
 
-def Put(name, *args, **kwargs):
-    return (name, args, kwargs)
-
 TARGETS = (
 
     types.SimpleNamespace(
@@ -78,7 +75,7 @@ TARGETS = (
                 actual     = 'USART3',
                 terms      = ['{}_BRR_BRR_init'],
                 interrupts = ['{}'],
-                puts       = [Put('{}_EN', 'uxart_{UNIT}_enable', UNIT = 3)]
+                puts       = [('{}_EN', 'uxart_{UNIT}_enable', { 'UNIT' : 3 })]
             ),
         ),
 
@@ -131,7 +128,7 @@ TARGETS = (
                 actual     = 'USART2',
                 terms      = ['{}_BRR_BRR_init'],
                 interrupts = ['{}'],
-                puts       = [Put('{}_EN', 'uxart_{UNIT}_enable', UNIT = 2)]
+                puts       = [('{}_EN', 'uxart_{UNIT}_enable', { 'UNIT' : 2 })]
             ),
         ),
 
