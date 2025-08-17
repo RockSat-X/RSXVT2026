@@ -36,8 +36,8 @@ def parse_entry(entry):
             # The entry value is an inclusive range.
 
             case ('.minmax', minimum, maximum):
-                record.min = minimum
-                record.max = maximum
+                record.minimum = minimum
+                record.maximum = maximum
 
 
 
