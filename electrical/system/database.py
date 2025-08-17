@@ -5,6 +5,10 @@ from deps.pxd.sexp import parse_sexp
 
 
 
+################################################################################################################################
+
+
+
 # Routine for converting S-expressions of database entries into a more usable Python value.
 # e.g:
 # >
@@ -163,31 +167,33 @@ def parse_entry(entry):
 
 
 
-# Helper routine to make sure all placeholders in a tag are supplied.
+################################################################################################################################
+
+
+
+# Helper routine to make sure all fields in a tag are supplied.
 # e.g:
 # >
-# >    verify_and_get_fields_in_tag_order('pll{UNIT}_input_range', { 'UNIT' : 3 })
-# >                                            ^^^^----------------^^^^^^^^^^^^^^
-# >
-#
-# The returned field-names will be given in the order they appear in the tag.
-# e.g:
-# >
-# >    verify_and_get_fields_in_tag_order('pll{UNIT}{CHANNEL}_enable', { 'CHANNEL' : 'q', 'UNIT' : 3 })   ->   { 'UNIT', 'CHANNEL' }
-# >                                           ^^^^^^^^^^^^^^^----------------------------------------------------^^^^^^^^^^^^^^^^^
+# >    verify_and_get_fields_in_tag_order('pll{UNIT}{CHANNEL}_enable', { 'CHANNEL' : 'q', 'UNIT' : 3 })
+# >                                           ^^^^^^^^^^^^^^^----------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 # >
 
-def verify_and_get_fields_in_tag_order(tag, fields = {}):
+def verify_and_get_fields_in_tag_order(tag, given_fields):
 
-    names = OrderedSet(re.findall('{(.*?)}', tag))
+    tag_field_names   = OrderedSet(re.findall('{(.*?)}', tag))
+    given_field_names = OrderedSet(given_fields.keys())
 
-    if differences := names - fields.keys():
-        raise ValueError(f'Tag "{tag}" is missing the value for the field "{differences[0]}".')
+    if differences := tag_field_names - given_field_names:
+        raise ValueError(f'Tag {repr(tag)} is missing the value for the field {repr(differences[0])}.')
 
-    if differences := OrderedSet(fields.keys()) - names:
-        raise ValueError(f'Tag "{tag}" has no field "{differences[0]}".')
+    if differences := given_field_names - tag_field_names:
+        raise ValueError(f'Tag {repr(tag)} has no field {repr(differences[0])}.')
 
-    return names
+    return tag_field_names
+
+
+
+################################################################################################################################
 
 
 
@@ -262,6 +268,10 @@ class SystemDatabaseTarget(dict):
             )} is not an option for database entry {repr(tag)}.')
 
         return self[tag][key]
+
+
+
+################################################################################################################################
 
 
 
