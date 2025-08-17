@@ -350,9 +350,9 @@
     (iwdg_reload (IWDG RLR RL) (.minmax 0 `(1 << 12) - 1`))
 
     # @/pg 2135/sec 48.7.4/`H7S3rm`.
-    (iwdg_window_.value_updating  (IWDG SR WVU))
-    (iwdg_reload_.value_updating  (IWDG SR RVU))
-    (iwdg_divider_.value_updating (IWDG SR PVU))
+    (iwdg_window_value_updating  (IWDG SR WVU))
+    (iwdg_reload_value_updating  (IWDG SR RVU))
+    (iwdg_divider_value_updating (IWDG SR PVU))
 
     # @/pg 2287/sec 51.9.5/`H7S3rm`.
     (i2c_PRESC (I2C TIMINGR PRESC) (.minmax 0 `(1 << 4) - 1`))
