@@ -110,9 +110,9 @@ def parse_entry(entry):
         # e.g. (iwdg_stopped_during_debug (DBGMCU APB4FZR DBG_IWDG))
 
         case [(section, register, field)]:
-            record.SECTION  = section
-            record.REGISTER = register
-            record.FIELD    = field
+            record.section  = section
+            record.register = register
+            record.field    = field
 
 
 
