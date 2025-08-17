@@ -77,12 +77,12 @@
     (internal_voltage_scaling (PWR CSR4 VOS      )) # @/pg 327/sec 6.8.6/`H7S3rm`.
 
     # @/pg 424/sec 7.8.1/`H7S3rm`.
-    (pll{UNIT}_ready  (RCC CR PLL3RDY ) (UNIT = 3))
-    (pll{UNIT}_enable (RCC CR PLL3ON  ) (UNIT = 3))
-    (pll{UNIT}_ready  (RCC CR PLL2RDY ) (UNIT = 2))
-    (pll{UNIT}_enable (RCC CR PLL2ON  ) (UNIT = 2))
-    (pll{UNIT}_ready  (RCC CR PLL1RDY ) (UNIT = 1))
-    (pll{UNIT}_enable (RCC CR PLL1ON  ) (UNIT = 1))
+    (pll{UNIT}_ready  (RCC CR PLL3RDY ) (UNIT : 3))
+    (pll{UNIT}_enable (RCC CR PLL3ON  ) (UNIT : 3))
+    (pll{UNIT}_ready  (RCC CR PLL2RDY ) (UNIT : 2))
+    (pll{UNIT}_enable (RCC CR PLL2ON  ) (UNIT : 2))
+    (pll{UNIT}_ready  (RCC CR PLL1RDY ) (UNIT : 1))
+    (pll{UNIT}_enable (RCC CR PLL1ON  ) (UNIT : 1))
     (hsi48_ready      (RCC CR HSI48RDY)           )
     (hsi48_enable     (RCC CR HSI48ON )           )
     (csi_ready        (RCC CR CSIRDY  )           )
@@ -141,27 +141,27 @@
     )))
 
     # @/pg 436/sec 7.8.9/`H7S3rm`.
-    (apb{UNIT}_divider (RCC APBCFGR PPRE5) (.value ((1 0b000) (2 0b100) (4 0b101) (8 0b110) (16 0b111))) (UNIT = 5))
-    (apb{UNIT}_divider (RCC APBCFGR PPRE4) (.value ((1 0b000) (2 0b100) (4 0b101) (8 0b110) (16 0b111))) (UNIT = 4))
-    (apb{UNIT}_divider (RCC APBCFGR PPRE2) (.value ((1 0b000) (2 0b100) (4 0b101) (8 0b110) (16 0b111))) (UNIT = 2))
-    (apb{UNIT}_divider (RCC APBCFGR PPRE1) (.value ((1 0b000) (2 0b100) (4 0b101) (8 0b110) (16 0b111))) (UNIT = 1))
+    (apb{UNIT}_divider (RCC APBCFGR PPRE5) (.value ((1 0b000) (2 0b100) (4 0b101) (8 0b110) (16 0b111))) (UNIT : 5))
+    (apb{UNIT}_divider (RCC APBCFGR PPRE4) (.value ((1 0b000) (2 0b100) (4 0b101) (8 0b110) (16 0b111))) (UNIT : 4))
+    (apb{UNIT}_divider (RCC APBCFGR PPRE2) (.value ((1 0b000) (2 0b100) (4 0b101) (8 0b110) (16 0b111))) (UNIT : 2))
+    (apb{UNIT}_divider (RCC APBCFGR PPRE1) (.value ((1 0b000) (2 0b100) (4 0b101) (8 0b110) (16 0b111))) (UNIT : 1))
 
     # @/pg 440/sec 7.8.11/`H7S3rm`.
-    (pll{UNIT}_input_range (RCC PLLCFGR PLL3RGE) (UNIT = 3) (.value (
+    (pll{UNIT}_input_range (RCC PLLCFGR PLL3RGE) (UNIT : 3) (.value (
         ( 1_000_000 None)
         ( 2_000_000 None) # Can be '0b00', but only for medium VCO.
         ( 4_000_000 0b01)
         ( 8_000_000 0b10)
         (16_000_000 0b11)
     )))
-    (pll{UNIT}_input_range (RCC PLLCFGR PLL2RGE) (UNIT = 2) (.value (
+    (pll{UNIT}_input_range (RCC PLLCFGR PLL2RGE) (UNIT : 2) (.value (
         ( 1_000_000 None)
         ( 2_000_000 None) # Can be '0b00', but only for medium VCO.
         ( 4_000_000 0b01)
         ( 8_000_000 0b10)
         (16_000_000 0b11)
     )))
-    (pll{UNIT}_input_range (RCC PLLCFGR PLL1RGE) (UNIT = 1) (.value (
+    (pll{UNIT}_input_range (RCC PLLCFGR PLL1RGE) (UNIT : 1) (.value (
         ( 1_000_000 None)
         ( 2_000_000 None) # Can be '0b00', but only for medium VCO.
         ( 4_000_000 0b01)
@@ -170,23 +170,23 @@
     )))
 
     # @/pg 438/sec 7.8.10/`H7S3rm`.
-    (pll{UNIT}_predivider (RCC PLLCKSELR DIVM1) (.minmax 1 63) (UNIT = 1))
-    (pll{UNIT}_predivider (RCC PLLCKSELR DIVM2) (.minmax 1 63) (UNIT = 2))
-    (pll{UNIT}_predivider (RCC PLLCKSELR DIVM3) (.minmax 1 63) (UNIT = 3))
+    (pll{UNIT}_predivider (RCC PLLCKSELR DIVM1) (.minmax 1 63) (UNIT : 1))
+    (pll{UNIT}_predivider (RCC PLLCKSELR DIVM2) (.minmax 1 63) (UNIT : 2))
+    (pll{UNIT}_predivider (RCC PLLCKSELR DIVM3) (.minmax 1 63) (UNIT : 3))
 
     # @/pg 440/sec 7.8.11/`H7S3rm`.
-    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1PEN) (UNIT = 1) (CHANNEL = p))
-    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1QEN) (UNIT = 1) (CHANNEL = q))
-    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1SEN) (UNIT = 1) (CHANNEL = s))
-    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL2PEN) (UNIT = 2) (CHANNEL = p))
-    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL2QEN) (UNIT = 2) (CHANNEL = q))
-    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL2REN) (UNIT = 2) (CHANNEL = r))
-    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL2SEN) (UNIT = 2) (CHANNEL = s))
-    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL2TEN) (UNIT = 2) (CHANNEL = t))
-    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL3PEN) (UNIT = 3) (CHANNEL = p))
-    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL3QEN) (UNIT = 3) (CHANNEL = q))
-    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL3REN) (UNIT = 3) (CHANNEL = r))
-    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL3SEN) (UNIT = 3) (CHANNEL = s))
+    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1PEN) (UNIT : 1) (CHANNEL : p))
+    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1QEN) (UNIT : 1) (CHANNEL : q))
+    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1SEN) (UNIT : 1) (CHANNEL : s))
+    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL2PEN) (UNIT : 2) (CHANNEL : p))
+    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL2QEN) (UNIT : 2) (CHANNEL : q))
+    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL2REN) (UNIT : 2) (CHANNEL : r))
+    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL2SEN) (UNIT : 2) (CHANNEL : s))
+    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL2TEN) (UNIT : 2) (CHANNEL : t))
+    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL3PEN) (UNIT : 3) (CHANNEL : p))
+    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL3QEN) (UNIT : 3) (CHANNEL : q))
+    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL3REN) (UNIT : 3) (CHANNEL : r))
+    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL3SEN) (UNIT : 3) (CHANNEL : s))
     (pll_clock_source (RCC PLLCKSELR PLLSRC) (.value (
         (hsi_ck 0b00)
         (csi_ck 0b01)
@@ -194,23 +194,23 @@
         (None   0b11)
     )))
 
-    (pll{UNIT}_multiplier       (RCC PLL1DIVR1 DIVN) (.minmax 12 420) (UNIT = 1)              ) # @/pg 443/sec 7.8.12/`H7S3rm`.
-    (pll{UNIT}{CHANNEL}_divider (RCC PLL1DIVR1 DIVQ) (.minmax 1  128) (UNIT = 1) (CHANNEL = q)) # "
-    (pll{UNIT}{CHANNEL}_divider (RCC PLL1DIVR1 DIVP) (.minmax 1  128) (UNIT = 1) (CHANNEL = p)) # "
-    (pll{UNIT}{CHANNEL}_divider (RCC PLL1DIVR2 DIVS) (.minmax 1  128) (UNIT = 1) (CHANNEL = s)) # @/pg 445/sec 7.8.13/`H7S3rm`.
+    (pll{UNIT}_multiplier       (RCC PLL1DIVR1 DIVN) (.minmax 12 420) (UNIT : 1)              ) # @/pg 443/sec 7.8.12/`H7S3rm`.
+    (pll{UNIT}{CHANNEL}_divider (RCC PLL1DIVR1 DIVQ) (.minmax 1  128) (UNIT : 1) (CHANNEL : q)) # "
+    (pll{UNIT}{CHANNEL}_divider (RCC PLL1DIVR1 DIVP) (.minmax 1  128) (UNIT : 1) (CHANNEL : p)) # "
+    (pll{UNIT}{CHANNEL}_divider (RCC PLL1DIVR2 DIVS) (.minmax 1  128) (UNIT : 1) (CHANNEL : s)) # @/pg 445/sec 7.8.13/`H7S3rm`.
 
-    (pll{UNIT}_multiplier       (RCC PLL2DIVR1 DIVN) (.minmax 12 420) (UNIT = 2)              ) # @/pg 448/sec 7.8.16/`H7S3rm`.
-    (pll{UNIT}{CHANNEL}_divider (RCC PLL2DIVR1 DIVR) (.minmax 1  128) (UNIT = 2) (CHANNEL = r)) # "
-    (pll{UNIT}{CHANNEL}_divider (RCC PLL2DIVR1 DIVQ) (.minmax 1  128) (UNIT = 2) (CHANNEL = q)) # "
-    (pll{UNIT}{CHANNEL}_divider (RCC PLL2DIVR1 DIVP) (.minmax 1  128) (UNIT = 2) (CHANNEL = p)) # "
-    (pll{UNIT}{CHANNEL}_divider (RCC PLL2DIVR2 DIVT) (.minmax 1  128) (UNIT = 2) (CHANNEL = t)) # @/pg 450/sec 7.8.17/`H7S3rm`.
-    (pll{UNIT}{CHANNEL}_divider (RCC PLL2DIVR2 DIVS) (.minmax 1  128) (UNIT = 2) (CHANNEL = s)) # "
+    (pll{UNIT}_multiplier       (RCC PLL2DIVR1 DIVN) (.minmax 12 420) (UNIT : 2)              ) # @/pg 448/sec 7.8.16/`H7S3rm`.
+    (pll{UNIT}{CHANNEL}_divider (RCC PLL2DIVR1 DIVR) (.minmax 1  128) (UNIT : 2) (CHANNEL : r)) # "
+    (pll{UNIT}{CHANNEL}_divider (RCC PLL2DIVR1 DIVQ) (.minmax 1  128) (UNIT : 2) (CHANNEL : q)) # "
+    (pll{UNIT}{CHANNEL}_divider (RCC PLL2DIVR1 DIVP) (.minmax 1  128) (UNIT : 2) (CHANNEL : p)) # "
+    (pll{UNIT}{CHANNEL}_divider (RCC PLL2DIVR2 DIVT) (.minmax 1  128) (UNIT : 2) (CHANNEL : t)) # @/pg 450/sec 7.8.17/`H7S3rm`.
+    (pll{UNIT}{CHANNEL}_divider (RCC PLL2DIVR2 DIVS) (.minmax 1  128) (UNIT : 2) (CHANNEL : s)) # "
 
-    (pll{UNIT}_multiplier       (RCC PLL3DIVR1 DIVN) (.minmax 12 420) (UNIT = 3)              ) # @/pg 453/sec 7.8.20/`H7S3rm`.
-    (pll{UNIT}{CHANNEL}_divider (RCC PLL3DIVR1 DIVR) (.minmax 1  128) (UNIT = 3) (CHANNEL = r)) # "
-    (pll{UNIT}{CHANNEL}_divider (RCC PLL3DIVR1 DIVQ) (.minmax 1  128) (UNIT = 3) (CHANNEL = q)) # "
-    (pll{UNIT}{CHANNEL}_divider (RCC PLL3DIVR1 DIVP) (.minmax 1  128) (UNIT = 3) (CHANNEL = p)) # "
-    (pll{UNIT}{CHANNEL}_divider (RCC PLL3DIVR2 DIVS) (.minmax 1  128) (UNIT = 3) (CHANNEL = s)) # @/pg 455/sec 7.8.21/`H7S3rm`.
+    (pll{UNIT}_multiplier       (RCC PLL3DIVR1 DIVN) (.minmax 12 420) (UNIT : 3)              ) # @/pg 453/sec 7.8.20/`H7S3rm`.
+    (pll{UNIT}{CHANNEL}_divider (RCC PLL3DIVR1 DIVR) (.minmax 1  128) (UNIT : 3) (CHANNEL : r)) # "
+    (pll{UNIT}{CHANNEL}_divider (RCC PLL3DIVR1 DIVQ) (.minmax 1  128) (UNIT : 3) (CHANNEL : q)) # "
+    (pll{UNIT}{CHANNEL}_divider (RCC PLL3DIVR1 DIVP) (.minmax 1  128) (UNIT : 3) (CHANNEL : p)) # "
+    (pll{UNIT}{CHANNEL}_divider (RCC PLL3DIVR2 DIVS) (.minmax 1  128) (UNIT : 3) (CHANNEL : s)) # @/pg 455/sec 7.8.21/`H7S3rm`.
 
     # @/pg 458/sec 7.8.24/`H7S3rm`. TODO hse_ck.
     (per_ck_source (RCC CCIPR1 CKPERSEL) (.value (
@@ -219,40 +219,40 @@
         (None   0b11)
     )))
 
-    (timer_{UNIT}_divider    (TIM1  PSC PSC) (.minmax 1 `1 << 16`) (UNIT = 1 )) # @/pg 1743/sec 41.6.13/`H7S3rm`.
-    (timer_{UNIT}_modulation (TIM1  ARR ARR) (.minmax 1 `1 << 20`) (UNIT = 1 )) # @/pg 1744/sec 41.6.14/`H7S3rm`.
+    (timer_{UNIT}_divider    (TIM1  PSC PSC) (.minmax 1 `1 << 16`) (UNIT : 1 )) # @/pg 1743/sec 41.6.13/`H7S3rm`.
+    (timer_{UNIT}_modulation (TIM1  ARR ARR) (.minmax 1 `1 << 20`) (UNIT : 1 )) # @/pg 1744/sec 41.6.14/`H7S3rm`.
 
-    (timer_{UNIT}_divider    (TIM2  PSC PSC) (.minmax 1 `1 << 16`) (UNIT = 2 )) # @/pg 1867/sec 42.5.13/`H7S3rm`.
-    (timer_{UNIT}_divider    (TIM3  PSC PSC) (.minmax 1 `1 << 16`) (UNIT = 3 )) # "
-    (timer_{UNIT}_divider    (TIM4  PSC PSC) (.minmax 1 `1 << 16`) (UNIT = 4 )) # "
-    (timer_{UNIT}_divider    (TIM5  PSC PSC) (.minmax 1 `1 << 16`) (UNIT = 5 )) # "
-    (timer_{UNIT}_modulation (TIM2  ARR ARR) (.minmax 1 `1 << 32`) (UNIT = 2 )) # @/pg 1868/sec 42.5.14/`H7S3rm`.
-    (timer_{UNIT}_modulation (TIM3  ARR ARR) (.minmax 1 `1 << 32`) (UNIT = 3 )) # "
-    (timer_{UNIT}_modulation (TIM4  ARR ARR) (.minmax 1 `1 << 32`) (UNIT = 4 )) # "
-    (timer_{UNIT}_modulation (TIM5  ARR ARR) (.minmax 1 `1 << 32`) (UNIT = 5 )) # "
+    (timer_{UNIT}_divider    (TIM2  PSC PSC) (.minmax 1 `1 << 16`) (UNIT : 2 )) # @/pg 1867/sec 42.5.13/`H7S3rm`.
+    (timer_{UNIT}_divider    (TIM3  PSC PSC) (.minmax 1 `1 << 16`) (UNIT : 3 )) # "
+    (timer_{UNIT}_divider    (TIM4  PSC PSC) (.minmax 1 `1 << 16`) (UNIT : 4 )) # "
+    (timer_{UNIT}_divider    (TIM5  PSC PSC) (.minmax 1 `1 << 16`) (UNIT : 5 )) # "
+    (timer_{UNIT}_modulation (TIM2  ARR ARR) (.minmax 1 `1 << 32`) (UNIT : 2 )) # @/pg 1868/sec 42.5.14/`H7S3rm`.
+    (timer_{UNIT}_modulation (TIM3  ARR ARR) (.minmax 1 `1 << 32`) (UNIT : 3 )) # "
+    (timer_{UNIT}_modulation (TIM4  ARR ARR) (.minmax 1 `1 << 32`) (UNIT : 4 )) # "
+    (timer_{UNIT}_modulation (TIM5  ARR ARR) (.minmax 1 `1 << 32`) (UNIT : 5 )) # "
 
-    (timer_{UNIT}_divider    (TIM6  PSC PSC) (.minmax 1 `1 << 16`) (UNIT = 6 )) # @/pg 1897/sec 43.4.7/`H7S3rm`.
-    (timer_{UNIT}_divider    (TIM7  PSC PSC) (.minmax 1 `1 << 16`) (UNIT = 7 )) # "
-    (timer_{UNIT}_modulation (TIM6  ARR ARR) (.minmax 1 `1 << 20`) (UNIT = 6 )) # @/pg 1897/sec 43.4.8/`H7S3rm`.
-    (timer_{UNIT}_modulation (TIM7  ARR ARR) (.minmax 1 `1 << 20`) (UNIT = 7 )) # "
+    (timer_{UNIT}_divider    (TIM6  PSC PSC) (.minmax 1 `1 << 16`) (UNIT : 6 )) # @/pg 1897/sec 43.4.7/`H7S3rm`.
+    (timer_{UNIT}_divider    (TIM7  PSC PSC) (.minmax 1 `1 << 16`) (UNIT : 7 )) # "
+    (timer_{UNIT}_modulation (TIM6  ARR ARR) (.minmax 1 `1 << 20`) (UNIT : 6 )) # @/pg 1897/sec 43.4.8/`H7S3rm`.
+    (timer_{UNIT}_modulation (TIM7  ARR ARR) (.minmax 1 `1 << 20`) (UNIT : 7 )) # "
 
-    (timer_{UNIT}_divider    (TIM9  PSC PSC) (.minmax 1 `1 << 16`) (UNIT = 9 )) # @/pg 1944/sec 44.7.11/`H7S3rm`.
-    (timer_{UNIT}_divider    (TIM12 PSC PSC) (.minmax 1 `1 << 16`) (UNIT = 12)) # "
-    (timer_{UNIT}_modulation (TIM9  ARR ARR) (.minmax 1 `1 << 20`) (UNIT = 9 )) # @/pg 1944/sec 44.7.12/`H7S3rm`.
-    (timer_{UNIT}_modulation (TIM12 ARR ARR) (.minmax 1 `1 << 20`) (UNIT = 12)) # "
+    (timer_{UNIT}_divider    (TIM9  PSC PSC) (.minmax 1 `1 << 16`) (UNIT : 9 )) # @/pg 1944/sec 44.7.11/`H7S3rm`.
+    (timer_{UNIT}_divider    (TIM12 PSC PSC) (.minmax 1 `1 << 16`) (UNIT : 12)) # "
+    (timer_{UNIT}_modulation (TIM9  ARR ARR) (.minmax 1 `1 << 20`) (UNIT : 9 )) # @/pg 1944/sec 44.7.12/`H7S3rm`.
+    (timer_{UNIT}_modulation (TIM12 ARR ARR) (.minmax 1 `1 << 20`) (UNIT : 12)) # "
 
-    (timer_{UNIT}_divider    (TIM13 PSC PSC) (.minmax 1 `1 << 16`) (UNIT = 13)) # @/pg 1957/sec 44.8.9/`H7S3rm`.
-    (timer_{UNIT}_divider    (TIM14 PSC PSC) (.minmax 1 `1 << 16`) (UNIT = 14)) # "
-    (timer_{UNIT}_modulation (TIM13 ARR ARR) (.minmax 1 `1 << 20`) (UNIT = 13)) # @/pg 1957/sec 44.8.10/`H7S3rm`.
-    (timer_{UNIT}_modulation (TIM14 ARR ARR) (.minmax 1 `1 << 20`) (UNIT = 14)) # "
+    (timer_{UNIT}_divider    (TIM13 PSC PSC) (.minmax 1 `1 << 16`) (UNIT : 13)) # @/pg 1957/sec 44.8.9/`H7S3rm`.
+    (timer_{UNIT}_divider    (TIM14 PSC PSC) (.minmax 1 `1 << 16`) (UNIT : 14)) # "
+    (timer_{UNIT}_modulation (TIM13 ARR ARR) (.minmax 1 `1 << 20`) (UNIT : 13)) # @/pg 1957/sec 44.8.10/`H7S3rm`.
+    (timer_{UNIT}_modulation (TIM14 ARR ARR) (.minmax 1 `1 << 20`) (UNIT : 14)) # "
 
-    (timer_{UNIT}_divider    (TIM15 PSC PSC) (.minmax 1 `1 << 16`) (UNIT = 15)) # @/pg 2025/sec 45.7.11/`H7S3rm`.
-    (timer_{UNIT}_modulation (TIM15 ARR ARR) (.minmax 1 `1 << 20`) (UNIT = 15)) # @/pg 2026/sec 45.7.12/`H7S3rm`.
+    (timer_{UNIT}_divider    (TIM15 PSC PSC) (.minmax 1 `1 << 16`) (UNIT : 15)) # @/pg 2025/sec 45.7.11/`H7S3rm`.
+    (timer_{UNIT}_modulation (TIM15 ARR ARR) (.minmax 1 `1 << 20`) (UNIT : 15)) # @/pg 2026/sec 45.7.12/`H7S3rm`.
 
-    (timer_{UNIT}_divider    (TIM16 PSC PSC) (.minmax 1 `1 << 16`) (UNIT = 16)) # @/pg 2051/sec 45.8.10/`H7S3rm`.
-    (timer_{UNIT}_divider    (TIM17 PSC PSC) (.minmax 1 `1 << 16`) (UNIT = 17)) # "
-    (timer_{UNIT}_modulation (TIM16 ARR ARR) (.minmax 1 `1 << 20`) (UNIT = 16)) # @/pg 2052/sec 45.8.11/`H7S3rm`.
-    (timer_{UNIT}_modulation (TIM17 ARR ARR) (.minmax 1 `1 << 20`) (UNIT = 17)) # "
+    (timer_{UNIT}_divider    (TIM16 PSC PSC) (.minmax 1 `1 << 16`) (UNIT : 16)) # @/pg 2051/sec 45.8.10/`H7S3rm`.
+    (timer_{UNIT}_divider    (TIM17 PSC PSC) (.minmax 1 `1 << 16`) (UNIT : 17)) # "
+    (timer_{UNIT}_modulation (TIM16 ARR ARR) (.minmax 1 `1 << 20`) (UNIT : 16)) # @/pg 2052/sec 45.8.11/`H7S3rm`.
+    (timer_{UNIT}_modulation (TIM17 ARR ARR) (.minmax 1 `1 << 20`) (UNIT : 17)) # "
 
     # @/pg 458/sec 7.8.24/`H7S3rm`.
     (sdmmc_clock_source (RCC CCIPR1 SDMMC12SEL) (.value (
@@ -261,13 +261,13 @@
     )))
 
     # @/pg 461/sec 7.8.25/`H7S3rm`.
-    (i2c_{UNITS}_clock_source (RCC CCIPR2 I2C1_I3C1SEL) (UNITS = (1)) (.value (
+    (i2c_{UNITS}_clock_source (RCC CCIPR2 I2C1_I3C1SEL) (UNITS : (1)) (.value (
         (apb1_ck    0b00)
         (pll3_r_ck  0b01)
         (hsi_ck     0b10)
         (csi_ck     0b11)
     )))
-    (uxart_{UNITS}_clock_source (RCC CCIPR2 UART234578SEL) (UNITS = ((usart 2) (usart 3) (uart 4) (uart 5) (uart 7) (uart 8))) (.value (
+    (uxart_{UNITS}_clock_source (RCC CCIPR2 UART234578SEL) (UNITS : ((usart 2) (usart 3) (uart 4) (uart 5) (uart 7) (uart 8))) (.value (
         (apb2_ck    0b000)
         (pll2_q_ck  0b001)
         (pll3_q_ck  0b010)
@@ -277,20 +277,20 @@
     )))
 
     # @/pg 463/sec 7.8.26/`H7S3rm`. TODO SPI1SEL: i2s_ckin TODO SPI45: hse_ck
-    (spi_{UNITS}_clock_source (RCC CCIPR3 SPI1SEL) (UNITS = (1)) (.value (
+    (spi_{UNITS}_clock_source (RCC CCIPR3 SPI1SEL) (UNITS : (1)) (.value (
         (pll1_q_ck 0b000)
         (pll2_p_ck 0b001)
         (pll3_p_ck 0b010)
         (per_ck    0b100)
     )))
-    (spi_{UNITS}_clock_source (RCC CCIPR3 SPI45SEL) (UNITS = (4 5)) (.value (
+    (spi_{UNITS}_clock_source (RCC CCIPR3 SPI45SEL) (UNITS : (4 5)) (.value (
         (apb2_ck   0b000)
         (pll2_q_ck 0b001)
         (pll3_q_ck 0b010)
         (hsi_ck    0b011)
         (csi_ck    0b100)
     )))
-    (uxart_{UNITS}_clock_source (RCC CCIPR3 USART1SEL) (UNITS = ((usart 1))) (.value (
+    (uxart_{UNITS}_clock_source (RCC CCIPR3 USART1SEL) (UNITS : ((usart 1))) (.value (
         (apb2_ck   0b000)
         (pll2_q_ck 0b001)
         (pll3_q_ck 0b010)
@@ -303,7 +303,7 @@
     (GPIO_PORT_ENABLE_REGISTER (.value AHB4ENR))
 
     # @/pg 505/sec 7.8.50/`H7S3rm`.
-    (uxart_{UNIT}_enable (RCC APB1ENR1 USART3EN) (UNIT = 3))
+    (uxart_{UNIT}_enable (RCC APB1ENR1 USART3EN) (UNIT : 3))
 
     # @/pg 583/sec 10.4.1/`H7S3rm`.
     (GPIO_MODE (.value (
@@ -350,9 +350,9 @@
     (iwdg_reload (IWDG RLR RL) (.minmax 0 `(1 << 12) - 1`))
 
     # @/pg 2135/sec 48.7.4/`H7S3rm`.
-    (iwdg_window_.value_updating  (IWDG SR WVU))
-    (iwdg_reload_.value_updating  (IWDG SR RVU))
-    (iwdg_divider_.value_updating (IWDG SR PVU))
+    (iwdg_window_value_updating  (IWDG SR WVU))
+    (iwdg_reload_value_updating  (IWDG SR RVU))
+    (iwdg_divider_value_updating (IWDG SR PVU))
 
     # @/pg 2287/sec 51.9.5/`H7S3rm`.
     (i2c_PRESC (I2C TIMINGR PRESC) (.minmax 0 `(1 << 4) - 1`))

@@ -1,101 +1,136 @@
-#meta SYSTEM_DATABASE, verify_and_get_placeholders_in_tag_order
+#meta SYSTEM_DATABASE, verify_and_get_field_names_in_tag_order
 
-import collections, re
-from deps.pxd.sexp import parse_sexp, Unquoted
-
-
-
-# Routine for converting S-expressions of database entries into a more usable Python value.
-
-def parse_entry(entry):
+import re
+from deps.pxd.sexp import parse_sexp
 
 
 
-    # Get the entry tag and parameters.
-
-    tag, *parameters = entry
-    record           = AllocatingNamespace()
+################################################################################
 
 
 
-    # Look for the structured entry value.
+# Convert a database entry in S-expression form into a more usable Python value.
+# e.g:
+# >
+# >    (pll{UNIT}_predivider (RCC PLL2CFGR PLL2M) (UNIT : 2) (.minmax 1 63))
+# >     ^^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# >     Tag.                 types.SimpleNamespace(
+# >                              section  = 'RCC',
+# >                              register = 'PLL2CFGR',
+# >                              field    = 'PLL2M',
+# >                              UNIT     = 2,
+# >                              min      = 1,
+# >                              max      = 63,
+# >                          )
+# >
 
-    for parameter_i, parameter in enumerate(parameters):
+def parse_entry(sexp):
 
-        match parameter:
+
+
+    # Get the tag and attributes.
+    # e.g:
+    # >
+    # >    (pll{UNIT}_predivider (RCC PLL2CFGR PLL2M) (UNIT : 2) (.minmax 1 63))
+    # >     ^^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    # >     Tag.                 Attributes.
+    # >
+
+    tag, *attributes = sexp
+    entry            = AllocatingNamespace()
+
+
+
+    # Look for the dotted attribute which will represent the value of the entry.
+    # e.g:
+    # >
+    # >    (pll{UNIT}_predivider (RCC PLL2CFGR PLL2M) (UNIT : 2) (.minmax 1 63))
+    # >                                                          ^^^^^^^^^^^^^^
+    # >
+
+    for attribute_i, attribute in enumerate(attributes):
+
+        match attribute:
 
 
 
             # The entry value is directly given.
+            # e.g:
+            # >
+            # >    (APB_UNITS (.value (1 2 4 5)))
+            # >               ^^^^^^^^^^^^^^^^^^
+            # >
 
-            case (Unquoted('.value'), value):
-                record.value = value
+            case ('.value', value):
+                entry.value = value
 
 
 
             # The entry value is an inclusive range.
+            # e.g:
+            # >
+            # >    (flash_latency (FLASH ACR LATENCY) (.minmax 0b0000 0b1111))
+            # >                                       ^^^^^^^^^^^^^^^^^^^^^^^
+            # >
 
-            case (Unquoted('.minmax'), minimum, maximum):
-                record.min = minimum
-                record.max = maximum
+            case ('.minmax', minimum, maximum):
+                entry.minimum = minimum
+                entry.maximum = maximum
 
 
 
-            # This entry parameter is something else which we'll process later.
+            # This entry attribute is something else which we'll process later.
 
             case _: continue
 
 
 
-        # We found and processed the structured entry value; no need to process it again.
+        # We found and processed the entry value; no need to process it again.
 
-        del parameters[parameter_i]
+        del attributes[attribute_i]
         break
 
 
 
-    # No structured entry value found, so we assume it's just something like a True/False 1-bit register.
+    # No dotted entry value found, so we assume it's just
+    # something like a True/False 1-bit register.
+    # e.g:
+    # >
+    # >    (current_active_vos_ready (PWR SR1 ACTVOSRDY))
+    # >
 
     else:
-        record.value = (False, True)
+        entry.value = (False, True)
 
 
 
-    # We then look for entry properties to extend the entry record.
+    # We then look for field-value attributes.
+    # e.g:
+    # >
+    # >    (pll{UNIT}_ready (RCC CR PLL3RDY) (UNIT : 3))
+    # >         ^^^^-------------------------^^^^^^^^^^
+    # >
 
-    parameter_i = 0
+    attribute_i = 0
 
-    while parameter_i < len(parameters):
+    while attribute_i < len(attributes):
 
-        match parameter := parameters[parameter_i]:
+        match attribute := attributes[attribute_i]:
 
-
-
-            # Entry properties are typically used for filling in placeholders in the entry tag.
-            # e.g. (pll{UNIT}_ready (RCC CR PLL3RDY) (UNIT = 3))
-
-            case (property_name, Unquoted('='), property_value):
-                record[property_name] = property_value
-
-
-
-            # This entry parameter is not a property; just skip it.
+            case (attribute_name, ':', attribute_value):
+                entry[attribute_name] = attribute_value
 
             case _:
-                parameter_i += 1
+                attribute_i += 1
                 continue
 
-
-
-        # We found and processed the entry property; no need to process it again.
-
-        del parameters[parameter_i]
+        del attributes[attribute_i]
 
 
 
-    # Process the remaining entry parameters.
+    # Process the remaining attributes.
 
-    match parameters:
+    match attributes:
 
 
 
@@ -106,98 +141,106 @@ def parse_entry(entry):
 
 
 
-        # The entry is also provided with a location.
-        # e.g. (iwdg_stopped_during_debug (DBGMCU APB4FZR DBG_IWDG))
+        # The entry is also provided with a section-register-field location.
+        # e.g:
+        # >
+        # >    (current_active_vos_ready (PWR SR1 ACTVOSRDY))
+        # >                              ^^^^^^^^^^^^^^^^^^^
+        # >
 
         case [(section, register, field)]:
-            record.SECTION  = section
-            record.REGISTER = register
-            record.FIELD    = field
+            entry.section  = section
+            entry.register = register
+            entry.field    = field
 
 
 
-        # Leftover entry parameters.
+        # Leftover attributes.
 
         case _:
-            raise ValueError(f'Leftover parameters: {repr(parameters)}.')
+            raise ValueError(f'Leftover attributes: {repr(attributes)}.')
 
 
 
-    # Finished parsing for the tag and record from the S-expression of the entry.
+    # Finished parsing the database entry!
 
-    return tag, types.SimpleNamespace(**record.__dict__)
+    return tag, types.SimpleNamespace(**entry.__dict__)
 
 
 
-# Helper routine to make sure all placeholders in a tag are supplied.
+################################################################################
+
+
+
+# Helper routine to make sure all fields in a tag are supplied.
 # e.g:
 # >
-# >    verify_and_get_placeholders('pll{UNIT}_input_range', UNIT = 3)
-# >                                     ^^^^----------------^^^^^^^^
+# >    ('pll{UNIT}{CHANNEL}_enable', { 'CHANNEL' : 'q', 'UNIT' : 3 })
+# >         ^^^^^^^^^^^^^^^----------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 # >
-#
-# The returned placeholder names will be given in the order they appear in the tag.
+
+def verify_and_get_field_names_in_tag_order(tag, given_fields):
+
+    tag_field_names   = OrderedSet(re.findall('{(.*?)}', tag))
+    given_field_names = OrderedSet(given_fields.keys())
+
+    if differences := tag_field_names - given_field_names:
+        raise ValueError(
+            f'Tag {repr(tag)} is missing the value '
+            f'for the field {repr(differences[0])}.'
+        )
+
+    if differences := given_field_names - tag_field_names:
+        raise ValueError(
+            f'Tag {repr(tag)} has no field {repr(differences[0])}.'
+        )
+
+    return tag_field_names
+
+
+
+################################################################################
+
+
+
+# The MCU database will be a dictionary with a helper method.
 # e.g:
 # >
-# >    verify_and_get_placeholders('pll{UNIT}{CHANNEL}_enable', CHANNEL = 'q', UNIT = 3)   ->   { 'UNIT', 'CHANNEL' }
-# >                                    ^^^^^^^^^^^^^^^--------------------------------------------^^^^^^^^^^^^^^^^^
+# >    SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(2, 'q')]
+# >                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# >                           |
+# >    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# >    .query('pll{UNIT}{CHANNEL}_enable', { 'UNIT' : 2, 'CHANNEL' : 'q' })
 # >
-
-def verify_and_get_placeholders_in_tag_order(tag, **placeholders):
-
-    names = OrderedSet(re.findall('{(.*?)}', tag))
-
-    if differences := names - placeholders.keys():
-        raise ValueError(f'Tag "{tag}" is missing the value for the placeholder "{differences[0]}".')
-
-    if differences := OrderedSet(placeholders.keys()) - names:
-        raise ValueError(f'Tag "{tag}" has no placeholder "{differences[0]}".')
-
-    return names
-
-
-
-# The database for a given target will just be a dictionary with a specialized query method.
 
 class SystemDatabaseTarget(dict):
 
-    def query(self, tag, **placeholder_values):
-
-        placeholder_names = verify_and_get_placeholders_in_tag_order(tag, **placeholder_values)
+    def query(self, tag, fields = None):
 
 
-        # Find the database entries and determine which entry we should return
-        # based on the placeholder values.
-        # Note that the order of the placeholder values is important.
-        # e.g:
-        # >
-        # >    query('pll{UNIT}{CHANNEL}_enable', UNIT = 2, CHANNEL = 'q')
-        # >                                       ~~~~~~~~~~~~~~~~~~~~~~~
-        # >                                                          |
-        # >                                                          v
-        # >                                                      ~~~~~~~~
-        # >    SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(2, 'q')]    <- Expected.
-        # >
-        # >
-        # >    query('pll{UNIT}{CHANNEL}_enable', CHANNEL = 'q', UNIT = 2)
-        # >                                       ~~~~~~~~~~~~~~~~~~~~~~~
-        # >                                                          |
-        # >                                                          v
-        # >                                                      ~~~~~~~~
-        # >    SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][('q', 2)]    <- Uh oh!
-        # >
+
+        # Use the given tag and field values to index into the database.
+
+        if fields is None:
+            fields = {}
+
+        field_names = verify_and_get_field_names_in_tag_order(tag, fields)
 
         if tag not in self:
-            raise ValueError(f'No entry has tag: {repr(tag)}.')
+            raise ValueError(f'No entry has tag {repr(tag)}.')
 
-        key = tuple(placeholder_values[name] for name in placeholder_names)
+        key = tuple(fields[name] for name in field_names)
 
 
 
-        # No placeholders, so we just do a direct look-up.
+        # We just do a direct look-up for tags with no fields.
         # e.g:
         # >
-        # >    query('cpu_divider')   ->   SYSTEM_DATABASE[mcu]['cpu_divider']
+        # >                   query('cpu_divider')
+        # >                         ^^^^^^^^^^^^^
+        # >                               |
+        # >                         vvvvvvvvvvvvv
+        # >    SYSTEM_DATABASE[mcu]['cpu_divider']
         # >
 
         if len(key) == 0:
@@ -205,10 +248,14 @@ class SystemDatabaseTarget(dict):
 
 
 
-        # Single placeholder, so we get the entry based on the solely provided keyword-argument.
+        # For tags with a single field, we use the only field value there is.
         # e.g:
         # >
-        # >    query('pll{UNIT}_predivider', UNIT = 2)   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][2]
+        # >        query('pll{UNIT}_predivider', { 'UNIT' : 2 })
+        # >              ^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^
+        # >                             |                   |
+        # >                         vvvvvvvvvvvvvvvvvvvvvv  |
+        # >    SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][2]
         # >
 
         if len(key) == 1:
@@ -216,23 +263,35 @@ class SystemDatabaseTarget(dict):
 
 
 
-        # Multiple placeholders, so we get the entry based on the provided keyword-arguments in tag-order.
+        # For tags with multiple fields, we use a tuple of the field
+        # values in the order the field names appear in the tag.
         # e.g:
         # >
-        # >    query('pll{UNIT}{CHANNEL}_enable', UNIT = 2, CHANNEL = 'q')   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(2, 'q')]
+        # >    query('pll{UNIT}{CHANNEL}_enable', { 'CHANNEL' : 'q', 'UNIT' : 2 })
+        # >          ^^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        # >                               |                          |
+        # >                         vvvvvvvvvvvvvvvvvvvvvvvvvvv  vvvvvvvv
+        # >    SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(2, 'q')]
+        # >                                                      ^^^^^^^^
+        # >                                                          |
+        # >              We will sort the field values to be in tag-order.
         # >
 
         if key not in self[tag]:
-            raise ValueError(f'Placeholders {', '.join(
+            raise ValueError(f'Fields {', '.join(
                 f'({name} = {repr(value)})'
-                for name, value in placeholder_values.items()
+                for name, value in fields.items()
             )} is not an option for database entry {repr(tag)}.')
+
+
 
         return self[tag][key]
 
 
 
-# Create a database for each MCU in use.
+################################################################################
+
+
 
 SYSTEM_DATABASE = {}
 
@@ -242,91 +301,115 @@ for mcu in MCUS:
 
 
 
-    # The database for the MCU is expressed as an S-expression in a separate text file that we then parse.
+    # The MCU database is defined as an S-expression
+    # in a separate text file that we parse.
 
     database_file_path = root(f'./deps/mcu/{mcu}_database.txt')
 
     if not database_file_path.is_file():
         raise RuntimeError(
             f'File "{database_file_path}" does not exist; '
-            f'a file of S-expressions is needed to describe the properties of the MCU.'
+            f'a file of S-expressions is needed to describe '
+            f'the properties of the MCU.'
         )
 
-    for tag, records in coalesce(map(parse_entry, parse_sexp(database_file_path.read_text()))):
+    for tag, entries in coalesce(
+        map(parse_entry, parse_sexp(database_file_path.read_text()))
+    ):
 
 
 
-        # Determine the placeholders in the entry's tag.
+        # Determine the fields in the entry's tag.
         # e.g:
         # >
-        # >    'pll{UNIT}{CHANNEL}_enable'   ->   { 'UNIT', 'CHANNEL' }
+        # >    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1PEN) (UNIT : 1) (CHANNEL : p))
+        # >         ^^^^  ^^^^^^^
         # >
 
-        ordered_placeholders = OrderedSet(re.findall('{(.*?)}', tag))
+        field_names = OrderedSet(re.findall('{(.*?)}', tag))
 
-        if not ordered_placeholders and len(records) >= 2:
+        if not field_names and len(entries) >= 2:
             raise ValueError(
-                f'For {mcu}, multiple database entries were found with the tag "{tag}"; '
-                f'there should be a {{...}} in the string.'
+                f'For {repr(mcu)}, '
+                f'multiple database entries were found '
+                f'with the tag {repr(tag)}; '
+                f'there should be a {{...}} in the tag.'
             )
 
 
 
-        # Based on the placeholder count, we grouped together all of the database entries that have the same tag.
+        # We figure out how to group all of the
+        # database entries with the same tag together.
 
-        match list(ordered_placeholders):
+        match list(field_names):
 
 
 
-            # No placeholder in the tag, so the user should expect a single entry when querying.
+            # A field-less tag should be enough to
+            # uniquely determine the database entry.
             # e.g:
             # >
-            # >    (iwdg_stopped_during_debug (DBGMCU APB4FZR DBG_IWDG))   ->   SYSTEM_DATABASE[mcu]['iwdg_stopped_during_debug']
+            # >    (iwdg_stopped_during_debug (DBGMCU APB4FZR DBG_IWDG))
+            # >     ~~~~~~~~~~~~~~~~~~~~~~~~~
+            # >                            |
+            # >                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            # >    SYSTEM_DATABASE[mcu]['iwdg_stopped_during_debug']
             # >
 
             case []:
-                SYSTEM_DATABASE[mcu][tag], = records
+                SYSTEM_DATABASE[mcu][tag], = entries
 
 
 
-            # Single placeholder in the tag.
+            # A tag with a single field means we'll need a single field-value.
             # e.g:
             # >
-            # >    (pll{UNIT}_predivider (RCC PLLCKSELR DIVM1) (minmax: 1 63) (UNIT = 1))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][1]
-            # >    (pll{UNIT}_predivider (RCC PLLCKSELR DIVM2) (minmax: 1 63) (UNIT = 2))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][2]
-            # >    (pll{UNIT}_predivider (RCC PLLCKSELR DIVM3) (minmax: 1 63) (UNIT = 3))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][3]
+            # >    (pll{UNIT}_predivider (RCC PLLCKSELR DIVM1) (minmax: 1 63) (UNIT : 1))
+            # >     ~~~~~~~~~~~~~~~~~~~~                                      ~~~~~~~~~~
+            # >              |                                                     |
+            # >              |--------------------|             |------------------|
+            # >                                   |             |
+            # >                         ~~~~~~~~~~~~~~~~~~~~~~  ~
+            # >    SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][1]
             # >
 
-            case [placeholder]:
+            case [field_name]:
                 SYSTEM_DATABASE[mcu][tag] = mk_dict(
-                    (record.__dict__[placeholder], record)
-                    for record in records
+                    (entry.__dict__[field_name], entry)
+                    for entry in entries
                 )
 
 
 
-            # Multiple placeholders in the tag.
+            # A tag with multiple fields means we'll need a tuple of field-values.
             # e.g:
             # >
-            # >    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1PEN) (UNIT = 1) (CHANNEL = p))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 'p')]
-            # >    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1QEN) (UNIT = 1) (CHANNEL = q))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 'q')]
-            # >    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1SEN) (UNIT = 1) (CHANNEL = s))   ->   SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 's')]
+            # >    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1PEN) (UNIT : 1) (CHANNEL : p))
+            # >     ~~~~~~~~~~~~~~~~~~~~~~~~~                       ~~~~~~~~~~~~~~~~~~~~~~~~
+            # >                           |                             |
+            # >                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~  ~~~~~~~~
+            # >    SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 'p')]
             # >
 
             case _:
                 SYSTEM_DATABASE[mcu][tag] = mk_dict(
-                    (tuple(record.__dict__[placeholder] for placeholder in ordered_placeholders), record)
-                    for record in records
+                    (
+                        tuple(entry.__dict__[name] for name in field_names),
+                        entry
+                    )
+                    for entry in entries
                 )
 
 
 
-################################################################################################################################
+################################################################################
 
 
 
 # This meta-directive creates what I call the "database" for a microcontroller.
-# The so-called database simply contains information from the MCU's reference manual and datasheet.
+# The so-called database simply contains information from the MCU's reference
+# manual and datasheet.
+#
 # For instance, things like:
 #
 #     - the maximum bus frequency,
@@ -344,7 +427,7 @@ for mcu in MCUS:
 # To account for this, the database organizes everything by "tags",
 # so rather than use names like "PLL3ON" or "PLL3EN", we instead use the
 # more human readable key of "pll_{UNIT}_enable".
-# The placeholder "{UNIT}" would be eventually replaced with 3 later on,
+# The field "{UNIT}" would be eventually replaced with 3 later on,
 # so this makes using the tag "pll_{UNIT}_enable" very natural because we often
 # iterate over the other PLL units too.
 #

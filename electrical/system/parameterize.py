@@ -140,10 +140,10 @@ def SYSTEM_PARAMETERIZE(target):
     # >
 
     def in_minmax(value, entry):
-        return entry.min <= value <= entry.max
+        return entry.minimum <= value <= entry.maximum
 
     def range_minmax(entry):
-        return range(entry.min, entry.max + 1)
+        return range(entry.minimum, entry.maximum + 1)
 
 
 
