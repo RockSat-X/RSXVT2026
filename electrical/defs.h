@@ -2,6 +2,10 @@
 
 
 
+#include <stdint.h>
+
+
+
 #define false                   0
 #define true                    1
 #define STRINGIFY_(X)           #X
@@ -28,31 +32,20 @@
 #define offsetof __builtin_offsetof
 #endif
 
-#include "primitives.meta"
-/* #meta
-
-    for name, underlying, size in (
-        ('u8'  , 'unsigned char'     , 1),
-        ('u16' , 'unsigned short'    , 2),
-        ('u32' , 'unsigned'          , 4),
-        ('u64' , 'unsigned long long', 8),
-        ('i8'  , 'signed char'       , 1),
-        ('i16' , 'signed short'      , 2),
-        ('i32' , 'signed'            , 4),
-        ('i64' , 'signed long long'  , 8),
-        ('b8'  , 'signed char'       , 1),
-        ('b16' , 'signed short'      , 2),
-        ('b32' , 'signed'            , 4),
-        ('b64' , 'signed long long'  , 8),
-        ('f32' , 'float'             , 4),
-        ('f64' , 'double'            , 8),
-    ):
-        Meta.line(f'''
-            typedef {underlying} {name};
-            static_assert(sizeof({name}) == {size});
-        ''')
-
-*/
+typedef uint8_t  u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
+typedef uint64_t u64;
+typedef int8_t   i8;
+typedef int16_t  i16;
+typedef int32_t  i32;
+typedef int64_t  i64;
+typedef int8_t   b8;
+typedef int16_t  b16;
+typedef int32_t  b32;
+typedef int64_t  b64;
+typedef float    f32;
+typedef double   f64;
 
 
 
