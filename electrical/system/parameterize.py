@@ -748,8 +748,6 @@ def SYSTEM_PARAMETERIZE(target):
 
     for uxart_units in database['UXARTS'].value:
 
-        ns = '_'.join(str(number) for peripheral, number in uxart_units)
-
 
 
         # See if we can get the baud-divider for this UxART unit.
@@ -813,7 +811,7 @@ def SYSTEM_PARAMETERIZE(target):
 
             # Try every available clock source for this set of UxART peripherals and see what sticks.
 
-            for uxart_clock_source_name, draft[f'uxart_{ns}_clock_source'] in database[f'uxart_{uxart_units}_clock_source'].value:
+            for uxart_clock_source_name, draft[f'uxart_{uxart_units}_clock_source'] in database[f'uxart_{uxart_units}_clock_source'].value:
 
                 uxart_clock_source_freq = tree[uxart_clock_source_name]
                 every_uxart_satisfied   = all(parameterize_uxart(uxart_clock_source_freq, uxart_unit) for uxart_unit in uxart_units)
@@ -827,7 +825,7 @@ def SYSTEM_PARAMETERIZE(target):
         # clock source and the respective baud-dividers.
 
         brute(parameterize_uxarts, (
-            f'uxart_{ns}_clock_source',
+            f'uxart_{uxart_units}_clock_source',
             *(f'{peripheral}{number}_baud_divider' for peripheral, number in uxart_units),
         ))
 

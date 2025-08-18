@@ -27,28 +27,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
     used_configurations = OrderedSet()
 
-    CfgFmt = collections.namedtuple('CfgFmt', ( # @/`About CfgFmt`.
-        'database_expansion',
-        'configuration_expansion'
-    ))
-
     def cfgs(tag, *value, **fields):
-
-
-
-        # @/`About CfgFmt`.
-
-        verify_and_get_field_names_in_tag_order(tag, fields)
-
-        fields_for_configuration = {
-            name : value.configuration_expansion if isinstance(value, CfgFmt) else value
-            for name, value in fields.items()
-        }
-
-        fields_for_database = {
-            name : value.database_expansion if isinstance(value, CfgFmt) else value
-            for name, value in fields.items()
-        }
 
 
 
@@ -64,7 +43,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
             nonlocal used_configurations
 
-            configuration_name = tag.format(**fields_for_configuration)
+            configuration_name = tag.format(**fields)
 
             if configuration_name not in configurations:
                 if fields:
@@ -110,7 +89,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
             case [builtins.Ellipsis]:
 
-                entry = database[tag.format(**fields_for_database)]
+                entry = database[tag.format(**fields)]
 
                 return (
                     entry.section,
@@ -129,7 +108,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
             case [value]:
 
-                entry = database[tag.format(**fields_for_database)]
+                entry = database[tag.format(**fields)]
 
                 return (
                     entry.section,
@@ -460,9 +439,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
         # See if the set of UxART peripherals is used.
 
-        ns = '_'.join(str(number) for peripheral, number in uxart_units)
-
-        if cfgs(f'uxart_{ns}_clock_source') is None:
+        if cfgs(f'uxart_{uxart_units}_clock_source') is None:
             continue
 
         put_title(' / '.join(
@@ -474,10 +451,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
         # Configure the UxART peripherals' clock source.
 
-        CMSIS_SET(
-            cfgs('uxart_{UNITS}_clock_source', ...,
-            UNITS = CfgFmt(uxart_units, ns))
-        )
+        CMSIS_SET(cfgs(f'uxart_{uxart_units}_clock_source', ...))
 
 
 
@@ -530,52 +504,3 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 # on other clock sources, so we have to respect that.
 #
 # More details at @/`About Parameterization`.
-
-
-
-# @/`About CfgFmt`:
-#
-# The field value can actually be different based on whether or not
-# we're looking into `configurations` or if we're looking up in `SYSTEM_DATABASE`.
-# Most of the time it's the same, but the subtle requirement for this case is that
-# the field value for `configuration` needs to be something that can turn into
-# a string that looks nice as a result, but keys into `SYSTEM_DATABASE` can be
-# any arbritary value.
-#
-# e.g:
-# >
-# >    (uxart_{UNITS}_clock_source (RCC CCIPR2 UART278SEL) (UNITS : ((usart 2) (uart 7) (uart 8))) (.value (...)))
-# >                                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-# >                                                         Let's take this database entry as an example.
-# >
-# >
-# >    database['uxart_{UNITS}_clock_source'][(('usart', 2), ('uart', 7), ('uart' 8))]
-# >                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-# >                                Look-ups into the database is done using a tuple as expected.
-# >
-# >
-# >    configurations["uxart_(('usart', 2), ('uart', 7), ('uart' 8))_clock_source"]
-# >                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-# >               If we naively do the same for the key into `configurations`,
-# >               we'd be doing something stupid like this instead; while we could
-# >               accept this artifact, it's best to format it into something more
-# >               readable for debugging reasons.
-# >
-# >
-# >    configurations['uxart_2_7_8_clock_source']
-# >                          ^^^^^
-# >               Something like this is more understable and
-# >               might reflect the reference manual more.
-# >
-# >
-# >    units = (('usart', 2), ('uart', 7), ('uart' 8))
-# >    ns    = '2_7_8'
-# >    cfgs('uxart_{UNITS}_clock_source', ..., UNITS = CfgFmt(units, ns))
-# >                                                    ^^^^^^^^^^^^^^^^^
-# >                                          Thus, this is how we'd handle this situation.
-# >
-# >
-#
-# Of course, we could elimate this entire issue by accepting the artifact,
-# but for now I think the look of this is worth the complication;
-# we can revisit this in the future.
