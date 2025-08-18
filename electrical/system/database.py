@@ -75,19 +75,11 @@ for mcu in MCUS:
 
         for section, registers in database_py['registers'].items():
             for register, fields in registers.items():
-                for field, value in fields.items():
+                for entry in fields:
 
-                    match value:
+                    match entry:
 
-                        case str():
-                            SYSTEM_DATABASE[mcu][value] = types.SimpleNamespace(
-                                section  = section,
-                                register = register,
-                                field    = field,
-                                value    = (False, True),
-                            )
-
-                        case (name, minimum, maximum):
+                        case (field, name, minimum, maximum):
                             SYSTEM_DATABASE[mcu][name] = types.SimpleNamespace(
                                 section  = section,
                                 register = register,
@@ -96,12 +88,20 @@ for mcu in MCUS:
                                 maximum  = maximum,
                             )
 
-                        case (name, value):
+                        case (field, name, value):
                             SYSTEM_DATABASE[mcu][name] = types.SimpleNamespace(
                                 section  = section,
                                 register = register,
                                 field    = field,
                                 value    = value,
+                            )
+
+                        case (field, name):
+                            SYSTEM_DATABASE[mcu][name] = types.SimpleNamespace(
+                                section  = section,
+                                register = register,
+                                field    = field,
+                                value    = (False, True),
                             )
 
                         case unknown:
