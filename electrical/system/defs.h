@@ -163,8 +163,8 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
             # Make constants to reference the desired register fields.
             # e.g:
             # >
-            # >                                         ('{}_EN', 'uxart_{UNIT}_enable', { 'UNIT' : 2 })
-            # >                                            ^      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            # >                                         ('{}_EN', 'uxart_2_enable')
+            # >                                            ^      ^^^^^^^^^^^^^^^^
             # >                                            |                   |
             # >                                          vvvvvvvvvvvvvvv       |
             # >    static constexpr struct CMSISPutTuple UxART_STLINK_EN =     |
@@ -175,16 +175,16 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
             # >        };
             # >
 
-            for name, tag, substitutions in alias.puts:
+            for name, tag in alias.puts:
 
-                entry = SYSTEM_DATABASE[target.mcu][tag.format(**substitutions)]
+                entry = SYSTEM_DATABASE[target.mcu][tag]
 
                 Meta.line(f'''
                     static const struct CMSISPutTuple {name.format(alias.moniker)} =
                         {{
                             .dst = &{entry.section}->{entry.register},
-                            .pos = {entry.section}_{entry.register}_{entry.field}_Pos,
-                            .msk = {entry.section}_{entry.register}_{entry.field}_Msk
+                            .pos =  {entry.section}_{entry.register}_{entry.field}_Pos,
+                            .msk =  {entry.section}_{entry.register}_{entry.field}_Msk,
                         }};
                 ''')
 
