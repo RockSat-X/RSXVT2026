@@ -1,4 +1,5 @@
 #if TARGET_NAME_IS_SandboxNucleoH7S3L8
+    #define __DEFINED_FREERTOS_CONFIGURATION__                     true
     #define configCPU_CLOCK_HZ                                     CLOCK_TREE_FREQUENCY_OF_cpu_ck
     #define configTICK_RATE_HZ                                     100
     #define configUSE_PREEMPTION                                   1
@@ -68,6 +69,7 @@
 #endif
 
 #if TARGET_NAME_IS_SandboxNucleoH533RE
+    #define __DEFINED_FREERTOS_CONFIGURATION__                     true
     #define configENABLE_FPU                                       1
     #define configENABLE_MPU                                       0
     #define configENABLE_TRUSTZONE                                 0
@@ -148,3 +150,9 @@
         }                       \
     }                           \
     while (false)
+
+#ifndef __DEFINED_FREERTOS_CONFIGURATION__
+    #error \
+        You need to define the FreeRTOS configuration for this target! \
+        You can start off by copying one of the configurations for an existing target.
+#endif

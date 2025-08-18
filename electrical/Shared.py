@@ -216,8 +216,8 @@ for target in TARGETS:
         root('./deps/CMSIS_6/CMSIS/Core/Include'),
         root('./deps/FreeRTOS_Kernel/include'),
         root('./deps/printf/src'),
-        root('.'),            # For <deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h> and such.
-        root('./electrical'), # For <FreeRTOSConfig.h>.
+        root('.'),                   # For <deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h> and such.
+        root('./electrical/system'), # For <FreeRTOSConfig.h>.
         MCUS[target.mcu].freertos_file_path,
     )
 
@@ -227,6 +227,7 @@ for target in TARGETS:
 
     defines = [
         ('TARGET_NAME'         , target.name                                       ),
+        ('TARGET_MCU'          , target.mcu                                        ),
         ('LINK_stack_size'     , target.stack_size                                 ),
         ('STM32_CMSIS_DEVICE_H', f'<{MCUS[target.mcu].cmsis_file_path.as_posix()}>'),
     ]
