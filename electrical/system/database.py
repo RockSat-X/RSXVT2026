@@ -248,59 +248,12 @@ for mcu in MCUS:
 
 
 
-        # We figure out how to group all of the
-        # database entries with the same tag together.
+        # TODO.
 
-        match list(field_names):
-
-
-
-            # A field-less tag should be enough to
-            # uniquely determine the database entry.
-            # e.g:
-            # >
-            # >    (iwdg_stopped_during_debug (DBGMCU APB4FZR DBG_IWDG))
-            # >     ~~~~~~~~~~~~~~~~~~~~~~~~~
-            # >                            |
-            # >                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            # >    SYSTEM_DATABASE[mcu]['iwdg_stopped_during_debug']
-            # >
-
-            case []:
-
-                SYSTEM_DATABASE[mcu][tag], = entries
-
-                entry, = entries
-                fields = { name : entry.__dict__[name] for name in field_names }
-                expanded_tag = tag.format(**fields)
-                SYSTEM_DATABASE[mcu][expanded_tag] = SYSTEM_DATABASE[mcu][tag]
-
-
-
-            # A tag with multiple fields means we'll need a tuple of field-values.
-            # e.g:
-            # >
-            # >    (pll{UNIT}{CHANNEL}_enable (RCC PLLCFGR PLL1PEN) (UNIT : 1) (CHANNEL : p))
-            # >     ~~~~~~~~~~~~~~~~~~~~~~~~~                       ~~~~~~~~~~~~~~~~~~~~~~~~
-            # >                           |                             |
-            # >                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~  ~~~~~~~~
-            # >    SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(1, 'p')]
-            # >
-
-            case _:
-
-                SYSTEM_DATABASE[mcu][tag] = mk_dict(
-                    (
-                        tuple(entry.__dict__[name] for name in field_names),
-                        entry
-                    )
-                    for entry in entries
-                )
-
-                for entry in entries:
-                    fields       = { name : entry.__dict__[name] for name in field_names }
-                    expanded_tag = tag.format(**fields)
-                    SYSTEM_DATABASE[mcu][expanded_tag] = SYSTEM_DATABASE[mcu][tag][tuple(fields.values())]
+        for entry in entries:
+            fields                             = { name : entry.__dict__[name] for name in field_names }
+            expanded_tag                       = tag.format(**fields)
+            SYSTEM_DATABASE[mcu][expanded_tag] = entry
 
 
 
