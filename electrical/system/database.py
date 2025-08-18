@@ -48,6 +48,69 @@ for mcu in MCUS:
 
 
 
+    # TODO.
+
+    if mcu == 'STM32H533RET6':
+
+        database_file_path = root(f'./deps/mcu/{mcu}_database.py')
+
+        if not database_file_path.is_file():
+            raise RuntimeError(
+                f'File "{database_file_path}" does not exist; '
+                f'it is needed to describe the properties of the MCU.'
+            )
+
+        database_py = eval(database_file_path.read_text(), {}, {})
+
+        for name, value in database_py['value']:
+            SYSTEM_DATABASE[mcu][name] = types.SimpleNamespace(
+                value = value,
+            )
+
+        for name, minimum, maximum in database_py['minmax']:
+            SYSTEM_DATABASE[mcu][name] = types.SimpleNamespace(
+                minimum = minimum,
+                maximum = maximum,
+            )
+
+        for section, registers in database_py['registers'].items():
+            for register, fields in registers.items():
+                for field, value in fields.items():
+
+                    match value:
+
+                        case str():
+                            SYSTEM_DATABASE[mcu][value] = types.SimpleNamespace(
+                                section  = section,
+                                register = register,
+                                field    = field,
+                                value    = (False, True),
+                            )
+
+                        case { 'name' : name, 'minmax' : (minimum, maximum) }:
+                            SYSTEM_DATABASE[mcu][name] = types.SimpleNamespace(
+                                section  = section,
+                                register = register,
+                                field    = field,
+                                minimum  = minimum,
+                                maximum  = maximum,
+                            )
+
+                        case { 'name' : name, 'value' : value }:
+                            SYSTEM_DATABASE[mcu][name] = types.SimpleNamespace(
+                                section  = section,
+                                register = register,
+                                field    = field,
+                                value    = value,
+                            )
+
+                        case unknown:
+                            raise ValueError(f'Unknown value: {repr(unknown)}.')
+
+        continue
+
+
+
     # The MCU database is defined as an S-expression
     # in a separate text file that we parse.
 
