@@ -317,6 +317,13 @@ for target in TARGETS:
 #
 #     - source_file_paths    = Source files that the build system will compile each of and then link all together.
 #
+#     - use_freertos         = Whether or not to compile with FreeRTOS and set up the task scheduler.
+#                              Typically, we'd disable FreeRTOS when we want to start off programming
+#                              in a simpler environment where we don't have to worry about concurrency
+#                              and reentrance of code. Eventually, as the firmware matures, we'd want to
+#                              start using a task scheduler so we can have multiple systems in the firmware
+#                              work together and not have one big state machine to handle it all.
+#
 #     - stack_size           = The amount of bytes to reserve for the main stack,
 #                              although I think this might be deprecated once I do
 #                              more research into FreeRTOS' configurations (TODO).
