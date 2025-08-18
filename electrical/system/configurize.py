@@ -1,4 +1,4 @@
-#meta SYSTEM_CONFIGURIZE : SYSTEM_DATABASE, verify_and_get_field_names_in_tag_order
+#meta SYSTEM_CONFIGURIZE : SYSTEM_DATABASE
 
 import collections, builtins
 

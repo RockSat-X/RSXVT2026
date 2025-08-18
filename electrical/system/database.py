@@ -1,33 +1,7 @@
-#meta SYSTEM_DATABASE, verify_and_get_field_names_in_tag_order
+#meta SYSTEM_DATABASE
 
 import re
 from deps.pxd.sexp import parse_sexp
-
-
-
-################################################################################
-
-
-
-# TODO.
-
-def verify_and_get_field_names_in_tag_order(tag, given_fields):
-
-    tag_field_names   = OrderedSet(re.findall('{(.*?)}', tag))
-    given_field_names = OrderedSet(given_fields.keys())
-
-    if differences := tag_field_names - given_field_names:
-        raise ValueError(
-            f'Tag {repr(tag)} is missing the value '
-            f'for the field {repr(differences[0])}.'
-        )
-
-    if differences := given_field_names - tag_field_names:
-        raise ValueError(
-            f'Tag {repr(tag)} has no field {repr(differences[0])}.'
-        )
-
-    return tag_field_names
 
 
 
