@@ -18,12 +18,6 @@ def SYSTEM_CONFIGURIZE(target, configurations):
     # or look up in the database to find the location of a register;
     # the value in the section-register-field-value tuple can also be
     # changed to something else.
-    # e.g:
-    # >
-    # >    cfgs('flash_latency'        ) -> configurations['flash_latency']
-    # >    cfgs('flash_latency', ...   ) -> ('FLASH', 'ACR', 'LATENCY', configurations['flash_latency'])
-    # >    cfgs('flash_latency', 0b1111) -> ('FLASH', 'ACR', 'LATENCY', 0b1111)
-    # >
 
     used_configurations = OrderedSet()
 
@@ -31,13 +25,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
-        # Get the value from `configurations`, if needed.
-        # e.g:
-        # >
-        # >    cfgs('flash_latency'     ) ->                             configurations['flash_latency']
-        # >    cfgs('flash_latency', ...) -> ('FLASH', 'ACR', 'LATENCY', configurations['flash_latency'])
-        # >
-        #
+        # Mark the configuration as used if we are accessing it.
 
         def get_configuration_value():
 
@@ -55,7 +43,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
-        # Format the result in the expected format.
+        # Format the output depending on the arguments given.
 
         match value:
 
@@ -64,29 +52,34 @@ def SYSTEM_CONFIGURIZE(target, configurations):
             # Get the value from `configurations` directly.
             # e.g:
             # >
-            # >    cfgs('flash_latency') -> configurations['flash_latency']
+            # >              cfgs('flash_latency')
+            # >                   ~~~~~~~~~~~~~~~
+            # >                          |
+            # >                   ~~~~~~~~~~~~~~~
+            # >    configurations['flash_latency']
             # >
 
             case []:
-
                 return get_configuration_value()
 
 
 
-            # Get the value from `configurations` and append it to the register's location tuple.
+            # Get the value from `configurations` and
+            # append it to the register's location tuple.
             # e.g:
             # >
-            # >    cfgs('flash_latency', ...) -> ('FLASH', 'ACR', 'LATENCY', configurations['flash_latency'])
+            # >                       cfgs('flash_latency', ...)
+            # >                                             ~~~
+            # >                                              |
+            # >                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            # >    ('FLASH', 'ACR', 'LATENCY', configurations['flash_latency'])
             # >
 
             case [builtins.Ellipsis]:
-
-                entry = database[tag]
-
                 return (
-                    entry.section,
-                    entry.register,
-                    entry.field,
+                    database[tag].section,
+                    database[tag].register,
+                    database[tag].field,
                     get_configuration_value()
                 )
 
@@ -95,17 +88,18 @@ def SYSTEM_CONFIGURIZE(target, configurations):
             # Append the desired value to the register's location tuple.
             # e.g:
             # >
-            # >    cfgs('flash_latency', 0b1111) -> ('FLASH', 'ACR', 'LATENCY', 0b1111)
+            # >          cfgs('flash_latency', 0b1111)
+            # >                                ~~~~~~
+            # >                                   |
+            # >                                ~~~~~~
+            # >    ('FLASH', 'ACR', 'LATENCY', 0b1111)
             # >
 
             case [value]:
-
-                entry = database[tag]
-
                 return (
-                    entry.section,
-                    entry.register,
-                    entry.field,
+                    database[tag].section,
+                    database[tag].register,
+                    database[tag].field,
                     value
                 )
 
@@ -124,8 +118,8 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
     ################################################################################################################################
 
-    # We have to program a delay for reading the flash as it takes
-    # time for the data stored in the flash memory to stablize for read operations;
+    # We have to program a delay for reading the flash as it takes time
+    # for the data stored in the flash memory to stablize for read operations;
     # this delay varies based on voltage and clock frequency.
     # @/pg 210/sec 5.3.7/`H7S3rm`.
 
@@ -223,7 +217,9 @@ def SYSTEM_CONFIGURIZE(target, configurations):
     if cfgs('hsi_enable'):
         pass # The HSI oscillator is enabled by default after reset.
     else:
-        raise NotImplementedError(f'Turning off HSI not implemented yet.')
+        raise NotImplementedError(
+            f'Turning off HSI not implemented yet.'
+        )
 
 
 
@@ -251,7 +247,8 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
-    # Set the clock source which will be available for some peripheral to use.
+    # Set the clock source which will be
+    # available for some peripheral to use.
 
     CMSIS_SET(cfgs('per_ck_source', ...))
 
@@ -397,7 +394,9 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
     # Wait until the desired source has been selected.
 
-    CMSIS_SPINLOCK(cfgs('effective_scgu_clock_source', cfgs('scgu_clock_source')))
+    CMSIS_SPINLOCK(
+        cfgs('effective_scgu_clock_source', cfgs('scgu_clock_source'))
+    )
 
 
 
