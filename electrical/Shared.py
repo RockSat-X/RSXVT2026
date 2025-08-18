@@ -75,7 +75,7 @@ TARGETS = ( # @/`Defining a TARGET`.
                 actual     = 'USART3',
                 terms      = ['{}_BRR_BRR_init'],
                 interrupts = ['{}'],
-                puts       = [('{}_EN', 'uxart_{UNIT}_enable', { 'UNIT' : 3 })]
+                puts       = [('{}_EN', 'uxart_3_enable')]
             ),
         ),
 
@@ -128,7 +128,7 @@ TARGETS = ( # @/`Defining a TARGET`.
                 actual     = 'USART2',
                 terms      = ['{}_BRR_BRR_init'],
                 interrupts = ['{}'],
-                puts       = [('{}_EN', 'uxart_{UNIT}_enable', { 'UNIT' : 2 })]
+                puts       = [('{}_EN', 'uxart_2_enable')]
             ),
         ),
 

@@ -1,6 +1,6 @@
-#meta SYSTEM_CONFIGURIZE : SYSTEM_DATABASE, verify_and_get_field_names_in_tag_order
+#meta SYSTEM_CONFIGURIZE : SYSTEM_DATABASE
 
-import re, collections, builtins
+import collections, builtins
 
 def SYSTEM_CONFIGURIZE(target, configurations):
 
@@ -14,66 +14,36 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
-    # This helper routine can be used to look up a value in `configurations` or look up in the database to find the location of a register;
-    # the value in the section-register-field-value tuple can also be changed to something else.
-    # e.g:
-    # >
-    # >    cfgs('flash_latency'        )   ->   configurations['flash_latency']
-    # >    cfgs('flash_latency', ...   )   ->   ('FLASH', 'ACR', 'LATENCY', configurations['flash_latency'])
-    # >    cfgs('flash_latency', 0b1111)   ->   ('FLASH', 'ACR', 'LATENCY', 0b1111)
-    # >
+    # This helper routine can be used to look up a value in `configurations`
+    # or look up in the database to find the location of a register;
+    # the value in the section-register-field-value tuple can also be
+    # changed to something else.
 
     used_configurations = OrderedSet()
 
-    CfgFmt = collections.namedtuple('CfgFmt', ('database_expansion', 'configuration_expansion')) # @/`About CfgFmt`.
-
-    def cfgs(tag, *value, **field_values):
+    def cfgs(tag, *value):
 
 
 
-        # @/`About CfgFmt`.
+        # Mark the configuration as used if we are accessing it.
 
-        verify_and_get_field_names_in_tag_order(tag, field_values)
-
-        field_values_for_configuration = {
-            name : value.configuration_expansion if isinstance(value, CfgFmt) else value
-            for name, value in field_values.items()
-        }
-
-        field_values_for_database = {
-            name : value.database_expansion if isinstance(value, CfgFmt) else value
-            for name, value in field_values.items()
-        }
-
-
-
-        # Get the value from `configurations`, if needed.
-        # e.g:
-        # >
-        # >    cfgs('flash_latency'     )   ->                               configurations['flash_latency']
-        # >    cfgs('flash_latency', ...)   ->   ('FLASH', 'ACR', 'LATENCY', configurations['flash_latency'])
-        # >
-        #
-
-        def find_configuration_value():
+        def get_configuration_value():
 
             nonlocal used_configurations
 
-            configuration = tag.format(**field_values_for_configuration)
+            if tag not in configurations:
+                raise ValueError(
+                    f'For {target.mcu}, '
+                    f'configuration {repr(tag)} was not provided.'
+                )
 
-            if configuration not in configurations:
-                if field_values:
-                    raise ValueError(f'For {target.mcu}, the tag "{tag}" expanded to the undefined configuration "{configuration}".')
-                else:
-                    raise ValueError(f'For {target.mcu}, configuration "{configuration}" was not provided.')
+            used_configurations |= { tag }
 
-            used_configurations |= { configuration }
-
-            return configurations[configuration]
+            return configurations[tag]
 
 
 
-        # Format the result in the expected format.
+        # Format the output depending on the arguments given.
 
         match value:
 
@@ -82,49 +52,74 @@ def SYSTEM_CONFIGURIZE(target, configurations):
             # Get the value from `configurations` directly.
             # e.g:
             # >
-            # >    cfgs('flash_latency')   ->   configurations['flash_latency']
+            # >              cfgs('flash_latency')
+            # >                   ~~~~~~~~~~~~~~~
+            # >                          |
+            # >                   ~~~~~~~~~~~~~~~
+            # >    configurations['flash_latency']
             # >
 
             case []:
-                return find_configuration_value()
+                return get_configuration_value()
 
 
 
-            # Get the value from `configurations` and append it to the register's location tuple.
+            # Get the value from `configurations` and
+            # append it to the register's location tuple.
             # e.g:
             # >
-            # >    cfgs('flash_latency', ...)   ->   ('FLASH', 'ACR', 'LATENCY', configurations['flash_latency'])
+            # >                       cfgs('flash_latency', ...)
+            # >                                             ~~~
+            # >                                              |
+            # >                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            # >    ('FLASH', 'ACR', 'LATENCY', configurations['flash_latency'])
             # >
 
             case [builtins.Ellipsis]:
-                entry = database.query(tag, field_values_for_database)
-                return (entry.section, entry.register, entry.field, find_configuration_value())
+                return (
+                    database[tag].section,
+                    database[tag].register,
+                    database[tag].field,
+                    get_configuration_value()
+                )
 
 
 
             # Append the desired value to the register's location tuple.
             # e.g:
             # >
-            # >    cfgs('flash_latency', 0b1111)   ->   ('FLASH', 'ACR', 'LATENCY', 0b1111)
+            # >          cfgs('flash_latency', 0b1111)
+            # >                                ~~~~~~
+            # >                                   |
+            # >                                ~~~~~~
+            # >    ('FLASH', 'ACR', 'LATENCY', 0b1111)
             # >
 
             case [value]:
-                entry = database.query(tag, field_values_for_database)
-                return (entry.section, entry.register, entry.field, value)
+                return (
+                    database[tag].section,
+                    database[tag].register,
+                    database[tag].field,
+                    value
+                )
 
 
 
             # Ill-defined arguments.
 
             case _:
-                raise ValueError(f'Either nothing, "...", or a single value should be given for the argument; got: {value}.')
+                raise ValueError(
+                    f'Either nothing, "...", '
+                    f'or a single value should be given for the argument; '
+                    f'got: {value}.'
+                )
 
 
 
     ################################################################################################################################
 
-    # We have to program a delay for reading the flash as it takes
-    # time for the data stored in the flash memory to stablize for read operations;
+    # We have to program a delay for reading the flash as it takes time
+    # for the data stored in the flash memory to stablize for read operations;
     # this delay varies based on voltage and clock frequency.
     # @/pg 210/sec 5.3.7/`H7S3rm`.
 
@@ -133,6 +128,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
     # Set the wait-states.
+
     CMSIS_SET(
         cfgs('flash_latency'          , ...),
         cfgs('flash_programming_delay', ...),
@@ -141,6 +137,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
     # Ensure the new number of wait-states is taken into account.
+
     CMSIS_SPINLOCK(
         cfgs('flash_latency'          , ...),
         cfgs('flash_programming_delay', ...),
@@ -160,7 +157,8 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
-    # The power supply setup must be configured first before configuring VOS or the system clock frequency.
+    # The power supply setup must be configured first
+    # before configuring VOS or the system clock frequency.
     # @/pg 323/sec 6.8.4/`H7S3rm`.
 
     match target.mcu:
@@ -182,16 +180,23 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
         case _: raise NotImplementedError
 
-    CMSIS_SET(cfgs(field, ...) for field in fields if cfgs(field) is not None)
+    CMSIS_SET(
+        cfgs(field, ...)
+        for field in fields
+        if cfgs(field) is not None
+    )
 
 
 
-    # A higher core voltage means higher power consumption, but better performance in terms of max clock speed.
+    # A higher core voltage means higher power consumption,
+    # but better performance in terms of max clock speed.
+
     CMSIS_SET(cfgs('internal_voltage_scaling', ...))
 
 
 
     # Ensure the voltage scaling has been selected.
+
     CMSIS_SPINLOCK(
         cfgs('current_active_vos'      , cfgs('internal_voltage_scaling')),
         cfgs('current_active_vos_ready', True                            ),
@@ -212,7 +217,9 @@ def SYSTEM_CONFIGURIZE(target, configurations):
     if cfgs('hsi_enable'):
         pass # The HSI oscillator is enabled by default after reset.
     else:
-        raise NotImplementedError(f'Turning off HSI not implemented yet.')
+        raise NotImplementedError(
+            f'Turning off HSI not implemented yet.'
+        )
 
 
 
@@ -240,7 +247,8 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
-    # Set the clock source which will be available for some peripheral to use.
+    # Set the clock source which will be
+    # available for some peripheral to use.
 
     CMSIS_SET(cfgs('per_ck_source', ...))
 
@@ -260,24 +268,10 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
-        match target.mcu:
+        # Set the clock source shared for all PLLs.
 
-
-
-            case 'STM32H7S3L8H6':
-
-                # Set the clock source shared for all PLLs.
-
-                sets += [cfgs('pll_clock_source', ...)]
-
-
-
-            case 'STM32H533RET6':
-                pass
-
-
-
-            case _: raise NotImplementedError
+        if target.mcu == 'STM32H7S3L8H6':
+            sets += [cfgs('pll_clock_source', ...)]
 
 
 
@@ -285,51 +279,39 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
         for unit, channels in database['PLL_UNITS'].value:
 
-            match target.mcu:
 
 
+            # Set the clock source for this PLL unit.
 
-                case 'STM32H7S3L8H6':
-                    pass
-
-
-
-                case 'STM32H533RET6':
-
-                    # Set the clock source for this PLL unit.
-
-                    sets += [cfgs('pll{UNIT}_clock_source', ..., UNIT = unit)]
-
-
-
-                case _: raise NotImplementedError
+            if target.mcu == 'STM32H533RET6':
+                sets += [cfgs(f'pll{unit}_clock_source', ...)]
 
 
 
             # Set the PLL's predividers.
 
-            predivider = cfgs('pll{UNIT}_predivider', UNIT = unit)
+            predivider = cfgs(f'pll{unit}_predivider')
 
             if predivider is not None:
-                sets += [cfgs('pll{UNIT}_predivider', ..., UNIT = unit)]
+                sets += [cfgs(f'pll{unit}_predivider', ...)]
 
 
 
             # Set each PLL unit's expected input frequency range.
 
-            input_range = cfgs('pll{UNIT}_input_range', UNIT = unit)
+            input_range = cfgs(f'pll{unit}_input_range')
 
             if input_range is not None:
-                sets += [cfgs('pll{UNIT}_input_range', ..., UNIT = unit)]
+                sets += [cfgs(f'pll{unit}_input_range', ...)]
 
 
 
             # Set each PLL unit's multipler.
 
-            multiplier = cfgs('pll{UNIT}_multiplier', UNIT = unit)
+            multiplier = cfgs(f'pll{unit}_multiplier')
 
             if multiplier is not None:
-                sets += [cfgs('pll{UNIT}_multiplier', f'{multiplier} - 1', UNIT = unit)]
+                sets += [cfgs(f'pll{unit}_multiplier', f'{multiplier} - 1')]
 
 
 
@@ -337,17 +319,24 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
             for channel in channels:
 
-                divider = cfgs('pll{UNIT}_{CHANNEL}_divider', UNIT = unit, CHANNEL = channel)
+                divider = cfgs(f'pll{unit}_{channel}_divider')
 
-                if divider is not None:
-                    sets += [cfgs('pll{UNIT}{CHANNEL}_divider', f'{divider} - 1', UNIT = unit, CHANNEL = channel)]
-                    sets += [cfgs('pll{UNIT}{CHANNEL}_enable' , True            , UNIT = unit, CHANNEL = channel)]
+                if divider is None:
+                    continue
+
+                sets += [
+                    cfgs(f'pll{unit}{channel}_divider', f'{divider} - 1'),
+                    cfgs(f'pll{unit}{channel}_enable' , True            ),
+                ]
 
 
 
     # Enable each PLL unit that is to be used.
 
-    CMSIS_SET(cfgs('pll{UNIT}_enable', ..., UNIT = unit) for unit, channels in database['PLL_UNITS'].value)
+    CMSIS_SET(
+        cfgs(f'pll{unit}_enable', ...)
+        for unit, channels in database['PLL_UNITS'].value
+    )
 
 
 
@@ -355,10 +344,10 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
     for unit, channels in database['PLL_UNITS'].value:
 
-        pllx_enable = cfgs('pll{UNIT}_enable', UNIT = unit)
+        pllx_enable = cfgs(f'pll{unit}_enable')
 
         if pllx_enable:
-            CMSIS_SPINLOCK(cfgs('pll{UNIT}_ready', True, UNIT = unit))
+            CMSIS_SPINLOCK(cfgs(f'pll{unit}_ready', True))
 
 
 
@@ -378,13 +367,19 @@ def SYSTEM_CONFIGURIZE(target, configurations):
             CMSIS_SET(
                 cfgs('cpu_divider', ...),
                 cfgs('axi_ahb_divider', ...),
-                *(cfgs('apb{UNIT}_divider', ..., UNIT = unit) for unit in database['APB_UNITS'].value),
+                *(
+                    cfgs(f'apb{unit}_divider', ...)
+                    for unit in database['APB_UNITS'].value
+                ),
             )
 
         case 'STM32H533RET6':
             CMSIS_SET(
                 cfgs('cpu_divider', ...),
-                *(cfgs('apb{UNIT}_divider', ..., UNIT = unit) for unit in database['APB_UNITS'].value),
+                *(
+                    cfgs(f'apb{unit}_divider', ...)
+                    for unit in database['APB_UNITS'].value
+                ),
             )
 
         case _: raise NotImplementedError
@@ -399,7 +394,9 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
     # Wait until the desired source has been selected.
 
-    CMSIS_SPINLOCK(cfgs('effective_scgu_clock_source', cfgs('scgu_clock_source')))
+    CMSIS_SPINLOCK(
+        cfgs('effective_scgu_clock_source', cfgs('scgu_clock_source'))
+    )
 
 
 
@@ -411,10 +408,12 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
         put_title('SysTick')
 
+        # @/pg 621/tbl B3-7/`Armv7-M`.
+        # @/pg 1861/sec D1.2.239/`Armv8-M`.
         CMSIS_SET(
             cfgs('systick_reload'          , ... ), # Modulation of the counter.
             cfgs('systick_use_cpu_ck'      , ... ), # Use CPU clock or the vendor-provided one.
-            cfgs('systick_counter'         , 0   ), # SYST_CVR value is UNKNOWN on reset. @/pg 621/tbl B3-7/`Armv7-M`. @/pg 1861/sec D1.2.239/`Armv8-M`.
+            cfgs('systick_counter'         , 0   ), # SYST_CVR value is UNKNOWN on reset.
             cfgs('systick_interrupt_enable', True), # Enable SysTick interrupt, triggered at every overflow.
             cfgs('systick_enable'          , True), # Enable SysTick counter.
         )
@@ -431,18 +430,19 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
         # See if the set of UxART peripherals is used.
 
-        ns = '_'.join(str(number) for peripheral, number in uxart_units)
-
-        if cfgs(f'uxart_{ns}_clock_source') is None:
+        if cfgs(f'uxart_{uxart_units}_clock_source') is None:
             continue
 
-        put_title(' / '.join(f'{peripheral.upper()}{number}' for peripheral, number in uxart_units))
+        put_title(' / '.join(
+            f'{peripheral.upper()}{number}'
+            for peripheral, number in uxart_units
+        ))
 
 
 
         # Configure the UxART peripherals' clock source.
 
-        CMSIS_SET(cfgs('uxart_{UNITS}_clock_source', ..., UNITS = CfgFmt(uxart_units, ns)))
+        CMSIS_SET(cfgs(f'uxart_{uxart_units}_clock_source', ...))
 
 
 
@@ -455,7 +455,10 @@ def SYSTEM_CONFIGURIZE(target, configurations):
             if baud_divider is None:
                 continue
 
-            Meta.define(f'{peripheral.upper()}{number}_BRR_BRR_init', baud_divider)
+            Meta.define(
+                f'{peripheral.upper()}{number}_BRR_BRR_init',
+                baud_divider
+            )
 
 
 
@@ -465,8 +468,18 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
     # Ensure we've used all the configurations given.
 
-    if leftovers := OrderedSet(key for key, value in configurations.items() if value is not None) - used_configurations:
-        log(ANSI(f'[WARNING] There are leftover {target.mcu} configurations: {leftovers}.', 'fg_yellow'))
+    defined_configurations = OrderedSet(
+        key
+        for key, value in configurations.items()
+        if value is not None
+    )
+
+    if unused := defined_configurations - used_configurations:
+        log(ANSI(
+            f'[WARNING] For {target.name}, '
+            f'there are leftover configurations: {repr(unused)}.',
+            'fg_yellow'
+        ))
 
 
 
@@ -474,57 +487,11 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
-# In this meta-directive, we take the configuration values from `SYSTEM_PARAMETERIZE` and generate
+# In this meta-directive, we take the configuration
+# values from `SYSTEM_PARAMETERIZE` and generate
 # code to set the registers in the right order.
 #
-# Order matters because some clock sources depend on other clock sources, so we have to respect that.
+# Order matters because some clock sources depend
+# on other clock sources, so we have to respect that.
 #
 # More details at @/`About Parameterization`.
-
-
-
-# @/`About CfgFmt`:
-#
-# The field value can actually be different based on whether or not
-# we're looking into `configurations` or if we're looking up in `SYSTEM_DATABASE`.
-# Most of the time it's the same, but the subtle requirement for this case is that
-# the field value for `configuration` needs to be something that can turn into
-# a string that looks nice as a result, but keys into `SYSTEM_DATABASE` can be any arbritary value.
-#
-# e.g:
-# >
-# >    (uxart_{UNITS}_clock_source (RCC CCIPR2 UART278SEL) (UNITS : ((usart 2) (uart 7) (uart 8))) (value: (...)))
-# >                                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-# >                                                         Let's take this database entry as an example.
-# >
-# >
-# >    database['uxart_{UNITS}_clock_source'][(('usart', 2), ('uart', 7), ('uart' 8))]
-# >                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-# >                                Look-ups into the database is done using a tuple as expected.
-# >
-# >
-# >    configurations["uxart_(('usart', 2), ('uart', 7), ('uart' 8))_clock_source"]
-# >                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-# >               If we naively do the same for the key into `configurations`,
-# >               we'd be doing something stupid like this instead; while we could
-# >               accept this artifact, it's best to format it into something more
-# >               readable for debugging reasons.
-# >
-# >
-# >    configurations['uxart_2_7_8_clock_source']
-# >                          ^^^^^
-# >               Something like this is more understable and
-# >               might reflect the reference manual more.
-# >
-# >
-# >    units = (('usart', 2), ('uart', 7), ('uart' 8))
-# >    ns    = '2_7_8'
-# >    cfgs('uxart_{UNITS}_clock_source', ..., UNITS : CfgFmt(units, ns))
-# >                                                    ^^^^^^^^^^^^^^^^^
-# >                                          Thus, this is how we'd handle this situation.
-# >
-# >
-#
-# Of course, we could elimate this entire issue by accepting the artifact,
-# but for now I think the look of this is worth the complication;
-# we can revisit this in the future.
