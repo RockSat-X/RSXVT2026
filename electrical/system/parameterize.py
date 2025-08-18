@@ -506,11 +506,11 @@ def SYSTEM_PARAMETERIZE(target):
 
             case 'STM32H533RET6':
 
-                for pll_unit, pll_clock_sources in database['pll{UNIT}_clock_source'].items():
+                for pll_unit, pll_channels in database['PLL_UNITS'].value:
 
                     plln_satisfied = any(
                         parameterize_plln(pll_unit, tree[pll_clock_source_name])
-                        for pll_clock_source_name, draft[f'pll{pll_unit}_clock_source'] in pll_clock_sources.value
+                        for pll_clock_source_name, draft[f'pll{pll_unit}_clock_source'] in database[f'pll{pll_unit}_clock_source'].value
                     )
 
                     if not plln_satisfied:
