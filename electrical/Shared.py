@@ -76,7 +76,7 @@ TARGETS = ( # @/`Defining a TARGET`.
         name               = 'SandboxNucleoH7S3L8',
         mcu                = 'STM32H7S3L8H6',
         source_file_paths  = root('''
-            ./electrical/SandboxNucleoH7S3L8.c
+            ./electrical/SandboxNucleoBoard.c
             ./electrical/system/Startup.S
         '''),
 
@@ -131,7 +131,7 @@ TARGETS = ( # @/`Defining a TARGET`.
         name               = 'SandboxNucleoH533RE',
         mcu                = 'STM32H533RET6',
         source_file_paths  = root('''
-            ./electrical/SandboxNucleoH533RE.c
+            ./electrical/SandboxNucleoBoard.c
             ./electrical/system/Startup.S
         '''),
 
