@@ -18,8 +18,7 @@ INTERRUPT_Default
 
 
 
-static noret void
-task_a(void*)
+FREERTOS_TASK(task_a, 400, tskIDLE_PRIORITY)
 {
     for(;;)
     {
@@ -34,8 +33,7 @@ task_a(void*)
 
 
 
-static noret void
-task_b(void*)
+FREERTOS_TASK(task_b, 400, tskIDLE_PRIORITY)
 {
     for(;;)
     {
@@ -50,8 +48,7 @@ task_b(void*)
 
 
 
-static noret void
-task_c(void*)
+FREERTOS_TASK(task_c, 400, tskIDLE_PRIORITY)
 {
     for(;;)
     {

@@ -1029,8 +1029,30 @@ halt_(b32 panicking)        // "
 
 
 
+// This macro just expands to the function prototype used
+// by all FreeRTOS tasks, but the main reason why we use
+// this is because it allows us to have a meta-directive to
+// search for instances of this macro and from there be able
+// to determine the target's list of tasks. It is not a
+// fool-proof strategy, however, because we can do something
+// dumb like wrap a task with #if and the meta-directive wouldn't
+// know that, but I think edge-cases like these can be ignored.
+// We can, however, assert that the meta-directive picked up
+// the `FREERTOS_TASK`; if we don't, the task might be silently
+// defined but not be registered by the task-scheduler.
+
+#define FREERTOS_TASK(NAME, STACK_SIZE, PRIORITY)                                                             \
+    static_assert(                                                                                            \
+        FreeRTOSTask_##NAME >= 0 || "The `FREERTOS_TASK` macro is being invoked with an unrecognized syntax!" \
+    );                                                                                                        \
+    static noret void NAME(void*)
+
+
+
 #include "freertos.meta"
 /* #meta
+
+    import re
 
     @Meta.ifs(TARGETS, '#if')
     def _(target):
@@ -1045,6 +1067,35 @@ halt_(b32 panicking)        // "
 
 
 
+        # Find all the FreeRTOS tasks defined by the target.
+
+        tasks = []
+
+        for source_file_path in target.source_file_paths:
+
+            for match in re.findall(
+                r'FREERTOS_TASK\s*\((\s*[a-zA-Z0-9_]+\s*,\s*[0-9\']+\s*,\s*[a-zA-Z0-9_]+\s*)\)',
+                source_file_path.read_text()
+            ):
+
+                task_name, stack_size, priority = (field.strip() for field in match.split(','))
+
+                tasks += [types.SimpleNamespace(
+                    name       = task_name,
+                    stack_size = int(stack_size),
+                    priority   = priority
+                )]
+
+
+
+        # Create an enumeration of all FreeRTOS tasks for the target
+        # so that if the meta-directive missed a FREERTOS_TASK
+        # somewhere, compilation will fail.
+
+        Meta.enums('FreeRTOSTask', 'u32', (task.name for task in tasks))
+
+
+
         # Rest of the stuff is only when the target actually uses FreeRTOS.
 
         if not target.use_freertos:
@@ -1054,11 +1105,11 @@ halt_(b32 panicking)        // "
 
         # Declare some stuff for the tasks.
 
-        for task_name, stack_size, priority in target.freertos_tasks:
+        for task in tasks:
             Meta.line(f'''
-                static noret void   {task_name}(void*);
-                static StackType_t  {task_name}_stack[{stack_size} / sizeof(StackType_t)] = {{0}};
-                static StaticTask_t {task_name}_buffer = {{0}};
+                static noret void   {task.name}(void*);
+                static StackType_t  {task.name}_stack[{task.stack_size} / sizeof(StackType_t)] = {{0}};
+                static StaticTask_t {task.name}_buffer = {{0}};
             ''')
 
 
@@ -1070,18 +1121,18 @@ halt_(b32 panicking)        // "
             FREERTOS_init(void)
         '''):
 
-            for task_name, stack_size, priority in target.freertos_tasks:
+            for task in tasks:
                 Meta.line(f'''
-                    TaskHandle_t {task_name}_handle =
+                    TaskHandle_t {task.name}_handle =
                         xTaskCreateStatic
                         (
-                            {task_name},
-                            "{task_name}",
-                            countof({task_name}_stack),
+                            {task.name},
+                            "{task.name}",
+                            countof({task.name}_stack),
                             nullptr,
-                            {priority},
-                            {task_name}_stack,
-                            &{task_name}_buffer
+                            {task.priority},
+                            {task.name}_stack,
+                            &{task.name}_buffer
                         );
                 ''')
 

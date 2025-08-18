@@ -18,8 +18,7 @@ INTERRUPT_Default
 
 
 
-static noret void
-task_a(void*)
+FREERTOS_TASK(task_a, 400, tskIDLE_PRIORITY)
 {
     for(;;)
     {
