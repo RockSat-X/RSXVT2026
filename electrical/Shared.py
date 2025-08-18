@@ -30,22 +30,35 @@ BUILD = root('./build')
 
 MCUS = {
     'STM32H7S3L8H6' : types.SimpleNamespace(
-        cmsis_file_path     = root('./deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h'),
-        freertos_file_path  = root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1'),
-        freertos_interrupts = {
+        cmsis_file_path        = root('./deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h'),
+        freertos_port_dir_path = root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1'),
+        freertos_interrupts    = {
             'SysTick' : 'xPortSysTickHandler',
             'SVCall'  : 'vPortSVCHandler'    ,
             'PendSV'  : 'xPortPendSVHandler' ,
         },
+        freertos_source_files = (
+            'deps/FreeRTOS_Kernel/tasks.c',
+            'deps/FreeRTOS_Kernel/queue.c',
+            'deps/FreeRTOS_Kernel/list.c',
+            'port.c',
+        ),
     ),
     'STM32H533RET6' : types.SimpleNamespace(
-        cmsis_file_path     = root('./deps/cmsis-device-h5/Include/stm32h533xx.h'),
-        freertos_file_path  = root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
-        freertos_interrupts = {
+        cmsis_file_path        = root('./deps/cmsis-device-h5/Include/stm32h533xx.h'),
+        freertos_port_dir_path = root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
+        freertos_interrupts    = {
             'SysTick' : 'SysTick_Handler',
             'SVCall'  : 'SVC_Handler'    ,
             'PendSV'  : 'PendSV_Handler' ,
         },
+        freertos_source_files = (
+            'deps/FreeRTOS_Kernel/tasks.c',
+            'deps/FreeRTOS_Kernel/queue.c',
+            'deps/FreeRTOS_Kernel/list.c',
+            'port.c',
+            'portasm.c',
+        ),
     ),
 }
 
@@ -66,6 +79,13 @@ TARGETS = ( # @/`Defining a TARGET`.
             ./electrical/SandboxNucleoH7S3L8.c
             ./electrical/system/Startup.S
         '''),
+
+        use_freertos   = True,
+        freertos_tasks = (
+            ('task_a', 400, 'tskIDLE_PRIORITY'),
+            ('task_b', 400, 'tskIDLE_PRIORITY'),
+            ('task_c', 400, 'tskIDLE_PRIORITY'),
+        ),
 
         stack_size = 8192, # TODO This might be removed depending on how FreeRTOS works.
 
@@ -119,6 +139,11 @@ TARGETS = ( # @/`Defining a TARGET`.
             ./electrical/SandboxNucleoH533RE.c
             ./electrical/system/Startup.S
         '''),
+
+        use_freertos   = True,
+        freertos_tasks = (
+            ('task_a', 400, 'tskIDLE_PRIORITY'),
+        ),
 
         stack_size = 8192, # TODO This might be removed depending on how FreeRTOS works.
 
@@ -216,9 +241,9 @@ for target in TARGETS:
         root('./deps/CMSIS_6/CMSIS/Core/Include'),
         root('./deps/FreeRTOS_Kernel/include'),
         root('./deps/printf/src'),
-        root('.'),                   # For <deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h> and such.
-        root('./electrical/system'), # For <FreeRTOSConfig.h>.
-        MCUS[target.mcu].freertos_file_path,
+        root('.'),                               # For <deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h> and such.
+        root('./electrical/system'),             # For <FreeRTOSConfig.h>.
+        MCUS[target.mcu].freertos_port_dir_path, # For <portmacro.h> and such.
     )
 
 
@@ -226,10 +251,9 @@ for target in TARGETS:
     # Additional macro defines.
 
     defines = [
-        ('TARGET_NAME'         , target.name                                       ),
-        ('TARGET_MCU'          , target.mcu                                        ),
-        ('LINK_stack_size'     , target.stack_size                                 ),
-        ('STM32_CMSIS_DEVICE_H', f'<{MCUS[target.mcu].cmsis_file_path.as_posix()}>'),
+        ('TARGET_NAME'    , target.name      ),
+        ('TARGET_MCU'     , target.mcu       ),
+        ('LINK_stack_size', target.stack_size),
     ]
 
     for other in TARGETS:
@@ -300,6 +324,17 @@ for target in TARGETS:
 #                              it ends up being redundant later on.
 #
 #     - source_file_paths    = Source files that the build system will compile each of and then link all together.
+#
+#     - use_freertos         = Whether or not to compile with FreeRTOS and set up the task scheduler.
+#                              Typically, we'd disable FreeRTOS when we want to start off programming
+#                              in a simpler environment where we don't have to worry about concurrency
+#                              and reentrance of code. Eventually, as the firmware matures, we'd want to
+#                              start using a task scheduler so we can have multiple systems in the firmware
+#                              work together and not have one big state machine to handle it all.
+#
+#     - freertos_tasks       = The table of all FreeRTOS tasks for the target;
+#                              obviously only in use when `use_freertos` is truthy.
+#                              Look at where the table is used to gauge how it works.
 #
 #     - stack_size           = The amount of bytes to reserve for the main stack,
 #                              although I think this might be deprecated once I do

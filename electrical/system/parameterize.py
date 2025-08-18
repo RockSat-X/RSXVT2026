@@ -714,6 +714,16 @@ def SYSTEM_PARAMETERIZE(target):
 
 
 
+    if options.get('systick_ck', None) is not None and target.use_freertos:
+        raise ValueError(
+            f'FreeRTOS already uses SysTick for the time-base; '
+            f'so for target {repr(target.name)}, '
+            f'either remove "systick_ck" from the clock-tree '
+            f'configuration or disable FreeRTOS.'
+        )
+
+
+
     def parameterize_systick():
 
         draft.systick_enable = tree.systick_ck != 0

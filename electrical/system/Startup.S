@@ -140,14 +140,8 @@ __INTERRUPT_Reset:
 
 
                 # This interrupt will be supplied by FreeRTOS,
-                # unless we're configuring SysTick which FreeRTOS uses by default,
-                # to which we won't be considering FreeRTOS at all.
 
-                elif (
-                    interrupt_name in MCUS[target.mcu].freertos_interrupts
-                    and 'systick_ck' not in target.clock_tree
-                ):
-
+                elif target.use_freertos and interrupt_name in MCUS[target.mcu].freertos_interrupts:
                     Meta.line(f'.word {MCUS[target.mcu].freertos_interrupts[interrupt_name]}')
 
 

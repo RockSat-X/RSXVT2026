@@ -1,6 +1,10 @@
-//////////////////////////////////////////////////////////////// CMSIS Macros ////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////// CMSIS ////////////////////////////////////////////////////////////////
 
 
+
+//
+// Helpers.
+//
 
 #define _PARENS                                     ()
 #define _EXPAND_0(...)                              _EXPAND_1(_EXPAND_1(_EXPAND_1(__VA_ARGS__)))
@@ -19,9 +23,9 @@
 
 struct CMSISPutTuple
 {
-    volatile uint32_t* dst;
-    i32                pos;
-    u32                msk;
+    volatile u32* dst;
+    i32           pos;
+    u32           msk;
 };
 
 static mustinline void
@@ -32,9 +36,9 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-//////////////////////////////////////////////////////////////// CMSIS Patches ////////////////////////////////////////////////////////////////
-
-
+//
+// Patches.
+//
 
 #if TARGET_MCU_IS_STM32H7S3L8H6 || TARGET_MCU_IS_STM32H533RET6
 
@@ -55,8 +59,25 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-#include "cmsis_patches.meta"
+//
+// Some more CMSIS stuff.
+//
+
+#include "cmsis.meta"
 /* #meta
+
+
+
+    # Include the CMSIS device header for the STM32 microcontroller.
+
+    @Meta.ifs(MCUS, '#if')
+    def _(mcu):
+
+        yield f'TARGET_MCU_IS_{mcu}'
+
+        Meta.line(f'#include <{MCUS[mcu].cmsis_file_path.as_posix()}>')
+
+
 
     # @/`CMSIS Suffix Dropping`:
     # Define macros to map things like "I2C1_" to "I2C_".
@@ -82,7 +103,8 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-        # Some peripherals furthermore have subunits that also need this suffix-chopping to be done too.
+        # Some peripherals furthermore have subunits that
+        # also need this suffix-chopping to be done too.
         # e.g:
         # >
         # >    DMAMUX5_RequestGenerator7_   ->   DMAMUX_
@@ -201,7 +223,8 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-    # Parse the CMSIS header files to get the list of interrupts on the microcontroller.
+    # Parse the CMSIS header files to get the
+    # list of interrupts on the microcontroller.
 
     INTERRUPTS = {}
 
@@ -209,9 +232,10 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-        # The CMSIS header for the microcontroller will define its interrupts with an enumeration;
-        # we find the enumeration members so we can automatically get the list of interrupt names
-        # and the corresponding numbers.
+        # The CMSIS header for the microcontroller will define its
+        # interrupts with an enumeration; we find the enumeration
+        # members so we can automatically get the list of interrupt
+        # names and the corresponding numbers.
         # e.g:
         # >
         # >    typedef enum
@@ -259,7 +283,8 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
         # To get a contigious sequence of interrupt names,
         # including interrupt numbers that are reserved,
-        # we create a list for all interrupt numbers between the lowest and highest.
+        # we create a list for all interrupt numbers between
+        # the lowest and highest.
 
         INTERRUPTS[mcu] = [None] * (irqn_enumeration[-1][0] - irqn_enumeration[0][0] + 1)
 
@@ -278,19 +303,19 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
     # and if a typo is made, then a compiler error will be generated.
     # e.g:
     # >
-    # >    INTERRUPT_TIM13           <- If "TIM13" interrupt exists, then ok!
-    # >    {
+    # >    INTERRUPT_TIM13           <- If "TIM13" interrupt exists,
+    # >    {                            then ok!
     # >        ...
     # >    }
     # >
-    # >    INTERRUPT_TIM14           <- If "TIM14" interrupt doesn't exists, then compiler error here; good!
-    # >    {
+    # >    INTERRUPT_TIM14           <- If "TIM14" interrupt doesn't exists,
+    # >    {                            then compiler error here; good!
     # >        ...
     # >    }
     # >
     # >    extern void
-    # >    __INTERRUPT_TIM14(void)   <- This will always compile, even if "TIM14" doesn't exist; bad!
-    # >    {
+    # >    __INTERRUPT_TIM14(void)   <- This will always compile,
+    # >    {                            even if "TIM14" doesn't exist; bad!
     # >        ...
     # >    }
     # >
@@ -303,13 +328,9 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
         for interrupt in ('Default',) + INTERRUPTS[target.mcu]:
 
             if interrupt is None:
-                # This interrupt is reserved.
                 continue
 
-            if interrupt in MCUS[target.mcu].freertos_interrupts and 'systick_ck' not in target.clock_tree:
-                # This interrupt will be supplied by FreeRTOS,
-                # unless we're configuring SysTick which FreeRTOS uses by default,
-                # to which we won't be considering FreeRTOS at all.
+            if target.use_freertos and interrupt in MCUS[target.mcu].freertos_interrupts:
                 continue
 
             Meta.define(f'INTERRUPT_{interrupt}', f'extern void __INTERRUPT_{interrupt}(void)')
@@ -327,7 +348,8 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-    # Macros to make using GPIOs in C easy. TODO Use SYSTEM_DATABASE.
+    # Macros to make using GPIOs in C easy.
+    # TODO Use SYSTEM_DATABASE.
 
     Meta.define('GPIO_HIGH'  , ('NAME'         ), '((void) (CONCAT(GPIO, _PORT_FOR_GPIO_WRITE(NAME))->BSRR = CONCAT(GPIO_BSRR_BS, _NUMBER_FOR_GPIO_WRITE(NAME))))')
     Meta.define('GPIO_LOW'   , ('NAME'         ), '((void) (CONCAT(GPIO, _PORT_FOR_GPIO_WRITE(NAME))->BSRR = CONCAT(GPIO_BSRR_BR, _NUMBER_FOR_GPIO_WRITE(NAME))))')
@@ -379,8 +401,17 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
             # Enable GPIO ports that have defined pins.
 
             CMSIS_SET(
-                ('RCC', SYSTEM_DATABASE[target.mcu]['GPIO_PORT_ENABLE_REGISTER'].value, f'GPIO{port}EN', True)
-                for port in sorted(OrderedSet(gpio.port for gpio in gpios if gpio.pin is not None))
+                (
+                    'RCC',
+                    SYSTEM_DATABASE[target.mcu]['GPIO_PORT_ENABLE_REGISTER'].value,
+                    f'GPIO{port}EN',
+                    True
+                )
+                for port in sorted(OrderedSet(
+                    gpio.port
+                    for gpio in gpios
+                    if gpio.pin is not None
+                ))
             )
 
 
@@ -390,7 +421,8 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
             CMSIS_SET(
                 (f'GPIO{gpio.port}', 'OTYPER', f'OT{gpio.number}', gpio.open_drain)
                 for gpio in gpios
-                if gpio.pin is not None and gpio.open_drain is not None
+                if gpio.pin        is not None
+                if gpio.open_drain is not None
             )
 
 
@@ -400,7 +432,8 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
             CMSIS_SET(
                 (f'GPIO{gpio.port}', 'ODR', f'OD{gpio.number}', gpio.initlvl)
                 for gpio in gpios
-                if gpio.pin is not None and gpio.initlvl is not None
+                if gpio.pin     is not None
+                if gpio.initlvl is not None
             )
 
 
@@ -415,7 +448,8 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
                     mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_SPEED'].value)[gpio.speed]
                 )
                 for gpio in gpios
-                if gpio.pin is not None and gpio.speed is not None
+                if gpio.pin   is not None
+                if gpio.speed is not None
             )
 
 
@@ -430,7 +464,8 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
                     mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_PULL'].value)[gpio.pull]
                 )
                 for gpio in gpios
-                if gpio.pin is not None and gpio.pull is not None
+                if gpio.pin  is not None
+                if gpio.pull is not None
             )
 
 
@@ -461,7 +496,8 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
                     mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_MODE'].value)[gpio.mode]
                 )
                 for gpio in gpios
-                if gpio.pin is not None and gpio.mode not in (None, 'reserved')
+                if gpio.pin  is not None
+                if gpio.mode not in (None, 'reserved')
             )
 
 
@@ -548,7 +584,8 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-    # We create a table to map GPIO pin and alternate function names to alternate function codes.
+    # We create a table to map GPIO pin and alternate
+    # function names to alternate function codes.
     # e.g:
     # >
     # >    ('A', 0, 'UART4_TX')   ->   0b1000
@@ -562,21 +599,25 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-        # Find the CSV file that STM32CubeMX can provide to get all of the alternate functions for GPIOs.
+        # Find the CSV file that STM32CubeMX can provide to
+        # get all of the alternate functions for GPIOs.
 
         gpio_afsel_file_path = root(f'./deps/mcu/{mcu}_gpios.csv')
 
         if not gpio_afsel_file_path.is_file():
             raise RuntimeError(
                 f'File "{gpio_afsel_file_path}" does not exist; '
-                f'use STM32CubeMX to generate the CSV file (also clear the pinout!).'
+                f'use STM32CubeMX to generate the CSV file '
+                f'(also clear the pinout!).'
             )
 
 
 
         # Process the CSV file.
 
-        for entry in csv.DictReader(gpio_afsel_file_path.read_text().splitlines()):
+        for entry in csv.DictReader(
+            gpio_afsel_file_path.read_text().splitlines()
+        ):
 
             match entry['Type']:
 
@@ -586,12 +627,16 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
                 case 'I/O':
 
-                    # Some GPIO names are suffixed with additional things, like for instance:
+                    # Some GPIO names are suffixed with
+                    # additional things, like for instance:
+                    #
                     #     PC14-OSC32_IN(OSC32_IN)
                     #     PH1-OSC_OUT(PH1)
                     #     PA14(JTCK/SWCLK)
                     #     PC2_C
-                    # So we need to format it slightly so that we just get the port letter and pin number.
+                    #
+                    # So we need to format it slightly so that
+                    # we just get the port letter and pin number.
 
                     pin    = entry['Name']
                     pin    = pin.split('-', 1)[0]
@@ -608,18 +653,28 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
                     for afsel_code in range(16):
 
-                        if not entry[f'AF{afsel_code}']: # Skip empty cells.
+
+
+                        # Skip empty cells.
+
+                        if not entry[f'AF{afsel_code}']:
                             continue
+
+
+
+                        # Some have multiple names for the
+                        # same AFSEL code (e.g. "I2S3_CK/SPI3_SCK").
 
                         GPIO_AFSEL[mcu] += [
                             ((port, number, afsel_name), afsel_code)
-                            for afsel_name in entry[f'AF{afsel_code}'].split('/') # Some have multiple names for the same AFSEL code (e.g. "I2S3_CK/SPI3_SCK").
+                            for afsel_name in entry[f'AF{afsel_code}'].split('/')
                         ]
 
 
 
 
-                # TODO Maybe use this information to ensure the PCB footprint is correct?
+                # TODO Maybe use this information to ensure
+                #      the PCB footprint is correct?
 
                 case 'Power' | 'Reset' | 'Boot':
                     pass
@@ -633,15 +688,18 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-                # Unknown GPIO type in the CSV; doesn't neccessarily mean an error though.
+                # Unknown GPIO type in the CSV;
+                # doesn't neccessarily mean an error though.
 
                 case _:
                     pass # TODO Warn.
 
 
 
-        # Done processing the CSV file; now we have a mapping of GPIO pin
-        # and alternate function name to the alternate function code.
+        # Done processing the CSV file;
+        # now we have a mapping of GPIO pin
+        # and alternate function name to the
+        # alternate function code.
 
         GPIO_AFSEL[mcu] = mk_dict(GPIO_AFSEL[mcu])
 
@@ -673,9 +731,12 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-        # If the pin of the GPIO is given, split it into its port and number parts (e.g. 'A10' -> ('A', 10)).
-        # The pin can be left unspecified as `None`, which is useful for when we don't know where
-        # the pin will be end up being at but we want to at least have it still be in the table.
+        # If the pin of the GPIO is given, split it into
+        # its port and number parts (e.g. 'A10' -> ('A', 10)).
+        # The pin can be left unspecified as `None`, which is
+        # useful for when we don't know where the pin will be
+        # end up being at but we want to at least have it still
+        # be in the table.
 
         if pin is not None:
             gpio.port   = pin[0]
@@ -693,7 +754,11 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
             case 'input':
 
-                # The pull-direction must be specified in order to prevent accidentally defining a floating GPIO pin.
+
+
+                # The pull-direction must be specified in order to
+                # prevent accidentally defining a floating GPIO pin.
+
                 gpio.pull = properties.pop('pull')
 
 
@@ -702,50 +767,72 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
             case 'output':
 
-                # The initial voltage level must be specified so the user remembers to take it into consideration.
+
+
+                # The initial voltage level must be specified
+                # so the user remembers to take it into consideration.
+
                 gpio.initlvl = properties.pop('initlvl')
 
+
+
                 # Other optional properties.
+
                 gpio.speed      = properties.pop('speed'     , None)
                 gpio.open_drain = properties.pop('open_drain', None)
 
 
 
 
-            # This GPIO would typically be used for some peripheral functionality (e.g. SPI clock output).
+            # This GPIO would typically be used for some
+            # peripheral functionality (e.g. SPI clock output).
 
             case 'alternate':
 
-                # Alternate GPIOs are denoted by a string like "UART8_TX" to indicate its alternate function.
+
+
+                # Alternate GPIOs are denoted by a string like "UART8_TX"
+                # to indicate its alternate function.
+
                 gpio.altfunc = properties.pop('altfunc')
 
+
+
                 # Other optional properties.
+
                 gpio.speed      = properties.pop('speed'     , None)
                 gpio.pull       = properties.pop('pull'      , None)
                 gpio.open_drain = properties.pop('open_drain', None)
 
 
 
-            # An analog GPIO would have its Schmit trigger function disabled;
-            # this obviously allows for ADC/DAC usage, but it can also serve as a power-saving measure.
+            # An analog GPIO would have its Schmit trigger function
+            # disabled; this obviously allows for ADC/DAC usage,
+            # but it can also serve as a power-saving measure.
 
             case 'analog':
                 raise NotImplementedError
 
 
 
-            # A GPIO that's marked as "reserved" is often useful for marking a particular pin as something
-            # that shouldn't be used because it has an important functionality (e.g. JTAG debug).
+            # A GPIO that's marked as "reserved" is often useful
+            # for marking a particular pin as something that
+            # shouldn't be used because it has an important
+            # functionality (e.g. JTAG debug).
+            # We ignore any properties the reserved pin may have.
 
             case 'reserved':
-                properties = {} # Don't care what properties this reserved GPIO has.
+                properties = {}
 
 
 
             # Unknown GPIO mode.
 
             case unknown:
-                raise ValueError(f'GPIO "{name}" has unknown mode: {repr(unknown)}.')
+                raise ValueError(
+                    f'GPIO "{name}" has unknown '
+                    f'mode: {repr(unknown)}.'
+                )
 
 
 
@@ -753,12 +840,16 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
         if gpio.pin is not None and gpio.altfunc is not None:
 
-            gpio.afsel = GPIO_AFSEL[target.mcu].get((gpio.port, gpio.number, gpio.altfunc), None)
+            gpio.afsel = GPIO_AFSEL[target.mcu].get(
+                (gpio.port, gpio.number, gpio.altfunc),
+                None
+            )
 
             if gpio.afsel is None:
                 raise ValueError(
-                    f'GPIO pin {repr(gpio.pin)} for {target.mcu} ({target.name}) '
-                    'has no alternate function {repr(gpio.altfunc)}.'
+                    f'GPIO pin {repr(gpio.pin)} '
+                    f'for {target.mcu} ({target.name}) '
+                    f'has no alternate function {repr(gpio.altfunc)}.'
                 )
 
 
@@ -766,7 +857,9 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
         # Done processing this GPIO entry!
 
         if properties:
-            raise ValueError(f'GPIO "{name}" has leftover properties: {properties}.')
+            raise ValueError(
+                f'GPIO "{name}" has leftover properties: {properties}.'
+            )
 
         return gpio
 
@@ -776,13 +869,27 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
     def PROCESS_GPIOS(target):
 
-        gpios = tuple(mk_gpio(target, entry) for entry in target.gpios)
+        gpios = tuple(
+            mk_gpio(target, entry)
+            for entry in target.gpios
+        )
 
-        if (name := find_dupe(gpio.name for gpio in gpios)) is not ...:
-            raise ValueError(f'GPIO name {repr(name)} used more than once.')
+        if (name := find_dupe(
+            gpio.name
+            for gpio in gpios
+        )) is not ...:
+            raise ValueError(
+                f'GPIO name {repr(name)} used more than once.'
+            )
 
-        if (pin := find_dupe(gpio.pin for gpio in gpios if gpio.pin is not None)) is not ...:
-            raise ValueError(f'GPIO pin {repr(pin)} used more than once.')
+        if (pin := find_dupe(
+            gpio.pin
+            for gpio in gpios
+            if gpio.pin is not None
+        )) is not ...:
+            raise ValueError(
+                f'GPIO pin {repr(pin)} used more than once.'
+            )
 
         return gpios
 
@@ -909,6 +1016,96 @@ halt_(b32 panicking)        // "
 
 
 
+//////////////////////////////////////////////////////////////// FreeRTOS ////////////////////////////////////////////////////////////////
+
+
+
+// FreeRTOS headers here so that we can still compile
+// tasks that use FreeRTOS functions; if the function
+// actually gets used, there'll be a link error anyways.
+
+#include <deps/FreeRTOS_Kernel/include/FreeRTOS.h>
+#include <deps/FreeRTOS_Kernel/include/task.h>
+
+
+
+#include "freertos.meta"
+/* #meta
+
+    @Meta.ifs(TARGETS, '#if')
+    def _(target):
+
+        yield f'TARGET_NAME_IS_{target.name}'
+
+
+
+        # Macros for whether or not the target will be using FreeRTOS.
+
+        Meta.define('TARGET_USES_FREERTOS', target.use_freertos)
+
+
+
+        # Rest of the stuff is only when the target actually uses FreeRTOS.
+
+        if not target.use_freertos:
+            return
+
+
+
+        # Declare some stuff for the tasks.
+
+        for task_name, stack_size, priority in target.freertos_tasks:
+            Meta.line(f'''
+                static noret void   {task_name}(void*);
+                static StackType_t  {task_name}_stack[{stack_size} / sizeof(StackType_t)] = {{0}};
+                static StaticTask_t {task_name}_buffer = {{0}};
+            ''')
+
+
+
+        # Create the procedure that'll initialize and run the FreeRTOS scheduler.
+
+        with Meta.enter('''
+            static noret void
+            FREERTOS_init(void)
+        '''):
+
+            for task_name, stack_size, priority in target.freertos_tasks:
+                Meta.line(f'''
+                    TaskHandle_t {task_name}_handle =
+                        xTaskCreateStatic
+                        (
+                            {task_name},
+                            "{task_name}",
+                            countof({task_name}_stack),
+                            nullptr,
+                            {priority},
+                            {task_name}_stack,
+                            &{task_name}_buffer
+                        );
+                ''')
+
+            Meta.line('''
+                vTaskStartScheduler();
+                panic;
+            ''')
+
+
+
+    # The necessary include-directives to compile with FreeRTOS.
+
+    @Meta.ifs(MCUS, '#if')
+    def _(mcu):
+
+        yield f'TARGET_MCU_IS_{mcu} && TARGET_USES_FREERTOS'
+
+        for header in MCUS[mcu].freertos_source_files:
+            Meta.line(f'#include <{header}>')
+
+*/
+
+
+
 //////////////////////////////////////////////////////////////// Notes /////////////////////////////////////////////////////////////////
 
 
@@ -922,11 +1119,10 @@ halt_(b32 panicking)        // "
 
 // @/`Halting`:
 //
-//
-//
 // A `sorry` is used for code-paths that haven't been implemented yet.
 // Eventually, when we want things to be production-ready, we replace
-// all `sorry`s that we can with proper code, or at the very least, a `panic`.
+// all `sorry`s that we can with proper code, or at the very least,
+// a `panic`.
 // e.g:
 // >
 // >    if (is_sd_card_mounted_yet())
@@ -934,42 +1130,36 @@ halt_(b32 panicking)        // "
 // >        do_stuff();
 // >    }
 // >    else
-// >    {
-// >        sorry   <- Note that `sorry` is specifically defined to be able to
-// >                   be written without the terminating semicolon. This is
-// >                   purely aesthetic; it makes `sorry` look very out-of-place.
-// >    }
+// >    {              Note that `sorry` is specifically defined to be able to
+// >        sorry   <- be written without the terminating semicolon. This is
+// >    }              purely aesthetic; it makes `sorry` look very out-of-place.
 // >
-//
-//
+// >
 //
 // A `panic` is for absolute irrecoverable error conditions,
 // like stack overflows or a function given ill-formed parameters.
 // In other words, stuff like: "something horrible happened.
-// I don't know how we got here. We need to reset!".
-// It is useful to make this distinction from `sorry` because we can
-// scan through the code-base and see what stuff is work-in-progress or just
-// an irrecoverable error condition.
+// I don't know how we got here. We need to reset!". It is useful
+// to make this distinction from `sorry` because we can scan through
+// the code-base and see what stuff is work-in-progress or just an
+// irrecoverable error condition.
 // e.g:
 // >
 // >    switch (option)
 // >    {
-// >        case Option_A: ...
-// >        case Option_B: ...
-// >        case Option_C: ...
-// >        default: panic;     <- The compiler will enforce switch-statements to be exhaustive
-// >                               for enumerations. The compiler will also enforce all
-// >                               switch-statements to have a `default` case even if we are
-// >                               exhaustive. In the event that the enumeration `option` is somehow
-// >                               not any of the valid values, we will trigger a `panic` rather than
-// >                               have the switch-statement silently pass.
-// >    }
+// >        case Option_A: ...     The compiler will enforce switch-statements to be exhaustive
+// >        case Option_B: ...     for enumerations. The compiler will also enforce all
+// >        case Option_C: ...     switch-statements to have a `default` case even if we are
+// >        default: panic;     <- exhaustive. In the event that the enumeration `option` is
+// >    }                          somehow not any of the valid values, we will trigger a `panic`
+// >                               rather than have the switch-statement silently pass.
 // >
 //
-//
-//
-// When a `sorry` or `panic` is triggered during deployment, the microcontroller will undergo a reset
-// through the watchdog timer (TODO). During development, however, we'd like for the controller to actually
-// stop dead in its track (rather than reset) so that we can debug. To make it even more useful,
-// the microcontroller can also blink an LED indicating whether or not a `panic` or a `sorry` condition has
-// occured; how this is implemented, if at all, is entirely dependent upon the target.
+// When a `sorry` or `panic` is triggered during deployment, the
+// microcontroller will undergo a reset through the watchdog timer (TODO).
+// During development, however, we'd like for the controller to actually
+// stop dead in its track (rather than reset) so that we can debug.
+// To make it even more useful, the microcontroller can also blink an
+// LED indicating whether or not a `panic` or a `sorry` condition has
+// occured; how this is implemented, if at all, is entirely dependent
+// upon the target.
