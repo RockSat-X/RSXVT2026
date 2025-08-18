@@ -4,6 +4,10 @@ SYSTEM_DATABASE = {}
 
 for mcu in MCUS:
 
+
+
+    # Load and evaluate the Python expression.
+
     database_file_path = root(f'./deps/mcu/{mcu}_database.py')
 
     if not database_file_path.is_file():
@@ -12,38 +16,122 @@ for mcu in MCUS:
             f'it is needed to describe the properties of the MCU.'
         )
 
-    database_py = eval(database_file_path.read_text(), {}, {})
+    constants, location_tree = eval(database_file_path.read_text(), {}, {})
+    entries                  = []
 
-    value_part, registers_part = database_py
 
-    entries = []
 
-    for name, *entry in value_part:
+    # Parse the constants.
 
-        match entry:
+    for constant in constants:
 
-            case (value,):
-                entries += [(name, types.SimpleNamespace(
+        match constant:
+
+
+
+            # The constant's value is directly given.
+            # e.g:
+            # >
+            # >    ('APB_UNITS', (1, 2, 3))
+            # >
+
+            case (tag, value):
+                entries += [(tag, types.SimpleNamespace(
                     value = value,
                 ))]
 
-            case (minimum, maximum):
-                entries += [(name, types.SimpleNamespace(
+
+
+            # The constant's value is an inclusive min-max range.
+            # e.g:
+            # >
+            # >    ('pll_channel_freq', 1_000_000, 250_000_000)
+            # >
+
+            case (tag, minimum, maximum):
+                entries += [(tag, types.SimpleNamespace(
                     minimum = minimum,
                     maximum = maximum,
                 ))]
 
+
+
+            # Unsupported constant.
+
             case unknown:
-                raise ValueError(f'Unknown value: {repr(unknown)}.')
+                raise ValueError(
+                    f'Database constant entry is '
+                    f'in an unknown format: {repr(unknown)}.'
+                )
 
-    for section, *registers in registers_part:
-        for register, *fields in registers:
-            for entry in fields:
 
-                match entry:
 
-                    case (field, name, minimum, maximum):
-                        entries += [(name, types.SimpleNamespace(
+    # Parse the locations.
+
+    for section, *register_tree in location_tree:
+        for register, *field_tree in register_tree:
+            for location in field_tree:
+
+                match location:
+
+
+
+                    # The location entry's value is assume to be 1 bit.
+                    # e.g:
+                    # >
+                    # >    ('PWR',
+                    # >        ('SR1',
+                    # >            ('ACTVOS', 'current_active_vos'),
+                    # >        ),
+                    # >    )
+                    # >
+
+                    case (field, tag):
+                        entries += [(tag, types.SimpleNamespace(
+                            section  = section,
+                            register = register,
+                            field    = field,
+                            value    = (False, True),
+                        ))]
+
+
+
+                    # The location entry's value is directly given.
+                    # e.g:
+                    # >
+                    # >    ('IWDG',
+                    # >        ('KR',
+                    # >            ('KEY', 'iwdg_key', (
+                    # >                '0xAAAA',
+                    # >                '0x5555',
+                    # >                '0xCCCC',
+                    # >            )),
+                    # >        ),
+                    # >    )
+                    # >
+
+                    case (field, tag, value):
+                        entries += [(tag, types.SimpleNamespace(
+                            section  = section,
+                            register = register,
+                            field    = field,
+                            value    = value,
+                        ))]
+
+
+
+                    # The location entry's value is an inclusive min-max range.
+                    # e.g:
+                    # >
+                    # >    ('SysTick',
+                    # >        ('LOAD',
+                    # >            ('RELOAD', 'systick_reload', 1, (1 << 24) - 1),
+                    # >        ),
+                    # >    )
+                    # >
+
+                    case (field, tag, minimum, maximum):
+                        entries += [(tag, types.SimpleNamespace(
                             section  = section,
                             register = register,
                             field    = field,
@@ -51,39 +139,66 @@ for mcu in MCUS:
                             maximum  = maximum,
                         ))]
 
-                    case (field, name, value):
-                        entries += [(name, types.SimpleNamespace(
-                            section  = section,
-                            register = register,
-                            field    = field,
-                            value    = value,
-                        ))]
 
-                    case (field, name):
-                        entries += [(name, types.SimpleNamespace(
-                            section  = section,
-                            register = register,
-                            field    = field,
-                            value    = (False, True),
-                        ))]
+
+                    # Unsupported location format.
 
                     case unknown:
-                        raise ValueError(f'Unknown value: {repr(unknown)}.')
+                        raise ValueError(
+                            f'Database location entry is '
+                            f'in an unknown format: {repr(unknown)}.'
+                        )
 
-    if (dupe := find_dupe(name for name, entry in entries)) is not ...:
-        raise ValueError(f'For {mcu}, there is already a database entry with the tag {repr(dupe)}.')
+
+
+    # Check for consistency.
+
+    if (dupe := find_dupe(tag for tag, entry in entries)) is not ...:
+        raise ValueError(
+            f'For {mcu}, '
+            f'there is already a database entry with the tag {repr(dupe)}.'
+        )
 
     if (dupe := find_dupe(
         (entry.section, entry.register, entry.field)
-        for name, entry in entries if 'section' in entry.__dict__
+        for tag, entry in entries
+        if 'section'  in entry.__dict__
     )) is not ...:
-        raise ValueError(f'For {mcu}, there is already a database entry with the location {repr(dupe)}.')
+        raise ValueError(
+            f'For {mcu}, '
+            f'there is already a database entry with the location {repr(dupe)}.'
+        )
 
     SYSTEM_DATABASE[mcu] = dict(entries)
+
 
 
 ################################################################################
 
 
 
-# TODO.
+# The microcontroller database contains information found in reference manuals
+# and datasheets. The point of the database is to make it easy to port common
+# code between multiple microcontrollers without having to worry about the exact
+# naming conventions and specified values of each register / hardware properties.
+#
+# For instance, STM32 microcontrollers typically have a PLL unit to generate bus
+# frequencies for other parts of the MCU to use. How many PLL units and channels,
+# what the exact range of multipliers and dividers are, and so on would all be
+# described in the database file (as found in <./deps/mcu/{MCU}_database.py>).
+#
+# This in turns makes the logic that needs to brute-force the PLL units for the
+# clock-tree be overlapped with other microcontrollers. There will always be
+# some slight differences that the database can't account for, like whether or
+# not each PLL unit has its own clock source or they all share the same one,
+# but this layer of abstraction helps a lot with reducing the code duplication.
+#
+# The database is just defined as a Python expression in a file that we then
+# evaluate; we do a small amount of post-processing so it's more usable, but
+# overall it's really not that complicated.
+#
+# The database is not at all comprehensive. When working with low-level system
+# stuff and trying to automate things with meta-directives, you might find
+# yourself seeing that there's missing entries in the database. This is expected;
+# just add more registers and stuff to the database whenever needed. The syntax
+# of the database expression should be pretty straight-forward to figure out.
