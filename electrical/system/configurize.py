@@ -27,7 +27,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
     used_configurations = OrderedSet()
 
-    def cfgs(tag, *value, **fields):
+    def cfgs(tag, *value):
 
 
 
@@ -43,23 +43,15 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
             nonlocal used_configurations
 
-            configuration_name = tag.format(**fields)
+            if tag not in configurations:
+                raise ValueError(
+                    f'For {target.mcu}, '
+                    f'configuration {repr(tag)} was not provided.'
+                )
 
-            if configuration_name not in configurations:
-                if fields:
-                    raise ValueError(
-                        f'For {target.mcu}, the tag {repr(tag)} expanded to the '
-                        f'undefined configuration {repr(configuration_name)}.'
-                    )
-                else:
-                    raise ValueError(
-                        f'For {target.mcu}, '
-                        f'configuration {repr(configuration_name)} was not provided.'
-                    )
+            used_configurations |= { tag }
 
-            used_configurations |= { configuration_name }
-
-            return configurations[configuration_name]
+            return configurations[tag]
 
 
 
@@ -89,7 +81,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
             case [builtins.Ellipsis]:
 
-                entry = database[tag.format(**fields)]
+                entry = database[tag]
 
                 return (
                     entry.section,
@@ -108,7 +100,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
             case [value]:
 
-                entry = database[tag.format(**fields)]
+                entry = database[tag]
 
                 return (
                     entry.section,
