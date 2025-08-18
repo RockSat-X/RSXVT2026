@@ -394,7 +394,7 @@ def SYSTEM_PARAMETERIZE(target):
 
         needed_divider = int(needed_divider)
 
-        if not in_minmax(needed_divider, database['pll{UNIT}{CHANNEL}_divider'][(pll_unit, pll_channel)]):
+        if not in_minmax(needed_divider, database[f'pll{pll_unit}{pll_channel}_divider']):
             return False # The divider is not within the specified range.
 
         draft[f'pll{pll_unit}_{pll_channel}_divider'] = needed_divider # We found a divider!
@@ -411,7 +411,7 @@ def SYSTEM_PARAMETERIZE(target):
 
         # Try every available predivider that's placed before the PLL unit.
 
-        for draft[f'pll{pll_unit}_predivider'] in range_minmax(database['pll{UNIT}_predivider'][pll_unit]):
+        for draft[f'pll{pll_unit}_predivider'] in range_minmax(database[f'pll{pll_unit}_predivider']):
 
 
 
@@ -421,7 +421,7 @@ def SYSTEM_PARAMETERIZE(target):
 
             draft[f'pll{pll_unit}_input_range'] = next((
                 option
-                for upper_freq_range, option in database['pll{UNIT}_input_range'][pll_unit].value
+                for upper_freq_range, option in database[f'pll{pll_unit}_input_range'].value
                 if pll_reference_freq < upper_freq_range
             ), None)
 
@@ -432,7 +432,7 @@ def SYSTEM_PARAMETERIZE(target):
 
             # Try every available multiplier that the PLL can handle.
 
-            for draft[f'pll{pll_unit}_multiplier'] in range_minmax(database['pll{UNIT}_multiplier'][pll_unit]):
+            for draft[f'pll{pll_unit}_multiplier'] in range_minmax(database[f'pll{pll_unit}_multiplier']):
 
                 pll_vco_freq = pll_reference_freq * draft[f'pll{pll_unit}_multiplier']
 
@@ -579,7 +579,7 @@ def SYSTEM_PARAMETERIZE(target):
     def parameterize_apbx(unit):
 
         needed_apbx_divider         = tree.axi_ahb_ck / tree[f'apb{unit}_ck']
-        draft[f'apb{unit}_divider'] = mk_dict(database['apb{UNIT}_divider'][unit].value).get(needed_apbx_divider, None)
+        draft[f'apb{unit}_divider'] = mk_dict(database[f'apb{unit}_divider'].value).get(needed_apbx_divider, None)
         apbx_divider_found          = draft[f'apb{unit}_divider'] is not None
 
         return apbx_divider_found
@@ -813,7 +813,7 @@ def SYSTEM_PARAMETERIZE(target):
 
             # Try every available clock source for this set of UxART peripherals and see what sticks.
 
-            for uxart_clock_source_name, draft[f'uxart_{ns}_clock_source'] in database['uxart_{UNITS}_clock_source'][uxart_units].value:
+            for uxart_clock_source_name, draft[f'uxart_{ns}_clock_source'] in database[f'uxart_{uxart_units}_clock_source'].value:
 
                 uxart_clock_source_freq = tree[uxart_clock_source_name]
                 every_uxart_satisfied   = all(parameterize_uxart(uxart_clock_source_freq, uxart_unit) for uxart_unit in uxart_units)
