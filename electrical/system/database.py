@@ -9,169 +9,6 @@ from deps.pxd.sexp import parse_sexp
 
 
 
-# Convert a database entry in S-expression form into a more usable Python value.
-# e.g:
-# >
-# >    (pll{UNIT}_predivider (RCC PLL2CFGR PLL2M) (UNIT : 2) (.minmax 1 63))
-# >     ^^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-# >     Tag.                 types.SimpleNamespace(
-# >                              section  = 'RCC',
-# >                              register = 'PLL2CFGR',
-# >                              field    = 'PLL2M',
-# >                              UNIT     = 2,
-# >                              min      = 1,
-# >                              max      = 63,
-# >                          )
-# >
-
-def parse_entry(sexp):
-
-
-
-    # Get the tag and attributes.
-    # e.g:
-    # >
-    # >    (pll{UNIT}_predivider (RCC PLL2CFGR PLL2M) (UNIT : 2) (.minmax 1 63))
-    # >     ^^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    # >     Tag.                 Attributes.
-    # >
-
-    tag, *attributes = sexp
-    entry            = AllocatingNamespace()
-
-
-
-    # Look for the dotted attribute which will represent the value of the entry.
-    # e.g:
-    # >
-    # >    (pll{UNIT}_predivider (RCC PLL2CFGR PLL2M) (UNIT : 2) (.minmax 1 63))
-    # >                                                          ^^^^^^^^^^^^^^
-    # >
-
-    for attribute_i, attribute in enumerate(attributes):
-
-        match attribute:
-
-
-
-            # The entry value is directly given.
-            # e.g:
-            # >
-            # >    (APB_UNITS (.value (1 2 4 5)))
-            # >               ^^^^^^^^^^^^^^^^^^
-            # >
-
-            case ('.value', value):
-                entry.value = value
-
-
-
-            # The entry value is an inclusive range.
-            # e.g:
-            # >
-            # >    (flash_latency (FLASH ACR LATENCY) (.minmax 0b0000 0b1111))
-            # >                                       ^^^^^^^^^^^^^^^^^^^^^^^
-            # >
-
-            case ('.minmax', minimum, maximum):
-                entry.minimum = minimum
-                entry.maximum = maximum
-
-
-
-            # This entry attribute is something else which we'll process later.
-
-            case _: continue
-
-
-
-        # We found and processed the entry value; no need to process it again.
-
-        del attributes[attribute_i]
-        break
-
-
-
-    # No dotted entry value found, so we assume it's just
-    # something like a True/False 1-bit register.
-    # e.g:
-    # >
-    # >    (current_active_vos_ready (PWR SR1 ACTVOSRDY))
-    # >
-
-    else:
-        entry.value = (False, True)
-
-
-
-    # We then look for field-value attributes.
-    # e.g:
-    # >
-    # >    (pll{UNIT}_ready (RCC CR PLL3RDY) (UNIT : 3))
-    # >         ^^^^-------------------------^^^^^^^^^^
-    # >
-
-    attribute_i = 0
-
-    while attribute_i < len(attributes):
-
-        match attribute := attributes[attribute_i]:
-
-            case (attribute_name, ':', attribute_value):
-                entry[attribute_name] = attribute_value
-
-            case _:
-                attribute_i += 1
-                continue
-
-        del attributes[attribute_i]
-
-
-
-    # Process the remaining attributes.
-
-    match attributes:
-
-
-
-        # Nothing else to do.
-
-        case []:
-            pass
-
-
-
-        # The entry is also provided with a section-register-field location.
-        # e.g:
-        # >
-        # >    (current_active_vos_ready (PWR SR1 ACTVOSRDY))
-        # >                              ^^^^^^^^^^^^^^^^^^^
-        # >
-
-        case [(section, register, field)]:
-            entry.section  = section
-            entry.register = register
-            entry.field    = field
-
-
-
-        # Leftover attributes.
-
-        case _:
-            raise ValueError(f'Leftover attributes: {repr(attributes)}.')
-
-
-
-    # Finished parsing the database entry!
-
-    return tag, types.SimpleNamespace(**entry.__dict__)
-
-
-
-################################################################################
-
-
-
 # Helper routine to make sure all fields in a tag are supplied.
 # e.g:
 # >
@@ -223,9 +60,144 @@ for mcu in MCUS:
             f'the properties of the MCU.'
         )
 
-    for tag, entries in coalesce(
-        map(parse_entry, parse_sexp(database_file_path.read_text()))
-    ):
+
+
+
+    for sexp in parse_sexp(database_file_path.read_text()):
+
+
+
+        # Get the tag and attributes.
+        # e.g:
+        # >
+        # >    (pll{UNIT}_predivider (RCC PLL2CFGR PLL2M) (UNIT : 2) (.minmax 1 63))
+        # >     ^^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        # >     Tag.                 Attributes.
+        # >
+
+        tag, *attributes = sexp
+        entry            = AllocatingNamespace()
+
+
+
+        # Look for the dotted attribute which will represent the value of the entry.
+        # e.g:
+        # >
+        # >    (pll{UNIT}_predivider (RCC PLL2CFGR PLL2M) (UNIT : 2) (.minmax 1 63))
+        # >                                                          ^^^^^^^^^^^^^^
+        # >
+
+        for attribute_i, attribute in enumerate(attributes):
+
+            match attribute:
+
+
+
+                # The entry value is directly given.
+                # e.g:
+                # >
+                # >    (APB_UNITS (.value (1 2 4 5)))
+                # >               ^^^^^^^^^^^^^^^^^^
+                # >
+
+                case ('.value', value):
+                    entry.value = value
+
+
+
+                # The entry value is an inclusive range.
+                # e.g:
+                # >
+                # >    (flash_latency (FLASH ACR LATENCY) (.minmax 0b0000 0b1111))
+                # >                                       ^^^^^^^^^^^^^^^^^^^^^^^
+                # >
+
+                case ('.minmax', minimum, maximum):
+                    entry.minimum = minimum
+                    entry.maximum = maximum
+
+
+
+                # This entry attribute is something else which we'll process later.
+
+                case _: continue
+
+
+
+            # We found and processed the entry value; no need to process it again.
+
+            del attributes[attribute_i]
+            break
+
+
+
+        # No dotted entry value found, so we assume it's just
+        # something like a True/False 1-bit register.
+        # e.g:
+        # >
+        # >    (current_active_vos_ready (PWR SR1 ACTVOSRDY))
+        # >
+
+        else:
+            entry.value = (False, True)
+
+
+
+        # We then look for field-value attributes.
+        # e.g:
+        # >
+        # >    (pll{UNIT}_ready (RCC CR PLL3RDY) (UNIT : 3))
+        # >         ^^^^-------------------------^^^^^^^^^^
+        # >
+
+        attribute_i = 0
+
+        while attribute_i < len(attributes):
+
+            match attribute := attributes[attribute_i]:
+
+                case (attribute_name, ':', attribute_value):
+                    entry[attribute_name] = attribute_value
+
+                case _:
+                    attribute_i += 1
+                    continue
+
+            del attributes[attribute_i]
+
+
+
+        # Process the remaining attributes.
+
+        match attributes:
+
+
+
+            # Nothing else to do.
+
+            case []:
+                pass
+
+
+
+            # The entry is also provided with a section-register-field location.
+            # e.g:
+            # >
+            # >    (current_active_vos_ready (PWR SR1 ACTVOSRDY))
+            # >                              ^^^^^^^^^^^^^^^^^^^
+            # >
+
+            case [(section, register, field)]:
+                entry.section  = section
+                entry.register = register
+                entry.field    = field
+
+
+
+            # Leftover attributes.
+
+            case _:
+                raise ValueError(f'Leftover attributes: {repr(attributes)}.')
 
 
 
@@ -238,22 +210,17 @@ for mcu in MCUS:
 
         field_names = OrderedSet(re.findall('{(.*?)}', tag))
 
-        if not field_names and len(entries) >= 2:
-            raise ValueError(
-                f'For {repr(mcu)}, '
-                f'multiple database entries were found '
-                f'with the tag {repr(tag)}; '
-                f'there should be a {{...}} in the tag.'
-            )
+
+
+        # TODO Prevent entries from being overridden.
 
 
 
         # TODO.
 
-        for entry in entries:
-            fields                             = { name : entry.__dict__[name] for name in field_names }
-            expanded_tag                       = tag.format(**fields)
-            SYSTEM_DATABASE[mcu][expanded_tag] = entry
+        fields                             = { name : entry[name] for name in field_names }
+        expanded_tag                       = tag.format(**fields)
+        SYSTEM_DATABASE[mcu][expanded_tag] = types.SimpleNamespace(**entry.__dict__)
 
 
 
