@@ -51,9 +51,9 @@ SECTIONS
         .               += LINK_stack_size;
         LINK_stack_addr  = .;
 
-        #define STACK_LOCATION_SandboxNucleoH7S3L8 DTCM
-        #define STACK_LOCATION_SandboxNucleoH533RE SRAM
-    } > CONCAT(STACK_LOCATION_, TARGET_NAME)
+        #define STACK_LOCATION_STM32H7S3L8H6 DTCM
+        #define STACK_LOCATION_STM32H533RET6 SRAM
+    } > CONCAT(STACK_LOCATION_, TARGET_MCU)
 
     .data_output_section : ALIGN(4)
     {
@@ -63,9 +63,9 @@ SECTIONS
         .                       = ALIGN(4);
         LINK_data_virt_addr_end = .;
 
-        #define DATA_LOCATION_SandboxNucleoH7S3L8 AXI_SRAM
-        #define DATA_LOCATION_SandboxNucleoH533RE SRAM
-    } > CONCAT(DATA_LOCATION_, TARGET_NAME) AT > FLASH
+        #define DATA_LOCATION_STM32H7S3L8H6 AXI_SRAM
+        #define DATA_LOCATION_STM32H533RET6 SRAM
+    } > CONCAT(DATA_LOCATION_, TARGET_MCU) AT > FLASH
 
     .bss_output_section : ALIGN(4)
     {
@@ -74,9 +74,9 @@ SECTIONS
         .                 = ALIGN(4);
         LINK_bss_addr_end = .;
 
-        #define BSS_LOCATION_SandboxNucleoH7S3L8 AXI_SRAM
-        #define BSS_LOCATION_SandboxNucleoH533RE SRAM
-    } > CONCAT(BSS_LOCATION_, TARGET_NAME)
+        #define BSS_LOCATION_STM32H7S3L8H6 AXI_SRAM
+        #define BSS_LOCATION_STM32H533RET6 SRAM
+    } > CONCAT(BSS_LOCATION_, TARGET_MCU)
 }
 
 
