@@ -1029,17 +1029,66 @@ halt_(b32 panicking)        // "
 
 
 
-#include "freertos_headers.meta"
+#include "freertos.meta"
 /* #meta
-
-    # Macros for whether or not the target will be using FreeRTOS.
 
     @Meta.ifs(TARGETS, '#if')
     def _(target):
 
         yield f'TARGET_NAME_IS_{target.name}'
 
+
+
+        # Macros for whether or not the target will be using FreeRTOS.
+
         Meta.define('TARGET_USES_FREERTOS', target.use_freertos)
+
+
+
+        # Rest of the stuff is only when the target actually uses FreeRTOS.
+
+        if not target.use_freertos:
+            return
+
+
+
+        # Declare some stuff for the tasks.
+
+        for task_name, stack_size, priority in target.freertos_tasks:
+            Meta.line(f'''
+                static noret void   {task_name}(void*);
+                static StackType_t  {task_name}_stack[{stack_size} / sizeof(StackType_t)] = {{0}};
+                static StaticTask_t {task_name}_buffer = {{0}};
+            ''')
+
+
+
+        # Create the procedure that'll initialize and run the FreeRTOS scheduler.
+
+        with Meta.enter('''
+            static noret void
+            FREERTOS_init(void)
+        '''):
+
+            for task_name, stack_size, priority in target.freertos_tasks:
+                Meta.line(f'''
+                    TaskHandle_t {task_name}_handle =
+                        xTaskCreateStatic
+                        (
+                            {task_name},
+                            "{task_name}",
+                            countof({task_name}_stack),
+                            nullptr,
+                            {priority},
+                            {task_name}_stack,
+                            &{task_name}_buffer
+                        );
+                ''')
+
+            Meta.line('''
+                vTaskStartScheduler();
+                panic;
+            ''')
 
 
 
