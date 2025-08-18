@@ -216,8 +216,8 @@ for target in TARGETS:
         root('./deps/CMSIS_6/CMSIS/Core/Include'),
         root('./deps/FreeRTOS_Kernel/include'),
         root('./deps/printf/src'),
-        root('.'),            # For <deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h> and such.
-        root('./electrical'), # For <FreeRTOSConfig.h>.
+        root('.'),                   # For <deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h> and such.
+        root('./electrical/system'), # For <FreeRTOSConfig.h>.
         MCUS[target.mcu].freertos_file_path,
     )
 
