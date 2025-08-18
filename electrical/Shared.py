@@ -30,14 +30,14 @@ BUILD = root('./build')
 
 MCUS = {
     'STM32H7S3L8H6' : types.SimpleNamespace(
-        cmsis_file_path     = root('./deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h'),
-        freertos_file_path  = root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1'),
-        freertos_interrupts = {
+        cmsis_file_path        = root('./deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h'),
+        freertos_port_dir_path = root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1'),
+        freertos_interrupts    = {
             'SysTick' : 'xPortSysTickHandler',
             'SVCall'  : 'vPortSVCHandler'    ,
             'PendSV'  : 'xPortPendSVHandler' ,
         },
-        freertos_headers = (
+        freertos_source_files = (
             'deps/FreeRTOS_Kernel/tasks.c',
             'deps/FreeRTOS_Kernel/queue.c',
             'deps/FreeRTOS_Kernel/list.c',
@@ -45,14 +45,14 @@ MCUS = {
         ),
     ),
     'STM32H533RET6' : types.SimpleNamespace(
-        cmsis_file_path     = root('./deps/cmsis-device-h5/Include/stm32h533xx.h'),
-        freertos_file_path  = root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
-        freertos_interrupts = {
+        cmsis_file_path        = root('./deps/cmsis-device-h5/Include/stm32h533xx.h'),
+        freertos_port_dir_path = root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
+        freertos_interrupts    = {
             'SysTick' : 'SysTick_Handler',
             'SVCall'  : 'SVC_Handler'    ,
             'PendSV'  : 'PendSV_Handler' ,
         },
-        freertos_headers = (
+        freertos_source_files = (
             'deps/FreeRTOS_Kernel/tasks.c',
             'deps/FreeRTOS_Kernel/queue.c',
             'deps/FreeRTOS_Kernel/list.c',
@@ -241,9 +241,9 @@ for target in TARGETS:
         root('./deps/CMSIS_6/CMSIS/Core/Include'),
         root('./deps/FreeRTOS_Kernel/include'),
         root('./deps/printf/src'),
-        root('.'),                   # For <deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h> and such.
-        root('./electrical/system'), # For <FreeRTOSConfig.h>.
-        MCUS[target.mcu].freertos_file_path,
+        root('.'),                               # For <deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h> and such.
+        root('./electrical/system'),             # For <FreeRTOSConfig.h>.
+        MCUS[target.mcu].freertos_port_dir_path, # For <portmacro.h> and such.
     )
 
 

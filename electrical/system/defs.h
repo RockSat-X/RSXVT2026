@@ -1099,7 +1099,7 @@ halt_(b32 panicking)        // "
 
         yield f'TARGET_MCU_IS_{mcu} && TARGET_USES_FREERTOS'
 
-        for header in MCUS[mcu].freertos_headers:
+        for header in MCUS[mcu].freertos_source_files:
             Meta.line(f'#include <{header}>')
 
 */
