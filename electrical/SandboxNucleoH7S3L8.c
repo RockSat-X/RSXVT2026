@@ -20,7 +20,7 @@ INTERRUPT_Default
 
 FREERTOS_TASK(task_a, 400, tskIDLE_PRIORITY)
 {
-    for(;;)
+    for (;;)
     {
         GPIO_TOGGLE(led_green);
         vTaskDelay(10);
@@ -35,7 +35,7 @@ FREERTOS_TASK(task_a, 400, tskIDLE_PRIORITY)
 
 FREERTOS_TASK(task_b, 400, tskIDLE_PRIORITY)
 {
-    for(;;)
+    for (;;)
     {
         GPIO_TOGGLE(led_yellow);
         vTaskDelay(15);
@@ -50,7 +50,7 @@ FREERTOS_TASK(task_b, 400, tskIDLE_PRIORITY)
 
 FREERTOS_TASK(task_c, 400, tskIDLE_PRIORITY)
 {
-    for(;;)
+    for (;;)
     {
         GPIO_TOGGLE(led_red);
         vTaskDelay(20);

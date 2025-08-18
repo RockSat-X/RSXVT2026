@@ -1011,7 +1011,7 @@ halt_(b32 panicking)        // "
 
     #endif
 
-    for(;;); // Panic! Something horrible has happened!
+    for (;;); // Panic! Something horrible has happened!
 }
 
 
