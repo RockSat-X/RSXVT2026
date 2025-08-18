@@ -909,6 +909,15 @@ halt_(b32 panicking)        // "
 
 
 
+// FreeRTOS headers here so that we can still compile
+// tasks that use FreeRTOS functions; if the function
+// actually gets used, there'll be a link error anyways.
+
+#include <deps/FreeRTOS_Kernel/include/FreeRTOS.h>
+#include <deps/FreeRTOS_Kernel/include/task.h>
+
+
+
 #include "freertos_headers.meta"
 /* #meta
 

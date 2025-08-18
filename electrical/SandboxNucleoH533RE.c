@@ -61,31 +61,35 @@ main(void)
 
 
 
-    #include "SandboxNucleoH533RE_tasks.meta"
-    /* #meta
+    #if TARGET_USES_FREERTOS
 
-        for task_name, stack_size, priority in (
-            ('task_a', 400, 'tskIDLE_PRIORITY'),
-        ):
-            Meta.line(f'''
-                static StackType_t  {task_name}_stack[({stack_size} / sizeof(u32))] = {{0}};
-                static StaticTask_t {task_name}_buffer = {{0}};
-                TaskHandle_t        {task_name}_handle =
-                    xTaskCreateStatic
-                    (
-                        {task_name},
-                        "{task_name}",
-                        countof({task_name}_stack),
-                        nullptr,
-                        {priority},
-                        {task_name}_stack,
-                        &{task_name}_buffer
-                    );
-            ''')
+        #include "SandboxNucleoH533RE_tasks.meta"
+        /* #meta
 
-    */
+            for task_name, stack_size, priority in (
+                ('task_a', 400, 'tskIDLE_PRIORITY'),
+            ):
+                Meta.line(f'''
+                    static StackType_t  {task_name}_stack[({stack_size} / sizeof(u32))] = {{0}};
+                    static StaticTask_t {task_name}_buffer = {{0}};
+                    TaskHandle_t        {task_name}_handle =
+                        xTaskCreateStatic
+                        (
+                            {task_name},
+                            "{task_name}",
+                            countof({task_name}_stack),
+                            nullptr,
+                            {priority},
+                            {task_name}_stack,
+                            &{task_name}_buffer
+                        );
+                ''')
 
-    vTaskStartScheduler();
+        */
+
+        vTaskStartScheduler();
+
+    #endif
 
     panic;
 }
