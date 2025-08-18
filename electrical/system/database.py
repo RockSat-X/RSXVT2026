@@ -1,17 +1,8 @@
 #meta SYSTEM_DATABASE
 
-
-
-
-################################################################################
-
-
-
 SYSTEM_DATABASE = {}
 
 for mcu in MCUS:
-
-    SYSTEM_DATABASE[mcu] = {}
 
     database_file_path = root(f'./deps/mcu/{mcu}_database.py')
 
@@ -23,23 +14,24 @@ for mcu in MCUS:
 
     database_py = eval(database_file_path.read_text(), {}, {})
 
-
     value_part, registers_part = database_py
+
+    entries = []
 
     for name, *entry in value_part:
 
         match entry:
 
             case (value,):
-                SYSTEM_DATABASE[mcu][name] = types.SimpleNamespace(
+                entries += [(name, types.SimpleNamespace(
                     value = value,
-                )
+                ))]
 
             case (minimum, maximum):
-                SYSTEM_DATABASE[mcu][name] = types.SimpleNamespace(
+                entries += [(name, types.SimpleNamespace(
                     minimum = minimum,
                     maximum = maximum,
-                )
+                ))]
 
             case unknown:
                 raise ValueError(f'Unknown value: {repr(unknown)}.')
@@ -51,34 +43,43 @@ for mcu in MCUS:
                 match entry:
 
                     case (field, name, minimum, maximum):
-                        SYSTEM_DATABASE[mcu][name] = types.SimpleNamespace(
+                        entries += [(name, types.SimpleNamespace(
                             section  = section,
                             register = register,
                             field    = field,
                             minimum  = minimum,
                             maximum  = maximum,
-                        )
+                        ))]
 
                     case (field, name, value):
-                        SYSTEM_DATABASE[mcu][name] = types.SimpleNamespace(
+                        entries += [(name, types.SimpleNamespace(
                             section  = section,
                             register = register,
                             field    = field,
                             value    = value,
-                        )
+                        ))]
 
                     case (field, name):
-                        SYSTEM_DATABASE[mcu][name] = types.SimpleNamespace(
+                        entries += [(name, types.SimpleNamespace(
                             section  = section,
                             register = register,
                             field    = field,
                             value    = (False, True),
-                        )
+                        ))]
 
                     case unknown:
                         raise ValueError(f'Unknown value: {repr(unknown)}.')
 
+    if (dupe := find_dupe(name for name, entry in entries)) is not ...:
+        raise ValueError(f'For {mcu}, there is already a database entry with the tag {repr(dupe)}.')
 
+    if (dupe := find_dupe(
+        (entry.section, entry.register, entry.field)
+        for name, entry in entries if 'section' in entry.__dict__
+    )) is not ...:
+        raise ValueError(f'For {mcu}, there is already a database entry with the location {repr(dupe)}.')
+
+    SYSTEM_DATABASE[mcu] = dict(entries)
 
 
 ################################################################################
