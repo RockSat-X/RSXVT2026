@@ -80,12 +80,7 @@ TARGETS = ( # @/`Defining a TARGET`.
             ./electrical/system/Startup.S
         '''),
 
-        use_freertos   = True,
-        freertos_tasks = (
-            ('task_a', 400, 'tskIDLE_PRIORITY'),
-            ('task_b', 400, 'tskIDLE_PRIORITY'),
-            ('task_c', 400, 'tskIDLE_PRIORITY'),
-        ),
+        use_freertos = True,
 
         stack_size = 8192, # TODO This might be removed depending on how FreeRTOS works.
 
@@ -140,10 +135,7 @@ TARGETS = ( # @/`Defining a TARGET`.
             ./electrical/system/Startup.S
         '''),
 
-        use_freertos   = True,
-        freertos_tasks = (
-            ('task_a', 400, 'tskIDLE_PRIORITY'),
-        ),
+        use_freertos = True,
 
         stack_size = 8192, # TODO This might be removed depending on how FreeRTOS works.
 
@@ -325,16 +317,12 @@ for target in TARGETS:
 #
 #     - source_file_paths    = Source files that the build system will compile each of and then link all together.
 #
-#     - use_freertos         = Whether or not to compile with FreeRTOS and set up the task scheduler.
+#     - use_freertos         = Whether or not to compile with FreeRTOS and set up the task-scheduler.
 #                              Typically, we'd disable FreeRTOS when we want to start off programming
 #                              in a simpler environment where we don't have to worry about concurrency
 #                              and reentrance of code. Eventually, as the firmware matures, we'd want to
-#                              start using a task scheduler so we can have multiple systems in the firmware
+#                              start using a task-scheduler so we can have multiple systems in the firmware
 #                              work together and not have one big state machine to handle it all.
-#
-#     - freertos_tasks       = The table of all FreeRTOS tasks for the target;
-#                              obviously only in use when `use_freertos` is truthy.
-#                              Look at where the table is used to gauge how it works.
 #
 #     - stack_size           = The amount of bytes to reserve for the main stack,
 #                              although I think this might be deprecated once I do
