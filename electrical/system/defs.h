@@ -303,13 +303,9 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
         for interrupt in ('Default',) + INTERRUPTS[target.mcu]:
 
             if interrupt is None:
-                # This interrupt is reserved.
                 continue
 
-            if interrupt in MCUS[target.mcu].freertos_interrupts and 'systick_ck' not in target.clock_tree:
-                # This interrupt will be supplied by FreeRTOS,
-                # unless we're configuring SysTick which FreeRTOS uses by default,
-                # to which we won't be considering FreeRTOS at all.
+            if target.use_freertos and interrupt in MCUS[target.mcu].freertos_interrupts:
                 continue
 
             Meta.define(f'INTERRUPT_{interrupt}', f'extern void __INTERRUPT_{interrupt}(void)')
@@ -906,6 +902,40 @@ halt_(b32 panicking)        // "
 
     for(;;); // Panic! Something horrible has happened!
 }
+
+
+
+//////////////////////////////////////////////////////////////// FreeRTOS ////////////////////////////////////////////////////////////////
+
+
+
+#include "freertos_headers.meta"
+/* #meta
+
+
+
+    # Macros for whether or not the target will be using FreeRTOS.
+
+    @Meta.ifs(TARGETS, '#if')
+    def _(target):
+
+        yield f'TARGET_NAME_IS_{target.name}'
+
+        Meta.define('TARGET_USES_FREERTOS', target.use_freertos)
+
+
+
+    # The necessary include-directives to compile with FreeRTOS.
+
+    @Meta.ifs(MCUS, '#if')
+    def _(mcu):
+
+        yield f'TARGET_MCU_IS_{mcu} && TARGET_USES_FREERTOS'
+
+        for header in MCUS[mcu].freertos_headers:
+            Meta.line(f'#include <{header}>')
+
+*/
 
 
 

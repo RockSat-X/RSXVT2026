@@ -37,6 +37,12 @@ MCUS = {
             'SVCall'  : 'vPortSVCHandler'    ,
             'PendSV'  : 'xPortPendSVHandler' ,
         },
+        freertos_headers = (
+            'deps/FreeRTOS_Kernel/tasks.c',
+            'deps/FreeRTOS_Kernel/queue.c',
+            'deps/FreeRTOS_Kernel/list.c',
+            'port.c',
+        ),
     ),
     'STM32H533RET6' : types.SimpleNamespace(
         cmsis_file_path     = root('./deps/cmsis-device-h5/Include/stm32h533xx.h'),
@@ -46,6 +52,13 @@ MCUS = {
             'SVCall'  : 'SVC_Handler'    ,
             'PendSV'  : 'PendSV_Handler' ,
         },
+        freertos_headers = (
+            'deps/FreeRTOS_Kernel/tasks.c',
+            'deps/FreeRTOS_Kernel/queue.c',
+            'deps/FreeRTOS_Kernel/list.c',
+            'port.c',
+            'portasm.c',
+        ),
     ),
 }
 
@@ -66,6 +79,8 @@ TARGETS = ( # @/`Defining a TARGET`.
             ./electrical/SandboxNucleoH7S3L8.c
             ./electrical/system/Startup.S
         '''),
+
+        use_freertos = True,
 
         stack_size = 8192, # TODO This might be removed depending on how FreeRTOS works.
 
@@ -119,6 +134,8 @@ TARGETS = ( # @/`Defining a TARGET`.
             ./electrical/SandboxNucleoH533RE.c
             ./electrical/system/Startup.S
         '''),
+
+        use_freertos = True,
 
         stack_size = 8192, # TODO This might be removed depending on how FreeRTOS works.
 
