@@ -277,32 +277,6 @@ for mcu in MCUS:
 
 
 
-            # A tag with a single field means we'll need a single field-value.
-            # e.g:
-            # >
-            # >    (pll{UNIT}_predivider (RCC PLLCKSELR DIVM1) (minmax: 1 63) (UNIT : 1))
-            # >     ~~~~~~~~~~~~~~~~~~~~                                      ~~~~~~~~~~
-            # >              |                                                     |
-            # >              |--------------------|             |------------------|
-            # >                                   |             |
-            # >                         ~~~~~~~~~~~~~~~~~~~~~~  ~
-            # >    SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][1]
-            # >
-
-            case [field_name]:
-
-                SYSTEM_DATABASE[mcu][tag] = mk_dict(
-                    (entry.__dict__[field_name], entry)
-                    for entry in entries
-                )
-
-                for entry in entries:
-                    fields       = { name : entry.__dict__[name] for name in field_names }
-                    expanded_tag = tag.format(**fields)
-                    SYSTEM_DATABASE[mcu][expanded_tag] = SYSTEM_DATABASE[mcu][tag][tuple(fields.values())[0]]
-
-
-
             # A tag with multiple fields means we'll need a tuple of field-values.
             # e.g:
             # >
