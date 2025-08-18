@@ -402,6 +402,15 @@ for mcu in MCUS:
 
 
 
+        # TODO.
+
+        for entry in entries:
+            fields                             = { name : entry.__dict__[name] for name in field_names }
+            expanded_tag                       = tag.format(**fields)
+            SYSTEM_DATABASE[mcu][expanded_tag] = SYSTEM_DATABASE[mcu].query(tag, fields)
+
+
+
 ################################################################################
 
 

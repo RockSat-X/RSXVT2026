@@ -316,34 +316,34 @@ def SYSTEM_CONFIGURIZE(target, configurations):
             # Set the clock source for this PLL unit.
 
             if target.mcu == 'STM32H533RET6':
-                sets += [cfgs('pll{UNIT}_clock_source', ..., UNIT = unit)]
+                sets += [cfgs(f'pll{unit}_clock_source', ...)]
 
 
 
             # Set the PLL's predividers.
 
-            predivider = cfgs('pll{UNIT}_predivider', UNIT = unit)
+            predivider = cfgs(f'pll{unit}_predivider')
 
             if predivider is not None:
-                sets += [cfgs('pll{UNIT}_predivider', ..., UNIT = unit)]
+                sets += [cfgs(f'pll{unit}_predivider', ...)]
 
 
 
             # Set each PLL unit's expected input frequency range.
 
-            input_range = cfgs('pll{UNIT}_input_range', UNIT = unit)
+            input_range = cfgs(f'pll{unit}_input_range')
 
             if input_range is not None:
-                sets += [cfgs('pll{UNIT}_input_range', ..., UNIT = unit)]
+                sets += [cfgs(f'pll{unit}_input_range', ...)]
 
 
 
             # Set each PLL unit's multipler.
 
-            multiplier = cfgs('pll{UNIT}_multiplier', UNIT = unit)
+            multiplier = cfgs(f'pll{unit}_multiplier')
 
             if multiplier is not None:
-                sets += [cfgs('pll{UNIT}_multiplier', f'{multiplier} - 1', UNIT = unit)]
+                sets += [cfgs(f'pll{unit}_multiplier', f'{multiplier} - 1')]
 
 
 
@@ -351,23 +351,14 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
             for channel in channels:
 
-                divider = cfgs(
-                    'pll{UNIT}_{CHANNEL}_divider',
-                    UNIT = unit, CHANNEL = channel
-                )
+                divider = cfgs(f'pll{unit}_{channel}_divider')
 
                 if divider is None:
                     continue
 
                 sets += [
-                    cfgs(
-                        'pll{UNIT}{CHANNEL}_divider', f'{divider} - 1',
-                        UNIT = unit, CHANNEL = channel
-                    ),
-                    cfgs(
-                        'pll{UNIT}{CHANNEL}_enable', True,
-                        UNIT = unit, CHANNEL = channel
-                    ),
+                    cfgs(f'pll{unit}{channel}_divider', f'{divider} - 1'),
+                    cfgs(f'pll{unit}{channel}_enable' , True            ),
                 ]
 
 
@@ -375,7 +366,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
     # Enable each PLL unit that is to be used.
 
     CMSIS_SET(
-        cfgs('pll{UNIT}_enable', ..., UNIT = unit)
+        cfgs(f'pll{unit}_enable', ...)
         for unit, channels in database['PLL_UNITS'].value
     )
 
@@ -385,10 +376,10 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
     for unit, channels in database['PLL_UNITS'].value:
 
-        pllx_enable = cfgs('pll{UNIT}_enable', UNIT = unit)
+        pllx_enable = cfgs(f'pll{unit}_enable')
 
         if pllx_enable:
-            CMSIS_SPINLOCK(cfgs('pll{UNIT}_ready', True, UNIT = unit))
+            CMSIS_SPINLOCK(cfgs(f'pll{unit}_ready', True))
 
 
 
@@ -409,7 +400,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
                 cfgs('cpu_divider', ...),
                 cfgs('axi_ahb_divider', ...),
                 *(
-                    cfgs('apb{UNIT}_divider', ..., UNIT = unit)
+                    cfgs(f'apb{unit}_divider', ...)
                     for unit in database['APB_UNITS'].value
                 ),
             )
@@ -418,7 +409,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
             CMSIS_SET(
                 cfgs('cpu_divider', ...),
                 *(
-                    cfgs('apb{UNIT}_divider', ..., UNIT = unit)
+                    cfgs(f'apb{unit}_divider', ...)
                     for unit in database['APB_UNITS'].value
                 ),
             )
