@@ -203,89 +203,79 @@ def verify_and_get_field_names_in_tag_order(tag, given_fields):
 
 
 
-# The MCU database will be a dictionary with a helper method.
-# e.g:
-# >
-# >    SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(2, 'q')]
-# >                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# >                           |
-# >    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# >    .query('pll{UNIT}{CHANNEL}_enable', { 'UNIT' : 2, 'CHANNEL' : 'q' })
-# >
+# TODO.
 
-class SystemDatabaseTarget(dict):
-
-    def query(self, tag, fields = None):
+def query(self, tag, fields = None):
 
 
 
-        # Use the given tag and field values to index into the database.
+    # Use the given tag and field values to index into the database.
 
-        if fields is None:
-            fields = {}
+    if fields is None:
+        fields = {}
 
-        field_names = verify_and_get_field_names_in_tag_order(tag, fields)
+    field_names = verify_and_get_field_names_in_tag_order(tag, fields)
 
-        if tag not in self:
-            raise ValueError(f'No entry has tag {repr(tag)}.')
+    if tag not in self:
+        raise ValueError(f'No entry has tag {repr(tag)}.')
 
-        key = tuple(fields[name] for name in field_names)
-
-
-
-        # We just do a direct look-up for tags with no fields.
-        # e.g:
-        # >
-        # >                   query('cpu_divider')
-        # >                         ^^^^^^^^^^^^^
-        # >                               |
-        # >                         vvvvvvvvvvvvv
-        # >    SYSTEM_DATABASE[mcu]['cpu_divider']
-        # >
-
-        if len(key) == 0:
-            return self[tag]
+    key = tuple(fields[name] for name in field_names)
 
 
 
-        # For tags with a single field, we use the only field value there is.
-        # e.g:
-        # >
-        # >        query('pll{UNIT}_predivider', { 'UNIT' : 2 })
-        # >              ^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^
-        # >                             |                   |
-        # >                         vvvvvvvvvvvvvvvvvvvvvv  |
-        # >    SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][2]
-        # >
+    # We just do a direct look-up for tags with no fields.
+    # e.g:
+    # >
+    # >                   query('cpu_divider')
+    # >                         ^^^^^^^^^^^^^
+    # >                               |
+    # >                         vvvvvvvvvvvvv
+    # >    SYSTEM_DATABASE[mcu]['cpu_divider']
+    # >
 
-        if len(key) == 1:
-            key, = key
-
-
-
-        # For tags with multiple fields, we use a tuple of the field
-        # values in the order the field names appear in the tag.
-        # e.g:
-        # >
-        # >    query('pll{UNIT}{CHANNEL}_enable', { 'CHANNEL' : 'q', 'UNIT' : 2 })
-        # >          ^^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-        # >                               |                          |
-        # >                         vvvvvvvvvvvvvvvvvvvvvvvvvvv  vvvvvvvv
-        # >    SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(2, 'q')]
-        # >                                                      ^^^^^^^^
-        # >                                                          |
-        # >              We will sort the field values to be in tag-order.
-        # >
-
-        if key not in self[tag]:
-            raise ValueError(f'Fields {', '.join(
-                f'({name} = {repr(value)})'
-                for name, value in fields.items()
-            )} is not an option for database entry {repr(tag)}.')
+    if len(key) == 0:
+        return self[tag]
 
 
 
-        return self[tag][key]
+    # For tags with a single field, we use the only field value there is.
+    # e.g:
+    # >
+    # >        query('pll{UNIT}_predivider', { 'UNIT' : 2 })
+    # >              ^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^
+    # >                             |                   |
+    # >                         vvvvvvvvvvvvvvvvvvvvvv  |
+    # >    SYSTEM_DATABASE[mcu]['pll{UNIT}_predivider'][2]
+    # >
+
+    if len(key) == 1:
+        key, = key
+
+
+
+    # For tags with multiple fields, we use a tuple of the field
+    # values in the order the field names appear in the tag.
+    # e.g:
+    # >
+    # >    query('pll{UNIT}{CHANNEL}_enable', { 'CHANNEL' : 'q', 'UNIT' : 2 })
+    # >          ^^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    # >                               |                          |
+    # >                         vvvvvvvvvvvvvvvvvvvvvvvvvvv  vvvvvvvv
+    # >    SYSTEM_DATABASE[mcu]['pll{UNIT}{CHANNEL}_enable'][(2, 'q')]
+    # >                                                      ^^^^^^^^
+    # >                                                          |
+    # >              We will sort the field values to be in tag-order.
+    # >
+
+    if key not in self[tag]:
+        raise ValueError(f'Fields {', '.join(
+            f'({name} = {repr(value)})'
+            for name, value in fields.items()
+        )} is not an option for database entry {repr(tag)}.')
+
+
+
+    return self[tag][key]
 
 
 
@@ -297,7 +287,7 @@ SYSTEM_DATABASE = {}
 
 for mcu in MCUS:
 
-    SYSTEM_DATABASE[mcu] = SystemDatabaseTarget()
+    SYSTEM_DATABASE[mcu] = {}
 
 
 
@@ -407,7 +397,7 @@ for mcu in MCUS:
         for entry in entries:
             fields                             = { name : entry.__dict__[name] for name in field_names }
             expanded_tag                       = tag.format(**fields)
-            SYSTEM_DATABASE[mcu][expanded_tag] = SYSTEM_DATABASE[mcu].query(tag, fields)
+            SYSTEM_DATABASE[mcu][expanded_tag] = query(SYSTEM_DATABASE[mcu], tag, fields)
 
 
 

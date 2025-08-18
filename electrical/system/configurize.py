@@ -110,7 +110,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
             case [builtins.Ellipsis]:
 
-                entry = database.query(tag, fields_for_database)
+                entry = database[tag.format(**fields_for_database)]
 
                 return (
                     entry.section,
@@ -129,7 +129,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
             case [value]:
 
-                entry = database.query(tag, fields_for_database)
+                entry = database[tag.format(**fields_for_database)]
 
                 return (
                     entry.section,
