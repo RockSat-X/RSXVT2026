@@ -87,7 +87,7 @@ for mcu in MCUS:
                                 value    = (False, True),
                             )
 
-                        case { 'name' : name, 'minmax' : (minimum, maximum) }:
+                        case (name, minimum, maximum):
                             SYSTEM_DATABASE[mcu][name] = types.SimpleNamespace(
                                 section  = section,
                                 register = register,
@@ -96,7 +96,7 @@ for mcu in MCUS:
                                 maximum  = maximum,
                             )
 
-                        case { 'name' : name, 'value' : value }:
+                        case (name, value):
                             SYSTEM_DATABASE[mcu][name] = types.SimpleNamespace(
                                 section  = section,
                                 register = register,
