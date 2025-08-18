@@ -1,5 +1,5 @@
-{
-    'value' : (
+(
+    (
         ('PLL_UNITS', ( # @/pg 354/fig 40/`H7S3rm`.
             (1, ('p', 'q',      's',    )),
             (2, ('p', 'q', 'r', 's', 't')),
@@ -50,8 +50,6 @@
             (('0b110', '0b1'), 1 / 2),
             (('0b111', '0b1'), 1 / 4),
         )),
-    ),
-    'minmax': (
         ('sdmmc_kernel_freq', 0          , 200_000_000), # @/pg 39/tbl 6/`H7S3ds`.
         ('cpu_freq'         , 0          , 600_000_000), # @/pg 158/tbl 26/`H7S3ds`. TODO We're assuming a high internal voltage. TODO 600MHz only when ECC is disabled.
         ('axi_ahb_freq'     , 0          , 300_000_000), # "
@@ -59,7 +57,7 @@
         ('pll_channel_freq' , 1_500_000  , 600_000_000), # @/pg 200/tbl 64/`H7S3ds`. TODO We're assuming a high internal voltage.
         ('pll_vco_freq'     , 192_000_000, 836_000_000), # "                         TODO Assuming wide frequency range.
     ),
-    'registers' : (
+    (
         ('SysTick',
             ('LOAD',
                 ('RELOAD', 'systick_reload', 1, (1 << 24) - 1),
@@ -368,4 +366,4 @@
             ),
         ),
     ),
-}
+)

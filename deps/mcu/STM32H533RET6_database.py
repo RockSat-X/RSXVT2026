@@ -1,5 +1,5 @@
-{
-    'value' : (
+(
+    (
         ('APB_UNITS', (1, 2, 3)), # @/pg 456/fig 52/`H533rm`.
         ('PLL_UNITS', (           # @/pg 456/fig 52/`H533rm`.
             (1, ('p', 'q', 'r')),
@@ -21,15 +21,13 @@
             ('alternate', '0b10'),
             ('analog'   , '0b11'),
         )),
-    ),
-    'minmax' : (
         ('pll_channel_freq',   1_000_000, 250_000_000), # @/pg 124/tbl 47/`H533ds`. TODO We're assuming a high internal voltage and wide range.
         ('pll_vco_freq'    , 128_000_000, 560_000_000), # " TODO Assuming wide frequency range.
         ('cpu_freq'        ,           0, 250_000_000), # @/pg 101/tbl 21/`HS33ds`. TODO We're assuming a high internal voltage. TODO 600MHz only when ECC is disabled.
         ('axi_ahb_freq'    ,           0, 250_000_000), # "
         ('apb_freq'        ,           0, 250_000_000), # "
     ),
-    'registers' : (
+    (
         ('SysTick',
             ('LOAD',
                 ('RELOAD', 'systick_reload', 1, (1 << 24) - 1),
@@ -208,4 +206,4 @@
             ),
         ),
     ),
-}
+)

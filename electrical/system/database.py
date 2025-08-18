@@ -1,7 +1,5 @@
 #meta SYSTEM_DATABASE
 
-import re
-from deps.pxd.sexp import parse_sexp
 
 
 
@@ -25,18 +23,28 @@ for mcu in MCUS:
 
     database_py = eval(database_file_path.read_text(), {}, {})
 
-    for name, value in database_py['value']:
-        SYSTEM_DATABASE[mcu][name] = types.SimpleNamespace(
-            value = value,
-        )
 
-    for name, minimum, maximum in database_py['minmax']:
-        SYSTEM_DATABASE[mcu][name] = types.SimpleNamespace(
-            minimum = minimum,
-            maximum = maximum,
-        )
+    value_part, registers_part = database_py
 
-    for section, *registers in database_py['registers']:
+    for name, *entry in value_part:
+
+        match entry:
+
+            case (value,):
+                SYSTEM_DATABASE[mcu][name] = types.SimpleNamespace(
+                    value = value,
+                )
+
+            case (minimum, maximum):
+                SYSTEM_DATABASE[mcu][name] = types.SimpleNamespace(
+                    minimum = minimum,
+                    maximum = maximum,
+                )
+
+            case unknown:
+                raise ValueError(f'Unknown value: {repr(unknown)}.')
+
+    for section, *registers in registers_part:
         for register, *fields in registers:
             for entry in fields:
 
