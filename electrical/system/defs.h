@@ -1075,7 +1075,11 @@ halt_(b32 panicking)        // "
 
             for match in re.findall(
                 r'FREERTOS_TASK\s*\((\s*[a-zA-Z0-9_]+\s*,\s*[0-9\']+\s*,\s*[a-zA-Z0-9_]+\s*)\)',
-                source_file_path.read_text()
+                '\n'.join(
+                    line
+                    for line in source_file_path.read_text().splitlines()
+                    if not line.lstrip().startswith('//')
+                )
             ):
 
                 task_name, stack_size, priority = (field.strip() for field in match.split(','))
