@@ -243,10 +243,9 @@ for target in TARGETS:
     # Additional macro defines.
 
     defines = [
-        ('TARGET_NAME'         , target.name                                       ),
-        ('TARGET_MCU'          , target.mcu                                        ),
-        ('LINK_stack_size'     , target.stack_size                                 ),
-        ('STM32_CMSIS_DEVICE_H', f'<{MCUS[target.mcu].cmsis_file_path.as_posix()}>'),
+        ('TARGET_NAME'    , target.name      ),
+        ('TARGET_MCU'     , target.mcu       ),
+        ('LINK_stack_size', target.stack_size),
     ]
 
     for other in TARGETS:

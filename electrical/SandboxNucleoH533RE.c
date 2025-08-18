@@ -1,4 +1,3 @@
-#include STM32_CMSIS_DEVICE_H
 #include "defs.h"
 #include "jig.c"
 

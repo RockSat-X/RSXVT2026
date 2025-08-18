@@ -1,6 +1,10 @@
-//////////////////////////////////////////////////////////////// CMSIS Macros ////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////// CMSIS ////////////////////////////////////////////////////////////////
 
 
+
+//
+// Helpers.
+//
 
 #define _PARENS                                     ()
 #define _EXPAND_0(...)                              _EXPAND_1(_EXPAND_1(_EXPAND_1(__VA_ARGS__)))
@@ -19,9 +23,9 @@
 
 struct CMSISPutTuple
 {
-    volatile uint32_t* dst;
-    i32                pos;
-    u32                msk;
+    volatile u32* dst;
+    i32           pos;
+    u32           msk;
 };
 
 static mustinline void
@@ -32,9 +36,9 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-//////////////////////////////////////////////////////////////// CMSIS Patches ////////////////////////////////////////////////////////////////
-
-
+//
+// Patches.
+//
 
 #if TARGET_MCU_IS_STM32H7S3L8H6 || TARGET_MCU_IS_STM32H533RET6
 
@@ -55,8 +59,25 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-#include "cmsis_patches.meta"
+//
+// Some more CMSIS stuff.
+//
+
+#include "cmsis.meta"
 /* #meta
+
+
+
+    # Include the CMSIS device header for the STM32 microcontroller.
+
+    @Meta.ifs(MCUS, '#if')
+    def _(mcu):
+
+        yield f'TARGET_MCU_IS_{mcu}'
+
+        Meta.line(f'#include <{MCUS[mcu].cmsis_file_path.as_posix()}>')
+
+
 
     # @/`CMSIS Suffix Dropping`:
     # Define macros to map things like "I2C1_" to "I2C_".
