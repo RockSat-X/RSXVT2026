@@ -1068,6 +1068,10 @@ halt_(b32 panicking)        // "
 
 
         # Find all the FreeRTOS tasks defined by the target.
+        # Note that if `FREERTOS_TASK` is used in a file that's
+        # included elsewhere, we would be missing that. In other
+        # words, `FREERTOS_TASK` can only be used at the root of
+        # the source file. This is pretty much fine for all use-cases.
 
         tasks = []
 
