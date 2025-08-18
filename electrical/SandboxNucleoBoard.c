@@ -18,13 +18,55 @@ INTERRUPT_Default
 
 
 
-FREERTOS_TASK(task_a, 400, tskIDLE_PRIORITY)
+FREERTOS_TASK(green_blinker, 400, tskIDLE_PRIORITY)
 {
     for (;;)
     {
         GPIO_TOGGLE(led_green);
         vTaskDelay(100);
     }
+}
+
+
+
+FREERTOS_TASK(red_blinker, 400, tskIDLE_PRIORITY)
+{
+    #if TARGET_NAME_IS_SandboxNucleoH7S3L8
+
+        for (;;)
+        {
+            GPIO_TOGGLE(led_red);
+            vTaskDelay(50);
+        }
+
+    #endif
+
+    #if TARGET_NAME_IS_SandboxNucleoH533RE
+
+        for (;;);
+
+    #endif
+}
+
+
+
+FREERTOS_TASK(yellow_blinker, 400, tskIDLE_PRIORITY)
+{
+    #if TARGET_NAME_IS_SandboxNucleoH7S3L8
+
+        for (;;)
+        {
+            GPIO_TOGGLE(led_yellow);
+            vTaskDelay(10);
+        }
+
+    #endif
+
+    #if TARGET_NAME_IS_SandboxNucleoH533RE
+
+        for (;;);
+
+    #endif
 }
 
 
