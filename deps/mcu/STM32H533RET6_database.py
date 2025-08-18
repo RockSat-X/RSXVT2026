@@ -29,41 +29,41 @@
         ('axi_ahb_freq'    ,           0, 250_000_000), # "
         ('apb_freq'        ,           0, 250_000_000), # "
     ),
-    'registers' : {
-        'SysTick' : {
-            'LOAD' : {
+    'registers' : (
+        ('SysTick',
+            ('LOAD',
                 ('RELOAD', 'systick_reload', 1, (1 << 24) - 1),
-            },
-            'VAL' : {
-                ('CURRENT', 'systick_counter', 0, (1 << 32) - 1)
-            },
-            'CTRL' : {
+            ),
+            ('VAL',
+                ('CURRENT', 'systick_counter', 0, (1 << 32) - 1),
+            ),
+            ('CTRL',
                 ('CLKSOURCE', 'systick_use_cpu_ck'      ),
                 ('TICKINT'  , 'systick_interrupt_enable'),
                 ('ENABLE'   , 'systick_enable'          ),
-            },
-        },
-        'FLASH' : {
-            'ACR' : {
+            ),
+        ),
+        ('FLASH',
+            ('ACR',
                 ('WRHIGHFREQ', 'flash_programming_delay', (0b00, 0b01, 0b10)),
                 ('LATENCY'   , 'flash_latency'          , 0b0000, 0b1111    ),
-            },
-        },
-        'PWR' : {
-            'VOSCR' : {
+            ),
+        ),
+        ('PWR',
+            ('VOSCR',
                 ('VOS', 'internal_voltage_scaling'),
-            },
-            'VOSSR' : {
+            ),
+            ('VOSSR',
                 ('ACTVOS'   , 'current_active_vos'      ),
                 ('ACTVOSRDY', 'current_active_vos_ready'),
-            },
-            'SCCR' : {
+            ),
+            ('SCCR',
                 ('LDOEN' , 'ldo_enable'             ),
                 ('BYPASS', 'power_management_bypass'),
-            },
-        },
-        'RCC' : {
-            'CR' : (
+            ),
+        ),
+        ('RCC',
+            ('CR',
                 ('PLL3RDY' , 'pll3_ready'  ),
                 ('PLL3ON'  , 'pll3_enable' ),
                 ('PLL2RDY' , 'pll2_ready'  ),
@@ -77,7 +77,7 @@
                 ('HSIRDY'  , 'hsi_ready'   ),
                 ('HSION'   , 'hsi_enable'  ),
             ),
-            'CFGR1' : (
+            ('CFGR1',
                 *(
                     (field, name, (
                         ('hsi_ck'   , '0b000'),
@@ -91,7 +91,7 @@
                     )
                 ),
             ),
-            'CFGR2' : (
+            ('CFGR2',
                 *(
                     (f'PPRE{unit}', f'apb{unit}_divider', (
                         (1 , '0b000'),
@@ -114,8 +114,8 @@
                     (512, '0b1111'),
                 )),
             ),
-            **{
-                f'PLL{unit}CFGR' : (
+            *(
+                (f'PLL{unit}CFGR',
                     (f'PLL{unit}REN', f'pll{unit}r_enable'),
                     (f'PLL{unit}QEN', f'pll{unit}q_enable'),
                     (f'PLL{unit}PEN', f'pll{unit}p_enable'),
@@ -135,20 +135,20 @@
                     )),
                 )
                 for unit in (1, 2, 3)
-            },
-            **{
-                f'PLL{unit}DIVR' : (
+            ),
+            *(
+                (f'PLL{unit}DIVR',
                     (f'PLL{unit}R', f'pll{unit}r_divider'  , 1, 128),
                     (f'PLL{unit}Q', f'pll{unit}q_divider'  , 1, 128),
                     (f'PLL{unit}P', f'pll{unit}p_divider'  , 1, 128),
                     (f'PLL{unit}N', f'pll{unit}_multiplier', 4, 512),
                 )
                 for unit in (1, 2, 3)
-            },
-            'APB1LENR' : (
+            ),
+            ('APB1LENR',
                 ('USART2EN', 'uxart_2_enable'),
             ),
-            'CCIPR1' : (
+            ('CCIPR1',
                 *(
                     (field, f'uxart_{peripherals}_clock_source', clock_source)
                     for field_peripherals, clock_source in
@@ -193,7 +193,7 @@
                     for field, peripherals in field_peripherals
                 ),
             ),
-            'CCIPR5' : (
+            ('CCIPR5',
                 ('CKPERSEL', 'per_ck_source', (
                     ('hsi_ck', '0b00'),
                     ('csi_ck', '0b01'),
@@ -201,11 +201,11 @@
                     # TODO hse_ck.
                 )),
             ),
-        },
-        'USART' : {
-            'BRR': (
+        ),
+        ('USART',
+            ('BRR',
                 ('BRR', 'uxart_baud_divider', 1, 1 << 16),
             ),
-        },
-    },
+        ),
+    ),
 }

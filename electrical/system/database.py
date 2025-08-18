@@ -73,8 +73,8 @@ for mcu in MCUS:
                 maximum = maximum,
             )
 
-        for section, registers in database_py['registers'].items():
-            for register, fields in registers.items():
+        for section, *registers in database_py['registers']:
+            for register, *fields in registers:
                 for entry in fields:
 
                     match entry:
