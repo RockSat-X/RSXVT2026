@@ -8,7 +8,7 @@
 #define STRINGIFY(X)            STRINGIFY_(X)
 #define CONCAT_(X, Y)           X##Y
 #define CONCAT(X, Y)            CONCAT_(X, Y)
-#define IS_POW_2(X)             ((X) > 0 && ((X) & ((X) - 1)) == 0)
+#define IS_POWER_OF_TWO(X)      ((X) > 0 && ((X) & ((X) - 1)) == 0)
 #define sizeof(...)             ((signed) sizeof(__VA_ARGS__))
 #define countof(...)            (sizeof(__VA_ARGS__) / sizeof((__VA_ARGS__)[0]))
 #define bitsof(...)             (sizeof(__VA_ARGS__) * 8)
