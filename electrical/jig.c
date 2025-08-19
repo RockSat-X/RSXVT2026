@@ -34,6 +34,34 @@ _JIG_fctprintf_callback(char character, void*)
 
 
 
+// Note that the terminal on the other end could send '\r'
+// to indicate that the user pressed <ENTER>.
+// Furthermore, certain keys, such as arrow keys, will be
+// sent as a multi-byte sequence.
+
+static useret b32 // Received character?
+JIG_rx(char* dst)
+{
+
+    b32 data_available = _JIG.reception_reader != _JIG.reception_writer;
+
+    if (data_available && dst)
+    {
+        static_assert(IS_POWER_OF_TWO(countof(_JIG.reception_buffer)));
+
+        u32 reader_index = _JIG.reception_reader & (countof(_JIG.reception_buffer) - 1);
+
+        *dst = _JIG.reception_buffer[reader_index];
+
+        _JIG.reception_reader += 1;
+    }
+
+    return data_available;
+
+}
+
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
