@@ -21,9 +21,20 @@
             ('alternate', '0b10'),
             ('analog'   , '0b11'),
         )),
+        ('GPIO_SPEED', (
+            ('low'      , '0b00'),
+            ('medium'   , '0b01'),
+            ('high'     , '0b10'),
+            ('very_high', '0b11'),
+        )),
+        ('GPIO_PULL', (
+            (None  , '0b00'),
+            ('up'  , '0b01'),
+            ('down', '0b10'),
+        )),
         ('pll_channel_freq',   1_000_000, 250_000_000), # @/pg 124/tbl 47/`H533ds`. TODO We're assuming a high internal voltage and wide range.
         ('pll_vco_freq'    , 128_000_000, 560_000_000), # " TODO Assuming wide frequency range.
-        ('cpu_freq'        ,           0, 250_000_000), # @/pg 101/tbl 21/`HS33ds`. TODO We're assuming a high internal voltage. TODO 600MHz only when ECC is disabled.
+        ('cpu_freq'        ,           0, 250_000_000), # @/pg 101/tbl 21/`H533ds`. TODO We're assuming a high internal voltage. TODO 600MHz only when ECC is disabled.
         ('axi_ahb_freq'    ,           0, 250_000_000), # "
         ('apb_freq'        ,           0, 250_000_000), # "
     ),
@@ -167,8 +178,8 @@
                                 ('apb1_ck'   , '0b000'),
                                 ('pll2_q_ck' , '0b001'),
                                 ('pll3_q_ck' , '0b010'),
-                                ('hsi_ker_ck', '0b011'),
-                                ('csi_ker_ck', '0b100'),
+                                ('hsi_ck'    , '0b011'),
+                                ('csi_ck'    , '0b100'),
                                 # TODO: ('lse_ck', '0b101'),
                                 (None        , '0b110'),
                             ),
@@ -181,8 +192,8 @@
                                 ('rcc_pclk2' , '0b000'),
                                 ('pll2_q_ck' , '0b001'),
                                 ('pll3_q_ck' , '0b010'),
-                                ('hsi_ker_ck', '0b011'),
-                                ('csi_ker_ck', '0b100'),
+                                ('hsi_ck'    , '0b011'),
+                                ('csi_ck'    , '0b100'),
                                 # TODO: ('lse_ck'    , '0b101'),
                                 (None        , '0b110'),
                             ),

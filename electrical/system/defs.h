@@ -23,9 +23,9 @@
 
 struct CMSISPutTuple
 {
-    volatile u32* dst;
-    i32           pos;
-    u32           msk;
+    volatile long unsigned int* dst;
+    i32                         pos;
+    u32                         msk;
 };
 
 static mustinline void
@@ -375,7 +375,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
             ################################ GPIOs ################################
 
-            put_title('GPIOs')
+            put_title('GPIOs') # @/`How GPIOs Are Made`:
 
             gpios = PROCESS_GPIOS(target)
 
@@ -1012,6 +1012,13 @@ halt_(b32 panicking)        // "
     #endif
 
     for (;;); // Panic! Something horrible has happened!
+}
+
+
+
+INTERRUPT_Default
+{
+    panic; // TODO Have an explanation of what happened here.
 }
 
 
