@@ -23,9 +23,9 @@
 
 struct CMSISPutTuple
 {
-    volatile u32* dst;
-    i32           pos;
-    u32           msk;
+    volatile long unsigned int* dst;
+    i32                         pos;
+    u32                         msk;
 };
 
 static mustinline void
