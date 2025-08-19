@@ -14,7 +14,7 @@ static struct Jig _JIG = {0};
 
 
 static void
-JIG_tx_raw(u8* data, i32 length)
+JIG_tx_raw(u8* data, i32 length) // TODO Handle concurrency and reentrance.
 {
     for (i32 i = 0; i < length; i += 1)
     {
@@ -27,7 +27,7 @@ JIG_tx_raw(u8* data, i32 length)
 
 #define JIG_tx(...) fctprintf(&_JIG_fctprintf_callback, nullptr, __VA_ARGS__)
 static void
-_JIG_fctprintf_callback(char character, void*)
+_JIG_fctprintf_callback(char character, void*) // TODO Handle concurrency and reentrance.
 {
     JIG_tx_raw(&(u8) { character }, 1);
 }
@@ -40,7 +40,7 @@ _JIG_fctprintf_callback(char character, void*)
 // sent as a multi-byte sequence.
 
 static useret b32 // Received character?
-JIG_rx(char* dst)
+JIG_rx(char* dst) // TODO Handle concurrency and reentrance.
 {
 
     b32 data_available = _JIG.reception_reader != _JIG.reception_writer;
