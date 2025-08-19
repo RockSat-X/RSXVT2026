@@ -118,6 +118,7 @@ TARGETS = ( # @/`Defining a TARGET`.
             ('jig_rx'    , 'D9' , 'alternate' , { 'altfunc' : 'USART3_RX' }),
             ('swdio'     , 'A13', 'reserved'  , {                         }),
             ('swclk'     , 'A14', 'reserved'  , {                         }),
+            ('button'    , 'C13', 'input'     , { 'pull'    : 'up'        }),
         ),
 
         interrupt_priorities = (
@@ -167,7 +168,7 @@ TARGETS = ( # @/`Defining a TARGET`.
             ('jig_rx'    , 'A3' , 'alternate' , { 'altfunc' : 'USART2_RX' }),
             ('swdio'     , 'A13', 'reserved'  , {                         }),
             ('swclk'     , 'A14', 'reserved'  , {                         }),
-            ('button'    , 'C13', 'input'     , { 'pull'    : None        }),
+            ('button'    , 'C13', 'input'     , { 'pull'    : 'up'        }),
         ),
 
         interrupt_priorities = (
