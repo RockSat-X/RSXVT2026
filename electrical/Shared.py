@@ -80,7 +80,7 @@ TARGETS = ( # @/`Defining a TARGET`.
             ./electrical/system/Startup.S
         '''),
 
-        use_freertos = True,
+        use_freertos = False,
 
         stack_size = 8192, # TODO This might be removed depending on how FreeRTOS works.
 
@@ -136,7 +136,7 @@ TARGETS = ( # @/`Defining a TARGET`.
             ./electrical/system/Startup.S
         '''),
 
-        use_freertos = True,
+        use_freertos = False,
 
         stack_size = 8192, # TODO This might be removed depending on how FreeRTOS works.
 
