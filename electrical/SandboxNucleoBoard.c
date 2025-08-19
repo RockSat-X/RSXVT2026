@@ -7,9 +7,29 @@
 
 
 
-INTERRUPT_Default
+static volatile b32 blink_green_led_fast = false;
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+FREERTOS_TASK(button_observer, 400, tskIDLE_PRIORITY)
 {
-    panic;
+    for (;;)
+    {
+        static volatile b32 previous_button_state = false;
+
+        b32 current_button_state = GPIO_READ(button);
+
+        if (!previous_button_state && current_button_state)
+        {
+            blink_green_led_fast = !blink_green_led_fast;
+        }
+
+        previous_button_state = current_button_state;
+    }
 }
 
 
@@ -23,9 +43,21 @@ FREERTOS_TASK(green_blinker, 400, tskIDLE_PRIORITY)
     for (;;)
     {
         GPIO_TOGGLE(led_green);
-        vTaskDelay(100);
+
+        if (blink_green_led_fast)
+        {
+            vTaskDelay(10);
+        }
+        else
+        {
+            vTaskDelay(50);
+        }
     }
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -47,6 +79,10 @@ FREERTOS_TASK(red_blinker, 400, tskIDLE_PRIORITY)
 
     #endif
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
