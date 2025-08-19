@@ -123,10 +123,14 @@ main(void)
 
     #else
 
-        for (;;)
+        for (i32 i = 0;; i += 1)
         {
-            GPIO_TOGGLE(led_green);
             spinlock_nop(100'000'000);
+
+            GPIO_TOGGLE(led_green);
+
+            JIG_tx("Hello! The name of the current target is: " STRINGIFY(TARGET_NAME) ".\n");
+            JIG_tx("We're on iteration %d.\n", i);
         }
 
     #endif
