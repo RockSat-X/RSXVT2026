@@ -375,7 +375,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
             ################################ GPIOs ################################
 
-            put_title('GPIOs')
+            put_title('GPIOs') # @/`How GPIOs Are Made`:
 
             gpios = PROCESS_GPIOS(target)
 
