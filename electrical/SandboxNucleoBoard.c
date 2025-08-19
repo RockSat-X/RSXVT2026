@@ -131,6 +131,11 @@ main(void)
 
             JIG_tx("Hello! The name of the current target is: " STRINGIFY(TARGET_NAME) ".\n");
             JIG_tx("We're on iteration %d.\n", i);
+
+            for (char received_data = {0}; JIG_rx(&received_data);)
+            {
+                JIG_tx("Got '%c'!\n", received_data);
+            }
         }
 
     #endif
