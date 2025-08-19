@@ -109,8 +109,10 @@ INTERRUPT_UxART_STLINK
 
     if (reception_errors)
     {
-        #if 1 // We got a reception error, but this isn't a critical thing, so we can just silently ignore it...
-            CMSIS_SET
+        #if 0
+            sorry // Reception error!
+        #else
+            CMSIS_SET // We ignore the reception error.
             (
                 UxART_STLINK, ICR ,
                 FECF        , true, // Clear frame error.
@@ -118,8 +120,6 @@ INTERRUPT_UxART_STLINK
                 PECF        , true, // Clear parity error (for completeness, even though a parity bit is not used).
                 ORECF       , true, // Clear overrun error.
             );
-        #else
-            sorry
         #endif
     }
 
@@ -131,21 +131,28 @@ INTERRUPT_UxART_STLINK
 
     if (CMSIS_GET(UxART_STLINK, ISR, RXNE)) // We got a byte of data?
     {
-        u8 data = UxART_STLINK->RDR; // Pop from the RX-buffer.
+        u8  data                  = UxART_STLINK->RDR; // Pop from the RX-buffer.
+        u32 reader_index          = _JIG.reception_reader + countof(_JIG.reception_buffer);
+        b32 reception_buffer_full = _JIG.reception_writer == reader_index;
 
-        if (_JIG.reception_writer == (u32) (_JIG.reception_reader + countof(_JIG.reception_buffer))) // RX-FIFO is full?
+        if (reception_buffer_full)
         {
-            #if 0 // We got an overflow, but this isn't a critical thing, so we can just silently ignore it...
-                sorry
+            #if 0
+                sorry // RX-buffer overflow!
+            #else
+                // We got an overflow,
+                // but this isn't a critical thing,
+                // so we'll just silently ignore it.
             #endif
         }
         else // Push received byte into the ring-buffer.
         {
-            static_assert(IS_POW_2(countof(_JIG.reception_buffer)));
-            i32 index = _JIG.reception_writer & (countof(_JIG.reception_buffer) - 1);
+            static_assert(IS_POWER_OF_TWO(countof(_JIG.reception_buffer)));
 
-            _JIG.reception_buffer[index]  = data;
-            _JIG.reception_writer        += 1;
+            u32 writer_index = _JIG.reception_writer & (countof(_JIG.reception_buffer) - 1);
+
+            _JIG.reception_buffer[writer_index]  = data;
+            _JIG.reception_writer               += 1;
         }
     }
 
