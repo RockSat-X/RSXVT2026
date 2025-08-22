@@ -4,7 +4,8 @@
         {
             "label"          : "Build the firmware.", // Use CTRL-SHIFT-B to build.
             "type"           : "shell",
-            "command"        : "python",
+            "command"        :               "python",
+            "windows"        : { "command" : "python.exe" },
             "args"           : ["./cli.py", "build", "${config:TARGET}"],
             "problemMatcher" : [],
             "group"          : {
@@ -15,7 +16,8 @@
         {
             "label"          : "Flash the firmware.",
             "type"           : "shell",
-            "command"        : "python",
+            "command"        :               "python",
+            "windows"        : { "command" : "python.exe" },
             "args"           : ["./cli.py", "flash", "${config:TARGET}"],
             "problemMatcher" : [],
         },
@@ -26,7 +28,8 @@
         {
             "label"          : "Make a GDB-server (deferred).",
             "type"           : "shell",
-            "command"        : "python",
+            "command"        :               "python",
+            "windows"        : { "command" : "python.exe" },
             "args"           : ["./cli.py", "debug", "${config:TARGET}", "--just-gdbserver"],
             "isBackground"   : true,
             "hide"           : true,
