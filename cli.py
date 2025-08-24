@@ -6,9 +6,25 @@
 
 
 
+# Ensure Python version.
+
+import sys
+
+MAJOR = 3
+MINOR = 12
+if not (sys.version_info.major == MAJOR and sys.version_info.minor >= MINOR):
+    raise RuntimeError(
+        'Unsupported Python version: ' + repr(sys.version) + '; ' +
+        'please upgrade to at least ' + str(MAJOR) + '.' + str(MINOR) + '; '
+        'note that it is possible that you have multiple instances of Python installed; '
+        'in this case, please set your PATH accordingly or use a Python virtual environment.'
+    )
+
+
+
 # Built-in modules.
 
-import types, sys, shlex, pathlib, shutil, subprocess, time
+import types, shlex, pathlib, shutil, subprocess, time
 
 
 
