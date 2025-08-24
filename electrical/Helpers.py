@@ -35,20 +35,25 @@ def put_title(title = None):
 
 
 
+# @/url:`https://github.com/PhucXDoan/phucxdoan.github.io/wiki/Macros-for-Reading-and-Writing-to-Memory%E2%80%90Mapped-Registers`.
+
 class CMSIS_MODIFY:
 
 
 
-    # This class is just a support to define CMSIS_SET and CMSIS_WRITE in the meta-preprocessor;
-    # the only difference in the output is which CMSIS_SET/WRITE macro is being used.
+    # This class is just a support to define CMSIS_SET
+    # and CMSIS_WRITE in the meta-preprocessor;
+    # the only difference in the output is which
+    # CMSIS_SET/WRITE macro is being used.
 
     def __init__(self, macro):
         self.macro = macro
 
 
 
-    # The most common usage of CMSIS_SET/WRITE in the meta-preprocessor is to mimic
-    # how the CMSIS_SET/WRITE macros would be called in C code.
+    # The most common usage of CMSIS_SET/WRITE in
+    # the meta-preprocessor is to mimic how the
+    # CMSIS_SET/WRITE macros would be called in C code.
 
     def __call__(self, *modifies):
 
@@ -85,7 +90,8 @@ class CMSIS_MODIFY:
 
 
 
-        # If multiple fields of the same register are to be modified, the caller can format it to look like a table.
+        # If multiple fields of the same register are to be modified,
+        # the caller can format it to look like a table.
         # e.g:
         # >
         # >    CMSIS_SET(                    CMSIS_SET(
@@ -104,8 +110,10 @@ class CMSIS_MODIFY:
 
 
 
-        # Multiple RMWs to different registers can be done within a single CMSIS_SET/WRITE macro.
-        # This is mostly for convenience and only should be done when the effects of the registers are independent of each other.
+        # Multiple RMWs to different registers can be done
+        # within a single CMSIS_SET/WRITE macro. This is mostly
+        # for convenience and only should be done when the
+        # effects of the registers are independent of each other.
         # e.g:
         # >
         # >    CMSIS_SET(                                          CMSIS_SET(
@@ -121,8 +129,8 @@ class CMSIS_MODIFY:
         # >
 
         modifies = dict(coalesce(
-            ((section, register), (field, c_repr(value)))
-            for section, register, field, value in modifies
+            ((peripheral, register), (field, c_repr(value)))
+            for peripheral, register, field, value in modifies
         ))
 
 
@@ -139,7 +147,7 @@ class CMSIS_MODIFY:
         # >    )
         # >
 
-        for (section, register), field_values in modifies.items():
+        for (peripheral, register), field_values in modifies.items():
             if (field := find_dupe(field for field, value in field_values)) is not ...:
                 raise ValueError(f'Modifying field "{field}" more than once.')
 
@@ -147,7 +155,7 @@ class CMSIS_MODIFY:
 
         # Output the proper call to the CMSIS_SET/WRITE macro.
 
-        for (section, register), field_values in modifies.items():
+        for (peripheral, register), field_values in modifies.items():
             match field_values:
 
                 # Single-lined output.
@@ -158,7 +166,7 @@ class CMSIS_MODIFY:
 
                 case [(field, value)]:
                     Meta.line(f'''
-                        {self.macro}({section}, {register}, {field}, {value});
+                        {self.macro}({peripheral}, {register}, {field}, {value});
                     ''')
 
                 # Multi-lined output.
@@ -179,13 +187,14 @@ class CMSIS_MODIFY:
                                 ('<', lhs),
                                 ('<', rhs),
                             )
-                            for lhs, rhs in ((section, register), *field_values)
+                            for lhs, rhs in ((peripheral, register), *field_values)
                         ):
                             Meta.line(f'{just_lhs}, {just_rhs},')
 
 
 
-    # The CMSIS_SET/WRITE functions in the meta-preprocessor can also be used as a context manager.
+    # The CMSIS_SET/WRITE functions in the meta-preprocessor
+    # can also be used as a context manager.
     #
     # For example:
     # >
@@ -206,8 +215,9 @@ class CMSIS_MODIFY:
     # >   )
     # >
     #
-    # The benefit of this syntax is that the logic can be arbitrarily
-    # complicated in determining what fields of what registers need to be modified.
+    # The benefit of this syntax is that the logic
+    # can be arbitrarily complicated in determining
+    # what fields of what registers need to be modified.
     # TODO Somehow enforce no code can be generated until the context manager is exited.
 
     def __enter__(self):
@@ -266,11 +276,11 @@ def CMSIS_SPINLOCK(*spinlocks):
     # >
     #
 
-    for section, register, field, value in spinlocks:
+    for peripheral, register, field, value in spinlocks:
         match value:
-            case True  : Meta.line(f'while (!CMSIS_GET({section}, {register}, {field}));')
-            case False : Meta.line(f'while (CMSIS_GET({section}, {register}, {field}));')
-            case _     : Meta.line(f'while (CMSIS_GET({section}, {register}, {field}) != {value});')
+            case True  : Meta.line(f'while (!CMSIS_GET({peripheral}, {register}, {field}));')
+            case False : Meta.line(f'while (CMSIS_GET({peripheral}, {register}, {field}));')
+            case _     : Meta.line(f'while (CMSIS_GET({peripheral}, {register}, {field}) != {value});')
 
 
 
