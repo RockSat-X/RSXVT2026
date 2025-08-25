@@ -1033,9 +1033,54 @@ halt_(b32 panicking)        // "
 
 
 
+INTERRUPT_BusFault
+{
+
+    // @/pg 611/sec B3.2.15/`Armv7-M`.
+    u32 bus_fault_status        = CMSIS_GET(SCB, CFSR, BUSFAULTSR);
+    b32 bus_fault_address_valid = (bus_fault_status >> 7) & 1;
+    b32 imprecise_data_access   = (bus_fault_status >> 2) & 1;
+    b32 precise_data_access     = (bus_fault_status >> 1) & 1;
+
+    // @/pg 614/sec B3.2.18/`Armv7-M`.
+    u32 bus_fault_address = SCB->BFAR;
+
+    panic; // See the values above to determine what caused this BusFault.
+
+}
+
+
+
 INTERRUPT_Default
 {
-    panic; // TODO Have an explanation of what happened here.
+
+    // @/pg 599/sec B3.2.4/`Armv7-M`.
+    i32 interrupt_number = CMSIS_GET(SCB, ICSR, VECTACTIVE) - 16;
+
+    switch (interrupt_number)
+    {
+        case HardFault_IRQn:
+        {
+            // @/pg 613/sec B3.2.16/`Armv7-M`.
+            if (CMSIS_GET(SCB, HFSR, FORCED))
+            {
+                // @/pg 611/sec B3.2.15/`Armv7-M`.
+                u32 bus_fault_status      = CMSIS_GET(SCB, CFSR, BUSFAULTSR);
+                b32 imprecise_data_access = (bus_fault_status >> 2) & 1;
+                panic; // See the values above to determine what caused this HardFault.
+            }
+            else
+            {
+                panic; // There was a HardFault for some unhandled reason...
+            }
+        } break;
+
+        default:
+        {
+            panic; // Unknown interrupt!
+        } break;
+    }
+
 }
 
 
