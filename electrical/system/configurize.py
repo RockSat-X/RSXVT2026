@@ -118,6 +118,17 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
     ################################################################################################################################
 
+
+
+    CMSIS_SET(
+        ('SCB', 'SHCSR', 'BUSFAULTENA', True), # Enable the BusFault exception.
+        ('SCB', 'SHCSR', 'MEMFAULTENA', True), # Enable the MemFault exception.
+    )
+
+
+
+    ################################################################################################################################
+
     # We have to program a delay for reading the flash as it takes time
     # for the data stored in the flash memory to stablize for read operations;
     # this delay varies based on voltage and clock frequency.
