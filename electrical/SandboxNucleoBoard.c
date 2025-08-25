@@ -17,7 +17,7 @@ static volatile b32 blink_green_led_fast = false;
 
 
 
-FREERTOS_TASK(button_observer, 400, tskIDLE_PRIORITY)
+FREERTOS_TASK(button_observer, 1024, tskIDLE_PRIORITY)
 {
     for (;;)
     {
@@ -40,7 +40,7 @@ FREERTOS_TASK(button_observer, 400, tskIDLE_PRIORITY)
 
 
 
-FREERTOS_TASK(green_blinker, 400, tskIDLE_PRIORITY)
+FREERTOS_TASK(green_blinker, 1024, tskIDLE_PRIORITY)
 {
     for (;;)
     {
@@ -63,7 +63,7 @@ FREERTOS_TASK(green_blinker, 400, tskIDLE_PRIORITY)
 
 
 
-FREERTOS_TASK(red_blinker, 400, tskIDLE_PRIORITY)
+FREERTOS_TASK(red_blinker, 1024, tskIDLE_PRIORITY)
 {
     #if TARGET_NAME_IS_SandboxNucleoH7S3L8
 
@@ -113,6 +113,28 @@ FREERTOS_TASK(yellow_blinker, 400, tskIDLE_PRIORITY)
 
 
 
+FREERTOS_TASK(yapper, 1024, tskIDLE_PRIORITY)
+{
+    for (;;)
+    {
+        static i32 iteration = 0;
+
+        JIG_tx("Hello! The name of the current target is: " STRINGIFY(TARGET_NAME) ".\n");
+        JIG_tx("FreeRTOS is currently enabled.\n");
+        JIG_tx("We're on iteration %d.\n", iteration);
+
+        vTaskDelay(100);
+
+        iteration += 1;
+    }
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 extern noret void
 main(void)
 {
@@ -125,14 +147,15 @@ main(void)
 
     #else
 
-        for (i32 i = 0;; i += 1)
+        for (i32 iteration = 0;; iteration += 1)
         {
             spinlock_nop(100'000'000);
 
             GPIO_TOGGLE(led_green);
 
             JIG_tx("Hello! The name of the current target is: " STRINGIFY(TARGET_NAME) ".\n");
-            JIG_tx("We're on iteration %d.\n", i);
+            JIG_tx("FreeRTOS is currently disabled.\n");
+            JIG_tx("We're on iteration %d.\n", iteration);
 
             for (char received_data = {0}; JIG_rx(&received_data);)
             {
