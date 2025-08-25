@@ -543,16 +543,17 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-            # Set the priorities of the defined NVIC interrupts.
-            # Note that the Armv7-M architecture guarantees minimum of 3 priority bits,
-            # while the Armv8-M guarantees minimum of 2; for now, we'll appeal
-            # to the lowest common denominator here.
+            # Set the priorities of the defined NVIC interrupts;
+            # the amount of bits that can be used to specify the priorities
+            # vary between implementations.
             # @/pg 526/sec B1.5.4/`Armv7-M`.
             # @/pg 86/sec B3.9/`Armv8-M`.
 
             for interrupt, niceness in target.interrupt_priorities:
-                assert 0b00 <= niceness <= 0b11
-                Meta.line(f'NVIC->IPR[{interrupt}_IRQn] = {niceness} << 6;')
+                Meta.line(f'''
+                    static_assert(0 <= {niceness} && {niceness} < (1 << __NVIC_PRIO_BITS));
+                    NVIC->IPR[{interrupt}_IRQn] = {niceness} << __NVIC_PRIO_BITS;
+                ''')
 
 
 
