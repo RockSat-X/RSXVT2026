@@ -78,6 +78,11 @@ struct Jig
     volatile u32  reception_reader;
     volatile u32  reception_writer;
     volatile char reception_buffer[1 << 5];
+
+    #if TARGET_USES_FREERTOS
+        StaticSemaphore_t tx_mutex_data;
+        SemaphoreHandle_t tx_mutex;
+    #endif
 };
 
 

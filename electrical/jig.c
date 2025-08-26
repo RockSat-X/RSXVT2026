@@ -14,22 +14,45 @@ static struct Jig _JIG = {0};
 
 
 static void
-JIG_tx_raw(u8* data, i32 length) // TODO Handle concurrency and reentrance.
+_JIG_tx_raw_nonreentrant(u8* data, i32 length)
 {
     for (i32 i = 0; i < length; i += 1)
     {
         while (!CMSIS_GET(UxART_STLINK, ISR, TXE)); // Wait if the TX-FIFO is full.
+
+        // This procedure is non-reentrant because a task
+        // switch could occur right here; if that task
+        // pushes data to TDR, then our current task might
+        // resume and then also immediately push into TDR,
+        // but TXE might be not set, so data will dropped.
+
         CMSIS_SET(UxART_STLINK, TDR, TDR, data[i]);
     }
 }
 
 
 
-#define JIG_tx(...) fctprintf(&_JIG_fctprintf_callback, nullptr, __VA_ARGS__)
 static void
-_JIG_fctprintf_callback(char character, void*) // TODO Handle concurrency and reentrance.
+_JIG_fctprintf_callback(char character, void*)
 {
-    JIG_tx_raw(&(u8) { character }, 1);
+    _JIG_tx_raw_nonreentrant(&(u8) { character }, 1);
+}
+
+
+
+static void __attribute__((format(printf, 1, 2)))
+JIG_tx(char* format, ...)
+{
+    va_list arguments = {0};
+    va_start(arguments, fmt);
+
+    MUTEX_TAKE(_JIG.tx_mutex);
+    {
+        vfctprintf(&_JIG_fctprintf_callback, nullptr, format, arguments);
+    }
+    MUTEX_GIVE(_JIG.tx_mutex);
+
+    va_end(arguments);
 }
 
 
@@ -81,6 +104,10 @@ JIG_init(void)
         RE          , true, // Enable receiver.
         UE          , true, // Enable UxART.
     );
+
+    #if TARGET_USES_FREERTOS
+        _JIG.tx_mutex = xSemaphoreCreateMutexStatic(&_JIG.tx_mutex_data);
+    #endif
 
     JIG_tx("\x1B[2J\x1B[H"); // Clears the whole terminal display.
 }

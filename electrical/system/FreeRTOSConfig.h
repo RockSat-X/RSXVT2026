@@ -6,12 +6,15 @@
 #define configENABLE_MPU                      false // TODO Try out.
 #define configCHECK_FOR_STACK_OVERFLOW        false // TODO Try out.
 #define configUSE_PREEMPTION                  true
+#define configUSE_MUTEXES                     true
 #define configUSE_IDLE_HOOK                   false
 #define configUSE_TICK_HOOK                   false
 #define configSUPPORT_DYNAMIC_ALLOCATION      false
 #define configSUPPORT_STATIC_ALLOCATION       true
 #define configKERNEL_PROVIDED_STATIC_MEMORY   true
+
 #define INCLUDE_vTaskDelay                    true
+#define INCLUDE_xTaskGetSchedulerState        true
 
 #define configTICK_TYPE_WIDTH_IN_BITS         TICK_TYPE_WIDTH_32_BITS
 #define configMAX_TASK_NAME_LEN               (15 + 1) // +1 for NUL.
