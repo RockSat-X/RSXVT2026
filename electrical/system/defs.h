@@ -1033,16 +1033,31 @@ halt_(b32 panicking)        // "
 
 
 
+INTERRUPT_UsageFault
+{
+
+    // @/pg 611/sec B3.2.15/`Armv7-M`.
+    // @/pg 1901/sec D1.2.267/`Armv8-M`.
+    u32 usage_fault_status = CMSIS_GET(SCB, CFSR, USGFAULTSR);
+    b32 stack_overflow     = (usage_fault_status >> 4) & 1; // This is only defined on Armv8-M.
+
+    panic; // See the values above to determine what caused this UsageFault.
+
+}
+
 INTERRUPT_BusFault
 {
 
     // @/pg 611/sec B3.2.15/`Armv7-M`.
-    u32 bus_fault_status        = CMSIS_GET(SCB, CFSR, BUSFAULTSR);
-    b32 bus_fault_address_valid = (bus_fault_status >> 7) & 1;
-    b32 imprecise_data_access   = (bus_fault_status >> 2) & 1;
-    b32 precise_data_access     = (bus_fault_status >> 1) & 1;
+    // @/pg 1472/sec D1.2.7/`Armv8-M`.
+    u32 bus_fault_status             = CMSIS_GET(SCB, CFSR, BUSFAULTSR);
+    b32 bus_fault_address_valid      = (bus_fault_status >> 7) & 1;
+    b32 imprecise_data_access        = (bus_fault_status >> 2) & 1;
+    b32 precise_data_access          = (bus_fault_status >> 1) & 1;
+    b32 instruction_access_violation = (bus_fault_status >> 0) & 1;
 
     // @/pg 614/sec B3.2.18/`Armv7-M`.
+    // @/pg 1471/sec D1.2.6/`Armv8-M`.
     u32 bus_fault_address = SCB->BFAR;
 
     panic; // See the values above to determine what caused this BusFault.
@@ -1055,24 +1070,14 @@ INTERRUPT_Default
 {
 
     // @/pg 599/sec B3.2.4/`Armv7-M`.
+    // @/pg 1680/sec D1.2.125/`Armv8-M`.
     i32 interrupt_number = CMSIS_GET(SCB, ICSR, VECTACTIVE) - 16;
 
     switch (interrupt_number)
     {
         case HardFault_IRQn:
         {
-            // @/pg 613/sec B3.2.16/`Armv7-M`.
-            if (CMSIS_GET(SCB, HFSR, FORCED))
-            {
-                // @/pg 611/sec B3.2.15/`Armv7-M`.
-                u32 bus_fault_status      = CMSIS_GET(SCB, CFSR, BUSFAULTSR);
-                b32 imprecise_data_access = (bus_fault_status >> 2) & 1;
-                panic; // See the values above to determine what caused this HardFault.
-            }
-            else
-            {
-                panic; // There was a HardFault for some unhandled reason...
-            }
+            panic; // There was a HardFault for some unhandled reason...
         } break;
 
         default:
