@@ -80,8 +80,10 @@ struct Jig
     volatile char reception_buffer[1 << 5];
 
     #if TARGET_USES_FREERTOS
-        StaticSemaphore_t tx_mutex_data;
-        SemaphoreHandle_t tx_mutex;
+        StaticSemaphore_t transmission_mutex_data;
+        SemaphoreHandle_t transmission_mutex;
+        StaticSemaphore_t reception_mutex_data;
+        SemaphoreHandle_t reception_mutex;
     #endif
 };
 

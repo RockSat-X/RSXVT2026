@@ -46,11 +46,11 @@ JIG_tx(char* format, ...)
     va_list arguments = {0};
     va_start(arguments, fmt);
 
-    MUTEX_TAKE(_JIG.tx_mutex);
+    MUTEX_TAKE(_JIG.transmission_mutex);
     {
         vfctprintf(&_JIG_fctprintf_callback, nullptr, format, arguments);
     }
-    MUTEX_GIVE(_JIG.tx_mutex);
+    MUTEX_GIVE(_JIG.transmission_mutex);
 
     va_end(arguments);
 }
@@ -63,21 +63,27 @@ JIG_tx(char* format, ...)
 // sent as a multi-byte sequence.
 
 static useret b32 // Received character?
-JIG_rx(char* dst) // TODO Handle concurrency and reentrance.
+JIG_rx(char* destination)
 {
 
-    b32 data_available = _JIG.reception_reader != _JIG.reception_writer;
+    b32 data_available = {0};
 
-    if (data_available && dst)
+    MUTEX_TAKE(_JIG.reception_mutex);
     {
-        static_assert(IS_POWER_OF_TWO(countof(_JIG.reception_buffer)));
+        data_available = _JIG.reception_reader != _JIG.reception_writer;
 
-        u32 reader_index = _JIG.reception_reader & (countof(_JIG.reception_buffer) - 1);
+        if (data_available && destination)
+        {
+            static_assert(IS_POWER_OF_TWO(countof(_JIG.reception_buffer)));
 
-        *dst = _JIG.reception_buffer[reader_index];
+            u32 reader_index = _JIG.reception_reader & (countof(_JIG.reception_buffer) - 1);
 
-        _JIG.reception_reader += 1;
+            *destination = _JIG.reception_buffer[reader_index];
+
+            _JIG.reception_reader += 1;
+        }
     }
+    MUTEX_GIVE(_JIG.reception_mutex);
 
     return data_available;
 
@@ -106,7 +112,8 @@ JIG_init(void)
     );
 
     #if TARGET_USES_FREERTOS
-        _JIG.tx_mutex = xSemaphoreCreateMutexStatic(&_JIG.tx_mutex_data);
+        _JIG.transmission_mutex = xSemaphoreCreateMutexStatic(&_JIG.transmission_mutex_data);
+        _JIG.reception_mutex    = xSemaphoreCreateMutexStatic(&_JIG.reception_mutex_data   );
     #endif
 
     JIG_tx("\x1B[2J\x1B[H"); // Clears the whole terminal display.
