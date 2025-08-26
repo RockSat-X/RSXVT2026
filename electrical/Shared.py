@@ -362,9 +362,29 @@ for target in TARGETS:
 #                              It should be noted that the priority value of interrupts work on a niceless level,
 #                              so the lower the numbre is, the higher priority it actually is.
 #
-# It's also useful to have a "sandbox" target where it's pretty much just a demo program for a NUCLEO board;
+# It's also useful to have a "sandbox" target where it's pretty much just a demo program for a Nucleo board;
 # some LEDS blinking, maybe reacting to button presses, and printing out to serial port.
 # This is just so we can easily test things out whenever we're writing some new drivers or something.
+#
+# As of writing, these are the steps to making a new target:
+#
+#     1. Jump start by copy-pasting an existing target in `TARGETS`,
+#        maybe "SandboxNucleoH533RE". Rename the target to something
+#        unique, which for our example, let's say "FooBar".
+#
+#     2. Change the MCU (if needed) and modify `source_file_paths`
+#        to have the main C file you wish to compile with.
+#        If your new target name is "FooBar", you should probably
+#        make a new C file called "FooBar.c". In this C file,
+#        you can copy from <SandboxNucleoBoard.c> but remove all
+#        the FreeRTOS task stuff; you should have at least `main`.
+#
+#     3. Recompile; things should work, but this process I described
+#        here might've changed because I added a new feature or
+#        something to the build process. In the event that I forgot
+#        to update this, read the error message and figure out what
+#        is missing.
+
 
 
 
