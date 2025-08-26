@@ -82,7 +82,7 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         use_freertos = False,
 
-        stack_size = 8192, # TODO This might be removed depending on how FreeRTOS works.
+        main_stack_size = 8192,
 
         aliases = (
             types.SimpleNamespace(
@@ -136,9 +136,9 @@ TARGETS = ( # @/`Defining a TARGET`.
             ./electrical/system/Startup.S
         '''),
 
-        use_freertos = False,
+        use_freertos = True,
 
-        stack_size = 8192, # TODO This might be removed depending on how FreeRTOS works.
+        main_stack_size = 8192,
 
         aliases = (
             types.SimpleNamespace(
@@ -244,9 +244,9 @@ for target in TARGETS:
     # Additional macro defines.
 
     defines = [
-        ('TARGET_NAME'    , target.name      ),
-        ('TARGET_MCU'     , target.mcu       ),
-        ('LINK_stack_size', target.stack_size),
+        ('TARGET_NAME'    , target.name           ),
+        ('TARGET_MCU'     , target.mcu            ),
+        ('MAIN_STACK_SIZE', target.main_stack_size),
     ]
 
     for other in TARGETS:
@@ -335,9 +335,14 @@ for target in TARGETS:
 #                              work together and not have one big state machine
 #                              to handle it all.
 #
-#     - stack_size           = The amount of bytes to reserve for the main stack,
-#                              although I think this might be deprecated once I do
-#                              more research into FreeRTOS' configurations (TODO).
+#     - main_stack_size      = The amount of bytes to reserve for the stack of `main`.
+#                              This option is more useful when not using FreeRTOS.
+#                              If FreeRTOS is enabled, then each task will have their
+#                              own stack, the size of which can be individually specified.
+#                              Before the task-scheduler can starts, we still go into
+#                              `main`, so this option is still used, albeit less
+#                              critically.
+#                              TODO Look more into how FreeRTOS organizes its memory.
 #
 #     - aliases              = The purpose of this field is to make it easy to refer to
 #                              a peripheral "generically" by using a custom name like
