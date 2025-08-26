@@ -22,8 +22,8 @@
 #define pack_pop                _Pragma("pack(pop)")
 #define memeq(X, Y)             (static_assert_expr(sizeof(X) == sizeof(Y)), !memcmp(&(X), &(Y), sizeof(Y)))
 #define memzero(X)              memset((X), 0, sizeof(*(X)))
-#define static_assert(...)      _Static_assert(__VA_ARGS__)
-#define static_assert_expr(...) ((void) sizeof(struct { static_assert(__VA_ARGS__); }))
+#define static_assert(...)      _Static_assert(__VA_ARGS__, #__VA_ARGS__)
+#define static_assert_expr(...) ((void) sizeof(struct { static_assert(__VA_ARGS__, #__VA_ARGS__); }))
 #ifndef offsetof
 #define offsetof __builtin_offsetof
 #endif
@@ -78,6 +78,13 @@ struct Jig
     volatile u32  reception_reader;
     volatile u32  reception_writer;
     volatile char reception_buffer[1 << 5];
+
+    #if TARGET_USES_FREERTOS
+        StaticSemaphore_t transmission_mutex_data;
+        SemaphoreHandle_t transmission_mutex;
+        StaticSemaphore_t reception_mutex_data;
+        SemaphoreHandle_t reception_mutex;
+    #endif
 };
 
 

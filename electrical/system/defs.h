@@ -543,16 +543,17 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-            # Set the priorities of the defined NVIC interrupts.
-            # Note that the Armv7-M architecture guarantees minimum of 3 priority bits,
-            # while the Armv8-M guarantees minimum of 2; for now, we'll appeal
-            # to the lowest common denominator here.
+            # Set the priorities of the defined NVIC interrupts;
+            # the amount of bits that can be used to specify the priorities
+            # vary between implementations.
             # @/pg 526/sec B1.5.4/`Armv7-M`.
             # @/pg 86/sec B3.9/`Armv8-M`.
 
             for interrupt, niceness in target.interrupt_priorities:
-                assert 0b00 <= niceness <= 0b11
-                Meta.line(f'NVIC->IPR[{interrupt}_IRQn] = {niceness} << 6;')
+                Meta.line(f'''
+                    static_assert(0 <= {niceness} && {niceness} < (1 << __NVIC_PRIO_BITS));
+                    NVIC->IPR[{interrupt}_IRQn] = {niceness} << __NVIC_PRIO_BITS;
+                ''')
 
 
 
@@ -1032,9 +1033,59 @@ halt_(b32 panicking)        // "
 
 
 
+INTERRUPT_UsageFault
+{
+
+    // @/pg 611/sec B3.2.15/`Armv7-M`.
+    // @/pg 1901/sec D1.2.267/`Armv8-M`.
+    u32 usage_fault_status = CMSIS_GET(SCB, CFSR, USGFAULTSR);
+    b32 stack_overflow     = (usage_fault_status >> 4) & 1; // This is only defined on Armv8-M.
+
+    panic; // See the values above to determine what caused this UsageFault.
+
+}
+
+INTERRUPT_BusFault
+{
+
+    // @/pg 611/sec B3.2.15/`Armv7-M`.
+    // @/pg 1472/sec D1.2.7/`Armv8-M`.
+    u32 bus_fault_status             = CMSIS_GET(SCB, CFSR, BUSFAULTSR);
+    b32 bus_fault_address_valid      = (bus_fault_status >> 7) & 1;
+    b32 imprecise_data_access        = (bus_fault_status >> 2) & 1;
+    b32 precise_data_access          = (bus_fault_status >> 1) & 1;
+    b32 instruction_access_violation = (bus_fault_status >> 0) & 1;
+
+    // @/pg 614/sec B3.2.18/`Armv7-M`.
+    // @/pg 1471/sec D1.2.6/`Armv8-M`.
+    u32 bus_fault_address = SCB->BFAR;
+
+    panic; // See the values above to determine what caused this BusFault.
+
+}
+
+
+
 INTERRUPT_Default
 {
-    panic; // TODO Have an explanation of what happened here.
+
+    // @/pg 599/sec B3.2.4/`Armv7-M`.
+    // @/pg 1680/sec D1.2.125/`Armv8-M`.
+    i32 interrupt_number = CMSIS_GET(SCB, ICSR, VECTACTIVE) - 16;
+
+    switch (interrupt_number)
+    {
+        case HardFault_IRQn:
+        {
+            panic; // There was a HardFault for some unhandled reason...
+        } break;
+
+        default:
+        {
+            panic; // Unknown interrupt!
+        } break;
+    }
+
 }
 
 
@@ -1049,6 +1100,7 @@ INTERRUPT_Default
 
 #include <deps/FreeRTOS_Kernel/include/FreeRTOS.h>
 #include <deps/FreeRTOS_Kernel/include/task.h>
+#include <deps/FreeRTOS_Kernel/include/semphr.h>
 
 
 
@@ -1185,6 +1237,43 @@ INTERRUPT_Default
             Meta.line(f'#include <{header}>')
 
 */
+
+
+
+#if TARGET_USES_FREERTOS
+
+    #define MUTEX_TAKE(MUTEX)                                          \
+        do                                                             \
+        {                                                              \
+            if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) \
+            {                                                          \
+                if (!xSemaphoreTake((MUTEX), portMAX_DELAY))           \
+                {                                                      \
+                    panic;                                             \
+                }                                                      \
+            }                                                          \
+        }                                                              \
+        while (false)
+
+    #define MUTEX_GIVE(MUTEX)                                          \
+        do                                                             \
+        {                                                              \
+            if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) \
+            {                                                          \
+                if (!xSemaphoreGive((MUTEX)))                          \
+                {                                                      \
+                    panic;                                             \
+                }                                                      \
+            }                                                          \
+        }                                                              \
+        while (false)
+
+#else
+
+    #define MUTEX_TAKE(MUTEX)
+    #define MUTEX_GIVE(MUTEX)
+
+#endif
 
 
 

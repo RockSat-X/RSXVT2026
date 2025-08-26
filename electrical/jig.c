@@ -14,22 +14,45 @@ static struct Jig _JIG = {0};
 
 
 static void
-JIG_tx_raw(u8* data, i32 length) // TODO Handle concurrency and reentrance.
+_JIG_tx_raw_nonreentrant(u8* data, i32 length)
 {
     for (i32 i = 0; i < length; i += 1)
     {
         while (!CMSIS_GET(UxART_STLINK, ISR, TXE)); // Wait if the TX-FIFO is full.
+
+        // This procedure is non-reentrant because a task
+        // switch could occur right here; if that task
+        // pushes data to TDR, then our current task might
+        // resume and then also immediately push into TDR,
+        // but TXE might be not set, so data will dropped.
+
         CMSIS_SET(UxART_STLINK, TDR, TDR, data[i]);
     }
 }
 
 
 
-#define JIG_tx(...) fctprintf(&_JIG_fctprintf_callback, nullptr, __VA_ARGS__)
 static void
-_JIG_fctprintf_callback(char character, void*) // TODO Handle concurrency and reentrance.
+_JIG_fctprintf_callback(char character, void*)
 {
-    JIG_tx_raw(&(u8) { character }, 1);
+    _JIG_tx_raw_nonreentrant(&(u8) { character }, 1);
+}
+
+
+
+static void __attribute__((format(printf, 1, 2)))
+JIG_tx(char* format, ...)
+{
+    va_list arguments = {0};
+    va_start(arguments, fmt);
+
+    MUTEX_TAKE(_JIG.transmission_mutex);
+    {
+        vfctprintf(&_JIG_fctprintf_callback, nullptr, format, arguments);
+    }
+    MUTEX_GIVE(_JIG.transmission_mutex);
+
+    va_end(arguments);
 }
 
 
@@ -40,21 +63,27 @@ _JIG_fctprintf_callback(char character, void*) // TODO Handle concurrency and re
 // sent as a multi-byte sequence.
 
 static useret b32 // Received character?
-JIG_rx(char* dst) // TODO Handle concurrency and reentrance.
+JIG_rx(char* destination)
 {
 
-    b32 data_available = _JIG.reception_reader != _JIG.reception_writer;
+    b32 data_available = {0};
 
-    if (data_available && dst)
+    MUTEX_TAKE(_JIG.reception_mutex);
     {
-        static_assert(IS_POWER_OF_TWO(countof(_JIG.reception_buffer)));
+        data_available = _JIG.reception_reader != _JIG.reception_writer;
 
-        u32 reader_index = _JIG.reception_reader & (countof(_JIG.reception_buffer) - 1);
+        if (data_available && destination)
+        {
+            static_assert(IS_POWER_OF_TWO(countof(_JIG.reception_buffer)));
 
-        *dst = _JIG.reception_buffer[reader_index];
+            u32 reader_index = _JIG.reception_reader & (countof(_JIG.reception_buffer) - 1);
 
-        _JIG.reception_reader += 1;
+            *destination = _JIG.reception_buffer[reader_index];
+
+            _JIG.reception_reader += 1;
+        }
     }
+    MUTEX_GIVE(_JIG.reception_mutex);
 
     return data_available;
 
@@ -81,6 +110,11 @@ JIG_init(void)
         RE          , true, // Enable receiver.
         UE          , true, // Enable UxART.
     );
+
+    #if TARGET_USES_FREERTOS
+        _JIG.transmission_mutex = xSemaphoreCreateMutexStatic(&_JIG.transmission_mutex_data);
+        _JIG.reception_mutex    = xSemaphoreCreateMutexStatic(&_JIG.reception_mutex_data   );
+    #endif
 
     JIG_tx("\x1B[2J\x1B[H"); // Clears the whole terminal display.
 }
