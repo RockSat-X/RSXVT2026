@@ -166,7 +166,14 @@ main(void)
 
         for (i32 iteration = 0;; iteration += 1)
         {
-            spinlock_nop(100'000'000);
+            if (GPIO_READ(button))
+            {
+                spinlock_nop(100'000'000);
+            }
+            else
+            {
+                spinlock_nop(50'000'000);
+            }
 
             GPIO_TOGGLE(led_green);
 
