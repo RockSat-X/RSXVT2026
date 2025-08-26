@@ -5,7 +5,7 @@ import types
 
 
 
-################################################################################################################################
+################################################################################
 #
 # Communication speed with the ST-Link.
 #
@@ -14,7 +14,7 @@ STLINK_BAUD = 1_000_000
 
 
 
-################################################################################################################################
+################################################################################
 #
 # Build directory where all build artifacts will be dumped to.
 #
@@ -23,7 +23,7 @@ BUILD = root('./build')
 
 
 
-################################################################################################################################
+################################################################################
 #
 # Supported microcontrollers.
 #
@@ -64,7 +64,7 @@ MCUS = {
 
 
 
-################################################################################################################################
+################################################################################
 #
 # Basic description of each of our firmware targets.
 #
@@ -82,7 +82,7 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         use_freertos = False,
 
-        stack_size = 8192, # TODO This might be removed depending on how FreeRTOS works.
+        main_stack_size = 8192,
 
         aliases = (
             types.SimpleNamespace(
@@ -136,9 +136,9 @@ TARGETS = ( # @/`Defining a TARGET`.
             ./electrical/system/Startup.S
         '''),
 
-        use_freertos = False,
+        use_freertos = True,
 
-        stack_size = 8192, # TODO This might be removed depending on how FreeRTOS works.
+        main_stack_size = 8192,
 
         aliases = (
             types.SimpleNamespace(
@@ -181,7 +181,7 @@ TARGETS = ( # @/`Defining a TARGET`.
 
 
 
-################################################################################################################################
+################################################################################
 #
 # Figure out the compiler and linker flags for each firmware target.
 #
@@ -244,9 +244,9 @@ for target in TARGETS:
     # Additional macro defines.
 
     defines = [
-        ('TARGET_NAME'    , target.name      ),
-        ('TARGET_MCU'     , target.mcu       ),
-        ('LINK_stack_size', target.stack_size),
+        ('TARGET_NAME'    , target.name           ),
+        ('TARGET_MCU'     , target.mcu            ),
+        ('MAIN_STACK_SIZE', target.main_stack_size),
     ]
 
     for other in TARGETS:
@@ -292,90 +292,139 @@ for target in TARGETS:
 
 
 
-################################################################################################################################
+################################################################################
 
 
 
-# This meta-directive typically contains definitions for things that'll be used both in other meta-directives and also in `cli.py`.
-# Stuff like the ST-Link baud rate is defined here because the clock-tree is automated by a meta-directive in order to
-# configure the UART for the right clock speed and also so that `cli.py talk` can open the serial port to the right baud.
+# This meta-directive typically contains definitions for things that'll be
+# used both in other meta-directives and also in `cli.py`. Stuff like the
+# ST-Link baud rate is defined here because the clock-tree is automated by
+# a meta-directive in order to configure the UART for the right clock speed
+# and also so that `cli.py talk` can open the serial port to the right baud.
 
 
 
 # @/`Defining a TARGET`:
 #
 # A target is essentially a program for a specific microcontroller in mind.
-# For this project, we'll have a target for the flight computer, camera subsystems, and maybe some other stuff.
-# As of writing, this is what defines a target:
+# For this project, we'll have a target for the flight computer, camera
+# subsystems, and maybe some other stuff. As of writing, this is what defines
+# a target:
 #
 #     - name                 = Self-explanatory; the unique name of the target.
 #
-#     - mcu                  = The full commerical part number of an STM32 microcontroller as seen in `MCUS`.
-#                              Technically, the last few suffixes are not necessary because they just indicate the
-#                              flash size and operating temperature and stuff, but I think it's a hassle to deal with
-#                              different variations of MCU "names", so just might as well use the whole thing even if
-#                              it ends up being redundant later on.
+#     - mcu                  = The full commerical part number of an STM32
+#                              microcontroller as seen in `MCUS`. Technically,
+#                              the last few suffixes are not necessary because
+#                              they just indicate the flash size and operating
+#                              temperature and stuff, but I think it's a hassle
+#                              to deal with different variations of MCU "names",
+#                              so just might as well use the whole thing even
+#                              if it ends up being redundant later on.
 #
-#     - source_file_paths    = Source files that the build system will compile each of and then link all together.
+#     - source_file_paths    = Source files that the build system will compile each
+#                              of and then link all together.
 #
-#     - use_freertos         = Whether or not to compile with FreeRTOS and set up the task-scheduler.
-#                              Typically, we'd disable FreeRTOS when we want to start off programming
-#                              in a simpler environment where we don't have to worry about concurrency
-#                              and reentrance of code. Eventually, as the firmware matures, we'd want to
-#                              start using a task-scheduler so we can have multiple systems in the firmware
-#                              work together and not have one big state machine to handle it all.
+#     - use_freertos         = Whether or not to compile with FreeRTOS and set up
+#                              the task-scheduler. Typically, we'd disable FreeRTOS
+#                              when we want to start off programming in a simpler
+#                              environment where we don't have to worry about concurrency
+#                              and reentrance of code. Eventually, as the firmware
+#                              matures, we'd want to start using a task-scheduler
+#                              so we can have multiple systems in the firmware
+#                              work together and not have one big state machine
+#                              to handle it all.
 #
-#     - stack_size           = The amount of bytes to reserve for the main stack,
-#                              although I think this might be deprecated once I do
-#                              more research into FreeRTOS' configurations (TODO).
+#     - main_stack_size      = The amount of bytes to reserve for the stack of `main`.
+#                              This option is more useful when not using FreeRTOS.
+#                              If FreeRTOS is enabled, then each task will have their
+#                              own stack, the size of which can be individually specified.
+#                              Before the task-scheduler can starts, we still go into
+#                              `main`, so this option is still used, albeit less
+#                              critically.
+#                              TODO Look more into how FreeRTOS organizes its memory.
 #
-#     - aliases              = The purpose of this field is to make it easy to refer to a peripheral "generically"
-#                              by using a custom name like "UxART_STLINK" instead of "USART3".
-#                              While this makes it more clear what a particular peripheral is meant to be used for,
-#                              its true purpose is to make code that uses this peripheral more applicable to different targets.
-#                              In the example of "UxART_STLINK", some targets might have it be "USART3" while others be "UART2".
-#                              Rather than reimplement code to use slightly different peripheral names and numberings,
-#                              all code can just refer to "UxART_STLINK", and a bunch of macros and global constants will do the
-#                              mapping magically. This is a very experimental feature right now, however, so you can just completely
-#                              ignore this. I'm planning to make it much simpler to use and less contrived.
+#     - aliases              = The purpose of this field is to make it easy to refer to
+#                              a peripheral "generically" by using a custom name like
+#                              "UxART_STLINK" instead of "USART3". While this makes it
+#                              more clear what a particular peripheral is meant to be,
+#                              used for its true purpose is to make code that uses this
+#                              peripheral more applicable to different targets. In the
+#                              example of "UxART_STLINK", some targets might have it be
+#                              "USART3" while others be "UART2". Rather than reimplement
+#                              code to use slightly different peripheral names and numberings,
+#                              all code can just refer to "UxART_STLINK", and a bunch of
+#                              macros and global constants will do the mapping magically.
+#                              This is a very experimental feature right now, however, so
+#                              you can just completely ignore this. I'm planning to make
+#                              it much simpler to use and less contrived.
 #
 #     - clock_tree           = Options relating to configuring the MCU's clock-tree.
-#                              The available options right now is pretty undocumented since it
-#                              heavily depends upon the implementation of `SYSTEM_PARAMETERIZE`;
+#                              The available options right now is pretty undocumented since
+#                              it heavily depends upon the implementation of `SYSTEM_PARAMETERIZE`;
 #                              things there are still non-comprehensive and quite experimental.
 #                              Nonetheless, some of the stuff should be self-explanatory, like
-#                              if you want to change the baud rate of a UART peripheral or something,
-#                              then it's pretty easy to do right here; but if you have a lot of questions,
-#                              then you should probably see `SYSTEM_PARAMETERIZE` anyways.
+#                              if you want to change the baud rate of a UART peripheral or
+#                              something, then it's pretty easy to do right here; but if you
+#                              have a lot of questions, then you should probably see
+#                              `SYSTEM_PARAMETERIZE` anyways.
 #
-#     - gpios                = This is where we define the GPIOs of our target; what input/outputs it has,
-#                              which pins are being used for what particular peripherals, and maybe other
-#                              stuff too like the slew rate or pull up/down configuration.
-#                              This table of GPIOs is very useful, because later on when we make our PCBs,
-#                              we can write a meta-directive to verify that the PCB matches our GPIO table (TODO).
+#     - gpios                = This is where we define the GPIOs of our target; what
+#                              input/outputs it has, which pins are being used for what
+#                              particular peripherals, and maybe other stuff too like the
+#                              slew rate or pull up/down configuration. This table of GPIOs
+#                              is very useful, because later on when we make our PCBs, we can
+#                              write a meta-directive to verify that the PCB matches our
+#                              GPIO table (TODO).
 #
-#     - interrupt_priorities = This table defines the interrupts that'll need to be configured in the NVIC.
-#                              Any time you're writing a driver for a peripheral,
-#                              and that peripheral uses interrupts, you should add an entry to this table.
-#                              Once you do so, macros will be created to allow the interrupt to be enabled
-#                              in the NVIC.
-#                              It should be noted that the priority value of interrupts work on a niceless level,
-#                              so the lower the numbre is, the higher priority it actually is.
+#     - interrupt_priorities = This table defines the interrupts that'll need to be configured
+#                              in the NVIC. Any time you're writing a driver for a peripheral,
+#                              and that peripheral uses interrupts, you should add an entry to
+#                              this table. Once you do so, macros will be created to allow the
+#                              interrupt to be enabled in the NVIC. It should be noted that
+#                              the priority value of interrupts work on a niceless level, so
+#                              the lower the number is, the higher priority it actually is.
 #
-# It's also useful to have a "sandbox" target where it's pretty much just a demo program for a NUCLEO board;
-# some LEDS blinking, maybe reacting to button presses, and printing out to serial port.
-# This is just so we can easily test things out whenever we're writing some new drivers or something.
+# It's also useful to have a "sandbox" target where it's pretty much
+# just a demo program for a Nucleo board; some LEDS blinking, maybe
+# reacting to button presses, and printing out to serial port. This
+# is just so we can easily test things out whenever we're writing
+# some new drivers or something.
+#
+# As of writing, these are the steps to making a new target:
+#
+#     1. Jump start by copy-pasting an existing target in `TARGETS`,
+#        maybe "SandboxNucleoH533RE". Rename the target to something
+#        unique, which for our example, let's say "FooBar".
+#
+#     2. Change the MCU (if needed) and modify `source_file_paths`
+#        to have the main C file you wish to compile with.
+#        If your new target name is "FooBar", you should probably
+#        make a new C file called "FooBar.c". In this C file,
+#        you can copy from <SandboxNucleoBoard.c> but remove all
+#        the FreeRTOS task stuff; you should have at least `main`.
+#
+#     3. Recompile; things should work, but this process I described
+#        here might've changed because I added a new feature or
+#        something to the build process. In the event that I forgot
+#        to update this, read the error message and figure out what
+#        is missing.
+
 
 
 
 # @/`Linker Garbage Collection`:
 #
-# The `-ffunction-sections` makes the compiler generate a section for every function.
-# This will allow the linker to later on garbage-collect any unused functions via `--gc-sections`.
-# This isn't necessarily for space-saving reasons, but for letting us compile with libraries without
-# necessarily defining all user-side functions until we use a library function that'd depend upon it.
-# An example would be `putchar_` for eyalroz's `printf` library.
+# The `-ffunction-sections` makes the compiler generate a section
+# for every function. This will allow the linker to later on garbage-collect
+# any unused functions via `--gc-sections`. This isn't necessarily for
+# space-saving reasons, but for letting us compile with libraries without
+# necessarily defining all user-side functions until we use a library function
+# that'd depend upon it. An example would be `putchar_` for eyalroz's `printf`.
+# library
 #
-# There's a similar thing for data with the flag `-fdata-sections`, but if we do this, then we won't be
-# able to reference any variables that end up being garbage-collected when we debug. This isn't a big
-# deal, but it is annoying when it happens, so we'll skip out on GC'ing data and only do functions.
+# There's a similar thing for data with the flag `-fdata-sections`,
+# but if we do this, then we won't be able to reference any variables
+# that end up being garbage-collected when we debug. This isn't a big
+# deal, but it is annoying when it happens, so we'll skip out on GC'ing
+# data and only do functions.
