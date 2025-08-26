@@ -135,6 +135,23 @@ FREERTOS_TASK(yapper, 1024, tskIDLE_PRIORITY)
 
 
 
+FREERTOS_TASK(captain_allears, 1024, tskIDLE_PRIORITY)
+{
+    for (;;)
+    {
+        for (char input = {0}; JIG_rx(&input);)
+        {
+            JIG_tx("Heard %c!\n", input);
+        }
+    }
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 extern noret void
 main(void)
 {
