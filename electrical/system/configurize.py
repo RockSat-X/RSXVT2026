@@ -123,6 +123,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
     CMSIS_SET(
         ('SCB', 'SHCSR', 'BUSFAULTENA', True), # Enable the BusFault exception.
         ('SCB', 'SHCSR', 'MEMFAULTENA', True), # Enable the MemFault exception.
+        ('SCB', 'SHCSR', 'USGFAULTENA', True), # Enable the UsageFault exception.
     )
 
 
