@@ -11,5 +11,6 @@ data/
 *.bak
 *.kicad_prl
 _autosave-*.kicad_pcb
+_autosave-*.kicad_sch
 fp-info-cache
 \#auto_saved_files\#
