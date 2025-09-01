@@ -1451,12 +1451,6 @@
 		(color 0 0 0 0)
 		(uuid "4fba0d29-3cf1-48e6-977f-678ddf6a1b35")
 	)
-	(junction
-		(at 148.59 77.47)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "7638c2ef-5176-42b3-8944-5979c94f1d51")
-	)
 	(wire
 		(pts
 			(xy 76.2 49.53) (xy 76.2 59.69)
@@ -1469,7 +1463,7 @@
 	)
 	(wire
 		(pts
-			(xy 148.59 87.63) (xy 148.59 77.47)
+			(xy 148.59 59.69) (xy 148.59 87.63)
 		)
 		(stroke
 			(width 0)
@@ -1496,16 +1490,6 @@
 			(type default)
 		)
 		(uuid "2530481e-1232-45da-8260-c8103124263c")
-	)
-	(wire
-		(pts
-			(xy 148.59 77.47) (xy 209.55 77.47)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "2d5bdcd7-6cd9-447b-ab34-47cf381ef2f6")
 	)
 	(wire
 		(pts
@@ -1636,16 +1620,6 @@
 			(type default)
 		)
 		(uuid "b327dbfd-63c7-45a4-bd7d-cdb5b336b023")
-	)
-	(wire
-		(pts
-			(xy 148.59 77.47) (xy 148.59 59.69)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "d8b55499-bd29-4298-93ba-2af9709f6b8e")
 	)
 	(wire
 		(pts
@@ -2158,6 +2132,73 @@
 	)
 	(symbol
 		(lib_id "power:GND")
+		(at 173.99 60.96 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "3f4ff303-2325-4da7-8c6c-660f4c8f8989")
+		(property "Reference" "#PWR09"
+			(at 173.99 67.31 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 173.99 66.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 173.99 60.96 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 173.99 60.96 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 173.99 60.96 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "776ddd47-f8d1-45f8-a6d2-0a499b92778f")
+		)
+		(instances
+			(project "firstkicad"
+				(path "/6a1506e1-f232-4ea9-a704-c10ff0d0d683"
+					(reference "#PWR09")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
 		(at 137.16 99.06 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -2451,6 +2492,92 @@
 		)
 	)
 	(symbol
+		(lib_id "Amplifier_Operational:LM358")
+		(at 176.53 53.34 0)
+		(mirror x)
+		(unit 3)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "c9268e2f-66a5-40d2-90df-6160655cf9b9")
+		(property "Reference" "U1"
+			(at 180.086 52.07 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "LM358"
+			(at 180.086 54.102 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "OptoDevice:Broadcom_APDS-9160-003"
+			(at 176.53 53.34 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "http://www.ti.com/lit/ds/symlink/lm2904-n.pdf"
+			(at 176.53 53.34 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Low-Power, Dual Operational Amplifiers, DIP-8/SOIC-8/TO-99-8"
+			(at 176.53 53.34 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "8"
+			(uuid "a87afb64-a253-4a04-a594-da36f929946a")
+		)
+		(pin "5"
+			(uuid "b9c52ee7-f842-4a36-89d2-36e9f4638710")
+		)
+		(pin "6"
+			(uuid "c8367d1f-9db3-4362-9978-d86541628845")
+		)
+		(pin "7"
+			(uuid "d278d730-8603-4002-8dc1-76d254042ab9")
+		)
+		(pin "2"
+			(uuid "e98be49e-eb0d-4cc6-a771-61a643db7478")
+		)
+		(pin "3"
+			(uuid "b79a1397-568c-4482-9001-4798584aa7c1")
+		)
+		(pin "1"
+			(uuid "8863f30e-f686-4f4a-9da6-e7681077bf3f")
+		)
+		(pin "4"
+			(uuid "97aa6ae9-8819-4676-bbd6-e5d079c94b2e")
+		)
+		(instances
+			(project "firstkicad"
+				(path "/6a1506e1-f232-4ea9-a704-c10ff0d0d683"
+					(reference "U1")
+					(unit 3)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:+5V")
 		(at 83.82 41.91 0)
 		(unit 1)
@@ -2666,14 +2793,14 @@
 		(lib_id "Amplifier_Operational:LM358")
 		(at 156.21 57.15 0)
 		(mirror x)
-		(unit 1)
+		(unit 2)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
 		(uuid "e719b88c-1dff-45d7-808f-a09ad2145c31")
-		(property "Reference" "U2"
-			(at 156.21 49.784 0)
+		(property "Reference" "U1"
+			(at 156.21 50.038 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2681,7 +2808,7 @@
 			)
 		)
 		(property "Value" "LM358"
-			(at 156.21 51.816 0)
+			(at 156.21 52.07 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2742,7 +2869,73 @@
 		(instances
 			(project ""
 				(path "/6a1506e1-f232-4ea9-a704-c10ff0d0d683"
-					(reference "U2")
+					(reference "U1")
+					(unit 2)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+5V")
+		(at 173.99 45.72 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "eb902fce-bcb9-425c-a47c-f6ab6c54a6aa")
+		(property "Reference" "#PWR07"
+			(at 173.99 49.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+5V"
+			(at 173.99 40.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 173.99 45.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 173.99 45.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+5V\""
+			(at 173.99 45.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "8c4dc324-f781-4717-b0c4-980cb9e1ac6a")
+		)
+		(instances
+			(project "firstkicad"
+				(path "/6a1506e1-f232-4ea9-a704-c10ff0d0d683"
+					(reference "#PWR07")
 					(unit 1)
 				)
 			)
