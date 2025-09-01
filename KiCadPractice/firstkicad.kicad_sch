@@ -1923,7 +1923,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "D_Photo"
+		(property "Value" "LTR-516AD"
 			(at 50.8 60.0074 90)
 			(effects
 				(font
@@ -1941,7 +1941,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "~"
+		(property "Datasheet" "https://optoelectronics.liteon.com/upload/download/DS-50-93-0021/R516AD.pdf"
 			(at 55.88 58.42 0)
 			(effects
 				(font
