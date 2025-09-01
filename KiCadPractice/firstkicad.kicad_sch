@@ -2043,6 +2043,7 @@
 				(font
 					(size 1.27 1.27)
 				)
+				(hide yes)
 			)
 		)
 		(property "Footprint" ""
@@ -2384,7 +2385,9 @@
 			(effects
 				(font
 					(size 1.27 1.27)
+					(thickness 0.1588)
 				)
+				(hide yes)
 			)
 		)
 		(property "Footprint" ""
@@ -3041,6 +3044,7 @@
 				(font
 					(size 1.27 1.27)
 				)
+				(hide yes)
 			)
 		)
 		(property "Footprint" ""
