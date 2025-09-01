@@ -1459,16 +1459,6 @@
 	)
 	(wire
 		(pts
-			(xy 166.37 39.37) (xy 166.37 59.69)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "05a86b01-cd63-4df4-9124-8de0602563b1")
-	)
-	(wire
-		(pts
 			(xy 166.37 66.04) (xy 172.72 66.04)
 		)
 		(stroke
@@ -1496,6 +1486,16 @@
 			(type default)
 		)
 		(uuid "20107379-8ad8-4a7c-a484-410c8ed9103c")
+	)
+	(wire
+		(pts
+			(xy 148.59 48.26) (xy 148.59 63.5)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2530481e-1232-45da-8260-c8103124263c")
 	)
 	(wire
 		(pts
@@ -1549,7 +1549,7 @@
 	)
 	(wire
 		(pts
-			(xy 163.83 44.45) (xy 172.72 44.45)
+			(xy 152.4 44.45) (xy 172.72 44.45)
 		)
 		(stroke
 			(width 0)
@@ -1566,26 +1566,6 @@
 			(type default)
 		)
 		(uuid "56b0fd96-7f1b-49d8-91cd-46649a829baa")
-	)
-	(wire
-		(pts
-			(xy 166.37 59.69) (xy 146.05 59.69)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "5b79bf46-3143-429d-b235-52e613149077")
-	)
-	(wire
-		(pts
-			(xy 146.05 59.69) (xy 146.05 68.58)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "629be670-d673-43a0-9d7c-dde0d3a5a924")
 	)
 	(wire
 		(pts
@@ -1639,16 +1619,6 @@
 	)
 	(wire
 		(pts
-			(xy 160.02 40.64) (xy 160.02 39.37)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "7c199aae-5699-4c38-ace6-4ffceaa2001a")
-	)
-	(wire
-		(pts
 			(xy 106.68 55.88) (xy 106.68 57.15)
 		)
 		(stroke
@@ -1659,26 +1629,6 @@
 	)
 	(wire
 		(pts
-			(xy 148.59 63.5) (xy 151.13 63.5)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "81f5a8bc-c917-4cc9-8147-77c37a203484")
-	)
-	(wire
-		(pts
-			(xy 146.05 68.58) (xy 151.13 68.58)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "82239db7-3306-480c-a339-17dc89fd7d18")
-	)
-	(wire
-		(pts
 			(xy 137.16 57.15) (xy 137.16 67.31)
 		)
 		(stroke
@@ -1686,6 +1636,16 @@
 			(type default)
 		)
 		(uuid "8e759741-a4ec-4bda-a0ee-da55dec7782c")
+	)
+	(wire
+		(pts
+			(xy 151.13 63.5) (xy 148.59 63.5)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "92e2d95d-6533-4bd9-8f2b-b3e555606805")
 	)
 	(wire
 		(pts
@@ -1749,17 +1709,7 @@
 	)
 	(wire
 		(pts
-			(xy 160.02 39.37) (xy 166.37 39.37)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "c977d448-10ef-48e0-b1ab-687df2b5b208")
-	)
-	(wire
-		(pts
-			(xy 148.59 77.47) (xy 148.59 63.5)
+			(xy 148.59 77.47) (xy 148.59 68.58)
 		)
 		(stroke
 			(width 0)
@@ -1776,6 +1726,16 @@
 			(type default)
 		)
 		(uuid "df36c4e0-2dd2-404c-b2b1-a2e0381582ab")
+	)
+	(wire
+		(pts
+			(xy 148.59 68.58) (xy 151.13 68.58)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e01a5ceb-f3a2-4952-8a0d-ee02086b9133")
 	)
 	(wire
 		(pts
@@ -1799,7 +1759,7 @@
 	)
 	(wire
 		(pts
-			(xy 138.43 44.45) (xy 156.21 44.45)
+			(xy 138.43 44.45) (xy 144.78 44.45)
 		)
 		(stroke
 			(width 0)
@@ -1946,16 +1906,16 @@
 	)
 	(symbol
 		(lib_id "Device:D_Photo")
-		(at 55.88 59.69 270)
+		(at 55.88 59.69 90)
+		(mirror x)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "20265dc2-b76c-41be-ab60-dc4b319352b4")
 		(property "Reference" "D1"
-			(at 60.96 57.4674 90)
+			(at 50.8 57.4674 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1964,7 +1924,7 @@
 			)
 		)
 		(property "Value" "D_Photo"
-			(at 60.96 60.0074 90)
+			(at 50.8 60.0074 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2356,16 +2316,16 @@
 	)
 	(symbol
 		(lib_id "Device:R_Potentiometer")
-		(at 160.02 44.45 90)
+		(at 148.59 44.45 90)
+		(mirror x)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "60f00d3a-806b-47cd-a841-1f9a9a3f2fa8")
 		(property "Reference" "RV1"
-			(at 160.02 48.26 90)
+			(at 148.59 40.64 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2373,7 +2333,7 @@
 			)
 		)
 		(property "Value" "100K"
-			(at 160.02 50.8 90)
+			(at 148.59 38.1 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2381,7 +2341,7 @@
 			)
 		)
 		(property "Footprint" "Potentiometer_THT:Potentiometer_ACP_CA9-V10_Vertical_Hole"
-			(at 160.02 44.45 0)
+			(at 148.59 44.45 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2390,7 +2350,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 160.02 44.45 0)
+			(at 148.59 44.45 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2399,7 +2359,7 @@
 			)
 		)
 		(property "Description" "Potentiometer"
-			(at 160.02 44.45 0)
+			(at 148.59 44.45 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2795,15 +2755,15 @@
 	(symbol
 		(lib_id "Amplifier_Operational:LM358")
 		(at 158.75 66.04 0)
+		(mirror x)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "e719b88c-1dff-45d7-808f-a09ad2145c31")
 		(property "Reference" "U2"
-			(at 158.75 55.88 0)
+			(at 158.75 76.2 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2811,7 +2771,7 @@
 			)
 		)
 		(property "Value" "LM358"
-			(at 158.75 58.42 0)
+			(at 158.75 73.66 0)
 			(effects
 				(font
 					(size 1.27 1.27)
