@@ -1816,7 +1816,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Diode_THT:D_A-405_P5.08mm_Vertical_KathodeUp"
+		(property "Footprint" "Library:LTR-516AD"
 			(at 76.2 45.72 0)
 			(effects
 				(font
@@ -2843,7 +2843,7 @@
 			)
 		)
 		(pin "8"
-			(uuid "a87afb64-a253-4a04-a594-da36f929946a")
+			(uuid "a87afb64-a253-4a04-a594-da36f929946b")
 		)
 		(pin "5"
 			(uuid "4edba835-5cfe-4c83-91b5-516174f1aa66")
@@ -2855,16 +2855,16 @@
 			(uuid "370986a1-d511-4ee4-9006-2155d11c306b")
 		)
 		(pin "2"
-			(uuid "e98be49e-eb0d-4cc6-a771-61a643db7478")
+			(uuid "e98be49e-eb0d-4cc6-a771-61a643db7479")
 		)
 		(pin "3"
-			(uuid "b79a1397-568c-4482-9001-4798584aa7c1")
+			(uuid "b79a1397-568c-4482-9001-4798584aa7c2")
 		)
 		(pin "1"
-			(uuid "8863f30e-f686-4f4a-9da6-e7681077bf3f")
+			(uuid "8863f30e-f686-4f4a-9da6-e7681077bf40")
 		)
 		(pin "4"
-			(uuid "97aa6ae9-8819-4676-bbd6-e5d079c94b2e")
+			(uuid "97aa6ae9-8819-4676-bbd6-e5d079c94b2f")
 		)
 		(instances
 			(project ""
@@ -3107,7 +3107,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_THT:CP_Axial_L30.0mm_D18.0mm_P35.00mm_Horizontal"
+		(property "Footprint" "Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder"
 			(at 105.41 53.6448 0)
 			(effects
 				(font

@@ -1,0 +1,120 @@
+(footprint "LTR-516AD"
+	(version 20241229)
+	(generator "pcbnew")
+	(generator_version "9.0")
+	(layer "F.Cu")
+	(descr "SENSOR PHOTODIODE 940NM RADIAL")
+	(property "Reference" "REF**"
+		(at 0 -2.54 0)
+		(unlocked yes)
+		(layer "F.SilkS")
+		(uuid "c86b9741-d607-457f-82f8-a884ea7c1f6e")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.1)
+			)
+		)
+	)
+	(property "Value" "LTR-516AD"
+		(at 0 1 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(uuid "4cfc7434-88d3-4edd-8ab8-dfc3ba5862bb")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" "https://optoelectronics.liteon.com/upload/download/DS-50-93-0021/R516AD.pdf"
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "7ef1f6e5-1221-4397-b259-2e9bcd63bcf1")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" "SENSOR PHOTODIODE 940NM RADIAL"
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "0dc7ef3b-aa2a-4310-8935-e8577856bcbf")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(fp_line
+		(start -2.032 -1.523998)
+		(end 2.031998 -1.524)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "a5a47fae-3595-4048-84d1-a8631917965a")
+	)
+	(fp_arc
+		(start 2.031999 -1.524001)
+		(mid 0.000001 2.54)
+		(end -2.032 -1.524)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "61ac4d25-33bf-4519-91bd-173ae6d670ca")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0 2.5 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(uuid "38bebbef-6a8b-4fc9-91a0-6f000b515819")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "1" thru_hole roundrect
+		(at -1.27 0)
+		(size 1.27 1.27)
+		(drill 0.8)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(roundrect_rratio 0.15)
+		(uuid "8cc60b19-793d-4fab-9f50-9b0a69dc8e06")
+	)
+	(pad "2" thru_hole circle
+		(at 1.27 0)
+		(size 1.27 1.27)
+		(drill 0.8)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "581f44da-a550-4e5a-bd8d-bcee1df46f64")
+	)
+	(embedded_fonts no)
+	(model "${KIPRJMOD}/models/LTR-516AD.STEP"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -90 -0 -0)
+		)
+	)
+)
