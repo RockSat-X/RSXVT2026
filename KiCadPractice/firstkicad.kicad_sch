@@ -1679,7 +1679,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal"
+		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
 			(at 135.382 95.25 90)
 			(effects
 				(font
@@ -1886,7 +1886,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal"
+		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
 			(at 108.458 59.69 90)
 			(effects
 				(font
@@ -2088,7 +2088,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal"
+		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
 			(at 104.902 49.53 90)
 			(effects
 				(font
@@ -2291,7 +2291,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Potentiometer_THT:Potentiometer_ACP_CA9-V10_Vertical_Hole"
+		(property "Footprint" "Potentiometer_THT:Potentiometer_Bourns_3266W_Vertical"
 			(at 148.59 44.45 0)
 			(effects
 				(font
@@ -2361,7 +2361,7 @@
 				)
 			)
 		)
-		(property "Footprint" "OptoDevice:Broadcom_APDS-9160-003"
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-8_Handsoldering"
 			(at 128.27 57.15 0)
 			(effects
 				(font
@@ -2449,7 +2449,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal"
+		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
 			(at 135.382 80.01 90)
 			(effects
 				(font
@@ -2517,7 +2517,7 @@
 				)
 			)
 		)
-		(property "Footprint" "OptoDevice:Broadcom_APDS-9160-003"
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-8_Handsoldering"
 			(at 176.53 53.34 0)
 			(effects
 				(font
@@ -2671,7 +2671,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal"
+		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
 			(at 82.042 45.72 90)
 			(effects
 				(font
@@ -2741,7 +2741,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Transformer_THT:Autotransformer_Toroid_1Tap_Horizontal_D10.5mm_Amidon-T37"
+		(property "Footprint" "Package_TO_SOT_THT:TO-92L_Inline"
 			(at 86.36 61.595 0)
 			(effects
 				(font
@@ -2815,7 +2815,7 @@
 				)
 			)
 		)
-		(property "Footprint" "OptoDevice:Broadcom_APDS-9160-003"
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-8_Handsoldering"
 			(at 156.21 57.15 0)
 			(effects
 				(font
@@ -3036,7 +3036,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" "Potentiometer_THT:Potentiometer_ACP_CA9-V10_Vertical_Hole"
+		(property "Footprint" "Potentiometer_THT:Potentiometer_Bourns_3266W_Vertical"
 			(at 137.16 87.63 0)
 			(effects
 				(font
