@@ -98,6 +98,7 @@ enum I2CDriverState : u32
     I2CDriverState_standby,
     I2CDriverState_scheduled_transfer,
     I2CDriverState_transferring,
+    I2CDriverState_stopping,
 };
 
 struct I2CDriver

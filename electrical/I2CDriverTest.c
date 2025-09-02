@@ -27,7 +27,16 @@ main(void)
 
     // TODO Test the I2C.
 
-    I2C_blocking_transfer(0x78, true, 5);
+    enum I2CBlockingTransfer result = I2C_blocking_transfer(0x78, true, 5);
+    switch (result)
+    {
+        case I2CBlockingTransfer_done:
+        {
+            // Transfer was successful!
+        } break;
+
+        default: panic;
+    }
 
     for (;;)
     {

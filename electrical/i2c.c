@@ -8,7 +8,10 @@ static struct I2CDriver _driver = {0}; // TODO Ad-hoc.
 
 
 
-static void
+static useret enum I2CBlockingTransfer
+{
+    I2CBlockingTransfer_done,
+}
 I2C_blocking_transfer
 (
     u8  slave_address,
@@ -35,6 +38,7 @@ I2C_blocking_transfer
 
         case I2CDriverState_scheduled_transfer : panic;
         case I2CDriverState_transferring       : panic;
+        case I2CDriverState_stopping           : panic;
         default                                : panic;
     }
 
@@ -44,11 +48,12 @@ I2C_blocking_transfer
         {
             case I2CDriverState_standby:
             {
-                sorry
+                return I2CBlockingTransfer_done;
             } break;
 
             case I2CDriverState_scheduled_transfer:
             case I2CDriverState_transferring:
+            case I2CDriverState_stopping:
             {
                 // The driver is busy...
             } break;
@@ -131,10 +136,10 @@ I2C_reinit(void)
 
 
 
-static useret enum I2CUpdate
+static useret enum I2CUpdateOnce
 {
-    I2CUpdate_again,
-    I2CUpdate_yield,
+    I2CUpdateOnce_again,
+    I2CUpdateOnce_yield,
 }
 _I2C_update_once(struct I2CDriver* driver)
 {
@@ -220,7 +225,13 @@ _I2C_update_once(struct I2CDriver* driver)
 
     else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, STOPF))
     {
-        sorry
+
+        CMSIS_SET(I2C, ICR, STOPCF, true); // We're done with the transfer!
+
+        driver->state = I2CDriverState_standby;
+
+        return I2CUpdateOnce_again;
+
     }
 
 
@@ -230,7 +241,13 @@ _I2C_update_once(struct I2CDriver* driver)
 
     else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, TC))
     {
-        sorry
+
+        CMSIS_SET(I2C, CR2, STOP, true); // Begin sending out the STOP signal.
+
+        driver->state = I2CDriverState_stopping;
+
+        return I2CUpdateOnce_again;
+
     }
 
 
@@ -250,11 +267,11 @@ _I2C_update_once(struct I2CDriver* driver)
 
     else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, RXNE))
     {
-        u8 data = CMSIS_GET(I2C, RXDR, RXDATA);
+        u8 data = CMSIS_GET(I2C, RXDR, RXDATA); // Pop data from the RX-buffer.
 
         JIG_tx("0x%02X\n", data); // TMP
 
-        return I2CUpdate_again;
+        return I2CUpdateOnce_again;
     }
 
 
@@ -278,7 +295,7 @@ _I2C_update_once(struct I2CDriver* driver)
 
         case I2CDriverState_standby:
         {
-            sorry
+            return I2CUpdateOnce_yield; // Nothing to do until the user schedules a transfer.
         } break;
 
 
@@ -299,7 +316,7 @@ _I2C_update_once(struct I2CDriver* driver)
 
             driver->state = I2CDriverState_transferring;
 
-            return I2CUpdate_again;
+            return I2CUpdateOnce_again;
 
         } break;
 
@@ -309,7 +326,16 @@ _I2C_update_once(struct I2CDriver* driver)
 
         case I2CDriverState_transferring:
         {
-            return I2CUpdate_yield; // Nothing to do until there's an interrupt status.
+            return I2CUpdateOnce_yield; // Nothing to do until there's an interrupt status.
+        } break;
+
+
+
+        // We're in the process of stopping the transfer.
+
+        case I2CDriverState_stopping:
+        {
+            return I2CUpdateOnce_yield; // Nothing to do until there's an interrupt status.
         } break;
 
 
@@ -328,15 +354,15 @@ _I2C_update_entirely(struct I2CDriver* driver)
     for (b32 yield = false; !yield;)
     {
 
-        enum I2CUpdate result = _I2C_update_once(driver);
+        enum I2CUpdateOnce result = _I2C_update_once(driver);
 
-        yield = (result == I2CUpdate_yield);
+        yield = (result == I2CUpdateOnce_yield);
 
         switch (result)
         {
-            case I2CUpdate_again : break; // The state-machine will be updated again.
-            case I2CUpdate_yield : break; // We can stop updating the state-machine for now.
-            default              : panic;
+            case I2CUpdateOnce_again : break; // The state-machine will be updated again.
+            case I2CUpdateOnce_yield : break; // We can stop updating the state-machine for now.
+            default                  : panic;
         }
 
     }
