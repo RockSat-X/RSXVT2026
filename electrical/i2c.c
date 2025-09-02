@@ -655,7 +655,7 @@ _I2C_update_entirely(enum I2CHandle handle)
         for unit in target.i2c_units:
             for suffix in ('EV', 'ER'):
                 Meta.line(f'''
-                    INTERRUPT_I2C1_{suffix}
+                    INTERRUPT_I2C{unit}_{suffix}
                     {{
                         _I2C_update_entirely(I2CHandle_{unit});
                     }}
