@@ -213,14 +213,14 @@ TARGETS = ( # @/`Defining a TARGET`.
         },
 
         gpios = (
-            ('led_green' , 'A5' , 'output'    , { 'initlvl' : False                            }),
-            ('jig_tx'    , 'A2' , 'alternate' , { 'altfunc' : 'USART2_TX'                      }),
-            ('jig_rx'    , 'A3' , 'alternate' , { 'altfunc' : 'USART2_RX'                      }),
-            ('swdio'     , 'A13', 'reserved'  , {                                              }),
-            ('swclk'     , 'A14', 'reserved'  , {                                              }),
-            ('button'    , 'C13', 'input'     , { 'pull'    : 'up'                             }),
-            ('i2c1_scl'  , 'B6' , 'alternate' , { 'altfunc' : 'I2C1_SCL', 'open_drain' : True  }),
-            ('i2c1_sda'  , 'B7' , 'alternate' , { 'altfunc' : 'I2C1_SDA', 'open_drain' : True  }),
+            ('led_green' , 'A5' , 'output'    , { 'initlvl' : False                                          }),
+            ('jig_tx'    , 'A2' , 'alternate' , { 'altfunc' : 'USART2_TX'                                    }),
+            ('jig_rx'    , 'A3' , 'alternate' , { 'altfunc' : 'USART2_RX'                                    }),
+            ('swdio'     , 'A13', 'reserved'  , {                                                            }),
+            ('swclk'     , 'A14', 'reserved'  , {                                                            }),
+            ('button'    , 'C13', 'input'     , { 'pull'    : 'up'                                           }),
+            ('i2c1_scl'  , 'B6' , 'alternate' , { 'altfunc' : 'I2C1_SCL', 'open_drain' : True, 'pull' : 'up' }),
+            ('i2c1_sda'  , 'B7' , 'alternate' , { 'altfunc' : 'I2C1_SDA', 'open_drain' : True, 'pull' : 'up' }),
         ),
 
         interrupt_priorities = (
