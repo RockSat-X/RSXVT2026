@@ -30,16 +30,16 @@ main(void)
     {
         u8 buffer[] = { 0x30, 0x08 };
 
-        enum I2CBlockingTransfer result = I2C_blocking_transfer(I2CHandle_1, 0x78, false, buffer, countof(buffer));
+        enum I2CDriverError result = I2C_blocking_transfer(I2CHandle_1, 0x78, false, buffer, countof(buffer));
 
         switch (result)
         {
-            case I2CBlockingTransfer_done:
+            case I2CDriverError_none:
             {
                 // Transfer was successful!
             } break;
 
-            case I2CBlockingTransfer_no_acknowledge:
+            case I2CDriverError_no_acknowledge:
             {
                 // Uh oh!
             } break;
@@ -50,16 +50,16 @@ main(void)
     {
         u8 buffer[] = { 0x00, 0x00 };
 
-        enum I2CBlockingTransfer result = I2C_blocking_transfer(I2CHandle_1, 0x78, true, buffer, countof(buffer));
+        enum I2CDriverError result = I2C_blocking_transfer(I2CHandle_1, 0x78, true, buffer, countof(buffer));
 
         switch (result)
         {
-            case I2CBlockingTransfer_done:
+            case I2CDriverError_none:
             {
                 // Transfer was successful!
             } break;
 
-            case I2CBlockingTransfer_no_acknowledge:
+            case I2CDriverError_no_acknowledge:
             {
                 // Uh oh!
             } break;
@@ -77,7 +77,7 @@ main(void)
     for (;;)
     {
         GPIO_TOGGLE(led_green);
-        spinlock_nop(10'000'000);
+        spinlock_nop(40'000'000);
     }
 
 }

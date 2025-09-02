@@ -58,11 +58,7 @@ static struct I2CDriver _I2C_drivers[I2CHandle_COUNT] = {0};
 
 
 
-static useret enum I2CBlockingTransfer : u32
-{
-    I2CBlockingTransfer_done,
-    I2CBlockingTransfer_no_acknowledge,
-}
+static useret enum I2CDriverError
 I2C_blocking_transfer
 (
     enum I2CHandle handle,
@@ -122,20 +118,7 @@ I2C_blocking_transfer
 
             case I2CDriverState_standby:
             {
-                switch (driver->error)
-                {
-                    case I2CDriverError_none:
-                    {
-                        return I2CBlockingTransfer_done;
-                    } break;
-
-                    case I2CDriverError_no_acknowledge:
-                    {
-                        return I2CBlockingTransfer_no_acknowledge;
-                    } break;
-
-                    default: panic;
-                }
+                return driver->error;
             } break;
 
 
