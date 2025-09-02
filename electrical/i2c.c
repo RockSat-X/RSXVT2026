@@ -21,6 +21,12 @@ enum I2CDriverState : u32
     I2CDriverState_stopping,
 };
 
+enum I2CDriverError : u32
+{
+    I2CDriverError_none,
+    I2CDriverError_no_acknowledge,
+};
+
 struct I2CDriver
 {
     volatile enum I2CDriverState state;
@@ -29,6 +35,7 @@ struct I2CDriver
     u8*                          pointer;
     i32                          amount;
     i32                          progress;
+    enum I2CDriverError          error;
 };
 
 static struct I2CDriver _I2C_drivers[I2CHandle_COUNT] = {0};
@@ -54,6 +61,7 @@ static struct I2CDriver _I2C_drivers[I2CHandle_COUNT] = {0};
 static useret enum I2CBlockingTransfer : u32
 {
     I2CBlockingTransfer_done,
+    I2CBlockingTransfer_no_acknowledge,
 }
 I2C_blocking_transfer
 (
@@ -87,6 +95,7 @@ I2C_blocking_transfer
             driver->pointer  = pointer;
             driver->amount   = amount;
             driver->progress = 0;
+            driver->error    = I2CDriverError_none;
             __DMB();
             driver->state    = I2CDriverState_scheduled_transfer;
 
@@ -94,9 +103,9 @@ I2C_blocking_transfer
 
         } break;
 
-        case I2CDriverState_scheduled_transfer : panic; // The driver
-        case I2CDriverState_transferring       : panic; // shouldn't be
-        case I2CDriverState_stopping           : panic; // busy...
+        case I2CDriverState_scheduled_transfer : panic;
+        case I2CDriverState_transferring       : panic;
+        case I2CDriverState_stopping           : panic;
         default                                : panic;
     }
 
@@ -113,7 +122,20 @@ I2C_blocking_transfer
 
             case I2CDriverState_standby:
             {
-                return I2CBlockingTransfer_done;
+                switch (driver->error)
+                {
+                    case I2CDriverError_none:
+                    {
+                        return I2CBlockingTransfer_done;
+                    } break;
+
+                    case I2CDriverError_no_acknowledge:
+                    {
+                        return I2CBlockingTransfer_no_acknowledge;
+                    } break;
+
+                    default: panic;
+                }
             } break;
 
 
@@ -379,6 +401,9 @@ _I2C_update_once(enum I2CHandle handle)
             if (CMSIS_GET(I2C, CR2, START))
                 panic;
 
+            if (driver->error)
+                panic;
+
             CMSIS_SET
             (
                 I2C   , CR2              ,
@@ -405,7 +430,12 @@ _I2C_update_once(enum I2CHandle handle)
 
             case I2CInterruptEvent_none:
             {
+
+                if (driver->error)
+                    panic;
+
                 return I2CUpdateOnce_yield;
+
             } break;
 
 
@@ -414,7 +444,20 @@ _I2C_update_once(enum I2CHandle handle)
 
             case I2CInterruptEvent_nack_signaled:
             {
-                sorry
+
+                if (driver->error)
+                    panic;
+
+                CMSIS_SET(I2C, ICR, NACKCF, true);
+
+                // Begin sending out the STOP signal.
+                CMSIS_SET(I2C, CR2, STOP, true);
+
+                driver->state = I2CDriverState_stopping;
+                driver->error = I2CDriverError_no_acknowledge;
+
+                return I2CUpdateOnce_again;
+
             } break;
 
 
@@ -423,6 +466,9 @@ _I2C_update_once(enum I2CHandle handle)
 
             case I2CInterruptEvent_data_available_to_read:
             {
+
+                if (driver->error)
+                    panic;
 
                 if (!(0 <= driver->progress && driver->progress < driver->amount))
                     panic;
@@ -443,6 +489,9 @@ _I2C_update_once(enum I2CHandle handle)
 
             case I2CInterruptEvent_ready_to_transmit_data:
             {
+
+                if (driver->error)
+                    panic;
 
                 if (!(0 <= driver->progress && driver->progress < driver->amount))
                     panic;
@@ -465,7 +514,10 @@ _I2C_update_once(enum I2CHandle handle)
             case I2CInterruptEvent_transfer_completed:
             {
 
-                if (driver->progress != driver->amount)
+                if (driver->error)
+                    panic;
+
+                if (!iff(driver->progress == driver->amount, !driver->error))
                     panic;
 
                 // Begin sending out the STOP signal.
@@ -505,7 +557,7 @@ _I2C_update_once(enum I2CHandle handle)
             case I2CInterruptEvent_stop_signaled:
             {
 
-                if (driver->progress != driver->amount)
+                if (!iff(driver->progress == driver->amount, !driver->error))
                     panic;
 
                 // Clear the flag.

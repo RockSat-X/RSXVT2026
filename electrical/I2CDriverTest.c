@@ -27,23 +27,50 @@ main(void)
 
     // TODO Test the I2C.
 
-    u8 buffer[5] = {0};
-
-    enum I2CBlockingTransfer result = I2C_blocking_transfer(I2CHandle_1, 0x78, true, buffer, countof(buffer));
-
-    switch (result)
     {
-        case I2CBlockingTransfer_done:
+        u8 buffer[] = { 0x30, 0x08 };
+
+        enum I2CBlockingTransfer result = I2C_blocking_transfer(I2CHandle_1, 0x78, false, buffer, countof(buffer));
+
+        switch (result)
         {
-            // Transfer was successful!
-        } break;
+            case I2CBlockingTransfer_done:
+            {
+                // Transfer was successful!
+            } break;
 
-        default: panic;
+            case I2CBlockingTransfer_no_acknowledge:
+            {
+                // Uh oh!
+            } break;
+
+            default: panic;
+        }
     }
-
-    for (i32 i = 0; i < countof(buffer); i += 1)
     {
-        JIG_tx("%d : 0x%02X\n", i, buffer[i]);
+        u8 buffer[] = { 0x00, 0x00 };
+
+        enum I2CBlockingTransfer result = I2C_blocking_transfer(I2CHandle_1, 0x78, true, buffer, countof(buffer));
+
+        switch (result)
+        {
+            case I2CBlockingTransfer_done:
+            {
+                // Transfer was successful!
+            } break;
+
+            case I2CBlockingTransfer_no_acknowledge:
+            {
+                // Uh oh!
+            } break;
+
+            default: panic;
+        }
+
+        for (i32 i = 0; i < countof(buffer); i += 1)
+        {
+            JIG_tx("%d : 0x%02X\n", i, buffer[i]);
+        }
     }
 
 
