@@ -27,7 +27,10 @@ main(void)
 
     // TODO Test the I2C.
 
-    enum I2CBlockingTransfer result = I2C_blocking_transfer(I2CHandle_1, 0x78, true, 5);
+    u8 buffer[5] = {0};
+
+    enum I2CBlockingTransfer result = I2C_blocking_transfer(I2CHandle_1, 0x78, true, buffer, countof(buffer));
+
     switch (result)
     {
         case I2CBlockingTransfer_done:
@@ -37,6 +40,12 @@ main(void)
 
         default: panic;
     }
+
+    for (i32 i = 0; i < countof(buffer); i += 1)
+    {
+        JIG_tx("%d : 0x%02X\n", i, buffer[i]);
+    }
+
 
     for (;;)
     {

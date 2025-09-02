@@ -24,9 +24,11 @@ enum I2CDriverState : u32
 struct I2CDriver
 {
     volatile enum I2CDriverState state;
-    u8                           slave_address;
-    b32                          reading_from_slave;
-    i32                          transfer_size;
+    u8                           address;
+    b32                          reading;
+    u8*                          pointer;
+    i32                          amount;
+    i32                          progress;
 };
 
 static struct I2CDriver _I2C_drivers[I2CHandle_COUNT] = {0};
@@ -55,9 +57,10 @@ static useret enum I2CBlockingTransfer
 I2C_blocking_transfer
 (
     enum I2CHandle handle,
-    u8             slave_address,
-    b32            reading_from_slave,
-    i32            transfer_size
+    u8             address,
+    b32            reading,
+    u8*            pointer,
+    i32            amount
 )
 {
 
@@ -71,9 +74,11 @@ I2C_blocking_transfer
     {
         case I2CDriverState_standby:
         {
-            driver->slave_address      = slave_address;
-            driver->reading_from_slave = reading_from_slave;
-            driver->transfer_size      = transfer_size;
+            driver->address  = address;
+            driver->reading  = reading;
+            driver->pointer  = pointer;
+            driver->amount   = amount;
+            driver->progress = 0;
 
             __DMB();
 
@@ -320,7 +325,8 @@ _I2C_update_once(enum I2CHandle handle)
     {
         u8 data = CMSIS_GET(I2C, RXDR, RXDATA); // Pop data from the RX-buffer.
 
-        JIG_tx("0x%02X\n", data); // TMP
+        driver->pointer[driver->progress]  = data;
+        driver->progress                  += 1;
 
         return I2CUpdateOnce_again;
     }
@@ -358,11 +364,11 @@ _I2C_update_once(enum I2CHandle handle)
 
             CMSIS_SET
             (
-                I2C   , CR2                         ,
-                SADD  , driver->slave_address       ,
-                RD_WRN, !!driver->reading_from_slave,
-                NBYTES, driver->transfer_size       ,
-                START , true                        ,
+                I2C   , CR2              ,
+                SADD  , driver->address  ,
+                RD_WRN, !!driver->reading,
+                NBYTES, driver->amount   ,
+                START , true             ,
             );
 
             driver->state = I2CDriverState_transferring;
