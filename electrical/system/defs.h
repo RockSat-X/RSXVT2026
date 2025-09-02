@@ -969,8 +969,8 @@ spinlock_nop(u32 count)
 static noret void           // "
 halt_(b32 panicking)        // "
 {
-    __disable_irq();
 
+    __disable_irq();
 
     #if TARGET_NAME_IS_SandboxNucleoH7S3L8
 
@@ -1005,9 +1005,7 @@ halt_(b32 panicking)        // "
             }
         }
 
-    #endif
-
-    #if TARGET_NAME_IS_SandboxNucleoH533RE
+    #else // We're going to assume there's an LED we can toggle.
 
         for (;;)
         {
@@ -1028,7 +1026,6 @@ halt_(b32 panicking)        // "
 
     #endif
 
-    for (;;); // Panic! Something horrible has happened!
 }
 
 
@@ -1082,7 +1079,7 @@ INTERRUPT_Default
 
         default:
         {
-            panic; // Unknown interrupt!
+            panic; // Unknown interrupt! TODO Make an enumeration so we know which it is easily.
         } break;
     }
 
