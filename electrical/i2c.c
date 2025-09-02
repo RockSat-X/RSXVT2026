@@ -75,7 +75,132 @@ I2C_reinit(void)
 
 INTERRUPT_I2C1_EV
 {
-    sorry
+    while (true)
+    {
+
+        u32 i2c_status = I2C1->ISR;
+
+
+
+        // Bus error.
+        // @/pg 2116/sec 48.4.17/`H533rm`.
+
+        if (CMSIS_GET_FROM(i2c_status, I2C, ISR, BERR))
+        {
+            sorry
+        }
+
+
+
+        // Arbitration loss.
+        // @/pg 2116/sec 48.4.17/`H533rm`.
+
+        else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, ARLO))
+        {
+            sorry
+        }
+
+
+
+        // Data overrun/overflow.
+        // @/pg 2117/sec 48.4.17/`H533rm`.
+
+        else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, OVR))
+        {
+            sorry
+        }
+
+
+
+        // Packet error checking.
+        // @/pg 2117/sec 48.4.17/`H533rm`.
+
+        else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, PECERR))
+        {
+            sorry
+        }
+
+
+
+        // Timeout.
+        // @/pg 2117/sec 48.4.17/`H533rm`.
+
+        else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, TIMEOUT))
+        {
+            sorry
+        }
+
+
+
+        // Alert.
+        // @/pg 2117/sec 48.4.17/`H533rm`.
+
+        else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, ALERT))
+        {
+            sorry
+        }
+
+
+
+        // A NACK was received.
+        // @/pg 2085/sec 48.4.8/`H533rm`.
+
+        else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, NACKF))
+        {
+            sorry
+        }
+
+
+
+        // A STOP was sent.
+        // @/pg 2085/sec 48.4.8/`H533rm`.
+
+        else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, STOPF))
+        {
+            sorry
+        }
+
+
+
+        // Transfer completed.
+        // @/pg 2095/sec 48.4.9/`H533rm`.
+
+        else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, TC))
+        {
+            sorry
+        }
+
+
+
+        // Transfer reloaded.
+        // @/pg 2095/sec 48.4.9/`H533rm`.
+
+        else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, TCR))
+        {
+            sorry
+        }
+
+
+
+        // Received data.
+        // @/pg 2089/sec 48.4.8/`H533rm`.
+
+        else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, RXNE))
+        {
+            sorry
+        }
+
+
+
+        // Data can be sent.
+        // @/pg 2085/sec 48.4.8/`H533rm`.
+
+        else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, TXIS))
+        {
+            sorry
+        }
+
+    }
 }
 
 INTERRUPT_I2C1_ER
