@@ -96,6 +96,7 @@ struct Jig
 enum I2CDriverState : u32
 {
     I2CDriverState_standby,
+    I2CDriverState_scheduled_transfer,
     I2CDriverState_transferring,
 };
 

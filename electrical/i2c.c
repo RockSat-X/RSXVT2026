@@ -22,13 +22,14 @@ I2C_blocking_transfer
 
             __DMB();
 
-            driver->state = I2CDriverState_transferring;
+            driver->state = I2CDriverState_scheduled_transfer;
 
             NVIC_SET_PENDING(I2C1_EV);
         } break;
 
-        case I2CDriverState_transferring : panic;
-        default                          : panic;
+        case I2CDriverState_scheduled_transfer : panic;
+        case I2CDriverState_transferring       : panic;
+        default                                : panic;
     }
 
     while (true)
@@ -40,6 +41,7 @@ I2C_blocking_transfer
                 sorry
             } break;
 
+            case I2CDriverState_scheduled_transfer:
             case I2CDriverState_transferring:
             {
                 // The driver is busy...
@@ -115,163 +117,223 @@ I2C_reinit(void)
 
 }
 
+
+
+static useret enum I2CUpdate
+{
+    I2CUpdate_again,
+    I2CUpdate_yield,
+}
+_I2C_update(void)
+{
+
+    struct I2CDriver* driver = &_driver; // TODO Ad-hoc.
+
+
+
+    u32 i2c_status = I2C1->ISR;
+
+
+
+    // Bus error.
+    // @/pg 2116/sec 48.4.17/`H533rm`.
+
+    if (CMSIS_GET_FROM(i2c_status, I2C, ISR, BERR))
+    {
+        sorry
+    }
+
+
+
+    // Arbitration loss.
+    // @/pg 2116/sec 48.4.17/`H533rm`.
+
+    else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, ARLO))
+    {
+        sorry
+    }
+
+
+
+    // Data overrun/overflow.
+    // @/pg 2117/sec 48.4.17/`H533rm`.
+
+    else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, OVR))
+    {
+        sorry
+    }
+
+
+
+    // Packet error checking.
+    // @/pg 2117/sec 48.4.17/`H533rm`.
+
+    else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, PECERR))
+    {
+        sorry
+    }
+
+
+
+    // Timeout.
+    // @/pg 2117/sec 48.4.17/`H533rm`.
+
+    else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, TIMEOUT))
+    {
+        sorry
+    }
+
+
+
+    // Alert.
+    // @/pg 2117/sec 48.4.17/`H533rm`.
+
+    else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, ALERT))
+    {
+        sorry
+    }
+
+
+
+    // A NACK was received.
+    // @/pg 2085/sec 48.4.8/`H533rm`.
+
+    else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, NACKF))
+    {
+        sorry
+    }
+
+
+
+    // A STOP was sent.
+    // @/pg 2085/sec 48.4.8/`H533rm`.
+
+    else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, STOPF))
+    {
+        sorry
+    }
+
+
+
+    // Transfer completed.
+    // @/pg 2095/sec 48.4.9/`H533rm`.
+
+    else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, TC))
+    {
+        sorry
+    }
+
+
+
+    // Transfer reloaded.
+    // @/pg 2095/sec 48.4.9/`H533rm`.
+
+    else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, TCR))
+    {
+        sorry
+    }
+
+
+
+    // Received data.
+    // @/pg 2089/sec 48.4.8/`H533rm`.
+
+    else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, RXNE))
+    {
+        u8 data = CMSIS_GET(I2C1, RXDR, RXDATA);
+
+        JIG_tx("0x%02X\n", data); // TMP
+
+        return I2CUpdate_again;
+    }
+
+
+
+    // Data can be sent.
+    // @/pg 2085/sec 48.4.8/`H533rm`.
+
+    else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, TXIS))
+    {
+        sorry
+    }
+
+
+
+    // No interrupt status flags to handle right now.
+
+    else switch (driver->state)
+    {
+
+        // The driver has nothing to do currently.
+
+        case I2CDriverState_standby:
+        {
+            sorry
+        } break;
+
+
+
+        // The user has a transfer they want to do.
+
+        case I2CDriverState_scheduled_transfer:
+        {
+
+            CMSIS_SET
+            (
+                I2C1  , CR2                         ,
+                SADD  , driver->slave_address       ,
+                RD_WRN, !!driver->reading_from_slave,
+                NBYTES, driver->transfer_size       ,
+                START , true                        ,
+            );
+
+            driver->state = I2CDriverState_transferring;
+
+            return I2CUpdate_again;
+
+        } break;
+
+
+
+        // We've already started the current transfer.
+
+        case I2CDriverState_transferring:
+        {
+            return I2CUpdate_yield; // Nothing to do until there's an interrupt status.
+        } break;
+
+
+
+        default: panic;
+
+    }
+
+}
+
+
+
 INTERRUPT_I2C1_EV
 {
     struct I2CDriver* driver = &_driver; // TODO Ad-hoc.
 
-    while (true)
+    for (b32 yield = false; !yield;)
     {
 
-        u32 i2c_status = I2C1->ISR;
+        enum I2CUpdate result = _I2C_update();
 
+        yield = result == I2CUpdate_yield;
 
-
-        // Bus error.
-        // @/pg 2116/sec 48.4.17/`H533rm`.
-
-        if (CMSIS_GET_FROM(i2c_status, I2C, ISR, BERR))
+        switch (result)
         {
-            sorry
-        }
-
-
-
-        // Arbitration loss.
-        // @/pg 2116/sec 48.4.17/`H533rm`.
-
-        else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, ARLO))
-        {
-            sorry
-        }
-
-
-
-        // Data overrun/overflow.
-        // @/pg 2117/sec 48.4.17/`H533rm`.
-
-        else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, OVR))
-        {
-            sorry
-        }
-
-
-
-        // Packet error checking.
-        // @/pg 2117/sec 48.4.17/`H533rm`.
-
-        else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, PECERR))
-        {
-            sorry
-        }
-
-
-
-        // Timeout.
-        // @/pg 2117/sec 48.4.17/`H533rm`.
-
-        else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, TIMEOUT))
-        {
-            sorry
-        }
-
-
-
-        // Alert.
-        // @/pg 2117/sec 48.4.17/`H533rm`.
-
-        else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, ALERT))
-        {
-            sorry
-        }
-
-
-
-        // A NACK was received.
-        // @/pg 2085/sec 48.4.8/`H533rm`.
-
-        else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, NACKF))
-        {
-            sorry
-        }
-
-
-
-        // A STOP was sent.
-        // @/pg 2085/sec 48.4.8/`H533rm`.
-
-        else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, STOPF))
-        {
-            sorry
-        }
-
-
-
-        // Transfer completed.
-        // @/pg 2095/sec 48.4.9/`H533rm`.
-
-        else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, TC))
-        {
-            sorry
-        }
-
-
-
-        // Transfer reloaded.
-        // @/pg 2095/sec 48.4.9/`H533rm`.
-
-        else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, TCR))
-        {
-            sorry
-        }
-
-
-
-        // Received data.
-        // @/pg 2089/sec 48.4.8/`H533rm`.
-
-        else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, RXNE))
-        {
-            sorry
-        }
-
-
-
-        // Data can be sent.
-        // @/pg 2085/sec 48.4.8/`H533rm`.
-
-        else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, TXIS))
-        {
-            sorry
-        }
-
-
-
-        // Nothing interesting has happened.
-
-        else switch (driver->state)
-        {
-            case I2CDriverState_standby:
-            {
-                sorry
-            } break;
-
-            case I2CDriverState_transferring:
-            {
-                CMSIS_SET
-                (
-                    I2C1  , CR2                         ,
-                    SADD  , driver->slave_address       ,
-                    RD_WRN, !!driver->reading_from_slave,
-                    NBYTES, driver->transfer_size       ,
-                    START , true                        ,
-                );
-            } break;
-
-            default: panic;
+            case I2CUpdate_again : break; // The state-machine will be updated again.
+            case I2CUpdate_yield : break; // We can stop updating the state-machine for now.
+            default              : panic;
         }
 
     }
 }
+
+
 
 INTERRUPT_I2C1_ER
 {
