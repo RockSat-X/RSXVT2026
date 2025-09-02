@@ -224,7 +224,9 @@ TARGETS = ( # @/`Defining a TARGET`.
         ),
 
         interrupt_priorities = (
-            ('USART2', 0),
+            ('USART2' , 0),
+            ('I2C1_EV', 1),
+            ('I2C1_ER', 1),
         ),
 
     ),
