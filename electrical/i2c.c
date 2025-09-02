@@ -25,9 +25,11 @@
 
         Meta.lut('I2C_TABLE', (
             (
-                ('I2C_TypeDef*'        , 'I2C'    , f'I2C{unit}'),
-                ('struct CMSISPutTuple', 'I2CxRST', put(SYSTEM_DATABASE[target.mcu][f'i2c{unit}_reset' ])),
-                ('struct CMSISPutTuple', 'I2CxEN' , put(SYSTEM_DATABASE[target.mcu][f'i2c{unit}_enable'])),
+                ('I2C_TypeDef*'        , 'I2C'                  , f'I2C{unit}'),
+                ('struct CMSISPutTuple', 'I2CxRST'              , put(SYSTEM_DATABASE[target.mcu][f'i2c{unit}_reset' ])),
+                ('struct CMSISPutTuple', 'I2CxEN'               , put(SYSTEM_DATABASE[target.mcu][f'i2c{unit}_enable'])),
+                ('enum NVICInterrupt'  , 'NVICInterrupt_I2Cx_EV', f'NVICInterrupt_I2C{unit}_EV'                        ),
+                ('enum NVICInterrupt'  , 'NVICInterrupt_I2Cx_ER', f'NVICInterrupt_I2C{unit}_ER'                        ),
             ) for unit in target.i2c_units
         ))
 
@@ -67,12 +69,14 @@ static struct I2CDriver _I2C_drivers[I2CHandle_COUNT] = {0};
 
 
 #undef  _EXPAND_HANDLE
-#define _EXPAND_HANDLE                                                  \
-    if (!(0 <= handle && handle < I2CHandle_COUNT)) panic;              \
-    struct I2CDriver*    const driver  = &_I2C_drivers[handle];         \
-    I2C_TypeDef*         const I2C     = I2C_TABLE    [handle].I2C;     \
-    struct CMSISPutTuple const I2CxRST = I2C_TABLE    [handle].I2CxRST; \
-    struct CMSISPutTuple const I2CxEN  = I2C_TABLE    [handle].I2CxEN
+#define _EXPAND_HANDLE                                                                              \
+    if (!(0 <= handle && handle < I2CHandle_COUNT)) panic;                                          \
+    struct I2CDriver*    const driver                = &_I2C_drivers[handle];                       \
+    I2C_TypeDef*         const I2C                   = I2C_TABLE    [handle].I2C;                   \
+    struct CMSISPutTuple const I2CxRST               = I2C_TABLE    [handle].I2CxRST;               \
+    struct CMSISPutTuple const I2CxEN                = I2C_TABLE    [handle].I2CxEN;                \
+    enum NVICInterrupt   const NVICInterrupt_I2Cx_EV = I2C_TABLE    [handle].NVICInterrupt_I2Cx_EV; \
+    enum NVICInterrupt   const NVICInterrupt_I2Cx_ER = I2C_TABLE    [handle].NVICInterrupt_I2Cx_ER
 
 
 
@@ -117,7 +121,7 @@ I2C_blocking_transfer
             __DMB();
             driver->state    = I2CDriverState_scheduled_transfer;
 
-            NVIC_SET_PENDING(I2C1_EV); // TODO Abstract away.
+            NVIC_SET_PENDING(I2Cx_EV);
 
         } break;
 
@@ -192,8 +196,8 @@ I2C_reinit(enum I2CHandle handle)
 
     // Enable the interrupts.
 
-    NVIC_ENABLE(I2C1_EV); // TODO Abstract away.
-    NVIC_ENABLE(I2C1_ER); // TODO Abstract away.
+    NVIC_ENABLE(I2Cx_EV);
+    NVIC_ENABLE(I2Cx_ER);
 
 
 
