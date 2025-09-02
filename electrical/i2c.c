@@ -1,4 +1,4 @@
-extern void
+static void
 I2C_reinit(void)
 {
 
