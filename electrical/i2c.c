@@ -2,16 +2,31 @@
 
 
 
-enum I2CHandle : u32
-{
-    I2CHandle_1,
-    I2CHandle_COUNT,
-};
+#include "i2c_data.meta"
+/* #meta
 
-static const struct { I2C_TypeDef* I2C; } I2C_TABLE[] =
-    {
-        [I2CHandle_1] = { .I2C = I2C1, }
-    };
+    @Meta.ifs(TARGETS, '#if')
+    def _(target):
+
+        yield f'TARGET_NAME_IS_{target.name}'
+
+
+
+        # Make a handle for each I2C peripheral used.
+
+        Meta.enums('I2CHandle', 'u32', target.i2c_units)
+
+
+
+        # A look-up table for the driver to use the I2C peripheral easily.
+
+        Meta.lut('I2C_TABLE', (
+            (
+                ('I2C_TypeDef*', 'I2C', f'I2C{unit}'),
+            ) for unit in target.i2c_units
+        ))
+
+*/
 
 enum I2CDriverState : u32
 {
@@ -226,8 +241,6 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-    u32 interrupt_status = I2C->ISR;
-
     enum I2CInterruptEvent : u32
     {
         I2CInterruptEvent_none,
@@ -237,13 +250,15 @@ _I2C_update_once(enum I2CHandle handle)
         I2CInterruptEvent_data_available_to_read,
         I2CInterruptEvent_ready_to_transmit_data,
     };
+    enum I2CInterruptEvent interrupt_event  = {0};
+    u32                    interrupt_status = I2C->ISR;
 
-    enum I2CInterruptEvent interrupt_event = {0};
 
 
-
-    // Bus error.
+    // Currently not implemented.
+    // TODO Handle gracefully?
     // @/pg 2116/sec 48.4.17/`H533rm`.
+
     if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, BERR))
     {
         panic;
@@ -251,8 +266,10 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-    // Arbitration loss.
+    // Currently not implemented.
+    // TODO Handle gracefully?
     // @/pg 2116/sec 48.4.17/`H533rm`.
+
     else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, ARLO))
     {
         panic;
@@ -260,26 +277,10 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-    // Data overrun/overflow.
+    // Currently not implemented.
+    // TODO Detect if clock-stretching goes on for too long?
     // @/pg 2117/sec 48.4.17/`H533rm`.
-    else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, OVR))
-    {
-        panic;
-    }
 
-
-
-    // Packet error checking.
-    // @/pg 2117/sec 48.4.17/`H533rm`.
-    else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, PECERR))
-    {
-        panic;
-    }
-
-
-
-    // Timeout.
-    // @/pg 2117/sec 48.4.17/`H533rm`.
     else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, TIMEOUT))
     {
         panic;
@@ -287,9 +288,20 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-    // Alert.
+    // This status bit is only applicable to SMBus.
     // @/pg 2117/sec 48.4.17/`H533rm`.
+
     else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, ALERT))
+    {
+        panic;
+    }
+
+
+
+    // This status bit is only applicable to SMBus.
+    // @/pg 2117/sec 48.4.17/`H533rm`.
+
+    else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, PECERR))
     {
         panic;
     }
@@ -298,6 +310,7 @@ _I2C_update_once(enum I2CHandle handle)
 
     // Transfer reloaded.
     // @/pg 2095/sec 48.4.9/`H533rm`.
+
     else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, TCR))
     {
         panic;
@@ -305,7 +318,19 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
+    // Clock-stretching is enabled by default, so we
+    // shouldn't be getting any data overrun/underrun.
+    // @/pg 2117/sec 48.4.17/`H533rm`.
+
+    else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, OVR))
+    {
+        panic;
+    }
+
+
+
     // @/pg 2085/sec 48.4.8/`H533rm`.
+
     else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, NACKF))
     {
         interrupt_event = I2CInterruptEvent_nack_signaled;
@@ -314,6 +339,7 @@ _I2C_update_once(enum I2CHandle handle)
 
 
     // @/pg 2085/sec 48.4.8/`H533rm`.
+
     else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, STOPF))
     {
         interrupt_event = I2CInterruptEvent_stop_signaled;
@@ -322,6 +348,7 @@ _I2C_update_once(enum I2CHandle handle)
 
 
     // @/pg 2095/sec 48.4.9/`H533rm`.
+
     else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, TC))
     {
         interrupt_event = I2CInterruptEvent_transfer_completed;
@@ -330,6 +357,7 @@ _I2C_update_once(enum I2CHandle handle)
 
 
     // @/pg 2089/sec 48.4.8/`H533rm`.
+
     else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, RXNE))
     {
         interrupt_event = I2CInterruptEvent_data_available_to_read;
@@ -338,6 +366,7 @@ _I2C_update_once(enum I2CHandle handle)
 
 
     // @/pg 2085/sec 48.4.8/`H533rm`.
+
     else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, TXIS))
     {
         interrupt_event = I2CInterruptEvent_ready_to_transmit_data;
@@ -346,6 +375,7 @@ _I2C_update_once(enum I2CHandle handle)
 
 
     // Nothing notable happened.
+
     else
     {
         interrupt_event = I2CInterruptEvent_none;
@@ -543,7 +573,6 @@ _I2C_update_once(enum I2CHandle handle)
                 if (!iff(driver->progress == driver->amount, !driver->error))
                     panic;
 
-                // Clear the flag.
                 CMSIS_SET(I2C, ICR, STOPCF, true);
 
                 driver->state = I2CDriverState_standby;
@@ -606,18 +635,23 @@ _I2C_update_entirely(enum I2CHandle handle)
 
 
 
-INTERRUPT_I2C1_EV
-{
-    _I2C_update_entirely(I2CHandle_1);
-}
+// Define the interrupt handler for each I2C peripheral used.
 
+#include "i2c_interrupts.meta"
+/* #meta
 
+    @Meta.ifs(TARGETS, '#if')
+    def _(target):
 
-INTERRUPT_I2C1_ER
-{
-    sorry
-}
+        yield f'TARGET_NAME_IS_{target.name}'
 
+        for unit in target.i2c_units:
+            for suffix in ('EV', 'ER'):
+                Meta.line(f'''
+                    INTERRUPT_I2C1_{suffix}
+                    {{
+                        _I2C_update_entirely(I2CHandle_{unit});
+                    }}
+                ''')
 
-
-////////////////////////////////////////////////////////////////////////////////
+*/

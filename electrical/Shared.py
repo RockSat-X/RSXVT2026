@@ -125,6 +125,9 @@ TARGETS = ( # @/`Defining a TARGET`.
             ('USART3', 0),
         ),
 
+        i2c_units = (
+        ),
+
     ),
 
     types.SimpleNamespace(
@@ -173,6 +176,9 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         interrupt_priorities = (
             ('USART2', 0),
+        ),
+
+        i2c_units = (
         ),
 
     ),
@@ -227,6 +233,10 @@ TARGETS = ( # @/`Defining a TARGET`.
             ('USART2' , 0),
             ('I2C1_EV', 1),
             ('I2C1_ER', 1),
+        ),
+
+        i2c_units = (
+            1,
         ),
 
     ),
@@ -438,6 +448,8 @@ for target in TARGETS:
 #                              interrupt to be enabled in the NVIC. It should be noted that
 #                              the priority value of interrupts work on a niceless level, so
 #                              the lower the number is, the higher priority it actually is.
+#
+#     - i2c_units            = TODO.
 #
 # It's also useful to have a "sandbox" target where it's pretty much
 # just a demo program for a Nucleo board; some LEDS blinking, maybe
