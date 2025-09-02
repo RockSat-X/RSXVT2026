@@ -156,6 +156,8 @@
             ),
             ('APB1LENR',
                 ('USART2EN', 'uxart_2_enable'),
+                ('I2C1EN'  , 'i2c1_enable'   ),
+                ('I2C2EN'  , 'i2c2_enable'   ),
             ),
             ('CCIPR1',
                 *(
@@ -210,6 +212,10 @@
                     # TODO hse_ck.
                 )),
             ),
+            ('APB1LRSTR',
+                ('I2C1RST', 'i2c1_reset'),
+                ('I2C2RST', 'i2c2_reset'),
+            )
         ),
         ('USART',
             ('BRR',
