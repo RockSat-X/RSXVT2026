@@ -219,6 +219,8 @@ TARGETS = ( # @/`Defining a TARGET`.
             ('swdio'     , 'A13', 'reserved'  , {                         }),
             ('swclk'     , 'A14', 'reserved'  , {                         }),
             ('button'    , 'C13', 'input'     , { 'pull'    : 'up'        }),
+            ('i2c1_scl'  , 'B6' , 'alternate' , { 'altfunc' : 'I2C1_SCL'  }),
+            ('i2c1_sda'  , 'B7' , 'alternate' , { 'altfunc' : 'I2C1_SDA'  }),
         ),
 
         interrupt_priorities = (
