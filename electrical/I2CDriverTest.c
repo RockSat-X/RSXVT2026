@@ -27,6 +27,8 @@ main(void)
 
     // TODO Test the I2C.
 
+    I2C_blocking_transfer(0x78, true, 5);
+
     for (;;)
     {
         GPIO_TOGGLE(led_green);

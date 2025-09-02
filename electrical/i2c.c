@@ -1,3 +1,57 @@
+static struct I2CDriver _driver = {0}; // TODO Ad-hoc.
+
+
+
+static void
+I2C_blocking_transfer
+(
+    u8  slave_address,
+    b32 reading_from_slave,
+    i32 transfer_size
+)
+{
+    struct I2CDriver* driver = &_driver; // TODO Ad-hoc.
+
+    switch (driver->state)
+    {
+        case I2CDriverState_standby:
+        {
+            driver->slave_address      = slave_address;
+            driver->reading_from_slave = reading_from_slave;
+            driver->transfer_size      = transfer_size;
+
+            __DMB();
+
+            driver->state = I2CDriverState_transferring;
+
+            NVIC_SET_PENDING(I2C1_EV);
+        } break;
+
+        case I2CDriverState_transferring : panic;
+        default                          : panic;
+    }
+
+    while (true)
+    {
+        switch (driver->state)
+        {
+            case I2CDriverState_standby:
+            {
+                sorry
+            } break;
+
+            case I2CDriverState_transferring:
+            {
+                // The driver is busy...
+            } break;
+
+            default: panic;
+        }
+    }
+}
+
+
+
 static void
 I2C_reinit(void)
 {
@@ -8,8 +62,13 @@ I2C_reinit(void)
     #define I2C1_TIMINGR_SCL_init   250
     CMSIS_SET(RCC, CCIPR4, I2C1SEL, 0b10);
 
+    struct I2CDriver* driver = &_driver;
+
+
 
     // Reset-cycle the peripheral.
+
+    *driver = (struct I2CDriver) {0};
 
     CMSIS_SET(RCC, APB1LRSTR, I2C1RST, true );
     CMSIS_SET(RCC, APB1LRSTR, I2C1RST, false);
@@ -54,27 +113,12 @@ I2C_reinit(void)
         PE    , true  , // Enable the peripheral.
     );
 
-
-
-    // TODO Ad-hoc.
-
-    u8  address       = 0x78;
-    b32 is_read       = true;
-    i32 transfer_size = 8;
-
-    CMSIS_SET
-    (
-        I2C1  , CR2          ,
-        SADD  , address      ,
-        RD_WRN, is_read      ,
-        NBYTES, transfer_size,
-        START , true         ,
-    );
-
 }
 
 INTERRUPT_I2C1_EV
 {
+    struct I2CDriver* driver = &_driver; // TODO Ad-hoc.
+
     while (true)
     {
 
@@ -198,6 +242,32 @@ INTERRUPT_I2C1_EV
         else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, TXIS))
         {
             sorry
+        }
+
+
+
+        // Nothing interesting has happened.
+
+        else switch (driver->state)
+        {
+            case I2CDriverState_standby:
+            {
+                sorry
+            } break;
+
+            case I2CDriverState_transferring:
+            {
+                CMSIS_SET
+                (
+                    I2C1  , CR2                         ,
+                    SADD  , driver->slave_address       ,
+                    RD_WRN, !!driver->reading_from_slave,
+                    NBYTES, driver->transfer_size       ,
+                    START , true                        ,
+                );
+            } break;
+
+            default: panic;
         }
 
     }

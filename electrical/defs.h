@@ -89,6 +89,26 @@ struct Jig
 
 
 
+//////////////////////////////////////////////////////////////// i2c.c ////////////////////////////////////////////////////////////////
+
+
+
+enum I2CDriverState : u32
+{
+    I2CDriverState_standby,
+    I2CDriverState_transferring,
+};
+
+struct I2CDriver
+{
+    volatile enum I2CDriverState state;
+    u8                           slave_address;
+    b32                          reading_from_slave;
+    i32                          transfer_size;
+};
+
+
+
 //////////////////////////////////////////////////////////////// Notes ////////////////////////////////////////////////////////////////
 
 
