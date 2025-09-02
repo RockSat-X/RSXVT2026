@@ -443,7 +443,19 @@ _I2C_update_once(enum I2CHandle handle)
 
             case I2CInterruptEvent_ready_to_transmit_data:
             {
-                sorry
+
+                if (!(0 <= driver->progress && driver->progress < driver->amount))
+                    panic;
+
+                u8 data = driver->pointer[driver->progress];
+
+                // Push data into the RX-buffer.
+                CMSIS_SET(I2C, TXDR, TXDATA, data);
+
+                driver->progress += 1;
+
+                return I2CUpdateOnce_again;
+
             } break;
 
 
