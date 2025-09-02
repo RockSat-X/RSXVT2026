@@ -136,7 +136,7 @@ TARGETS = ( # @/`Defining a TARGET`.
             ./electrical/system/Startup.S
         '''),
 
-        use_freertos = True,
+        use_freertos = False,
 
         main_stack_size = 8192,
 
