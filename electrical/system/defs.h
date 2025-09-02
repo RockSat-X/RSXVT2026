@@ -175,8 +175,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
             for interrupt in alias.interrupts:
                 terms += [f'INTERRUPT_{interrupt}']
-                terms += [f'{interrupt}_IRQn']
-                terms += [f'__MACRO_OVERLOAD__NVIC_ENABLE__{interrupt}']
+                terms += [f'NVICInterrupt_{interrupt}']
 
 
 
@@ -311,35 +310,37 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-    # If trying to define an interrupt handler and one makes a typo,
-    # then the function end up not replacing the weak symbol that's
-    # in place of the interrupt handler in the interrupt vector table,
-    # which can end up as a confusing bug. To prevent that, we will use a
-    # macro to set up the function prototype of the interrupt handler,
-    # and if a typo is made, then a compiler error will be generated.
-    # e.g:
-    # >
-    # >    INTERRUPT_TIM13           <- If "TIM13" interrupt exists,
-    # >    {                            then ok!
-    # >        ...
-    # >    }
-    # >
-    # >    INTERRUPT_TIM14           <- If "TIM14" interrupt doesn't exists,
-    # >    {                            then compiler error here; good!
-    # >        ...
-    # >    }
-    # >
-    # >    extern void
-    # >    __INTERRUPT_TIM14(void)   <- This will always compile,
-    # >    {                            even if "TIM14" doesn't exist; bad!
-    # >        ...
-    # >    }
-    # >
-
     @Meta.ifs(TARGETS, '#if')
     def _(target):
 
         yield f'TARGET_NAME_IS_{target.name}'
+
+
+
+        # If trying to define an interrupt handler and one makes a typo,
+        # then the function end up not replacing the weak symbol that's
+        # in place of the interrupt handler in the interrupt vector table,
+        # which can end up as a confusing bug. To prevent that, we will use a
+        # macro to set up the function prototype of the interrupt handler,
+        # and if a typo is made, then a compiler error will be generated.
+        # e.g:
+        # >
+        # >    INTERRUPT_TIM13           <- If "TIM13" interrupt exists,
+        # >    {                            then ok!
+        # >        ...
+        # >    }
+        # >
+        # >    INTERRUPT_TIM14           <- If "TIM14" interrupt doesn't exists,
+        # >    {                            then compiler error here; good!
+        # >        ...
+        # >    }
+        # >
+        # >    extern void
+        # >    __INTERRUPT_TIM14(void)   <- This will always compile,
+        # >    {                            even if "TIM14" doesn't exist; bad!
+        # >        ...
+        # >    }
+        # >
 
         for interrupt in ('Default',) + INTERRUPTS[target.mcu]:
 
@@ -351,7 +352,31 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
             Meta.define(f'INTERRUPT_{interrupt}', f'extern void __INTERRUPT_{interrupt}(void)')
 
+
+
+        # Create an enumeration for each interrupt the target is using
+        # so that the NVIC macros will only work with those specific interrupts.
+
+        Meta.enums(
+            'NVICInterrupt',
+            'u32',
+            (
+                (interrupt, f'{interrupt}_IRQn')
+                for interrupt, niceness in target.interrupt_priorities
+            )
+        )
 */
+
+
+
+// Macros to control the interrupt in NVIC.
+// @/pg 626/tbl B3-8/`Armv7-M`.
+// @/pg 1452/tbl D1.1.10/`Armv8-M`.
+
+#define NVIC_ENABLE(NAME)        ((void) (NVIC->ISER[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32)))
+#define NVIC_DISABLE(NAME)       ((void) (NVIC->ICER[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32)))
+#define NVIC_SET_PENDING(NAME)   ((void) (NVIC->ISPR[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32)))
+#define NVIC_CLEAR_PENDING(NAME) ((void) (NVIC->ICPR[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32)))
 
 
 
@@ -521,25 +546,6 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
             ################################ NVIC ################################
 
             put_title('NVIC')
-
-
-
-            # Make macros to control the interrupt in NVIC.
-            # @/pg 626/tbl B3-8/`Armv7-M`.
-            # @/pg 1452/tbl D1.1.10/`Armv8-M`.
-
-            for interrupt, niceness in target.interrupt_priorities:
-                for macro, register in (
-                    ('NVIC_ENABLE'       , 'ISER'),
-                    ('NVIC_DISABLE'      , 'ICER'),
-                    ('NVIC_SET_PENDING'  , 'ISPR'),
-                    ('NVIC_CLEAR_PENDING', 'ICPR'),
-                ):
-                    Meta.define(
-                        macro, ('INTERRUPT'),
-                        f'((void) (NVIC->{register}[{interrupt}_IRQn / 32] = 1 << ({interrupt}_IRQn % 32)))',
-                        INTERRUPT = interrupt
-                    )
 
 
 
