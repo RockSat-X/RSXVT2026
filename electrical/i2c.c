@@ -20,9 +20,14 @@
 
         # A look-up table for the driver to use the I2C peripheral easily.
 
+        def put(entry): # TODO.
+            return f'{{ &{entry.section}->{entry.register}, {entry.section}_{entry.register}_{entry.field}_Pos, {entry.section}_{entry.register}_{entry.field}_Msk }}'
+
         Meta.lut('I2C_TABLE', (
             (
-                ('I2C_TypeDef*', 'I2C', f'I2C{unit}'),
+                ('I2C_TypeDef*'        , 'I2C'    , f'I2C{unit}'),
+                ('struct CMSISPutTuple', 'I2CxRST', put(SYSTEM_DATABASE[target.mcu][f'i2c{unit}_reset' ])),
+                ('struct CMSISPutTuple', 'I2CxEN' , put(SYSTEM_DATABASE[target.mcu][f'i2c{unit}_enable'])),
             ) for unit in target.i2c_units
         ))
 
@@ -62,10 +67,12 @@ static struct I2CDriver _I2C_drivers[I2CHandle_COUNT] = {0};
 
 
 #undef  _EXPAND_HANDLE
-#define _EXPAND_HANDLE                                         \
-    if (!(0 <= handle && handle < I2CHandle_COUNT)) panic;     \
-    struct I2CDriver* const driver = &_I2C_drivers[handle];    \
-    I2C_TypeDef*      const I2C    = I2C_TABLE    [handle].I2C
+#define _EXPAND_HANDLE                                                  \
+    if (!(0 <= handle && handle < I2CHandle_COUNT)) panic;              \
+    struct I2CDriver*    const driver  = &_I2C_drivers[handle];         \
+    I2C_TypeDef*         const I2C     = I2C_TABLE    [handle].I2C;     \
+    struct CMSISPutTuple const I2CxRST = I2C_TABLE    [handle].I2CxRST; \
+    struct CMSISPutTuple const I2CxEN  = I2C_TABLE    [handle].I2CxEN
 
 
 
@@ -178,8 +185,8 @@ I2C_reinit(enum I2CHandle handle)
 
     // Reset-cycle the peripheral.
 
-    CMSIS_SET(RCC, APB1LRSTR, I2C1RST, true ); // TODO Abstract away.
-    CMSIS_SET(RCC, APB1LRSTR, I2C1RST, false); // TODO Abstract away.
+    CMSIS_PUT(I2CxRST, true );
+    CMSIS_PUT(I2CxRST, false);
 
 
 
@@ -192,7 +199,7 @@ I2C_reinit(enum I2CHandle handle)
 
     // Clock the peripheral.
 
-    CMSIS_SET(RCC, APB1LENR, I2C1EN, true); // TODO Abstract away.
+    CMSIS_PUT(I2CxEN, true);
 
 
 
