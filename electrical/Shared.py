@@ -177,6 +177,56 @@ TARGETS = ( # @/`Defining a TARGET`.
 
     ),
 
+    types.SimpleNamespace(
+
+        name               = 'I2CDriverTest',
+        mcu                = 'STM32H533RET6',
+        source_file_paths  = root('''
+            ./electrical/I2CDriverTest.c
+            ./electrical/system/Startup.S
+        '''),
+
+        use_freertos = False,
+
+        main_stack_size = 8192,
+
+        aliases = (
+            types.SimpleNamespace(
+                moniker    = 'UxART_STLINK',
+                actual     = 'USART2',
+                terms      = ['{}_BRR_BRR_init'],
+                interrupts = ['{}'],
+                puts       = [('{}_EN', 'uxart_2_enable')]
+            ),
+        ),
+
+        clock_tree = {
+            'hsi_enable'   : True,
+            'hsi48_enable' : True,
+            'csi_enable'   : True,
+            'pll1_p_ck'    : 250_000_000,
+            'cpu_ck'       : 250_000_000,
+            'apb1_ck'      : 250_000_000,
+            'apb2_ck'      : 250_000_000,
+            'apb3_ck'      : 250_000_000,
+            'usart2_baud'  : STLINK_BAUD,
+        },
+
+        gpios = (
+            ('led_green' , 'A5' , 'output'    , { 'initlvl' : False       }),
+            ('jig_tx'    , 'A2' , 'alternate' , { 'altfunc' : 'USART2_TX' }),
+            ('jig_rx'    , 'A3' , 'alternate' , { 'altfunc' : 'USART2_RX' }),
+            ('swdio'     , 'A13', 'reserved'  , {                         }),
+            ('swclk'     , 'A14', 'reserved'  , {                         }),
+            ('button'    , 'C13', 'input'     , { 'pull'    : 'up'        }),
+        ),
+
+        interrupt_priorities = (
+            ('USART2', 0),
+        ),
+
+    ),
+
 )
 
 
