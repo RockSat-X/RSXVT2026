@@ -1,3 +1,9 @@
+#undef  _REALIZE_CONTEXT
+#define _REALIZE_CONTEXT \
+    I2C_TypeDef* const I2C = driver->cmsis_i2c;
+
+
+
 static struct I2CDriver _driver = {0}; // TODO Ad-hoc.
 
 
@@ -66,11 +72,17 @@ I2C_reinit(void)
 
     struct I2CDriver* driver = &_driver;
 
+    *driver =
+        (struct I2CDriver)
+        {
+            .cmsis_i2c = I2C1,
+        };
+
+    _REALIZE_CONTEXT;
+
 
 
     // Reset-cycle the peripheral.
-
-    *driver = (struct I2CDriver) {0};
 
     CMSIS_SET(RCC, APB1LRSTR, I2C1RST, true );
     CMSIS_SET(RCC, APB1LRSTR, I2C1RST, false);
@@ -94,7 +106,7 @@ I2C_reinit(void)
 
     CMSIS_SET
     (
-        I2C1  , TIMINGR                , // TODO Handle other timing requirements?
+        I2C   , TIMINGR                , // TODO Handle other timing requirements?
         PRESC , I2C1_TIMINGR_PRESC_init, // Set the time base unit.
         SCLDEL, 0                      , // TODO Important?
         SDADEL, 0                      , // TODO Important?
@@ -104,7 +116,7 @@ I2C_reinit(void)
 
     CMSIS_SET
     (
-        I2C1  , CR1   , // Interrupts for:
+        I2C   , CR1   , // Interrupts for:
         ERRIE , true  , //     - Error.
         TCIE  , true  , //     - Transfer completed.
         STOPIE, true  , //     - STOP signal.
@@ -127,7 +139,9 @@ static useret enum I2CUpdate
 _I2C_update_once(struct I2CDriver* driver)
 {
 
-    u32 i2c_status = I2C1->ISR;
+    _REALIZE_CONTEXT;
+
+    u32 i2c_status = I2C->ISR;
 
 
 
@@ -236,7 +250,7 @@ _I2C_update_once(struct I2CDriver* driver)
 
     else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, RXNE))
     {
-        u8 data = CMSIS_GET(I2C1, RXDR, RXDATA);
+        u8 data = CMSIS_GET(I2C, RXDR, RXDATA);
 
         JIG_tx("0x%02X\n", data); // TMP
 
@@ -276,7 +290,7 @@ _I2C_update_once(struct I2CDriver* driver)
 
             CMSIS_SET
             (
-                I2C1  , CR2                         ,
+                I2C   , CR2                         ,
                 SADD  , driver->slave_address       ,
                 RD_WRN, !!driver->reading_from_slave,
                 NBYTES, driver->transfer_size       ,

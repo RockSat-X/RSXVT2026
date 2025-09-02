@@ -103,6 +103,7 @@ enum I2CDriverState : u32
 struct I2CDriver
 {
     volatile enum I2CDriverState state;
+    I2C_TypeDef*                 cmsis_i2c;
     u8                           slave_address;
     b32                          reading_from_slave;
     i32                          transfer_size;
