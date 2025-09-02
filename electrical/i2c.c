@@ -124,12 +124,8 @@ static useret enum I2CUpdate
     I2CUpdate_again,
     I2CUpdate_yield,
 }
-_I2C_update(void)
+_I2C_update_once(struct I2CDriver* driver)
 {
-
-    struct I2CDriver* driver = &_driver; // TODO Ad-hoc.
-
-
 
     u32 i2c_status = I2C1->ISR;
 
@@ -312,16 +308,15 @@ _I2C_update(void)
 
 
 
-INTERRUPT_I2C1_EV
+static void
+_I2C_update_entirely(struct I2CDriver* driver)
 {
-    struct I2CDriver* driver = &_driver; // TODO Ad-hoc.
-
     for (b32 yield = false; !yield;)
     {
 
-        enum I2CUpdate result = _I2C_update();
+        enum I2CUpdate result = _I2C_update_once(driver);
 
-        yield = result == I2CUpdate_yield;
+        yield = (result == I2CUpdate_yield);
 
         switch (result)
         {
@@ -331,6 +326,13 @@ INTERRUPT_I2C1_EV
         }
 
     }
+}
+
+
+
+INTERRUPT_I2C1_EV
+{
+    _I2C_update_entirely(&_driver); // TODO Ad-hoc.
 }
 
 
