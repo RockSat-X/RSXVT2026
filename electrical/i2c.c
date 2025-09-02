@@ -41,6 +41,7 @@ static struct I2CDriver _I2C_drivers[I2CHandle_COUNT] = {0};
 
 #undef  _EXPAND_HANDLE
 #define _EXPAND_HANDLE                                         \
+    if (!(0 <= handle && handle < I2CHandle_COUNT)) panic;     \
     struct I2CDriver* const driver = &_I2C_drivers[handle];    \
     I2C_TypeDef*      const I2C    = I2C_TABLE    [handle].I2C
 
@@ -50,14 +51,14 @@ static struct I2CDriver _I2C_drivers[I2CHandle_COUNT] = {0};
 
 
 
-static useret enum I2CBlockingTransfer
+static useret enum I2CBlockingTransfer : u32
 {
     I2CBlockingTransfer_done,
 }
 I2C_blocking_transfer
 (
     enum I2CHandle handle,
-    u8             address,
+    u8             address, // 8-bit address where the LSb is don't-care.
     b32            reading,
     u8*            pointer,
     i32            amount
@@ -65,6 +66,12 @@ I2C_blocking_transfer
 {
 
     _EXPAND_HANDLE;
+
+    if (!pointer)
+        panic;
+
+    if (amount <= 0)
+        panic;
 
 
 
@@ -74,22 +81,22 @@ I2C_blocking_transfer
     {
         case I2CDriverState_standby:
         {
+
             driver->address  = address;
             driver->reading  = reading;
             driver->pointer  = pointer;
             driver->amount   = amount;
             driver->progress = 0;
-
             __DMB();
+            driver->state    = I2CDriverState_scheduled_transfer;
 
-            driver->state = I2CDriverState_scheduled_transfer;
+            NVIC_SET_PENDING(I2C1_EV); // TODO Abstract away.
 
-            NVIC_SET_PENDING(I2C1_EV);
         } break;
 
-        case I2CDriverState_scheduled_transfer : panic;
-        case I2CDriverState_transferring       : panic;
-        case I2CDriverState_stopping           : panic;
+        case I2CDriverState_scheduled_transfer : panic; // The driver
+        case I2CDriverState_transferring       : panic; // shouldn't be
+        case I2CDriverState_stopping           : panic; // busy...
         default                                : panic;
     }
 
@@ -101,19 +108,29 @@ I2C_blocking_transfer
     {
         switch (driver->state)
         {
+
+            // The driver just finished!
+
             case I2CDriverState_standby:
             {
                 return I2CBlockingTransfer_done;
             } break;
 
+
+
+            // The driver is still busy with our transfer.
+
             case I2CDriverState_scheduled_transfer:
             case I2CDriverState_transferring:
             case I2CDriverState_stopping:
             {
-                // The driver is busy...
+                // Keep waiting...
             } break;
 
+
+
             default: panic;
+
         }
     }
 
@@ -141,27 +158,27 @@ I2C_reinit(enum I2CHandle handle)
 
     // Reset-cycle the peripheral.
 
-    CMSIS_SET(RCC, APB1LRSTR, I2C1RST, true );
-    CMSIS_SET(RCC, APB1LRSTR, I2C1RST, false);
+    CMSIS_SET(RCC, APB1LRSTR, I2C1RST, true ); // TODO Abstract away.
+    CMSIS_SET(RCC, APB1LRSTR, I2C1RST, false); // TODO Abstract away.
 
 
 
     // Enable the interrupts.
 
-    NVIC_ENABLE(I2C1_EV);
-    NVIC_ENABLE(I2C1_ER);
+    NVIC_ENABLE(I2C1_EV); // TODO Abstract away.
+    NVIC_ENABLE(I2C1_ER); // TODO Abstract away.
 
 
 
     // Clock the peripheral.
 
-    CMSIS_SET(RCC, APB1LENR, I2C1EN, true);
+    CMSIS_SET(RCC, APB1LENR, I2C1EN, true); // TODO Abstract away.
 
 
 
     // Configure the peripheral.
 
-    CMSIS_SET
+    CMSIS_SET // TODO Look over again.
     (
         I2C   , TIMINGR                , // TODO Handle other timing requirements?
         PRESC , I2C1_TIMINGR_PRESC_init, // Set the time base unit.
@@ -171,7 +188,7 @@ I2C_reinit(enum I2CHandle handle)
         SCLL  , I2C1_TIMINGR_SCL_init  , // Determines the amount of low time.
     );
 
-    CMSIS_SET
+    CMSIS_SET // TODO Look over again.
     (
         I2C   , CR1   , // Interrupts for:
         ERRIE , true  , //     - Error.
@@ -192,7 +209,7 @@ I2C_reinit(enum I2CHandle handle)
 
 
 
-static useret enum I2CUpdateOnce
+static useret enum I2CUpdateOnce : u32
 {
     I2CUpdateOnce_again,
     I2CUpdateOnce_yield,
@@ -202,157 +219,148 @@ _I2C_update_once(enum I2CHandle handle)
 
     _EXPAND_HANDLE;
 
-    u32 i2c_status = I2C->ISR;
+
+
+    u32 interrupt_status = I2C->ISR;
+
+    enum I2CInterruptEvent : u32
+    {
+        I2CInterruptEvent_none,
+        I2CInterruptEvent_nack_signaled,
+        I2CInterruptEvent_stop_signaled,
+        I2CInterruptEvent_transfer_completed,
+        I2CInterruptEvent_data_available_to_read,
+        I2CInterruptEvent_ready_to_transmit_data,
+    };
+
+    enum I2CInterruptEvent interrupt_event = {0};
 
 
 
     // Bus error.
     // @/pg 2116/sec 48.4.17/`H533rm`.
-
-    if (CMSIS_GET_FROM(i2c_status, I2C, ISR, BERR))
+    if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, BERR))
     {
-        sorry
+        panic;
     }
 
 
 
     // Arbitration loss.
     // @/pg 2116/sec 48.4.17/`H533rm`.
-
-    else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, ARLO))
+    else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, ARLO))
     {
-        sorry
+        panic;
     }
 
 
 
     // Data overrun/overflow.
     // @/pg 2117/sec 48.4.17/`H533rm`.
-
-    else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, OVR))
+    else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, OVR))
     {
-        sorry
+        panic;
     }
 
 
 
     // Packet error checking.
     // @/pg 2117/sec 48.4.17/`H533rm`.
-
-    else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, PECERR))
+    else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, PECERR))
     {
-        sorry
+        panic;
     }
 
 
 
     // Timeout.
     // @/pg 2117/sec 48.4.17/`H533rm`.
-
-    else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, TIMEOUT))
+    else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, TIMEOUT))
     {
-        sorry
+        panic;
     }
 
 
 
     // Alert.
     // @/pg 2117/sec 48.4.17/`H533rm`.
-
-    else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, ALERT))
+    else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, ALERT))
     {
-        sorry
-    }
-
-
-
-    // A NACK was received.
-    // @/pg 2085/sec 48.4.8/`H533rm`.
-
-    else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, NACKF))
-    {
-        sorry
-    }
-
-
-
-    // A STOP was sent.
-    // @/pg 2085/sec 48.4.8/`H533rm`.
-
-    else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, STOPF))
-    {
-
-        CMSIS_SET(I2C, ICR, STOPCF, true); // We're done with the transfer!
-
-        driver->state = I2CDriverState_standby;
-
-        return I2CUpdateOnce_again;
-
-    }
-
-
-
-    // Transfer completed.
-    // @/pg 2095/sec 48.4.9/`H533rm`.
-
-    else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, TC))
-    {
-
-        CMSIS_SET(I2C, CR2, STOP, true); // Begin sending out the STOP signal.
-
-        driver->state = I2CDriverState_stopping;
-
-        return I2CUpdateOnce_again;
-
+        panic;
     }
 
 
 
     // Transfer reloaded.
     // @/pg 2095/sec 48.4.9/`H533rm`.
-
-    else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, TCR))
+    else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, TCR))
     {
-        sorry
+        panic;
     }
 
 
 
-    // Received data.
-    // @/pg 2089/sec 48.4.8/`H533rm`.
-
-    else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, RXNE))
-    {
-        u8 data = CMSIS_GET(I2C, RXDR, RXDATA); // Pop data from the RX-buffer.
-
-        driver->pointer[driver->progress]  = data;
-        driver->progress                  += 1;
-
-        return I2CUpdateOnce_again;
-    }
-
-
-
-    // Data can be sent.
     // @/pg 2085/sec 48.4.8/`H533rm`.
-
-    else if (CMSIS_GET_FROM(i2c_status, I2C, ISR, TXIS))
+    else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, NACKF))
     {
-        sorry
+        interrupt_event = I2CInterruptEvent_nack_signaled;
     }
 
 
 
-    // No interrupt status flags to handle right now.
+    // @/pg 2085/sec 48.4.8/`H533rm`.
+    else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, STOPF))
+    {
+        interrupt_event = I2CInterruptEvent_stop_signaled;
+    }
 
-    else switch (driver->state)
+
+
+    // @/pg 2095/sec 48.4.9/`H533rm`.
+    else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, TC))
+    {
+        interrupt_event = I2CInterruptEvent_transfer_completed;
+    }
+
+
+
+    // @/pg 2089/sec 48.4.8/`H533rm`.
+    else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, RXNE))
+    {
+        interrupt_event = I2CInterruptEvent_data_available_to_read;
+    }
+
+
+
+    // @/pg 2085/sec 48.4.8/`H533rm`.
+    else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, TXIS))
+    {
+        interrupt_event = I2CInterruptEvent_ready_to_transmit_data;
+    }
+
+
+
+    // Nothing notable happened.
+    else
+    {
+        interrupt_event = I2CInterruptEvent_none;
+    }
+
+
+
+    switch (driver->state)
     {
 
-        // The driver has nothing to do currently.
+        // Nothing to do until the user schedules a transfer.
 
         case I2CDriverState_standby:
         {
-            return I2CUpdateOnce_yield; // Nothing to do until the user schedules a transfer.
+
+            if (interrupt_event)
+                panic;
+
+            return I2CUpdateOnce_yield;
+
         } break;
 
 
@@ -361,6 +369,15 @@ _I2C_update_once(enum I2CHandle handle)
 
         case I2CDriverState_scheduled_transfer:
         {
+
+            if (interrupt_event)
+                panic;
+
+            if (!(1 <= driver->amount && driver->amount <= 255))
+                panic;
+
+            if (CMSIS_GET(I2C, CR2, START))
+                panic;
 
             CMSIS_SET
             (
@@ -379,20 +396,121 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-        // We've already started the current transfer.
+        // We're in the process of doing the transfer.
 
-        case I2CDriverState_transferring:
+        case I2CDriverState_transferring: switch (interrupt_event)
         {
-            return I2CUpdateOnce_yield; // Nothing to do until there's an interrupt status.
+
+            // Nothing to do until there's an interrupt status.
+
+            case I2CInterruptEvent_none:
+            {
+                return I2CUpdateOnce_yield;
+            } break;
+
+
+
+            // The slave didn't acknowledge us.
+
+            case I2CInterruptEvent_nack_signaled:
+            {
+                sorry
+            } break;
+
+
+
+            // The slave sent us some data.
+
+            case I2CInterruptEvent_data_available_to_read:
+            {
+
+                if (!(0 <= driver->progress && driver->progress < driver->amount))
+                    panic;
+
+                // Pop from the RX-buffer.
+                u8 data = CMSIS_GET(I2C, RXDR, RXDATA);
+
+                driver->pointer[driver->progress]  = data;
+                driver->progress                  += 1;
+
+                return I2CUpdateOnce_again;
+
+            } break;
+
+
+
+            // We're ready to send some data to the slave.
+
+            case I2CInterruptEvent_ready_to_transmit_data:
+            {
+                sorry
+            } break;
+
+
+
+            // We finished transferring all the data.
+
+            case I2CInterruptEvent_transfer_completed:
+            {
+
+                if (driver->progress != driver->amount)
+                    panic;
+
+                // Begin sending out the STOP signal.
+                CMSIS_SET(I2C, CR2, STOP, true);
+
+                driver->state = I2CDriverState_stopping;
+
+                return I2CUpdateOnce_again;
+
+            } break;
+
+
+
+            case I2CInterruptEvent_stop_signaled : panic;
+            default                              : panic;
+
         } break;
 
 
 
         // We're in the process of stopping the transfer.
 
-        case I2CDriverState_stopping:
+        case I2CDriverState_stopping: switch (interrupt_event)
         {
-            return I2CUpdateOnce_yield; // Nothing to do until there's an interrupt status.
+
+            // Nothing to do until there's an interrupt status.
+
+            case I2CInterruptEvent_none:
+            {
+                return I2CUpdateOnce_yield;
+            } break;
+
+
+
+            // We're finally done with the transfer!
+
+            case I2CInterruptEvent_stop_signaled:
+            {
+
+                if (driver->progress != driver->amount)
+                    panic;
+
+                // Clear the flag.
+                CMSIS_SET(I2C, ICR, STOPCF, true);
+
+                driver->state = I2CDriverState_standby;
+
+                return I2CUpdateOnce_again;
+
+            } break;
+
+            case I2CInterruptEvent_transfer_completed     : panic;
+            case I2CInterruptEvent_data_available_to_read : panic;
+            case I2CInterruptEvent_ready_to_transmit_data : panic;
+            case I2CInterruptEvent_nack_signaled          : panic;
+            default                                       : panic;
+
         } break;
 
 
@@ -419,9 +537,17 @@ _I2C_update_entirely(enum I2CHandle handle)
 
         switch (result)
         {
-            case I2CUpdateOnce_again : break; // The state-machine will be updated again.
-            case I2CUpdateOnce_yield : break; // We can stop updating the state-machine for now.
-            default                  : panic;
+            case I2CUpdateOnce_again:
+            {
+                // The state-machine will be updated again.
+            } break;
+
+            case I2CUpdateOnce_yield:
+            {
+                // We can stop updating the state-machine for now.
+            } break;
+
+            default: panic;
         }
 
     }
