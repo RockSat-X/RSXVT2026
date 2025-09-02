@@ -1,10 +1,50 @@
-#undef  _REALIZE_CONTEXT
-#define _REALIZE_CONTEXT \
-    I2C_TypeDef* const I2C = driver->cmsis_i2c;
+////////////////////////////////////////////////////////////////////////////////
 
 
 
-static struct I2CDriver _driver = {0}; // TODO Ad-hoc.
+enum I2CHandle : u32
+{
+    I2CHandle_1,
+    I2CHandle_COUNT,
+};
+
+static const struct { I2C_TypeDef* I2C; } I2C_TABLE[] =
+    {
+        [I2CHandle_1] = { .I2C = I2C1, }
+    };
+
+enum I2CDriverState : u32
+{
+    I2CDriverState_standby,
+    I2CDriverState_scheduled_transfer,
+    I2CDriverState_transferring,
+    I2CDriverState_stopping,
+};
+
+struct I2CDriver
+{
+    volatile enum I2CDriverState state;
+    u8                           slave_address;
+    b32                          reading_from_slave;
+    i32                          transfer_size;
+};
+
+static struct I2CDriver _I2C_drivers[I2CHandle_COUNT] = {0};
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+#undef  _EXPAND_HANDLE
+#define _EXPAND_HANDLE                                         \
+    struct I2CDriver* const driver = &_I2C_drivers[handle];    \
+    I2C_TypeDef*      const I2C    = I2C_TABLE    [handle].I2C
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -14,12 +54,18 @@ static useret enum I2CBlockingTransfer
 }
 I2C_blocking_transfer
 (
-    u8  slave_address,
-    b32 reading_from_slave,
-    i32 transfer_size
+    enum I2CHandle handle,
+    u8             slave_address,
+    b32            reading_from_slave,
+    i32            transfer_size
 )
 {
-    struct I2CDriver* driver = &_driver; // TODO Ad-hoc.
+
+    _EXPAND_HANDLE;
+
+
+
+    // Schedule the transfer.
 
     switch (driver->state)
     {
@@ -42,6 +88,10 @@ I2C_blocking_transfer
         default                                : panic;
     }
 
+
+
+    // Wait until the transfer is done.
+
     while (true)
     {
         switch (driver->state)
@@ -61,29 +111,26 @@ I2C_blocking_transfer
             default: panic;
         }
     }
+
 }
 
 
 
+////////////////////////////////////////////////////////////////////////////////
+
+
+
 static void
-I2C_reinit(void)
+I2C_reinit(enum I2CHandle handle)
 {
 
-    // TODO Ad-hoc.
+    _EXPAND_HANDLE;
 
-    #define I2C1_TIMINGR_PRESC_init 11
-    #define I2C1_TIMINGR_SCL_init   250
-    CMSIS_SET(RCC, CCIPR4, I2C1SEL, 0b10);
+    *driver = (struct I2CDriver) {0};
 
-    struct I2CDriver* driver = &_driver;
-
-    *driver =
-        (struct I2CDriver)
-        {
-            .cmsis_i2c = I2C1,
-        };
-
-    _REALIZE_CONTEXT;
+    #define I2C1_TIMINGR_PRESC_init 11     // TODO Ad-hoc.
+    #define I2C1_TIMINGR_SCL_init   250    // TODO Ad-hoc.
+    CMSIS_SET(RCC, CCIPR4, I2C1SEL, 0b10); // TODO Ad-hoc.
 
 
 
@@ -136,15 +183,19 @@ I2C_reinit(void)
 
 
 
+////////////////////////////////////////////////////////////////////////////////
+
+
+
 static useret enum I2CUpdateOnce
 {
     I2CUpdateOnce_again,
     I2CUpdateOnce_yield,
 }
-_I2C_update_once(struct I2CDriver* driver)
+_I2C_update_once(enum I2CHandle handle)
 {
 
-    _REALIZE_CONTEXT;
+    _EXPAND_HANDLE;
 
     u32 i2c_status = I2C->ISR;
 
@@ -349,12 +400,14 @@ _I2C_update_once(struct I2CDriver* driver)
 
 
 static void
-_I2C_update_entirely(struct I2CDriver* driver)
+_I2C_update_entirely(enum I2CHandle handle)
 {
+    _EXPAND_HANDLE;
+
     for (b32 yield = false; !yield;)
     {
 
-        enum I2CUpdateOnce result = _I2C_update_once(driver);
+        enum I2CUpdateOnce result = _I2C_update_once(handle);
 
         yield = (result == I2CUpdateOnce_yield);
 
@@ -370,9 +423,13 @@ _I2C_update_entirely(struct I2CDriver* driver)
 
 
 
+////////////////////////////////////////////////////////////////////////////////
+
+
+
 INTERRUPT_I2C1_EV
 {
-    _I2C_update_entirely(&_driver); // TODO Ad-hoc.
+    _I2C_update_entirely(I2CHandle_1);
 }
 
 
@@ -381,3 +438,7 @@ INTERRUPT_I2C1_ER
 {
     sorry
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////

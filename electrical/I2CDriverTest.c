@@ -21,13 +21,13 @@ main(void)
 
     // Set up the I2C.
 
-    I2C_reinit();
+    I2C_reinit(I2CHandle_1); // TMP.
 
 
 
     // TODO Test the I2C.
 
-    enum I2CBlockingTransfer result = I2C_blocking_transfer(0x78, true, 5);
+    enum I2CBlockingTransfer result = I2C_blocking_transfer(I2CHandle_1, 0x78, true, 5);
     switch (result)
     {
         case I2CBlockingTransfer_done:
