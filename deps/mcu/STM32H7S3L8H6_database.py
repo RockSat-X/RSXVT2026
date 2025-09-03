@@ -8,7 +8,6 @@
         ('APB_UNITS', (1, 2, 4, 5)),                                     # @/pg 378/fig 51/`H7S3rm`.
         ('TIMERS'   , (1, 2, 3, 4, 5, 6, 7, 9, 12, 13, 14, 15, 16, 17)), # @/pg 61/tbl 13/`H7S3ds`.
         ('SPIS'     , ((1,), (4, 5))),                                   # @/pg 392/fig 54/`H7S3rm`. TODO SPI23, SPI6
-        ('I2CS'     , ((1,),)),                                          # @/pg 393/fig 55/`H7S3rm`. TODO I2C23.
         ('UXARTS'   , (                                                  # @/pg 394/fig 56/`H7S3rm`. TODO LPUART1?
             (('usart', 1),),
             (('usart', 2), ('usart', 3), ('uart', 4), ('uart', 5), ('uart', 7), ('uart', 8)),
