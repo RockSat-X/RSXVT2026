@@ -141,15 +141,21 @@ def SYSTEM_PARAMETERIZE(target):
     # >
     # >    ('SysTick',
     # >        ('LOAD',
-    # >            ('RELOAD', 'systick_reload', 1, (1 << 24) - 1),
+    # >            ('RELOAD', 'SYSTICK_RELOAD', 1, (1 << 24) - 1),
     # >        ),
     # >    )
     # >
 
-    def in_minmax(value, entry): # TODO Simplify.
+    def in_minmax(value, tag):
+
+        entry = database[tag]
+
         return entry.minimum <= value <= entry.maximum
 
-    def range_minmax(entry): # TODO Simplify.
+    def range_minmax(tag):
+
+        entry = database[tag]
+
         return range(entry.minimum, entry.maximum + 1)
 
 
@@ -397,7 +403,7 @@ def SYSTEM_PARAMETERIZE(target):
             if goal_pll_channel_freq is None:
                 continue # This PLL channel isn't used.
 
-            if not in_minmax(goal_pll_channel_freq, database['PLL_CHANNEL_FREQ']):
+            if not in_minmax(goal_pll_channel_freq, 'PLL_CHANNEL_FREQ'):
                 raise ValueError(
                     f'PLL{unit}{channel} output '
                     f'frequency is out-of-range: {goal_pll_channel_freq :_}Hz.'
@@ -421,7 +427,7 @@ def SYSTEM_PARAMETERIZE(target):
 
         needed_divider = int(needed_divider)
 
-        if not in_minmax(needed_divider, database[f'PLL{unit}{channel}_DIVIDER']):
+        if not in_minmax(needed_divider, f'PLL{unit}{channel}_DIVIDER'):
             return False # The divider is not within the specified range.
 
         draft[f'PLL{unit}_{channel}_DIVIDER'] = needed_divider # We found a divider!
@@ -438,7 +444,7 @@ def SYSTEM_PARAMETERIZE(target):
 
         # Try every available predivider that's placed before the PLL unit.
 
-        for draft[f'PLL{unit}_PREDIVIDER'] in range_minmax(database[f'PLL{unit}_PREDIVIDER']):
+        for draft[f'PLL{unit}_PREDIVIDER'] in range_minmax(f'PLL{unit}_PREDIVIDER'):
 
 
 
@@ -459,11 +465,11 @@ def SYSTEM_PARAMETERIZE(target):
 
             # Try every available multiplier that the PLL can handle.
 
-            for draft[f'PLL{unit}_MULTIPLIER'] in range_minmax(database[f'PLL{unit}_MULTIPLIER']):
+            for draft[f'PLL{unit}_MULTIPLIER'] in range_minmax(f'PLL{unit}_MULTIPLIER'):
 
                 pll_vco_freq = pll_reference_freq * draft[f'PLL{unit}_MULTIPLIER']
 
-                if not in_minmax(pll_vco_freq, database['PLL_VCO_FREQ']):
+                if not in_minmax(pll_vco_freq, 'PLL_VCO_FREQ'):
                     continue # The multiplied frequency is out of range.
 
                 yield pll_vco_freq
@@ -590,14 +596,14 @@ def SYSTEM_PARAMETERIZE(target):
 
     # Verify the values for the SCGU options.
 
-    if not in_minmax(tree.CPU_CK, database['CPU_FREQ']):
+    if not in_minmax(tree.CPU_CK, 'CPU_FREQ'):
         raise ValueError(
             f'CPU clock frequency is '
             f'out-of-range: {tree.CPU_CK :_}Hz.'
         )
 
     for unit in database['APBS'].value:
-        if not in_minmax(tree[f'APB{unit}_CK'], database['APB_FREQ']):
+        if not in_minmax(tree[f'APB{unit}_CK'], 'APB_FREQ'):
             raise ValueError(
                 f'APB{unit} frequency is '
                 f'out-of-bounds: {tree[f'APB{unit}_CK'] :_}Hz.'
@@ -607,7 +613,7 @@ def SYSTEM_PARAMETERIZE(target):
 
         case 'STM32H7S3L8H6':
 
-            if not in_minmax(tree.AXI_AHB_CK, database['AXI_AHB_FREQ']):
+            if not in_minmax(tree.AXI_AHB_CK, 'AXI_AHB_FREQ'):
                 raise ValueError(
                     f'Bus frequency is '
                     f'out-of-bounds: {tree.AXI_AHB_CK :_}Hz.'
@@ -780,7 +786,7 @@ def SYSTEM_PARAMETERIZE(target):
 
                 draft.SYSTICK_RELOAD = int(draft.SYSTICK_RELOAD)
 
-                if not in_minmax(draft.SYSTICK_RELOAD, database['SYSTICK_RELOAD']):
+                if not in_minmax(draft.SYSTICK_RELOAD, 'SYSTICK_RELOAD'):
                     continue # SysTick's reload value would be out of range.
 
                 return True
@@ -842,7 +848,7 @@ def SYSTEM_PARAMETERIZE(target):
 
             needed_divider = int(needed_divider)
 
-            if not in_minmax(needed_divider, database['UXART_BAUD_DIVIDER']):
+            if not in_minmax(needed_divider, 'UXART_BAUD_DIVIDER'):
                 return False
 
 
@@ -932,11 +938,11 @@ def SYSTEM_PARAMETERIZE(target):
 
                 else:
 
-                    for presc in range_minmax(database['I2C_PRESCALER']):
+                    for presc in range_minmax('I2C_PRESCALER'):
 
                         scl = round(i2c_clock_source_freq / (presc + 1) / needed_i2c_baud / 2)
 
-                        if not (in_minmax(scl, database['I2C_SCH']) and in_minmax(scl, database['I2C_SCL'])):
+                        if not (in_minmax(scl, 'I2C_SCH') and in_minmax(scl, 'I2C_SCL')):
                             continue
 
                         actual_i2c_freq = i2c_clock_source_freq / (scl * 2 * (presc + 1) + 1)
