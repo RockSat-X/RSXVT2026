@@ -179,7 +179,7 @@ def SYSTEM_PARAMETERIZE(target):
 
     clocks += [
         f'apb{n}_ck'
-        for n in database['APB_UNITS'].value
+        for n in database['APBS'].value
     ]
 
 
@@ -188,7 +188,7 @@ def SYSTEM_PARAMETERIZE(target):
 
     clocks += [
         f'pll{n}_{channel}_ck'
-        for n, channels in database['PLL_UNITS'].value
+        for n, channels in database['PLLS'].value
         for channel in channels
     ]
 
@@ -388,7 +388,7 @@ def SYSTEM_PARAMETERIZE(target):
 
     # Verify the values for the PLL options.
 
-    for unit, channels in database['PLL_UNITS'].value:
+    for unit, channels in database['PLLS'].value:
 
         for channel in channels:
 
@@ -480,7 +480,7 @@ def SYSTEM_PARAMETERIZE(target):
 
         pll_is_used = not all(
             opts(f'pll{unit}_{channel}_ck', None) is None
-            for channel in mk_dict(database['PLL_UNITS'].value)[unit]
+            for channel in mk_dict(database['PLLS'].value)[unit]
         )
 
         draft[f'pll{unit}_enable'] = pll_is_used
@@ -496,7 +496,7 @@ def SYSTEM_PARAMETERIZE(target):
 
             every_plln_satisfied = all(
                 parameterize_plln_channel(unit, pll_vco_freq, channel)
-                for channel in mk_dict(database['PLL_UNITS'].value)[unit]
+                for channel in mk_dict(database['PLLS'].value)[unit]
             )
 
             if every_plln_satisfied:
@@ -521,7 +521,7 @@ def SYSTEM_PARAMETERIZE(target):
                     pll_clock_source_freq = tree[pll_clock_source_name]
                     every_pll_satisfied   = all(
                         parameterize_plln(units, pll_clock_source_freq)
-                        for units, channels in database['PLL_UNITS'].value
+                        for units, channels in database['PLLS'].value
                     )
 
                     if every_pll_satisfied:
@@ -533,7 +533,7 @@ def SYSTEM_PARAMETERIZE(target):
 
             case 'STM32H533RET6':
 
-                for unit, channels in database['PLL_UNITS'].value:
+                for unit, channels in database['PLLS'].value:
 
                     plln_satisfied = any(
                         parameterize_plln(unit, tree[plln_clock_source_name])
@@ -561,13 +561,13 @@ def SYSTEM_PARAMETERIZE(target):
         case 'STM32H533RET6':
             draft_configuration_names = [
                 f'pll{unit}_clock_source'
-                for unit, channels in database['PLL_UNITS'].value
+                for unit, channels in database['PLLS'].value
             ]
 
         case _:
             raise NotImplementedError
 
-    for unit, channels in database['PLL_UNITS'].value:
+    for unit, channels in database['PLLS'].value:
 
         for channel in channels:
             draft_configuration_names += [f'pll{unit}_{channel}_divider']
@@ -596,7 +596,7 @@ def SYSTEM_PARAMETERIZE(target):
             f'out-of-range: {tree.cpu_ck :_}Hz.'
         )
 
-    for unit in database['APB_UNITS'].value:
+    for unit in database['APBS'].value:
         if not in_minmax(tree[f'apb{unit}_ck'], database['apb_freq']):
             raise ValueError(
                 f'APB{unit} frequency is '
@@ -679,7 +679,7 @@ def SYSTEM_PARAMETERIZE(target):
 
             every_apb_satisfied = all(
                 parameterize_apbx(unit)
-                for unit in database['APB_UNITS'].value
+                for unit in database['APBS'].value
             )
 
             if not every_apb_satisfied:
@@ -699,7 +699,7 @@ def SYSTEM_PARAMETERIZE(target):
         'scgu_clock_source',
         'cpu_divider',
         'axi_ahb_divider', # TODO.
-        *(f'apb{unit}_divider' for unit in database['APB_UNITS'].value),
+        *(f'apb{unit}_divider' for unit in database['APBS'].value),
     ))
 
 

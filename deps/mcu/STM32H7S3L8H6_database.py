@@ -6,14 +6,14 @@
         # @/pg 354/fig 40/`H7S3rm`.
         #
 
-        ('APB_UNITS', (
+        ('APBS', (
             1,
             2,
             4,
             5,
         )),
 
-        ('PLL_UNITS', (
+        ('PLLS', (
             (1, ('p', 'q',      's',    )),
             (2, ('p', 'q', 'r', 's', 't')),
             (3, ('p', 'q', 'r', 's',    )),
@@ -144,13 +144,13 @@
 
             ('CFGR',
                 *(
-                    (field, name, (
+                    (field, tag, (
                         ('hsi_ck'   , '0b000'),
                         ('csi_ck'   , '0b001'),
                         ('hse_ck'   , '0b010'),
                         ('pll1_p_ck', '0b011'),
                     ))
-                    for field, name in (
+                    for field, tag in (
                         ('SWS', 'effective_scgu_clock_source'),
                         ('SW' , 'scgu_clock_source'          ),
                     )
@@ -159,7 +159,7 @@
 
             *(
                 (register,
-                    (field, name, (
+                    (field, tag, (
                         (1  , '0b0000'), # Low three bits are don't-care.
                         (2  , '0b1000'),
                         (4  , '0b1001'),
@@ -171,7 +171,7 @@
                         (512, '0b1111'),
                     ))
                 )
-                for register, field, name in (
+                for register, field, tag in (
                     ('CDCFGR', 'CPRE' , 'cpu_divider'    ),
                     ('BMCFGR', 'BMPRE', 'axi_ahb_divider'),
                 )

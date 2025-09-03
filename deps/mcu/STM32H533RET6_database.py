@@ -8,13 +8,13 @@
         # @/pg 15/tbl 2/`H533ds`.
         #
 
-        ('APB_UNITS', (
+        ('APBS', (
             1,
             2,
             3,
         )),
 
-        ('PLL_UNITS', (
+        ('PLLS', (
             (1, ('p', 'q', 'r')),
             (2, ('p', 'q', 'r')),
             (3, ('p', 'q', 'r')),
@@ -152,13 +152,13 @@
 
             ('CFGR1',
                 *(
-                    (field, name, (
+                    (field, tag, (
                         ('hsi_ck'   , '0b000'),
                         ('csi_ck'   , '0b001'),
                         ('hse_ck'   , '0b010'),
                         ('pll1_p_ck', '0b011'),
                     ))
-                    for field, name in (
+                    for field, tag in (
                         ('SWS', 'effective_scgu_clock_source'),
                         ('SW' , 'scgu_clock_source'          ),
                     )

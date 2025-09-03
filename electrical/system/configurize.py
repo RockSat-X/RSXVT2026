@@ -289,7 +289,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
         # Configure each PLL.
 
-        for unit, channels in database['PLL_UNITS'].value:
+        for unit, channels in database['PLLS'].value:
 
 
 
@@ -347,14 +347,14 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
     CMSIS_SET(
         cfgs(f'pll{unit}_enable', ...)
-        for unit, channels in database['PLL_UNITS'].value
+        for unit, channels in database['PLLS'].value
     )
 
 
 
     # Ensure each enabled PLL unit has stabilized.
 
-    for unit, channels in database['PLL_UNITS'].value:
+    for unit, channels in database['PLLS'].value:
 
         pllx_enable = cfgs(f'pll{unit}_enable')
 
@@ -381,7 +381,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
                 cfgs('axi_ahb_divider', ...),
                 *(
                     cfgs(f'apb{unit}_divider', ...)
-                    for unit in database['APB_UNITS'].value
+                    for unit in database['APBS'].value
                 ),
             )
 
@@ -390,7 +390,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
                 cfgs('cpu_divider', ...),
                 *(
                     cfgs(f'apb{unit}_divider', ...)
-                    for unit in database['APB_UNITS'].value
+                    for unit in database['APBS'].value
                 ),
             )
 
