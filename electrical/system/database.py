@@ -16,9 +16,9 @@ class SystemDatabaseDict(dict):
         entry = self[tag]
 
         return '{{ {}, {}, {} }}'.format(
-            f'&{entry.section}->{entry.register}',
-            f'{entry.section}_{entry.register}_{entry.field}_Pos',
-            f'{entry.section}_{entry.register}_{entry.field}_Msk',
+            f'&{entry.peripheral}->{entry.register}',
+            f'{entry.peripheral}_{entry.register}_{entry.field}_Pos',
+            f'{entry.peripheral}_{entry.register}_{entry.field}_Msk',
         )
 
 
@@ -93,7 +93,7 @@ for mcu in MCUS:
 
     # Parse the locations.
 
-    for section, *register_tree in location_tree:
+    for peripheral, *register_tree in location_tree:
         for register, *field_tree in register_tree:
             for location in field_tree:
 
@@ -113,10 +113,10 @@ for mcu in MCUS:
 
                     case (field, tag):
                         entries += [(tag, types.SimpleNamespace(
-                            section  = section,
-                            register = register,
-                            field    = field,
-                            value    = (False, True),
+                            peripheral = peripheral,
+                            register   = register,
+                            field      = field,
+                            value      = (False, True),
                         ))]
 
 
@@ -137,10 +137,10 @@ for mcu in MCUS:
 
                     case (field, tag, value):
                         entries += [(tag, types.SimpleNamespace(
-                            section  = section,
-                            register = register,
-                            field    = field,
-                            value    = value,
+                            peripheral = peripheral,
+                            register   = register,
+                            field      = field,
+                            value      = value,
                         ))]
 
 
@@ -157,11 +157,11 @@ for mcu in MCUS:
 
                     case (field, tag, minimum, maximum):
                         entries += [(tag, types.SimpleNamespace(
-                            section  = section,
-                            register = register,
-                            field    = field,
-                            minimum  = minimum,
-                            maximum  = maximum,
+                            peripheral = peripheral,
+                            register   = register,
+                            field      = field,
+                            minimum    = minimum,
+                            maximum    = maximum,
                         ))]
 
 
@@ -185,9 +185,9 @@ for mcu in MCUS:
         )
 
     if (dupe := find_dupe(
-        (entry.section, entry.register, entry.field)
+        (entry.peripheral, entry.register, entry.field)
         for tag, entry in entries
-        if 'section'  in entry.__dict__
+        if 'peripheral'  in entry.__dict__
     )) is not ...:
         raise ValueError(
             f'For {mcu}, '

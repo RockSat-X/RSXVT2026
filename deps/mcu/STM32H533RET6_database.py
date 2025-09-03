@@ -1,12 +1,15 @@
+# Top-level clock-tree : @/pg 456/fig 52/`H533rm`.
+# Peripheral counts    : @/pg 15/tbl 2/`H533ds`.
 (
     (
-        ('APB_UNITS', (1, 2, 3)), # @/pg 456/fig 52/`H533rm`.
-        ('PLL_UNITS', (           # @/pg 456/fig 52/`H533rm`.
+        ('APB_UNITS', (1, 2, 3)),
+        ('PLL_UNITS', (
             (1, ('p', 'q', 'r')),
             (2, ('p', 'q', 'r')),
             (3, ('p', 'q', 'r')),
         )),
-        ('UXARTS', ( # @/pg 52/tbl 10/`H533ds`. @/pg 456/fig 52/`H533rm`.
+        ('I2CS', (1, 2, 3)),
+        ('UXARTS', (
             (('usart', 1),),
             (('usart', 2),),
             (('usart', 3),),
@@ -14,9 +17,7 @@
             (('uart' , 5),),
             (('usart', 6),),
         )),
-        ('I2CS', (1, 2)),
-        ('GPIO_PORT_ENABLE_REGISTER', 'AHB2ENR'), # @/pg 518/sec 11.8.27/`H533rm`.
-        ('GPIO_MODE', (                           # @/pg 586/sec 13.4.1/`H533rm`.
+        ('GPIO_MODE', (
             ('input'    , '0b00'),
             ('output'   , '0b01'),
             ('alternate', '0b10'),
@@ -73,6 +74,12 @@
             ),
         ),
         ('RCC',
+            ('AHB2ENR',
+                *(
+                    (f'GPIO{port}EN', f'gpio{port}_enable')
+                    for port in 'ABCDEFGHI'
+                ),
+            ),
             ('CR',
                 ('PLL3RDY' , 'pll3_ready'  ),
                 ('PLL3ON'  , 'pll3_enable' ),
@@ -206,6 +213,12 @@
                 ),
             ),
             ('CCIPR4',
+                ('I2C3SEL', 'i2c3_clock_source', (
+                    ('apb3_ck'   , '0b00'),
+                    ('pll3_r_ck' , '0b01'),
+                    ('hsi_ker_ck', '0b10'),
+                    ('csi_ker_ck', '0b11'),
+                )),
                 ('I2C2SEL', 'i2c2_clock_source', (
                     ('apb1_ck'   , '0b00'),
                     ('pll3_r_ck' , '0b01'),

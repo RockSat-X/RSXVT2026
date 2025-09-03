@@ -16,7 +16,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
     # This helper routine can be used to look up a value in `configurations`
     # or look up in the database to find the location of a register;
-    # the value in the section-register-field-value tuple can also be
+    # the value in the peripheral-register-field-value tuple can also be
     # changed to something else.
 
     used_configurations = OrderedSet()
@@ -77,7 +77,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
             case [builtins.Ellipsis]:
                 return (
-                    database[tag].section,
+                    database[tag].peripheral,
                     database[tag].register,
                     database[tag].field,
                     get_configuration_value()
@@ -97,7 +97,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
             case [value]:
                 return (
-                    database[tag].section,
+                    database[tag].peripheral,
                     database[tag].register,
                     database[tag].field,
                     value

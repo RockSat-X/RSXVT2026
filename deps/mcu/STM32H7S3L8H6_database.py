@@ -13,7 +13,6 @@
             (('usart', 2), ('usart', 3), ('uart', 4), ('uart', 5), ('uart', 7), ('uart', 8)),
         )),
         ('IWDG_COUNTER_FREQ', 32_000), # @/pg 63/sec 3.36.5/`H7S3ds`.
-        ('GPIO_PORT_ENABLE_REGISTER', 'AHB4ENR'),
         ('GPIO_MODE', (
             ('input'    , '0b00'),
             ('output'   , '0b01'),
@@ -93,6 +92,12 @@
             ),
         ),
         ('RCC',
+            ('AHB4ENR',
+                *(
+                    (f'GPIO{port}EN', f'gpio{port}_enable')
+                    for port in 'ABCDEFGHI'
+                ),
+            ),
             ('CR',
                 ('PLL3RDY' , 'pll3_ready'  ),
                 ('PLL3ON'  , 'pll3_enable' ),

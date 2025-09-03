@@ -435,9 +435,9 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
             CMSIS_SET(
                 (
-                    'RCC',
-                    SYSTEM_DATABASE[target.mcu]['GPIO_PORT_ENABLE_REGISTER'].value,
-                    f'GPIO{port}EN',
+                    SYSTEM_DATABASE[target.mcu][f'gpio{port}_enable'].peripheral,
+                    SYSTEM_DATABASE[target.mcu][f'gpio{port}_enable'].register,
+                    SYSTEM_DATABASE[target.mcu][f'gpio{port}_enable'].field,
                     True
                 )
                 for port in sorted(OrderedSet(
