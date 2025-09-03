@@ -2,6 +2,9 @@
 
 
 
+
+################################################################################
+#
 # The system database for a particular MCU is just a dictionary
 # but with an extended method to create a CMSIS tuple easily.
 # e.g:
@@ -13,11 +16,13 @@
 # >
 # >    '{ &RCC->APB1LRSTR, RCC_APB1LRSTR_I2C1RST_Pos, RCC_APB1LRSTR_I2C1RST_Msk }'
 # >
+#
 
-class SystemDatabaseDict(dict): # TODO Better error message for unknown tag?
+class SystemDatabaseDict(dict):
 
     def tuple(self, tag):
 
+        # TODO Better error message for unknown tag?
         entry = self[tag]
 
         return '{{ {}, {}, {} }}'.format(
@@ -28,22 +33,32 @@ class SystemDatabaseDict(dict): # TODO Better error message for unknown tag?
 
 
 
-# TODO Explain.
+################################################################################
+#
+# For database entries with a list of valid values given explicitly.
+# e.g:
+# >
+# >    ('IWDG',
+# >        ('KR',
+# >            ('KEY', 'IWDG_KEY', (
+# >                '0xAAAA',
+# >                '0x5555',
+# >                '0xCCCC',
+# >            )),
+# >        ),
+# >    )
+#
 
-class SystemDatabaseOptions:
-
-    def __init__(self, peripheral, register, field, options):
-        self.peripheral = peripheral
-        self.register   = register
-        self.field      = field
-        self.options    = options
+class SystemDatabaseOptions(types.SimpleNamespace):
 
     def __iter__(self):
         return iter(self.options)
 
 
 
-# TODO Explain.
+################################################################################
+#
+# For database entries that have valid values within an interval.
 # e.g:
 # >
 # >    ('SysTick',
@@ -52,32 +67,30 @@ class SystemDatabaseOptions:
 # >        ),
 # >    )
 # >
+#
 
-class SystemDatabaseMinMax:
+class SystemDatabaseMinMax(types.SimpleNamespace):
 
-    def __init__(self, minimum, maximum, peripheral = None, register = None, field = None):
 
-        if peripheral is not None:
-            self.peripheral = peripheral
 
-        if register is not None:
-            self.register = register
-
-        if field is not None:
-            self.field = field
-
-        self.minimum = minimum
-        self.maximum = maximum
+    # Allow for sweeping through the whole range of possible values.
 
     def __iter__(self):
         return iter(range(self.minimum, self.maximum + 1))
+
+
+
+    # Determine if a value is within the minimum-maximum range.
 
     def __contains__(self, value):
         return self.minimum <= value <= self.maximum
 
 
 
+################################################################################
+#
 # Parse each MCU's database expression.
+#
 
 SYSTEM_DATABASE = {}
 
@@ -129,8 +142,8 @@ for mcu in MCUS:
             case (tag, minimum, maximum):
 
                 entries += [(tag, SystemDatabaseMinMax(
-                    minimum,
-                    maximum,
+                    minimum = minimum,
+                    maximum = maximum,
                 ))]
 
 
@@ -171,10 +184,10 @@ for mcu in MCUS:
                     case (field, tag):
 
                         entries += [(tag, SystemDatabaseOptions(
-                            peripheral,
-                            register,
-                            field,
-                            (False, True),
+                            peripheral = peripheral,
+                            register   = register,
+                            field      = field,
+                            options    = (False, True),
                         ))]
 
 
@@ -196,10 +209,10 @@ for mcu in MCUS:
                     case (field, tag, options):
 
                         entries += [(tag, SystemDatabaseOptions(
-                            peripheral,
-                            register,
-                            field,
-                            options,
+                            peripheral = peripheral,
+                            register   = register,
+                            field      = field,
+                            options    = options,
                         ))]
 
 
@@ -217,11 +230,11 @@ for mcu in MCUS:
                     case (field, tag, minimum, maximum):
 
                         entries += [(tag, SystemDatabaseMinMax(
-                            minimum,
-                            maximum,
-                            peripheral,
-                            register,
-                            field,
+                            peripheral  = peripheral,
+                            register    = register,
+                            field       = field,
+                            minimum     = minimum,
+                            maximum     = maximum,
                         ))]
 
 
