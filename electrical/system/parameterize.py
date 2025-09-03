@@ -893,56 +893,79 @@ def SYSTEM_PARAMETERIZE(target):
 
 
 
-    for unit in (database['I2CS'] if 'I2CS' in database else ()):
-
-        def parameterize_i2c():
-
-            for i2c_clock_source_name, draft[f'I2C{unit}_CLOCK_SOURCE'] in database[f'I2C{unit}_CLOCK_SOURCE']:
-
-                i2c_clock_source_freq = tree[i2c_clock_source_name]
-
-                best = None
-
-                needed_i2c_baud = opts(f'I2C{unit}_BAUD', None)
-
-                if needed_i2c_baud is None:
-                    best = types.SimpleNamespace(
-                        error = 0,
-                        presc = None,
-                        scl   = None,
-                    )
-
-                else:
-
-                    for presc in database['I2C_PRESCALER']:
-
-                        scl = round(i2c_clock_source_freq / (presc + 1) / needed_i2c_baud / 2)
-
-                        if scl not in database['I2C_SCH'] or scl not in database['I2C_SCL']:
-                            continue
-
-                        actual_i2c_freq = i2c_clock_source_freq / (scl * 2 * (presc + 1) + 1)
-                        error           = abs(1 - actual_i2c_freq / needed_i2c_baud)
-
-                        if error > 0.01: # TODO Handle better?
-                            continue
-
-                        if best is None or error < best.error:
-                            best = types.SimpleNamespace(
-                                error = error,
-                                presc = presc,
-                                scl   = scl,
-                            )
-
-                if best is not None:
-                    draft[f'I2C{unit}_PRESC'] = best.presc
-                    draft[f'I2C{unit}_SCL'  ] = best.scl
-
-                return best is not None
+    for unit in database.get('I2CS', ()):
 
 
 
-        brute(parameterize_i2c, (
+        def parameterize():
+
+
+
+            # See if the I2C unit even needs to be brute-forced.
+
+            needed_baud = opts(f'I2C{unit}_BAUD', None)
+
+            if needed_baud is None:
+
+                draft[f'I2C{unit}_CLOCK_SOURCE'] = None
+                draft[f'I2C{unit}_PRESC'       ] = None
+                draft[f'I2C{unit}_SCL'         ] = None
+
+                return True
+
+
+
+            # We can't get an exact baud-rate for I2C (since there's a lot
+            # of factors involved anyways like clock-stretching), we'll have
+            # to try every single possibility and find the one with the least
+            # amount of error.
+
+            best_baud_error = None
+
+            for source_name, source_option in database[f'I2C{unit}_CLOCK_SOURCE']:
+
+                source_frequency = tree[source_name]
+
+                for presc in database['I2C_PRESCALER']:
+
+
+
+                    # Determine the SCL.
+
+                    scl = round(source_frequency / (presc + 1) / needed_baud / 2)
+
+                    if scl not in database['I2C_SCH']:
+                        continue
+
+                    if scl not in database['I2C_SCL']:
+                        continue
+
+
+
+                    # Determine the baud error.
+
+                    actual_baud       = source_frequency / (scl * 2 * (presc + 1) + 1)
+                    actual_baud_error = abs(1 - actual_baud / needed_baud)
+
+
+
+                    # Keep the best so far.
+
+                    if best_baud_error is None or actual_baud_error < best_baud_error:
+                        best_baud_error                  = actual_baud_error
+                        draft[f'I2C{unit}_CLOCK_SOURCE'] = source_option
+                        draft[f'I2C{unit}_PRESC'       ] = presc
+                        draft[f'I2C{unit}_SCL'         ] = scl
+
+
+
+            # We are only successful if we are within tolerance.
+
+            return best_baud_error is not None and best_baud_error <= 0.01 # TODO Ad-hoc tolerance.
+
+
+
+        brute(parameterize, (
             f'I2C{unit}_CLOCK_SOURCE',
             f'I2C{unit}_PRESC',
             f'I2C{unit}_SCL',
