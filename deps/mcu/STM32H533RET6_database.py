@@ -102,9 +102,9 @@
 
             ('ACR',
                 ('WRHIGHFREQ', 'flash_programming_delay', (
-                    0b00,
-                    0b01,
-                    0b10,
+                    '0b00',
+                    '0b01',
+                    '0b10',
                 )),
                 ('LATENCY', 'flash_latency', 0b0000, 0b1111),
             ),
@@ -251,7 +251,7 @@
                                 ('pll3_q_ck' , '0b010'),
                                 ('hsi_ck'    , '0b011'),
                                 ('csi_ck'    , '0b100'),
-                                # TODO: ('lse_ck', '0b101'),
+                                ('lse_ck'    , '0b101'),
                                 (None        , '0b110'),
                             ),
                         ),
@@ -265,7 +265,7 @@
                                 ('pll3_q_ck' , '0b010'),
                                 ('hsi_ck'    , '0b011'),
                                 ('csi_ck'    , '0b100'),
-                                # TODO: ('lse_ck'    , '0b101'),
+                                ('lse_ck'    , '0b101'),
                                 (None        , '0b110'),
                             ),
                         ),
@@ -299,8 +299,8 @@
                 ('CKPERSEL', 'per_ck_source', (
                     ('hsi_ck', '0b00'),
                     ('csi_ck', '0b01'),
+                    ('hse_ck', '0b10'),
                     (None    , '0b11'),
-                    # TODO hse_ck.
                 )),
             ),
 
