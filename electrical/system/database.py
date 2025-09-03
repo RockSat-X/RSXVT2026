@@ -6,10 +6,15 @@
 # but with an extended method to create a CMSIS tuple easily.
 # e.g:
 # >
-# >    'i2c1_reset' -> '{ &RCC->APB1LRSTR, RCC_APB1LRSTR_I2C1RST_Pos, RCC_APB1LRSTR_I2C1RST_Msk }'
+# >    'I2C1_RESET'
+# >
+# >         |
+# >         v
+# >
+# >    '{ &RCC->APB1LRSTR, RCC_APB1LRSTR_I2C1RST_Pos, RCC_APB1LRSTR_I2C1RST_Msk }'
 # >
 
-class SystemDatabaseDict(dict):
+class SystemDatabaseDict(dict): # TODO Better error message for unknown tag?
 
     def tuple(self, tag):
 
@@ -61,6 +66,7 @@ for mcu in MCUS:
             # >
 
             case (tag, value):
+
                 entries += [(tag, types.SimpleNamespace(
                     value = value,
                 ))]
@@ -70,10 +76,11 @@ for mcu in MCUS:
             # The constant's value is an inclusive min-max range.
             # e.g:
             # >
-            # >    ('pll_channel_freq', 1_000_000, 250_000_000)
+            # >    ('PLL_CHANNEL_FREQ', 1_000_000, 250_000_000)
             # >
 
             case (tag, minimum, maximum):
+
                 entries += [(tag, types.SimpleNamespace(
                     minimum = minimum,
                     maximum = maximum,
@@ -84,6 +91,7 @@ for mcu in MCUS:
             # Unsupported constant.
 
             case unknown:
+
                 raise ValueError(
                     f'Database constant entry is '
                     f'in an unknown format: {repr(unknown)}.'
@@ -94,7 +102,9 @@ for mcu in MCUS:
     # Parse the locations.
 
     for peripheral, *register_tree in location_tree:
+
         for register, *field_tree in register_tree:
+
             for location in field_tree:
 
                 match location:
@@ -106,12 +116,13 @@ for mcu in MCUS:
                     # >
                     # >    ('PWR',
                     # >        ('SR1',
-                    # >            ('ACTVOS', 'current_active_vos'),
+                    # >            ('ACTVOS', 'CURRENT_ACTIVE_VOS'),
                     # >        ),
                     # >    )
                     # >
 
                     case (field, tag):
+
                         entries += [(tag, types.SimpleNamespace(
                             peripheral = peripheral,
                             register   = register,
@@ -126,7 +137,7 @@ for mcu in MCUS:
                     # >
                     # >    ('IWDG',
                     # >        ('KR',
-                    # >            ('KEY', 'iwdg_key', (
+                    # >            ('KEY', 'IWDG_KEY', (
                     # >                '0xAAAA',
                     # >                '0x5555',
                     # >                '0xCCCC',
@@ -136,6 +147,7 @@ for mcu in MCUS:
                     # >
 
                     case (field, tag, value):
+
                         entries += [(tag, types.SimpleNamespace(
                             peripheral = peripheral,
                             register   = register,
@@ -150,12 +162,13 @@ for mcu in MCUS:
                     # >
                     # >    ('SysTick',
                     # >        ('LOAD',
-                    # >            ('RELOAD', 'systick_reload', 1, (1 << 24) - 1),
+                    # >            ('RELOAD', 'SYSTICK_RELOAD', 1, (1 << 24) - 1),
                     # >        ),
                     # >    )
                     # >
 
                     case (field, tag, minimum, maximum):
+
                         entries += [(tag, types.SimpleNamespace(
                             peripheral = peripheral,
                             register   = register,
@@ -169,6 +182,7 @@ for mcu in MCUS:
                     # Unsupported location format.
 
                     case unknown:
+
                         raise ValueError(
                             f'Database location entry is '
                             f'in an unknown format: {repr(unknown)}.'
