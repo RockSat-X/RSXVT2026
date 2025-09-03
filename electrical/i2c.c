@@ -2,11 +2,6 @@
 
 
 
-#define I2C1_TIMINGR_PRESC_init 11  // TODO Ad-hoc.
-#define I2C1_TIMINGR_SCL_init   250 // TODO Ad-hoc.
-
-
-
 #include "i2c_data.meta"
 /* #meta
 
@@ -186,8 +181,6 @@ I2C_reinit(enum I2CHandle handle)
     _EXPAND_HANDLE;
 
     *driver = (struct I2CDriver) {0};
-
-    CMSIS_SET(RCC, CCIPR4, I2C1SEL, 0b10); // TODO Ad-hoc.
 
 
 

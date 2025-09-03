@@ -216,6 +216,7 @@ TARGETS = ( # @/`Defining a TARGET`.
             'apb2_ck'      : 250_000_000,
             'apb3_ck'      : 250_000_000,
             'usart2_baud'  : STLINK_BAUD,
+            'i2c1_baud'    : 100_000,
         },
 
         gpios = (

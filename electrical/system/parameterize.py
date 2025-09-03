@@ -146,10 +146,10 @@ def SYSTEM_PARAMETERIZE(target):
     # >    )
     # >
 
-    def in_minmax(value, entry):
+    def in_minmax(value, entry): # TODO Simplify.
         return entry.minimum <= value <= entry.maximum
 
-    def range_minmax(entry):
+    def range_minmax(entry): # TODO Simplify.
         return range(entry.minimum, entry.maximum + 1)
 
 
@@ -899,6 +899,71 @@ def SYSTEM_PARAMETERIZE(target):
                 f'{peripheral}{number}_baud_divider'
                 for peripheral, number in uxart_units
             ),
+        ))
+
+
+
+    ################################################################################################################################
+    #
+    # Parameterize the I2C peripherals.
+    # TODO Consider maximum kernel frequency.
+    #
+
+
+
+    for unit in (database['I2CS'].value if 'I2CS' in database else ()):
+
+        def parameterize_i2c():
+
+            for i2c_clock_source_name, draft[f'i2c{unit}_clock_source'] in database[f'i2c{unit}_clock_source'].value:
+
+                i2c_clock_source_freq = tree[i2c_clock_source_name]
+
+                best = None
+
+                needed_i2c_baud = opts(f'i2c{unit}_baud', None)
+
+                if needed_i2c_baud is None:
+                    best = types.SimpleNamespace(
+                        error = 0,
+                        presc = None,
+                        scl   = None,
+                    )
+
+                else:
+
+                    for presc in range_minmax(database['i2c_prescaler']):
+
+                        scl = round(i2c_clock_source_freq / (presc + 1) / needed_i2c_baud / 2)
+
+                        if not (in_minmax(scl, database['i2c_SCH']) and in_minmax(scl, database['i2c_SCL'])):
+                            continue
+
+                        actual_i2c_freq = i2c_clock_source_freq / (scl * 2 * (presc + 1) + 1)
+                        error           = abs(1 - actual_i2c_freq / needed_i2c_baud)
+
+                        if error > 0.01: # TODO Handle better?
+                            continue
+
+                        if best is None or error < best.error:
+                            best = types.SimpleNamespace(
+                                error = error,
+                                presc = presc,
+                                scl   = scl,
+                            )
+
+                if best is not None:
+                    draft[f'i2c{unit}_presc'] = best.presc
+                    draft[f'i2c{unit}_scl'  ] = best.scl
+
+                return best is not None
+
+
+
+        brute(parameterize_i2c, (
+            f'i2c{unit}_clock_source',
+            f'i2c{unit}_presc',
+            f'i2c{unit}_scl',
         ))
 
 

@@ -478,6 +478,23 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
+    for unit in (database['I2CS'].value if 'I2CS' in database else ()):
+
+
+        if (presc := cfgs(f'i2c{unit}_presc')) is not None:
+            Meta.define(f'I2C{unit}_TIMINGR_PRESC_init', presc)
+
+        if (scl := cfgs(f'i2c{unit}_scl')) is not None:
+            Meta.define(f'I2C{unit}_TIMINGR_SCL_init', scl)
+
+        CMSIS_SET(cfgs(f'i2c{unit}_clock_source', ...))
+
+
+
+    ################################################################################################################################
+
+
+
     # Ensure we've used all the configurations given.
 
     defined_configurations = OrderedSet(
