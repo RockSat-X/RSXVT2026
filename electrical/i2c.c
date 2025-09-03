@@ -2,6 +2,11 @@
 
 
 
+#define I2C1_TIMINGR_PRESC_init 11  // TODO Ad-hoc.
+#define I2C1_TIMINGR_SCL_init   250 // TODO Ad-hoc.
+
+
+
 #include "i2c_data.meta"
 /* #meta
 
@@ -25,11 +30,13 @@
 
         Meta.lut('I2C_TABLE', (
             (
-                ('I2C_TypeDef*'        , 'I2C'                  , f'I2C{unit}'),
-                ('struct CMSISPutTuple', 'I2CxRST'              , put(SYSTEM_DATABASE[target.mcu][f'i2c{unit}_reset' ])),
-                ('struct CMSISPutTuple', 'I2CxEN'               , put(SYSTEM_DATABASE[target.mcu][f'i2c{unit}_enable'])),
-                ('enum NVICInterrupt'  , 'NVICInterrupt_I2Cx_EV', f'NVICInterrupt_I2C{unit}_EV'                        ),
-                ('enum NVICInterrupt'  , 'NVICInterrupt_I2Cx_ER', f'NVICInterrupt_I2C{unit}_ER'                        ),
+                ('I2C_TypeDef*'        , 'I2C'                    , f'I2C{unit}'),
+                ('struct CMSISPutTuple', 'I2CxRST'                , put(SYSTEM_DATABASE[target.mcu][f'i2c{unit}_reset' ])),
+                ('struct CMSISPutTuple', 'I2CxEN'                 , put(SYSTEM_DATABASE[target.mcu][f'i2c{unit}_enable'])),
+                ('enum NVICInterrupt'  , 'NVICInterrupt_I2Cx_EV'  , f'NVICInterrupt_I2C{unit}_EV'                        ),
+                ('enum NVICInterrupt'  , 'NVICInterrupt_I2Cx_ER'  , f'NVICInterrupt_I2C{unit}_ER'                        ),
+                ('i32'                 , 'I2Cx_TIMINGR_PRESC_init', f'I2C{unit}_TIMINGR_PRESC_init'                      ),
+                ('i32'                 , 'I2Cx_TIMINGR_SCL_init'  , f'I2C{unit}_TIMINGR_SCL_init'                        ),
             ) for unit in target.i2c_units
         ))
 
@@ -69,14 +76,16 @@ static struct I2CDriver _I2C_drivers[I2CHandle_COUNT] = {0};
 
 
 #undef  _EXPAND_HANDLE
-#define _EXPAND_HANDLE                                                                              \
-    if (!(0 <= handle && handle < I2CHandle_COUNT)) panic;                                          \
-    struct I2CDriver*    const driver                = &_I2C_drivers[handle];                       \
-    I2C_TypeDef*         const I2C                   = I2C_TABLE    [handle].I2C;                   \
-    struct CMSISPutTuple const I2CxRST               = I2C_TABLE    [handle].I2CxRST;               \
-    struct CMSISPutTuple const I2CxEN                = I2C_TABLE    [handle].I2CxEN;                \
-    enum NVICInterrupt   const NVICInterrupt_I2Cx_EV = I2C_TABLE    [handle].NVICInterrupt_I2Cx_EV; \
-    enum NVICInterrupt   const NVICInterrupt_I2Cx_ER = I2C_TABLE    [handle].NVICInterrupt_I2Cx_ER
+#define _EXPAND_HANDLE                                                                                  \
+    if (!(0 <= handle && handle < I2CHandle_COUNT)) panic;                                              \
+    struct I2CDriver*    const driver                  = &_I2C_drivers[handle];                         \
+    I2C_TypeDef*         const I2C                     = I2C_TABLE    [handle].I2C;                     \
+    struct CMSISPutTuple const I2CxRST                 = I2C_TABLE    [handle].I2CxRST;                 \
+    struct CMSISPutTuple const I2CxEN                  = I2C_TABLE    [handle].I2CxEN;                  \
+    enum NVICInterrupt   const NVICInterrupt_I2Cx_EV   = I2C_TABLE    [handle].NVICInterrupt_I2Cx_EV;   \
+    enum NVICInterrupt   const NVICInterrupt_I2Cx_ER   = I2C_TABLE    [handle].NVICInterrupt_I2Cx_ER;   \
+    i32                  const I2Cx_TIMINGR_PRESC_init = I2C_TABLE    [handle].I2Cx_TIMINGR_PRESC_init; \
+    i32                  const I2Cx_TIMINGR_SCL_init   = I2C_TABLE    [handle].I2Cx_TIMINGR_SCL_init
 
 
 
@@ -181,8 +190,6 @@ I2C_reinit(enum I2CHandle handle)
 
     *driver = (struct I2CDriver) {0};
 
-    #define I2C1_TIMINGR_PRESC_init 11     // TODO Ad-hoc.
-    #define I2C1_TIMINGR_SCL_init   250    // TODO Ad-hoc.
     CMSIS_SET(RCC, CCIPR4, I2C1SEL, 0b10); // TODO Ad-hoc.
 
 
@@ -212,11 +219,11 @@ I2C_reinit(enum I2CHandle handle)
     CMSIS_SET // TODO Look over again.
     (
         I2C   , TIMINGR                , // TODO Handle other timing requirements?
-        PRESC , I2C1_TIMINGR_PRESC_init, // Set the time base unit.
+        PRESC , I2Cx_TIMINGR_PRESC_init, // Set the time base unit.
         SCLDEL, 0                      , // TODO Important?
         SDADEL, 0                      , // TODO Important?
-        SCLH  , I2C1_TIMINGR_SCL_init  , // Determines the amount of high time.
-        SCLL  , I2C1_TIMINGR_SCL_init  , // Determines the amount of low time.
+        SCLH  , I2Cx_TIMINGR_SCL_init  , // Determines the amount of high time.
+        SCLL  , I2Cx_TIMINGR_SCL_init  , // Determines the amount of low time.
     );
 
     CMSIS_SET // TODO Look over again.
