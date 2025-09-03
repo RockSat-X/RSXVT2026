@@ -204,6 +204,14 @@
                     for field, peripherals in field_peripherals
                 ),
             ),
+            ('CCIPR4',
+                ('I2C1SEL', 'i2c1_clock_source', (
+                    ('apb1_ck'   , '0b00'),
+                    ('pll3_r_ck' , '0b01'),
+                    ('hsi_ker_ck', '0b10'),
+                    ('csi_ker_ck', '0b11'),
+                )),
+            ),
             ('CCIPR5',
                 ('CKPERSEL', 'per_ck_source', (
                     ('hsi_ck', '0b00'),
