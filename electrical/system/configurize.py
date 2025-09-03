@@ -52,11 +52,11 @@ def SYSTEM_CONFIGURIZE(target, configurations):
             # Get the value from `configurations` directly.
             # e.g:
             # >
-            # >              cfgs('flash_latency')
+            # >              cfgs('FLASH_LATENCY')
             # >                   ~~~~~~~~~~~~~~~
             # >                          |
             # >                   ~~~~~~~~~~~~~~~
-            # >    configurations['flash_latency']
+            # >    configurations['FLASH_LATENCY']
             # >
 
             case []:
@@ -68,11 +68,11 @@ def SYSTEM_CONFIGURIZE(target, configurations):
             # append it to the register's location tuple.
             # e.g:
             # >
-            # >                       cfgs('flash_latency', ...)
+            # >                       cfgs('FLASH_LATENCY', ...)
             # >                                             ~~~
             # >                                              |
             # >                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            # >    ('FLASH', 'ACR', 'LATENCY', configurations['flash_latency'])
+            # >    ('FLASH', 'ACR', 'LATENCY', configurations['FLASH_LATENCY'])
             # >
 
             case [builtins.Ellipsis]:
@@ -88,7 +88,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
             # Append the desired value to the register's location tuple.
             # e.g:
             # >
-            # >          cfgs('flash_latency', 0b1111)
+            # >          cfgs('FLASH_LATENCY', 0b1111)
             # >                                ~~~~~~
             # >                                   |
             # >                                ~~~~~~
@@ -142,8 +142,8 @@ def SYSTEM_CONFIGURIZE(target, configurations):
     # Set the wait-states.
 
     CMSIS_SET(
-        cfgs('flash_latency'          , ...),
-        cfgs('flash_programming_delay', ...),
+        cfgs('FLASH_LATENCY'          , ...),
+        cfgs('FLASH_PROGRAMMING_DELAY', ...),
     )
 
 
@@ -151,8 +151,8 @@ def SYSTEM_CONFIGURIZE(target, configurations):
     # Ensure the new number of wait-states is taken into account.
 
     CMSIS_SPINLOCK(
-        cfgs('flash_latency'          , ...),
-        cfgs('flash_programming_delay', ...),
+        cfgs('FLASH_LATENCY'          , ...),
+        cfgs('FLASH_PROGRAMMING_DELAY', ...),
     )
 
 
@@ -177,17 +177,17 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
         case 'STM32H7S3L8H6':
             fields = (
-                'smps_output_level',
-                'smps_forced_on',
-                'smps_enable',
-                'ldo_enable',
-                'power_management_bypass',
+                'SMPS_OUTPUT_LEVEL',
+                'SMPS_FORCED_ON',
+                'SMPS_ENABLE',
+                'LDO_ENABLE',
+                'POWER_MANAGEMENT_BYPASS',
             )
 
         case 'STM32H533RET6':
             fields = (
-                'ldo_enable',
-                'power_management_bypass',
+                'LDO_ENABLE',
+                'POWER_MANAGEMENT_BYPASS',
             )
 
         case _: raise NotImplementedError
@@ -203,15 +203,15 @@ def SYSTEM_CONFIGURIZE(target, configurations):
     # A higher core voltage means higher power consumption,
     # but better performance in terms of max clock speed.
 
-    CMSIS_SET(cfgs('internal_voltage_scaling', ...))
+    CMSIS_SET(cfgs('INTERNAL_VOLTAGE_SCALING', ...))
 
 
 
     # Ensure the voltage scaling has been selected.
 
     CMSIS_SPINLOCK(
-        cfgs('current_active_vos'      , cfgs('internal_voltage_scaling')),
-        cfgs('current_active_vos_ready', True                            ),
+        cfgs('CURRENT_ACTIVE_VOS'      , cfgs('INTERNAL_VOLTAGE_SCALING')),
+        cfgs('CURRENT_ACTIVE_VOS_READY', True                            ),
     )
 
 
@@ -226,7 +226,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
     # High-speed-internal.
 
-    if cfgs('hsi_enable'):
+    if cfgs('HSI_ENABLE'):
         pass # The HSI oscillator is enabled by default after reset.
     else:
         raise NotImplementedError(
@@ -237,17 +237,17 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
     # High-speed-internal (48MHz).
 
-    if cfgs('hsi48_enable'):
-        CMSIS_SET     (cfgs('hsi48_enable', True))
-        CMSIS_SPINLOCK(cfgs('hsi48_ready' , True))
+    if cfgs('HSI48_ENABLE'):
+        CMSIS_SET     (cfgs('HSI48_ENABLE', True))
+        CMSIS_SPINLOCK(cfgs('HSI48_READY' , True))
 
 
 
     # Clock-security-internal.
 
-    if cfgs('csi_enable'):
-        CMSIS_SET     (cfgs('csi_enable', True))
-        CMSIS_SPINLOCK(cfgs('csi_ready' , True))
+    if cfgs('CSI_ENABLE'):
+        CMSIS_SET     (cfgs('CSI_ENABLE', True))
+        CMSIS_SPINLOCK(cfgs('CSI_READY' , True))
 
 
 
@@ -262,7 +262,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
     # Set the clock source which will be
     # available for some peripheral to use.
 
-    CMSIS_SET(cfgs('per_ck_source', ...))
+    CMSIS_SET(cfgs('PER_CK_SOURCE', ...))
 
 
 
@@ -283,7 +283,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
         # Set the clock source shared for all PLLs.
 
         if target.mcu == 'STM32H7S3L8H6':
-            sets += [cfgs('pll_clock_source', ...)]
+            sets += [cfgs('PLL_CLOCK_SOURCE', ...)]
 
 
 
@@ -296,34 +296,34 @@ def SYSTEM_CONFIGURIZE(target, configurations):
             # Set the clock source for this PLL unit.
 
             if target.mcu == 'STM32H533RET6':
-                sets += [cfgs(f'pll{unit}_clock_source', ...)]
+                sets += [cfgs(f'PLL{unit}_CLOCK_SOURCE', ...)]
 
 
 
             # Set the PLL's predividers.
 
-            predivider = cfgs(f'pll{unit}_predivider')
+            predivider = cfgs(f'PLL{unit}_PREDIVIDER')
 
             if predivider is not None:
-                sets += [cfgs(f'pll{unit}_predivider', ...)]
+                sets += [cfgs(f'PLL{unit}_PREDIVIDER', ...)]
 
 
 
             # Set each PLL unit's expected input frequency range.
 
-            input_range = cfgs(f'pll{unit}_input_range')
+            input_range = cfgs(f'PLL{unit}_INPUT_RANGE')
 
             if input_range is not None:
-                sets += [cfgs(f'pll{unit}_input_range', ...)]
+                sets += [cfgs(f'PLL{unit}_INPUT_RANGE', ...)]
 
 
 
             # Set each PLL unit's multipler.
 
-            multiplier = cfgs(f'pll{unit}_multiplier')
+            multiplier = cfgs(f'PLL{unit}_MULTIPLIER')
 
             if multiplier is not None:
-                sets += [cfgs(f'pll{unit}_multiplier', f'{multiplier} - 1')]
+                sets += [cfgs(f'PLL{unit}_MULTIPLIER', f'{multiplier} - 1')]
 
 
 
@@ -331,14 +331,14 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
             for channel in channels:
 
-                divider = cfgs(f'pll{unit}_{channel}_divider')
+                divider = cfgs(f'PLL{unit}_{channel}_DIVIDER')
 
                 if divider is None:
                     continue
 
                 sets += [
-                    cfgs(f'pll{unit}{channel}_divider', f'{divider} - 1'),
-                    cfgs(f'pll{unit}{channel}_enable' , True            ),
+                    cfgs(f'PLL{unit}{channel}_DIVIDER', f'{divider} - 1'),
+                    cfgs(f'PLL{unit}{channel}_ENABLE' , True            ),
                 ]
 
 
@@ -346,7 +346,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
     # Enable each PLL unit that is to be used.
 
     CMSIS_SET(
-        cfgs(f'pll{unit}_enable', ...)
+        cfgs(f'PLL{unit}_ENABLE', ...)
         for unit, channels in database['PLLS'].value
     )
 
@@ -356,10 +356,10 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
     for unit, channels in database['PLLS'].value:
 
-        pllx_enable = cfgs(f'pll{unit}_enable')
+        pllx_enable = cfgs(f'PLL{unit}_ENABLE')
 
         if pllx_enable:
-            CMSIS_SPINLOCK(cfgs(f'pll{unit}_ready', True))
+            CMSIS_SPINLOCK(cfgs(f'PLL{unit}_READY', True))
 
 
 
@@ -377,19 +377,19 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
         case 'STM32H7S3L8H6':
             CMSIS_SET(
-                cfgs('cpu_divider', ...),
-                cfgs('axi_ahb_divider', ...),
+                cfgs('CPU_DIVIDER', ...),
+                cfgs('AXI_AHB_DIVIDER', ...),
                 *(
-                    cfgs(f'apb{unit}_divider', ...)
+                    cfgs(f'APB{unit}_DIVIDER', ...)
                     for unit in database['APBS'].value
                 ),
             )
 
         case 'STM32H533RET6':
             CMSIS_SET(
-                cfgs('cpu_divider', ...),
+                cfgs('CPU_DIVIDER', ...),
                 *(
-                    cfgs(f'apb{unit}_divider', ...)
+                    cfgs(f'APB{unit}_DIVIDER', ...)
                     for unit in database['APBS'].value
                 ),
             )
@@ -400,14 +400,14 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
     # Now switch system clock to the desired source.
 
-    CMSIS_SET(cfgs('scgu_clock_source', ...))
+    CMSIS_SET(cfgs('SCGU_CLOCK_SOURCE', ...))
 
 
 
     # Wait until the desired source has been selected.
 
     CMSIS_SPINLOCK(
-        cfgs('effective_scgu_clock_source', cfgs('scgu_clock_source'))
+        cfgs('EFFECTIVE_SCGU_CLOCK_SOURCE', cfgs('SCGU_CLOCK_SOURCE'))
     )
 
 
@@ -416,18 +416,18 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
-    if cfgs('systick_enable'):
+    if cfgs('SYSTICK_ENABLE'):
 
         put_title('SysTick')
 
         # @/pg 621/tbl B3-7/`Armv7-M`.
         # @/pg 1861/sec D1.2.239/`Armv8-M`.
         CMSIS_SET(
-            cfgs('systick_reload'          , ... ), # Modulation of the counter.
-            cfgs('systick_use_cpu_ck'      , ... ), # Use CPU clock or the vendor-provided one.
-            cfgs('systick_counter'         , 0   ), # SYST_CVR value is UNKNOWN on reset.
-            cfgs('systick_interrupt_enable', True), # Enable SysTick interrupt, triggered at every overflow.
-            cfgs('systick_enable'          , True), # Enable SysTick counter.
+            cfgs('SYSTICK_RELOAD'          , ... ), # Modulation of the counter.
+            cfgs('SYSTICK_USE_CPU_CK'      , ... ), # Use CPU clock or the vendor-provided one.
+            cfgs('SYSTICK_COUNTER'         , 0   ), # SYST_CVR value is UNKNOWN on reset.
+            cfgs('SYSTICK_INTERRUPT_ENABLE', True), # Enable SysTick interrupt, triggered at every overflow.
+            cfgs('SYSTICK_ENABLE'          , True), # Enable SysTick counter.
         )
 
 
@@ -442,11 +442,11 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
         # See if the set of UxART peripherals is used.
 
-        if cfgs(f'uxart_{uxart_units}_clock_source') is None:
+        if cfgs(f'UXART_{uxart_units}_CLOCK_SOURCE') is None:
             continue
 
         put_title(' / '.join(
-            f'{peripheral.upper()}{number}'
+            f'{peripheral}{number}'
             for peripheral, number in uxart_units
         ))
 
@@ -454,7 +454,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
         # Configure the UxART peripherals' clock source.
 
-        CMSIS_SET(cfgs(f'uxart_{uxart_units}_clock_source', ...))
+        CMSIS_SET(cfgs(f'UXART_{uxart_units}_CLOCK_SOURCE', ...))
 
 
 
@@ -462,13 +462,13 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
         for peripheral, number in uxart_units:
 
-            baud_divider = cfgs(f'{peripheral}{number}_baud_divider')
+            baud_divider = cfgs(f'{peripheral}{number}_BAUD_DIVIDER')
 
             if baud_divider is None:
                 continue
 
             Meta.define(
-                f'{peripheral.upper()}{number}_BRR_BRR_init',
+                f'{peripheral}{number}_BRR_BRR_init',
                 baud_divider
             )
 
@@ -481,13 +481,13 @@ def SYSTEM_CONFIGURIZE(target, configurations):
     for unit in (database['I2CS'].value if 'I2CS' in database else ()):
 
 
-        if (presc := cfgs(f'i2c{unit}_presc')) is not None:
+        if (presc := cfgs(f'I2C{unit}_PRESC')) is not None:
             Meta.define(f'I2C{unit}_TIMINGR_PRESC_init', presc)
 
-        if (scl := cfgs(f'i2c{unit}_scl')) is not None:
+        if (scl := cfgs(f'I2C{unit}_SCL')) is not None:
             Meta.define(f'I2C{unit}_TIMINGR_SCL_init', scl)
 
-        CMSIS_SET(cfgs(f'i2c{unit}_clock_source', ...))
+        CMSIS_SET(cfgs(f'I2C{unit}_CLOCK_SOURCE', ...))
 
 
 

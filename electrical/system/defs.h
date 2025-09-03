@@ -421,11 +421,11 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
                 if gpio.pin is None:
                     continue
 
-                if gpio.mode in ('input', 'alternate'):
+                if gpio.mode in ('INPUT', 'ALTERNATE'):
                     Meta.define('_PORT_FOR_GPIO_READ'  , ('NAME'), gpio.port  , NAME = gpio.name)
                     Meta.define('_NUMBER_FOR_GPIO_READ', ('NAME'), gpio.number, NAME = gpio.name)
 
-                if gpio.mode == 'output':
+                if gpio.mode == 'OUTPUT':
                     Meta.define('_PORT_FOR_GPIO_WRITE'  , ('NAME'), gpio.port  , NAME = gpio.name)
                     Meta.define('_NUMBER_FOR_GPIO_WRITE', ('NAME'), gpio.number, NAME = gpio.name)
 
@@ -435,9 +435,9 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
             CMSIS_SET(
                 (
-                    SYSTEM_DATABASE[target.mcu][f'gpio{port}_enable'].peripheral,
-                    SYSTEM_DATABASE[target.mcu][f'gpio{port}_enable'].register,
-                    SYSTEM_DATABASE[target.mcu][f'gpio{port}_enable'].field,
+                    SYSTEM_DATABASE[target.mcu][f'GPIO{port}_ENABLE'].peripheral,
+                    SYSTEM_DATABASE[target.mcu][f'GPIO{port}_ENABLE'].register,
+                    SYSTEM_DATABASE[target.mcu][f'GPIO{port}_ENABLE'].field,
                     True
                 )
                 for port in sorted(OrderedSet(
@@ -530,7 +530,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
                 )
                 for gpio in gpios
                 if gpio.pin  is not None
-                if gpio.mode not in (None, 'reserved')
+                if gpio.mode not in (None, 'RESERVED')
             )
 
 
@@ -767,7 +767,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
             # A simple input GPIO to read digital voltage levels.
 
-            case 'input':
+            case 'INPUT':
 
 
 
@@ -780,7 +780,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
             # A simple output GPIO that can be driven low or high.
 
-            case 'output':
+            case 'OUTPUT':
 
 
 
@@ -802,7 +802,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
             # This GPIO would typically be used for some
             # peripheral functionality (e.g. SPI clock output).
 
-            case 'alternate':
+            case 'ALTERNATE':
 
 
 
@@ -825,18 +825,18 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
             # disabled; this obviously allows for ADC/DAC usage,
             # but it can also serve as a power-saving measure.
 
-            case 'analog':
+            case 'ANALOG':
                 raise NotImplementedError
 
 
 
-            # A GPIO that's marked as "reserved" is often useful
+            # A GPIO that's marked as "RESERVED" is often useful
             # for marking a particular pin as something that
             # shouldn't be used because it has an important
             # functionality (e.g. JTAG debug).
             # We ignore any properties the reserved pin may have.
 
-            case 'reserved':
+            case 'RESERVED':
                 properties = {}
 
 

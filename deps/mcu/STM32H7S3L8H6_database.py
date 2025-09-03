@@ -14,14 +14,14 @@
         )),
 
         ('PLLS', (
-            (1, ('p', 'q',      's',    )),
-            (2, ('p', 'q', 'r', 's', 't')),
-            (3, ('p', 'q', 'r', 's',    )),
+            (1, ('P', 'Q',      'S',    )),
+            (2, ('P', 'Q', 'R', 'S', 'T')),
+            (3, ('P', 'Q', 'R', 'S',    )),
         )),
 
         ('UXARTS', (
-            (('usart', 1),),
-            (('usart', 2), ('usart', 3), ('uart', 4), ('uart', 5), ('uart', 7), ('uart', 8)),
+            (('USART', 1),),
+            (('USART', 2), ('USART', 3), ('UART', 4), ('UART', 5), ('UART', 7), ('UART', 8)),
         )),
 
         ################################################################################
@@ -30,23 +30,23 @@
         #
 
         ('GPIO_MODE', (
-            ('input'    , '0b00'),
-            ('output'   , '0b01'),
-            ('alternate', '0b10'),
-            ('analog'   , '0b11'),
+            ('INPUT'    , '0b00'),
+            ('OUTPUT'   , '0b01'),
+            ('ALTERNATE', '0b10'),
+            ('ANALOG'   , '0b11'),
         )),
 
         ('GPIO_SPEED', (
-            ('low'      , '0b00'),
-            ('medium'   , '0b01'),
-            ('high'     , '0b10'),
-            ('very_high', '0b11'),
+            ('LOW'      , '0b00'),
+            ('MEDIUM'   , '0b01'),
+            ('HIGH'     , '0b10'),
+            ('VERY_HIGH', '0b11'),
         )),
 
         ('GPIO_PULL', (
             (None  , '0b00'),
-            ('up'  , '0b01'),
-            ('down', '0b10'),
+            ('UP'  , '0b01'),
+            ('DOWN', '0b10'),
         )),
 
         ################################################################################
@@ -58,12 +58,12 @@
         # TODO 600MHz only when ECC is disabled.
         #
 
-        ('sdmmc_kernel_freq', 0          , 200_000_000),
-        ('cpu_freq'         , 0          , 600_000_000),
-        ('axi_ahb_freq'     , 0          , 300_000_000),
-        ('apb_freq'         , 0          , 150_000_000),
-        ('pll_channel_freq' , 1_500_000  , 600_000_000),
-        ('pll_vco_freq'     , 192_000_000, 836_000_000),
+        ('SDMMC_KERNEL_FREQ', 0          , 200_000_000),
+        ('CPU_FREQ'         , 0          , 600_000_000),
+        ('AXI_AHB_FREQ'     , 0          , 300_000_000),
+        ('APB_FREQ'         , 0          , 150_000_000),
+        ('PLL_CHANNEL_FREQ' , 1_500_000  , 600_000_000),
+        ('PLL_VCO_FREQ'     , 192_000_000, 836_000_000),
 
     ),
     (
@@ -73,17 +73,17 @@
         ('SysTick',
 
             ('LOAD',
-                ('RELOAD', 'systick_reload', 1, (1 << 24) - 1),
+                ('RELOAD', 'SYSTICK_RELOAD', 1, (1 << 24) - 1),
             ),
 
             ('VAL',
-                ('CURRENT', 'systick_counter', 0, (1 << 32) - 1),
+                ('CURRENT', 'SYSTICK_COUNTER', 0, (1 << 32) - 1),
             ),
 
             ('CTRL',
-                ('CLKSOURCE', 'systick_use_cpu_ck'      ),
-                ('TICKINT'  , 'systick_interrupt_enable'),
-                ('ENABLE'   , 'systick_enable'          ),
+                ('CLKSOURCE', 'SYSTICK_USE_CPU_CK'      ),
+                ('TICKINT'  , 'SYSTICK_INTERRUPT_ENABLE'),
+                ('ENABLE'   , 'SYSTICK_ENABLE'          ),
             ),
 
         ),
@@ -93,11 +93,11 @@
         ('FLASH',
 
             ('ACR',
-                ('WRHIGHFREQ', 'flash_programming_delay', (
+                ('WRHIGHFREQ', 'FLASH_PROGRAMMING_DELAY', (
                     '0b00',
                     '0b11'
                 )),
-                ('LATENCY', 'flash_latency', 0b0000, 0b1111),
+                ('LATENCY', 'FLASH_LATENCY', 0b0000, 0b1111),
             ),
 
         ),
@@ -107,20 +107,20 @@
         ('PWR',
 
             ('SR1',
-                ('ACTVOS'   , 'current_active_vos'      ),
-                ('ACTVOSRDY', 'current_active_vos_ready'),
+                ('ACTVOS'   , 'CURRENT_ACTIVE_VOS'      ),
+                ('ACTVOSRDY', 'CURRENT_ACTIVE_VOS_READY'),
             ),
 
             ('CSR2',
-                ('SDHILEVEL', 'smps_output_level'      ),
-                ('SMPSEXTHP', 'smps_forced_on'         ),
-                ('SDEN'     , 'smps_enable'            ),
-                ('LDOEN'    , 'ldo_enable'             ),
-                ('BYPASS'   , 'power_management_bypass'),
+                ('SDHILEVEL', 'SMPS_OUTPUT_LEVEL'      ),
+                ('SMPSEXTHP', 'SMPS_FORCED_ON'         ),
+                ('SDEN'     , 'SMPS_ENABLE'            ),
+                ('LDOEN'    , 'LDO_ENABLE'             ),
+                ('BYPASS'   , 'POWER_MANAGEMENT_BYPASS'),
             ),
 
             ('CSR4',
-                ('VOS', 'internal_voltage_scaling'),
+                ('VOS', 'INTERNAL_VOLTAGE_SCALING'),
             ),
 
         ),
@@ -130,29 +130,29 @@
         ('RCC',
 
             ('CR',
-                ('PLL3RDY' , 'pll3_ready'  ),
-                ('PLL3ON'  , 'pll3_enable' ),
-                ('PLL2RDY' , 'pll2_ready'  ),
-                ('PLL2ON'  , 'pll2_enable' ),
-                ('PLL1RDY' , 'pll1_ready'  ),
-                ('PLL1ON'  , 'pll1_enable' ),
-                ('HSI48RDY', 'hsi48_ready' ),
-                ('HSI48ON' , 'hsi48_enable'),
-                ('CSIRDY'  , 'csi_ready'   ),
-                ('CSION'   , 'csi_enable'  ),
+                ('PLL3RDY' , 'PLL3_READY'  ),
+                ('PLL3ON'  , 'PLL3_ENABLE' ),
+                ('PLL2RDY' , 'PLL2_READY'  ),
+                ('PLL2ON'  , 'PLL2_ENABLE' ),
+                ('PLL1RDY' , 'PLL1_READY'  ),
+                ('PLL1ON'  , 'PLL1_ENABLE' ),
+                ('HSI48RDY', 'HSI48_READY' ),
+                ('HSI48ON' , 'HSI48_ENABLE'),
+                ('CSIRDY'  , 'CSI_READY'   ),
+                ('CSION'   , 'CSI_ENABLE'  ),
             ),
 
             ('CFGR',
                 *(
                     (field, tag, (
-                        ('hsi_ck'   , '0b000'),
-                        ('csi_ck'   , '0b001'),
-                        ('hse_ck'   , '0b010'),
-                        ('pll1_p_ck', '0b011'),
+                        ('HSI_CK'   , '0b000'),
+                        ('CSI_CK'   , '0b001'),
+                        ('HSE_CK'   , '0b010'),
+                        ('PLL1_P_CK', '0b011'),
                     ))
                     for field, tag in (
-                        ('SWS', 'effective_scgu_clock_source'),
-                        ('SW' , 'scgu_clock_source'          ),
+                        ('SWS', 'EFFECTIVE_SCGU_CLOCK_SOURCE'),
+                        ('SW' , 'SCGU_CLOCK_SOURCE'          ),
                     )
                 ),
             ),
@@ -172,14 +172,14 @@
                     ))
                 )
                 for register, field, tag in (
-                    ('CDCFGR', 'CPRE' , 'cpu_divider'    ),
-                    ('BMCFGR', 'BMPRE', 'axi_ahb_divider'),
+                    ('CDCFGR', 'CPRE' , 'CPU_DIVIDER'    ),
+                    ('BMCFGR', 'BMPRE', 'AXI_AHB_DIVIDER'),
                 )
             ),
 
             ('APBCFGR',
                 *(
-                    (f'PPRE{unit}', f'apb{unit}_divider', (
+                    (f'PPRE{unit}', f'APB{unit}_DIVIDER', (
                         (1 , '0b000'),
                         (2 , '0b100'),
                         (4 , '0b101'),
@@ -192,18 +192,18 @@
 
             ('AHB4ENR',
                 *(
-                    (f'GPIO{port}EN', f'gpio{port}_enable')
+                    (f'GPIO{port}EN', f'GPIO{port}_ENABLE')
                     for port in 'ABCDEFGHI'
                 ),
             ),
 
             ('APB1ENR1',
-                ('USART3EN', 'uxart_3_enable'),
+                ('USART3EN', 'UXART_3_ENABLE'),
             ),
 
             ('PLLCFGR',
                 *(
-                    (f'PLL{unit}RGE', f'pll{unit}_input_range', (
+                    (f'PLL{unit}RGE', f'PLL{unit}_INPUT_RANGE', (
                         ( 1_000_000, None),
                         ( 2_000_000, None), # Can be '0b00', but only for medium VCO.
                         ( 4_000_000, 0b01),
@@ -213,68 +213,68 @@
                     for unit in (1, 2, 3)
                 ),
                 *(
-                    (f'PLL{unit}{channel.upper()}EN', f'pll{unit}{channel}_enable')
+                    (f'PLL{unit}{channel}EN', f'PLL{unit}{channel}_ENABLE')
                     for unit, channels in (
-                        (1, ('p', 'q',      's'     )),
-                        (2, ('p', 'q', 'r', 's', 't')),
-                        (3, ('p', 'q', 'r', 's'     )),
+                        (1, ('P', 'Q',      'S'     )),
+                        (2, ('P', 'Q', 'R', 'S', 'T')),
+                        (3, ('P', 'Q', 'R', 'S'     )),
                     )
                     for channel in channels
                 ),
             ),
 
             ('PLLCKSELR',
-                ('DIVM1' , 'pll1_predivider' , 1, 63),
-                ('DIVM2' , 'pll2_predivider' , 1, 63),
-                ('DIVM3' , 'pll3_predivider' , 1, 63),
-                ('PLLSRC', 'pll_clock_source', (
-                    ('hsi_ck' , '0b00'),
-                    ('csi_ck' , '0b01'),
-                    ('hse_ck' , '0b10'),
+                ('DIVM1' , 'PLL1_PREDIVIDER' , 1, 63),
+                ('DIVM2' , 'PLL2_PREDIVIDER' , 1, 63),
+                ('DIVM3' , 'PLL3_PREDIVIDER' , 1, 63),
+                ('PLLSRC', 'PLL_CLOCK_SOURCE', (
+                    ('HSI_CK' , '0b00'),
+                    ('CSI_CK' , '0b01'),
+                    ('HSE_CK' , '0b10'),
                     (None     , '0b11'),
                 )),
             ),
 
             *(
                 (f'PLL{unit}DIVR1',
-                    ('DIVN', f'pll{unit}_multiplier', 12, 420),
+                    ('DIVN', f'PLL{unit}_MULTIPLIER', 12, 420),
                 )
                 for unit in (1, 2, 3)
             ),
 
             *(
-                (f'PLL{unit}DIVR{2 if channel in ('s', 't') else 1}',
-                    (f'DIV{channel.upper()}', f'pll{unit}{channel}_divider', 1, 128),
+                (f'PLL{unit}DIVR{2 if channel in ('S', 'T') else 1}',
+                    (f'DIV{channel}', f'PLL{unit}{channel}_DIVIDER', 1, 128),
                 )
                 for unit, channels in (
-                    (1, ('p', 'q',      's'     )),
-                    (2, ('p', 'q', 'r', 's', 't')),
-                    (3, ('p', 'q', 'r', 's'     )),
+                    (1, ('P', 'Q',      'S'     )),
+                    (2, ('P', 'Q', 'R', 'S', 'T')),
+                    (3, ('P', 'Q', 'R', 'S'     )),
                 )
                 for channel in channels
             ),
 
             ('CCIPR1',
-                ('CKPERSEL', 'per_ck_source', (
-                    ('hsi_ck' , '0b00'),
-                    ('csi_ck' , '0b01'),
-                    ('hse_ck' , '0b10'),
+                ('CKPERSEL', 'PER_CK_SOURCE', (
+                    ('HSI_CK' , '0b00'),
+                    ('CSI_CK' , '0b01'),
+                    ('HSE_CK' , '0b10'),
                     (None     , '0b11'),
                 )),
-                ('SDMMC12SEL', 'sdmmc_clock_source', (
-                    ('pll2_s_ck', '0b0'),
-                    ('pll2_t_ck', '0b1'),
+                ('SDMMC12SEL', 'SDMMC_CLOCK_SOURCE', (
+                    ('PLL2_S_CK', '0b0'),
+                    ('PLL2_T_CK', '0b1'),
                 )),
             ),
 
             ('CCIPR2',
-                ('UART234578SEL', f'uxart_{(('usart', 2), ('usart', 3), ('uart', 4), ('uart', 5), ('uart', 7), ('uart', 8))}_clock_source', (
-                    ('apb2_ck'  , '0b000'),
-                    ('pll2_q_ck', '0b001'),
-                    ('pll3_q_ck', '0b010'),
-                    ('hsi_ck'   , '0b011'),
-                    ('csi_ck'   , '0b100'),
-                    ('lse_ck'   , '0b101'),
+                ('UART234578SEL', f'UXART_{(('USART', 2), ('USART', 3), ('UART', 4), ('UART', 5), ('UART', 7), ('UART', 8))}_CLOCK_SOURCE', (
+                    ('APB2_CK'  , '0b000'),
+                    ('PLL2_Q_CK', '0b001'),
+                    ('PLL3_Q_CK', '0b010'),
+                    ('HSI_CK'   , '0b011'),
+                    ('CSI_CK'   , '0b100'),
+                    ('LSE_CK'   , '0b101'),
                 )),
             ),
 
@@ -284,7 +284,7 @@
 
         ('USART',
             ('BRR',
-                ('BRR', 'uxart_baud_divider', 1, 1 << 16),
+                ('BRR', 'UXART_BAUD_DIVIDER', 1, 1 << 16),
             ),
         ),
 

@@ -11,6 +11,19 @@ main(void)
 
 
 
+
+
+
+    GPIO_HIGH(ov_pd); // Pulling high so the camera is powered down.
+    GPIO_LOW(ov_rt);  // Pulling low so the camera is resetting.
+
+    spinlock_nop(100'000'000);
+
+    GPIO_LOW(ov_pd);  // Pulling low so the camera is now powered on.
+    GPIO_HIGH(ov_rt); // Pulling high so the camera is now out of reset.
+
+
+
     // A delay here so if we inspect the I2C pins,
     // it's clearly differentiated from when the MCU
     // is under reset.
