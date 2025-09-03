@@ -28,6 +28,55 @@ class SystemDatabaseDict(dict): # TODO Better error message for unknown tag?
 
 
 
+# TODO Explain.
+
+class SystemDatabaseOptions:
+
+    def __init__(self, peripheral, register, field, options):
+        self.peripheral = peripheral
+        self.register   = register
+        self.field      = field
+        self.options    = options
+
+    def __iter__(self):
+        return iter(self.options)
+
+
+
+# TODO Explain.
+# e.g:
+# >
+# >    ('SysTick',
+# >        ('LOAD',
+# >            ('RELOAD', 'SYSTICK_RELOAD', 1, (1 << 24) - 1),
+# >        ),
+# >    )
+# >
+
+class SystemDatabaseMinMax:
+
+    def __init__(self, minimum, maximum, peripheral = None, register = None, field = None):
+
+        if peripheral is not None:
+            self.peripheral = peripheral
+
+        if register is not None:
+            self.register = register
+
+        if field is not None:
+            self.field = field
+
+        self.minimum = minimum
+        self.maximum = maximum
+
+    def __iter__(self):
+        return iter(range(self.minimum, self.maximum + 1))
+
+    def __contains__(self, value):
+        return self.minimum <= value <= self.maximum
+
+
+
 # Parse each MCU's database expression.
 
 SYSTEM_DATABASE = {}
@@ -79,9 +128,9 @@ for mcu in MCUS:
 
             case (tag, minimum, maximum):
 
-                entries += [(tag, types.SimpleNamespace(
-                    minimum = minimum,
-                    maximum = maximum,
+                entries += [(tag, SystemDatabaseMinMax(
+                    minimum,
+                    maximum,
                 ))]
 
 
@@ -121,11 +170,11 @@ for mcu in MCUS:
 
                     case (field, tag):
 
-                        entries += [(tag, types.SimpleNamespace(
-                            peripheral = peripheral,
-                            register   = register,
-                            field      = field,
-                            value      = (False, True),
+                        entries += [(tag, SystemDatabaseOptions(
+                            peripheral,
+                            register,
+                            field,
+                            (False, True),
                         ))]
 
 
@@ -146,11 +195,11 @@ for mcu in MCUS:
 
                     case (field, tag, options):
 
-                        entries += [(tag, types.SimpleNamespace(
-                            peripheral = peripheral,
-                            register   = register,
-                            field      = field,
-                            options    = options,
+                        entries += [(tag, SystemDatabaseOptions(
+                            peripheral,
+                            register,
+                            field,
+                            options,
                         ))]
 
 
@@ -167,12 +216,12 @@ for mcu in MCUS:
 
                     case (field, tag, minimum, maximum):
 
-                        entries += [(tag, types.SimpleNamespace(
-                            peripheral = peripheral,
-                            register   = register,
-                            field      = field,
-                            minimum    = minimum,
-                            maximum    = maximum,
+                        entries += [(tag, SystemDatabaseMinMax(
+                            minimum,
+                            maximum,
+                            peripheral,
+                            register,
+                            field,
                         ))]
 
 
@@ -199,7 +248,7 @@ for mcu in MCUS:
     if (dupe := find_dupe(
         (entry.peripheral, entry.register, entry.field)
         for tag, entry in entries
-        if isinstance(entry, types.SimpleNamespace) and 'peripheral' in entry.__dict__
+        if hasattr(entry, 'peripheral')
     )) is not ...:
         raise ValueError(
             f'For {mcu}, '
