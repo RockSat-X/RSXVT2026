@@ -478,16 +478,20 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
-    for unit in (database['I2CS'] if 'I2CS' in database else ()):
+    for unit in database.get('I2CS', ()):
 
+        if cfgs(f'I2C{unit}_CLOCK_SOURCE') is None:
+            continue
+
+        put_title(f'I2C{unit}')
+
+        CMSIS_SET(cfgs(f'I2C{unit}_CLOCK_SOURCE', ...))
 
         if (presc := cfgs(f'I2C{unit}_PRESC')) is not None:
             Meta.define(f'I2C{unit}_TIMINGR_PRESC_init', presc)
 
         if (scl := cfgs(f'I2C{unit}_SCL')) is not None:
             Meta.define(f'I2C{unit}_TIMINGR_SCL_init', scl)
-
-        CMSIS_SET(cfgs(f'I2C{unit}_CLOCK_SOURCE', ...))
 
 
 
