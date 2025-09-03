@@ -14,6 +14,7 @@
             (('uart' , 5),),
             (('usart', 6),),
         )),
+        ('I2CS', (1, 2)),
         ('GPIO_PORT_ENABLE_REGISTER', 'AHB2ENR'), # @/pg 518/sec 11.8.27/`H533rm`.
         ('GPIO_MODE', (                           # @/pg 586/sec 13.4.1/`H533rm`.
             ('input'    , '0b00'),
@@ -205,6 +206,12 @@
                 ),
             ),
             ('CCIPR4',
+                ('I2C2SEL', 'i2c2_clock_source', (
+                    ('apb1_ck'   , '0b00'),
+                    ('pll3_r_ck' , '0b01'),
+                    ('hsi_ker_ck', '0b10'),
+                    ('csi_ker_ck', '0b11'),
+                )),
                 ('I2C1SEL', 'i2c1_clock_source', (
                     ('apb1_ck'   , '0b00'),
                     ('pll3_r_ck' , '0b01'),
@@ -228,6 +235,13 @@
         ('USART',
             ('BRR',
                 ('BRR', 'uxart_baud_divider', 1, 1 << 16),
+            ),
+        ),
+        ('I2C',
+            ('TIMINGR',
+                ('PRESC', 'i2c_prescaler', 0, 15 ),
+                ('SCLH' , 'i2c_SCH'      , 0, 255),
+                ('SCLL' , 'i2c_SCL'      , 0, 255),
             ),
         ),
     ),
