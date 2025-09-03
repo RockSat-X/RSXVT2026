@@ -330,9 +330,9 @@
 
         ('I2C',
             ('TIMINGR',
-                ('PRESC', 'I2C_PRESCALER', 0, 15 ),
-                ('SCLH' , 'I2C_SCH'      , 0, 255),
-                ('SCLL' , 'I2C_SCL'      , 0, 255),
+                ('PRESC', 'I2C_PRESC', 0, 15 ),
+                ('SCLH' , 'I2C_SCLH' , 0, 255),
+                ('SCLL' , 'I2C_SCLL' , 0, 255),
             ),
         ),
 

@@ -926,7 +926,7 @@ def SYSTEM_PARAMETERIZE(target):
 
                 source_frequency = tree[source_name]
 
-                for presc in database['I2C_PRESCALER']:
+                for presc in database['I2C_PRESC']:
 
 
 
@@ -934,10 +934,10 @@ def SYSTEM_PARAMETERIZE(target):
 
                     scl = round(source_frequency / (presc + 1) / needed_baud / 2)
 
-                    if scl not in database['I2C_SCH']:
+                    if scl not in database['I2C_SCLH']:
                         continue
 
-                    if scl not in database['I2C_SCL']:
+                    if scl not in database['I2C_SCLL']:
                         continue
 
 
