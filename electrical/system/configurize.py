@@ -289,7 +289,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
         # Configure each PLL.
 
-        for unit, channels in database['PLLS'].value:
+        for unit, channels in database['PLLS']:
 
 
 
@@ -347,14 +347,14 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
     CMSIS_SET(
         cfgs(f'PLL{unit}_ENABLE', ...)
-        for unit, channels in database['PLLS'].value
+        for unit, channels in database['PLLS']
     )
 
 
 
     # Ensure each enabled PLL unit has stabilized.
 
-    for unit, channels in database['PLLS'].value:
+    for unit, channels in database['PLLS']:
 
         pllx_enable = cfgs(f'PLL{unit}_ENABLE')
 
@@ -381,7 +381,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
                 cfgs('AXI_AHB_DIVIDER', ...),
                 *(
                     cfgs(f'APB{unit}_DIVIDER', ...)
-                    for unit in database['APBS'].value
+                    for unit in database['APBS']
                 ),
             )
 
@@ -390,7 +390,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
                 cfgs('CPU_DIVIDER', ...),
                 *(
                     cfgs(f'APB{unit}_DIVIDER', ...)
-                    for unit in database['APBS'].value
+                    for unit in database['APBS']
                 ),
             )
 
@@ -436,7 +436,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
-    for uxart_units in database['UXARTS'].value:
+    for uxart_units in database['UXARTS']:
 
 
 
@@ -478,7 +478,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
-    for unit in (database['I2CS'].value if 'I2CS' in database else ()):
+    for unit in (database['I2CS'] if 'I2CS' in database else ()):
 
 
         if (presc := cfgs(f'I2C{unit}_PRESC')) is not None:

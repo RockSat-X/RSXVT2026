@@ -185,7 +185,7 @@ def SYSTEM_PARAMETERIZE(target):
 
     clocks += [
         f'APB{n}_CK'
-        for n in database['APBS'].value
+        for n in database['APBS']
     ]
 
 
@@ -194,7 +194,7 @@ def SYSTEM_PARAMETERIZE(target):
 
     clocks += [
         f'PLL{n}_{channel}_CK'
-        for n, channels in database['PLLS'].value
+        for n, channels in database['PLLS']
         for channel in channels
     ]
 
@@ -394,7 +394,7 @@ def SYSTEM_PARAMETERIZE(target):
 
     # Verify the values for the PLL options.
 
-    for unit, channels in database['PLLS'].value:
+    for unit, channels in database['PLLS']:
 
         for channel in channels:
 
@@ -486,7 +486,7 @@ def SYSTEM_PARAMETERIZE(target):
 
         pll_is_used = not all(
             opts(f'PLL{unit}_{channel}_CK', None) is None
-            for channel in mk_dict(database['PLLS'].value)[unit]
+            for channel in mk_dict(database['PLLS'])[unit]
         )
 
         draft[f'PLL{unit}_ENABLE'] = pll_is_used
@@ -502,7 +502,7 @@ def SYSTEM_PARAMETERIZE(target):
 
             every_plln_satisfied = all(
                 parameterize_plln_channel(unit, pll_vco_freq, channel)
-                for channel in mk_dict(database['PLLS'].value)[unit]
+                for channel in mk_dict(database['PLLS'])[unit]
             )
 
             if every_plln_satisfied:
@@ -527,7 +527,7 @@ def SYSTEM_PARAMETERIZE(target):
                     pll_clock_source_freq = tree[pll_clock_source_name]
                     every_pll_satisfied   = all(
                         parameterize_plln(units, pll_clock_source_freq)
-                        for units, channels in database['PLLS'].value
+                        for units, channels in database['PLLS']
                     )
 
                     if every_pll_satisfied:
@@ -539,7 +539,7 @@ def SYSTEM_PARAMETERIZE(target):
 
             case 'STM32H533RET6':
 
-                for unit, channels in database['PLLS'].value:
+                for unit, channels in database['PLLS']:
 
                     plln_satisfied = any(
                         parameterize_plln(unit, tree[plln_clock_source_name])
@@ -567,13 +567,13 @@ def SYSTEM_PARAMETERIZE(target):
         case 'STM32H533RET6':
             draft_configuration_names = [
                 f'PLL{unit}_CLOCK_SOURCE'
-                for unit, channels in database['PLLS'].value
+                for unit, channels in database['PLLS']
             ]
 
         case _:
             raise NotImplementedError
 
-    for unit, channels in database['PLLS'].value:
+    for unit, channels in database['PLLS']:
 
         for channel in channels:
             draft_configuration_names += [f'PLL{unit}_{channel}_DIVIDER']
@@ -602,7 +602,7 @@ def SYSTEM_PARAMETERIZE(target):
             f'out-of-range: {tree.CPU_CK :_}Hz.'
         )
 
-    for unit in database['APBS'].value:
+    for unit in database['APBS']:
         if not in_minmax(tree[f'APB{unit}_CK'], 'APB_FREQ'):
             raise ValueError(
                 f'APB{unit} frequency is '
@@ -685,7 +685,7 @@ def SYSTEM_PARAMETERIZE(target):
 
             every_apb_satisfied = all(
                 parameterize_apbx(unit)
-                for unit in database['APBS'].value
+                for unit in database['APBS']
             )
 
             if not every_apb_satisfied:
@@ -705,7 +705,7 @@ def SYSTEM_PARAMETERIZE(target):
         'SCGU_CLOCK_SOURCE',
         'CPU_DIVIDER',
         'AXI_AHB_DIVIDER',
-        *(f'APB{unit}_DIVIDER' for unit in database['APBS'].value),
+        *(f'APB{unit}_DIVIDER' for unit in database['APBS']),
     ))
 
 
@@ -817,7 +817,7 @@ def SYSTEM_PARAMETERIZE(target):
     # baud-rate divider, but nonetheless, we must process each set
     # of connected UxART peripherals as a whole.
 
-    for uxart_units in database['UXARTS'].value:
+    for uxart_units in database['UXARTS']:
 
 
 
@@ -917,7 +917,7 @@ def SYSTEM_PARAMETERIZE(target):
 
 
 
-    for unit in (database['I2CS'].value if 'I2CS' in database else ()):
+    for unit in (database['I2CS'] if 'I2CS' in database else ()):
 
         def parameterize_i2c():
 

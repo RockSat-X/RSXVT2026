@@ -67,9 +67,7 @@ for mcu in MCUS:
 
             case (tag, value):
 
-                entries += [(tag, types.SimpleNamespace(
-                    value = value,
-                ))]
+                entries += [(tag, value)]
 
 
 
@@ -201,7 +199,7 @@ for mcu in MCUS:
     if (dupe := find_dupe(
         (entry.peripheral, entry.register, entry.field)
         for tag, entry in entries
-        if 'peripheral'  in entry.__dict__
+        if isinstance(entry, types.SimpleNamespace) and 'peripheral' in entry.__dict__
     )) is not ...:
         raise ValueError(
             f'For {mcu}, '

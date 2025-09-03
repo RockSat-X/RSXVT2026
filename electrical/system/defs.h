@@ -478,7 +478,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
                     f'GPIO{gpio.port}',
                     'OSPEEDR',
                     f'OSPEED{gpio.number}',
-                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_SPEED'].value)[gpio.speed]
+                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_SPEED'])[gpio.speed]
                 )
                 for gpio in gpios
                 if gpio.pin   is not None
@@ -494,7 +494,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
                     f'GPIO{gpio.port}',
                     'PUPDR',
                     f'PUPD{gpio.number}',
-                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_PULL'].value)[gpio.pull]
+                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_PULL'])[gpio.pull]
                 )
                 for gpio in gpios
                 if gpio.pin  is not None
@@ -526,7 +526,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
                     f'GPIO{gpio.port}',
                     'MODER',
                     f'MODE{gpio.number}',
-                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_MODE'].value)[gpio.mode]
+                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_MODE'])[gpio.mode]
                 )
                 for gpio in gpios
                 if gpio.pin  is not None
