@@ -275,19 +275,19 @@
             ),
 
             ('CCIPR4',
-                ('I2C3SEL', 'I2C3_CLOCK_SOURCE', (
+                ('I2C3SEL', 'I2C3_KERNEL_SOURCE', (
                     ('APB3_CK'  , '0b00'),
                     ('PLL3_R_CK', '0b01'),
                     ('HSI_CK'   , '0b10'),
                     ('CSI_CK'   , '0b11'),
                 )),
-                ('I2C2SEL', 'I2C2_CLOCK_SOURCE', (
+                ('I2C2SEL', 'I2C2_KERNEL_SOURCE', (
                     ('APB1_CK'  , '0b00'),
                     ('PLL3_R_CK', '0b01'),
                     ('HSI_CK'   , '0b10'),
                     ('CSI_CK'   , '0b11'),
                 )),
-                ('I2C1SEL', 'I2C1_CLOCK_SOURCE', (
+                ('I2C1SEL', 'I2C1_KERNEL_SOURCE', (
                     ('APB1_CK'  , '0b00'),
                     ('PLL3_R_CK', '0b01'),
                     ('HSI_CK'   , '0b10'),

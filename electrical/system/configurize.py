@@ -480,16 +480,14 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
     for unit in database.get('I2CS', ()):
 
-        source_option = cfgs(f'I2C{unit}_CLOCK_SOURCE')
-
-        if source_option is None:
+        if cfgs(f'I2C{unit}_KERNEL_SOURCE') is None:
             continue
 
         put_title(f'I2C{unit}')
 
-        Meta.define(f'I2C{unit}_CLOCK_SOURCE_init' , source_option           )
-        Meta.define(f'I2C{unit}_TIMINGR_PRESC_init', cfgs(f'I2C{unit}_PRESC'))
-        Meta.define(f'I2C{unit}_TIMINGR_SCL_init'  , cfgs(f'I2C{unit}_SCL'  ))
+        Meta.define(f'I2C{unit}_KERNEL_SOURCE_init', cfgs(f'I2C{unit}_KERNEL_SOURCE'))
+        Meta.define(f'I2C{unit}_TIMINGR_PRESC_init', cfgs(f'I2C{unit}_PRESC'        ))
+        Meta.define(f'I2C{unit}_TIMINGR_SCL_init'  , cfgs(f'I2C{unit}_SCL'          ))
 
 
 

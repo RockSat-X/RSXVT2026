@@ -907,9 +907,9 @@ def SYSTEM_PARAMETERIZE(target):
 
             if needed_baud is None:
 
-                draft[f'I2C{unit}_CLOCK_SOURCE'] = None
-                draft[f'I2C{unit}_PRESC'       ] = None
-                draft[f'I2C{unit}_SCL'         ] = None
+                draft[f'I2C{unit}_KERNEL_SOURCE'] = None
+                draft[f'I2C{unit}_PRESC'        ] = None
+                draft[f'I2C{unit}_SCL'          ] = None
 
                 return True
 
@@ -922,7 +922,7 @@ def SYSTEM_PARAMETERIZE(target):
 
             best_baud_error = None
 
-            for source_name, source_option in database[f'I2C{unit}_CLOCK_SOURCE']:
+            for source_name, source_option in database[f'I2C{unit}_KERNEL_SOURCE']:
 
                 source_frequency = tree[source_name]
 
@@ -952,10 +952,10 @@ def SYSTEM_PARAMETERIZE(target):
                     # Keep the best so far.
 
                     if best_baud_error is None or actual_baud_error < best_baud_error:
-                        best_baud_error                  = actual_baud_error
-                        draft[f'I2C{unit}_CLOCK_SOURCE'] = source_option
-                        draft[f'I2C{unit}_PRESC'       ] = presc
-                        draft[f'I2C{unit}_SCL'         ] = scl
+                        best_baud_error                   = actual_baud_error
+                        draft[f'I2C{unit}_KERNEL_SOURCE'] = source_option
+                        draft[f'I2C{unit}_PRESC'        ] = presc
+                        draft[f'I2C{unit}_SCL'          ] = scl
 
 
 
@@ -966,7 +966,7 @@ def SYSTEM_PARAMETERIZE(target):
 
 
         brute(parameterize, (
-            f'I2C{unit}_CLOCK_SOURCE',
+            f'I2C{unit}_KERNEL_SOURCE',
             f'I2C{unit}_PRESC',
             f'I2C{unit}_SCL',
         ))
