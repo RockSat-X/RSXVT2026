@@ -213,16 +213,8 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
             # >
 
             for name, tag in alias.puts:
-
-                entry = SYSTEM_DATABASE[target.mcu][tag]
-
                 Meta.line(f'''
-                    static const struct CMSISPutTuple {name.format(alias.moniker)} =
-                        {{
-                            .dst = &{entry.section}->{entry.register},
-                            .pos =  {entry.section}_{entry.register}_{entry.field}_Pos,
-                            .msk =  {entry.section}_{entry.register}_{entry.field}_Msk,
-                        }};
+                    static const struct CMSISPutTuple {name.format(alias.moniker)} = {SYSTEM_DATABASE[target.mcu].tuple(tag)};
                 ''')
 
 */

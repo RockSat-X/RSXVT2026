@@ -25,18 +25,15 @@
 
         # A look-up table for the driver to use the I2C peripheral easily.
 
-        def put(entry): # TODO.
-            return f'{{ &{entry.section}->{entry.register}, {entry.section}_{entry.register}_{entry.field}_Pos, {entry.section}_{entry.register}_{entry.field}_Msk }}'
-
         Meta.lut('I2C_TABLE', (
             (
                 ('I2C_TypeDef*'        , 'I2C'                    , f'I2C{unit}'),
-                ('struct CMSISPutTuple', 'I2CxRST'                , put(SYSTEM_DATABASE[target.mcu][f'i2c{unit}_reset' ])),
-                ('struct CMSISPutTuple', 'I2CxEN'                 , put(SYSTEM_DATABASE[target.mcu][f'i2c{unit}_enable'])),
-                ('enum NVICInterrupt'  , 'NVICInterrupt_I2Cx_EV'  , f'NVICInterrupt_I2C{unit}_EV'                        ),
-                ('enum NVICInterrupt'  , 'NVICInterrupt_I2Cx_ER'  , f'NVICInterrupt_I2C{unit}_ER'                        ),
-                ('i32'                 , 'I2Cx_TIMINGR_PRESC_init', f'I2C{unit}_TIMINGR_PRESC_init'                      ),
-                ('i32'                 , 'I2Cx_TIMINGR_SCL_init'  , f'I2C{unit}_TIMINGR_SCL_init'                        ),
+                ('struct CMSISPutTuple', 'I2CxRST'                , SYSTEM_DATABASE[target.mcu].tuple(f'i2c{unit}_reset' )),
+                ('struct CMSISPutTuple', 'I2CxEN'                 , SYSTEM_DATABASE[target.mcu].tuple(f'i2c{unit}_enable')),
+                ('enum NVICInterrupt'  , 'NVICInterrupt_I2Cx_EV'  , f'NVICInterrupt_I2C{unit}_EV'                         ),
+                ('enum NVICInterrupt'  , 'NVICInterrupt_I2Cx_ER'  , f'NVICInterrupt_I2C{unit}_ER'                         ),
+                ('i32'                 , 'I2Cx_TIMINGR_PRESC_init', f'I2C{unit}_TIMINGR_PRESC_init'                       ),
+                ('i32'                 , 'I2Cx_TIMINGR_SCL_init'  , f'I2C{unit}_TIMINGR_SCL_init'                         ),
             ) for unit in target.i2c_units
         ))
 
