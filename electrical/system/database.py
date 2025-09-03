@@ -130,7 +130,7 @@ for mcu in MCUS:
 
 
 
-                    # The location entry's value is directly given.
+                    # The location entry's list of valid values are given.
                     # e.g:
                     # >
                     # >    ('IWDG',
@@ -144,13 +144,13 @@ for mcu in MCUS:
                     # >    )
                     # >
 
-                    case (field, tag, value):
+                    case (field, tag, options):
 
                         entries += [(tag, types.SimpleNamespace(
                             peripheral = peripheral,
                             register   = register,
                             field      = field,
-                            value      = value,
+                            options    = options,
                         ))]
 
 
