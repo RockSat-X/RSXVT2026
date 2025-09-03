@@ -2,37 +2,6 @@
 
 
 
-
-################################################################################
-#
-# The system database for a particular MCU is just a dictionary
-# but with an extended method to create a CMSIS tuple easily.
-# e.g:
-# >
-# >    'I2C1_RESET'
-# >
-# >         |
-# >         v
-# >
-# >    '{ &RCC->APB1LRSTR, RCC_APB1LRSTR_I2C1RST_Pos, RCC_APB1LRSTR_I2C1RST_Msk }'
-# >
-#
-
-class SystemDatabaseDict(dict):
-
-    def tuple(self, tag):
-
-        # TODO Better error message for unknown tag?
-        entry = self[tag]
-
-        return '{{ {}, {}, {} }}'.format(
-            f'&{entry.peripheral}->{entry.register}',
-            f'{entry.peripheral}_{entry.register}_{entry.field}_Pos',
-            f'{entry.peripheral}_{entry.register}_{entry.field}_Msk',
-        )
-
-
-
 ################################################################################
 #
 # For database entries with a list of valid values given explicitly.
@@ -268,7 +237,7 @@ for mcu in MCUS:
             f'there is already a database entry with the location {repr(dupe)}.'
         )
 
-    SYSTEM_DATABASE[mcu] = SystemDatabaseDict(entries)
+    SYSTEM_DATABASE[mcu] = dict(entries)
 
 
 

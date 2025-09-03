@@ -23,12 +23,12 @@
         Meta.lut('I2C_TABLE', (
             (
                 ('I2C_TypeDef*'        , 'I2C'                    , f'I2C{unit}'),
-                ('struct CMSISPutTuple', 'I2CxRST'                , SYSTEM_DATABASE[target.mcu].tuple(f'I2C{unit}_RESET' )),
-                ('struct CMSISPutTuple', 'I2CxEN'                 , SYSTEM_DATABASE[target.mcu].tuple(f'I2C{unit}_ENABLE')),
-                ('enum NVICInterrupt'  , 'NVICInterrupt_I2Cx_EV'  , f'NVICInterrupt_I2C{unit}_EV'                         ),
-                ('enum NVICInterrupt'  , 'NVICInterrupt_I2Cx_ER'  , f'NVICInterrupt_I2C{unit}_ER'                         ),
-                ('i32'                 , 'I2Cx_TIMINGR_PRESC_init', f'I2C{unit}_TIMINGR_PRESC_init'                       ),
-                ('i32'                 , 'I2Cx_TIMINGR_SCL_init'  , f'I2C{unit}_TIMINGR_SCL_init'                         ),
+                ('struct CMSISPutTuple', 'I2CxRST'                , CMSIS_TUPLE(SYSTEM_DATABASE[target.mcu][f'I2C{unit}_RESET' ])),
+                ('struct CMSISPutTuple', 'I2CxEN'                 , CMSIS_TUPLE(SYSTEM_DATABASE[target.mcu][f'I2C{unit}_ENABLE'])),
+                ('enum NVICInterrupt'  , 'NVICInterrupt_I2Cx_EV'  , f'NVICInterrupt_I2C{unit}_EV'                                ),
+                ('enum NVICInterrupt'  , 'NVICInterrupt_I2Cx_ER'  , f'NVICInterrupt_I2C{unit}_ER'                                ),
+                ('i32'                 , 'I2Cx_TIMINGR_PRESC_init', f'I2C{unit}_TIMINGR_PRESC_init'                              ),
+                ('i32'                 , 'I2Cx_TIMINGR_SCL_init'  , f'I2C{unit}_TIMINGR_SCL_init'                                ),
             ) for unit in target.i2c_units
         ))
 
