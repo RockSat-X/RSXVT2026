@@ -1,14 +1,31 @@
-# Top-level clock-tree : @/pg 456/fig 52/`H533rm`.
-# Peripheral counts    : @/pg 15/tbl 2/`H533ds`.
 (
     (
-        ('APB_UNITS', (1, 2, 3)),
+
+        ################################################################################
+        #
+        # Peripheral counts.
+        # @/pg 456/fig 52/`H533rm`.
+        # @/pg 15/tbl 2/`H533ds`.
+        #
+
+        ('APB_UNITS', (
+            1,
+            2,
+            3,
+        )),
+
         ('PLL_UNITS', (
             (1, ('p', 'q', 'r')),
             (2, ('p', 'q', 'r')),
             (3, ('p', 'q', 'r')),
         )),
-        ('I2CS', (1, 2, 3)),
+
+        ('I2CS', (
+            1,
+            2,
+            3,
+        )),
+
         ('UXARTS', (
             (('usart', 1),),
             (('usart', 2),),
@@ -17,69 +34,107 @@
             (('uart' , 5),),
             (('usart', 6),),
         )),
+
+        ################################################################################
+        #
+        # Common values.
+        #
+
         ('GPIO_MODE', (
             ('input'    , '0b00'),
             ('output'   , '0b01'),
             ('alternate', '0b10'),
             ('analog'   , '0b11'),
         )),
+
         ('GPIO_SPEED', (
             ('low'      , '0b00'),
             ('medium'   , '0b01'),
             ('high'     , '0b10'),
             ('very_high', '0b11'),
         )),
+
         ('GPIO_PULL', (
             (None  , '0b00'),
             ('up'  , '0b01'),
             ('down', '0b10'),
         )),
-        ('pll_channel_freq',   1_000_000, 250_000_000), # @/pg 124/tbl 47/`H533ds`. TODO We're assuming a high internal voltage and wide range.
-        ('pll_vco_freq'    , 128_000_000, 560_000_000), # " TODO Assuming wide frequency range.
-        ('cpu_freq'        ,           0, 250_000_000), # @/pg 101/tbl 21/`H533ds`. TODO We're assuming a high internal voltage. TODO 600MHz only when ECC is disabled.
-        ('axi_ahb_freq'    ,           0, 250_000_000), # "
-        ('apb_freq'        ,           0, 250_000_000), # "
+
+        ################################################################################
+        #
+        # Frequency limits.
+        # @/pg 124/tbl 47/`H533ds`.
+        # TODO We're assuming a high internal voltage and wide range.
+        #
+
+        ('pll_channel_freq',   1_000_000, 250_000_000),
+        ('pll_vco_freq'    , 128_000_000, 560_000_000),
+        ('cpu_freq'        ,           0, 250_000_000),
+        ('axi_ahb_freq'    ,           0, 250_000_000),
+        ('apb_freq'        ,           0, 250_000_000),
+
     ),
     (
+
+        ################################################################################
+
         ('SysTick',
+
             ('LOAD',
                 ('RELOAD', 'systick_reload', 1, (1 << 24) - 1),
             ),
+
             ('VAL',
                 ('CURRENT', 'systick_counter', 0, (1 << 32) - 1),
             ),
+
             ('CTRL',
                 ('CLKSOURCE', 'systick_use_cpu_ck'      ),
                 ('TICKINT'  , 'systick_interrupt_enable'),
                 ('ENABLE'   , 'systick_enable'          ),
             ),
+
         ),
+
+        ################################################################################
+
         ('FLASH',
+
             ('ACR',
-                ('WRHIGHFREQ', 'flash_programming_delay', (0b00, 0b01, 0b10)),
-                ('LATENCY'   , 'flash_latency'          , 0b0000, 0b1111    ),
+                ('WRHIGHFREQ', 'flash_programming_delay', (
+                    0b00,
+                    0b01,
+                    0b10,
+                )),
+                ('LATENCY', 'flash_latency', 0b0000, 0b1111),
             ),
+
         ),
+
+        ################################################################################
+
         ('PWR',
+
             ('VOSCR',
                 ('VOS', 'internal_voltage_scaling'),
             ),
+
             ('VOSSR',
                 ('ACTVOS'   , 'current_active_vos'      ),
                 ('ACTVOSRDY', 'current_active_vos_ready'),
             ),
+
             ('SCCR',
                 ('LDOEN' , 'ldo_enable'             ),
                 ('BYPASS', 'power_management_bypass'),
             ),
+
         ),
+
+        ################################################################################
+
         ('RCC',
-            ('AHB2ENR',
-                *(
-                    (f'GPIO{port}EN', f'gpio{port}_enable')
-                    for port in 'ABCDEFGHI'
-                ),
-            ),
+
             ('CR',
                 ('PLL3RDY' , 'pll3_ready'  ),
                 ('PLL3ON'  , 'pll3_enable' ),
@@ -94,6 +149,7 @@
                 ('HSIRDY'  , 'hsi_ready'   ),
                 ('HSION'   , 'hsi_enable'  ),
             ),
+
             ('CFGR1',
                 *(
                     (field, name, (
@@ -108,6 +164,7 @@
                     )
                 ),
             ),
+
             ('CFGR2',
                 *(
                     (f'PPRE{unit}', f'apb{unit}_divider', (
@@ -131,6 +188,7 @@
                     (512, '0b1111'),
                 )),
             ),
+
             *(
                 (f'PLL{unit}CFGR',
                     (f'PLL{unit}REN', f'pll{unit}r_enable'),
@@ -153,6 +211,7 @@
                 )
                 for unit in (1, 2, 3)
             ),
+
             *(
                 (f'PLL{unit}DIVR',
                     (f'PLL{unit}R', f'pll{unit}r_divider'  , 1, 128),
@@ -162,11 +221,13 @@
                 )
                 for unit in (1, 2, 3)
             ),
+
             ('APB1LENR',
                 ('USART2EN', 'uxart_2_enable'),
                 ('I2C1EN'  , 'i2c1_enable'   ),
                 ('I2C2EN'  , 'i2c2_enable'   ),
             ),
+
             ('CCIPR1',
                 *(
                     (field, f'uxart_{peripherals}_clock_source', clock_source)
@@ -212,6 +273,7 @@
                     for field, peripherals in field_peripherals
                 ),
             ),
+
             ('CCIPR4',
                 ('I2C3SEL', 'i2c3_clock_source', (
                     ('apb3_ck'   , '0b00'),
@@ -232,6 +294,7 @@
                     ('csi_ker_ck', '0b11'),
                 )),
             ),
+
             ('CCIPR5',
                 ('CKPERSEL', 'per_ck_source', (
                     ('hsi_ck', '0b00'),
@@ -240,16 +303,31 @@
                     # TODO hse_ck.
                 )),
             ),
+
+            ('AHB2ENR',
+                *(
+                    (f'GPIO{port}EN', f'gpio{port}_enable')
+                    for port in 'ABCDEFGHI'
+                ),
+            ),
+
             ('APB1LRSTR',
                 ('I2C1RST', 'i2c1_reset'),
                 ('I2C2RST', 'i2c2_reset'),
-            )
+            ),
+
         ),
+
+        ################################################################################
+
         ('USART',
             ('BRR',
                 ('BRR', 'uxart_baud_divider', 1, 1 << 16),
             ),
         ),
+
+        ################################################################################
+
         ('I2C',
             ('TIMINGR',
                 ('PRESC', 'i2c_prescaler', 0, 15 ),
@@ -257,5 +335,6 @@
                 ('SCLL' , 'i2c_SCL'      , 0, 255),
             ),
         ),
+
     ),
 )
