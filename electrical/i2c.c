@@ -606,13 +606,10 @@ _I2C_update_entirely(enum I2CHandle handle)
 #include "i2c_interrupts.meta"
 /* #meta
 
-    @Meta.ifs(TARGETS, '#if')
-    def _(target):
-
-        yield f'TARGET_NAME_IS_{target.name}'
+    for target in PER_TARGET():
 
         if 'i2c_units' not in target.__dict__:
-            return
+            continue
 
         for unit in target.i2c_units:
             for suffix in ('EV', 'ER'):
@@ -655,10 +652,7 @@ _I2C_update_entirely(enum I2CHandle handle)
 
     # Some target-specific support definitions.
 
-    @Meta.ifs(TARGETS, '#if')
-    def _(target):
-
-        yield f'TARGET_NAME_IS_{target.name}'
+    for target in PER_TARGET():
 
         if 'i2c_units' not in target.__dict__ or not target.i2c_units:
 
@@ -667,7 +661,7 @@ _I2C_update_entirely(enum I2CHandle handle)
                 f'because no I2C unit have been assigned.'
             )
 
-            return
+            continue
 
 
 

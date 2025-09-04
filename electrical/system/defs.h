@@ -86,10 +86,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
     # Include the CMSIS device header for the STM32 microcontroller.
 
-    @Meta.ifs(MCUS, '#if')
-    def _(mcu):
-
-        yield f'TARGET_MCU_IS_{mcu}'
+    for mcu in PER_MCU():
 
         Meta.line(f'#include <{MCUS[mcu].cmsis_file_path.as_posix()}>')
 
@@ -153,10 +150,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
     # Handle aliasing of peripheral names.
 
-    @Meta.ifs(TARGETS, '#if')
-    def _(target):
-
-        yield f'TARGET_NAME_IS_{target.name}'
+    for target in PER_TARGET():
 
         for alias in target.aliases:
 
@@ -302,10 +296,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-    @Meta.ifs(TARGETS, '#if')
-    def _(target):
-
-        yield f'TARGET_NAME_IS_{target.name}'
+    for target in PER_TARGET():
 
 
 
@@ -394,10 +385,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
     # Initialize the target's GPIOs, interrupts, clock-tree, etc.
 
-    @Meta.ifs(TARGETS, '#if')
-    def _(target):
-
-        yield f'TARGET_NAME_IS_{target.name}'
+    for target in PER_TARGET():
 
         with Meta.enter('''
             extern void
@@ -1124,10 +1112,7 @@ INTERRUPT_Default
 
     import re
 
-    @Meta.ifs(TARGETS, '#if')
-    def _(target):
-
-        yield f'TARGET_NAME_IS_{target.name}'
+    for target in PER_TARGET():
 
 
 
@@ -1177,7 +1162,7 @@ INTERRUPT_Default
         # Rest of the stuff is only when the target actually uses FreeRTOS.
 
         if not target.use_freertos:
-            return
+            continue
 
 
 
@@ -1223,13 +1208,12 @@ INTERRUPT_Default
 
     # The necessary include-directives to compile with FreeRTOS.
 
-    @Meta.ifs(MCUS, '#if')
-    def _(mcu):
+    for mcu in PER_MCU():
 
-        yield f'TARGET_MCU_IS_{mcu} && TARGET_USES_FREERTOS'
+        with Meta.enter('#if TARGET_USES_FREERTOS'):
 
-        for header in MCUS[mcu].freertos_source_files:
-            Meta.line(f'#include <{header}>')
+            for header in MCUS[mcu].freertos_source_files:
+                Meta.line(f'#include <{header}>')
 
 */
 

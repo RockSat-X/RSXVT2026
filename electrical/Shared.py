@@ -1,4 +1,4 @@
-#meta STLINK_BAUD, TARGETS, MCUS :
+#meta STLINK_BAUD, TARGETS, MCUS, PER_TARGET, PER_MCU :
 
 from deps.pxd.utils import root
 import types
@@ -351,6 +351,36 @@ for target in TARGETS:
         -Xlinker --fatal-warnings
         -Xlinker --gc-sections
     '''
+
+
+
+################################################################################
+#
+# Some helpers for generating code that's specific to a particular target
+# or a particular MCU. This is better placed in <Helpers.py>, but a limitation
+# of the meta-preprocessor right now is that `TARGETS` and `MCUS` won't be
+# accessible there (TODO).
+#
+
+
+
+def PER_TARGET():
+
+    for target in TARGETS:
+
+        with Meta.enter(f'#if TARGET_NAME_IS_{target.name}'):
+
+            yield target
+
+
+
+def PER_MCU():
+
+    for mcu in MCUS:
+
+        with Meta.enter(f'#if TARGET_MCU_IS_{mcu}'):
+
+            yield mcu
 
 
 
