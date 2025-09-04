@@ -6,6 +6,11 @@ extern noret void
 main(void)
 {
 
+    ////////////////////////////////////////////////////////////////////////////////
+    //
+    // Miscellaneous initialization.
+    //
+
     SYSTEM_init();
     JIG_init();
 
@@ -21,9 +26,7 @@ main(void)
     // starts working.
     //
 
-
-
-    spinlock_nop(100'000'000);
+    spinlock_nop(100'000'000); // TODO Let's use a real delay here.
 
 
 
@@ -31,8 +34,9 @@ main(void)
     //
     // Initialize the I2C driver for each peripheral used by the target.
     //
-
-
+    // This demo assumes I2C1 by default, but if you add more or have different
+    // units you want to use, update this section and the next one accordingly.
+    //
 
     I2C_reinit(I2CHandle_1);
 
@@ -40,65 +44,71 @@ main(void)
 
     ////////////////////////////////////////////////////////////////////////////////
     //
-    // Test the I2C.
+    // Test the I2C driver.
     //
-
-    {
-        u8 buffer[] = { 0x30, 0x08 };
-
-        enum I2CDriverError result = I2C_blocking_transfer(I2CHandle_1, 0x78, false, buffer, countof(buffer));
-
-        switch (result)
-        {
-            case I2CDriverError_none:
-            {
-                // Transfer was successful!
-            } break;
-
-            case I2CDriverError_no_acknowledge:
-            {
-                // Uh oh!
-            } break;
-
-            default: panic;
-        }
-    }
-    {
-        u8 buffer[] = { 0x00, 0x00 };
-
-        enum I2CDriverError result = I2C_blocking_transfer(I2CHandle_1, 0x78, true, buffer, countof(buffer));
-
-        switch (result)
-        {
-            case I2CDriverError_none:
-            {
-                // Transfer was successful!
-            } break;
-
-            case I2CDriverError_no_acknowledge:
-            {
-                // Uh oh!
-            } break;
-
-            default: panic;
-        }
-
-        for (i32 i = 0; i < countof(buffer); i += 1)
-        {
-            JIG_tx("%d : 0x%02X\n", i, buffer[i]);
-        }
-    }
-
-
-
-    ////////////////////////////////////////////////////////////////////////////////
-
-
 
     for (;;)
     {
-        GPIO_TOGGLE(led_green);
-        spinlock_nop(40'000'000);
+
+        // Test every valid 7-bit address to see
+        // what slaves are connected to the I2C bus.
+
+        for
+        (
+            i32 slave_address = 0b0001'000'0; // @/`I2C Slave Address`.
+            slave_address <= 0b1110'111'0;    // "
+            slave_address += 2                // "
+        )
+        {
+
+            // We try to read a single byte from the slave at the
+            // current slave address to see if we get an acknowledge.
+
+            enum I2CDriverError error =
+                I2C_blocking_transfer
+                (
+                    I2CHandle_1,
+                    slave_address,
+                    true,
+                    &(u8) {0},
+                    1
+                );
+
+
+
+            // Check the results of the transfer.
+
+            switch (error)
+            {
+                case I2CDriverError_none:
+                {
+                    JIG_tx("Slave 0x%02X acknowledged!\n", slave_address);
+                } break;
+
+                case I2CDriverError_no_acknowledge:
+                {
+                    JIG_tx("Slave 0x%02X didn't acknowledge!\n", slave_address);
+                } break;
+
+                default: panic;
+            }
+
+
+
+            // Bit of breather...
+
+            spinlock_nop(10'000'000); // TODO Let's use a real delay here.
+
+        }
+
+
+
+        // Longer breather before starting all over again.
+
+        JIG_tx("--------------------------------\n");
+
+        spinlock_nop(400'000'000); // TODO Let's use a real delay here.
+
     }
 
 }
