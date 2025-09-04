@@ -37,7 +37,7 @@
 #define CMSIS_GET(PERIPHERAL, REGISTER, FIELD)                CMSIS_READ (CONCAT(PERIPHERAL##_, REGISTER), PERIPHERAL->REGISTER, FIELD      )
 #define CMSIS_GET_FROM(VARIABLE, PERIPHERAL, REGISTER, FIELD) CMSIS_READ (CONCAT(PERIPHERAL##_, REGISTER), VARIABLE            , FIELD      )
 
-struct CMSISPutTuple
+struct CMSISTuple
 {
     volatile long unsigned int* dst;
     i32                         pos;
@@ -45,7 +45,7 @@ struct CMSISPutTuple
 };
 
 static mustinline void
-CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
+CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 {
 
     u32 temporary = *tuple.dst;
@@ -202,19 +202,19 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
             # >
             # >                                         ('{}_EN', 'uxart_2_enable')
             # >                                            ^      ^^^^^^^^^^^^^^^^
-            # >                                            |                   |
-            # >                                          vvvvvvvvvvvvvvv       |
-            # >    static constexpr struct CMSISPutTuple UxART_STLINK_EN =     |
-            # >        {                                                       |
-            # >            .dst = &RCC->APB1LENR,               <              |
-            # >            .pos = RCC_APB1LENR_USART2EN_Pos,    <--------------|
+            # >                                            |                |
+            # >                                       vvvvvvvvvvvvvvv       |
+            # >    static constexpr struct CMSISTuple UxART_STLINK_EN =     |
+            # >        {                                                    |
+            # >            .dst = &RCC->APB1LENR,               <           |
+            # >            .pos = RCC_APB1LENR_USART2EN_Pos,    <-----------|
             # >            .msk = RCC_APB1LENR_USART2EN_Msk     <
             # >        };
             # >
 
             for name, tag in alias.puts:
                 Meta.line(f'''
-                    static const struct CMSISPutTuple {name.format(alias.moniker)} = {CMSIS_TUPLE(SYSTEM_DATABASE[target.mcu][tag])};
+                    static const struct CMSISTuple {name.format(alias.moniker)} = {CMSIS_TUPLE(SYSTEM_DATABASE[target.mcu][tag])};
                 ''')
 
 */
