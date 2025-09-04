@@ -198,19 +198,6 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 
 
             # Make constants to reference the desired register fields.
-            # e.g:
-            # >
-            # >                                         ('{}_EN', 'uxart_2_enable')
-            # >                                            ^      ^^^^^^^^^^^^^^^^
-            # >                                            |                |
-            # >                                       vvvvvvvvvvvvvvv       |
-            # >    static constexpr struct CMSISTuple UxART_STLINK_EN =     |
-            # >        {                                                    |
-            # >            .dst = &RCC->APB1LENR,               <           |
-            # >            .pos = RCC_APB1LENR_USART2EN_Pos,    <-----------|
-            # >            .msk = RCC_APB1LENR_USART2EN_Msk     <
-            # >        };
-            # >
 
             for name, tag in alias.puts:
                 Meta.line(f'''
