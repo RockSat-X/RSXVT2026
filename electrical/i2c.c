@@ -54,7 +54,7 @@ I2C_blocking_transfer
 )
 {
 
-    _EXPAND_HANDLE;
+    _EXPAND_HANDLE
 
     if (!pointer)
         panic;
@@ -139,7 +139,7 @@ static void
 I2C_reinit(enum I2CHandle handle)
 {
 
-    _EXPAND_HANDLE;
+    _EXPAND_HANDLE
 
 
 
@@ -212,7 +212,7 @@ static useret enum I2CUpdateOnce : u32
 _I2C_update_once(enum I2CHandle handle)
 {
 
-    _EXPAND_HANDLE;
+    _EXPAND_HANDLE
 
 
 
@@ -577,7 +577,8 @@ _I2C_update_once(enum I2CHandle handle)
 static void
 _I2C_update_entirely(enum I2CHandle handle)
 {
-    _EXPAND_HANDLE;
+
+    _EXPAND_HANDLE
 
     for (b32 yield = false; !yield;)
     {
@@ -602,6 +603,7 @@ _I2C_update_entirely(enum I2CHandle handle)
         }
 
     }
+
 }
 
 
