@@ -2,6 +2,8 @@
 
 
 
+#define I2Cx_ I2C_
+
 #include "i2c_data.meta"
 /* #meta
 
@@ -10,29 +12,46 @@
 
         yield f'TARGET_NAME_IS_{target.name}'
 
+        if 'i2c_units' not in target.__dict__:
+            return
 
+        TERMS = (
+            'I2C{}',
+            'NVICInterrupt_I2C{}_EV',
+            'NVICInterrupt_I2C{}_ER',
+            'I2C{}_KERNEL_SOURCE_init',
+            'I2C{}_TIMINGR_PRESC_init',
+            'I2C{}_TIMINGR_SCL_init',
+        )
 
-        # Make a handle for each I2C peripheral used.
+        PUTS = (
+            'I2C{}_RESET',
+            'I2C{}_ENABLE',
+            'I2C{}_KERNEL_SOURCE',
+        )
 
         Meta.enums('I2CHandle', 'u32', target.i2c_units)
 
-
-
-        # A look-up table for the driver to use the I2C peripheral easily.
-
         Meta.lut('I2C_TABLE', (
             (
-                ('I2C_TypeDef*'        , 'I2C'                    , f'I2C{unit}'),
-                ('struct CMSISPutTuple', 'I2CxRST'                , CMSIS_TUPLE(SYSTEM_DATABASE[target.mcu][f'I2C{unit}_RESET'        ])),
-                ('struct CMSISPutTuple', 'I2CxEN'                 , CMSIS_TUPLE(SYSTEM_DATABASE[target.mcu][f'I2C{unit}_ENABLE'       ])),
-                ('struct CMSISPutTuple', 'I2CxSEL'                , CMSIS_TUPLE(SYSTEM_DATABASE[target.mcu][f'I2C{unit}_KERNEL_SOURCE'])),
-                ('enum NVICInterrupt'  , 'NVICInterrupt_I2Cx_EV'  , f'NVICInterrupt_I2C{unit}_EV'                                       ),
-                ('enum NVICInterrupt'  , 'NVICInterrupt_I2Cx_ER'  , f'NVICInterrupt_I2C{unit}_ER'                                       ),
-                ('i32'                 , 'I2Cx_KERNEL_SOURCE_init', f'I2C{unit}_KERNEL_SOURCE_init'                                     ),
-                ('i32'                 , 'I2Cx_TIMINGR_PRESC_init', f'I2C{unit}_TIMINGR_PRESC_init'                                     ),
-                ('i32'                 , 'I2Cx_TIMINGR_SCL_init'  , f'I2C{unit}_TIMINGR_SCL_init'                                       ),
-            ) for unit in target.i2c_units
+                f'I2CHandle_{unit}',
+                *[(term.format('x'), term.format(unit)) for term in TERMS],
+                *[(put .format('x'), f'(struct CMSISPutTuple) {CMSIS_TUPLE(SYSTEM_DATABASE[target.mcu][put.format(unit)])}') for put in PUTS]
+            )
+            for unit in target.i2c_units
         ))
+
+        with Meta.enter('#define _EXPAND_HANDLE'):
+
+            Meta.line(f'''
+                if (!(0 <= handle && handle < I2CHandle_COUNT)) panic;
+                struct I2CDriver* const driver = &_I2C_drivers[handle];
+            ''')
+
+            for term in TERMS + PUTS:
+                Meta.line(f'''
+                    auto const {term.format('x')} = I2C_TABLE[handle].{term.format('x')};
+                ''')
 
 */
 
@@ -62,26 +81,6 @@ struct I2CDriver
 };
 
 static struct I2CDriver _I2C_drivers[I2CHandle_COUNT] = {0};
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-#undef  _EXPAND_HANDLE
-#define _EXPAND_HANDLE                                                                                  \
-    if (!(0 <= handle && handle < I2CHandle_COUNT)) panic;                                              \
-    struct I2CDriver*    const driver                  = &_I2C_drivers[handle];                         \
-    I2C_TypeDef*         const I2C                     = I2C_TABLE    [handle].I2C;                     \
-    struct CMSISPutTuple const I2CxRST                 = I2C_TABLE    [handle].I2CxRST;                 \
-    struct CMSISPutTuple const I2CxEN                  = I2C_TABLE    [handle].I2CxEN;                  \
-    struct CMSISPutTuple const I2CxSEL                 = I2C_TABLE    [handle].I2CxSEL;                 \
-    enum NVICInterrupt   const NVICInterrupt_I2Cx_EV   = I2C_TABLE    [handle].NVICInterrupt_I2Cx_EV;   \
-    enum NVICInterrupt   const NVICInterrupt_I2Cx_ER   = I2C_TABLE    [handle].NVICInterrupt_I2Cx_ER;   \
-    i32                  const I2Cx_KERNEL_SOURCE_init = I2C_TABLE    [handle].I2Cx_KERNEL_SOURCE_init; \
-    i32                  const I2Cx_TIMINGR_PRESC_init = I2C_TABLE    [handle].I2Cx_TIMINGR_PRESC_init; \
-    i32                  const I2Cx_TIMINGR_SCL_init   = I2C_TABLE    [handle].I2Cx_TIMINGR_SCL_init
 
 
 
@@ -188,8 +187,8 @@ I2C_reinit(enum I2CHandle handle)
 
     // Reset-cycle the peripheral.
 
-    CMSIS_PUT(I2CxRST, true );
-    CMSIS_PUT(I2CxRST, false);
+    CMSIS_PUT(I2Cx_RESET, true );
+    CMSIS_PUT(I2Cx_RESET, false);
 
     *driver = (struct I2CDriver) {0};
 
@@ -204,13 +203,13 @@ I2C_reinit(enum I2CHandle handle)
 
     // Set the kernel clock source for the I2C peripheral.
 
-    CMSIS_PUT(I2CxSEL, I2Cx_KERNEL_SOURCE_init);
+    CMSIS_PUT(I2Cx_KERNEL_SOURCE, I2Cx_KERNEL_SOURCE_init);
 
 
 
     // Clock the peripheral.
 
-    CMSIS_PUT(I2CxEN, true);
+    CMSIS_PUT(I2Cx_ENABLE, true);
 
 
 
@@ -218,7 +217,7 @@ I2C_reinit(enum I2CHandle handle)
 
     CMSIS_SET // TODO Look over again.
     (
-        I2C   , TIMINGR                , // TODO Handle other timing requirements?
+        I2Cx  , TIMINGR                , // TODO Handle other timing requirements?
         PRESC , I2Cx_TIMINGR_PRESC_init, // Set the time base unit.
         SCLDEL, 0                      , // TODO Important?
         SDADEL, 0                      , // TODO Important?
@@ -228,7 +227,7 @@ I2C_reinit(enum I2CHandle handle)
 
     CMSIS_SET // TODO Look over again.
     (
-        I2C   , CR1   , // Interrupts for:
+        I2Cx  , CR1   , // Interrupts for:
         ERRIE , true  , //     - Error.
         TCIE  , true  , //     - Transfer completed.
         STOPIE, true  , //     - STOP signal.
@@ -269,7 +268,7 @@ _I2C_update_once(enum I2CHandle handle)
         I2CInterruptEvent_ready_to_transmit_data,
     };
     enum I2CInterruptEvent interrupt_event  = {0};
-    u32                    interrupt_status = I2C->ISR;
+    u32                    interrupt_status = I2Cx->ISR;
 
 
 
@@ -277,7 +276,7 @@ _I2C_update_once(enum I2CHandle handle)
     // TODO Handle gracefully?
     // @/pg 2116/sec 48.4.17/`H533rm`.
 
-    if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, BERR))
+    if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, BERR))
     {
         panic;
     }
@@ -288,7 +287,7 @@ _I2C_update_once(enum I2CHandle handle)
     // TODO Handle gracefully?
     // @/pg 2116/sec 48.4.17/`H533rm`.
 
-    else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, ARLO))
+    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, ARLO))
     {
         panic;
     }
@@ -299,7 +298,7 @@ _I2C_update_once(enum I2CHandle handle)
     // TODO Detect if clock-stretching goes on for too long?
     // @/pg 2117/sec 48.4.17/`H533rm`.
 
-    else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, TIMEOUT))
+    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, TIMEOUT))
     {
         panic;
     }
@@ -309,7 +308,7 @@ _I2C_update_once(enum I2CHandle handle)
     // This status bit is only applicable to SMBus.
     // @/pg 2117/sec 48.4.17/`H533rm`.
 
-    else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, ALERT))
+    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, ALERT))
     {
         panic;
     }
@@ -319,7 +318,7 @@ _I2C_update_once(enum I2CHandle handle)
     // This status bit is only applicable to SMBus.
     // @/pg 2117/sec 48.4.17/`H533rm`.
 
-    else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, PECERR))
+    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, PECERR))
     {
         panic;
     }
@@ -329,7 +328,7 @@ _I2C_update_once(enum I2CHandle handle)
     // Transfer reloaded.
     // @/pg 2095/sec 48.4.9/`H533rm`.
 
-    else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, TCR))
+    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, TCR))
     {
         panic;
     }
@@ -340,7 +339,7 @@ _I2C_update_once(enum I2CHandle handle)
     // shouldn't be getting any data overrun/underrun.
     // @/pg 2117/sec 48.4.17/`H533rm`.
 
-    else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, OVR))
+    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, OVR))
     {
         panic;
     }
@@ -349,7 +348,7 @@ _I2C_update_once(enum I2CHandle handle)
 
     // @/pg 2085/sec 48.4.8/`H533rm`.
 
-    else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, NACKF))
+    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, NACKF))
     {
         interrupt_event = I2CInterruptEvent_nack_signaled;
     }
@@ -358,7 +357,7 @@ _I2C_update_once(enum I2CHandle handle)
 
     // @/pg 2085/sec 48.4.8/`H533rm`.
 
-    else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, STOPF))
+    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, STOPF))
     {
         interrupt_event = I2CInterruptEvent_stop_signaled;
     }
@@ -367,7 +366,7 @@ _I2C_update_once(enum I2CHandle handle)
 
     // @/pg 2095/sec 48.4.9/`H533rm`.
 
-    else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, TC))
+    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, TC))
     {
         interrupt_event = I2CInterruptEvent_transfer_completed;
     }
@@ -376,7 +375,7 @@ _I2C_update_once(enum I2CHandle handle)
 
     // @/pg 2089/sec 48.4.8/`H533rm`.
 
-    else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, RXNE))
+    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, RXNE))
     {
         interrupt_event = I2CInterruptEvent_data_available_to_read;
     }
@@ -385,7 +384,7 @@ _I2C_update_once(enum I2CHandle handle)
 
     // @/pg 2085/sec 48.4.8/`H533rm`.
 
-    else if (CMSIS_GET_FROM(interrupt_status, I2C, ISR, TXIS))
+    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, TXIS))
     {
         interrupt_event = I2CInterruptEvent_ready_to_transmit_data;
     }
@@ -429,7 +428,7 @@ _I2C_update_once(enum I2CHandle handle)
             if (!(1 <= driver->amount && driver->amount <= 255))
                 panic;
 
-            if (CMSIS_GET(I2C, CR2, START))
+            if (CMSIS_GET(I2Cx, CR2, START))
                 panic;
 
             if (driver->error)
@@ -437,7 +436,7 @@ _I2C_update_once(enum I2CHandle handle)
 
             CMSIS_SET
             (
-                I2C   , CR2              ,
+                I2Cx  , CR2              ,
                 SADD  , driver->address  ,
                 RD_WRN, !!driver->reading,
                 NBYTES, driver->amount   ,
@@ -479,10 +478,10 @@ _I2C_update_once(enum I2CHandle handle)
                 if (driver->error)
                     panic;
 
-                CMSIS_SET(I2C, ICR, NACKCF, true);
+                CMSIS_SET(I2Cx, ICR, NACKCF, true);
 
                 // Begin sending out the STOP signal.
-                CMSIS_SET(I2C, CR2, STOP, true);
+                CMSIS_SET(I2Cx, CR2, STOP, true);
 
                 driver->state = I2CDriverState_stopping;
                 driver->error = I2CDriverError_no_acknowledge;
@@ -505,7 +504,7 @@ _I2C_update_once(enum I2CHandle handle)
                     panic;
 
                 // Pop from the RX-buffer.
-                u8 data = CMSIS_GET(I2C, RXDR, RXDATA);
+                u8 data = CMSIS_GET(I2Cx, RXDR, RXDATA);
 
                 driver->pointer[driver->progress]  = data;
                 driver->progress                  += 1;
@@ -530,7 +529,7 @@ _I2C_update_once(enum I2CHandle handle)
                 u8 data = driver->pointer[driver->progress];
 
                 // Push data into the RX-buffer.
-                CMSIS_SET(I2C, TXDR, TXDATA, data);
+                CMSIS_SET(I2Cx, TXDR, TXDATA, data);
 
                 driver->progress += 1;
 
@@ -552,7 +551,7 @@ _I2C_update_once(enum I2CHandle handle)
                     panic;
 
                 // Begin sending out the STOP signal.
-                CMSIS_SET(I2C, CR2, STOP, true);
+                CMSIS_SET(I2Cx, CR2, STOP, true);
 
                 driver->state = I2CDriverState_stopping;
 
@@ -591,7 +590,7 @@ _I2C_update_once(enum I2CHandle handle)
                 if (!iff(driver->progress == driver->amount, !driver->error))
                     panic;
 
-                CMSIS_SET(I2C, ICR, STOPCF, true);
+                CMSIS_SET(I2Cx, ICR, STOPCF, true);
 
                 driver->state = I2CDriverState_standby;
 
@@ -662,6 +661,9 @@ _I2C_update_entirely(enum I2CHandle handle)
     def _(target):
 
         yield f'TARGET_NAME_IS_{target.name}'
+
+        if 'i2c_units' not in target.__dict__:
+            return
 
         for unit in target.i2c_units:
             for suffix in ('EV', 'ER'):
