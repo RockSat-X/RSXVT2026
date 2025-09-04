@@ -312,8 +312,12 @@
             ),
 
             ('APB1LRSTR',
-                ('I2C1RST', 'I2C1_RESET'),
-                ('I2C2RST', 'I2C2_RESET'),
+                ('I2C1RST'  , 'I2C1_RESET'  ),
+                ('I2C2RST'  , 'I2C2_RESET'  ),
+                ('UART5RST' , 'UART5_RESET' ),
+                ('UART4RST' , 'UART4_RESET' ),
+                ('USART3RST', 'USART3_RESET'),
+                ('USART2RST', 'USART2_RESET'),
             ),
 
         ),
