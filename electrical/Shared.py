@@ -179,10 +179,10 @@ TARGETS = ( # @/`Defining a TARGET`.
 
     types.SimpleNamespace(
 
-        name               = 'I2CDriverTest',
+        name               = 'DemoI2C',
         mcu                = 'STM32H533RET6',
         source_file_paths  = root('''
-            ./electrical/I2CDriverTest.c
+            ./electrical/DemoI2C.c
             ./electrical/system/Startup.S
         '''),
 
