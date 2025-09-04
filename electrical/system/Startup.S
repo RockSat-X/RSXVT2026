@@ -113,10 +113,7 @@ __INTERRUPT_Reset:
 
         # Make the IVT.
 
-        @Meta.ifs(TARGETS, '#if')
-        def _(target):
-
-            yield f'TARGET_NAME_IS_{target.name}'
+        for target in PER_TARGET():
 
             for interrupt_i, interrupt_name in enumerate(INTERRUPTS[target.mcu]):
 
