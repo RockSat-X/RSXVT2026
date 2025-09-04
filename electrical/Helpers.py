@@ -291,7 +291,7 @@ def CMSIS_SPINLOCK(*spinlocks):
 # Helper routine to make a CMSIS tuple from a database entry easily.
 
 def CMSIS_TUPLE(entry):
-    return '{{ {}, {}, {} }}'.format(
+    return '(struct CMSISPutTuple) {{ {}, {}, {} }}'.format(
         f'&{entry.peripheral}->{entry.register}',
         f'{entry.peripheral}_{entry.register}_{entry.field}_Pos',
         f'{entry.peripheral}_{entry.register}_{entry.field}_Msk',

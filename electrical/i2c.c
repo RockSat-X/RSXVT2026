@@ -692,7 +692,7 @@ _I2C_update_entirely(enum I2CHandle handle)
                 *[
                     (
                         tag.format('x'),
-                        f'(struct CMSISPutTuple) {CMSIS_TUPLE(SYSTEM_DATABASE[target.mcu][tag.format(unit)])}'
+                        CMSIS_TUPLE(SYSTEM_DATABASE[target.mcu][tag.format(unit)])
                     ) for tag in CMSIS_TUPLE_TAGS
                 ]
             )
