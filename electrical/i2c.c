@@ -2,58 +2,7 @@
 
 
 
-#define I2Cx_ I2C_
-
-#include "i2c_data.meta"
-/* #meta
-
-    @Meta.ifs(TARGETS, '#if')
-    def _(target):
-
-        yield f'TARGET_NAME_IS_{target.name}'
-
-        if 'i2c_units' not in target.__dict__:
-            return
-
-        TERMS = (
-            'I2C{}',
-            'NVICInterrupt_I2C{}_EV',
-            'NVICInterrupt_I2C{}_ER',
-            'I2C{}_KERNEL_SOURCE_init',
-            'I2C{}_TIMINGR_PRESC_init',
-            'I2C{}_TIMINGR_SCL_init',
-        )
-
-        PUTS = (
-            'I2C{}_RESET',
-            'I2C{}_ENABLE',
-            'I2C{}_KERNEL_SOURCE',
-        )
-
-        Meta.enums('I2CHandle', 'u32', target.i2c_units)
-
-        Meta.lut('I2C_TABLE', (
-            (
-                f'I2CHandle_{unit}',
-                *[(term.format('x'), term.format(unit)) for term in TERMS],
-                *[(put .format('x'), f'(struct CMSISPutTuple) {CMSIS_TUPLE(SYSTEM_DATABASE[target.mcu][put.format(unit)])}') for put in PUTS]
-            )
-            for unit in target.i2c_units
-        ))
-
-        with Meta.enter('#define _EXPAND_HANDLE'):
-
-            Meta.line(f'''
-                if (!(0 <= handle && handle < I2CHandle_COUNT)) panic;
-                struct I2CDriver* const driver = &_I2C_drivers[handle];
-            ''')
-
-            for term in TERMS + PUTS:
-                Meta.line(f'''
-                    auto const {term.format('x')} = I2C_TABLE[handle].{term.format('x')};
-                ''')
-
-*/
+#include "i2c_aliases.meta"
 
 enum I2CDriverState : u32
 {
@@ -673,5 +622,106 @@ _I2C_update_entirely(enum I2CHandle handle)
                         _I2C_update_entirely(I2CHandle_{unit});
                     }}
                 ''')
+
+*/
+
+
+
+// Stuff to make working with any I2C unit easy.
+
+/* #include "i2c_aliases.meta"
+/* #meta
+
+
+
+    # Things to be aliased for I2C.
+
+    IDENTIFIERS = (
+        'I2C{}',
+        'NVICInterrupt_I2C{}_EV',
+        'NVICInterrupt_I2C{}_ER',
+        'I2C{}_KERNEL_SOURCE_init',
+        'I2C{}_TIMINGR_PRESC_init',
+        'I2C{}_TIMINGR_SCL_init',
+    )
+
+    CMSIS_TUPLE_TAGS = (
+        'I2C{}_RESET',
+        'I2C{}_ENABLE',
+        'I2C{}_KERNEL_SOURCE',
+    )
+
+
+
+    # Some target-specific support definitions.
+
+    @Meta.ifs(TARGETS, '#if')
+    def _(target):
+
+        yield f'TARGET_NAME_IS_{target.name}'
+
+        if 'i2c_units' not in target.__dict__ or not target.i2c_units:
+
+            Meta.line(
+                f'#error Target {target.name} cannot use the I2C driver '
+                f'because no I2C unit have been assigned.'
+            )
+
+            return
+
+
+
+        # Have the user be able to specify a specific I2C unit.
+
+        Meta.enums('I2CHandle', 'u32', target.i2c_units)
+
+
+
+        # A look-up table to allow generic code to be written for any I2C peripheral.
+
+        Meta.lut('I2C_TABLE', (
+            (
+                f'I2CHandle_{unit}',
+                *[
+                    (
+                        identifier.format('x'),
+                        identifier.format(unit)
+                    )
+                    for identifier in IDENTIFIERS
+                ],
+                *[
+                    (
+                        tag.format('x'),
+                        f'(struct CMSISPutTuple) {CMSIS_TUPLE(SYSTEM_DATABASE[target.mcu][tag.format(unit)])}'
+                    ) for tag in CMSIS_TUPLE_TAGS
+                ]
+            )
+            for unit in target.i2c_units
+        ))
+
+
+
+    # Macro to mostly bring stuff in the look-up table into the local scope.
+
+    Meta.line(f'#define I2Cx_ I2C_')
+    Meta.line('#undef _EXPAND_HANDLE')
+
+    with Meta.enter('#define _EXPAND_HANDLE'):
+
+        Meta.line(f'''
+
+            if (!(0 <= handle && handle < I2CHandle_COUNT))
+            {{
+                panic;
+            }}
+
+            struct I2CDriver* const driver = &_I2C_drivers[handle];
+
+        ''')
+
+        for identifier in IDENTIFIERS + CMSIS_TUPLE_TAGS:
+            Meta.line(f'''
+                auto const {identifier.format('x')} = I2C_TABLE[handle].{identifier.format('x')};
+            ''')
 
 */

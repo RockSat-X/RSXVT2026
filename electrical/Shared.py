@@ -125,9 +125,6 @@ TARGETS = ( # @/`Defining a TARGET`.
             ('USART3', 0),
         ),
 
-        i2c_units = (
-        ),
-
     ),
 
     types.SimpleNamespace(
@@ -176,9 +173,6 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         interrupt_priorities = (
             ('USART2', 0),
-        ),
-
-        i2c_units = (
         ),
 
     ),
