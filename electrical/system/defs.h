@@ -47,7 +47,13 @@ struct CMSISPutTuple
 static mustinline void
 CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 {
-    *tuple.dst = ((value) << tuple.pos) & tuple.msk;
+
+    u32 temporary = *tuple.dst;
+
+    temporary = (temporary & ~tuple.msk) | ((value << tuple.pos) & tuple.msk);
+
+    *tuple.dst = temporary;
+
 }
 
 

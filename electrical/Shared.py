@@ -179,10 +179,10 @@ TARGETS = ( # @/`Defining a TARGET`.
 
     types.SimpleNamespace(
 
-        name               = 'I2CDriverTest',
+        name               = 'DemoI2C',
         mcu                = 'STM32H533RET6',
         source_file_paths  = root('''
-            ./electrical/I2CDriverTest.c
+            ./electrical/DemoI2C.c
             ./electrical/system/Startup.S
         '''),
 
@@ -222,9 +222,6 @@ TARGETS = ( # @/`Defining a TARGET`.
             ('button'    , 'C13', 'INPUT'     , { 'pull'    : 'UP'                                           }),
             ('i2c1_scl'  , 'B6' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL', 'open_drain' : True, 'pull' : 'UP' }),
             ('i2c1_sda'  , 'B7' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA', 'open_drain' : True, 'pull' : 'UP' }),
-
-            ('ov_rt'     , 'A10', 'OUTPUT'    , { 'initlvl' : False       }), # Pull low to reset the camera.
-            ('ov_pd'     , 'C5' , 'OUTPUT'    , { 'initlvl' : True        }), # Pull high to powerdown the camera.
         ),
 
         interrupt_priorities = (
