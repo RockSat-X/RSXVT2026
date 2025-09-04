@@ -285,6 +285,11 @@ TARGETS = ( # @/`Defining a TARGET`.
             ('USART2', 0),
         ),
 
+        # TODO Document.
+        uxart_units = (
+            ('USART', 2),
+        ),
+
     ),
 
 )
