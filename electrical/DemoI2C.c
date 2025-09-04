@@ -11,21 +11,37 @@ main(void)
 
 
 
-    // A delay here so if we inspect the I2C pins,
-    // it's clearly differentiated from when the MCU
-    // is under reset.
+    ////////////////////////////////////////////////////////////////////////////////
+    //
+    // The I2C protocol defines the data and clock lines to be idle-high, but when
+    // the MCU is undergoing a reset, the pins will be sunk low (unless pulled up
+    // by an external pull-up resistor). So to make oscilloscope measurements
+    // easier, we add a delay before we initialize the I2C driver to clearly
+    // differentiate between when the MCU is resetted and when the I2C driver
+    // starts working.
+    //
+
+
 
     spinlock_nop(100'000'000);
 
 
 
-    // Set up the I2C.
+    ////////////////////////////////////////////////////////////////////////////////
+    //
+    // Initialize the I2C driver for each peripheral used by the target.
+    //
 
-    I2C_reinit(I2CHandle_1); // TMP.
+
+
+    I2C_reinit(I2CHandle_1);
 
 
 
-    // TODO Test the I2C.
+    ////////////////////////////////////////////////////////////////////////////////
+    //
+    // Test the I2C.
+    //
 
     {
         u8 buffer[] = { 0x30, 0x08 };
@@ -72,6 +88,11 @@ main(void)
             JIG_tx("%d : 0x%02X\n", i, buffer[i]);
         }
     }
+
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+
 
 
     for (;;)
