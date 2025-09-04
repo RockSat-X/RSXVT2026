@@ -8,3 +8,4 @@
 @/`LIS2MDL`    : Digital Output Magnetic Sensor Datasheet (DS12144) (Rev 6) (July 2024) (https://www.st.com/resource/en/datasheet/lis2mdl.pdf).
 @/`LSM6DSV16X` : 6-axis IMU with Embedded Sensor Fusion (DS13510) (Rev 4) (May 2023) (https://www.st.com/resource/en/datasheet/lsm6dsv16x.pdf).
 @/`LSM6DSV32X` : 6-axis IMU with 32 G Accelerometer (DS13511) (Rev 2) (February 2024) (https://www.st.com/resource/en/datasheet/lsm6dsv32x.pdf)
+@/`I2C`        : I2C Specification (UM10204) (Rev. 7.0) (1 October 2021) (https://www.nxp.com/docs/en/user-guide/UM10204.pdf).

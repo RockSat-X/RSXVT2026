@@ -41,7 +41,7 @@ static useret enum I2CDriverError
 I2C_blocking_transfer
 (
     enum I2CHandle handle,
-    u8             address, // 8-bit address where the LSb is don't-care.
+    u8             address, // @/`I2C Slave Address`.
     b32            reading,
     u8*            pointer,
     i32            amount
@@ -55,6 +55,9 @@ I2C_blocking_transfer
 
     if (amount <= 0)
         panic;
+
+    if ((address & 1) || !(0b0001'000'0 <= address && address <= 0b1110'111'0))
+        panic; // @/`I2C Slave Address`.
 
 
 
@@ -719,3 +722,25 @@ _I2C_update_entirely(enum I2CHandle handle)
             ''')
 
 */
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+// @/`I2C Slave Address`:
+//
+// When saying "slave address", it's a bit ambiguous as to whether or not
+// this includes the read/write bit. The I2C specification always uses
+// the 7-bit convention (the R/W bit is not a part of the "slave address")
+// but other people sometime use the 8-bit convention. In this I2C driver, we
+// are using the 8-bit convention where the LSb is "reserved" for the R/W bit,
+// since this works out better for the register-writes.
+//
+// So that being said, we should always expect the LSb of the "slave address"
+// to be zero. If it's not, the user is likely thinking in the 7-bit convention.
+//
+// Furthermore, not all I2C addresses are the same;
+// some are reserved or have special meaning.
+// @/pg 16/tbl 4/`I2C`.
