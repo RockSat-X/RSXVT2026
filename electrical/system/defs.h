@@ -175,8 +175,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
             for interrupt in alias.interrupts:
                 terms += [f'INTERRUPT_{interrupt}']
-                terms += [f'{interrupt}_IRQn']
-                terms += [f'__MACRO_OVERLOAD__NVIC_ENABLE__{interrupt}']
+                terms += [f'NVICInterrupt_{interrupt}']
 
 
 
@@ -214,16 +213,8 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
             # >
 
             for name, tag in alias.puts:
-
-                entry = SYSTEM_DATABASE[target.mcu][tag]
-
                 Meta.line(f'''
-                    static const struct CMSISPutTuple {name.format(alias.moniker)} =
-                        {{
-                            .dst = &{entry.section}->{entry.register},
-                            .pos =  {entry.section}_{entry.register}_{entry.field}_Pos,
-                            .msk =  {entry.section}_{entry.register}_{entry.field}_Msk,
-                        }};
+                    static const struct CMSISPutTuple {name.format(alias.moniker)} = {CMSIS_TUPLE(SYSTEM_DATABASE[target.mcu][tag])};
                 ''')
 
 */
@@ -311,35 +302,37 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-    # If trying to define an interrupt handler and one makes a typo,
-    # then the function end up not replacing the weak symbol that's
-    # in place of the interrupt handler in the interrupt vector table,
-    # which can end up as a confusing bug. To prevent that, we will use a
-    # macro to set up the function prototype of the interrupt handler,
-    # and if a typo is made, then a compiler error will be generated.
-    # e.g:
-    # >
-    # >    INTERRUPT_TIM13           <- If "TIM13" interrupt exists,
-    # >    {                            then ok!
-    # >        ...
-    # >    }
-    # >
-    # >    INTERRUPT_TIM14           <- If "TIM14" interrupt doesn't exists,
-    # >    {                            then compiler error here; good!
-    # >        ...
-    # >    }
-    # >
-    # >    extern void
-    # >    __INTERRUPT_TIM14(void)   <- This will always compile,
-    # >    {                            even if "TIM14" doesn't exist; bad!
-    # >        ...
-    # >    }
-    # >
-
     @Meta.ifs(TARGETS, '#if')
     def _(target):
 
         yield f'TARGET_NAME_IS_{target.name}'
+
+
+
+        # If trying to define an interrupt handler and one makes a typo,
+        # then the function end up not replacing the weak symbol that's
+        # in place of the interrupt handler in the interrupt vector table,
+        # which can end up as a confusing bug. To prevent that, we will use a
+        # macro to set up the function prototype of the interrupt handler,
+        # and if a typo is made, then a compiler error will be generated.
+        # e.g:
+        # >
+        # >    INTERRUPT_TIM13           <- If "TIM13" interrupt exists,
+        # >    {                            then ok!
+        # >        ...
+        # >    }
+        # >
+        # >    INTERRUPT_TIM14           <- If "TIM14" interrupt doesn't exists,
+        # >    {                            then compiler error here; good!
+        # >        ...
+        # >    }
+        # >
+        # >    extern void
+        # >    __INTERRUPT_TIM14(void)   <- This will always compile,
+        # >    {                            even if "TIM14" doesn't exist; bad!
+        # >        ...
+        # >    }
+        # >
 
         for interrupt in ('Default',) + INTERRUPTS[target.mcu]:
 
@@ -351,7 +344,31 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
             Meta.define(f'INTERRUPT_{interrupt}', f'extern void __INTERRUPT_{interrupt}(void)')
 
+
+
+        # Create an enumeration for each interrupt the target is using
+        # so that the NVIC macros will only work with those specific interrupts.
+
+        Meta.enums(
+            'NVICInterrupt',
+            'u32',
+            (
+                (interrupt, f'{interrupt}_IRQn')
+                for interrupt, niceness in target.interrupt_priorities
+            )
+        )
 */
+
+
+
+// Macros to control the interrupt in NVIC.
+// @/pg 626/tbl B3-8/`Armv7-M`.
+// @/pg 1452/tbl D1.1.10/`Armv8-M`.
+
+#define NVIC_ENABLE(NAME)        ((void) (NVIC->ISER[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32)))
+#define NVIC_DISABLE(NAME)       ((void) (NVIC->ICER[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32)))
+#define NVIC_SET_PENDING(NAME)   ((void) (NVIC->ISPR[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32)))
+#define NVIC_CLEAR_PENDING(NAME) ((void) (NVIC->ICPR[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32)))
 
 
 
@@ -404,11 +421,11 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
                 if gpio.pin is None:
                     continue
 
-                if gpio.mode in ('input', 'alternate'):
+                if gpio.mode in ('INPUT', 'ALTERNATE'):
                     Meta.define('_PORT_FOR_GPIO_READ'  , ('NAME'), gpio.port  , NAME = gpio.name)
                     Meta.define('_NUMBER_FOR_GPIO_READ', ('NAME'), gpio.number, NAME = gpio.name)
 
-                if gpio.mode == 'output':
+                if gpio.mode == 'OUTPUT':
                     Meta.define('_PORT_FOR_GPIO_WRITE'  , ('NAME'), gpio.port  , NAME = gpio.name)
                     Meta.define('_NUMBER_FOR_GPIO_WRITE', ('NAME'), gpio.number, NAME = gpio.name)
 
@@ -418,9 +435,9 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
             CMSIS_SET(
                 (
-                    'RCC',
-                    SYSTEM_DATABASE[target.mcu]['GPIO_PORT_ENABLE_REGISTER'].value,
-                    f'GPIO{port}EN',
+                    SYSTEM_DATABASE[target.mcu][f'GPIO{port}_ENABLE'].peripheral,
+                    SYSTEM_DATABASE[target.mcu][f'GPIO{port}_ENABLE'].register,
+                    SYSTEM_DATABASE[target.mcu][f'GPIO{port}_ENABLE'].field,
                     True
                 )
                 for port in sorted(OrderedSet(
@@ -461,7 +478,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
                     f'GPIO{gpio.port}',
                     'OSPEEDR',
                     f'OSPEED{gpio.number}',
-                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_SPEED'].value)[gpio.speed]
+                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_SPEED'])[gpio.speed]
                 )
                 for gpio in gpios
                 if gpio.pin   is not None
@@ -477,7 +494,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
                     f'GPIO{gpio.port}',
                     'PUPDR',
                     f'PUPD{gpio.number}',
-                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_PULL'].value)[gpio.pull]
+                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_PULL'])[gpio.pull]
                 )
                 for gpio in gpios
                 if gpio.pin  is not None
@@ -509,11 +526,11 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
                     f'GPIO{gpio.port}',
                     'MODER',
                     f'MODE{gpio.number}',
-                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_MODE'].value)[gpio.mode]
+                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_MODE'])[gpio.mode]
                 )
                 for gpio in gpios
                 if gpio.pin  is not None
-                if gpio.mode not in (None, 'reserved')
+                if gpio.mode not in (None, 'RESERVED')
             )
 
 
@@ -521,25 +538,6 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
             ################################ NVIC ################################
 
             put_title('NVIC')
-
-
-
-            # Make macros to control the interrupt in NVIC.
-            # @/pg 626/tbl B3-8/`Armv7-M`.
-            # @/pg 1452/tbl D1.1.10/`Armv8-M`.
-
-            for interrupt, niceness in target.interrupt_priorities:
-                for macro, register in (
-                    ('NVIC_ENABLE'       , 'ISER'),
-                    ('NVIC_DISABLE'      , 'ICER'),
-                    ('NVIC_SET_PENDING'  , 'ISPR'),
-                    ('NVIC_CLEAR_PENDING', 'ICPR'),
-                ):
-                    Meta.define(
-                        macro, ('INTERRUPT'),
-                        f'((void) (NVIC->{register}[{interrupt}_IRQn / 32] = 1 << ({interrupt}_IRQn % 32)))',
-                        INTERRUPT = interrupt
-                    )
 
 
 
@@ -769,7 +767,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
             # A simple input GPIO to read digital voltage levels.
 
-            case 'input':
+            case 'INPUT':
 
 
 
@@ -782,7 +780,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
             # A simple output GPIO that can be driven low or high.
 
-            case 'output':
+            case 'OUTPUT':
 
 
 
@@ -804,7 +802,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
             # This GPIO would typically be used for some
             # peripheral functionality (e.g. SPI clock output).
 
-            case 'alternate':
+            case 'ALTERNATE':
 
 
 
@@ -827,18 +825,18 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
             # disabled; this obviously allows for ADC/DAC usage,
             # but it can also serve as a power-saving measure.
 
-            case 'analog':
+            case 'ANALOG':
                 raise NotImplementedError
 
 
 
-            # A GPIO that's marked as "reserved" is often useful
+            # A GPIO that's marked as "RESERVED" is often useful
             # for marking a particular pin as something that
             # shouldn't be used because it has an important
             # functionality (e.g. JTAG debug).
             # We ignore any properties the reserved pin may have.
 
-            case 'reserved':
+            case 'RESERVED':
                 properties = {}
 
 
@@ -969,8 +967,8 @@ spinlock_nop(u32 count)
 static noret void           // "
 halt_(b32 panicking)        // "
 {
-    __disable_irq();
 
+    __disable_irq();
 
     #if TARGET_NAME_IS_SandboxNucleoH7S3L8
 
@@ -1005,9 +1003,7 @@ halt_(b32 panicking)        // "
             }
         }
 
-    #endif
-
-    #if TARGET_NAME_IS_SandboxNucleoH533RE
+    #else // We're going to assume there's an LED we can toggle.
 
         for (;;)
         {
@@ -1028,7 +1024,6 @@ halt_(b32 panicking)        // "
 
     #endif
 
-    for (;;); // Panic! Something horrible has happened!
 }
 
 
@@ -1082,7 +1077,7 @@ INTERRUPT_Default
 
         default:
         {
-            panic; // Unknown interrupt!
+            panic; // Unknown interrupt! TODO Make an enumeration so we know which it is easily.
         } break;
     }
 

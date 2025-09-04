@@ -90,35 +90,35 @@ TARGETS = ( # @/`Defining a TARGET`.
                 actual     = 'USART3',
                 terms      = ['{}_BRR_BRR_init'],
                 interrupts = ['{}'],
-                puts       = [('{}_EN', 'uxart_3_enable')]
+                puts       = [('{}_EN', 'UXART_3_ENABLE')]
             ),
         ),
 
         clock_tree = {
-            'hsi_enable'    : True,
-            'hsi48_enable'  : True,
-            'csi_enable'    : True,
-            'per_ck_source' : 'hsi_ck',
-            'pll1_p_ck'     : 600_000_000,
-            'pll2_s_ck'     : 200_000_000,
-            'cpu_ck'        : 600_000_000,
-            'axi_ahb_ck'    : 300_000_000,
-            'apb1_ck'       : 150_000_000,
-            'apb2_ck'       : 150_000_000,
-            'apb4_ck'       : 150_000_000,
-            'apb5_ck'       : 150_000_000,
-            'usart3_baud'   : STLINK_BAUD,
+            'HSI_ENABLE'    : True,
+            'HSI48_ENABLE'  : True,
+            'CSI_ENABLE'    : True,
+            'PER_CK_SOURCE' : 'HSI_CK',
+            'PLL1_P_CK'     : 600_000_000,
+            'PLL2_S_CK'     : 200_000_000,
+            'CPU_CK'        : 600_000_000,
+            'AXI_AHB_CK'    : 300_000_000,
+            'APB1_CK'       : 150_000_000,
+            'APB2_CK'       : 150_000_000,
+            'APB4_CK'       : 150_000_000,
+            'APB5_CK'       : 150_000_000,
+            'USART3_BAUD'   : STLINK_BAUD,
         },
 
         gpios = (
-            ('led_red'   , 'B7' , 'output'    , { 'initlvl' : False       }),
-            ('led_yellow', 'D13', 'output'    , { 'initlvl' : False       }),
-            ('led_green' , 'D10', 'output'    , { 'initlvl' : False       }),
-            ('jig_tx'    , 'D8' , 'alternate' , { 'altfunc' : 'USART3_TX' }),
-            ('jig_rx'    , 'D9' , 'alternate' , { 'altfunc' : 'USART3_RX' }),
-            ('swdio'     , 'A13', 'reserved'  , {                         }),
-            ('swclk'     , 'A14', 'reserved'  , {                         }),
-            ('button'    , 'C13', 'input'     , { 'pull'    : 'up'        }),
+            ('led_red'   , 'B7' , 'OUTPUT'    , { 'initlvl' : False       }),
+            ('led_yellow', 'D13', 'OUTPUT'    , { 'initlvl' : False       }),
+            ('led_green' , 'D10', 'OUTPUT'    , { 'initlvl' : False       }),
+            ('jig_tx'    , 'D8' , 'ALTERNATE' , { 'altfunc' : 'USART3_TX' }),
+            ('jig_rx'    , 'D9' , 'ALTERNATE' , { 'altfunc' : 'USART3_RX' }),
+            ('swdio'     , 'A13', 'RESERVED'  , {                         }),
+            ('swclk'     , 'A14', 'RESERVED'  , {                         }),
+            ('button'    , 'C13', 'INPUT'     , { 'pull'    : 'UP'        }),
         ),
 
         interrupt_priorities = (
@@ -136,7 +136,7 @@ TARGETS = ( # @/`Defining a TARGET`.
             ./electrical/system/Startup.S
         '''),
 
-        use_freertos = True,
+        use_freertos = False,
 
         main_stack_size = 8192,
 
@@ -146,33 +146,95 @@ TARGETS = ( # @/`Defining a TARGET`.
                 actual     = 'USART2',
                 terms      = ['{}_BRR_BRR_init'],
                 interrupts = ['{}'],
-                puts       = [('{}_EN', 'uxart_2_enable')]
+                puts       = [('{}_EN', 'UXART_2_ENABLE')]
             ),
         ),
 
         clock_tree = {
-            'hsi_enable'   : True,
-            'hsi48_enable' : True,
-            'csi_enable'   : True,
-            'pll1_p_ck'    : 250_000_000,
-            'cpu_ck'       : 250_000_000,
-            'apb1_ck'      : 250_000_000,
-            'apb2_ck'      : 250_000_000,
-            'apb3_ck'      : 250_000_000,
-            'usart2_baud'  : STLINK_BAUD,
+            'HSI_ENABLE'   : True,
+            'HSI48_ENABLE' : True,
+            'CSI_ENABLE'   : True,
+            'PLL1_P_CK'    : 250_000_000,
+            'CPU_CK'       : 250_000_000,
+            'APB1_CK'      : 250_000_000,
+            'APB2_CK'      : 250_000_000,
+            'APB3_CK'      : 250_000_000,
+            'USART2_BAUD'  : STLINK_BAUD,
         },
 
         gpios = (
-            ('led_green' , 'A5' , 'output'    , { 'initlvl' : False       }),
-            ('jig_tx'    , 'A2' , 'alternate' , { 'altfunc' : 'USART2_TX' }),
-            ('jig_rx'    , 'A3' , 'alternate' , { 'altfunc' : 'USART2_RX' }),
-            ('swdio'     , 'A13', 'reserved'  , {                         }),
-            ('swclk'     , 'A14', 'reserved'  , {                         }),
-            ('button'    , 'C13', 'input'     , { 'pull'    : 'up'        }),
+            ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False       }),
+            ('jig_tx'    , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX' }),
+            ('jig_rx'    , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX' }),
+            ('swdio'     , 'A13', 'RESERVED'  , {                         }),
+            ('swclk'     , 'A14', 'RESERVED'  , {                         }),
+            ('button'    , 'C13', 'INPUT'     , { 'pull'    : 'UP'        }),
         ),
 
         interrupt_priorities = (
             ('USART2', 0),
+        ),
+
+    ),
+
+    types.SimpleNamespace(
+
+        name               = 'I2CDriverTest',
+        mcu                = 'STM32H533RET6',
+        source_file_paths  = root('''
+            ./electrical/I2CDriverTest.c
+            ./electrical/system/Startup.S
+        '''),
+
+        use_freertos = False,
+
+        main_stack_size = 8192,
+
+        aliases = (
+            types.SimpleNamespace(
+                moniker    = 'UxART_STLINK',
+                actual     = 'USART2',
+                terms      = ['{}_BRR_BRR_init'],
+                interrupts = ['{}'],
+                puts       = [('{}_EN', 'UXART_2_ENABLE')]
+            ),
+        ),
+
+        clock_tree = {
+            'HSI_ENABLE'   : True,
+            'HSI48_ENABLE' : True,
+            'CSI_ENABLE'   : True,
+            'PLL1_P_CK'    : 250_000_000,
+            'CPU_CK'       : 250_000_000,
+            'APB1_CK'      : 250_000_000,
+            'APB2_CK'      : 250_000_000,
+            'APB3_CK'      : 250_000_000,
+            'USART2_BAUD'  : STLINK_BAUD,
+            'I2C1_BAUD'    : 100_000,
+        },
+
+        gpios = (
+            ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                                          }),
+            ('jig_tx'    , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'                                    }),
+            ('jig_rx'    , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'                                    }),
+            ('swdio'     , 'A13', 'RESERVED'  , {                                                            }),
+            ('swclk'     , 'A14', 'RESERVED'  , {                                                            }),
+            ('button'    , 'C13', 'INPUT'     , { 'pull'    : 'UP'                                           }),
+            ('i2c1_scl'  , 'B6' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL', 'open_drain' : True, 'pull' : 'UP' }),
+            ('i2c1_sda'  , 'B7' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA', 'open_drain' : True, 'pull' : 'UP' }),
+
+            ('ov_rt'     , 'A10', 'OUTPUT'    , { 'initlvl' : False       }), # Pull low to reset the camera.
+            ('ov_pd'     , 'C5' , 'OUTPUT'    , { 'initlvl' : True        }), # Pull high to powerdown the camera.
+        ),
+
+        interrupt_priorities = (
+            ('USART2' , 0),
+            ('I2C1_EV', 1),
+            ('I2C1_ER', 1),
+        ),
+
+        i2c_units = (
+            1,
         ),
 
     ),
@@ -384,6 +446,8 @@ for target in TARGETS:
 #                              interrupt to be enabled in the NVIC. It should be noted that
 #                              the priority value of interrupts work on a niceless level, so
 #                              the lower the number is, the higher priority it actually is.
+#
+#     - i2c_units            = If provided, defines the I2C units that the target is using.
 #
 # It's also useful to have a "sandbox" target where it's pretty much
 # just a demo program for a Nucleo board; some LEDS blinking, maybe
