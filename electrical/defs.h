@@ -69,26 +69,6 @@
 
 
 
-//////////////////////////////////////////////////////////////// jig.c ////////////////////////////////////////////////////////////////
-
-
-
-struct Jig
-{
-    volatile u32  reception_reader;
-    volatile u32  reception_writer;
-    volatile char reception_buffer[1 << 5];
-
-    #if TARGET_USES_FREERTOS
-        StaticSemaphore_t transmission_mutex_data;
-        SemaphoreHandle_t transmission_mutex;
-        StaticSemaphore_t reception_mutex_data;
-        SemaphoreHandle_t reception_mutex;
-    #endif
-};
-
-
-
 //////////////////////////////////////////////////////////////// Notes ////////////////////////////////////////////////////////////////
 
 
