@@ -69,7 +69,7 @@ main(void)
                 (
                     I2CHandle_1,
                     slave_address,
-                    true,
+                    I2COperation_read,
                     &(u8) {0},
                     1
                 );
