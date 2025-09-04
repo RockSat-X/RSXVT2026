@@ -40,8 +40,8 @@ UXART_reinit(enum UXARTHandle handle)
 
     // Reset-cycle the peripheral.
 
-    CMSIS_PUT(USARTx_RESET, true );
-    CMSIS_PUT(USARTx_RESET, false);
+    CMSIS_PUT(UXARTx_RESET, true );
+    CMSIS_PUT(UXARTx_RESET, false);
 
     *driver = (struct UXARTDriver) {0};
 
@@ -49,7 +49,7 @@ UXART_reinit(enum UXARTHandle handle)
 
     // Enable the interrupts.
 
-    NVIC_ENABLE(USARTx);
+    NVIC_ENABLE(UXARTx);
 
 }
 
@@ -59,92 +59,23 @@ UXART_reinit(enum UXARTHandle handle)
 
 
 
-// Stuff to make working with any UXART unit easy.
-
 /* #include "uxart_aliases.meta"
 /* #meta
 
-
-
-    # Things to be aliased for UXART.
-
-    IDENTIFIERS = (
-        'USART{}',
-        'NVICInterrupt_USART{}',
-    )
-
-    CMSIS_TUPLE_TAGS = (
-        'USART{}_RESET',
-    )
-
-
-
-    # Some target-specific support definitions.
-
-    for target in PER_TARGET():
-
-        if 'uxart_units' not in target.__dict__ or not target.uxart_units:
-
-            Meta.line(
-                f'#error Target {target.name} cannot use the UXART driver '
-                f'because no UXART unit have been assigned.'
-            )
-
-            continue
-
-
-
-        # Have the user be able to specify a specific UXART unit.
-
-        Meta.enums('UXARTHandle', 'u32', (f'{peripheral}{unit}' for peripheral, unit in target.uxart_units))
-
-
-
-        # A look-up table to allow generic code to be written for any UXART peripheral.
-
-        Meta.lut('UXART_TABLE', (
-            (
-                f'UXARTHandle_{peripheral}{unit}',
-                *[
-                    (
-                        identifier.format('x'),
-                        identifier.format(unit)
-                    )
-                    for identifier in IDENTIFIERS
-                ],
-                *[
-                    (
-                        tag.format('x'),
-                        CMSIS_TUPLE(SYSTEM_DATABASE[target.mcu][tag.format(unit)])
-                    ) for tag in CMSIS_TUPLE_TAGS
-                ]
-            )
-            for peripheral, unit in target.uxart_units
-        ))
-
-
-
-    # Macro to mostly bring stuff in the look-up table into the local scope.
-
-    Meta.line(f'#define UXARTx_ UXART_')
-    Meta.line('#undef _EXPAND_HANDLE')
-
-    with Meta.enter('#define _EXPAND_HANDLE'):
-
-        Meta.line(f'''
-
-            if (!(0 <= handle && handle < UXARTHandle_COUNT))
-            {{
-                panic;
-            }}
-
-            struct UXARTDriver* const driver = &_UXART_drivers[handle];
-
-        ''')
-
-        for identifier in IDENTIFIERS + CMSIS_TUPLE_TAGS:
-            Meta.line(f'''
-                auto const {identifier.format('x')} = UXART_TABLE[handle].{identifier.format('x')};
-            ''')
+    IMPLEMENT_DRIVERS('UXART', (
+        {
+            'moniker'     :                         f'UXARTx',
+            'identifier'  : lambda peripheral_unit: f'{peripheral_unit[0]}{peripheral_unit[1]}',
+            'peripheral'  :                         f'USART',
+        },
+        {
+            'moniker'     :                         f'NVICInterrupt_UXARTx',
+            'identifier'  : lambda peripheral_unit: f'NVICInterrupt_{peripheral_unit[0]}{peripheral_unit[1]}',
+        },
+        {
+            'moniker'     :                         f'UXARTx_RESET',
+            'cmsis_tuple' : lambda peripheral_unit: f'{peripheral_unit[0]}{peripheral_unit[1]}_RESET',
+        },
+    ))
 
 */

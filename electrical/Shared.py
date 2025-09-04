@@ -286,9 +286,11 @@ TARGETS = ( # @/`Defining a TARGET`.
         ),
 
         # TODO Document.
-        uxart_units = (
-            ('USART', 2),
-        ),
+        drivers = {
+            'UXART' : (
+                ('stlink', ('USART', 2)),
+            )
+        }
 
     ),
 

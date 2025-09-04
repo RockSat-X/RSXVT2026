@@ -274,6 +274,171 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 
 
 
+// TODO Document.
+
+/* #meta IMPLEMENT_DRIVERS : SYSTEM_DATABASE
+
+    def IMPLEMENT_DRIVERS(driver_name, aliases):
+
+        for target in PER_TARGET():
+
+
+
+            if not hasattr(target, 'drivers') or not target.drivers:
+                continue
+
+            if driver_name not in target.drivers:
+                continue
+
+
+
+            # Have the user be able to specify a specific driver unit.
+
+            Meta.enums(
+                f'{driver_name}Handle',
+                'u32',
+                (handle for handle, instance in target.drivers[driver_name])
+            )
+
+
+
+            # For aliases that are for peripherals,
+            # we add in macros to do suffix-dropping.
+            # @/`CMSIS Suffix Dropping`.
+            # e.g:
+            # >
+            # >    I2Cx <-> I2C3
+            # >
+
+            for alias in aliases:
+
+                match alias:
+
+                    case {
+                        'moniker'    : moniker,
+                        'identifier' : identifier,
+                        'peripheral' : peripheral,
+                        **rest
+                    } if not rest:
+
+                        Meta.line(f'#define {moniker}_ {peripheral}_')
+
+
+
+            # Create a look-up table to map the moniker
+            # name to the actual underyling value.
+
+            mappings = []
+
+            for handle, instance in target.drivers[driver_name]:
+
+                map = []
+
+                for alias in aliases:
+
+                    match alias:
+
+
+
+                        # The alias is just a
+                        # simple token renaming.
+                        # e.g:
+                        # >
+                        # >    NVICInterrupt_I2Cx_EV <-> NVICInterrupt_I2C3_EV
+                        # >
+
+                        case {
+                            'moniker'    : moniker,
+                            'identifier' : identifier,
+                            **rest
+                        } if not rest:
+
+                            identifier = identifier(instance)
+
+                            map += [(moniker, identifier)]
+
+
+
+                        # The alias is of a peripheral.
+                        # e.g:
+                        # >
+                        # >    I2Cx <-> I2C3
+                        # >
+
+                        case {
+                            'moniker'    : moniker,
+                            'identifier' : identifier,
+                            'peripheral' : peripheral,
+                            **rest
+                        } if not rest:
+
+                            identifier = identifier(instance)
+
+                            map += [(moniker, identifier)]
+
+
+
+                        # The alias refers to a CMSIS
+                        # peripheral-register-field tuple.
+                        # e.g:
+                        # >
+                        # >    I2Cx_RESET <-> (struct CMSISTuple) { ... }
+                        # >
+
+                        case {
+                            'moniker'     : moniker,
+                            'cmsis_tuple' : cmsis_tuple,
+                            **rest
+                        } if not rest:
+
+                            cmsis_tuple = cmsis_tuple(instance)
+                            cmsis_tuple = CMSIS_TUPLE(SYSTEM_DATABASE[target.mcu][cmsis_tuple])
+
+                            map += [(moniker, cmsis_tuple)]
+
+
+
+                        case unknown:
+
+                            raise ValueError('Unknown alias format: {repr(unknown)}.')
+
+
+
+                mappings += [(f'{driver_name}Handle_{handle}', *map)]
+
+
+
+            Meta.lut(f'{driver_name}_TABLE', mappings)
+
+
+
+        # Macro to mostly bring stuff in the
+        # look-up table into the local scope.
+
+        Meta.line('#undef _EXPAND_HANDLE')
+
+        with Meta.enter('#define _EXPAND_HANDLE'):
+
+            Meta.line(f'''
+
+                if (!(0 <= handle && handle < {driver_name}Handle_COUNT))
+                {{
+                    panic;
+                }}
+
+                struct {driver_name}Driver* const driver = &_{driver_name}_drivers[handle];
+
+            ''')
+
+            for alias in aliases:
+                Meta.line(f'''
+                    auto const {alias['moniker']} = {driver_name}_TABLE[handle].{alias['moniker']};
+                ''')
+
+*/
+
+
+
 //////////////////////////////////////////////////////////////// Interrupts ////////////////////////////////////////////////////////////////
 
 
