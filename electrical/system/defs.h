@@ -39,20 +39,23 @@
 
 struct CMSISTuple
 {
-    volatile long unsigned int* dst;
-    i32                         pos;
-    u32                         msk;
+    volatile long unsigned int* destination;
+    i32                         position;
+    u32                         mask;
 };
 
 static mustinline void
 CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 {
 
-    u32 temporary = *tuple.dst;
+    // Read.
+    u32 temporary = *tuple.destination;
 
-    temporary = (temporary & ~tuple.msk) | ((value << tuple.pos) & tuple.msk);
+    // Modify.
+    temporary = (temporary & ~tuple.mask) | ((value << tuple.position) & tuple.mask);
 
-    *tuple.dst = temporary;
+    // Write.
+    *tuple.destination = temporary;
 
 }
 
