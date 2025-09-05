@@ -325,6 +325,7 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 
 
 
+// TODO How to catch cases where an interrupt handler is defined but not in NVIC_TABLE?
 #include "interrupts.meta"
 /* #meta INTERRUPTS
 

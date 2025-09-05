@@ -47,7 +47,7 @@ def SYSTEM_PARAMETERIZE(target):
     options      = target.clock_tree
     used_options = OrderedSet()
 
-    def opts(option, default = ...):
+    def opts(option, default = ...): # TODO Wrapper around `target.clock_tree`?
 
         nonlocal used_options
 
@@ -121,7 +121,7 @@ def SYSTEM_PARAMETERIZE(target):
 
         nonlocal draft, configurations
 
-        draft = ContainedNamespace(configuration_names)
+        draft = ContainedNamespace(configuration_names) # TODO `ContainedNamespace` even needed?
 
         success = function()
 
@@ -973,8 +973,144 @@ def SYSTEM_PARAMETERIZE(target):
 
     ################################################################################################################################
     #
+    # Parameterize the timers.
+    #
+
+
+
+    def parameterize_timer(unit):
+
+
+
+        needed_rate = opts(f'TIM{unit}_RATE')
+
+
+
+        # Determine the kernel frequency to the timer peripheral.
+
+        match target.mcu:
+
+            case 'STM32H533RET6':
+
+                # TODO Not the best way to implement this.
+                apb = {
+                    2  : 1,
+                    3  : 1,
+                    4  : 1,
+                    5  : 1,
+                    6  : 1,
+                    7  : 1,
+                    12 : 1,
+                    1  : 2,
+                    8  : 2,
+                    15 : 2,
+                }[unit]
+
+                # TODO Not the best way to implement this.
+                # TODO Not entirely sure if correct.
+                multiplier = {
+                    (False, '0b000') : 1,
+                    (False, '0b100') : 1,
+                    (False, '0b101') : 1 / 2,
+                    (False, '0b110') : 1 / 4,
+                    (False, '0b111') : 1 / 8,
+                    (True , '0b000') : 1,
+                    (True , '0b100') : 1,
+                    (True , '0b101') : 1 / 2,
+                    (True , '0b110') : 1 / 2,
+                    (True , '0b111') : 1 / 4,
+                }[(
+                    draft.GLOBAL_TIMER_PRESCALER,
+                    configurations[f'APB{apb}_DIVIDER'])
+                ]
+
+                kernel_frequency = tree[f'AXI_AHB_CK'] * multiplier
+
+
+
+            case _: raise NotImplementedError
+
+
+
+        # Find the pair of divider and modulation values to
+        # get an output frequency that's within tolerance.
+
+        for draft[f'TIM{unit}_DIVIDER'] in database[f'TIM{unit}_DIVIDER']:
+
+            counter_frequency = kernel_frequency / draft[f'TIM{unit}_DIVIDER']
+
+
+
+            # Determine the modulation value.
+
+            draft[f'TIM{unit}_MODULATION'] = round(counter_frequency / needed_rate)
+
+            if draft[f'TIM{unit}_MODULATION'] == 0:
+                # Zero will end up disabling the counter.
+                # Since we're approximating for the rate,
+                # anyways we might as well round up to 1.
+                draft[f'TIM{unit}_MODULATION'] = 1
+
+            if draft[f'TIM{unit}_MODULATION'] not in database[f'TIM{unit}_MODULATION']:
+                continue
+
+
+
+            # See if things are within tolerance.
+
+            actual_rate  = counter_frequency / draft[f'TIM{unit}_MODULATION']
+            actual_error = abs(1 - actual_rate / needed_rate)
+
+            if actual_error <= 0.001: # TODO Ad-hoc.
+                return True
+
+
+
+    def parameterize_timers():
+
+
+
+        units_to_be_parameterized = [
+            unit
+            for unit in database['TIMERS']
+            if opts(f'TIM{unit}_RATE', None) is not None
+        ]
+
+
+
+        if not units_to_be_parameterized:
+            draft.GLOBAL_TIMER_PRESCALER = None
+            return True
+
+
+
+        for draft.GLOBAL_TIMER_PRESCALER in database['GLOBAL_TIMER_PRESCALER']:
+
+            every_timer_satisfied = all(
+                parameterize_timer(unit)
+                for unit in units_to_be_parameterized
+            )
+
+            if every_timer_satisfied:
+                return True
+
+
+
+    if 'TIMERS' in database:
+        brute(parameterize_timers, (
+            'GLOBAL_TIMER_PRESCALER',
+            *(f'TIM{unit}_DIVIDER'    for unit in database['TIMERS']),
+            *(f'TIM{unit}_MODULATION' for unit in database['TIMERS']),
+        ))
+
+
+
+    ################################################################################################################################
+    #
     # Parameterization of the system is done!
     #
+
+
 
     if leftovers := options.keys() - used_options:
         log(ANSI(

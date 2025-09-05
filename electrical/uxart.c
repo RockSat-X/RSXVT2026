@@ -215,7 +215,7 @@ UXART_init(enum UXARTHandle handle)
 
 
 
-    // Clock the peripheral.
+    // Enable the peripheral.
 
     CMSIS_PUT(UXARTx_ENABLE, true);
 
