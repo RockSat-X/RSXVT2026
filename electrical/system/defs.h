@@ -444,8 +444,11 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 
 
 
-        # Create an enumeration for each interrupt the target is using
-        # so that the NVIC macros will only work with those specific interrupts.
+        # Create an enumeration for each
+        # interrupt the target is using
+        # so that the NVIC macros will
+        # only work with those specific
+        # interrupts.
 
         Meta.enums(
             'NVICInterrupt',
@@ -455,6 +458,22 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
                 for interrupt, niceness in target.interrupt_priorities
             )
         )
+
+
+
+        # Create an enumeration for every
+        # interrupt there is so it's easy
+        # to decode during debugging.
+
+        Meta.enums(
+            'MCUInterrupt',
+            'i32',
+            (
+                (name if name is not None else f'Reserved_{index}', index - 15)
+                for index, name in enumerate(('Reset', *INTERRUPTS[mcu]))
+            )
+        )
+
 */
 
 
@@ -1172,7 +1191,13 @@ INTERRUPT_Default
 
         default:
         {
-            panic; // Unknown interrupt! TODO Make an enumeration so we know which it is easily.
+
+            enum MCUInterrupt mcu_interrupt = interrupt_number;
+
+            // Did you forget to define the interrupt routine?
+
+            panic;
+
         } break;
     }
 
