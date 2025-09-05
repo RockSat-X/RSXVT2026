@@ -145,6 +145,14 @@ __INTERRUPT_Reset:
 
 
 
+                # This interrupt must be defined by the user.
+
+                elif interrupt_name in (name for name, niceness in target.interrupt_priorities):
+
+                    Meta.line(f'.word __INTERRUPT_{interrupt_name}')
+
+
+
                 # These interrupt routines will be implemented by the user, if at all.
 
                 else:
