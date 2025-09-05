@@ -94,6 +94,8 @@ main(void)
 
             // Bit of breather...
 
+            GPIO_TOGGLE(led_green);
+
             spinlock_nop(10'000'000); // TODO Let's use a real delay here.
 
         }
