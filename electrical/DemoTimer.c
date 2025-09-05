@@ -1,6 +1,12 @@
 #include "system/defs.h"
 #include "uxart.c"
 
+INTERRUPT_TIM1_UP
+{
+    CMSIS_SET(TIM1, SR, UIF, false);
+    GPIO_TOGGLE(led_green);
+}
+
 extern noret void
 main(void)
 {
@@ -21,11 +27,10 @@ main(void)
     CMSIS_SET(TIM1, CCER   , CC1E  , true                       ); // Enable the channel.
     CMSIS_SET(TIM1, CR1    , CEN   , true                       ); // Enable the timer's counter.
     CMSIS_SET(TIM1, BDTR   , MOE   , true                       ); // Master output enable.
+    CMSIS_SET(TIM1, DIER   , UIE   , true                       ); // Enable the update interrupt.
 
-    for (;;)
-    {
-        GPIO_TOGGLE(led_green);
-        spinlock_nop(100'000'000);
-    }
+    NVIC_ENABLE(TIM1_UP);
+
+    for (;;);
 
 }

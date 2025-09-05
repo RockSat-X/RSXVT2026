@@ -247,7 +247,7 @@ TARGETS = ( # @/`Defining a TARGET`.
             'APB3_CK'      : 250_000_000,
             'USART2_BAUD'  : STLINK_BAUD,
             'I2C1_BAUD'    : 100_000,
-            'TIM1_RATE'    : 1_000,
+            'TIM1_RATE'    : 1,
         },
 
         gpios = (
@@ -263,7 +263,8 @@ TARGETS = ( # @/`Defining a TARGET`.
         ),
 
         interrupt_priorities = (
-            ('USART2', 0),
+            ('USART2' , 0),
+            ('TIM1_UP', 1),
         ),
 
         drivers = {
