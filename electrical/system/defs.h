@@ -285,6 +285,12 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 
 
             if driver_name not in target.drivers:
+
+                Meta.line(
+                    f'#error Target "{target.name}" cannot use the {driver_name} driver '
+                    f'without first specifying the peripheral instances to have handles for.'
+                )
+
                 continue
 
 
