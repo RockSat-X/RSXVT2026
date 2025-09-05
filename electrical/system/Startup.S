@@ -132,13 +132,15 @@ __INTERRUPT_Reset:
                 # No interrupt handler here.
 
                 if interrupt_name is None:
-                    Meta.line('.word 0')
+
+                    Meta.line('.word __INTERRUPT_Default')
 
 
 
-                # This interrupt will be supplied by FreeRTOS,
+                # This interrupt will be supplied by FreeRTOS.
 
                 elif target.use_freertos and interrupt_name in MCUS[target.mcu].freertos_interrupts:
+
                     Meta.line(f'.word {MCUS[target.mcu].freertos_interrupts[interrupt_name]}')
 
 
@@ -146,6 +148,7 @@ __INTERRUPT_Reset:
                 # These interrupt routines will be implemented by the user, if at all.
 
                 else:
+
                     Meta.line(
                         f'.word __INTERRUPT_{interrupt_name}'                               , # Insert the address of the handler routine.
                         f'.weak __INTERRUPT_{interrupt_name}'                               , # If there exists an implementation of the handler, use it.
