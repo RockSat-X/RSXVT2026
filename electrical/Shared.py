@@ -253,13 +253,6 @@ TARGETS = ( # @/`Defining a TARGET`.
         main_stack_size = 8192,
 
         aliases = (
-            types.SimpleNamespace(
-                moniker    = 'UxART_STLINK',
-                actual     = 'USART2',
-                terms      = ['{}_BRR_BRR_init'],
-                interrupts = ['{}'],
-                puts       = [('{}_EN', 'UXART_2_ENABLE')]
-            ),
         ),
 
         clock_tree = {
