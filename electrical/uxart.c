@@ -2,6 +2,13 @@
 
 
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wundef"
+#include <printf/printf.c>
+#pragma GCC diagnostic pop
+
+
+
 #include "uxart_aliases.meta"
 
 
@@ -23,6 +30,98 @@ struct UXARTDriver
 
 
 static struct UXARTDriver _UXART_drivers[UXARTHandle_COUNT] = {0};
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+static void
+_UXART_tx_raw_nonreentrant(enum UXARTHandle handle, u8* data, i32 length)
+{
+    _EXPAND_HANDLE
+
+    for (i32 i = 0; i < length; i += 1)
+    {
+        while (!CMSIS_GET(UXARTx, ISR, TXE)); // Wait if the TX-FIFO is full.
+
+        // This procedure is non-reentrant because a task
+        // switch could occur right here; if that task
+        // pushes data to TDR, then our current task might
+        // resume and then also immediately push into TDR,
+        // but TXE might be not set, so data will dropped.
+
+        CMSIS_SET(UXARTx, TDR, TDR, data[i]);
+    }
+}
+
+
+
+static void
+_UXART_fctprintf_callback(char character, void* void_handle)
+{
+    enum UXARTHandle handle = (enum UXARTHandle) void_handle;
+
+    _EXPAND_HANDLE
+
+    _UXART_tx_raw_nonreentrant(handle, &(u8) { character }, 1);
+}
+
+
+
+static void __attribute__((format(printf, 2, 3)))
+UXART_tx(enum UXARTHandle handle, char* format, ...)
+{
+    _EXPAND_HANDLE
+
+    va_list arguments = {0};
+    va_start(arguments, fmt);
+
+    MUTEX_TAKE(driver->transmission_mutex);
+    {
+        vfctprintf(&_UXART_fctprintf_callback, (void*) handle, format, arguments);
+    }
+    MUTEX_GIVE(driver->transmission_mutex);
+
+    va_end(arguments);
+}
+
+
+
+// Note that the terminal on the other end could send '\r'
+// to indicate that the user pressed <ENTER>.
+// Furthermore, certain keys, such as arrow keys, will be
+// sent as a multi-byte sequence.
+
+static useret b32 // Received character?
+UXART_rx(enum UXARTHandle handle, char* destination)
+{
+
+    _EXPAND_HANDLE
+
+    b32 data_available = {0};
+
+    MUTEX_TAKE(driver->reception_mutex);
+    {
+        data_available = driver->reception_reader != driver->reception_writer;
+
+        if (data_available && destination)
+        {
+            static_assert(IS_POWER_OF_TWO(countof(driver->reception_buffer)));
+
+            u32 reader_index = driver->reception_reader & (countof(driver->reception_buffer) - 1);
+
+            *destination = driver->reception_buffer[reader_index];
+
+            driver->reception_reader += 1;
+        }
+    }
+    MUTEX_GIVE(driver->reception_mutex);
+
+    return data_available;
+
+}
 
 
 
@@ -84,6 +183,102 @@ UXART_reinit(enum UXARTHandle handle)
     #endif
 
 }
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+static void
+_UXART_update(enum UXARTHandle handle)
+{
+
+    _EXPAND_HANDLE
+
+
+
+    // Handle reception errors.
+
+    b32 reception_errors =
+        UXARTx->ISR &
+        (
+            USART_ISR_FE  | // Frame error.
+            USART_ISR_NE  | // Noise error.
+            USART_ISR_PE  | // Parity error (for completion, even though a parity bit is not used).
+            USART_ISR_ORE   // Overrun error.
+        );
+
+    if (reception_errors)
+    {
+        #if 0
+            sorry // Reception error!
+        #else
+            CMSIS_SET // We ignore the reception error.
+            (
+                UXARTx, ICR ,
+                FECF  , true, // Clear frame error.
+                NECF  , true, // Clear noise error.
+                PECF  , true, // Clear parity error (for completeness, even though a parity bit is not used).
+                ORECF , true, // Clear overrun error.
+            );
+        #endif
+    }
+
+
+
+    // Handle received data.
+
+    if (CMSIS_GET(UXARTx, ISR, RXNE)) // We got a byte of data?
+    {
+        u8  data                  = UXARTx->RDR; // Pop from the RX-buffer.
+        u32 reader_index          = driver->reception_reader + countof(driver->reception_buffer);
+        b32 reception_buffer_full = driver->reception_writer == reader_index;
+
+        if (reception_buffer_full)
+        {
+            #if 0
+                sorry // RX-buffer overflow!
+            #else
+                // We got an overflow,
+                // but this isn't a critical thing,
+                // so we'll just silently ignore it.
+            #endif
+        }
+        else // Push received byte into the ring-buffer.
+        {
+            static_assert(IS_POWER_OF_TWO(countof(driver->reception_buffer)));
+
+            u32 writer_index = driver->reception_writer & (countof(driver->reception_buffer) - 1);
+
+            driver->reception_buffer[writer_index]  = data;
+            driver->reception_writer               += 1;
+        }
+    }
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+#include "uxart_interrupts.meta"
+/* #meta
+
+    for target in PER_TARGET():
+
+        if not hasattr(target, 'drivers'):
+            continue
+
+        for handle, (peripheral, unit) in target.drivers.get('UXART', ()):
+            Meta.line(f'''
+                INTERRUPT_{peripheral}{unit}
+                {{
+                    _UXART_update(UXARTHandle_{handle});
+                }}
+            ''')
+
+*/
 
 
 
