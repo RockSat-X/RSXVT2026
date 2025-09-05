@@ -223,6 +223,55 @@ TARGETS = ( # @/`Defining a TARGET`.
 
     ),
 
+    types.SimpleNamespace(
+
+        name               = 'DemoTimer',
+        mcu                = 'STM32H533RET6',
+        source_file_paths  = root('''
+            ./electrical/DemoTimer.c
+            ./electrical/system/Startup.S
+        '''),
+
+        use_freertos = False,
+
+        main_stack_size = 8192,
+
+        clock_tree = {
+            'HSI_ENABLE'   : True,
+            'HSI48_ENABLE' : True,
+            'CSI_ENABLE'   : True,
+            'PLL1_P_CK'    : 250_000_000,
+            'CPU_CK'       : 250_000_000,
+            'APB1_CK'      : 250_000_000,
+            'APB2_CK'      : 250_000_000,
+            'APB3_CK'      : 250_000_000,
+            'USART2_BAUD'  : STLINK_BAUD,
+            'I2C1_BAUD'    : 100_000,
+        },
+
+        gpios = (
+            ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                                          }),
+            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'                                    }),
+            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'                                    }),
+            ('swdio'     , 'A13', 'RESERVED'  , {                                                            }),
+            ('swclk'     , 'A14', 'RESERVED'  , {                                                            }),
+            ('button'    , 'C13', 'INPUT'     , { 'pull'    : 'UP'                                           }),
+            ('i2c1_scl'  , 'B6' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL', 'open_drain' : True, 'pull' : 'UP' }),
+            ('i2c1_sda'  , 'B7' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA', 'open_drain' : True, 'pull' : 'UP' }),
+        ),
+
+        interrupt_priorities = (
+            ('USART2', 0),
+        ),
+
+        drivers = {
+            'UXART' : (
+                ('stlink', 'USART2'),
+            ),
+        }
+
+    ),
+
 )
 
 
