@@ -309,10 +309,10 @@ _UXART_update(enum UXARTHandle handle)
 
     for target in PER_TARGET():
 
-        for handle, (peripheral, unit) in target.drivers.get('UXART', ()):
+        for handle, instance in target.drivers.get('UXART', ()):
 
             Meta.line(f'''
-                INTERRUPT_{peripheral}{unit}
+                INTERRUPT_{instance}
                 {{
                     _UXART_update(UXARTHandle_{handle});
                 }}
@@ -331,33 +331,33 @@ _UXART_update(enum UXARTHandle handle)
 
     IMPLEMENT_DRIVER_ALIASES('UXART', (
         {
-            'moniker'     :                         f'UXARTx',
-            'identifier'  : lambda peripheral_unit: f'{peripheral_unit[0]}{peripheral_unit[1]}',
-            'peripheral'  :                         f'USART',
+            'moniker'     :                  'UXARTx',
+            'identifier'  : lambda instance: instance,
+            'peripheral'  :                  'USART',
         },
         {
-            'moniker'     :                         f'NVICInterrupt_UXARTx',
-            'identifier'  : lambda peripheral_unit: f'NVICInterrupt_{peripheral_unit[0]}{peripheral_unit[1]}',
+            'moniker'     :                  f'NVICInterrupt_UXARTx',
+            'identifier'  : lambda instance: f'NVICInterrupt_{instance}',
         },
         {
-            'moniker'     :                         f'UXARTx_KERNEL_SOURCE_init',
-            'identifier'  : lambda peripheral_unit: f'{peripheral_unit[0]}{peripheral_unit[1]}_KERNEL_SOURCE_init',
+            'moniker'     :                  f'UXARTx_KERNEL_SOURCE_init',
+            'identifier'  : lambda instance: f'{instance}_KERNEL_SOURCE_init',
         },
         {
-            'moniker'     :                         f'UXARTx_BRR_BRR_init',
-            'identifier'  : lambda peripheral_unit: f'{peripheral_unit[0]}{peripheral_unit[1]}_BRR_BRR_init',
+            'moniker'     :                  f'UXARTx_BRR_BRR_init',
+            'identifier'  : lambda instance: f'{instance}_BRR_BRR_init',
         },
         {
-            'moniker'     :                         f'UXARTx_RESET',
-            'cmsis_tuple' : lambda peripheral_unit: f'{peripheral_unit[0]}{peripheral_unit[1]}_RESET',
+            'moniker'     :                  f'UXARTx_RESET',
+            'cmsis_tuple' : lambda instance: f'{instance}_RESET',
         },
         {
-            'moniker'     :                         f'UXARTx_ENABLE',
-            'cmsis_tuple' : lambda peripheral_unit: f'{peripheral_unit[0]}{peripheral_unit[1]}_ENABLE',
+            'moniker'     :                  f'UXARTx_ENABLE',
+            'cmsis_tuple' : lambda instance: f'{instance}_ENABLE',
         },
         {
-            'moniker'     :                         f'UXARTx_KERNEL_SOURCE',
-            'cmsis_tuple' : lambda peripheral_unit: f'{peripheral_unit[0]}{peripheral_unit[1]}_KERNEL_SOURCE',
+            'moniker'     :                  f'UXARTx_KERNEL_SOURCE',
+            'cmsis_tuple' : lambda instance: f'{instance}_KERNEL_SOURCE',
         },
     ))
 

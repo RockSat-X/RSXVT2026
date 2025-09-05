@@ -120,7 +120,7 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         drivers = {
             'UXART' : (
-                ('stlink', ('USART', 3)),
+                ('stlink', 'USART3'),
             )
         }
 
@@ -169,7 +169,7 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         drivers = {
             'UXART' : (
-                ('stlink', ('USART', 2)),
+                ('stlink', 'USART2'),
             )
         }
 
@@ -223,7 +223,7 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         drivers = {
             'UXART' : (
-                ('stlink', ('USART', 2)),
+                ('stlink', 'USART2'),
             ),
             'I2C' : (
                 ('primary', 1),
@@ -276,7 +276,7 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         drivers = {
             'UXART' : (
-                ('stlink', ('USART', 2)),
+                ('stlink', 'USART2'),
             )
         }
 
