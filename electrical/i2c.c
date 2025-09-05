@@ -2,7 +2,69 @@
 
 
 
-#include "i2c_aliases.meta"
+#include "i2c_driver_support.meta"
+/* #meta
+
+    IMPLEMENT_DRIVER_ALIASES('I2C', (
+        {
+            'moniker'     :                  'I2Cx',
+            'identifier'  : lambda instance: instance,
+            'peripheral'  :                  'I2C',
+        },
+        {
+            'moniker'     :                  f'NVICInterrupt_I2Cx_EV',
+            'identifier'  : lambda instance: f'NVICInterrupt_{instance}_EV',
+        },
+        {
+            'moniker'     :                  f'NVICInterrupt_I2Cx_ER',
+            'identifier'  : lambda instance: f'NVICInterrupt_{instance}_ER',
+        },
+        {
+            'moniker'     :                  f'I2Cx_KERNEL_SOURCE_init',
+            'identifier'  : lambda instance: f'{instance}_KERNEL_SOURCE_init',
+        },
+        {
+            'moniker'     :                  f'I2Cx_TIMINGR_PRESC_init',
+            'identifier'  : lambda instance: f'{instance}_TIMINGR_PRESC_init',
+        },
+        {
+            'moniker'     :                  f'I2Cx_TIMINGR_SCL_init',
+            'identifier'  : lambda instance: f'{instance}_TIMINGR_SCL_init',
+        },
+        {
+            'moniker'     :                  f'I2Cx_RESET',
+            'cmsis_tuple' : lambda instance: f'{instance}_RESET',
+        },
+        {
+            'moniker'     :                  f'I2Cx_ENABLE',
+            'cmsis_tuple' : lambda instance: f'{instance}_ENABLE',
+        },
+        {
+            'moniker'     :                  f'I2Cx_KERNEL_SOURCE',
+            'cmsis_tuple' : lambda instance: f'{instance}_KERNEL_SOURCE',
+        },
+    ))
+
+    for target in PER_TARGET():
+
+        for handle, instance in target.drivers.get('I2C', ()):
+
+            for suffix in ('EV', 'ER'):
+                Meta.line(f'''
+
+                    static void
+                    _I2C_update_entirely(enum I2CHandle handle);
+
+                    INTERRUPT_{instance}_{suffix}
+                    {{
+                        _I2C_update_entirely(I2CHandle_{handle});
+                    }}
+
+                ''')
+
+*/
+
+
 
 enum I2CDriverState : u32
 {
@@ -34,6 +96,8 @@ struct I2CDriver
     i32                          progress;
     enum I2CDriverError          error;
 };
+
+
 
 static struct I2CDriver _I2C_drivers[I2CHandle_COUNT] = {0};
 
@@ -605,82 +669,6 @@ _I2C_update_entirely(enum I2CHandle handle)
     }
 
 }
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-// Define the interrupt handler for each I2C peripheral used.
-
-#include "i2c_interrupts.meta"
-/* #meta
-
-    for target in PER_TARGET():
-
-        for handle, instance in target.drivers.get('I2C', ()):
-
-            for suffix in ('EV', 'ER'):
-                Meta.line(f'''
-                    INTERRUPT_{instance}_{suffix}
-                    {{
-                        _I2C_update_entirely(I2CHandle_{handle});
-                    }}
-                ''')
-
-*/
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-/* #include "i2c_aliases.meta"
-/* #meta
-
-    IMPLEMENT_DRIVER_ALIASES('I2C', (
-        {
-            'moniker'     :                  'I2Cx',
-            'identifier'  : lambda instance: instance,
-            'peripheral'  :                  'I2C',
-        },
-        {
-            'moniker'     :                  f'NVICInterrupt_I2Cx_EV',
-            'identifier'  : lambda instance: f'NVICInterrupt_{instance}_EV',
-        },
-        {
-            'moniker'     :                  f'NVICInterrupt_I2Cx_ER',
-            'identifier'  : lambda instance: f'NVICInterrupt_{instance}_ER',
-        },
-        {
-            'moniker'     :                  f'I2Cx_KERNEL_SOURCE_init',
-            'identifier'  : lambda instance: f'{instance}_KERNEL_SOURCE_init',
-        },
-        {
-            'moniker'     :                  f'I2Cx_TIMINGR_PRESC_init',
-            'identifier'  : lambda instance: f'{instance}_TIMINGR_PRESC_init',
-        },
-        {
-            'moniker'     :                  f'I2Cx_TIMINGR_SCL_init',
-            'identifier'  : lambda instance: f'{instance}_TIMINGR_SCL_init',
-        },
-        {
-            'moniker'     :                  f'I2Cx_RESET',
-            'cmsis_tuple' : lambda instance: f'{instance}_RESET',
-        },
-        {
-            'moniker'     :                  f'I2Cx_ENABLE',
-            'cmsis_tuple' : lambda instance: f'{instance}_ENABLE',
-        },
-        {
-            'moniker'     :                  f'I2Cx_KERNEL_SOURCE',
-            'cmsis_tuple' : lambda instance: f'{instance}_KERNEL_SOURCE',
-        },
-    ))
-
-*/
 
 
 

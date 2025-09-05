@@ -15,7 +15,58 @@
 
 
 
-#include "uxart_aliases.meta"
+#include "uxart_driver_support.meta"
+/* #meta
+
+    IMPLEMENT_DRIVER_ALIASES('UXART', (
+        {
+            'moniker'     :                  'UXARTx',
+            'identifier'  : lambda instance: instance,
+            'peripheral'  :                  'USART',
+        },
+        {
+            'moniker'     :                  f'NVICInterrupt_UXARTx',
+            'identifier'  : lambda instance: f'NVICInterrupt_{instance}',
+        },
+        {
+            'moniker'     :                  f'UXARTx_KERNEL_SOURCE_init',
+            'identifier'  : lambda instance: f'{instance}_KERNEL_SOURCE_init',
+        },
+        {
+            'moniker'     :                  f'UXARTx_BRR_BRR_init',
+            'identifier'  : lambda instance: f'{instance}_BRR_BRR_init',
+        },
+        {
+            'moniker'     :                  f'UXARTx_RESET',
+            'cmsis_tuple' : lambda instance: f'{instance}_RESET',
+        },
+        {
+            'moniker'     :                  f'UXARTx_ENABLE',
+            'cmsis_tuple' : lambda instance: f'{instance}_ENABLE',
+        },
+        {
+            'moniker'     :                  f'UXARTx_KERNEL_SOURCE',
+            'cmsis_tuple' : lambda instance: f'{instance}_KERNEL_SOURCE',
+        },
+    ))
+
+    for target in PER_TARGET():
+
+        for handle, instance in target.drivers.get('UXART', ()):
+
+            Meta.line(f'''
+
+                static void
+                _UXART_update(enum UXARTHandle handle);
+
+                INTERRUPT_{instance}
+                {{
+                    _UXART_update(UXARTHandle_{handle});
+                }}
+
+            ''')
+
+*/
 
 
 
@@ -297,68 +348,3 @@ _UXART_update(enum UXARTHandle handle)
     }
 
 }
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-#include "uxart_interrupts.meta"
-/* #meta
-
-    for target in PER_TARGET():
-
-        for handle, instance in target.drivers.get('UXART', ()):
-
-            Meta.line(f'''
-                INTERRUPT_{instance}
-                {{
-                    _UXART_update(UXARTHandle_{handle});
-                }}
-            ''')
-
-*/
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-/* #include "uxart_aliases.meta"
-/* #meta
-
-    IMPLEMENT_DRIVER_ALIASES('UXART', (
-        {
-            'moniker'     :                  'UXARTx',
-            'identifier'  : lambda instance: instance,
-            'peripheral'  :                  'USART',
-        },
-        {
-            'moniker'     :                  f'NVICInterrupt_UXARTx',
-            'identifier'  : lambda instance: f'NVICInterrupt_{instance}',
-        },
-        {
-            'moniker'     :                  f'UXARTx_KERNEL_SOURCE_init',
-            'identifier'  : lambda instance: f'{instance}_KERNEL_SOURCE_init',
-        },
-        {
-            'moniker'     :                  f'UXARTx_BRR_BRR_init',
-            'identifier'  : lambda instance: f'{instance}_BRR_BRR_init',
-        },
-        {
-            'moniker'     :                  f'UXARTx_RESET',
-            'cmsis_tuple' : lambda instance: f'{instance}_RESET',
-        },
-        {
-            'moniker'     :                  f'UXARTx_ENABLE',
-            'cmsis_tuple' : lambda instance: f'{instance}_ENABLE',
-        },
-        {
-            'moniker'     :                  f'UXARTx_KERNEL_SOURCE',
-            'cmsis_tuple' : lambda instance: f'{instance}_KERNEL_SOURCE',
-        },
-    ))
-
-*/
