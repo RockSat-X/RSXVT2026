@@ -407,6 +407,7 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 
 
 
+        # TODO Stale.
         # If trying to define an interrupt handler and one makes a typo,
         # then the function end up not replacing the weak symbol that's
         # in place of the interrupt handler in the interrupt vector table,
@@ -432,7 +433,7 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
         # >    }
         # >
 
-        for interrupt in ('Default',) + INTERRUPTS[target.mcu]:
+        for interrupt in INTERRUPTS[target.mcu]:
 
             if interrupt is None:
                 continue
@@ -1175,7 +1176,8 @@ INTERRUPT_BusFault
 
 
 
-INTERRUPT_Default
+extern noret void
+INTERRUPT_Default(void)
 {
 
     // @/pg 599/sec B3.2.4/`Armv7-M`.

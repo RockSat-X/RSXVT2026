@@ -5,10 +5,10 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // @/by:`Phuc Doan`.
-// The "__INTERRUPT_Default_indirect" here just simply calls "__INTERRUPT_Default" that's defined in a different object file.
+// The "INTERRUPT_Default_indirect" here just simply calls "INTERRUPT_Default" that's defined in a different object file.
 // This is due to the fact that every interrupt routine is a weak symbol which the user can overwrite by defining the symbol;
-// if the user doesn't do so, then the weak symbol defaults to "__INTERRUPT_Default_indirect".
-// The reason why it's not "__INTERRUPT_Default" itself is because "__INTERRUPT_Default" is a symbol that's also defined in a separate
+// if the user doesn't do so, then the weak symbol defaults to "INTERRUPT_Default_indirect".
+// The reason why it's not "INTERRUPT_Default" itself is because "INTERRUPT_Default" is a symbol that's also defined in a separate
 // object file, and the limitation of weak symbols restrict it so that its default value can only be to something that's within
 // the same object file the weak symbol is defined in.
 // Annoying!
@@ -16,8 +16,8 @@
 
 .section .text
 .thumb_func
-__INTERRUPT_Default_indirect:
-    b __INTERRUPT_Default
+INTERRUPT_Default_indirect:
+    b INTERRUPT_Default
 
 
 
@@ -133,7 +133,7 @@ __INTERRUPT_Reset:
 
                 if interrupt_name is None:
 
-                    Meta.line('.word __INTERRUPT_Default')
+                    Meta.line('.word INTERRUPT_Default')
 
 
 
@@ -160,9 +160,9 @@ __INTERRUPT_Reset:
                 elif interrupt_i <= 15:
 
                     Meta.line(
-                        f'.word __INTERRUPT_{interrupt_name}'                               , # Insert the address of the handler routine.
-                        f'.weak __INTERRUPT_{interrupt_name}'                               , # If there exists an implementation of the handler, use it.
-                        f'.set  __INTERRUPT_{interrupt_name}, __INTERRUPT_Default_indirect' , # Otherwise, use the default handler.
+                        f'.word __INTERRUPT_{interrupt_name}'                             , # Insert the address of the handler routine.
+                        f'.weak __INTERRUPT_{interrupt_name}'                             , # If there exists an implementation of the handler, use it.
+                        f'.set  __INTERRUPT_{interrupt_name}, INTERRUPT_Default_indirect' , # Otherwise, use the default handler.
                     )
 
 
@@ -171,7 +171,7 @@ __INTERRUPT_Reset:
 
                 else:
 
-                    Meta.line('.word __INTERRUPT_Default')
+                    Meta.line('.word INTERRUPT_Default')
 
     */
 
