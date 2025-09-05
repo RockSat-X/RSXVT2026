@@ -2,7 +2,47 @@
 
 
 
-#include "i2c_aliases.meta"
+#include "i2c_driver_support.meta"
+/* #meta
+
+    IMPLEMENT_DRIVER_ALIASES(
+        driver_name = 'I2C',
+        cmsis_name  = 'I2C',
+        common_name = 'I2Cx',
+        identifiers = (
+            'NVICInterrupt_{}_EV',
+            'NVICInterrupt_{}_ER',
+            '{}_KERNEL_SOURCE_init',
+            '{}_TIMINGR_PRESC_init',
+            '{}_TIMINGR_SCL_init',
+        ),
+        cmsis_tuple_tags = (
+            '{}_RESET',
+            '{}_ENABLE',
+            '{}_KERNEL_SOURCE',
+        ),
+    )
+
+    for target in PER_TARGET():
+
+        for handle, instance in target.drivers.get('I2C', ()):
+
+            for suffix in ('EV', 'ER'):
+                Meta.line(f'''
+
+                    static void
+                    _I2C_update_entirely(enum I2CHandle handle);
+
+                    INTERRUPT_{instance}_{suffix}
+                    {{
+                        _I2C_update_entirely(I2CHandle_{handle});
+                    }}
+
+                ''')
+
+*/
+
+
 
 enum I2CDriverState : u32
 {
@@ -35,6 +75,8 @@ struct I2CDriver
     enum I2CDriverError          error;
 };
 
+
+
 static struct I2CDriver _I2C_drivers[I2CHandle_COUNT] = {0};
 
 
@@ -54,7 +96,7 @@ I2C_blocking_transfer
 )
 {
 
-    _EXPAND_HANDLE;
+    _EXPAND_HANDLE
 
     if (!pointer)
         panic;
@@ -139,7 +181,7 @@ static void
 I2C_reinit(enum I2CHandle handle)
 {
 
-    _EXPAND_HANDLE;
+    _EXPAND_HANDLE
 
 
 
@@ -159,7 +201,7 @@ I2C_reinit(enum I2CHandle handle)
 
 
 
-    // Set the kernel clock source for the I2C peripheral.
+    // Set the kernel clock source for the peripheral.
 
     CMSIS_PUT(I2Cx_KERNEL_SOURCE, I2Cx_KERNEL_SOURCE_init);
 
@@ -212,7 +254,7 @@ static useret enum I2CUpdateOnce : u32
 _I2C_update_once(enum I2CHandle handle)
 {
 
-    _EXPAND_HANDLE;
+    _EXPAND_HANDLE
 
 
 
@@ -577,7 +619,8 @@ _I2C_update_once(enum I2CHandle handle)
 static void
 _I2C_update_entirely(enum I2CHandle handle)
 {
-    _EXPAND_HANDLE;
+
+    _EXPAND_HANDLE
 
     for (b32 yield = false; !yield;)
     {
@@ -602,132 +645,8 @@ _I2C_update_entirely(enum I2CHandle handle)
         }
 
     }
+
 }
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-// Define the interrupt handler for each I2C peripheral used.
-
-#include "i2c_interrupts.meta"
-/* #meta
-
-    for target in PER_TARGET():
-
-        if 'i2c_units' not in target.__dict__:
-            continue
-
-        for unit in target.i2c_units:
-            for suffix in ('EV', 'ER'):
-                Meta.line(f'''
-                    INTERRUPT_I2C{unit}_{suffix}
-                    {{
-                        _I2C_update_entirely(I2CHandle_{unit});
-                    }}
-                ''')
-
-*/
-
-
-
-// Stuff to make working with any I2C unit easy.
-
-/* #include "i2c_aliases.meta"
-/* #meta
-
-
-
-    # Things to be aliased for I2C.
-
-    IDENTIFIERS = (
-        'I2C{}',
-        'NVICInterrupt_I2C{}_EV',
-        'NVICInterrupt_I2C{}_ER',
-        'I2C{}_KERNEL_SOURCE_init',
-        'I2C{}_TIMINGR_PRESC_init',
-        'I2C{}_TIMINGR_SCL_init',
-    )
-
-    CMSIS_TUPLE_TAGS = (
-        'I2C{}_RESET',
-        'I2C{}_ENABLE',
-        'I2C{}_KERNEL_SOURCE',
-    )
-
-
-
-    # Some target-specific support definitions.
-
-    for target in PER_TARGET():
-
-        if 'i2c_units' not in target.__dict__ or not target.i2c_units:
-
-            Meta.line(
-                f'#error Target {target.name} cannot use the I2C driver '
-                f'because no I2C unit have been assigned.'
-            )
-
-            continue
-
-
-
-        # Have the user be able to specify a specific I2C unit.
-
-        Meta.enums('I2CHandle', 'u32', target.i2c_units)
-
-
-
-        # A look-up table to allow generic code to be written for any I2C peripheral.
-
-        Meta.lut('I2C_TABLE', (
-            (
-                f'I2CHandle_{unit}',
-                *[
-                    (
-                        identifier.format('x'),
-                        identifier.format(unit)
-                    )
-                    for identifier in IDENTIFIERS
-                ],
-                *[
-                    (
-                        tag.format('x'),
-                        CMSIS_TUPLE(SYSTEM_DATABASE[target.mcu][tag.format(unit)])
-                    ) for tag in CMSIS_TUPLE_TAGS
-                ]
-            )
-            for unit in target.i2c_units
-        ))
-
-
-
-    # Macro to mostly bring stuff in the look-up table into the local scope.
-
-    Meta.line(f'#define I2Cx_ I2C_')
-    Meta.line('#undef _EXPAND_HANDLE')
-
-    with Meta.enter('#define _EXPAND_HANDLE'):
-
-        Meta.line(f'''
-
-            if (!(0 <= handle && handle < I2CHandle_COUNT))
-            {{
-                panic;
-            }}
-
-            struct I2CDriver* const driver = &_I2C_drivers[handle];
-
-        ''')
-
-        for identifier in IDENTIFIERS + CMSIS_TUPLE_TAGS:
-            Meta.line(f'''
-                auto const {identifier.format('x')} = I2C_TABLE[handle].{identifier.format('x')};
-            ''')
-
-*/
 
 
 

@@ -227,15 +227,16 @@ for mcu in MCUS:
             f'there is already a database entry with the tag {repr(dupe)}.'
         )
 
-    if (dupe := find_dupe(
-        (entry.peripheral, entry.register, entry.field)
-        for tag, entry in entries
-        if hasattr(entry, 'peripheral')
-    )) is not ...:
-        raise ValueError(
-            f'For {mcu}, '
-            f'there is already a database entry with the location {repr(dupe)}.'
-        )
+    # TODO Should we allow for redundant locations?
+    # if (dupe := find_dupe(
+    #     (entry.peripheral, entry.register, entry.field)
+    #     for tag, entry in entries
+    #     if hasattr(entry, 'peripheral')
+    # )) is not ...:
+    #     raise ValueError(
+    #         f'For {mcu}, '
+    #         f'there is already a database entry with the location {repr(dupe)}.'
+    #     )
 
     SYSTEM_DATABASE[mcu] = dict(entries)
 

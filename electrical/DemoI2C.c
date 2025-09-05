@@ -1,5 +1,5 @@
-#include "defs.h"
-#include "jig.c"
+#include "system/defs.h"
+#include "uxart.c"
 #include "i2c.c"
 
 extern noret void
@@ -12,7 +12,7 @@ main(void)
     //
 
     SYSTEM_init();
-    JIG_init();
+    UXART_init(UXARTHandle_stlink);
 
 
 
@@ -34,11 +34,8 @@ main(void)
     //
     // Initialize the I2C driver for each peripheral used by the target.
     //
-    // This demo assumes I2C1 by default, but if you add more or have different
-    // units you want to use, update this section and the next one accordingly.
-    //
 
-    I2C_reinit(I2CHandle_1);
+    I2C_reinit(I2CHandle_primary);
 
 
 
@@ -67,7 +64,7 @@ main(void)
             enum I2CDriverError error =
                 I2C_blocking_transfer
                 (
-                    I2CHandle_1,
+                    I2CHandle_primary,
                     slave_address,
                     I2COperation_read,
                     &(u8) {0},
@@ -82,12 +79,12 @@ main(void)
             {
                 case I2CDriverError_none:
                 {
-                    JIG_tx("Slave 0x%02X acknowledged!\n", slave_address);
+                    stlink_tx("Slave 0x%02X acknowledged!\n", slave_address);
                 } break;
 
                 case I2CDriverError_no_acknowledge:
                 {
-                    JIG_tx("Slave 0x%02X didn't acknowledge!\n", slave_address);
+                    stlink_tx("Slave 0x%02X didn't acknowledge!\n", slave_address);
                 } break;
 
                 default: panic;
@@ -97,6 +94,8 @@ main(void)
 
             // Bit of breather...
 
+            GPIO_TOGGLE(led_green);
+
             spinlock_nop(10'000'000); // TODO Let's use a real delay here.
 
         }
@@ -105,7 +104,7 @@ main(void)
 
         // Longer breather before starting all over again.
 
-        JIG_tx("--------------------------------\n");
+        stlink_tx("--------------------------------\n");
 
         spinlock_nop(400'000'000); // TODO Let's use a real delay here.
 

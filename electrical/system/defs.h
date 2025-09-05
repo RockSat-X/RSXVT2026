@@ -1,3 +1,66 @@
+//////////////////////////////////////////////////////////////// Primitives ////////////////////////////////////////////////////////////////
+
+
+
+#define false                   0
+#define true                    1
+#define STRINGIFY_(X)           #X
+#define STRINGIFY(X)            STRINGIFY_(X)
+#define CONCAT_(X, Y)           X##Y
+#define CONCAT(X, Y)            CONCAT_(X, Y)
+#define IS_POWER_OF_TWO(X)      ((X) > 0 && ((X) & ((X) - 1)) == 0)
+#define sizeof(...)             ((signed) sizeof(__VA_ARGS__))
+#define countof(...)            (sizeof(__VA_ARGS__) / sizeof((__VA_ARGS__)[0]))
+#define bitsof(...)             (sizeof(__VA_ARGS__) * 8)
+#define implies(P, Q)           (!(P) || (Q))
+#define iff(P, Q)               (!!(P) == !!(Q))
+#define useret                  __attribute__((warn_unused_result))
+#define mustinline              __attribute__((always_inline)) inline
+#define noret                   __attribute__((noreturn))
+#define fallthrough             __attribute__((fallthrough))
+#define pack_push               _Pragma("pack(push, 1)")
+#define pack_pop                _Pragma("pack(pop)")
+#define memeq(X, Y)             (static_assert_expr(sizeof(X) == sizeof(Y)), !memcmp(&(X), &(Y), sizeof(Y)))
+#define memzero(X)              memset((X), 0, sizeof(*(X)))
+#define static_assert(...)      _Static_assert(__VA_ARGS__, #__VA_ARGS__)
+#define static_assert_expr(...) ((void) sizeof(struct { static_assert(__VA_ARGS__, #__VA_ARGS__); }))
+#ifndef offsetof
+#define offsetof __builtin_offsetof
+#endif
+
+#include "primitives.meta"
+/* #meta
+
+    # We could just use the definitions from <stdint.h>,
+    # but they won't necessarily match up well
+    # with `printf` well at all. For example, we'd like
+    # for the "%d" specifier to work with `i32`
+
+    for name, underlying, size in (
+        ('u8'  , 'unsigned char'     , 1),
+        ('u16' , 'unsigned short'    , 2),
+        ('u32' , 'unsigned'          , 4),
+        ('u64' , 'unsigned long long', 8),
+        ('i8'  , 'signed char'       , 1),
+        ('i16' , 'signed short'      , 2),
+        ('i32' , 'signed'            , 4),
+        ('i64' , 'signed long long'  , 8),
+        ('b8'  , 'signed char'       , 1),
+        ('b16' , 'signed short'      , 2),
+        ('b32' , 'signed'            , 4),
+        ('b64' , 'signed long long'  , 8),
+        ('f32' , 'float'             , 4),
+        ('f64' , 'double'            , 8),
+    ):
+        Meta.line(f'''
+            typedef {underlying} {name};
+            static_assert(sizeof({name}) == {size});
+        ''')
+
+*/
+
+
+
 //////////////////////////////////////////////////////////////// CMSIS ////////////////////////////////////////////////////////////////
 
 
@@ -37,22 +100,25 @@
 #define CMSIS_GET(PERIPHERAL, REGISTER, FIELD)                CMSIS_READ (CONCAT(PERIPHERAL##_, REGISTER), PERIPHERAL->REGISTER, FIELD      )
 #define CMSIS_GET_FROM(VARIABLE, PERIPHERAL, REGISTER, FIELD) CMSIS_READ (CONCAT(PERIPHERAL##_, REGISTER), VARIABLE            , FIELD      )
 
-struct CMSISPutTuple
+struct CMSISTuple
 {
-    volatile long unsigned int* dst;
-    i32                         pos;
-    u32                         msk;
+    volatile long unsigned int* destination;
+    i32                         position;
+    u32                         mask;
 };
 
 static mustinline void
-CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
+CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 {
 
-    u32 temporary = *tuple.dst;
+    // Read.
+    u32 temporary = *tuple.destination;
 
-    temporary = (temporary & ~tuple.msk) | ((value << tuple.pos) & tuple.msk);
+    // Modify.
+    temporary = (temporary & ~tuple.mask) | ((value << tuple.position) & tuple.mask);
 
-    *tuple.dst = temporary;
+    // Write.
+    *tuple.destination = temporary;
 
 }
 
@@ -152,69 +218,103 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
         for suffix in units:
             Meta.define(f'{peripheral}{suffix}_', f'{peripheral}_')
 
+*/
 
 
-    # Handle aliasing of peripheral names.
 
-    for target in PER_TARGET():
+// TODO Document.
 
-        for alias in target.aliases:
+/* #meta IMPLEMENT_DRIVER_ALIASES : SYSTEM_DATABASE
+
+    def IMPLEMENT_DRIVER_ALIASES(
+        *,
+        driver_name,
+        cmsis_name,
+        common_name,
+        identifiers,
+        cmsis_tuple_tags,
+    ):
+
+        for target in PER_TARGET():
+
+
+
+            if driver_name not in target.drivers:
+
+                Meta.line(
+                    f'#error Target "{target.name}" cannot use the {driver_name} driver '
+                    f'without first specifying the peripheral instances to have handles for.'
+                )
+
+                continue
+
+
+
+            # Have the user be able to specify a specific driver unit.
+
+            Meta.enums(
+                f'{driver_name}Handle',
+                'u32',
+                (handle for handle, instance in target.drivers[driver_name])
+            )
 
 
 
             # @/`CMSIS Suffix Dropping`.
-
-            terms = [
-                '{}',
-                '{}_',
-            ]
-
-
-
-            # The necessary macros to make working with interrupts smooth.
-
-            for interrupt in alias.interrupts:
-                terms += [f'INTERRUPT_{interrupt}']
-                terms += [f'NVICInterrupt_{interrupt}']
-
-
-
-            # Make the macros with the substituted names.
             # e.g:
             # >
-            # >                     {}_BRR_BRR_init   ->       {}_BRR_BRR_init
-            # >    MyAliasedPeripheral_BRR_BRR_init   ->   USART2_BRR_BRR_init
-            # >    ^^^^^^^^^^^^^^^^^^^                     ^^^^^^
+            # >    I2Cx <-> I2C3
             # >
 
-            terms += alias.terms
+            Meta.line(f'#define {common_name}_ {cmsis_name}_')
 
-            for term in terms:
-                Meta.define(
-                    term.format(alias.moniker),
-                    term.format(alias.actual )
+
+
+            # Create a look-up table to map the moniker
+            # name to the actual underyling value.
+
+            Meta.lut( f'{driver_name}_TABLE', (
+                (
+                    f'{driver_name}Handle_{handle}',
+                    (common_name, instance),
+                    *(
+                        (identifier.format(common_name), identifier.format(instance))
+                        for identifier in identifiers
+                    ),
+                    *(
+                        (
+                            cmsis_tuple_tag.format(common_name),
+                            CMSIS_TUPLE(SYSTEM_DATABASE[target.mcu][cmsis_tuple_tag.format(instance)])
+                        )
+                        for cmsis_tuple_tag in cmsis_tuple_tags
+                    )
                 )
+                for handle, instance in target.drivers[driver_name]
+            ))
 
 
 
-            # Make constants to reference the desired register fields.
-            # e.g:
-            # >
-            # >                                         ('{}_EN', 'uxart_2_enable')
-            # >                                            ^      ^^^^^^^^^^^^^^^^
-            # >                                            |                   |
-            # >                                          vvvvvvvvvvvvvvv       |
-            # >    static constexpr struct CMSISPutTuple UxART_STLINK_EN =     |
-            # >        {                                                       |
-            # >            .dst = &RCC->APB1LENR,               <              |
-            # >            .pos = RCC_APB1LENR_USART2EN_Pos,    <--------------|
-            # >            .msk = RCC_APB1LENR_USART2EN_Msk     <
-            # >        };
-            # >
+        # Macro to mostly bring stuff in the
+        # look-up table into the local scope.
 
-            for name, tag in alias.puts:
+        Meta.line('#undef _EXPAND_HANDLE')
+
+        with Meta.enter('#define _EXPAND_HANDLE'):
+
+            Meta.line(f'''
+
+                if (!(0 <= handle && handle < {driver_name}Handle_COUNT))
+                {{
+                    panic;
+                }}
+
+                struct {driver_name}Driver* const driver = &_{driver_name}_drivers[handle];
+
+            ''')
+
+            for alias in (common_name, *identifiers, *cmsis_tuple_tags):
                 Meta.line(f'''
-                    static const struct CMSISPutTuple {name.format(alias.moniker)} = {CMSIS_TUPLE(SYSTEM_DATABASE[target.mcu][tag])};
+                    auto const {alias.format(common_name)} = {driver_name}_TABLE[handle].{alias.format(common_name)};
                 ''')
 
 */

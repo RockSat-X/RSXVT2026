@@ -436,41 +436,35 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
-    for uxart_units in database['UXARTS']:
+    for instances in database.get('UXARTS', ()):
 
-
-
-        # See if the set of UxART peripherals is used.
-
-        if cfgs(f'UXART_{uxart_units}_CLOCK_SOURCE') is None:
+        if cfgs(f'UXART_{instances}_KERNEL_SOURCE') is None:
             continue
 
-        put_title(' / '.join(
-            f'{peripheral}{number}'
-            for peripheral, number in uxart_units
-        ))
+        put_title(' / '.join(f'{peripheral}{number}' for peripheral, number in instances))
 
+        # TODO I honestly don't know how to feel about doing it this way.
+        for peripheral, unit in instances:
+            Meta.define(f'{peripheral}{unit}_KERNEL_SOURCE_init', cfgs(f'UXART_{instances}_KERNEL_SOURCE'))
 
+        # TODO Deprecate...?
+        Meta.define(
+            f'UXART_{'_'.join(str(number) for peripheral, number in instances)}_KERNEL_SOURCE_init',
+            cfgs(f'UXART_{instances}_KERNEL_SOURCE')
+        )
 
-        # Configure the UxART peripherals' clock source.
-
-        CMSIS_SET(cfgs(f'UXART_{uxart_units}_CLOCK_SOURCE', ...))
-
-
-
-        # Output the macros to initialize the baud-dividers.
-
-        for peripheral, number in uxart_units:
+        for peripheral, number in instances:
 
             baud_divider = cfgs(f'{peripheral}{number}_BAUD_DIVIDER')
 
             if baud_divider is None:
                 continue
 
-            Meta.define(
-                f'{peripheral}{number}_BRR_BRR_init',
-                baud_divider
-            )
+            # TODO More consistent naming?
+            Meta.define(f'{peripheral}{number}_BRR_BRR_init', baud_divider)
+
+        # TODO Deprecate.
+        CMSIS_SET(cfgs(f'UXART_{instances}_KERNEL_SOURCE', ...))
 
 
 

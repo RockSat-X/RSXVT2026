@@ -1,13 +1,13 @@
 // Welcome to the sandbox! Please read the comments at the end of the file.
 
-#include "defs.h"
-#include "jig.c"
+#include "system/defs.h"
+#include "uxart.c"
 
 extern noret void
 main(void)
 {
     SYSTEM_init();
-    JIG_init();
+    UXART_init(UXARTHandle_stlink);
 
 
     #if TARGET_USES_FREERTOS
@@ -36,17 +36,17 @@ main(void)
 
             // Say stuff.
 
-            JIG_tx("Hello! The name of the current target is: " STRINGIFY(TARGET_NAME) ".\n");
-            JIG_tx("FreeRTOS is currently disabled.\n");
-            JIG_tx("We're on iteration %d.\n", iteration);
+            stlink_tx("Hello! The name of the current target is: " STRINGIFY(TARGET_NAME) ".\n");
+            stlink_tx("FreeRTOS is currently disabled.\n");
+            stlink_tx("We're on iteration %d.\n", iteration);
 
 
 
             // Check if we got any data from the ST-Link and echo it back if so.
 
-            for (char received_data = {0}; JIG_rx(&received_data);)
+            for (char received_data = {0}; stlink_rx(&received_data);)
             {
-                JIG_tx("Got '%c'!\n", received_data);
+                stlink_tx("Got '%c'!\n", received_data);
             }
 
         }
@@ -215,9 +215,9 @@ FREERTOS_TASK(yapper, 1024, 0)
     {
         i32 iteration = 0;
 
-        JIG_tx("Hello! The name of the current target is: " STRINGIFY(TARGET_NAME) ".\n");
-        JIG_tx("FreeRTOS is currently enabled.\n");
-        JIG_tx("We're on iteration %d.\n", iteration);
+        stlink_tx("Hello! The name of the current target is: " STRINGIFY(TARGET_NAME) ".\n");
+        stlink_tx("FreeRTOS is currently enabled.\n");
+        stlink_tx("We're on iteration %d.\n", iteration);
 
         vTaskDelay(100);
 
@@ -238,9 +238,9 @@ FREERTOS_TASK(captain_allears, 1024, 0)
 
         char input = {0};
 
-        if (JIG_rx(&input)) // Check if we got data from the ST-Link.
+        if (stlink_rx(&input)) // Check if we got data from the ST-Link.
         {
-            JIG_tx("Heard %c!\n", input);
+            stlink_tx("Heard %c!\n", input);
         }
 
     }

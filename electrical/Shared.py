@@ -84,16 +84,6 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         main_stack_size = 8192,
 
-        aliases = (
-            types.SimpleNamespace(
-                moniker    = 'UxART_STLINK',
-                actual     = 'USART3',
-                terms      = ['{}_BRR_BRR_init'],
-                interrupts = ['{}'],
-                puts       = [('{}_EN', 'UXART_3_ENABLE')]
-            ),
-        ),
-
         clock_tree = {
             'HSI_ENABLE'    : True,
             'HSI48_ENABLE'  : True,
@@ -114,8 +104,8 @@ TARGETS = ( # @/`Defining a TARGET`.
             ('led_red'   , 'B7' , 'OUTPUT'    , { 'initlvl' : False       }),
             ('led_yellow', 'D13', 'OUTPUT'    , { 'initlvl' : False       }),
             ('led_green' , 'D10', 'OUTPUT'    , { 'initlvl' : False       }),
-            ('jig_tx'    , 'D8' , 'ALTERNATE' , { 'altfunc' : 'USART3_TX' }),
-            ('jig_rx'    , 'D9' , 'ALTERNATE' , { 'altfunc' : 'USART3_RX' }),
+            ('stlink_tx' , 'D8' , 'ALTERNATE' , { 'altfunc' : 'USART3_TX' }),
+            ('stlink_rx' , 'D9' , 'ALTERNATE' , { 'altfunc' : 'USART3_RX' }),
             ('swdio'     , 'A13', 'RESERVED'  , {                         }),
             ('swclk'     , 'A14', 'RESERVED'  , {                         }),
             ('button'    , 'C13', 'INPUT'     , { 'pull'    : 'UP'        }),
@@ -124,6 +114,12 @@ TARGETS = ( # @/`Defining a TARGET`.
         interrupt_priorities = (
             ('USART3', 0),
         ),
+
+        drivers = {
+            'UXART' : (
+                ('stlink', 'USART3'),
+            )
+        }
 
     ),
 
@@ -140,16 +136,6 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         main_stack_size = 8192,
 
-        aliases = (
-            types.SimpleNamespace(
-                moniker    = 'UxART_STLINK',
-                actual     = 'USART2',
-                terms      = ['{}_BRR_BRR_init'],
-                interrupts = ['{}'],
-                puts       = [('{}_EN', 'UXART_2_ENABLE')]
-            ),
-        ),
-
         clock_tree = {
             'HSI_ENABLE'   : True,
             'HSI48_ENABLE' : True,
@@ -164,8 +150,8 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False       }),
-            ('jig_tx'    , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX' }),
-            ('jig_rx'    , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX' }),
+            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX' }),
+            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX' }),
             ('swdio'     , 'A13', 'RESERVED'  , {                         }),
             ('swclk'     , 'A14', 'RESERVED'  , {                         }),
             ('button'    , 'C13', 'INPUT'     , { 'pull'    : 'UP'        }),
@@ -174,6 +160,12 @@ TARGETS = ( # @/`Defining a TARGET`.
         interrupt_priorities = (
             ('USART2', 0),
         ),
+
+        drivers = {
+            'UXART' : (
+                ('stlink', 'USART2'),
+            )
+        }
 
     ),
 
@@ -190,16 +182,6 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         main_stack_size = 8192,
 
-        aliases = (
-            types.SimpleNamespace(
-                moniker    = 'UxART_STLINK',
-                actual     = 'USART2',
-                terms      = ['{}_BRR_BRR_init'],
-                interrupts = ['{}'],
-                puts       = [('{}_EN', 'UXART_2_ENABLE')]
-            ),
-        ),
-
         clock_tree = {
             'HSI_ENABLE'   : True,
             'HSI48_ENABLE' : True,
@@ -215,8 +197,8 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                                          }),
-            ('jig_tx'    , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'                                    }),
-            ('jig_rx'    , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'                                    }),
+            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'                                    }),
+            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'                                    }),
             ('swdio'     , 'A13', 'RESERVED'  , {                                                            }),
             ('swclk'     , 'A14', 'RESERVED'  , {                                                            }),
             ('button'    , 'C13', 'INPUT'     , { 'pull'    : 'UP'                                           }),
@@ -230,9 +212,14 @@ TARGETS = ( # @/`Defining a TARGET`.
             ('I2C1_ER', 1),
         ),
 
-        i2c_units = (
-            1,
-        ),
+        drivers = {
+            'UXART' : (
+                ('stlink', 'USART2'),
+            ),
+            'I2C' : (
+                ('primary', 'I2C1'),
+            ),
+        }
 
     ),
 
@@ -433,21 +420,6 @@ def PER_MCU():
 #                              critically.
 #                              TODO Look more into how FreeRTOS organizes its memory.
 #
-#     - aliases              = The purpose of this field is to make it easy to refer to
-#                              a peripheral "generically" by using a custom name like
-#                              "UxART_STLINK" instead of "USART3". While this makes it
-#                              more clear what a particular peripheral is meant to be,
-#                              used for its true purpose is to make code that uses this
-#                              peripheral more applicable to different targets. In the
-#                              example of "UxART_STLINK", some targets might have it be
-#                              "USART3" while others be "UART2". Rather than reimplement
-#                              code to use slightly different peripheral names and numberings,
-#                              all code can just refer to "UxART_STLINK", and a bunch of
-#                              macros and global constants will do the mapping magically.
-#                              This is a very experimental feature right now, however, so
-#                              you can just completely ignore this. I'm planning to make
-#                              it much simpler to use and less contrived.
-#
 #     - clock_tree           = Options relating to configuring the MCU's clock-tree.
 #                              The available options right now is pretty undocumented since
 #                              it heavily depends upon the implementation of `SYSTEM_PARAMETERIZE`;
@@ -474,7 +446,9 @@ def PER_MCU():
 #                              the priority value of interrupts work on a niceless level, so
 #                              the lower the number is, the higher priority it actually is.
 #
-#     - i2c_units            = If provided, defines the I2C units that the target is using.
+#     - drivers              = Essentially a table describing the drivers that the target
+#                              needs and will be using. To see what this setting actually does,
+#                              I suggest diving into some of the drivers' source code.
 #
 # It's also useful to have a "sandbox" target where it's pretty much
 # just a demo program for a Nucleo board; some LEDS blinking, maybe
