@@ -233,7 +233,7 @@ TARGETS = ( # @/`Defining a TARGET`.
         # TODO Document.
         drivers = {
             'I2C' : (
-                ('1', 1),
+                ('primary', 1),
             )
         }
 

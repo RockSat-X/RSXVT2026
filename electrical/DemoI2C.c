@@ -34,11 +34,8 @@ main(void)
     //
     // Initialize the I2C driver for each peripheral used by the target.
     //
-    // This demo assumes I2C1 by default, but if you add more or have different
-    // units you want to use, update this section and the next one accordingly.
-    //
 
-    I2C_reinit(I2CHandle_1);
+    I2C_reinit(I2CHandle_primary);
 
 
 
@@ -67,7 +64,7 @@ main(void)
             enum I2CDriverError error =
                 I2C_blocking_transfer
                 (
-                    I2CHandle_1,
+                    I2CHandle_primary,
                     slave_address,
                     I2COperation_read,
                     &(u8) {0},
