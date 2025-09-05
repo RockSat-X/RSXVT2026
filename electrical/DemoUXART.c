@@ -7,7 +7,7 @@ main(void)
 
     SYSTEM_init();
 
-    UXART_reinit(UXARTHandle_stlink);
+    UXART_init(UXARTHandle_stlink);
 
     for (i32 iteration = 0;; iteration += 1)
     {

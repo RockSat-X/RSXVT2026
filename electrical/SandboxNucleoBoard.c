@@ -7,7 +7,7 @@ extern noret void
 main(void)
 {
     SYSTEM_init();
-    UXART_reinit(UXARTHandle_stlink);
+    UXART_init(UXARTHandle_stlink);
 
 
     #if TARGET_USES_FREERTOS

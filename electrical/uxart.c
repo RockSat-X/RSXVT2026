@@ -2,7 +2,6 @@
 
 
 
-
 // Useful shorthand marcos.
 #define stlink_tx(...) UXART_tx(UXARTHandle_stlink, __VA_ARGS__)
 #define stlink_rx(...) UXART_rx(UXARTHandle_stlink, __VA_ARGS__)
@@ -47,11 +46,14 @@ static struct UXARTDriver _UXART_drivers[UXARTHandle_COUNT] = {0};
 static void
 _UXART_tx_raw_nonreentrant(enum UXARTHandle handle, u8* data, i32 length)
 {
+
     _EXPAND_HANDLE
 
     for (i32 i = 0; i < length; i += 1)
     {
-        while (!CMSIS_GET(UXARTx, ISR, TXE)); // Wait if the TX-FIFO is full.
+
+        // Wait if the TX-FIFO is full.
+        while (!CMSIS_GET(UXARTx, ISR, TXE));
 
         // This procedure is non-reentrant because a task
         // switch could occur right here; if that task
@@ -60,7 +62,9 @@ _UXART_tx_raw_nonreentrant(enum UXARTHandle handle, u8* data, i32 length)
         // but TXE might be not set, so data will dropped.
 
         CMSIS_SET(UXARTx, TDR, TDR, data[i]);
+
     }
+
 }
 
 
@@ -68,11 +72,12 @@ _UXART_tx_raw_nonreentrant(enum UXARTHandle handle, u8* data, i32 length)
 static void
 _UXART_fctprintf_callback(char character, void* void_handle)
 {
-    enum UXARTHandle handle = (enum UXARTHandle) void_handle;
-
-    _EXPAND_HANDLE
-
-    _UXART_tx_raw_nonreentrant(handle, &(u8) { character }, 1);
+    _UXART_tx_raw_nonreentrant
+    (
+        (enum UXARTHandle) void_handle,
+        &(u8) { character },
+        1
+    );
 }
 
 
@@ -80,18 +85,26 @@ _UXART_fctprintf_callback(char character, void* void_handle)
 static void __attribute__((format(printf, 2, 3)))
 UXART_tx(enum UXARTHandle handle, char* format, ...)
 {
+
     _EXPAND_HANDLE
 
     va_list arguments = {0};
-    va_start(arguments, fmt);
+    va_start(arguments);
 
     MUTEX_TAKE(driver->transmission_mutex);
     {
-        vfctprintf(&_UXART_fctprintf_callback, (void*) handle, format, arguments);
+        vfctprintf
+        (
+            &_UXART_fctprintf_callback,
+            (void*) handle,
+            format,
+            arguments
+        );
     }
     MUTEX_GIVE(driver->transmission_mutex);
 
     va_end(arguments);
+
 }
 
 
@@ -117,7 +130,9 @@ UXART_rx(enum UXARTHandle handle, char* destination)
         {
             static_assert(IS_POWER_OF_TWO(countof(driver->reception_buffer)));
 
-            u32 reader_index = driver->reception_reader & (countof(driver->reception_buffer) - 1);
+            u32 reader_index =
+                driver->reception_reader
+                    & (countof(driver->reception_buffer) - 1);
 
             *destination = driver->reception_buffer[reader_index];
 
@@ -137,7 +152,7 @@ UXART_rx(enum UXARTHandle handle, char* destination)
 
 
 static void
-UXART_reinit(enum UXARTHandle handle)
+UXART_init(enum UXARTHandle handle)
 {
 
     _EXPAND_HANDLE
@@ -184,7 +199,16 @@ UXART_reinit(enum UXARTHandle handle)
         UE    , true, // Enable the peripheral.
     );
 
+
+
+    // Initialize the driver.
+
     #if TARGET_USES_FREERTOS
+        // TODO A quick Google search didn't determine whether or
+        //      not it's okay to recreate a static semaphore in FreeRTOS
+        //      without manually deleting it first. Until this is figured
+        //      out, we will assume that the UXART driver cannot be
+        //      reinitialized.
         driver->transmission_mutex = xSemaphoreCreateMutexStatic(&driver->transmission_mutex_data);
         driver->reception_mutex    = xSemaphoreCreateMutexStatic(&driver->reception_mutex_data   );
     #endif
@@ -210,7 +234,7 @@ _UXART_update(enum UXARTHandle handle)
         (
             USART_ISR_FE  | // Frame error.
             USART_ISR_NE  | // Noise error.
-            USART_ISR_PE  | // Parity error (for completion, even though a parity bit is not used).
+            USART_ISR_PE  | // Parity error (put here for completeness).
             USART_ISR_ORE   // Overrun error.
         );
 
@@ -219,13 +243,13 @@ _UXART_update(enum UXARTHandle handle)
         #if 0
             sorry // Reception error!
         #else
-            CMSIS_SET // We ignore the reception error.
+            CMSIS_SET
             (
-                UXARTx, ICR ,
-                FECF  , true, // Clear frame error.
-                NECF  , true, // Clear noise error.
-                PECF  , true, // Clear parity error (for completeness, even though a parity bit is not used).
-                ORECF , true, // Clear overrun error.
+                UXARTx, ICR , // We ignore the reception error.
+                FECF  , true, // Frame error.
+                NECF  , true, // Noise error.
+                PECF  , true, // Parity error (put here for completeness).
+                ORECF , true, // Overrun error.
             );
         #endif
     }
@@ -236,9 +260,17 @@ _UXART_update(enum UXARTHandle handle)
 
     if (CMSIS_GET(UXARTx, ISR, RXNE)) // We got a byte of data?
     {
-        u8  data                  = UXARTx->RDR; // Pop from the RX-buffer.
-        u32 reader_index          = driver->reception_reader + countof(driver->reception_buffer);
-        b32 reception_buffer_full = driver->reception_writer == reader_index;
+
+        // Pop from the hardware RX-buffer even if we don't have
+        // a place to save the data in our software buffer right now.
+        u8 data = UXARTx->RDR;
+
+        u32 reader_index =
+            driver->reception_reader
+                + countof(driver->reception_buffer);
+
+        b32 reception_buffer_full =
+            (driver->reception_writer == reader_index);
 
         if (reception_buffer_full)
         {
@@ -254,11 +286,14 @@ _UXART_update(enum UXARTHandle handle)
         {
             static_assert(IS_POWER_OF_TWO(countof(driver->reception_buffer)));
 
-            u32 writer_index = driver->reception_writer & (countof(driver->reception_buffer) - 1);
+            u32 writer_index =
+                driver->reception_writer
+                    & (countof(driver->reception_buffer) - 1);
 
             driver->reception_buffer[writer_index]  = data;
             driver->reception_writer               += 1;
         }
+
     }
 
 }
