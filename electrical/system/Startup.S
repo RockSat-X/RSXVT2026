@@ -27,8 +27,8 @@ INTERRUPT_Default_indirect:
 
 .section .text
 .thumb_func
-.global __INTERRUPT_Reset
-__INTERRUPT_Reset:
+.global INTERRUPT_Reset
+INTERRUPT_Reset:
 
 
 
@@ -92,7 +92,7 @@ __INTERRUPT_Reset:
 .section .vector_table, "a"
 
     .word LINK_stack_addr
-    .word __INTERRUPT_Reset
+    .word INTERRUPT_Reset
 
     #include "interrupt_vector_table.meta"
     /* #meta
@@ -149,7 +149,7 @@ __INTERRUPT_Reset:
 
                 elif interrupt_name in (name for name, niceness in target.interrupt_priorities):
 
-                    Meta.line(f'.word __INTERRUPT_{interrupt_name}')
+                    Meta.line(f'.word INTERRUPT_{interrupt_name}')
 
 
 
@@ -160,9 +160,9 @@ __INTERRUPT_Reset:
                 elif interrupt_i <= 15:
 
                     Meta.line(
-                        f'.word __INTERRUPT_{interrupt_name}'                             , # Insert the address of the handler routine.
-                        f'.weak __INTERRUPT_{interrupt_name}'                             , # If there exists an implementation of the handler, use it.
-                        f'.set  __INTERRUPT_{interrupt_name}, INTERRUPT_Default_indirect' , # Otherwise, use the default handler.
+                        f'.word INTERRUPT_{interrupt_name}'                             , # Insert the address of the handler routine.
+                        f'.weak INTERRUPT_{interrupt_name}'                             , # If there exists an implementation of the handler, use it.
+                        f'.set  INTERRUPT_{interrupt_name}, INTERRUPT_Default_indirect' , # Otherwise, use the default handler.
                     )
 
 

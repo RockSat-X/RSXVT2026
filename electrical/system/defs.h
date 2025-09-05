@@ -427,8 +427,8 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
         # >    }
         # >
         # >    extern void
-        # >    __INTERRUPT_TIM14(void)   <- This will always compile,
-        # >    {                            even if "TIM14" doesn't exist; bad!
+        # >    INTERRUPT_TIM14(void)   <- This will always compile,
+        # >    {                          even if "TIM14" doesn't exist; bad!
         # >        ...
         # >    }
         # >
@@ -444,7 +444,7 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
             if interrupt_i >= 16 and interrupt_name not in (name for name, niceness in target.interrupt_priorities):
                 continue
 
-            Meta.define(f'INTERRUPT_{interrupt_name}', f'extern void __INTERRUPT_{interrupt_name}(void)')
+            Meta.define(f'INTERRUPT_{interrupt_name}', f'extern void INTERRUPT_{interrupt_name}(void)')
 
 
 
