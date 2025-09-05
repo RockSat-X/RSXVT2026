@@ -230,9 +230,12 @@ TARGETS = ( # @/`Defining a TARGET`.
             ('I2C1_ER', 1),
         ),
 
-        i2c_units = (
-            1,
-        ),
+        # TODO Document.
+        drivers = {
+            'I2C' : (
+                ('1', 1),
+            )
+        }
 
     ),
 

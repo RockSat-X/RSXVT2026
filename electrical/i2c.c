@@ -619,15 +619,15 @@ _I2C_update_entirely(enum I2CHandle handle)
 
     for target in PER_TARGET():
 
-        if 'i2c_units' not in target.__dict__:
+        if not hasattr(target, 'drivers'):
             continue
 
-        for unit in target.i2c_units:
+        for handle, instance in target.drivers.get('I2C', ()):
             for suffix in ('EV', 'ER'):
                 Meta.line(f'''
-                    INTERRUPT_I2C{unit}_{suffix}
+                    INTERRUPT_I2C{instance}_{suffix}
                     {{
-                        _I2C_update_entirely(I2CHandle_{unit});
+                        _I2C_update_entirely(I2CHandle_{handle});
                     }}
                 ''')
 
@@ -640,94 +640,45 @@ _I2C_update_entirely(enum I2CHandle handle)
 /* #include "i2c_aliases.meta"
 /* #meta
 
-
-
-    # Things to be aliased for I2C.
-
-    IDENTIFIERS = (
-        'I2C{}',
-        'NVICInterrupt_I2C{}_EV',
-        'NVICInterrupt_I2C{}_ER',
-        'I2C{}_KERNEL_SOURCE_init',
-        'I2C{}_TIMINGR_PRESC_init',
-        'I2C{}_TIMINGR_SCL_init',
-    )
-
-    CMSIS_TUPLE_TAGS = (
-        'I2C{}_RESET',
-        'I2C{}_ENABLE',
-        'I2C{}_KERNEL_SOURCE',
-    )
-
-
-
-    # Some target-specific support definitions.
-
-    for target in PER_TARGET():
-
-        if 'i2c_units' not in target.__dict__ or not target.i2c_units:
-
-            Meta.line(
-                f'#error Target {target.name} cannot use the I2C driver '
-                f'because no I2C unit have been assigned.'
-            )
-
-            continue
-
-
-
-        # Have the user be able to specify a specific I2C unit.
-
-        Meta.enums('I2CHandle', 'u32', target.i2c_units)
-
-
-
-        # A look-up table to allow generic code to be written for any I2C peripheral.
-
-        Meta.lut('I2C_TABLE', (
-            (
-                f'I2CHandle_{unit}',
-                *[
-                    (
-                        identifier.format('x'),
-                        identifier.format(unit)
-                    )
-                    for identifier in IDENTIFIERS
-                ],
-                *[
-                    (
-                        tag.format('x'),
-                        CMSIS_TUPLE(SYSTEM_DATABASE[target.mcu][tag.format(unit)])
-                    ) for tag in CMSIS_TUPLE_TAGS
-                ]
-            )
-            for unit in target.i2c_units
-        ))
-
-
-
-    # Macro to mostly bring stuff in the look-up table into the local scope.
-
-    Meta.line(f'#define I2Cx_ I2C_')
-    Meta.line('#undef _EXPAND_HANDLE')
-
-    with Meta.enter('#define _EXPAND_HANDLE'):
-
-        Meta.line(f'''
-
-            if (!(0 <= handle && handle < I2CHandle_COUNT))
-            {{
-                panic;
-            }}
-
-            struct I2CDriver* const driver = &_I2C_drivers[handle];
-
-        ''')
-
-        for identifier in IDENTIFIERS + CMSIS_TUPLE_TAGS:
-            Meta.line(f'''
-                auto const {identifier.format('x')} = I2C_TABLE[handle].{identifier.format('x')};
-            ''')
+    IMPLEMENT_DRIVERS('I2C', (
+        {
+            'moniker'     :              f'I2Cx',
+            'identifier'  : lambda unit: f'I2C{unit}',
+            'peripheral'  :              f'I2C',
+        },
+        {
+            'moniker'     :              f'NVICInterrupt_I2Cx_EV',
+            'identifier'  : lambda unit: f'NVICInterrupt_I2C{unit}_EV',
+        },
+        {
+            'moniker'     :              f'NVICInterrupt_I2Cx_ER',
+            'identifier'  : lambda unit: f'NVICInterrupt_I2C{unit}_ER',
+        },
+        {
+            'moniker'     :              f'I2Cx_KERNEL_SOURCE_init',
+            'identifier'  : lambda unit: f'I2C{unit}_KERNEL_SOURCE_init',
+        },
+        {
+            'moniker'     :              f'I2Cx_TIMINGR_PRESC_init',
+            'identifier'  : lambda unit: f'I2C{unit}_TIMINGR_PRESC_init',
+        },
+        {
+            'moniker'     :              f'I2Cx_TIMINGR_SCL_init',
+            'identifier'  : lambda unit: f'I2C{unit}_TIMINGR_SCL_init',
+        },
+        {
+            'moniker'     :              f'I2Cx_RESET',
+            'cmsis_tuple' : lambda unit: f'I2C{unit}_RESET',
+        },
+        {
+            'moniker'     :              f'I2Cx_ENABLE',
+            'cmsis_tuple' : lambda unit: f'I2C{unit}_ENABLE',
+        },
+        {
+            'moniker'     :              f'I2Cx_KERNEL_SOURCE',
+            'cmsis_tuple' : lambda unit: f'I2C{unit}_KERNEL_SOURCE',
+        },
+    ))
 
 */
 
