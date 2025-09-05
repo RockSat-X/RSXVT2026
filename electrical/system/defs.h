@@ -284,9 +284,6 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 
 
 
-            if not hasattr(target, 'drivers') or not target.drivers:
-                continue
-
             if driver_name not in target.drivers:
                 continue
 
@@ -353,7 +350,7 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
                             **rest
                         } if not rest:
 
-                            identifier = identifier(instance)
+                            identifier = identifier.format(instance)
 
                             map += [(moniker, identifier)]
 
@@ -372,7 +369,7 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
                             **rest
                         } if not rest:
 
-                            identifier = identifier(instance)
+                            identifier = identifier.format(instance)
 
                             map += [(moniker, identifier)]
 
@@ -391,7 +388,7 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
                             **rest
                         } if not rest:
 
-                            cmsis_tuple = cmsis_tuple(instance)
+                            cmsis_tuple = cmsis_tuple.format(instance)
                             cmsis_tuple = CMSIS_TUPLE(SYSTEM_DATABASE[target.mcu][cmsis_tuple])
 
                             map += [(moniker, cmsis_tuple)]

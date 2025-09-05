@@ -20,33 +20,33 @@
 
     IMPLEMENT_DRIVER_ALIASES('UXART', (
         {
-            'moniker'     :                  'UXARTx',
-            'identifier'  : lambda instance: instance,
-            'peripheral'  :                  'USART',
+            'moniker'     : 'UXARTx',
+            'identifier'  : '{}',
+            'peripheral'  : 'USART',
         },
         {
-            'moniker'     :                  f'NVICInterrupt_UXARTx',
-            'identifier'  : lambda instance: f'NVICInterrupt_{instance}',
+            'moniker'     : 'NVICInterrupt_UXARTx',
+            'identifier'  : 'NVICInterrupt_{}',
         },
         {
-            'moniker'     :                  f'UXARTx_KERNEL_SOURCE_init',
-            'identifier'  : lambda instance: f'{instance}_KERNEL_SOURCE_init',
+            'moniker'     : 'UXARTx_KERNEL_SOURCE_init',
+            'identifier'  : '{}_KERNEL_SOURCE_init',
         },
         {
-            'moniker'     :                  f'UXARTx_BRR_BRR_init',
-            'identifier'  : lambda instance: f'{instance}_BRR_BRR_init',
+            'moniker'     : 'UXARTx_BRR_BRR_init',
+            'identifier'  : '{}_BRR_BRR_init',
         },
         {
-            'moniker'     :                  f'UXARTx_RESET',
-            'cmsis_tuple' : lambda instance: f'{instance}_RESET',
+            'moniker'     : 'UXARTx_RESET',
+            'cmsis_tuple' : '{}_RESET',
         },
         {
-            'moniker'     :                  f'UXARTx_ENABLE',
-            'cmsis_tuple' : lambda instance: f'{instance}_ENABLE',
+            'moniker'     : 'UXARTx_ENABLE',
+            'cmsis_tuple' : '{}_ENABLE',
         },
         {
-            'moniker'     :                  f'UXARTx_KERNEL_SOURCE',
-            'cmsis_tuple' : lambda instance: f'{instance}_KERNEL_SOURCE',
+            'moniker'     : 'UXARTx_KERNEL_SOURCE',
+            'cmsis_tuple' : '{}_KERNEL_SOURCE',
         },
     ))
 

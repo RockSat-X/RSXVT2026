@@ -7,41 +7,41 @@
 
     IMPLEMENT_DRIVER_ALIASES('I2C', (
         {
-            'moniker'     :                  'I2Cx',
-            'identifier'  : lambda instance: instance,
-            'peripheral'  :                  'I2C',
+            'moniker'     : 'I2Cx',
+            'identifier'  : '{}',
+            'peripheral'  : 'I2C',
         },
         {
-            'moniker'     :                  f'NVICInterrupt_I2Cx_EV',
-            'identifier'  : lambda instance: f'NVICInterrupt_{instance}_EV',
+            'moniker'     : 'NVICInterrupt_I2Cx_EV',
+            'identifier'  : 'NVICInterrupt_{}_EV',
         },
         {
-            'moniker'     :                  f'NVICInterrupt_I2Cx_ER',
-            'identifier'  : lambda instance: f'NVICInterrupt_{instance}_ER',
+            'moniker'     : 'NVICInterrupt_I2Cx_ER',
+            'identifier'  : 'NVICInterrupt_{}_ER',
         },
         {
-            'moniker'     :                  f'I2Cx_KERNEL_SOURCE_init',
-            'identifier'  : lambda instance: f'{instance}_KERNEL_SOURCE_init',
+            'moniker'     : 'I2Cx_KERNEL_SOURCE_init',
+            'identifier'  : '{}_KERNEL_SOURCE_init',
         },
         {
-            'moniker'     :                  f'I2Cx_TIMINGR_PRESC_init',
-            'identifier'  : lambda instance: f'{instance}_TIMINGR_PRESC_init',
+            'moniker'     : 'I2Cx_TIMINGR_PRESC_init',
+            'identifier'  : '{}_TIMINGR_PRESC_init',
         },
         {
-            'moniker'     :                  f'I2Cx_TIMINGR_SCL_init',
-            'identifier'  : lambda instance: f'{instance}_TIMINGR_SCL_init',
+            'moniker'     : 'I2Cx_TIMINGR_SCL_init',
+            'identifier'  : '{}_TIMINGR_SCL_init',
         },
         {
-            'moniker'     :                  f'I2Cx_RESET',
-            'cmsis_tuple' : lambda instance: f'{instance}_RESET',
+            'moniker'     : 'I2Cx_RESET',
+            'cmsis_tuple' : '{}_RESET',
         },
         {
-            'moniker'     :                  f'I2Cx_ENABLE',
-            'cmsis_tuple' : lambda instance: f'{instance}_ENABLE',
+            'moniker'     : 'I2Cx_ENABLE',
+            'cmsis_tuple' : '{}_ENABLE',
         },
         {
-            'moniker'     :                  f'I2Cx_KERNEL_SOURCE',
-            'cmsis_tuple' : lambda instance: f'{instance}_KERNEL_SOURCE',
+            'moniker'     : 'I2Cx_KERNEL_SOURCE',
+            'cmsis_tuple' : '{}_KERNEL_SOURCE',
         },
     ))
 
