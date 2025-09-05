@@ -21,7 +21,7 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
     used_configurations = OrderedSet()
 
-    def cfgs(tag, *value):
+    def cfgs(tag, *value): # TODO We can make a wrapper around configurations.
 
 
 
@@ -482,6 +482,26 @@ def SYSTEM_CONFIGURIZE(target, configurations):
         Meta.define(f'I2C{unit}_KERNEL_SOURCE_init', cfgs(f'I2C{unit}_KERNEL_SOURCE'))
         Meta.define(f'I2C{unit}_TIMINGR_PRESC_init', cfgs(f'I2C{unit}_PRESC'        ))
         Meta.define(f'I2C{unit}_TIMINGR_SCL_init'  , cfgs(f'I2C{unit}_SCL'          ))
+
+
+
+    ################################################################################################################################
+
+
+
+    if configurations.get('GLOBAL_TIMER_PRESCALER', None) is not None:
+
+        put_title('Timers')
+
+        Meta.define(f'GLOBAL_TIMER_PRESCALER_init', cfgs('GLOBAL_TIMER_PRESCALER'))
+
+        for unit in database.get('TIMERS', ()):
+
+            if configurations.get(f'TIM{unit}_DIVIDER', None) is not None:
+                Meta.define(f'TIM{unit}_DIVIDER_init', f'({cfgs(f'TIM{unit}_DIVIDER')} - 1)')
+
+            if configurations.get(f'TIM{unit}_MODULATION', None) is not None:
+                Meta.define(f'TIM{unit}_MODULATION_init', f'({cfgs(f'TIM{unit}_MODULATION')} - 1)')
 
 
 
