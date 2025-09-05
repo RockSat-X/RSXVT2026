@@ -153,15 +153,25 @@ __INTERRUPT_Reset:
 
 
 
-                # These interrupt routines will be implemented by the user, if at all.
+                # This interrupt is for the Arm CPU and not related to the MCU.
+                # Whether or not it's defined at all will be determined by the application.
+                # TODO This isn't really required to be honest...?
 
-                else:
+                elif interrupt_i <= 15:
 
                     Meta.line(
                         f'.word __INTERRUPT_{interrupt_name}'                               , # Insert the address of the handler routine.
                         f'.weak __INTERRUPT_{interrupt_name}'                               , # If there exists an implementation of the handler, use it.
                         f'.set  __INTERRUPT_{interrupt_name}, __INTERRUPT_Default_indirect' , # Otherwise, use the default handler.
                     )
+
+
+
+                # This interrupt is unused.
+
+                else:
+
+                    Meta.line('.word __INTERRUPT_Default')
 
     */
 
