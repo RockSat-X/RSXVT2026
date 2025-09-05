@@ -207,7 +207,7 @@ I2C_reinit(enum I2CHandle handle)
 
 
 
-    // Clock the peripheral.
+    // Enable the peripheral.
 
     CMSIS_PUT(I2Cx_ENABLE, true);
 

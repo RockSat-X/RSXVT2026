@@ -247,7 +247,7 @@ TARGETS = ( # @/`Defining a TARGET`.
             'APB3_CK'      : 250_000_000,
             'USART2_BAUD'  : STLINK_BAUD,
             'I2C1_BAUD'    : 100_000,
-            'TIM1_RATE'    : 1,
+            'TIM1_RATE'    : 16,
         },
 
         gpios = (
@@ -259,7 +259,8 @@ TARGETS = ( # @/`Defining a TARGET`.
             ('button'    , 'C13', 'INPUT'     , { 'pull'    : 'UP'                                           }),
             ('i2c1_scl'  , 'B6' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL', 'open_drain' : True, 'pull' : 'UP' }),
             ('i2c1_sda'  , 'B7' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA', 'open_drain' : True, 'pull' : 'UP' }),
-            ('clock'     , 'A8' , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH1'                                     }),
+            ('OC1'       , 'A8' , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH1'                                     }),
+            ('OC1N'      , 'A7' , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH1N'                                    }),
         ),
 
         interrupt_priorities = (

@@ -1,36 +1,130 @@
 #include "system/defs.h"
 #include "uxart.c"
 
-INTERRUPT_TIM1_UP
-{
-    CMSIS_SET(TIM1, SR, UIF, false);
-    GPIO_TOGGLE(led_green);
-}
+
 
 extern noret void
 main(void)
 {
 
+    ////////////////////////////////////////////////////////////////////////////////
+    //
+    // Miscellaneous initialization.
+    //
+
     SYSTEM_init();
     UXART_init(UXARTHandle_stlink);
 
-    #define RCC_CFGR_TIMPRE_init false
-    #define TIM1_PSC_PSC_init    1000
-    #define TIM1_ARR_ARR_init    150
 
-    CMSIS_SET(RCC , CFGR1  , TIMPRE, GLOBAL_TIMER_PRESCALER_init); // Set the prescaler mode that affects all timers.
-    CMSIS_SET(RCC , APB2ENR, TIM1EN, true                       ); // Clock the timer peripheral.
-    CMSIS_SET(TIM1, PSC    , PSC   , TIM1_DIVIDER_init          ); // Set the divider and modulation to get the desired update frequency.
-    CMSIS_SET(TIM1, ARR    , ARR   , TIM1_MODULATION_init       ); // "
-    CMSIS_SET(TIM1, CCR1   , CCR1  , TIM1_MODULATION_init / 2   ); // "
-    CMSIS_SET(TIM1, CCMR1  , OC1M  , 0b0110                     ); // "
-    CMSIS_SET(TIM1, CCER   , CC1E  , true                       ); // Enable the channel.
-    CMSIS_SET(TIM1, CR1    , CEN   , true                       ); // Enable the timer's counter.
-    CMSIS_SET(TIM1, BDTR   , MOE   , true                       ); // Master output enable.
-    CMSIS_SET(TIM1, DIER   , UIE   , true                       ); // Enable the update interrupt.
+
+    ////////////////////////////////////////////////////////////////////////////////
+
+
+
+    // Set the prescaler that'll affect all timers' kernel frequency.
+
+    CMSIS_SET(RCC, CFGR1, TIMPRE, GLOBAL_TIMER_PRESCALER_init);
+
+
+
+    // Enable the peripheral.
+
+    CMSIS_SET(RCC, APB2ENR, TIM1EN, true);
+
+
+
+    // Configure the divider to set the rate at
+    // which the timer's counter will increment.
+
+    CMSIS_SET(TIM1, PSC, PSC, TIM1_DIVIDER_init);
+
+
+
+    // Set the value at which the timer's counter
+    // will reach and then reset; this is when an
+    // update event happens.
+
+    CMSIS_SET(TIM1, ARR, ARR, TIM1_MODULATION_init);
+
+
+
+    // Set the mode of the OC1 pin to be in "PWM mode 1".
+    // @/pg 1551/sec 36.6.8/`H533RErm`.
+
+    CMSIS_SET(TIM1, CCMR1, OC1M, 0b0110);
+
+
+
+    // In "PWM mode 1", the counter will be compared with the
+    // value in this register. If the counter is smaller, then
+    // the OC1 pin will be "active", or otherwise "inactive".
+    // Thus if we set the compare-value to be halfway between zero
+    // and the modulation value, then we'd get a 50% duty cycle.
+
+    CMSIS_SET(TIM1, CCR1, CCR1, TIM1_MODULATION_init / 2);
+
+
+
+    // Enable the OC1 pin output.
+
+    CMSIS_SET(TIM1, CCER, CC1E, true);
+
+
+
+    // Enable the timer's counter.
+
+    CMSIS_SET(TIM1, CR1, CEN, true);
+
+
+
+    // Master output enable.
+
+    CMSIS_SET(TIM1, BDTR, MOE, true);
+
+
+
+    // Enable the update interrupt.
+
+    CMSIS_SET(TIM1, DIER, UIE, true);
+
+
+
+    // Enable the update interrupt in NVIC.
 
     NVIC_ENABLE(TIM1_UP);
 
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+
+
+
+    // We can also enable the complement of OC1;
+    // the corresponding OC1N pin will have opposite
+    // polarity of OC1.
+
+    CMSIS_SET(TIM1, CCER, CC1NE, true);
+
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    //
+    // Spinlock away until the timer's update interrupt triggers.
+    //
+
     for (;;);
+
+}
+
+
+
+// This interrupt routine executes every time the timer's counter gets reset.
+
+INTERRUPT_TIM1_UP
+{
+
+    CMSIS_SET(TIM1, SR, UIF, false); // Clear the update flag.
+
+    GPIO_TOGGLE(led_green);
 
 }
