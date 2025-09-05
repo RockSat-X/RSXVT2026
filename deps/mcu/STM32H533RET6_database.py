@@ -223,9 +223,9 @@
             ),
 
             ('APB1LENR',
-                ('USART2EN', 'UXART_2_ENABLE'),
-                ('I2C1EN'  , 'I2C1_ENABLE'   ),
-                ('I2C2EN'  , 'I2C2_ENABLE'   ),
+                ('USART2EN', 'USART2_ENABLE'),
+                ('I2C1EN'  , 'I2C1_ENABLE'  ),
+                ('I2C2EN'  , 'I2C2_ENABLE'  ),
             ),
 
             ('CCIPR1',
@@ -271,6 +271,53 @@
                         ),
                     )
                     for field, peripherals in field_peripherals
+                ),
+            ),
+
+            ('CCIPR1', # TODO Redundancy.
+                *(
+                    (field, f'{peripheral}{unit}_KERNEL_SOURCE', clock_source)
+                    for field_instances, clock_source in
+                    (
+                        (
+                            (
+                                ('USART10SEL', (('USART', 10),)),
+                                ('UART9SEL'  , (('UART' , 9 ),)),
+                                ('UART8SEL'  , (('UART' , 8 ),)),
+                                ('UART7SEL'  , (('UART' , 7 ),)),
+                                ('USART6SEL' , (('USART', 6 ),)),
+                                ('UART5SEL'  , (('UART' , 5 ),)),
+                                ('UART4SEL'  , (('UART' , 4 ),)),
+                                ('USART3SEL' , (('USART', 3 ),)),
+                                ('USART2SEL' , (('USART', 2 ),)),
+                            ),
+                            (
+                                ('APB1_CK'   , '0b000'),
+                                ('PLL2_Q_CK' , '0b001'),
+                                ('PLL3_Q_CK' , '0b010'),
+                                ('HSI_CK'    , '0b011'),
+                                ('CSI_CK'    , '0b100'),
+                                ('LSE_CK'    , '0b101'),
+                                (None        , '0b110'),
+                            ),
+                        ),
+                        (
+                            (
+                                ('USART1SEL', (('USART', 1),)),
+                            ),
+                            (
+                                ('RCC_PCLK2' , '0b000'),
+                                ('PLL2_Q_CK' , '0b001'),
+                                ('PLL3_Q_CK' , '0b010'),
+                                ('HSI_CK'    , '0b011'),
+                                ('CSI_CK'    , '0b100'),
+                                ('LSE_CK'    , '0b101'),
+                                (None        , '0b110'),
+                            ),
+                        ),
+                    )
+                    for field, instances in field_instances
+                    for peripheral, unit in instances
                 ),
             ),
 

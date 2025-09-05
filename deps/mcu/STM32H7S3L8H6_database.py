@@ -198,7 +198,7 @@
             ),
 
             ('APB1ENR1',
-                ('USART3EN', 'UXART_3_ENABLE'),
+                ('USART3EN', 'USART3_ENABLE'),
             ),
 
             ('APB1RSTR1',
@@ -285,7 +285,7 @@
 
             ('CCIPR2', # TODO Should we allow for redundant locations?
                 *(
-                    ('UART234578SEL', f'UXART_{(instance,)}_KERNEL_SOURCE', (
+                    ('UART234578SEL', f'{peripheral}{unit}_KERNEL_SOURCE', (
                         ('APB2_CK'  , '0b000'),
                         ('PLL2_Q_CK', '0b001'),
                         ('PLL3_Q_CK', '0b010'),
@@ -293,7 +293,7 @@
                         ('CSI_CK'   , '0b100'),
                         ('LSE_CK'   , '0b101'),
                     ))
-                    for instance in (('USART', 2), ('USART', 3), ('UART', 4), ('UART', 5), ('UART', 7), ('UART', 8))
+                    for peripheral, unit in (('USART', 2), ('USART', 3), ('UART', 4), ('UART', 5), ('UART', 7), ('UART', 8))
                 ),
             ),
 

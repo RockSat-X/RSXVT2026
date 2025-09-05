@@ -329,7 +329,7 @@ _UXART_update(enum UXARTHandle handle)
 /* #include "uxart_aliases.meta"
 /* #meta
 
-    IMPLEMENT_DRIVER_ALIASES('UXART', ( # TODO Consistent naming...
+    IMPLEMENT_DRIVER_ALIASES('UXART', (
         {
             'moniker'     :                         f'UXARTx',
             'identifier'  : lambda peripheral_unit: f'{peripheral_unit[0]}{peripheral_unit[1]}',
@@ -341,7 +341,7 @@ _UXART_update(enum UXARTHandle handle)
         },
         {
             'moniker'     :                         f'UXARTx_KERNEL_SOURCE_init',
-            'identifier'  : lambda peripheral_unit: f'UXART_{peripheral_unit[1]}_KERNEL_SOURCE_init',
+            'identifier'  : lambda peripheral_unit: f'{peripheral_unit[0]}{peripheral_unit[1]}_KERNEL_SOURCE_init',
         },
         {
             'moniker'     :                         f'UXARTx_BRR_BRR_init',
@@ -353,11 +353,11 @@ _UXART_update(enum UXARTHandle handle)
         },
         {
             'moniker'     :                         f'UXARTx_ENABLE',
-            'cmsis_tuple' : lambda peripheral_unit: f'UXART_{peripheral_unit[1]}_ENABLE',
+            'cmsis_tuple' : lambda peripheral_unit: f'{peripheral_unit[0]}{peripheral_unit[1]}_ENABLE',
         },
         {
             'moniker'     :                         f'UXARTx_KERNEL_SOURCE',
-            'cmsis_tuple' : lambda peripheral_unit: f'UXART_{(peripheral_unit,)}_KERNEL_SOURCE',
+            'cmsis_tuple' : lambda peripheral_unit: f'{peripheral_unit[0]}{peripheral_unit[1]}_KERNEL_SOURCE',
         },
     ))
 
