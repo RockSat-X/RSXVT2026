@@ -276,9 +276,9 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 
 // TODO Document.
 
-/* #meta IMPLEMENT_DRIVERS : SYSTEM_DATABASE
+/* #meta IMPLEMENT_DRIVER_ALIASES : SYSTEM_DATABASE
 
-    def IMPLEMENT_DRIVERS(driver_name, aliases):
+    def IMPLEMENT_DRIVER_ALIASES(driver_name, aliases):
 
         for target in PER_TARGET():
 

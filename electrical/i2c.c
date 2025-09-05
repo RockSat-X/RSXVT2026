@@ -635,12 +635,14 @@ _I2C_update_entirely(enum I2CHandle handle)
 
 
 
-// Stuff to make working with any I2C unit easy.
+////////////////////////////////////////////////////////////////////////////////
+
+
 
 /* #include "i2c_aliases.meta"
 /* #meta
 
-    IMPLEMENT_DRIVERS('I2C', (
+    IMPLEMENT_DRIVER_ALIASES('I2C', (
         {
             'moniker'     :              f'I2Cx',
             'identifier'  : lambda unit: f'I2C{unit}',

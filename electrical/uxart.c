@@ -62,7 +62,7 @@ UXART_reinit(enum UXARTHandle handle)
 /* #include "uxart_aliases.meta"
 /* #meta
 
-    IMPLEMENT_DRIVERS('UXART', (
+    IMPLEMENT_DRIVER_ALIASES('UXART', (
         {
             'moniker'     :                         f'UXARTx',
             'identifier'  : lambda peripheral_unit: f'{peripheral_unit[0]}{peripheral_unit[1]}',
