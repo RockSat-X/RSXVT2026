@@ -201,6 +201,11 @@
                 ('USART3EN', 'UXART_3_ENABLE'),
             ),
 
+            ('APB1RSTR1',
+                ('USART3RST', 'USART3_RESET'),
+                ('USART2RST', 'USART2_RESET'),
+            ),
+
             ('PLLCFGR',
                 *(
                     (f'PLL{unit}RGE', f'PLL{unit}_INPUT_RANGE', (
