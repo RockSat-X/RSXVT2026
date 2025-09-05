@@ -779,7 +779,7 @@ def SYSTEM_PARAMETERIZE(target):
 
     ################################################################################################################################
     #
-    # Parameterize the UxART peripherals.
+    # Parameterize the UXART peripherals.
     # TODO Consider maximum kernel frequency.
     #
     # @/pg 394/fig 56/`H7S3rm`.
@@ -787,28 +787,27 @@ def SYSTEM_PARAMETERIZE(target):
 
 
 
-    # Some UxART peripherals are tied together in hardware where
+    # Some UXART peripherals are tied together in hardware where
     # they would all share the same clock source. Each can still
     # have a different baud rate by changing their respective
     # baud-rate divider, but nonetheless, we must process each set
-    # of connected UxART peripherals as a whole.
+    # of connected UXART peripherals as a whole.
 
     for uxart_units in database['UXARTS']:
 
 
 
-        # See if we can get the baud-divider for this UxART unit.
+        # See if we can get the baud-divider for this UXART unit.
 
         def parameterize_uxart(uxart_clock_source_freq, uxart_unit):
 
-            peripheral, number = uxart_unit
-            uxartn             = f'{peripheral}{number}'
+            peripheral, unit = uxart_unit
 
 
 
-            # See if this UxART peripheral is even needed.
+            # See if this UXART peripheral is even needed.
 
-            needed_baud = opts(f'{uxartn}_BAUD', None)
+            needed_baud = opts(f'{peripheral}{unit}_BAUD', None)
 
             if needed_baud is None:
                 return True
@@ -831,24 +830,23 @@ def SYSTEM_PARAMETERIZE(target):
 
             # We found the desired divider!
 
-            draft[f'{uxartn}_BAUD_DIVIDER'] = int(needed_divider)
+            draft[f'{peripheral}{unit}_BAUD_DIVIDER'] = needed_divider
 
             return True
 
 
 
-
-        # See if we can parameterize this set of UxART peripherals.
+        # See if we can parameterize this set of UXART peripherals.
 
         def parameterize_uxarts():
 
 
 
-            # Check if this set of UxARTs even needs to be configured for.
+            # Check if this set of UXARTs even needs to be configured for.
 
             using_uxarts = any(
-                opts(f'{peripheral}{number}_BAUD', None) is not None
-                for peripheral, number in uxart_units
+                opts(f'{peripheral}{unit}_BAUD', None) is not None
+                for peripheral, unit in uxart_units
             )
 
             if not using_uxarts:
@@ -857,9 +855,9 @@ def SYSTEM_PARAMETERIZE(target):
 
 
             # Try every available clock source for this
-            # set of UxART peripherals and see what sticks.
+            # set of UXART peripherals and see what sticks.
 
-            for uxart_clock_source_name, draft[f'UXART_{uxart_units}_CLOCK_SOURCE'] in database[f'UXART_{uxart_units}_CLOCK_SOURCE']:
+            for uxart_clock_source_name, draft[f'UXART_{uxart_units}_KERNEL_SOURCE'] in database[f'UXART_{uxart_units}_KERNEL_SOURCE']:
 
                 uxart_clock_source_freq = tree[uxart_clock_source_name]
                 every_uxart_satisfied   = all(
@@ -872,14 +870,14 @@ def SYSTEM_PARAMETERIZE(target):
 
 
 
-        # Brute force the UxART peripherals to find the needed
+        # Brute force the UXART peripherals to find the needed
         # clock source and the respective baud-dividers.
 
         brute(parameterize_uxarts, (
-            f'UXART_{uxart_units}_CLOCK_SOURCE',
+            f'UXART_{uxart_units}_KERNEL_SOURCE',
             *(
-                f'{peripheral}{number}_BAUD_DIVIDER'
-                for peripheral, number in uxart_units
+                f'{peripheral}{unit}_BAUD_DIVIDER'
+                for peripheral, unit in uxart_units
             ),
         ))
 

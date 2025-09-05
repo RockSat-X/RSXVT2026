@@ -268,7 +268,7 @@
             ),
 
             ('CCIPR2',
-                ('UART234578SEL', f'UXART_{(('USART', 2), ('USART', 3), ('UART', 4), ('UART', 5), ('UART', 7), ('UART', 8))}_CLOCK_SOURCE', (
+                ('UART234578SEL', f'UXART_{(('USART', 2), ('USART', 3), ('UART', 4), ('UART', 5), ('UART', 7), ('UART', 8))}_KERNEL_SOURCE', (
                     ('APB2_CK'  , '0b000'),
                     ('PLL2_Q_CK', '0b001'),
                     ('PLL3_Q_CK', '0b010'),

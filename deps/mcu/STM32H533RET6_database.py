@@ -230,7 +230,7 @@
 
             ('CCIPR1',
                 *(
-                    (field, f'UXART_{peripherals}_CLOCK_SOURCE', clock_source)
+                    (field, f'UXART_{peripherals}_KERNEL_SOURCE', clock_source)
                     for field_peripherals, clock_source in
                     (
                         (

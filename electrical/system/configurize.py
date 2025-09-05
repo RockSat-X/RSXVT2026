@@ -440,9 +440,9 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
-        # See if the set of UxART peripherals is used.
+        # See if the set of UXART peripherals is used.
 
-        if cfgs(f'UXART_{uxart_units}_CLOCK_SOURCE') is None:
+        if cfgs(f'UXART_{uxart_units}_KERNEL_SOURCE') is None:
             continue
 
         put_title(' / '.join(
@@ -452,9 +452,9 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
 
 
-        # Configure the UxART peripherals' clock source.
+        # Configure the UXART peripherals' clock source.
 
-        CMSIS_SET(cfgs(f'UXART_{uxart_units}_CLOCK_SOURCE', ...))
+        CMSIS_SET(cfgs(f'UXART_{uxart_units}_KERNEL_SOURCE', ...))
 
 
 
