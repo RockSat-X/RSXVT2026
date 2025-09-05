@@ -226,7 +226,7 @@ TARGETS = ( # @/`Defining a TARGET`.
                 ('stlink', 'USART2'),
             ),
             'I2C' : (
-                ('primary', 1),
+                ('primary', 'I2C1'),
             ),
         }
 
