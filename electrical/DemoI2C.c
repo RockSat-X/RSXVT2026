@@ -1,5 +1,5 @@
 #include "system/defs.h"
-#include "jig.c"
+#include "uxart.c"
 #include "i2c.c"
 
 extern noret void
@@ -12,7 +12,7 @@ main(void)
     //
 
     SYSTEM_init();
-    JIG_init();
+    UXART_reinit(UXARTHandle_stlink);
 
 
 
@@ -79,12 +79,12 @@ main(void)
             {
                 case I2CDriverError_none:
                 {
-                    JIG_tx("Slave 0x%02X acknowledged!\n", slave_address);
+                    stlink_tx("Slave 0x%02X acknowledged!\n", slave_address);
                 } break;
 
                 case I2CDriverError_no_acknowledge:
                 {
-                    JIG_tx("Slave 0x%02X didn't acknowledge!\n", slave_address);
+                    stlink_tx("Slave 0x%02X didn't acknowledge!\n", slave_address);
                 } break;
 
                 default: panic;
@@ -102,7 +102,7 @@ main(void)
 
         // Longer breather before starting all over again.
 
-        JIG_tx("--------------------------------\n");
+        stlink_tx("--------------------------------\n");
 
         spinlock_nop(400'000'000); // TODO Let's use a real delay here.
 

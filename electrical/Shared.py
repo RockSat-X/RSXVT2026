@@ -85,13 +85,6 @@ TARGETS = ( # @/`Defining a TARGET`.
         main_stack_size = 8192,
 
         aliases = (
-            types.SimpleNamespace(
-                moniker    = 'UxART_STLINK',
-                actual     = 'USART3',
-                terms      = ['{}_BRR_BRR_init'],
-                interrupts = ['{}'],
-                puts       = [('{}_EN', 'UXART_3_ENABLE')]
-            ),
         ),
 
         clock_tree = {
@@ -114,8 +107,8 @@ TARGETS = ( # @/`Defining a TARGET`.
             ('led_red'   , 'B7' , 'OUTPUT'    , { 'initlvl' : False       }),
             ('led_yellow', 'D13', 'OUTPUT'    , { 'initlvl' : False       }),
             ('led_green' , 'D10', 'OUTPUT'    , { 'initlvl' : False       }),
-            ('jig_tx'    , 'D8' , 'ALTERNATE' , { 'altfunc' : 'USART3_TX' }),
-            ('jig_rx'    , 'D9' , 'ALTERNATE' , { 'altfunc' : 'USART3_RX' }),
+            ('stlink_tx' , 'D8' , 'ALTERNATE' , { 'altfunc' : 'USART3_TX' }),
+            ('stlink_rx' , 'D9' , 'ALTERNATE' , { 'altfunc' : 'USART3_RX' }),
             ('swdio'     , 'A13', 'RESERVED'  , {                         }),
             ('swclk'     , 'A14', 'RESERVED'  , {                         }),
             ('button'    , 'C13', 'INPUT'     , { 'pull'    : 'UP'        }),
@@ -124,6 +117,13 @@ TARGETS = ( # @/`Defining a TARGET`.
         interrupt_priorities = (
             ('USART3', 0),
         ),
+
+        # TODO Document.
+        drivers = {
+            'UXART' : (
+                ('stlink', ('USART', 3)),
+            )
+        }
 
     ),
 
@@ -141,13 +141,6 @@ TARGETS = ( # @/`Defining a TARGET`.
         main_stack_size = 8192,
 
         aliases = (
-            types.SimpleNamespace(
-                moniker    = 'UxART_STLINK',
-                actual     = 'USART2',
-                terms      = ['{}_BRR_BRR_init'],
-                interrupts = ['{}'],
-                puts       = [('{}_EN', 'UXART_2_ENABLE')]
-            ),
         ),
 
         clock_tree = {
@@ -164,8 +157,8 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False       }),
-            ('jig_tx'    , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX' }),
-            ('jig_rx'    , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX' }),
+            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX' }),
+            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX' }),
             ('swdio'     , 'A13', 'RESERVED'  , {                         }),
             ('swclk'     , 'A14', 'RESERVED'  , {                         }),
             ('button'    , 'C13', 'INPUT'     , { 'pull'    : 'UP'        }),
@@ -174,6 +167,13 @@ TARGETS = ( # @/`Defining a TARGET`.
         interrupt_priorities = (
             ('USART2', 0),
         ),
+
+        # TODO Document.
+        drivers = {
+            'UXART' : (
+                ('stlink', ('USART', 2)),
+            )
+        }
 
     ),
 
@@ -191,13 +191,6 @@ TARGETS = ( # @/`Defining a TARGET`.
         main_stack_size = 8192,
 
         aliases = (
-            types.SimpleNamespace(
-                moniker    = 'UxART_STLINK',
-                actual     = 'USART2',
-                terms      = ['{}_BRR_BRR_init'],
-                interrupts = ['{}'],
-                puts       = [('{}_EN', 'UXART_2_ENABLE')]
-            ),
         ),
 
         clock_tree = {
@@ -215,8 +208,8 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                                          }),
-            ('jig_tx'    , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'                                    }),
-            ('jig_rx'    , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'                                    }),
+            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'                                    }),
+            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'                                    }),
             ('swdio'     , 'A13', 'RESERVED'  , {                                                            }),
             ('swclk'     , 'A14', 'RESERVED'  , {                                                            }),
             ('button'    , 'C13', 'INPUT'     , { 'pull'    : 'UP'                                           }),
@@ -232,9 +225,12 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         # TODO Document.
         drivers = {
+            'UXART' : (
+                ('stlink', ('USART', 2)),
+            ),
             'I2C' : (
                 ('primary', 1),
-            )
+            ),
         }
 
     ),
@@ -270,8 +266,8 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False       }),
-            ('jig_tx'    , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX' }),
-            ('jig_rx'    , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX' }),
+            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX' }),
+            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX' }),
             ('swdio'     , 'A13', 'RESERVED'  , {                         }),
             ('swclk'     , 'A14', 'RESERVED'  , {                         }),
             ('button'    , 'C13', 'INPUT'     , { 'pull'    : 'UP'        }),
@@ -500,7 +496,7 @@ def PER_MCU():
 #                              macros and global constants will do the mapping magically.
 #                              This is a very experimental feature right now, however, so
 #                              you can just completely ignore this. I'm planning to make
-#                              it much simpler to use and less contrived.
+#                              it much simpler to use and less contrived. TODO Deprecate.
 #
 #     - clock_tree           = Options relating to configuring the MCU's clock-tree.
 #                              The available options right now is pretty undocumented since

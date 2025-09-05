@@ -2,6 +2,13 @@
 
 
 
+
+// Useful shorthand marcos.
+#define stlink_tx(...) UXART_tx(UXARTHandle_stlink, __VA_ARGS__)
+#define stlink_rx(...) UXART_rx(UXARTHandle_stlink, __VA_ARGS__)
+
+
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wundef"
 #include <printf/printf.c>
