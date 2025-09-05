@@ -7,6 +7,8 @@ main(void)
 
     SYSTEM_init();
 
+    UXART_reinit(UXARTHandle_stlink);
+
     for (;;)
     {
         GPIO_TOGGLE(led_green);
