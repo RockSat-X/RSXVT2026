@@ -443,6 +443,11 @@ def SYSTEM_CONFIGURIZE(target, configurations):
 
         put_title(' / '.join(f'{peripheral}{number}' for peripheral, number in instances))
 
+        # TODO I honestly don't know how to feel about doing it this way.
+        for peripheral, unit in instances:
+            Meta.define(f'UXART_{unit}_KERNEL_SOURCE_init', cfgs(f'UXART_{instances}_KERNEL_SOURCE'))
+
+        # TODO Deprecate...?
         Meta.define(
             f'UXART_{'_'.join(str(number) for peripheral, number in instances)}_KERNEL_SOURCE_init',
             cfgs(f'UXART_{instances}_KERNEL_SOURCE')

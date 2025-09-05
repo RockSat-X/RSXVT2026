@@ -301,7 +301,7 @@ _UXART_update(enum UXARTHandle handle)
         },
         {
             'moniker'     :                         f'UXARTx_KERNEL_SOURCE_init',
-            'identifier'  : lambda peripheral_unit: f'UXART_{peripheral_unit[1]}_KERNEL_SOURCE_init', # TODO Hack...
+            'identifier'  : lambda peripheral_unit: f'UXART_{peripheral_unit[1]}_KERNEL_SOURCE_init',
         },
         {
             'moniker'     :                         f'UXARTx_BRR_BRR_init',
