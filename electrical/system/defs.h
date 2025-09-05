@@ -433,15 +433,18 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
         # >    }
         # >
 
-        for interrupt in INTERRUPTS[target.mcu]:
+        for interrupt_i, interrupt_name in enumerate(INTERRUPTS[target.mcu]):
 
-            if interrupt is None:
+            if interrupt_name is None:
                 continue
 
-            if target.use_freertos and interrupt in MCUS[target.mcu].freertos_interrupts:
+            if target.use_freertos and interrupt_name in MCUS[target.mcu].freertos_interrupts:
                 continue
 
-            Meta.define(f'INTERRUPT_{interrupt}', f'extern void __INTERRUPT_{interrupt}(void)')
+            if interrupt_i >= 16 and interrupt_name not in (name for name, niceness in target.interrupt_priorities):
+                continue
+
+            Meta.define(f'INTERRUPT_{interrupt_name}', f'extern void __INTERRUPT_{interrupt_name}(void)')
 
 
 
