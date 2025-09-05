@@ -18,37 +18,21 @@
 #include "uxart_driver_support.meta"
 /* #meta
 
-    IMPLEMENT_DRIVER_ALIASES('UXART', (
-        {
-            'moniker'     : 'UXARTx',
-            'identifier'  : '{}',
-            'peripheral'  : 'USART',
-        },
-        {
-            'moniker'     : 'NVICInterrupt_UXARTx',
-            'identifier'  : 'NVICInterrupt_{}',
-        },
-        {
-            'moniker'     : 'UXARTx_KERNEL_SOURCE_init',
-            'identifier'  : '{}_KERNEL_SOURCE_init',
-        },
-        {
-            'moniker'     : 'UXARTx_BRR_BRR_init',
-            'identifier'  : '{}_BRR_BRR_init',
-        },
-        {
-            'moniker'     : 'UXARTx_RESET',
-            'cmsis_tuple' : '{}_RESET',
-        },
-        {
-            'moniker'     : 'UXARTx_ENABLE',
-            'cmsis_tuple' : '{}_ENABLE',
-        },
-        {
-            'moniker'     : 'UXARTx_KERNEL_SOURCE',
-            'cmsis_tuple' : '{}_KERNEL_SOURCE',
-        },
-    ))
+    IMPLEMENT_DRIVER_ALIASES(
+        driver_name = 'UXART',
+        cmsis_name  = 'USART',
+        common_name = 'UXARTx',
+        identifiers = (
+            'NVICInterrupt_{}',
+            '{}_KERNEL_SOURCE_init',
+            '{}_BRR_BRR_init',
+        ),
+        cmsis_tuple_tags = (
+            '{}_RESET',
+            '{}_ENABLE',
+            '{}_KERNEL_SOURCE',
+        ),
+    )
 
     for target in PER_TARGET():
 

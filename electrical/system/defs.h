@@ -278,7 +278,14 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 
 /* #meta IMPLEMENT_DRIVER_ALIASES : SYSTEM_DATABASE
 
-    def IMPLEMENT_DRIVER_ALIASES(driver_name, aliases):
+    def IMPLEMENT_DRIVER_ALIASES(
+        *,
+        driver_name,
+        cmsis_name,
+        common_name,
+        identifiers,
+        cmsis_tuple_tags,
+    ):
 
         for target in PER_TARGET():
 
@@ -305,113 +312,37 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 
 
 
-            # For aliases that are for peripherals,
-            # we add in macros to do suffix-dropping.
             # @/`CMSIS Suffix Dropping`.
             # e.g:
             # >
             # >    I2Cx <-> I2C3
             # >
 
-            for alias in aliases:
-
-                match alias:
-
-                    case {
-                        'moniker'    : moniker,
-                        'identifier' : identifier,
-                        'peripheral' : peripheral,
-                        **rest
-                    } if not rest:
-
-                        Meta.line(f'#define {moniker}_ {peripheral}_')
+            Meta.line(f'#define {common_name}_ {cmsis_name}_')
 
 
 
             # Create a look-up table to map the moniker
             # name to the actual underyling value.
 
-            mappings = []
-
-            for handle, instance in target.drivers[driver_name]:
-
-                map = []
-
-                for alias in aliases:
-
-                    match alias:
-
-
-
-                        # The alias is just a
-                        # simple token renaming.
-                        # e.g:
-                        # >
-                        # >    NVICInterrupt_I2Cx_EV <-> NVICInterrupt_I2C3_EV
-                        # >
-
-                        case {
-                            'moniker'    : moniker,
-                            'identifier' : identifier,
-                            **rest
-                        } if not rest:
-
-                            identifier = identifier.format(instance)
-
-                            map += [(moniker, identifier)]
-
-
-
-                        # The alias is of a peripheral.
-                        # e.g:
-                        # >
-                        # >    I2Cx <-> I2C3
-                        # >
-
-                        case {
-                            'moniker'    : moniker,
-                            'identifier' : identifier,
-                            'peripheral' : peripheral,
-                            **rest
-                        } if not rest:
-
-                            identifier = identifier.format(instance)
-
-                            map += [(moniker, identifier)]
-
-
-
-                        # The alias refers to a CMSIS
-                        # peripheral-register-field tuple.
-                        # e.g:
-                        # >
-                        # >    I2Cx_RESET <-> (struct CMSISTuple) { ... }
-                        # >
-
-                        case {
-                            'moniker'     : moniker,
-                            'cmsis_tuple' : cmsis_tuple,
-                            **rest
-                        } if not rest:
-
-                            cmsis_tuple = cmsis_tuple.format(instance)
-                            cmsis_tuple = CMSIS_TUPLE(SYSTEM_DATABASE[target.mcu][cmsis_tuple])
-
-                            map += [(moniker, cmsis_tuple)]
-
-
-
-                        case unknown:
-
-                            raise ValueError('Unknown alias format: {repr(unknown)}.')
-
-
-
-                mappings += [(f'{driver_name}Handle_{handle}', *map)]
-
-
-
-            Meta.lut(f'{driver_name}_TABLE', mappings)
+            Meta.lut( f'{driver_name}_TABLE', (
+                (
+                    f'{driver_name}Handle_{handle}',
+                    (common_name, instance),
+                    *(
+                        (identifier.format(common_name), identifier.format(instance))
+                        for identifier in identifiers
+                    ),
+                    *(
+                        (
+                            cmsis_tuple_tag.format(common_name),
+                            CMSIS_TUPLE(SYSTEM_DATABASE[target.mcu][cmsis_tuple_tag.format(instance)])
+                        )
+                        for cmsis_tuple_tag in cmsis_tuple_tags
+                    )
+                )
+                for handle, instance in target.drivers[driver_name]
+            ))
 
 
 
@@ -433,9 +364,9 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 
             ''')
 
-            for alias in aliases:
+            for alias in (common_name, *identifiers, *cmsis_tuple_tags):
                 Meta.line(f'''
-                    auto const {alias['moniker']} = {driver_name}_TABLE[handle].{alias['moniker']};
+                    auto const {alias.format(common_name)} = {driver_name}_TABLE[handle].{alias.format(common_name)};
                 ''')
 
 */

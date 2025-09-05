@@ -5,45 +5,23 @@
 #include "i2c_driver_support.meta"
 /* #meta
 
-    IMPLEMENT_DRIVER_ALIASES('I2C', (
-        {
-            'moniker'     : 'I2Cx',
-            'identifier'  : '{}',
-            'peripheral'  : 'I2C',
-        },
-        {
-            'moniker'     : 'NVICInterrupt_I2Cx_EV',
-            'identifier'  : 'NVICInterrupt_{}_EV',
-        },
-        {
-            'moniker'     : 'NVICInterrupt_I2Cx_ER',
-            'identifier'  : 'NVICInterrupt_{}_ER',
-        },
-        {
-            'moniker'     : 'I2Cx_KERNEL_SOURCE_init',
-            'identifier'  : '{}_KERNEL_SOURCE_init',
-        },
-        {
-            'moniker'     : 'I2Cx_TIMINGR_PRESC_init',
-            'identifier'  : '{}_TIMINGR_PRESC_init',
-        },
-        {
-            'moniker'     : 'I2Cx_TIMINGR_SCL_init',
-            'identifier'  : '{}_TIMINGR_SCL_init',
-        },
-        {
-            'moniker'     : 'I2Cx_RESET',
-            'cmsis_tuple' : '{}_RESET',
-        },
-        {
-            'moniker'     : 'I2Cx_ENABLE',
-            'cmsis_tuple' : '{}_ENABLE',
-        },
-        {
-            'moniker'     : 'I2Cx_KERNEL_SOURCE',
-            'cmsis_tuple' : '{}_KERNEL_SOURCE',
-        },
-    ))
+    IMPLEMENT_DRIVER_ALIASES(
+        driver_name = 'I2C',
+        cmsis_name  = 'I2C',
+        common_name = 'I2Cx',
+        identifiers = (
+            'NVICInterrupt_{}_EV',
+            'NVICInterrupt_{}_ER',
+            '{}_KERNEL_SOURCE_init',
+            '{}_TIMINGR_PRESC_init',
+            '{}_TIMINGR_SCL_init',
+        ),
+        cmsis_tuple_tags = (
+            '{}_RESET',
+            '{}_ENABLE',
+            '{}_KERNEL_SOURCE',
+        ),
+    )
 
     for target in PER_TARGET():
 
