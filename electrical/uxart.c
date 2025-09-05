@@ -53,7 +53,7 @@ UXART_reinit(enum UXARTHandle handle)
 
 
 
-    // Set the kernel clock source for the I2C peripheral.
+    // Set the kernel clock source for the peripheral.
 
     // TODO.
 

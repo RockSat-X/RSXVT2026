@@ -159,7 +159,7 @@ I2C_reinit(enum I2CHandle handle)
 
 
 
-    // Set the kernel clock source for the I2C peripheral.
+    // Set the kernel clock source for the peripheral.
 
     CMSIS_PUT(I2Cx_KERNEL_SOURCE, I2Cx_KERNEL_SOURCE_init);
 
