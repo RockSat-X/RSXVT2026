@@ -118,7 +118,6 @@ TARGETS = ( # @/`Defining a TARGET`.
             ('USART3', 0),
         ),
 
-        # TODO Document.
         drivers = {
             'UXART' : (
                 ('stlink', ('USART', 3)),
@@ -168,7 +167,6 @@ TARGETS = ( # @/`Defining a TARGET`.
             ('USART2', 0),
         ),
 
-        # TODO Document.
         drivers = {
             'UXART' : (
                 ('stlink', ('USART', 2)),
@@ -223,7 +221,6 @@ TARGETS = ( # @/`Defining a TARGET`.
             ('I2C1_ER', 1),
         ),
 
-        # TODO Document.
         drivers = {
             'UXART' : (
                 ('stlink', ('USART', 2)),
@@ -277,7 +274,6 @@ TARGETS = ( # @/`Defining a TARGET`.
             ('USART2', 0),
         ),
 
-        # TODO Document.
         drivers = {
             'UXART' : (
                 ('stlink', ('USART', 2)),
@@ -524,7 +520,9 @@ def PER_MCU():
 #                              the priority value of interrupts work on a niceless level, so
 #                              the lower the number is, the higher priority it actually is.
 #
-#     - i2c_units            = If provided, defines the I2C units that the target is using.
+#     - drivers              = Essentially a table describing the drivers that the target
+#                              needs and will be using. To see what this setting actually does,
+#                              I suggest diving into some of the drivers' source code.
 #
 # It's also useful to have a "sandbox" target where it's pretty much
 # just a demo program for a Nucleo board; some LEDS blinking, maybe

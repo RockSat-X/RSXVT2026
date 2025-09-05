@@ -309,10 +309,8 @@ _UXART_update(enum UXARTHandle handle)
 
     for target in PER_TARGET():
 
-        if not hasattr(target, 'drivers'):
-            continue
-
         for handle, (peripheral, unit) in target.drivers.get('UXART', ()):
+
             Meta.line(f'''
                 INTERRUPT_{peripheral}{unit}
                 {{

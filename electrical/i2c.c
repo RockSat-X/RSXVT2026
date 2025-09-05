@@ -619,10 +619,8 @@ _I2C_update_entirely(enum I2CHandle handle)
 
     for target in PER_TARGET():
 
-        if not hasattr(target, 'drivers'):
-            continue
-
         for handle, instance in target.drivers.get('I2C', ()):
+
             for suffix in ('EV', 'ER'):
                 Meta.line(f'''
                     INTERRUPT_I2C{instance}_{suffix}
