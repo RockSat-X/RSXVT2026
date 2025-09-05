@@ -218,58 +218,6 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
         for suffix in units:
             Meta.define(f'{peripheral}{suffix}_', f'{peripheral}_')
 
-
-
-    # Handle aliasing of peripheral names.
-
-    for target in PER_TARGET():
-
-        for alias in target.aliases:
-
-
-
-            # @/`CMSIS Suffix Dropping`.
-
-            terms = [
-                '{}',
-                '{}_',
-            ]
-
-
-
-            # The necessary macros to make working with interrupts smooth.
-
-            for interrupt in alias.interrupts:
-                terms += [f'INTERRUPT_{interrupt}']
-                terms += [f'NVICInterrupt_{interrupt}']
-
-
-
-            # Make the macros with the substituted names.
-            # e.g:
-            # >
-            # >                     {}_BRR_BRR_init   ->       {}_BRR_BRR_init
-            # >    MyAliasedPeripheral_BRR_BRR_init   ->   USART2_BRR_BRR_init
-            # >    ^^^^^^^^^^^^^^^^^^^                     ^^^^^^
-            # >
-
-            terms += alias.terms
-
-            for term in terms:
-                Meta.define(
-                    term.format(alias.moniker),
-                    term.format(alias.actual )
-                )
-
-
-
-            # Make constants to reference the desired register fields.
-
-            for name, tag in alias.puts:
-                Meta.line(f'''
-                    static const struct CMSISTuple {name.format(alias.moniker)} = {CMSIS_TUPLE(SYSTEM_DATABASE[target.mcu][tag])};
-                ''')
-
 */
 
 
