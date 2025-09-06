@@ -5,10 +5,10 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // @/by:`Phuc Doan`.
-// The "__INTERRUPT_Default_indirect" here just simply calls "__INTERRUPT_Default" that's defined in a different object file.
+// The "INTERRUPT_Default_indirect" here just simply calls "INTERRUPT_Default" that's defined in a different object file.
 // This is due to the fact that every interrupt routine is a weak symbol which the user can overwrite by defining the symbol;
-// if the user doesn't do so, then the weak symbol defaults to "__INTERRUPT_Default_indirect".
-// The reason why it's not "__INTERRUPT_Default" itself is because "__INTERRUPT_Default" is a symbol that's also defined in a separate
+// if the user doesn't do so, then the weak symbol defaults to "INTERRUPT_Default_indirect".
+// The reason why it's not "INTERRUPT_Default" itself is because "INTERRUPT_Default" is a symbol that's also defined in a separate
 // object file, and the limitation of weak symbols restrict it so that its default value can only be to something that's within
 // the same object file the weak symbol is defined in.
 // Annoying!
@@ -16,8 +16,8 @@
 
 .section .text
 .thumb_func
-__INTERRUPT_Default_indirect:
-    b __INTERRUPT_Default
+INTERRUPT_Default_indirect:
+    b INTERRUPT_Default
 
 
 
@@ -27,8 +27,8 @@ __INTERRUPT_Default_indirect:
 
 .section .text
 .thumb_func
-.global __INTERRUPT_Reset
-__INTERRUPT_Reset:
+.global INTERRUPT_Reset
+INTERRUPT_Reset:
 
 
 
@@ -92,10 +92,11 @@ __INTERRUPT_Reset:
 .section .vector_table, "a"
 
     .word LINK_stack_addr
-    .word __INTERRUPT_Reset
 
     #include "interrupt_vector_table.meta"
     /* #meta
+
+        import collections
 
 
 
@@ -107,7 +108,10 @@ __INTERRUPT_Reset:
                 for freertos_interrupt in MCUS[mcu].freertos_interrupts
                 if freertos_interrupt not in INTERRUPTS[mcu]
             ]:
-                raise RuntimeError(f'FreeRTOS interrupts missing in {mcu} interrupt vector table: {list(missing)}.')
+                raise RuntimeError(
+                    f'FreeRTOS interrupts missing in {repr(mcu)} '
+                    f'interrupt vector table: {list(missing)}.'
+                )
 
 
 
@@ -115,42 +119,70 @@ __INTERRUPT_Reset:
 
         for target in PER_TARGET():
 
-            for interrupt_i, interrupt_name in enumerate(INTERRUPTS[target.mcu]):
 
 
+            # Some slots in the IVT will be reserved,
+            # so we'll have to make sure to fill in those gaps.
 
-                # Nice header.
+            entries = collections.defaultdict(
+                lambda: None,
+                {
+                    number : name
+                    for name, number in INTERRUPTS[target.mcu].items()
+                }
+            )
 
-                Meta.line(f'''
+            rows = []
 
-                    // [{interrupt_i - 14}] {'Reserved' if interrupt_name is None else interrupt_name}.
+            for interrupt_number in range(min(entries), max(entries) + 1):
 
-                ''')
+                interrupt_name = entries[interrupt_number]
 
-
-
-                # No interrupt handler here.
+                word = None
 
                 if interrupt_name is None:
-                    Meta.line('.word 0')
 
-
-
-                # This interrupt will be supplied by FreeRTOS,
+                    # No interrupt handler here.
+                    word = f'INTERRUPT_Default'
 
                 elif target.use_freertos and interrupt_name in MCUS[target.mcu].freertos_interrupts:
-                    Meta.line(f'.word {MCUS[target.mcu].freertos_interrupts[interrupt_name]}')
 
+                    # This interrupt will be supplied by FreeRTOS.
+                    word = f'{MCUS[target.mcu].freertos_interrupts[interrupt_name]}'
 
+                elif interrupt_name in (
+                    'Reset',
+                    *INTERRUPTS_THAT_MUST_BE_DEFINED,
+                    *(name for name, niceness in target.interrupts)
+                ):
 
-                # These interrupt routines will be implemented by the user, if at all.
+                    # This interrupt must be defined somewhere.
+                    word = f'INTERRUPT_{interrupt_name}'
 
                 else:
-                    Meta.line(
-                        f'.word __INTERRUPT_{interrupt_name}'                               , # Insert the address of the handler routine.
-                        f'.weak __INTERRUPT_{interrupt_name}'                               , # If there exists an implementation of the handler, use it.
-                        f'.set  __INTERRUPT_{interrupt_name}, __INTERRUPT_Default_indirect' , # Otherwise, use the default handler.
-                    )
+
+                    # This interrupt isn't expected to be used by the target.
+                    word = f'INTERRUPT_Default'
+
+                rows += [(
+                    word,
+                    interrupt_number,
+                    'Reserved' if interrupt_name is None else interrupt_name,
+                )]
+
+
+
+            # Output nice looking table.
+
+            for word, interrupt_number, name in justify(
+                (
+                    ('<' , word            ),
+                    ('>' , interrupt_number),
+                    (None, name            ),
+                )
+                for word, interrupt_number, name in rows
+            ):
+                Meta.line(f'.word {word} // [{interrupt_number}] {name}')
 
     */
 
