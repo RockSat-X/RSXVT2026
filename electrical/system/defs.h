@@ -321,182 +321,7 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 
 
 
-//////////////////////////////////////////////////////////////// Interrupts ////////////////////////////////////////////////////////////////
-
-
-
-#include "interrupt_support.meta"
-/* #meta INTERRUPTS, INTERRUPTS_THAT_MUST_BE_DEFINED
-
-
-
-    # Parse the CMSIS header files to get the
-    # list of interrupts on the microcontroller.
-
-    INTERRUPTS = {}
-
-    for mcu in MCUS:
-
-
-
-        # The CMSIS header for the microcontroller
-        # will define its interrupts with an enumeration;
-        # we find the enumeration members so we can
-        # automatically get the list of interrupt
-        # names and the corresponding numbers.
-        # e.g:
-        # >
-        # >    typedef enum
-        # >    {
-        # >        Reset_IRQn          = -15,
-        # >        NonMaskableInt_IRQn = -14,
-        # >        ...
-        # >        FDCAN2_IT0_IRQn     = 154,
-        # >        FDCAN2_IT1_IRQn     = 155
-        # >    } IRQn_Type;
-        # >
-
-        irqs = {}
-
-        for line in MCUS[mcu].cmsis_file_path.read_text().splitlines():
-
-            match line.split():
-
-                case [name, '=', number, *_] if '_IRQn' in name:
-
-                    name   = name.removesuffix('_IRQn')
-                    number = int(number.removesuffix(','))
-
-                    assert number not in irqs
-                    irqs[number] = name
-
-
-
-        # The first interrupt should be the reset exception defined
-        # by the Arm architecture. Note that the reset exception has
-        # an (exception number) of 1, but the *interrupt number* is
-        # defined to be (exception number - 16).
-        #
-        # @/pg 525/tbl B1-4/`Armv7-M`.
-        # @/pg 625/sec B3.4.1/`Armv7-M`.
-        # @/pg 143/sec B3.30/`Armv8-M`.
-        # @/pg 1855/sec D1.2.236/`Armv8-M`.
-
-        irqs = sorted(irqs.items())
-
-        assert irqs[0] == (-15, 'Reset')
-
-        INTERRUPTS[mcu] = {
-            interrupt_name : interrupt_number
-            for interrupt_number, interrupt_name in irqs
-        }
-
-
-
-    # These interrupt routines
-    # will always be around even
-    # if the target didn't explcitly
-    # state their usage.
-
-    INTERRUPTS_THAT_MUST_BE_DEFINED = (
-        'Default',
-        'MemManage',
-        'BusFault',
-        'UsageFault'
-    )
-
-
-
-    # We create some interrupt-specific stuff
-    # to make working with interrupts fun!
-
-    for target in PER_TARGET():
-
-
-
-        # @/`Defining Interrupt Handlers`.
-
-        for routine in OrderedSet((
-            *INTERRUPTS_THAT_MUST_BE_DEFINED,
-            *INTERRUPTS[target.mcu]
-        )):
-
-
-
-            # Skip reserved interrupts.
-
-            if routine is None:
-                continue
-
-
-
-            # Skip unused interrupts.
-
-            if routine not in (
-                *INTERRUPTS_THAT_MUST_BE_DEFINED,
-                *(name for name, niceness in target.interrupts)
-            ):
-                continue
-
-
-
-            # The target and FreeRTOS shouldn't be
-            # in contention with the same interrupt.
-
-            if target.use_freertos and routine in MCUS[target.mcu].freertos_interrupts:
-                raise RuntimeError(
-                    f'FreeRTOS is already using the interrupt {repr(routine)}; '
-                    f'either disable FreeRTOS for target {repr(target.name)} or '
-                    f'just not use {repr(routine)}.'
-                )
-
-
-
-            # The macro will ensure only the
-            # expected ISRs can be defined.
-
-            Meta.define(
-                f'INTERRUPT_{routine}',
-                f'extern void INTERRUPT_{routine}(void)'
-            )
-
-
-
-        # Check to make sure the interrupts
-        # to be used by the target eists.
-
-        for interrupt, niceness in target.interrupts:
-            if interrupt not in INTERRUPTS[target.mcu]:
-
-                import difflib
-
-                raise ValueError(
-                    f'For target {repr(target.name)}, '
-                    f'no such interrupt {repr(interrupt)} '
-                    f'exists on {repr(target.mcu)}; '
-                    f'did you mean any of the following? : '
-                    f'{difflib.get_close_matches(interrupt, INTERRUPTS[mcu].keys(), n = 5, cutoff = 0)}'
-                )
-
-
-
-        # For interrupts (used by the target) that
-        # are in NVIC, we create an enumeration so
-        # that the user can only enable those specific
-        # interrupts. Note that some interrupts, like
-        # SysTick, are not a part of NVIC.
-
-        Meta.enums(
-            'NVICInterrupt',
-            'u32',
-            (
-                (interrupt, f'{interrupt}_IRQn')
-                for interrupt, niceness in target.interrupts
-                if INTERRUPTS[target.mcu][interrupt] >= 0
-            )
-        )
-
-*/
+//////////////////////////////////////////////////////////////// System Initialization ////////////////////////////////////////////////////////////////
 
 
 
@@ -508,10 +333,6 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 #define NVIC_DISABLE(NAME)       ((void) (NVIC->ICER[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32)))
 #define NVIC_SET_PENDING(NAME)   ((void) (NVIC->ISPR[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32)))
 #define NVIC_CLEAR_PENDING(NAME) ((void) (NVIC->ICPR[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32)))
-
-
-
-//////////////////////////////////////////////////////////////// System Initialization ////////////////////////////////////////////////////////////////
 
 
 
@@ -528,6 +349,26 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
     Meta.define('GPIO_TOGGLE', ('NAME'         ), '((void) (CONCAT(GPIO, _PORT_FOR_GPIO_WRITE(NAME))->ODR ^= CONCAT(GPIO_ODR_OD , _NUMBER_FOR_GPIO_WRITE(NAME))))')
     Meta.define('GPIO_SET'   , ('NAME', 'VALUE'), '((void) ((VALUE) ? GPIO_HIGH(NAME) : GPIO_LOW(NAME)))')
     Meta.define('GPIO_READ'  , ('NAME'         ), '(!!(CONCAT(GPIO, _PORT_FOR_GPIO_READ(NAME))->IDR & CONCAT(GPIO_IDR_ID, _NUMBER_FOR_GPIO_READ(NAME))))')
+
+
+
+    for target in PER_TARGET():
+
+        # For interrupts (used by the target) that
+        # are in NVIC, we create an enumeration so
+        # that the user can only enable those specific
+        # interrupts. Note that some interrupts, like
+        # SysTick, are not a part of NVIC.
+
+        Meta.enums(
+            'NVICInterrupt',
+            'u32',
+            (
+                (interrupt, f'{interrupt}_IRQn')
+                for interrupt, niceness in target.interrupts
+                if INTERRUPTS[target.mcu][interrupt] >= 0
+            )
+        )
 
 
 
@@ -668,57 +509,6 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
                 if gpio.pin  is not None
                 if gpio.mode not in (None, 'RESERVED')
             )
-
-
-
-            ################################ Interrupts ################################
-
-            put_title('Interrupts')
-
-
-
-            for interrupt, niceness in target.interrupts:
-
-
-
-                # The amount of bits that can be used to specify
-                # the priorities vary between implementations.
-                # @/pg 526/sec B1.5.4/`Armv7-M`.
-                # @/pg 86/sec B3.9/`Armv8-M`.
-
-                Meta.line(f'''
-                    static_assert(0 <= {niceness} && {niceness} < (1 << __NVIC_PRIO_BITS));
-                ''')
-
-
-
-                # Set the Arm-specific interrupts' priorities.
-
-                if INTERRUPTS[target.mcu][interrupt] <= -1:
-
-                    assert interrupt in (
-                        'MemoryManagement',
-                        'BusFault',
-                        'UsageFault',
-                        'SVCall',
-                        'DebugMonitor',
-                        'PendSV',
-                        'SysTick',
-                    )
-
-                    Meta.line(f'''
-                        SCB->SHPR[{interrupt}_IRQn + 12] = {niceness} << __NVIC_PRIO_BITS;
-                    ''')
-
-
-
-                # Set the MCU-specific interrupts' priorities within NVIC.
-
-                else:
-
-                    Meta.line(f'''
-                        NVIC->IPR[NVICInterrupt_{interrupt}] = {niceness} << __NVIC_PRIO_BITS;
-                    ''')
 
 
 
