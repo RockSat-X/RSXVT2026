@@ -462,6 +462,24 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 
 
 
+        # Check to make sure the interrupts
+        # to be used by the target eists.
+
+        for interrupt, niceness in target.interrupt_priorities:
+            if interrupt not in INTERRUPTS[target.mcu]:
+
+                import difflib
+
+                raise ValueError(
+                    f'For target {repr(target.name)}, '
+                    f'no such interrupt {repr(interrupt)} '
+                    f'exists on {repr(target.mcu)}; '
+                    f'did you mean any of the following? : '
+                    f'{difflib.get_close_matches(interrupt, INTERRUPTS[mcu].keys(), n = 5, cutoff = 0)}'
+                )
+
+
+
         # For interrupts (used by the target) that
         # are in NVIC, we create an enumeration so
         # that the user can only enable those specific
