@@ -490,7 +490,8 @@ def build(parameters):
 
     metapreprocessor_file_paths = [
         pathlib.Path(root, file_name)
-        for root, dirs, file_names in root('./electrical').walk()
+        for path in (root('./electrical'), root('./deps/stpy'))
+        for root, dirs, file_names in path.walk()
         for file_name in file_names
         if file_name.endswith(('.c', '.h', '.py', '.ld', '.S'))
     ]

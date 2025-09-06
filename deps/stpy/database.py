@@ -69,7 +69,7 @@ for mcu in MCUS:
 
     # Load and evaluate the Python expression.
 
-    database_file_path = root(f'./deps/mcu/{mcu}_database.py')
+    database_file_path = root(f'./deps/stpy/mcu/{mcu}_database.py')
 
     if not database_file_path.is_file():
         raise RuntimeError(
