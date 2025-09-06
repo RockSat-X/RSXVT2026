@@ -325,7 +325,6 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 
 
 
-// TODO How to catch cases where an interrupt handler is defined but not in NVIC_TABLE?
 #include "interrupts.meta"
 /* #meta INTERRUPTS
 
@@ -340,9 +339,10 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 
 
 
-        # The CMSIS header for the microcontroller will define its
-        # interrupts with an enumeration; we find the enumeration
-        # members so we can automatically get the list of interrupt
+        # The CMSIS header for the microcontroller
+        # will define its interrupts with an enumeration;
+        # we find the enumeration members so we can
+        # automatically get the list of interrupt
         # names and the corresponding numbers.
         # e.g:
         # >
@@ -362,28 +362,32 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 
             match line.split():
 
-                case [interrupt_name, '=', interrupt_number, *_] if '_IRQn' in interrupt_name:
+                case [name, '=', number, *_] if '_IRQn' in name:
 
-                    interrupt_name   = interrupt_name.removesuffix('_IRQn')
-                    interrupt_number = int(interrupt_number.removesuffix(','))
+                    name   = name.removesuffix('_IRQn')
+                    number = int(number.removesuffix(','))
 
-                    assert interrupt_number not in irqn_enumeration
-                    irqn_enumeration[interrupt_number] = interrupt_name
+                    assert number not in irqn_enumeration
+                    irqn_enumeration[number] = name
 
 
 
-        # The first interrupt should be the reset exception defined by Armv7-M/Armv8-M.
-        # Note that the reset exception has an (exception number) of 1,
-        # but the *interrupt number* is defined to be the (exception number - 16).
-        # @/pg 525/tbl B1-4/`Armv7-M`.   @/pg 143/sec B3.30/`Armv8-M`.
-        # @/pg 625/sec B3.4.1/`Armv7-M`. @/pg 1855/sec D1.2.236/`Armv8-M`.
+        # The first interrupt should be the reset exception defined
+        # by the Arm architecture. Note that the reset exception has
+        # an (exception number) of 1, but the *interrupt number* is
+        # defined to be (exception number - 16).
+        #
+        # We then omit the reset interrupt because
+        # we will typically handle it specially.
+        #
+        # @/pg 525/tbl B1-4/`Armv7-M`.
+        # @/pg 625/sec B3.4.1/`Armv7-M`.
+        # @/pg 143/sec B3.30/`Armv8-M`.
+        # @/pg 1855/sec D1.2.236/`Armv8-M`.
 
         irqn_enumeration = sorted(irqn_enumeration.items())
+
         assert irqn_enumeration[0] == (-15, 'Reset')
-
-
-
-        # We then omit the reset interrupt because we will typically handle it specially.
 
         irqn_enumeration = irqn_enumeration[1:]
 
@@ -397,54 +401,66 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
         INTERRUPTS[mcu] = [None] * (irqn_enumeration[-1][0] - irqn_enumeration[0][0] + 1)
 
         for interrupt_number, interrupt_name in irqn_enumeration:
+
             INTERRUPTS[mcu][interrupt_number - irqn_enumeration[0][0]] = interrupt_name
 
         INTERRUPTS[mcu] = tuple(INTERRUPTS[mcu])
 
 
 
+    # We create some interrupt-specific stuff
+    # to make working with interrupts fun!
+
     for target in PER_TARGET():
 
 
 
-        # TODO Stale.
-        # If trying to define an interrupt handler and one makes a typo,
-        # then the function end up not replacing the weak symbol that's
-        # in place of the interrupt handler in the interrupt vector table,
-        # which can end up as a confusing bug. To prevent that, we will use a
-        # macro to set up the function prototype of the interrupt handler,
-        # and if a typo is made, then a compiler error will be generated.
-        # e.g:
-        # >
-        # >    INTERRUPT_TIM13           <- If "TIM13" interrupt exists,
-        # >    {                            then ok!
-        # >        ...
-        # >    }
-        # >
-        # >    INTERRUPT_TIM14           <- If "TIM14" interrupt doesn't exists,
-        # >    {                            then compiler error here; good!
-        # >        ...
-        # >    }
-        # >
-        # >    extern void
-        # >    INTERRUPT_TIM14(void)   <- This will always compile,
-        # >    {                          even if "TIM14" doesn't exist; bad!
-        # >        ...
-        # >    }
-        # >
+        # @/`Defining Interrupt Handlers`.
+        #
+        # The "Default" ISR is just a special case here.
 
-        for interrupt_name in ('Default', 'MemManage', 'BusFault', 'UsageFault', *INTERRUPTS[target.mcu]):
+        for routine in ('Default', *INTERRUPTS[target.mcu]):
 
-            if interrupt_name is None:
+
+
+            # Skip reserved interrupts.
+
+            if routine is None:
                 continue
 
-            if target.use_freertos and interrupt_name in MCUS[target.mcu].freertos_interrupts:
+
+
+            # Skip unused interrupts.
+
+            WHITELIST = ('Default', 'MemManage', 'BusFault', 'UsageFault')
+
+            if routine not in (
+                *WHITELIST,
+                *(name for name, niceness in target.interrupt_priorities)
+            ):
                 continue
 
-            if interrupt_name not in ('Default', 'MemManage', 'BusFault', 'UsageFault', *(name for name, niceness in target.interrupt_priorities)):
-                continue
 
-            Meta.define(f'INTERRUPT_{interrupt_name}', f'extern void INTERRUPT_{interrupt_name}(void)')
+
+            # The target and FreeRTOS shouldn't be
+            # in contention with the same interrupt.
+
+            if target.use_freertos and routine in MCUS[target.mcu].freertos_interrupts:
+                raise RuntimeError(
+                    f'FreeRTOS is already using the interrupt {repr(routine)}; '
+                    f'either disable FreeRTOS for target {repr(target.name)} or '
+                    f'just not use {repr(routine)}.'
+                )
+
+
+
+            # The macro will ensure only the
+            # expected ISRs can be defined.
+
+            Meta.define(
+                f'INTERRUPT_{routine}',
+                f'extern void INTERRUPT_{routine}(void)'
+            )
 
 
 
@@ -1407,10 +1423,10 @@ INTERRUPT_Default
 
 // @/`Halting`:
 //
-// A `sorry` is used for code-paths that haven't been implemented yet.
-// Eventually, when we want things to be production-ready, we replace
-// all `sorry`s that we can with proper code, or at the very least,
-// a `panic`.
+// A `sorry` is used for code-paths that haven't been
+// implemented yet. Eventually, when we want things to
+// be production-ready, we replace all `sorry`s that we
+// can with proper code, or at the very least, a `panic`.
 // e.g:
 // >
 // >    if (is_sd_card_mounted_yet())
@@ -1443,11 +1459,53 @@ INTERRUPT_Default
 // >                               rather than have the switch-statement silently pass.
 // >
 //
-// When a `sorry` or `panic` is triggered during deployment, the
-// microcontroller will undergo a reset through the watchdog timer (TODO).
-// During development, however, we'd like for the controller to actually
-// stop dead in its track (rather than reset) so that we can debug.
-// To make it even more useful, the microcontroller can also blink an
-// LED indicating whether or not a `panic` or a `sorry` condition has
-// occured; how this is implemented, if at all, is entirely dependent
-// upon the target.
+// When a `sorry` or `panic` is triggered during deployment,
+// the microcontroller will undergo a reset through the
+// watchdog timer (TODO). During development, however, we'd
+// like for the controller to actually stop dead in its track
+// (rather than reset) so that we can debug. To make it even
+// more useful, the microcontroller can also blink an LED
+// indicating whether or not a `panic` or a `sorry` condition
+// has occured; how this is implemented, if at all, is
+// entirely dependent upon the target.
+
+
+
+// @/`Defining Interrupt Handlers`:
+//
+// Most other applications use weak-symbols as a way to have
+// the user be able to declare their interrupt routines, but
+// also have a default routine if the user didn't do so.
+//
+// However, this leaves for a potential bug where the user makes
+// a typo and ends up declaring a useless function that the
+// linker then ignores and the intended ISR will still be
+// referring to the default interrupt handler.
+//
+// e.g:
+// >
+// >    extern void
+// >    INTERRUPT_I2C1_EB   <- Typo!
+// >    {
+// >        ...
+// >    }
+// >
+//
+// To address this, macros will be made specifically for only
+// expected ISRs to be defined by the target. If the macro
+// doesn't exist, then this ends up being a compilation error,
+// but otherwise the macro expands to the expected function
+// prototype.
+//
+// e.g:
+// >
+// >    INTERRUPT_I2C1_EB   <- Compile error!
+// >    {
+// >        ...
+// >    }
+// >
+//
+// Not only that, we can also prevent the user from trying to
+// define an ISR that's not in the target's `interrupt_priorities`
+// settings; this prevents the bug where the user declares
+// an ISR that'll never be executed naturally.
