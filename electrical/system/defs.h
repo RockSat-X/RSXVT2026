@@ -325,7 +325,7 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 
 
 
-#include "interrupts.meta"
+#include "interrupt_support.meta"
 /* #meta INTERRUPTS, INTERRUPTS_THAT_MUST_BE_DEFINED
 
 
