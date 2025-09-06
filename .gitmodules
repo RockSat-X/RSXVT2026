@@ -18,3 +18,7 @@
 	path = deps/cmsis-device-h5
 	url = https://github.com/STMicroelectronics/cmsis-device-h5
 	branch = main
+[submodule "deps/stpy"]
+	path = deps/stpy
+	url = https://github.com/PhucXDoan/stpy
+	branch = master
