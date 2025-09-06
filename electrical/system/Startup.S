@@ -97,6 +97,8 @@ INTERRUPT_Reset:
     #include "interrupt_vector_table.meta"
     /* #meta
 
+        import collections
+
 
 
         # Ensure all FreeRTOS interrupts has a place in the IVT.
@@ -118,31 +120,56 @@ INTERRUPT_Reset:
 
         for target in PER_TARGET():
 
-            for interrupt_i, interrupt in enumerate(INTERRUPTS[target.mcu]):
+
+
+            # Some slots in the IVT will be reserved,
+            # so we'll have to make sure to fill in those gaps.
+
+            entries = collections.defaultdict(
+                lambda: None,
+                {
+                    number : name
+                    for name, number in INTERRUPTS[target.mcu].items()
+                }
+            )
+
+
+
+            # Output each entry of the IVT accordingly.
+
+            for interrupt_number in range(min(entries), max(entries) + 1):
+
+                interrupt_name = entries[interrupt_number]
+
+
 
                 Meta.line(f'''
 
-                    // [{interrupt_i - 14}] {'Reserved' if interrupt is None else interrupt}.
+                    // [{interrupt_number}] {
+                        'Reserved' if interrupt_name is None else interrupt_name
+                    }.
 
                 ''')
 
-                if interrupt is None:
+
+
+                if interrupt_name is None:
 
                     # No interrupt handler here.
                     Meta.line('.word INTERRUPT_Default')
 
-                elif target.use_freertos and interrupt in MCUS[target.mcu].freertos_interrupts:
+                elif target.use_freertos and interrupt_name in MCUS[target.mcu].freertos_interrupts:
 
                     # This interrupt will be supplied by FreeRTOS.
-                    Meta.line(f'.word {MCUS[target.mcu].freertos_interrupts[interrupt]}')
+                    Meta.line(f'.word {MCUS[target.mcu].freertos_interrupts[interrupt_name]}')
 
-                elif interrupt in (
+                elif interrupt_name in (
                     *INTERRUPTS_THAT_MUST_BE_DEFINED,
                     *(name for name, niceness in target.interrupt_priorities)
                 ):
 
                     # This interrupt must be defined by the user.
-                    Meta.line(f'.word INTERRUPT_{interrupt}')
+                    Meta.line(f'.word INTERRUPT_{interrupt_name}')
 
                 else:
 

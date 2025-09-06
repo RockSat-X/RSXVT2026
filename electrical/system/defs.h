@@ -356,7 +356,7 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
         # >    } IRQn_Type;
         # >
 
-        irqn_enumeration = {}
+        irqs = {}
 
         for line in MCUS[mcu].cmsis_file_path.read_text().splitlines():
 
@@ -367,8 +367,8 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
                     name   = name.removesuffix('_IRQn')
                     number = int(number.removesuffix(','))
 
-                    assert number not in irqn_enumeration
-                    irqn_enumeration[number] = name
+                    assert number not in irqs
+                    irqs[number] = name
 
 
 
@@ -385,26 +385,16 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
         # @/pg 143/sec B3.30/`Armv8-M`.
         # @/pg 1855/sec D1.2.236/`Armv8-M`.
 
-        irqn_enumeration = sorted(irqn_enumeration.items())
+        irqs = sorted(irqs.items())
 
-        assert irqn_enumeration[0] == (-15, 'Reset')
+        assert irqs[0] == (-15, 'Reset')
 
-        irqn_enumeration = irqn_enumeration[1:]
+        irqs = irqs[1:]
 
-
-
-        # To get a contigious sequence of interrupt names,
-        # including interrupt numbers that are reserved,
-        # we create a list for all interrupt numbers between
-        # the lowest and highest.
-
-        INTERRUPTS[mcu] = [None] * (irqn_enumeration[-1][0] - irqn_enumeration[0][0] + 1)
-
-        for interrupt_number, interrupt_name in irqn_enumeration:
-
-            INTERRUPTS[mcu][interrupt_number - irqn_enumeration[0][0]] = interrupt_name
-
-        INTERRUPTS[mcu] = tuple(INTERRUPTS[mcu])
+        INTERRUPTS[mcu] = {
+            interrupt_name : interrupt_number
+            for interrupt_number, interrupt_name in irqs
+        }
 
 
 
@@ -477,11 +467,11 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 
 
 
-        # Create an enumeration for each
-        # interrupt the target is using
-        # so that the NVIC macros will
-        # only work with those specific
-        # interrupts.
+        # For interrupts (used by the target) that
+        # are in NVIC, we create an enumeration so
+        # that the user can only enable those specific
+        # interrupts. Note that some interrupts, like
+        # SysTick, are not a part of NVIC.
 
         Meta.enums(
             'NVICInterrupt',
