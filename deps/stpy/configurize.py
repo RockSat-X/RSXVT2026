@@ -1,4 +1,98 @@
-#meta SYSTEM_CONFIGURIZE, INTERRUPTS, INTERRUPTS_THAT_MUST_BE_DEFINED : SYSTEM_DATABASE
+#meta SYSTEM_CONFIGURIZE, INTERRUPTS, INTERRUPTS_THAT_MUST_BE_DEFINED, IMPLEMENT_DRIVER_ALIASES : SYSTEM_DATABASE
+
+
+
+def IMPLEMENT_DRIVER_ALIASES(
+    *,
+    driver_name,
+    cmsis_name,
+    common_name,
+    identifiers,
+    cmsis_tuple_tags,
+):
+
+    for target in PER_TARGET():
+
+
+
+        if driver_name not in target.drivers:
+
+            Meta.line(
+                f'#error Target "{target.name}" cannot use the {driver_name} driver '
+                f'without first specifying the peripheral instances to have handles for.'
+            )
+
+            continue
+
+
+
+        # Have the user be able to specify a specific driver unit.
+
+        Meta.enums(
+            f'{driver_name}Handle',
+            'u32',
+            (handle for handle, instance in target.drivers[driver_name])
+        )
+
+
+
+        # @/`CMSIS Suffix Dropping`.
+        # e.g:
+        # >
+        # >    I2Cx <-> I2C3
+        # >
+
+        Meta.line(f'#define {common_name}_ {cmsis_name}_')
+
+
+
+        # Create a look-up table to map the moniker
+        # name to the actual underyling value.
+
+        Meta.lut( f'{driver_name}_TABLE', (
+            (
+                f'{driver_name}Handle_{handle}',
+                (common_name, instance),
+                *(
+                    (identifier.format(common_name), identifier.format(instance))
+                    for identifier in identifiers
+                ),
+                *(
+                    (
+                        cmsis_tuple_tag.format(common_name),
+                        CMSIS_TUPLE(SYSTEM_DATABASE[target.mcu][cmsis_tuple_tag.format(instance)])
+                    )
+                    for cmsis_tuple_tag in cmsis_tuple_tags
+                )
+            )
+            for handle, instance in target.drivers[driver_name]
+        ))
+
+
+
+    # Macro to mostly bring stuff in the
+    # look-up table into the local scope.
+
+    Meta.line('#undef _EXPAND_HANDLE')
+
+    with Meta.enter('#define _EXPAND_HANDLE'):
+
+        Meta.line(f'''
+
+            if (!(0 <= handle && handle < {driver_name}Handle_COUNT))
+            {{
+                panic;
+            }}
+
+            struct {driver_name}Driver* const driver = &_{driver_name}_drivers[handle];
+
+        ''')
+
+        for alias in (common_name, *identifiers, *cmsis_tuple_tags):
+            Meta.line(f'''
+                auto const {alias.format(common_name)} = {driver_name}_TABLE[handle].{alias.format(common_name)};
+            ''')
+
 
 
 
