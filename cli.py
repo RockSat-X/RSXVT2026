@@ -621,7 +621,7 @@ def build(parameters):
                 -E
                 -x c
                 -o "{root(BUILD, target.name, 'link.ld').as_posix()}"
-                "{root('./electrical/system/link.ld').as_posix()}"
+                "{root('./electrical/link.ld').as_posix()}"
         ''')
 
         log()

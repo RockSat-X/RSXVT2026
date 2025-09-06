@@ -77,7 +77,7 @@ TARGETS = ( # @/`Defining a TARGET`.
         mcu                = 'STM32H7S3L8H6',
         source_file_paths  = root('''
             ./electrical/SandboxNucleoBoard.c
-            ./electrical/system/Startup.S
+            ./electrical/Startup.S
         '''),
 
         use_freertos = False,
@@ -129,7 +129,7 @@ TARGETS = ( # @/`Defining a TARGET`.
         mcu                = 'STM32H533RET6',
         source_file_paths  = root('''
             ./electrical/SandboxNucleoBoard.c
-            ./electrical/system/Startup.S
+            ./electrical/Startup.S
         '''),
 
         use_freertos = False,
@@ -175,7 +175,7 @@ TARGETS = ( # @/`Defining a TARGET`.
         mcu                = 'STM32H533RET6',
         source_file_paths  = root('''
             ./electrical/DemoI2C.c
-            ./electrical/system/Startup.S
+            ./electrical/Startup.S
         '''),
 
         use_freertos = False,
@@ -229,7 +229,7 @@ TARGETS = ( # @/`Defining a TARGET`.
         mcu                = 'STM32H533RET6',
         source_file_paths  = root('''
             ./electrical/DemoTimer.c
-            ./electrical/system/Startup.S
+            ./electrical/Startup.S
         '''),
 
         use_freertos = False,

@@ -1,4 +1,4 @@
-#include "system/defs.h"
+#include "defs.h"
 #include "uxart.c"
 #include "i2c.c"
 
