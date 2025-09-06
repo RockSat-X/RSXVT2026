@@ -132,35 +132,23 @@ INTERRUPT_Reset:
                 }
             )
 
-
-
-            # Output each entry of the IVT accordingly.
+            rows = []
 
             for interrupt_number in range(min(entries), max(entries) + 1):
 
                 interrupt_name = entries[interrupt_number]
 
-
-
-                Meta.line(f'''
-
-                    // [{interrupt_number}] {
-                        'Reserved' if interrupt_name is None else interrupt_name
-                    }.
-
-                ''')
-
-
+                word = None
 
                 if interrupt_name is None:
 
                     # No interrupt handler here.
-                    Meta.line('.word INTERRUPT_Default')
+                    word = f'INTERRUPT_Default'
 
                 elif target.use_freertos and interrupt_name in MCUS[target.mcu].freertos_interrupts:
 
                     # This interrupt will be supplied by FreeRTOS.
-                    Meta.line(f'.word {MCUS[target.mcu].freertos_interrupts[interrupt_name]}')
+                    word = f'{MCUS[target.mcu].freertos_interrupts[interrupt_name]}'
 
                 elif interrupt_name in (
                     'Reset',
@@ -169,12 +157,32 @@ INTERRUPT_Reset:
                 ):
 
                     # This interrupt must be defined somewhere.
-                    Meta.line(f'.word INTERRUPT_{interrupt_name}')
+                    word = f'INTERRUPT_{interrupt_name}'
 
                 else:
 
                     # This interrupt isn't expected to be used by the target.
-                    Meta.line('.word INTERRUPT_Default')
+                    word = f'INTERRUPT_Default'
+
+                rows += [(
+                    word,
+                    interrupt_number,
+                    'Reserved' if interrupt_name is None else interrupt_name,
+                )]
+
+
+
+            # Output nice looking table.
+
+            for word, interrupt_number, name in justify(
+                (
+                    ('<' , word            ),
+                    ('>' , interrupt_number),
+                    (None, name            ),
+                )
+                for word, interrupt_number, name in rows
+            ):
+                Meta.line(f'.word {word} // [{interrupt_number}] {name}')
 
     */
 
