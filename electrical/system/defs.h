@@ -434,7 +434,7 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 
             if routine not in (
                 *INTERRUPTS_THAT_MUST_BE_DEFINED,
-                *(name for name, niceness in target.interrupt_priorities)
+                *(name for name, niceness in target.interrupts)
             ):
                 continue
 
@@ -465,7 +465,7 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
         # Check to make sure the interrupts
         # to be used by the target eists.
 
-        for interrupt, niceness in target.interrupt_priorities:
+        for interrupt, niceness in target.interrupts:
             if interrupt not in INTERRUPTS[target.mcu]:
 
                 import difflib
@@ -491,7 +491,7 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
             'u32',
             (
                 (interrupt, f'{interrupt}_IRQn')
-                for interrupt, niceness in target.interrupt_priorities
+                for interrupt, niceness in target.interrupts
                 if INTERRUPTS[target.mcu][interrupt] >= 0
             )
         )
@@ -677,7 +677,7 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 
 
 
-            for interrupt, niceness in target.interrupt_priorities:
+            for interrupt, niceness in target.interrupts:
 
 
 
@@ -1533,6 +1533,6 @@ INTERRUPT_Default
 // >
 //
 // Not only that, we can also prevent the user from trying to
-// define an ISR that's not in the target's `interrupt_priorities`
+// define an ISR that's not in the target's `interrupts`
 // settings; this prevents the bug where the user declares
 // an ISR that'll never be executed naturally.

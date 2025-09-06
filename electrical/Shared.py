@@ -111,7 +111,7 @@ TARGETS = ( # @/`Defining a TARGET`.
             ('button'    , 'C13', 'INPUT'     , { 'pull'    : 'UP'        }),
         ),
 
-        interrupt_priorities = (
+        interrupts = (
             ('USART3', 0),
         ),
 
@@ -157,7 +157,7 @@ TARGETS = ( # @/`Defining a TARGET`.
             ('button'    , 'C13', 'INPUT'     , { 'pull'    : 'UP'        }),
         ),
 
-        interrupt_priorities = (
+        interrupts = (
             ('USART2', 0),
         ),
 
@@ -206,7 +206,7 @@ TARGETS = ( # @/`Defining a TARGET`.
             ('i2c1_sda'  , 'B7' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA', 'open_drain' : True, 'pull' : 'UP' }),
         ),
 
-        interrupt_priorities = (
+        interrupts = (
             ('USART2' , 0),
             ('I2C1_EV', 1),
             ('I2C1_ER', 1),
@@ -263,7 +263,7 @@ TARGETS = ( # @/`Defining a TARGET`.
             ('OC1N'      , 'A7' , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH1N'                                    }),
         ),
 
-        interrupt_priorities = (
+        interrupts = (
             ('USART2' , 0),
             ('TIM1_UP', 1),
         ),
@@ -491,13 +491,14 @@ def PER_MCU():
 #                              write a meta-directive to verify that the PCB matches our
 #                              GPIO table (TODO).
 #
-#     - interrupt_priorities = This table defines the interrupts that'll need to be configured
-#                              in the NVIC. Any time you're writing a driver for a peripheral,
-#                              and that peripheral uses interrupts, you should add an entry to
-#                              this table. Once you do so, macros will be created to allow the
-#                              interrupt to be enabled in the NVIC. It should be noted that
-#                              the priority value of interrupts work on a niceless level, so
-#                              the lower the number is, the higher priority it actually is.
+#     - interrupts           = This table defines most of the interrupts that'll be used
+#                              by the target. For instance, Any time you're writing a driver
+#                              for a peripheral, and that peripheral uses interrupts, you
+#                              should add an entry to this table. Once you do so, macros
+#                              will be created to allow the interrupt to be enabled in the
+#                              NVIC. It should be noted that the priority value of interrupts
+#                              work on a niceless level, so the lower the number is, the higher
+#                              priority it actually is.
 #
 #     - drivers              = Essentially a table describing the drivers that the target
 #                              needs and will be using. To see what this setting actually does,

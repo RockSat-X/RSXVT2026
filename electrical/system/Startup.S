@@ -153,7 +153,7 @@ INTERRUPT_Reset:
                 elif interrupt_name in (
                     'Reset',
                     *INTERRUPTS_THAT_MUST_BE_DEFINED,
-                    *(name for name, niceness in target.interrupt_priorities)
+                    *(name for name, niceness in target.interrupts)
                 ):
 
                     # This interrupt must be defined somewhere.
