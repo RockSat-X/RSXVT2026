@@ -334,7 +334,7 @@ for target in TARGETS:
         root('./deps/FreeRTOS_Kernel/include'),
         root('./deps/printf/src'),
         root('.'),                               # For <deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h> and such.
-        root('./electrical/system'),             # For <FreeRTOSConfig.h>.
+        root('./electrical'),                    # For <FreeRTOSConfig.h>.
         MCUS[target.mcu].freertos_port_dir_path, # For <portmacro.h> and such.
     )
 
