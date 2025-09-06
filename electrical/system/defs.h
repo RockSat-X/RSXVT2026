@@ -492,6 +492,7 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
             (
                 (interrupt, f'{interrupt}_IRQn')
                 for interrupt, niceness in target.interrupt_priorities
+                if INTERRUPTS[target.mcu][interrupt] >= 0
             )
         )
 
@@ -670,23 +671,54 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 
 
 
-            ################################ NVIC ################################
+            ################################ Interrupts ################################
 
-            put_title('NVIC')
+            put_title('Interrupts')
 
 
-
-            # Set the priorities of the defined NVIC interrupts;
-            # the amount of bits that can be used to specify the priorities
-            # vary between implementations.
-            # @/pg 526/sec B1.5.4/`Armv7-M`.
-            # @/pg 86/sec B3.9/`Armv8-M`.
 
             for interrupt, niceness in target.interrupt_priorities:
+
+
+
+                # The amount of bits that can be used to specify
+                # the priorities vary between implementations.
+                # @/pg 526/sec B1.5.4/`Armv7-M`.
+                # @/pg 86/sec B3.9/`Armv8-M`.
+
                 Meta.line(f'''
                     static_assert(0 <= {niceness} && {niceness} < (1 << __NVIC_PRIO_BITS));
-                    NVIC->IPR[{interrupt}_IRQn] = {niceness} << __NVIC_PRIO_BITS;
                 ''')
+
+
+
+                # Set the Arm-specific interrupts' priorities.
+
+                if INTERRUPTS[target.mcu][interrupt] <= -1:
+
+                    assert interrupt in (
+                        'MemoryManagement',
+                        'BusFault',
+                        'UsageFault',
+                        'SVCall',
+                        'DebugMonitor',
+                        'PendSV',
+                        'SysTick',
+                    )
+
+                    Meta.line(f'''
+                        SCB->SHPR[{interrupt}_IRQn + 12] = {niceness} << __NVIC_PRIO_BITS;
+                    ''')
+
+
+
+                # Set the MCU-specific interrupts' priorities within NVIC.
+
+                else:
+
+                    Meta.line(f'''
+                        NVIC->IPR[NVICInterrupt_{interrupt}] = {niceness} << __NVIC_PRIO_BITS;
+                    ''')
 
 
 
