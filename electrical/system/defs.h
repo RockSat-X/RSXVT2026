@@ -433,7 +433,7 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
         # >    }
         # >
 
-        for interrupt_i, interrupt_name in enumerate(INTERRUPTS[target.mcu]):
+        for interrupt_name in ('Default', 'MemManage', 'BusFault', 'UsageFault', *INTERRUPTS[target.mcu]):
 
             if interrupt_name is None:
                 continue
@@ -441,7 +441,7 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
             if target.use_freertos and interrupt_name in MCUS[target.mcu].freertos_interrupts:
                 continue
 
-            if interrupt_i >= 16 and interrupt_name not in (name for name, niceness in target.interrupt_priorities):
+            if interrupt_name not in ('Default', 'MemManage', 'BusFault', 'UsageFault', *(name for name, niceness in target.interrupt_priorities)):
                 continue
 
             Meta.define(f'INTERRUPT_{interrupt_name}', f'extern void INTERRUPT_{interrupt_name}(void)')
@@ -1158,6 +1158,8 @@ INTERRUPT_UsageFault
 
 }
 
+
+
 INTERRUPT_BusFault
 {
 
@@ -1179,8 +1181,7 @@ INTERRUPT_BusFault
 
 
 
-extern noret void
-INTERRUPT_Default(void)
+INTERRUPT_Default
 {
 
     // @/pg 599/sec B3.2.4/`Armv7-M`.
