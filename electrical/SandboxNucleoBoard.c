@@ -1,6 +1,6 @@
 // Welcome to the sandbox! Please read the comments at the end of the file.
 
-#include "system/defs.h"
+#include "defs.h"
 #include "uxart.c"
 
 
@@ -284,9 +284,8 @@ FREERTOS_TASK(captain_allears, 1024, 0)
 //
 // ... and third, you might notice that `TARGETS` is defined within a Python
 // file, and the truth is that a lot of this codebase is actually written
-// in Python! If you go explore and look at other source files, especially
-// the ones in the <./electrical/system/> directory, there's actually a lot
-// of Python code, most of which is inside C-style comments.
+// in Python! If you go explore and look at other source files, there's actually
+// a lot of Python code, most of which is inside C-style comments.
 //
 // Does this mean we are running Python code
 // on the STM32 microcontrollers?
