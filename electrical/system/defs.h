@@ -326,7 +326,7 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 
 
 #include "interrupts.meta"
-/* #meta INTERRUPTS
+/* #meta INTERRUPTS, INTERRUPTS_THAT_MUST_BE_DEFINED
 
 
 
@@ -408,6 +408,20 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 
 
 
+    # These interrupt routines
+    # will always be around even
+    # if the target didn't explcitly
+    # state their usage.
+
+    INTERRUPTS_THAT_MUST_BE_DEFINED = (
+        'Default',
+        'MemManage',
+        'BusFault',
+        'UsageFault'
+    )
+
+
+
     # We create some interrupt-specific stuff
     # to make working with interrupts fun!
 
@@ -416,10 +430,11 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 
 
         # @/`Defining Interrupt Handlers`.
-        #
-        # The "Default" ISR is just a special case here.
 
-        for routine in ('Default', *INTERRUPTS[target.mcu]):
+        for routine in OrderedSet((
+            *INTERRUPTS_THAT_MUST_BE_DEFINED,
+            *INTERRUPTS[target.mcu]
+        )):
 
 
 
@@ -432,10 +447,8 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 
             # Skip unused interrupts.
 
-            WHITELIST = ('Default', 'MemManage', 'BusFault', 'UsageFault')
-
             if routine not in (
-                *WHITELIST,
+                *INTERRUPTS_THAT_MUST_BE_DEFINED,
                 *(name for name, niceness in target.interrupt_priorities)
             ):
                 continue

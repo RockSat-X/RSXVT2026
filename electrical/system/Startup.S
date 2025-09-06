@@ -107,7 +107,10 @@ INTERRUPT_Reset:
                 for freertos_interrupt in MCUS[mcu].freertos_interrupts
                 if freertos_interrupt not in INTERRUPTS[mcu]
             ]:
-                raise RuntimeError(f'FreeRTOS interrupts missing in {mcu} interrupt vector table: {list(missing)}.')
+                raise RuntimeError(
+                    f'FreeRTOS interrupts missing in {repr(mcu)} '
+                    f'interrupt vector table: {list(missing)}.'
+                )
 
 
 
@@ -115,62 +118,35 @@ INTERRUPT_Reset:
 
         for target in PER_TARGET():
 
-            for interrupt_i, interrupt_name in enumerate(INTERRUPTS[target.mcu]):
-
-
-
-                # Nice header.
+            for interrupt_i, interrupt in enumerate(INTERRUPTS[target.mcu]):
 
                 Meta.line(f'''
 
-                    // [{interrupt_i - 14}] {'Reserved' if interrupt_name is None else interrupt_name}.
+                    // [{interrupt_i - 14}] {'Reserved' if interrupt is None else interrupt}.
 
                 ''')
 
+                if interrupt is None:
 
-
-                # No interrupt handler here.
-
-                if interrupt_name is None:
-
+                    # No interrupt handler here.
                     Meta.line('.word INTERRUPT_Default')
 
+                elif target.use_freertos and interrupt in MCUS[target.mcu].freertos_interrupts:
 
+                    # This interrupt will be supplied by FreeRTOS.
+                    Meta.line(f'.word {MCUS[target.mcu].freertos_interrupts[interrupt]}')
 
-                # This interrupt will be supplied by FreeRTOS.
+                elif interrupt in (
+                    *INTERRUPTS_THAT_MUST_BE_DEFINED,
+                    *(name for name, niceness in target.interrupt_priorities)
+                ):
 
-                elif target.use_freertos and interrupt_name in MCUS[target.mcu].freertos_interrupts:
-
-                    Meta.line(f'.word {MCUS[target.mcu].freertos_interrupts[interrupt_name]}')
-
-
-
-                # This interrupt must be defined by the user.
-
-                elif interrupt_name in (name for name, niceness in target.interrupt_priorities):
-
-                    Meta.line(f'.word INTERRUPT_{interrupt_name}')
-
-
-
-                # This interrupt is for the Arm CPU and not related to the MCU.
-                # Whether or not it's defined at all will be determined by the application.
-                # TODO This isn't really required to be honest...?
-
-                elif interrupt_i <= 15:
-
-                    Meta.line(
-                        f'.word INTERRUPT_{interrupt_name}'                             , # Insert the address of the handler routine.
-                        f'.weak INTERRUPT_{interrupt_name}'                             , # If there exists an implementation of the handler, use it.
-                        f'.set  INTERRUPT_{interrupt_name}, INTERRUPT_Default_indirect' , # Otherwise, use the default handler.
-                    )
-
-
-
-                # This interrupt is unused.
+                    # This interrupt must be defined by the user.
+                    Meta.line(f'.word INTERRUPT_{interrupt}')
 
                 else:
 
+                    # This interrupt is unused.
                     Meta.line('.word INTERRUPT_Default')
 
     */
