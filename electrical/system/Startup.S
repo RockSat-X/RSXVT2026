@@ -92,7 +92,6 @@ INTERRUPT_Reset:
 .section .vector_table, "a"
 
     .word LINK_stack_addr
-    .word INTERRUPT_Reset
 
     #include "interrupt_vector_table.meta"
     /* #meta
@@ -164,16 +163,17 @@ INTERRUPT_Reset:
                     Meta.line(f'.word {MCUS[target.mcu].freertos_interrupts[interrupt_name]}')
 
                 elif interrupt_name in (
+                    'Reset',
                     *INTERRUPTS_THAT_MUST_BE_DEFINED,
                     *(name for name, niceness in target.interrupt_priorities)
                 ):
 
-                    # This interrupt must be defined by the user.
+                    # This interrupt must be defined somewhere.
                     Meta.line(f'.word INTERRUPT_{interrupt_name}')
 
                 else:
 
-                    # This interrupt is unused.
+                    # This interrupt isn't expected to be used by the target.
                     Meta.line('.word INTERRUPT_Default')
 
     */

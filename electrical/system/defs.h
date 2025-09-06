@@ -377,9 +377,6 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
         # an (exception number) of 1, but the *interrupt number* is
         # defined to be (exception number - 16).
         #
-        # We then omit the reset interrupt because
-        # we will typically handle it specially.
-        #
         # @/pg 525/tbl B1-4/`Armv7-M`.
         # @/pg 625/sec B3.4.1/`Armv7-M`.
         # @/pg 143/sec B3.30/`Armv8-M`.
@@ -388,8 +385,6 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
         irqs = sorted(irqs.items())
 
         assert irqs[0] == (-15, 'Reset')
-
-        irqs = irqs[1:]
 
         INTERRUPTS[mcu] = {
             interrupt_name : interrupt_number
