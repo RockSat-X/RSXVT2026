@@ -492,21 +492,6 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
             )
         )
 
-
-
-        # Create an enumeration for every
-        # interrupt there is so it's easy
-        # to decode during debugging.
-
-        Meta.enums(
-            'MCUInterrupt',
-            'i32',
-            (
-                (name if name is not None else f'Reserved_{index}', index - 15)
-                for index, name in enumerate(('Reset', *INTERRUPTS[mcu]))
-            )
-        )
-
 */
 
 
@@ -1226,13 +1211,7 @@ INTERRUPT_Default
 
         default:
         {
-
-            enum MCUInterrupt mcu_interrupt = interrupt_number;
-
-            // Did you forget to define the interrupt routine?
-
-            panic;
-
+            panic; // TODO.
         } break;
     }
 
