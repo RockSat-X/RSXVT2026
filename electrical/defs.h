@@ -184,7 +184,8 @@
 #include "SYSTEM_init.meta"
 /* #meta system_parameterize, system_database, system_configurize, system_configurize, INTERRUPTS_THAT_MUST_BE_DEFINED
 
-    from deps.stpy.system import do, system_parameterize, system_database, system_configurize, system_configurize, INTERRUPTS_THAT_MUST_BE_DEFINED
+    from deps.stpy.configurize import INTERRUPTS_THAT_MUST_BE_DEFINED
+    from deps.stpy.system import do, system_parameterize, system_database, system_configurize, system_configurize
 
     for target in PER_TARGET():
         do(Meta, target)
