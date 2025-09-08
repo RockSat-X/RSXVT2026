@@ -106,7 +106,7 @@ INTERRUPT_Reset:
             if missing := [
                 interrupt
                 for freertos_interrupt in MCUS[mcu].freertos_interrupts
-                if freertos_interrupt not in INTERRUPTS[mcu]
+                if freertos_interrupt not in system_database[mcu]['INTERRUPTS']
             ]:
                 raise RuntimeError(
                     f'FreeRTOS interrupts missing in {repr(mcu)} '
@@ -119,24 +119,11 @@ INTERRUPT_Reset:
 
         for target in PER_TARGET():
 
-
-
-            # Some slots in the IVT will be reserved,
-            # so we'll have to make sure to fill in those gaps.
-
-            entries = collections.defaultdict(
-                lambda: None,
-                {
-                    number : name
-                    for name, number in INTERRUPTS[target.mcu].items()
-                }
-            )
-
             rows = []
 
-            for interrupt_number in range(min(entries), max(entries) + 1):
+            for interrupt_i, interrupt_name in enumerate(system_database[mcu]['INTERRUPTS']):
 
-                interrupt_name = entries[interrupt_number]
+                interrupt_number = interrupt_i - 15
 
                 word = None
 

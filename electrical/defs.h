@@ -61,89 +61,7 @@
 
 
 
-//////////////////////////////////////////////////////////////// CMSIS ////////////////////////////////////////////////////////////////
-
-
-
-//
-// Helpers. @/url:`https://github.com/PhucXDoan/phucxdoan.github.io/wiki/Macros-for-Reading-and-Writing-to-Memory%E2%80%90Mapped-Registers`.
-//
-
-#define _PARENTHESES                                 ()
-#define _EXPAND_0(...)                               _EXPAND_1(_EXPAND_1(_EXPAND_1(__VA_ARGS__)))
-#define _EXPAND_1(...)                               _EXPAND_2(_EXPAND_2(_EXPAND_2(__VA_ARGS__)))
-#define _EXPAND_2(...)                               __VA_ARGS__
-#define _MAP__(FUNCTION, SHARED, FIRST, SECOND, ...) FUNCTION(SHARED, FIRST, SECOND) __VA_OPT__(_MAP_ _PARENTHESES (FUNCTION, SHARED, __VA_ARGS__))
-#define _MAP_()                                      _MAP__
-#define _MAP(FUNCTION, PERIPHERAL_REGISTER, ...)     __VA_OPT__(_EXPAND_0(_MAP__(FUNCTION, PERIPHERAL_REGISTER, __VA_ARGS__)))
-
-#define _GET_POS(PERIPHERAL_REGISTER, FIELD)         CONCAT(CONCAT(PERIPHERAL_REGISTER##_, FIELD##_), Pos)
-#define _GET_MSK(PERIPHERAL_REGISTER, FIELD)         CONCAT(CONCAT(PERIPHERAL_REGISTER##_, FIELD##_), Msk)
-
-#define _CLEAR_BITS(PERIPHERAL_REGISTER, FIELD, VALUE) \
-    & ~_GET_MSK(PERIPHERAL_REGISTER, FIELD)
-
-#define _SET_BITS(PERIPHERAL_REGISTER, FIELD, VALUE)     \
-    | (((VALUE) << _GET_POS(PERIPHERAL_REGISTER, FIELD)) \
-                 & _GET_MSK(PERIPHERAL_REGISTER, FIELD))
-
-#define CMSIS_READ(PERIPHERAL_REGISTER, VARIABLE, FIELD)         \
-    ((u32) (((VARIABLE) & _GET_MSK(PERIPHERAL_REGISTER, FIELD))  \
-                       >> _GET_POS(PERIPHERAL_REGISTER, FIELD)))
-
-#define CMSIS_WRITE(PERIPHERAL_REGISTER, VARIABLE, ...)                       \
-    ((void) ((VARIABLE) =                                                     \
-            ((VARIABLE) _MAP(_CLEAR_BITS, PERIPHERAL_REGISTER, __VA_ARGS__))  \
-                        _MAP(_SET_BITS  , PERIPHERAL_REGISTER, __VA_ARGS__)))
-
-#define CMSIS_SET(PERIPHERAL, REGISTER, ...)                  CMSIS_WRITE(CONCAT(PERIPHERAL##_, REGISTER), PERIPHERAL->REGISTER, __VA_ARGS__)
-#define CMSIS_GET(PERIPHERAL, REGISTER, FIELD)                CMSIS_READ (CONCAT(PERIPHERAL##_, REGISTER), PERIPHERAL->REGISTER, FIELD      )
-#define CMSIS_GET_FROM(VARIABLE, PERIPHERAL, REGISTER, FIELD) CMSIS_READ (CONCAT(PERIPHERAL##_, REGISTER), VARIABLE            , FIELD      )
-
-struct CMSISTuple
-{
-    volatile long unsigned int* destination;
-    i32                         position;
-    u32                         mask;
-};
-
-static mustinline void
-CMSIS_PUT(struct CMSISTuple tuple, u32 value)
-{
-
-    // Read.
-    u32 temporary = *tuple.destination;
-
-    // Modify.
-    temporary = (temporary & ~tuple.mask) | ((value << tuple.position) & tuple.mask);
-
-    // Write.
-    *tuple.destination = temporary;
-
-}
-
-
-
-//
-// Patches.
-//
-
-#if TARGET_MCU_IS_STM32H7S3L8H6 || TARGET_MCU_IS_STM32H533RET6
-
-    #define USART_BRR_BRR_Pos 0                             // For the full contiguous field.
-    #define USART_BRR_BRR_Msk (0xFFFF << USART_BRR_BRR_Pos) // "
-
-#endif
-
-#if TARGET_MCU_IS_STM32H533RET6
-
-    #define RCC_CCIPR5_CKPERSEL_ RCC_CCIPR5_CKERPSEL_         // Typo.
-    #define USART_TDR_TDR_Pos    0                            // Position and mask not given.
-    #define USART_TDR_TDR_Msk    (0x1FF << USART_TDR_TDR_Pos) // "
-    #define USART_RDR_TDR_Pos    0                            // "
-    #define USART_RDR_TDR_Msk    (0x1FF << USART_RDR_TDR_Pos) // "
-
-#endif
+#include "deps/stpy/system.h"
 
 
 
@@ -154,69 +72,11 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 #include "cmsis.meta"
 /* #meta
 
-
-
     # Include the CMSIS device header for the STM32 microcontroller.
 
-    for mcu in PER_MCU():
+    for mcu in PER_MCU(Meta):
 
         Meta.line(f'#include <{MCUS[mcu].cmsis_file_path.as_posix()}>')
-
-
-
-    # @/`CMSIS Suffix Dropping`:
-    # Define macros to map things like "I2C1_" to "I2C_".
-    # This makes using CMSIS_SET/GET a whole lot easier
-    # because CMSIS definitions like "I2C_CR1_PE_Pos"
-    # do not include the peripheral's suffix (the "1" in "I2C1"),
-    # so we need a way to drop the suffix, and this is how we do it.
-
-    import string
-
-    for peripheral in ('UART', 'USART', 'SPI', 'XSPI', 'I2C', 'I3C', 'DMA', 'DMAMUX', 'SDMMC', 'TIM', 'GPIO'):
-
-
-
-        # Determine the suffixes.
-
-        match peripheral:
-            case 'GPIO' : units = string.ascii_uppercase
-            case 'TIM'  : units = range(32)
-            case _      : units = range(8)
-
-        units = list(units)
-
-
-
-        # Some peripherals furthermore have subunits that
-        # also need this suffix-chopping to be done too.
-        # e.g:
-        # >
-        # >    DMAMUX5_RequestGenerator7_   ->   DMAMUX_
-        # >    DMAMUX6_RequestGenerator0_   ->   DMAMUX_
-        # >    DMAMUX6_RequestGenerator1_   ->   DMAMUX_
-        # >
-
-        PERIPHERAL_WITH_SUBUNITS = (
-            ('DMA'   , '{unit}_Stream{subunit}'          ),
-            ('DMAMUX', '{unit}_Channel{subunit}'         ),
-            ('DMAMUX', '{unit}_RequestGenerator{subunit}'),
-        )
-
-        units += [
-            template.format(unit = unit, subunit = subunit)
-            for peripheral_with_subunits, template in PERIPHERAL_WITH_SUBUNITS
-            if peripheral == peripheral_with_subunits
-            for unit in units
-            for subunit in range(8)
-        ]
-
-
-
-        # Output the macro substitutions.
-
-        for suffix in units:
-            Meta.define(f'{peripheral}{suffix}_', f'{peripheral}_')
 
 */
 
@@ -225,8 +85,130 @@ CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 //////////////////////////////////////////////////////////////// System Initialization ////////////////////////////////////////////////////////////////
 
 
+/* #meta IMPLEMENT_DRIVER_ALIASES : system_database
+
+    def IMPLEMENT_DRIVER_ALIASES(
+        *,
+        driver_name,
+        cmsis_name,
+        common_name,
+        identifiers,
+        cmsis_tuple_tags,
+    ):
+
+        for target in PER_TARGET():
+
+
+
+            if driver_name not in target.drivers:
+
+                Meta.line(
+                    f'#error Target "{target.name}" cannot use the {driver_name} driver '
+                    f'without first specifying the peripheral instances to have handles for.'
+                )
+
+                continue
+
+
+
+            # Have the user be able to specify a specific driver unit.
+
+            Meta.enums(
+                f'{driver_name}Handle',
+                'u32',
+                (handle for handle, instance in target.drivers[driver_name])
+            )
+
+
+
+            # @/`CMSIS Suffix Dropping`.
+            # e.g:
+            # >
+            # >    I2Cx <-> I2C3
+            # >
+
+            Meta.line(f'#define {common_name}_ {cmsis_name}_')
+
+
+
+            # Create a look-up table to map the moniker
+            # name to the actual underyling value.
+
+            Meta.lut( f'{driver_name}_TABLE', (
+                (
+                    f'{driver_name}Handle_{handle}',
+                    (common_name, instance),
+                    *(
+                        (identifier.format(common_name), identifier.format(instance))
+                        for identifier in identifiers
+                    ),
+                    *(
+                        (
+                            cmsis_tuple_tag.format(common_name),
+                            CMSIS_TUPLE(system_database[target.mcu][cmsis_tuple_tag.format(instance)])
+                        )
+                        for cmsis_tuple_tag in cmsis_tuple_tags
+                    )
+                )
+                for handle, instance in target.drivers[driver_name]
+            ))
+
+
+
+        # Macro to mostly bring stuff in the
+        # look-up table into the local scope.
+
+        Meta.line('#undef _EXPAND_HANDLE')
+
+        with Meta.enter('#define _EXPAND_HANDLE'):
+
+            Meta.line(f'''
+
+                if (!(0 <= handle && handle < {driver_name}Handle_COUNT))
+                {{
+                    panic;
+                }}
+
+                struct {driver_name}Driver* const driver = &_{driver_name}_drivers[handle];
+
+            ''')
+
+            for alias in (common_name, *identifiers, *cmsis_tuple_tags):
+                Meta.line(f'''
+                    auto const {alias.format(common_name)} = {driver_name}_TABLE[handle].{alias.format(common_name)};
+                ''')
+
+*/
+
 
 #include "SYSTEM_init.meta"
+/* #meta system_parameterize, system_database, system_configurize, system_configurize, INTERRUPTS_THAT_MUST_BE_DEFINED
+
+    from deps.stpy.system import do, system_parameterize, system_database, system_configurize, system_configurize, INTERRUPTS_THAT_MUST_BE_DEFINED
+
+    for target in PER_TARGET():
+        do(Meta, target)
+
+
+
+    for target in TARGETS:
+
+        # The target and FreeRTOS shouldn't be
+        # in contention with the same interrupt.
+
+        for routine in OrderedSet((
+            *INTERRUPTS_THAT_MUST_BE_DEFINED,
+            *system_database[target.mcu]['INTERRUPTS']
+        )):
+
+            if target.use_freertos and routine in MCUS[target.mcu].freertos_interrupts:
+                raise RuntimeError(
+                    f'FreeRTOS is already using the interrupt {repr(routine)}; '
+                    f'either disable FreeRTOS for target {repr(target.name)} or '
+                    f'just not use {repr(routine)}.'
+                )
+
+*/
 
 
 
@@ -540,7 +522,7 @@ INTERRUPT_Default
 
     # The necessary include-directives to compile with FreeRTOS.
 
-    for mcu in PER_MCU():
+    for mcu in PER_MCU(Meta):
 
         with Meta.enter('#if TARGET_USES_FREERTOS'):
 

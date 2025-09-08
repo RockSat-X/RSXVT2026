@@ -1,9 +1,9 @@
-#meta STLINK_BAUD, TARGETS, MCUS, PER_TARGET, PER_MCU :
+#meta STLINK_BAUD, TARGETS, MCUS, PER_MCU, PER_TARGET :
 
+import types, functools
 from deps.pxd.utils import root
+from deps.stpy.database import system_database
 import types
-
-
 
 ################################################################################
 #
@@ -22,10 +22,10 @@ STLINK_BAUD = 1_000_000
 BUILD = root('./build')
 
 
-
 ################################################################################
 #
 # Supported microcontrollers.
+# TODO Copy-pasta.
 #
 
 MCUS = {
@@ -88,16 +88,33 @@ TARGETS = ( # @/`Defining a TARGET`.
             'HSI_ENABLE'    : True,
             'HSI48_ENABLE'  : True,
             'CSI_ENABLE'    : True,
-            'PER_CK_SOURCE' : 'HSI_CK',
+            'PERIPHERAL_CLOCK_OPTION' : 'HSI_CK',
             'PLL1_P_CK'     : 600_000_000,
+            'PLL1_Q_CK'     : None,
+            'PLL1_S_CK'     : None,
+            'PLL2_P_CK'     : None,
+            'PLL2_Q_CK'     : None,
+            'PLL2_R_CK'     : None,
+            'PLL2_T_CK'     : None,
             'PLL2_S_CK'     : 200_000_000,
+            'PLL3_P_CK'     : None,
+            'PLL3_Q_CK'     : None,
+            'PLL3_R_CK'     : None,
+            'PLL3_S_CK'     : None,
             'CPU_CK'        : 600_000_000,
             'AXI_AHB_CK'    : 300_000_000,
             'APB1_CK'       : 150_000_000,
             'APB2_CK'       : 150_000_000,
             'APB4_CK'       : 150_000_000,
             'APB5_CK'       : 150_000_000,
+            'SYSTICK_CK'    : None,
+            'USART1_BAUD'   : None,
+            'USART2_BAUD'   : None,
             'USART3_BAUD'   : STLINK_BAUD,
+            'UART4_BAUD'    : None,
+            'UART5_BAUD'    : None,
+            'UART7_BAUD'    : None,
+            'UART8_BAUD'    : None,
         },
 
         gpios = (
@@ -137,6 +154,40 @@ TARGETS = ( # @/`Defining a TARGET`.
         main_stack_size = 8192,
 
         clock_tree = {
+
+            'PLL1_Q_CK' : None,
+            'PLL1_R_CK' : None,
+
+            'PLL2_P_CK' : None,
+            'PLL2_Q_CK' : None,
+            'PLL2_R_CK' : None,
+
+            'PLL3_P_CK' : None,
+            'PLL3_Q_CK' : None,
+            'PLL3_R_CK' : None,
+
+            'PERIPHERAL_CLOCK_OPTION' : None,
+
+            'USART1_BAUD' : None,
+            'USART3_BAUD' : None,
+            'UART4_BAUD' : None,
+            'UART5_BAUD' : None,
+            'USART6_BAUD' : None,
+            'I2C1_BAUD' : None,
+            'I2C2_BAUD' : None,
+            'I2C3_BAUD' : None,
+            'TIM1_RATE' : None,
+            'TIM2_RATE' : None,
+            'TIM3_RATE' : None,
+            'TIM4_RATE' : None,
+            'TIM5_RATE' : None,
+            'TIM6_RATE' : None,
+            'TIM7_RATE' : None,
+            'TIM8_RATE' : None,
+            'TIM12_RATE' : None,
+            'TIM15_RATE' : None,
+
+
             'HSI_ENABLE'   : True,
             'HSI48_ENABLE' : True,
             'CSI_ENABLE'   : True,
@@ -145,6 +196,7 @@ TARGETS = ( # @/`Defining a TARGET`.
             'APB1_CK'      : 250_000_000,
             'APB2_CK'      : 250_000_000,
             'APB3_CK'      : 250_000_000,
+            'SYSTICK_CK'   : None,
             'USART2_BAUD'  : STLINK_BAUD,
         },
 
@@ -183,6 +235,40 @@ TARGETS = ( # @/`Defining a TARGET`.
         main_stack_size = 8192,
 
         clock_tree = {
+
+            'PLL1_Q_CK' : None,
+            'PLL1_R_CK' : None,
+
+            'PLL2_P_CK' : None,
+            'PLL2_Q_CK' : None,
+            'PLL2_R_CK' : None,
+
+            'PLL3_P_CK' : None,
+            'PLL3_Q_CK' : None,
+            'PLL3_R_CK' : None,
+
+            'PERIPHERAL_CLOCK_OPTION' : None,
+
+            'USART1_BAUD' : None,
+            'USART3_BAUD' : None,
+            'UART4_BAUD' : None,
+            'UART5_BAUD' : None,
+            'USART6_BAUD' : None,
+            'I2C1_BAUD' : None,
+            'I2C2_BAUD' : None,
+            'I2C3_BAUD' : None,
+            'TIM1_RATE' : None,
+            'TIM2_RATE' : None,
+            'TIM3_RATE' : None,
+            'TIM4_RATE' : None,
+            'TIM5_RATE' : None,
+            'TIM6_RATE' : None,
+            'TIM7_RATE' : None,
+            'TIM8_RATE' : None,
+            'TIM12_RATE' : None,
+            'TIM15_RATE' : None,
+
+
             'HSI_ENABLE'   : True,
             'HSI48_ENABLE' : True,
             'CSI_ENABLE'   : True,
@@ -191,6 +277,7 @@ TARGETS = ( # @/`Defining a TARGET`.
             'APB1_CK'      : 250_000_000,
             'APB2_CK'      : 250_000_000,
             'APB3_CK'      : 250_000_000,
+            'SYSTICK_CK'   : None,
             'USART2_BAUD'  : STLINK_BAUD,
             'I2C1_BAUD'    : 100_000,
         },
@@ -237,6 +324,40 @@ TARGETS = ( # @/`Defining a TARGET`.
         main_stack_size = 8192,
 
         clock_tree = {
+
+            'PLL1_Q_CK' : None,
+            'PLL1_R_CK' : None,
+
+            'PLL2_P_CK' : None,
+            'PLL2_Q_CK' : None,
+            'PLL2_R_CK' : None,
+
+            'PLL3_P_CK' : None,
+            'PLL3_Q_CK' : None,
+            'PLL3_R_CK' : None,
+
+            'PERIPHERAL_CLOCK_OPTION' : None,
+
+            'USART1_BAUD' : None,
+            'USART3_BAUD' : None,
+            'UART4_BAUD' : None,
+            'UART5_BAUD' : None,
+            'USART6_BAUD' : None,
+            'I2C1_BAUD' : None,
+            'I2C2_BAUD' : None,
+            'I2C3_BAUD' : None,
+            'TIM1_RATE' : None,
+            'TIM2_RATE' : None,
+            'TIM3_RATE' : None,
+            'TIM4_RATE' : None,
+            'TIM5_RATE' : None,
+            'TIM6_RATE' : None,
+            'TIM7_RATE' : None,
+            'TIM8_RATE' : None,
+            'TIM12_RATE' : None,
+            'TIM15_RATE' : None,
+
+
             'HSI_ENABLE'   : True,
             'HSI48_ENABLE' : True,
             'CSI_ENABLE'   : True,
@@ -245,6 +366,7 @@ TARGETS = ( # @/`Defining a TARGET`.
             'APB1_CK'      : 250_000_000,
             'APB2_CK'      : 250_000_000,
             'APB3_CK'      : 250_000_000,
+            'SYSTICK_CK'   : None,
             'USART2_BAUD'  : STLINK_BAUD,
             'I2C1_BAUD'    : 100_000,
             'TIM1_RATE'    : 16,
@@ -277,6 +399,25 @@ TARGETS = ( # @/`Defining a TARGET`.
     ),
 
 )
+
+
+
+def PER_TARGET():
+
+    for target in TARGETS:
+
+        with Meta.enter(f'#if TARGET_NAME_IS_{target.name}'):
+
+            yield target
+
+def PER_MCU(Meta):
+
+    for mcu in system_database:
+
+        with Meta.enter(f'#if TARGET_MCU_IS_{mcu}'):
+
+            yield mcu
+
 
 
 
@@ -391,33 +532,6 @@ for target in TARGETS:
 
 
 
-################################################################################
-#
-# Some helpers for generating code that's specific to a particular target
-# or a particular MCU. This is better placed in <Helpers.py>, but a limitation
-# of the meta-preprocessor right now is that `TARGETS` and `MCUS` won't be
-# accessible there (TODO).
-#
-
-
-
-def PER_TARGET():
-
-    for target in TARGETS:
-
-        with Meta.enter(f'#if TARGET_NAME_IS_{target.name}'):
-
-            yield target
-
-
-
-def PER_MCU():
-
-    for mcu in MCUS:
-
-        with Meta.enter(f'#if TARGET_MCU_IS_{mcu}'):
-
-            yield mcu
 
 
 
@@ -475,13 +589,13 @@ def PER_MCU():
 #
 #     - clock_tree           = Options relating to configuring the MCU's clock-tree.
 #                              The available options right now is pretty undocumented since
-#                              it heavily depends upon the implementation of `SYSTEM_PARAMETERIZE`;
+#                              it heavily depends upon the implementation of `parameterize`;
 #                              things there are still non-comprehensive and quite experimental.
 #                              Nonetheless, some of the stuff should be self-explanatory, like
 #                              if you want to change the baud rate of a UART peripheral or
 #                              something, then it's pretty easy to do right here; but if you
 #                              have a lot of questions, then you should probably see
-#                              `SYSTEM_PARAMETERIZE` anyways.
+#                              `parameterize` anyways.
 #
 #     - gpios                = This is where we define the GPIOs of our target; what
 #                              input/outputs it has, which pins are being used for what
