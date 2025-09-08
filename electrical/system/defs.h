@@ -1,3 +1,66 @@
+//////////////////////////////////////////////////////////////// Primitives ////////////////////////////////////////////////////////////////
+
+
+
+#define false                   0
+#define true                    1
+#define STRINGIFY_(X)           #X
+#define STRINGIFY(X)            STRINGIFY_(X)
+#define CONCAT_(X, Y)           X##Y
+#define CONCAT(X, Y)            CONCAT_(X, Y)
+#define IS_POWER_OF_TWO(X)      ((X) > 0 && ((X) & ((X) - 1)) == 0)
+#define sizeof(...)             ((signed) sizeof(__VA_ARGS__))
+#define countof(...)            (sizeof(__VA_ARGS__) / sizeof((__VA_ARGS__)[0]))
+#define bitsof(...)             (sizeof(__VA_ARGS__) * 8)
+#define implies(P, Q)           (!(P) || (Q))
+#define iff(P, Q)               (!!(P) == !!(Q))
+#define useret                  __attribute__((warn_unused_result))
+#define mustinline              __attribute__((always_inline)) inline
+#define noret                   __attribute__((noreturn))
+#define fallthrough             __attribute__((fallthrough))
+#define pack_push               _Pragma("pack(push, 1)")
+#define pack_pop                _Pragma("pack(pop)")
+#define memeq(X, Y)             (static_assert_expr(sizeof(X) == sizeof(Y)), !memcmp(&(X), &(Y), sizeof(Y)))
+#define memzero(X)              memset((X), 0, sizeof(*(X)))
+#define static_assert(...)      _Static_assert(__VA_ARGS__, #__VA_ARGS__)
+#define static_assert_expr(...) ((void) sizeof(struct { static_assert(__VA_ARGS__, #__VA_ARGS__); }))
+#ifndef offsetof
+#define offsetof __builtin_offsetof
+#endif
+
+#include "primitives.meta"
+/* #meta
+
+    # We could just use the definitions from <stdint.h>,
+    # but they won't necessarily match up well
+    # with `printf` well at all. For example, we'd like
+    # for the "%d" specifier to work with `i32`
+
+    for name, underlying, size in (
+        ('u8'  , 'unsigned char'     , 1),
+        ('u16' , 'unsigned short'    , 2),
+        ('u32' , 'unsigned'          , 4),
+        ('u64' , 'unsigned long long', 8),
+        ('i8'  , 'signed char'       , 1),
+        ('i16' , 'signed short'      , 2),
+        ('i32' , 'signed'            , 4),
+        ('i64' , 'signed long long'  , 8),
+        ('b8'  , 'signed char'       , 1),
+        ('b16' , 'signed short'      , 2),
+        ('b32' , 'signed'            , 4),
+        ('b64' , 'signed long long'  , 8),
+        ('f32' , 'float'             , 4),
+        ('f64' , 'double'            , 8),
+    ):
+        Meta.line(f'''
+            typedef {underlying} {name};
+            static_assert(sizeof({name}) == {size});
+        ''')
+
+*/
+
+
+
 //////////////////////////////////////////////////////////////// CMSIS ////////////////////////////////////////////////////////////////
 
 
@@ -37,17 +100,26 @@
 #define CMSIS_GET(PERIPHERAL, REGISTER, FIELD)                CMSIS_READ (CONCAT(PERIPHERAL##_, REGISTER), PERIPHERAL->REGISTER, FIELD      )
 #define CMSIS_GET_FROM(VARIABLE, PERIPHERAL, REGISTER, FIELD) CMSIS_READ (CONCAT(PERIPHERAL##_, REGISTER), VARIABLE            , FIELD      )
 
-struct CMSISPutTuple
+struct CMSISTuple
 {
-    volatile long unsigned int* dst;
-    i32                         pos;
-    u32                         msk;
+    volatile long unsigned int* destination;
+    i32                         position;
+    u32                         mask;
 };
 
 static mustinline void
-CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
+CMSIS_PUT(struct CMSISTuple tuple, u32 value)
 {
-    *tuple.dst = ((value) << tuple.pos) & tuple.msk;
+
+    // Read.
+    u32 temporary = *tuple.destination;
+
+    // Modify.
+    temporary = (temporary & ~tuple.mask) | ((value << tuple.position) & tuple.mask);
+
+    // Write.
+    *tuple.destination = temporary;
+
 }
 
 
@@ -86,10 +158,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
     # Include the CMSIS device header for the STM32 microcontroller.
 
-    @Meta.ifs(MCUS, '#if')
-    def _(mcu):
-
-        yield f'TARGET_MCU_IS_{mcu}'
+    for mcu in PER_MCU():
 
         Meta.line(f'#include <{MCUS[mcu].cmsis_file_path.as_posix()}>')
 
@@ -149,81 +218,103 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
         for suffix in units:
             Meta.define(f'{peripheral}{suffix}_', f'{peripheral}_')
 
+*/
 
 
-    # Handle aliasing of peripheral names.
 
-    @Meta.ifs(TARGETS, '#if')
-    def _(target):
+// TODO Document.
 
-        yield f'TARGET_NAME_IS_{target.name}'
+/* #meta IMPLEMENT_DRIVER_ALIASES : SYSTEM_DATABASE
 
-        for alias in target.aliases:
+    def IMPLEMENT_DRIVER_ALIASES(
+        *,
+        driver_name,
+        cmsis_name,
+        common_name,
+        identifiers,
+        cmsis_tuple_tags,
+    ):
+
+        for target in PER_TARGET():
+
+
+
+            if driver_name not in target.drivers:
+
+                Meta.line(
+                    f'#error Target "{target.name}" cannot use the {driver_name} driver '
+                    f'without first specifying the peripheral instances to have handles for.'
+                )
+
+                continue
+
+
+
+            # Have the user be able to specify a specific driver unit.
+
+            Meta.enums(
+                f'{driver_name}Handle',
+                'u32',
+                (handle for handle, instance in target.drivers[driver_name])
+            )
 
 
 
             # @/`CMSIS Suffix Dropping`.
-
-            terms = [
-                '{}',
-                '{}_',
-            ]
-
-
-
-            # The necessary macros to make working with interrupts smooth.
-
-            for interrupt in alias.interrupts:
-                terms += [f'INTERRUPT_{interrupt}']
-                terms += [f'{interrupt}_IRQn']
-                terms += [f'__MACRO_OVERLOAD__NVIC_ENABLE__{interrupt}']
-
-
-
-            # Make the macros with the substituted names.
             # e.g:
             # >
-            # >                     {}_BRR_BRR_init   ->       {}_BRR_BRR_init
-            # >    MyAliasedPeripheral_BRR_BRR_init   ->   USART2_BRR_BRR_init
-            # >    ^^^^^^^^^^^^^^^^^^^                     ^^^^^^
+            # >    I2Cx <-> I2C3
             # >
 
-            terms += alias.terms
+            Meta.line(f'#define {common_name}_ {cmsis_name}_')
 
-            for term in terms:
-                Meta.define(
-                    term.format(alias.moniker),
-                    term.format(alias.actual )
+
+
+            # Create a look-up table to map the moniker
+            # name to the actual underyling value.
+
+            Meta.lut( f'{driver_name}_TABLE', (
+                (
+                    f'{driver_name}Handle_{handle}',
+                    (common_name, instance),
+                    *(
+                        (identifier.format(common_name), identifier.format(instance))
+                        for identifier in identifiers
+                    ),
+                    *(
+                        (
+                            cmsis_tuple_tag.format(common_name),
+                            CMSIS_TUPLE(SYSTEM_DATABASE[target.mcu][cmsis_tuple_tag.format(instance)])
+                        )
+                        for cmsis_tuple_tag in cmsis_tuple_tags
+                    )
                 )
+                for handle, instance in target.drivers[driver_name]
+            ))
 
 
 
-            # Make constants to reference the desired register fields.
-            # e.g:
-            # >
-            # >                                         ('{}_EN', 'uxart_2_enable')
-            # >                                            ^      ^^^^^^^^^^^^^^^^
-            # >                                            |                   |
-            # >                                          vvvvvvvvvvvvvvv       |
-            # >    static constexpr struct CMSISPutTuple UxART_STLINK_EN =     |
-            # >        {                                                       |
-            # >            .dst = &RCC->APB1LENR,               <              |
-            # >            .pos = RCC_APB1LENR_USART2EN_Pos,    <--------------|
-            # >            .msk = RCC_APB1LENR_USART2EN_Msk     <
-            # >        };
-            # >
+        # Macro to mostly bring stuff in the
+        # look-up table into the local scope.
 
-            for name, tag in alias.puts:
+        Meta.line('#undef _EXPAND_HANDLE')
 
-                entry = SYSTEM_DATABASE[target.mcu][tag]
+        with Meta.enter('#define _EXPAND_HANDLE'):
 
+            Meta.line(f'''
+
+                if (!(0 <= handle && handle < {driver_name}Handle_COUNT))
+                {{
+                    panic;
+                }}
+
+                struct {driver_name}Driver* const driver = &_{driver_name}_drivers[handle];
+
+            ''')
+
+            for alias in (common_name, *identifiers, *cmsis_tuple_tags):
                 Meta.line(f'''
-                    static const struct CMSISPutTuple {name.format(alias.moniker)} =
-                        {{
-                            .dst = &{entry.section}->{entry.register},
-                            .pos =  {entry.section}_{entry.register}_{entry.field}_Pos,
-                            .msk =  {entry.section}_{entry.register}_{entry.field}_Msk,
-                        }};
+                    auto const {alias.format(common_name)} = {driver_name}_TABLE[handle].{alias.format(common_name)};
                 ''')
 
 */
@@ -234,8 +325,8 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-#include "interrupts.meta"
-/* #meta INTERRUPTS
+#include "interrupt_support.meta"
+/* #meta INTERRUPTS, INTERRUPTS_THAT_MUST_BE_DEFINED
 
 
 
@@ -248,9 +339,10 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
 
 
-        # The CMSIS header for the microcontroller will define its
-        # interrupts with an enumeration; we find the enumeration
-        # members so we can automatically get the list of interrupt
+        # The CMSIS header for the microcontroller
+        # will define its interrupts with an enumeration;
+        # we find the enumeration members so we can
+        # automatically get the list of interrupt
         # names and the corresponding numbers.
         # e.g:
         # >
@@ -264,94 +356,158 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
         # >    } IRQn_Type;
         # >
 
-        irqn_enumeration = {}
+        irqs = {}
 
         for line in MCUS[mcu].cmsis_file_path.read_text().splitlines():
 
             match line.split():
 
-                case [interrupt_name, '=', interrupt_number, *_] if '_IRQn' in interrupt_name:
+                case [name, '=', number, *_] if '_IRQn' in name:
 
-                    interrupt_name   = interrupt_name.removesuffix('_IRQn')
-                    interrupt_number = int(interrupt_number.removesuffix(','))
+                    name   = name.removesuffix('_IRQn')
+                    number = int(number.removesuffix(','))
 
-                    assert interrupt_number not in irqn_enumeration
-                    irqn_enumeration[interrupt_number] = interrupt_name
-
-
-
-        # The first interrupt should be the reset exception defined by Armv7-M/Armv8-M.
-        # Note that the reset exception has an (exception number) of 1,
-        # but the *interrupt number* is defined to be the (exception number - 16).
-        # @/pg 525/tbl B1-4/`Armv7-M`.   @/pg 143/sec B3.30/`Armv8-M`.
-        # @/pg 625/sec B3.4.1/`Armv7-M`. @/pg 1855/sec D1.2.236/`Armv8-M`.
-
-        irqn_enumeration = sorted(irqn_enumeration.items())
-        assert irqn_enumeration[0] == (-15, 'Reset')
+                    assert number not in irqs
+                    irqs[number] = name
 
 
 
-        # We then omit the reset interrupt because we will typically handle it specially.
+        # The first interrupt should be the reset exception defined
+        # by the Arm architecture. Note that the reset exception has
+        # an (exception number) of 1, but the *interrupt number* is
+        # defined to be (exception number - 16).
+        #
+        # @/pg 525/tbl B1-4/`Armv7-M`.
+        # @/pg 625/sec B3.4.1/`Armv7-M`.
+        # @/pg 143/sec B3.30/`Armv8-M`.
+        # @/pg 1855/sec D1.2.236/`Armv8-M`.
 
-        irqn_enumeration = irqn_enumeration[1:]
+        irqs = sorted(irqs.items())
+
+        assert irqs[0] == (-15, 'Reset')
+
+        INTERRUPTS[mcu] = {
+            interrupt_name : interrupt_number
+            for interrupt_number, interrupt_name in irqs
+        }
 
 
 
-        # To get a contigious sequence of interrupt names,
-        # including interrupt numbers that are reserved,
-        # we create a list for all interrupt numbers between
-        # the lowest and highest.
+    # These interrupt routines
+    # will always be around even
+    # if the target didn't explcitly
+    # state their usage.
 
-        INTERRUPTS[mcu] = [None] * (irqn_enumeration[-1][0] - irqn_enumeration[0][0] + 1)
+    INTERRUPTS_THAT_MUST_BE_DEFINED = (
+        'Default',
+        'MemManage',
+        'BusFault',
+        'UsageFault'
+    )
 
-        for interrupt_number, interrupt_name in irqn_enumeration:
-            INTERRUPTS[mcu][interrupt_number - irqn_enumeration[0][0]] = interrupt_name
-
-        INTERRUPTS[mcu] = tuple(INTERRUPTS[mcu])
 
 
+    # We create some interrupt-specific stuff
+    # to make working with interrupts fun!
 
-    # If trying to define an interrupt handler and one makes a typo,
-    # then the function end up not replacing the weak symbol that's
-    # in place of the interrupt handler in the interrupt vector table,
-    # which can end up as a confusing bug. To prevent that, we will use a
-    # macro to set up the function prototype of the interrupt handler,
-    # and if a typo is made, then a compiler error will be generated.
-    # e.g:
-    # >
-    # >    INTERRUPT_TIM13           <- If "TIM13" interrupt exists,
-    # >    {                            then ok!
-    # >        ...
-    # >    }
-    # >
-    # >    INTERRUPT_TIM14           <- If "TIM14" interrupt doesn't exists,
-    # >    {                            then compiler error here; good!
-    # >        ...
-    # >    }
-    # >
-    # >    extern void
-    # >    __INTERRUPT_TIM14(void)   <- This will always compile,
-    # >    {                            even if "TIM14" doesn't exist; bad!
-    # >        ...
-    # >    }
-    # >
+    for target in PER_TARGET():
 
-    @Meta.ifs(TARGETS, '#if')
-    def _(target):
 
-        yield f'TARGET_NAME_IS_{target.name}'
 
-        for interrupt in ('Default',) + INTERRUPTS[target.mcu]:
+        # @/`Defining Interrupt Handlers`.
 
-            if interrupt is None:
+        for routine in OrderedSet((
+            *INTERRUPTS_THAT_MUST_BE_DEFINED,
+            *INTERRUPTS[target.mcu]
+        )):
+
+
+
+            # Skip reserved interrupts.
+
+            if routine is None:
                 continue
 
-            if target.use_freertos and interrupt in MCUS[target.mcu].freertos_interrupts:
+
+
+            # Skip unused interrupts.
+
+            if routine not in (
+                *INTERRUPTS_THAT_MUST_BE_DEFINED,
+                *(name for name, niceness in target.interrupts)
+            ):
                 continue
 
-            Meta.define(f'INTERRUPT_{interrupt}', f'extern void __INTERRUPT_{interrupt}(void)')
+
+
+            # The target and FreeRTOS shouldn't be
+            # in contention with the same interrupt.
+
+            if target.use_freertos and routine in MCUS[target.mcu].freertos_interrupts:
+                raise RuntimeError(
+                    f'FreeRTOS is already using the interrupt {repr(routine)}; '
+                    f'either disable FreeRTOS for target {repr(target.name)} or '
+                    f'just not use {repr(routine)}.'
+                )
+
+
+
+            # The macro will ensure only the
+            # expected ISRs can be defined.
+
+            Meta.define(
+                f'INTERRUPT_{routine}',
+                f'extern void INTERRUPT_{routine}(void)'
+            )
+
+
+
+        # Check to make sure the interrupts
+        # to be used by the target eists.
+
+        for interrupt, niceness in target.interrupts:
+            if interrupt not in INTERRUPTS[target.mcu]:
+
+                import difflib
+
+                raise ValueError(
+                    f'For target {repr(target.name)}, '
+                    f'no such interrupt {repr(interrupt)} '
+                    f'exists on {repr(target.mcu)}; '
+                    f'did you mean any of the following? : '
+                    f'{difflib.get_close_matches(interrupt, INTERRUPTS[mcu].keys(), n = 5, cutoff = 0)}'
+                )
+
+
+
+        # For interrupts (used by the target) that
+        # are in NVIC, we create an enumeration so
+        # that the user can only enable those specific
+        # interrupts. Note that some interrupts, like
+        # SysTick, are not a part of NVIC.
+
+        Meta.enums(
+            'NVICInterrupt',
+            'u32',
+            (
+                (interrupt, f'{interrupt}_IRQn')
+                for interrupt, niceness in target.interrupts
+                if INTERRUPTS[target.mcu][interrupt] >= 0
+            )
+        )
 
 */
+
+
+
+// Macros to control the interrupt in NVIC.
+// @/pg 626/tbl B3-8/`Armv7-M`.
+// @/pg 1452/tbl D1.1.10/`Armv8-M`.
+
+#define NVIC_ENABLE(NAME)        ((void) (NVIC->ISER[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32)))
+#define NVIC_DISABLE(NAME)       ((void) (NVIC->ICER[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32)))
+#define NVIC_SET_PENDING(NAME)   ((void) (NVIC->ISPR[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32)))
+#define NVIC_CLEAR_PENDING(NAME) ((void) (NVIC->ICPR[NVICInterrupt_##NAME / 32] = 1 << (NVICInterrupt_##NAME % 32)))
 
 
 
@@ -377,10 +533,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
     # Initialize the target's GPIOs, interrupts, clock-tree, etc.
 
-    @Meta.ifs(TARGETS, '#if')
-    def _(target):
-
-        yield f'TARGET_NAME_IS_{target.name}'
+    for target in PER_TARGET():
 
         with Meta.enter('''
             extern void
@@ -404,11 +557,11 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
                 if gpio.pin is None:
                     continue
 
-                if gpio.mode in ('input', 'alternate'):
+                if gpio.mode in ('INPUT', 'ALTERNATE'):
                     Meta.define('_PORT_FOR_GPIO_READ'  , ('NAME'), gpio.port  , NAME = gpio.name)
                     Meta.define('_NUMBER_FOR_GPIO_READ', ('NAME'), gpio.number, NAME = gpio.name)
 
-                if gpio.mode == 'output':
+                if gpio.mode == 'OUTPUT':
                     Meta.define('_PORT_FOR_GPIO_WRITE'  , ('NAME'), gpio.port  , NAME = gpio.name)
                     Meta.define('_NUMBER_FOR_GPIO_WRITE', ('NAME'), gpio.number, NAME = gpio.name)
 
@@ -418,9 +571,9 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
             CMSIS_SET(
                 (
-                    'RCC',
-                    SYSTEM_DATABASE[target.mcu]['GPIO_PORT_ENABLE_REGISTER'].value,
-                    f'GPIO{port}EN',
+                    SYSTEM_DATABASE[target.mcu][f'GPIO{port}_ENABLE'].peripheral,
+                    SYSTEM_DATABASE[target.mcu][f'GPIO{port}_ENABLE'].register,
+                    SYSTEM_DATABASE[target.mcu][f'GPIO{port}_ENABLE'].field,
                     True
                 )
                 for port in sorted(OrderedSet(
@@ -461,7 +614,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
                     f'GPIO{gpio.port}',
                     'OSPEEDR',
                     f'OSPEED{gpio.number}',
-                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_SPEED'].value)[gpio.speed]
+                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_SPEED'])[gpio.speed]
                 )
                 for gpio in gpios
                 if gpio.pin   is not None
@@ -477,7 +630,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
                     f'GPIO{gpio.port}',
                     'PUPDR',
                     f'PUPD{gpio.number}',
-                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_PULL'].value)[gpio.pull]
+                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_PULL'])[gpio.pull]
                 )
                 for gpio in gpios
                 if gpio.pin  is not None
@@ -509,50 +662,63 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
                     f'GPIO{gpio.port}',
                     'MODER',
                     f'MODE{gpio.number}',
-                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_MODE'].value)[gpio.mode]
+                    mk_dict(SYSTEM_DATABASE[target.mcu]['GPIO_MODE'])[gpio.mode]
                 )
                 for gpio in gpios
                 if gpio.pin  is not None
-                if gpio.mode not in (None, 'reserved')
+                if gpio.mode not in (None, 'RESERVED')
             )
 
 
 
-            ################################ NVIC ################################
+            ################################ Interrupts ################################
 
-            put_title('NVIC')
+            put_title('Interrupts')
 
 
 
-            # Make macros to control the interrupt in NVIC.
-            # @/pg 626/tbl B3-8/`Armv7-M`.
-            # @/pg 1452/tbl D1.1.10/`Armv8-M`.
+            for interrupt, niceness in target.interrupts:
 
-            for interrupt, niceness in target.interrupt_priorities:
-                for macro, register in (
-                    ('NVIC_ENABLE'       , 'ISER'),
-                    ('NVIC_DISABLE'      , 'ICER'),
-                    ('NVIC_SET_PENDING'  , 'ISPR'),
-                    ('NVIC_CLEAR_PENDING', 'ICPR'),
-                ):
-                    Meta.define(
-                        macro, ('INTERRUPT'),
-                        f'((void) (NVIC->{register}[{interrupt}_IRQn / 32] = 1 << ({interrupt}_IRQn % 32)))',
-                        INTERRUPT = interrupt
+
+
+                # The amount of bits that can be used to specify
+                # the priorities vary between implementations.
+                # @/pg 526/sec B1.5.4/`Armv7-M`.
+                # @/pg 86/sec B3.9/`Armv8-M`.
+
+                Meta.line(f'''
+                    static_assert(0 <= {niceness} && {niceness} < (1 << __NVIC_PRIO_BITS));
+                ''')
+
+
+
+                # Set the Arm-specific interrupts' priorities.
+
+                if INTERRUPTS[target.mcu][interrupt] <= -1:
+
+                    assert interrupt in (
+                        'MemoryManagement',
+                        'BusFault',
+                        'UsageFault',
+                        'SVCall',
+                        'DebugMonitor',
+                        'PendSV',
+                        'SysTick',
                     )
 
+                    Meta.line(f'''
+                        SCB->SHPR[{interrupt}_IRQn + 12] = {niceness} << __NVIC_PRIO_BITS;
+                    ''')
 
 
-            # Set the priorities of the defined NVIC interrupts.
-            # Note that the Armv7-M architecture guarantees minimum of 3 priority bits,
-            # while the Armv8-M guarantees minimum of 2; for now, we'll appeal
-            # to the lowest common denominator here.
-            # @/pg 526/sec B1.5.4/`Armv7-M`.
-            # @/pg 86/sec B3.9/`Armv8-M`.
 
-            for interrupt, niceness in target.interrupt_priorities:
-                assert 0b00 <= niceness <= 0b11
-                Meta.line(f'NVIC->IPR[{interrupt}_IRQn] = {niceness} << 6;')
+                # Set the MCU-specific interrupts' priorities within NVIC.
+
+                else:
+
+                    Meta.line(f'''
+                        NVIC->IPR[NVICInterrupt_{interrupt}] = {niceness} << __NVIC_PRIO_BITS;
+                    ''')
 
 
 
@@ -768,7 +934,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
             # A simple input GPIO to read digital voltage levels.
 
-            case 'input':
+            case 'INPUT':
 
 
 
@@ -781,7 +947,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
 
             # A simple output GPIO that can be driven low or high.
 
-            case 'output':
+            case 'OUTPUT':
 
 
 
@@ -803,7 +969,7 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
             # This GPIO would typically be used for some
             # peripheral functionality (e.g. SPI clock output).
 
-            case 'alternate':
+            case 'ALTERNATE':
 
 
 
@@ -826,18 +992,18 @@ CMSIS_PUT(struct CMSISPutTuple tuple, u32 value)
             # disabled; this obviously allows for ADC/DAC usage,
             # but it can also serve as a power-saving measure.
 
-            case 'analog':
+            case 'ANALOG':
                 raise NotImplementedError
 
 
 
-            # A GPIO that's marked as "reserved" is often useful
+            # A GPIO that's marked as "RESERVED" is often useful
             # for marking a particular pin as something that
             # shouldn't be used because it has an important
             # functionality (e.g. JTAG debug).
             # We ignore any properties the reserved pin may have.
 
-            case 'reserved':
+            case 'RESERVED':
                 properties = {}
 
 
@@ -968,8 +1134,8 @@ spinlock_nop(u32 count)
 static noret void           // "
 halt_(b32 panicking)        // "
 {
-    __disable_irq();
 
+    __disable_irq();
 
     #if TARGET_NAME_IS_SandboxNucleoH7S3L8
 
@@ -1004,9 +1170,7 @@ halt_(b32 panicking)        // "
             }
         }
 
-    #endif
-
-    #if TARGET_NAME_IS_SandboxNucleoH533RE
+    #else // We're going to assume there's an LED we can toggle.
 
         for (;;)
         {
@@ -1027,14 +1191,65 @@ halt_(b32 panicking)        // "
 
     #endif
 
-    for (;;); // Panic! Something horrible has happened!
+}
+
+
+
+INTERRUPT_UsageFault
+{
+
+    // @/pg 611/sec B3.2.15/`Armv7-M`.
+    // @/pg 1901/sec D1.2.267/`Armv8-M`.
+    u32 usage_fault_status = CMSIS_GET(SCB, CFSR, USGFAULTSR);
+    b32 stack_overflow     = (usage_fault_status >> 4) & 1; // This is only defined on Armv8-M.
+
+    panic; // See the values above to determine what caused this UsageFault.
+
+}
+
+
+
+INTERRUPT_BusFault
+{
+
+    // @/pg 611/sec B3.2.15/`Armv7-M`.
+    // @/pg 1472/sec D1.2.7/`Armv8-M`.
+    u32 bus_fault_status             = CMSIS_GET(SCB, CFSR, BUSFAULTSR);
+    b32 bus_fault_address_valid      = (bus_fault_status >> 7) & 1;
+    b32 imprecise_data_access        = (bus_fault_status >> 2) & 1;
+    b32 precise_data_access          = (bus_fault_status >> 1) & 1;
+    b32 instruction_access_violation = (bus_fault_status >> 0) & 1;
+
+    // @/pg 614/sec B3.2.18/`Armv7-M`.
+    // @/pg 1471/sec D1.2.6/`Armv8-M`.
+    u32 bus_fault_address = SCB->BFAR;
+
+    panic; // See the values above to determine what caused this BusFault.
+
 }
 
 
 
 INTERRUPT_Default
 {
-    panic; // TODO Have an explanation of what happened here.
+
+    // @/pg 599/sec B3.2.4/`Armv7-M`.
+    // @/pg 1680/sec D1.2.125/`Armv8-M`.
+    i32 interrupt_number = CMSIS_GET(SCB, ICSR, VECTACTIVE) - 16;
+
+    switch (interrupt_number)
+    {
+        case HardFault_IRQn:
+        {
+            panic; // There was a HardFault for some unhandled reason...
+        } break;
+
+        default:
+        {
+            panic; // TODO.
+        } break;
+    }
+
 }
 
 
@@ -1049,6 +1264,7 @@ INTERRUPT_Default
 
 #include <deps/FreeRTOS_Kernel/include/FreeRTOS.h>
 #include <deps/FreeRTOS_Kernel/include/task.h>
+#include <deps/FreeRTOS_Kernel/include/semphr.h>
 
 
 
@@ -1077,10 +1293,7 @@ INTERRUPT_Default
 
     import re
 
-    @Meta.ifs(TARGETS, '#if')
-    def _(target):
-
-        yield f'TARGET_NAME_IS_{target.name}'
+    for target in PER_TARGET():
 
 
 
@@ -1130,7 +1343,7 @@ INTERRUPT_Default
         # Rest of the stuff is only when the target actually uses FreeRTOS.
 
         if not target.use_freertos:
-            return
+            continue
 
 
 
@@ -1176,15 +1389,51 @@ INTERRUPT_Default
 
     # The necessary include-directives to compile with FreeRTOS.
 
-    @Meta.ifs(MCUS, '#if')
-    def _(mcu):
+    for mcu in PER_MCU():
 
-        yield f'TARGET_MCU_IS_{mcu} && TARGET_USES_FREERTOS'
+        with Meta.enter('#if TARGET_USES_FREERTOS'):
 
-        for header in MCUS[mcu].freertos_source_files:
-            Meta.line(f'#include <{header}>')
+            for header in MCUS[mcu].freertos_source_files:
+                Meta.line(f'#include <{header}>')
 
 */
+
+
+
+#if TARGET_USES_FREERTOS
+
+    #define MUTEX_TAKE(MUTEX)                                          \
+        do                                                             \
+        {                                                              \
+            if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) \
+            {                                                          \
+                if (!xSemaphoreTake((MUTEX), portMAX_DELAY))           \
+                {                                                      \
+                    panic;                                             \
+                }                                                      \
+            }                                                          \
+        }                                                              \
+        while (false)
+
+    #define MUTEX_GIVE(MUTEX)                                          \
+        do                                                             \
+        {                                                              \
+            if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) \
+            {                                                          \
+                if (!xSemaphoreGive((MUTEX)))                          \
+                {                                                      \
+                    panic;                                             \
+                }                                                      \
+            }                                                          \
+        }                                                              \
+        while (false)
+
+#else
+
+    #define MUTEX_TAKE(MUTEX)
+    #define MUTEX_GIVE(MUTEX)
+
+#endif
 
 
 
@@ -1201,10 +1450,10 @@ INTERRUPT_Default
 
 // @/`Halting`:
 //
-// A `sorry` is used for code-paths that haven't been implemented yet.
-// Eventually, when we want things to be production-ready, we replace
-// all `sorry`s that we can with proper code, or at the very least,
-// a `panic`.
+// A `sorry` is used for code-paths that haven't been
+// implemented yet. Eventually, when we want things to
+// be production-ready, we replace all `sorry`s that we
+// can with proper code, or at the very least, a `panic`.
 // e.g:
 // >
 // >    if (is_sd_card_mounted_yet())
@@ -1237,11 +1486,53 @@ INTERRUPT_Default
 // >                               rather than have the switch-statement silently pass.
 // >
 //
-// When a `sorry` or `panic` is triggered during deployment, the
-// microcontroller will undergo a reset through the watchdog timer (TODO).
-// During development, however, we'd like for the controller to actually
-// stop dead in its track (rather than reset) so that we can debug.
-// To make it even more useful, the microcontroller can also blink an
-// LED indicating whether or not a `panic` or a `sorry` condition has
-// occured; how this is implemented, if at all, is entirely dependent
-// upon the target.
+// When a `sorry` or `panic` is triggered during deployment,
+// the microcontroller will undergo a reset through the
+// watchdog timer (TODO). During development, however, we'd
+// like for the controller to actually stop dead in its track
+// (rather than reset) so that we can debug. To make it even
+// more useful, the microcontroller can also blink an LED
+// indicating whether or not a `panic` or a `sorry` condition
+// has occured; how this is implemented, if at all, is
+// entirely dependent upon the target.
+
+
+
+// @/`Defining Interrupt Handlers`:
+//
+// Most other applications use weak-symbols as a way to have
+// the user be able to declare their interrupt routines, but
+// also have a default routine if the user didn't do so.
+//
+// However, this leaves for a potential bug where the user makes
+// a typo and ends up declaring a useless function that the
+// linker then ignores and the intended ISR will still be
+// referring to the default interrupt handler.
+//
+// e.g:
+// >
+// >    extern void
+// >    INTERRUPT_I2C1_EB   <- Typo!
+// >    {
+// >        ...
+// >    }
+// >
+//
+// To address this, macros will be made specifically for only
+// expected ISRs to be defined by the target. If the macro
+// doesn't exist, then this ends up being a compilation error,
+// but otherwise the macro expands to the expected function
+// prototype.
+//
+// e.g:
+// >
+// >    INTERRUPT_I2C1_EB   <- Compile error!
+// >    {
+// >        ...
+// >    }
+// >
+//
+// Not only that, we can also prevent the user from trying to
+// define an ISR that's not in the target's `interrupts`
+// settings; this prevents the bug where the user declares
+// an ISR that'll never be executed naturally.

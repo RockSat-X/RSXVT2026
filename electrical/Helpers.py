@@ -1,4 +1,4 @@
-#meta types, log, ANSI,    root, justify, coalesce, find_dupe, mk_dict, OrderedSet, AllocatingNamespace, ContainedNamespace, put_title, CMSIS_SET, CMSIS_WRITE, CMSIS_SPINLOCK :
+#meta types, log, ANSI,    root, justify, coalesce, find_dupe, mk_dict, OrderedSet, AllocatingNamespace, ContainedNamespace, put_title, CMSIS_SET, CMSIS_WRITE, CMSIS_SPINLOCK, CMSIS_TUPLE :
 from deps.pxd.utils import root, justify, coalesce, find_dupe, mk_dict, OrderedSet, AllocatingNamespace, ContainedNamespace, c_repr
 from deps.pxd.log   import log, ANSI
 import types
@@ -281,6 +281,21 @@ def CMSIS_SPINLOCK(*spinlocks):
             case True  : Meta.line(f'while (!CMSIS_GET({peripheral}, {register}, {field}));')
             case False : Meta.line(f'while (CMSIS_GET({peripheral}, {register}, {field}));')
             case _     : Meta.line(f'while (CMSIS_GET({peripheral}, {register}, {field}) != {value});')
+
+
+
+################################################################################################################################
+
+
+
+# Helper routine to make a CMSIS tuple from a database entry easily.
+
+def CMSIS_TUPLE(entry):
+    return '(struct CMSISTuple) {{ {}, {}, {} }}'.format(
+        f'&{entry.peripheral}->{entry.register}',
+        f'{entry.peripheral}_{entry.register}_{entry.field}_Pos',
+        f'{entry.peripheral}_{entry.register}_{entry.field}_Msk',
+    )
 
 
 

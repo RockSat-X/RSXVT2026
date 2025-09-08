@@ -1,11 +1,11 @@
-#meta STLINK_BAUD, TARGETS, MCUS :
+#meta STLINK_BAUD, TARGETS, MCUS, PER_TARGET, PER_MCU :
 
 from deps.pxd.utils import root
 import types
 
 
 
-################################################################################################################################
+################################################################################
 #
 # Communication speed with the ST-Link.
 #
@@ -14,7 +14,7 @@ STLINK_BAUD = 1_000_000
 
 
 
-################################################################################################################################
+################################################################################
 #
 # Build directory where all build artifacts will be dumped to.
 #
@@ -23,7 +23,7 @@ BUILD = root('./build')
 
 
 
-################################################################################################################################
+################################################################################
 #
 # Supported microcontrollers.
 #
@@ -64,7 +64,7 @@ MCUS = {
 
 
 
-################################################################################################################################
+################################################################################
 #
 # Basic description of each of our firmware targets.
 #
@@ -82,48 +82,44 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         use_freertos = False,
 
-        stack_size = 8192, # TODO This might be removed depending on how FreeRTOS works.
-
-        aliases = (
-            types.SimpleNamespace(
-                moniker    = 'UxART_STLINK',
-                actual     = 'USART3',
-                terms      = ['{}_BRR_BRR_init'],
-                interrupts = ['{}'],
-                puts       = [('{}_EN', 'uxart_3_enable')]
-            ),
-        ),
+        main_stack_size = 8192,
 
         clock_tree = {
-            'hsi_enable'    : True,
-            'hsi48_enable'  : True,
-            'csi_enable'    : True,
-            'per_ck_source' : 'hsi_ck',
-            'pll1_p_ck'     : 600_000_000,
-            'pll2_s_ck'     : 200_000_000,
-            'cpu_ck'        : 600_000_000,
-            'axi_ahb_ck'    : 300_000_000,
-            'apb1_ck'       : 150_000_000,
-            'apb2_ck'       : 150_000_000,
-            'apb4_ck'       : 150_000_000,
-            'apb5_ck'       : 150_000_000,
-            'usart3_baud'   : STLINK_BAUD,
+            'HSI_ENABLE'    : True,
+            'HSI48_ENABLE'  : True,
+            'CSI_ENABLE'    : True,
+            'PER_CK_SOURCE' : 'HSI_CK',
+            'PLL1_P_CK'     : 600_000_000,
+            'PLL2_S_CK'     : 200_000_000,
+            'CPU_CK'        : 600_000_000,
+            'AXI_AHB_CK'    : 300_000_000,
+            'APB1_CK'       : 150_000_000,
+            'APB2_CK'       : 150_000_000,
+            'APB4_CK'       : 150_000_000,
+            'APB5_CK'       : 150_000_000,
+            'USART3_BAUD'   : STLINK_BAUD,
         },
 
         gpios = (
-            ('led_red'   , 'B7' , 'output'    , { 'initlvl' : False       }),
-            ('led_yellow', 'D13', 'output'    , { 'initlvl' : False       }),
-            ('led_green' , 'D10', 'output'    , { 'initlvl' : False       }),
-            ('jig_tx'    , 'D8' , 'alternate' , { 'altfunc' : 'USART3_TX' }),
-            ('jig_rx'    , 'D9' , 'alternate' , { 'altfunc' : 'USART3_RX' }),
-            ('swdio'     , 'A13', 'reserved'  , {                         }),
-            ('swclk'     , 'A14', 'reserved'  , {                         }),
-            ('button'    , 'C13', 'input'     , { 'pull'    : 'up'        }),
+            ('led_red'   , 'B7' , 'OUTPUT'    , { 'initlvl' : False       }),
+            ('led_yellow', 'D13', 'OUTPUT'    , { 'initlvl' : False       }),
+            ('led_green' , 'D10', 'OUTPUT'    , { 'initlvl' : False       }),
+            ('stlink_tx' , 'D8' , 'ALTERNATE' , { 'altfunc' : 'USART3_TX' }),
+            ('stlink_rx' , 'D9' , 'ALTERNATE' , { 'altfunc' : 'USART3_RX' }),
+            ('swdio'     , 'A13', 'RESERVED'  , {                         }),
+            ('swclk'     , 'A14', 'RESERVED'  , {                         }),
+            ('button'    , 'C13', 'INPUT'     , { 'pull'    : 'UP'        }),
         ),
 
-        interrupt_priorities = (
+        interrupts = (
             ('USART3', 0),
         ),
+
+        drivers = {
+            'UXART' : (
+                ('stlink', 'USART3'),
+            )
+        }
 
     ),
 
@@ -138,42 +134,145 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         use_freertos = False,
 
-        stack_size = 8192, # TODO This might be removed depending on how FreeRTOS works.
-
-        aliases = (
-            types.SimpleNamespace(
-                moniker    = 'UxART_STLINK',
-                actual     = 'USART2',
-                terms      = ['{}_BRR_BRR_init'],
-                interrupts = ['{}'],
-                puts       = [('{}_EN', 'uxart_2_enable')]
-            ),
-        ),
+        main_stack_size = 8192,
 
         clock_tree = {
-            'hsi_enable'   : True,
-            'hsi48_enable' : True,
-            'csi_enable'   : True,
-            'pll1_p_ck'    : 250_000_000,
-            'cpu_ck'       : 250_000_000,
-            'apb1_ck'      : 250_000_000,
-            'apb2_ck'      : 250_000_000,
-            'apb3_ck'      : 250_000_000,
-            'usart2_baud'  : STLINK_BAUD,
+            'HSI_ENABLE'   : True,
+            'HSI48_ENABLE' : True,
+            'CSI_ENABLE'   : True,
+            'PLL1_P_CK'    : 250_000_000,
+            'CPU_CK'       : 250_000_000,
+            'APB1_CK'      : 250_000_000,
+            'APB2_CK'      : 250_000_000,
+            'APB3_CK'      : 250_000_000,
+            'USART2_BAUD'  : STLINK_BAUD,
         },
 
         gpios = (
-            ('led_green' , 'A5' , 'output'    , { 'initlvl' : False       }),
-            ('jig_tx'    , 'A2' , 'alternate' , { 'altfunc' : 'USART2_TX' }),
-            ('jig_rx'    , 'A3' , 'alternate' , { 'altfunc' : 'USART2_RX' }),
-            ('swdio'     , 'A13', 'reserved'  , {                         }),
-            ('swclk'     , 'A14', 'reserved'  , {                         }),
-            ('button'    , 'C13', 'input'     , { 'pull'    : 'up'        }),
+            ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False       }),
+            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX' }),
+            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX' }),
+            ('swdio'     , 'A13', 'RESERVED'  , {                         }),
+            ('swclk'     , 'A14', 'RESERVED'  , {                         }),
+            ('button'    , 'C13', 'INPUT'     , { 'pull'    : 'UP'        }),
         ),
 
-        interrupt_priorities = (
+        interrupts = (
             ('USART2', 0),
         ),
+
+        drivers = {
+            'UXART' : (
+                ('stlink', 'USART2'),
+            )
+        }
+
+    ),
+
+    types.SimpleNamespace(
+
+        name               = 'DemoI2C',
+        mcu                = 'STM32H533RET6',
+        source_file_paths  = root('''
+            ./electrical/DemoI2C.c
+            ./electrical/system/Startup.S
+        '''),
+
+        use_freertos = False,
+
+        main_stack_size = 8192,
+
+        clock_tree = {
+            'HSI_ENABLE'   : True,
+            'HSI48_ENABLE' : True,
+            'CSI_ENABLE'   : True,
+            'PLL1_P_CK'    : 250_000_000,
+            'CPU_CK'       : 250_000_000,
+            'APB1_CK'      : 250_000_000,
+            'APB2_CK'      : 250_000_000,
+            'APB3_CK'      : 250_000_000,
+            'USART2_BAUD'  : STLINK_BAUD,
+            'I2C1_BAUD'    : 100_000,
+        },
+
+        gpios = (
+            ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                                          }),
+            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'                                    }),
+            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'                                    }),
+            ('swdio'     , 'A13', 'RESERVED'  , {                                                            }),
+            ('swclk'     , 'A14', 'RESERVED'  , {                                                            }),
+            ('button'    , 'C13', 'INPUT'     , { 'pull'    : 'UP'                                           }),
+            ('i2c1_scl'  , 'B6' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL', 'open_drain' : True, 'pull' : 'UP' }),
+            ('i2c1_sda'  , 'B7' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA', 'open_drain' : True, 'pull' : 'UP' }),
+        ),
+
+        interrupts = (
+            ('USART2' , 0),
+            ('I2C1_EV', 1),
+            ('I2C1_ER', 1),
+        ),
+
+        drivers = {
+            'UXART' : (
+                ('stlink', 'USART2'),
+            ),
+            'I2C' : (
+                ('primary', 'I2C1'),
+            ),
+        }
+
+    ),
+
+    types.SimpleNamespace(
+
+        name               = 'DemoTimer',
+        mcu                = 'STM32H533RET6',
+        source_file_paths  = root('''
+            ./electrical/DemoTimer.c
+            ./electrical/system/Startup.S
+        '''),
+
+        use_freertos = False,
+
+        main_stack_size = 8192,
+
+        clock_tree = {
+            'HSI_ENABLE'   : True,
+            'HSI48_ENABLE' : True,
+            'CSI_ENABLE'   : True,
+            'PLL1_P_CK'    : 250_000_000,
+            'CPU_CK'       : 250_000_000,
+            'APB1_CK'      : 250_000_000,
+            'APB2_CK'      : 250_000_000,
+            'APB3_CK'      : 250_000_000,
+            'USART2_BAUD'  : STLINK_BAUD,
+            'I2C1_BAUD'    : 100_000,
+            'TIM1_RATE'    : 16,
+        },
+
+        gpios = (
+            ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                                          }),
+            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'                                    }),
+            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'                                    }),
+            ('swdio'     , 'A13', 'RESERVED'  , {                                                            }),
+            ('swclk'     , 'A14', 'RESERVED'  , {                                                            }),
+            ('button'    , 'C13', 'INPUT'     , { 'pull'    : 'UP'                                           }),
+            ('i2c1_scl'  , 'B6' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL', 'open_drain' : True, 'pull' : 'UP' }),
+            ('i2c1_sda'  , 'B7' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA', 'open_drain' : True, 'pull' : 'UP' }),
+            ('OC1'       , 'A8' , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH1'                                     }),
+            ('OC1N'      , 'A7' , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH1N'                                    }),
+        ),
+
+        interrupts = (
+            ('USART2' , 0),
+            ('TIM1_UP', 1),
+        ),
+
+        drivers = {
+            'UXART' : (
+                ('stlink', 'USART2'),
+            ),
+        }
 
     ),
 
@@ -181,7 +280,7 @@ TARGETS = ( # @/`Defining a TARGET`.
 
 
 
-################################################################################################################################
+################################################################################
 #
 # Figure out the compiler and linker flags for each firmware target.
 #
@@ -244,9 +343,9 @@ for target in TARGETS:
     # Additional macro defines.
 
     defines = [
-        ('TARGET_NAME'    , target.name      ),
-        ('TARGET_MCU'     , target.mcu       ),
-        ('LINK_stack_size', target.stack_size),
+        ('TARGET_NAME'    , target.name           ),
+        ('TARGET_MCU'     , target.mcu            ),
+        ('MAIN_STACK_SIZE', target.main_stack_size),
     ]
 
     for other in TARGETS:
@@ -292,90 +391,159 @@ for target in TARGETS:
 
 
 
-################################################################################################################################
+################################################################################
+#
+# Some helpers for generating code that's specific to a particular target
+# or a particular MCU. This is better placed in <Helpers.py>, but a limitation
+# of the meta-preprocessor right now is that `TARGETS` and `MCUS` won't be
+# accessible there (TODO).
+#
 
 
 
-# This meta-directive typically contains definitions for things that'll be used both in other meta-directives and also in `cli.py`.
-# Stuff like the ST-Link baud rate is defined here because the clock-tree is automated by a meta-directive in order to
-# configure the UART for the right clock speed and also so that `cli.py talk` can open the serial port to the right baud.
+def PER_TARGET():
+
+    for target in TARGETS:
+
+        with Meta.enter(f'#if TARGET_NAME_IS_{target.name}'):
+
+            yield target
+
+
+
+def PER_MCU():
+
+    for mcu in MCUS:
+
+        with Meta.enter(f'#if TARGET_MCU_IS_{mcu}'):
+
+            yield mcu
+
+
+
+################################################################################
+
+
+
+# This meta-directive typically contains definitions for things that'll be
+# used both in other meta-directives and also in `cli.py`. Stuff like the
+# ST-Link baud rate is defined here because the clock-tree is automated by
+# a meta-directive in order to configure the UART for the right clock speed
+# and also so that `cli.py talk` can open the serial port to the right baud.
 
 
 
 # @/`Defining a TARGET`:
 #
 # A target is essentially a program for a specific microcontroller in mind.
-# For this project, we'll have a target for the flight computer, camera subsystems, and maybe some other stuff.
-# As of writing, this is what defines a target:
+# For this project, we'll have a target for the flight computer, camera
+# subsystems, and maybe some other stuff. As of writing, this is what defines
+# a target:
 #
 #     - name                 = Self-explanatory; the unique name of the target.
 #
-#     - mcu                  = The full commerical part number of an STM32 microcontroller as seen in `MCUS`.
-#                              Technically, the last few suffixes are not necessary because they just indicate the
-#                              flash size and operating temperature and stuff, but I think it's a hassle to deal with
-#                              different variations of MCU "names", so just might as well use the whole thing even if
-#                              it ends up being redundant later on.
+#     - mcu                  = The full commerical part number of an STM32
+#                              microcontroller as seen in `MCUS`. Technically,
+#                              the last few suffixes are not necessary because
+#                              they just indicate the flash size and operating
+#                              temperature and stuff, but I think it's a hassle
+#                              to deal with different variations of MCU "names",
+#                              so just might as well use the whole thing even
+#                              if it ends up being redundant later on.
 #
-#     - source_file_paths    = Source files that the build system will compile each of and then link all together.
+#     - source_file_paths    = Source files that the build system will compile each
+#                              of and then link all together.
 #
-#     - use_freertos         = Whether or not to compile with FreeRTOS and set up the task-scheduler.
-#                              Typically, we'd disable FreeRTOS when we want to start off programming
-#                              in a simpler environment where we don't have to worry about concurrency
-#                              and reentrance of code. Eventually, as the firmware matures, we'd want to
-#                              start using a task-scheduler so we can have multiple systems in the firmware
-#                              work together and not have one big state machine to handle it all.
+#     - use_freertos         = Whether or not to compile with FreeRTOS and set up
+#                              the task-scheduler. Typically, we'd disable FreeRTOS
+#                              when we want to start off programming in a simpler
+#                              environment where we don't have to worry about concurrency
+#                              and reentrance of code. Eventually, as the firmware
+#                              matures, we'd want to start using a task-scheduler
+#                              so we can have multiple systems in the firmware
+#                              work together and not have one big state machine
+#                              to handle it all.
 #
-#     - stack_size           = The amount of bytes to reserve for the main stack,
-#                              although I think this might be deprecated once I do
-#                              more research into FreeRTOS' configurations (TODO).
-#
-#     - aliases              = The purpose of this field is to make it easy to refer to a peripheral "generically"
-#                              by using a custom name like "UxART_STLINK" instead of "USART3".
-#                              While this makes it more clear what a particular peripheral is meant to be used for,
-#                              its true purpose is to make code that uses this peripheral more applicable to different targets.
-#                              In the example of "UxART_STLINK", some targets might have it be "USART3" while others be "UART2".
-#                              Rather than reimplement code to use slightly different peripheral names and numberings,
-#                              all code can just refer to "UxART_STLINK", and a bunch of macros and global constants will do the
-#                              mapping magically. This is a very experimental feature right now, however, so you can just completely
-#                              ignore this. I'm planning to make it much simpler to use and less contrived.
+#     - main_stack_size      = The amount of bytes to reserve for the stack of `main`.
+#                              This option is more useful when not using FreeRTOS.
+#                              If FreeRTOS is enabled, then each task will have their
+#                              own stack, the size of which can be individually specified.
+#                              Before the task-scheduler can starts, we still go into
+#                              `main`, so this option is still used, albeit less
+#                              critically.
+#                              TODO Look more into how FreeRTOS organizes its memory.
 #
 #     - clock_tree           = Options relating to configuring the MCU's clock-tree.
-#                              The available options right now is pretty undocumented since it
-#                              heavily depends upon the implementation of `SYSTEM_PARAMETERIZE`;
+#                              The available options right now is pretty undocumented since
+#                              it heavily depends upon the implementation of `SYSTEM_PARAMETERIZE`;
 #                              things there are still non-comprehensive and quite experimental.
 #                              Nonetheless, some of the stuff should be self-explanatory, like
-#                              if you want to change the baud rate of a UART peripheral or something,
-#                              then it's pretty easy to do right here; but if you have a lot of questions,
-#                              then you should probably see `SYSTEM_PARAMETERIZE` anyways.
+#                              if you want to change the baud rate of a UART peripheral or
+#                              something, then it's pretty easy to do right here; but if you
+#                              have a lot of questions, then you should probably see
+#                              `SYSTEM_PARAMETERIZE` anyways.
 #
-#     - gpios                = This is where we define the GPIOs of our target; what input/outputs it has,
-#                              which pins are being used for what particular peripherals, and maybe other
-#                              stuff too like the slew rate or pull up/down configuration.
-#                              This table of GPIOs is very useful, because later on when we make our PCBs,
-#                              we can write a meta-directive to verify that the PCB matches our GPIO table (TODO).
+#     - gpios                = This is where we define the GPIOs of our target; what
+#                              input/outputs it has, which pins are being used for what
+#                              particular peripherals, and maybe other stuff too like the
+#                              slew rate or pull up/down configuration. This table of GPIOs
+#                              is very useful, because later on when we make our PCBs, we can
+#                              write a meta-directive to verify that the PCB matches our
+#                              GPIO table (TODO).
 #
-#     - interrupt_priorities = This table defines the interrupts that'll need to be configured in the NVIC.
-#                              Any time you're writing a driver for a peripheral,
-#                              and that peripheral uses interrupts, you should add an entry to this table.
-#                              Once you do so, macros will be created to allow the interrupt to be enabled
-#                              in the NVIC.
-#                              It should be noted that the priority value of interrupts work on a niceless level,
-#                              so the lower the numbre is, the higher priority it actually is.
+#     - interrupts           = This table defines most of the interrupts that'll be used
+#                              by the target. For instance, Any time you're writing a driver
+#                              for a peripheral, and that peripheral uses interrupts, you
+#                              should add an entry to this table. Once you do so, macros
+#                              will be created to allow the interrupt to be enabled in the
+#                              NVIC. It should be noted that the priority value of interrupts
+#                              work on a niceless level, so the lower the number is, the higher
+#                              priority it actually is.
 #
-# It's also useful to have a "sandbox" target where it's pretty much just a demo program for a NUCLEO board;
-# some LEDS blinking, maybe reacting to button presses, and printing out to serial port.
-# This is just so we can easily test things out whenever we're writing some new drivers or something.
+#     - drivers              = Essentially a table describing the drivers that the target
+#                              needs and will be using. To see what this setting actually does,
+#                              I suggest diving into some of the drivers' source code.
+#
+# It's also useful to have a "sandbox" target where it's pretty much
+# just a demo program for a Nucleo board; some LEDS blinking, maybe
+# reacting to button presses, and printing out to serial port. This
+# is just so we can easily test things out whenever we're writing
+# some new drivers or something.
+#
+# As of writing, these are the steps to making a new target:
+#
+#     1. Jump start by copy-pasting an existing target in `TARGETS`,
+#        maybe "SandboxNucleoH533RE". Rename the target to something
+#        unique, which for our example, let's say "FooBar".
+#
+#     2. Change the MCU (if needed) and modify `source_file_paths`
+#        to have the main C file you wish to compile with.
+#        If your new target name is "FooBar", you should probably
+#        make a new C file called "FooBar.c". In this C file,
+#        you can copy from <SandboxNucleoBoard.c> but remove all
+#        the FreeRTOS task stuff; you should have at least `main`.
+#
+#     3. Recompile; things should work, but this process I described
+#        here might've changed because I added a new feature or
+#        something to the build process. In the event that I forgot
+#        to update this, read the error message and figure out what
+#        is missing.
+
 
 
 
 # @/`Linker Garbage Collection`:
 #
-# The `-ffunction-sections` makes the compiler generate a section for every function.
-# This will allow the linker to later on garbage-collect any unused functions via `--gc-sections`.
-# This isn't necessarily for space-saving reasons, but for letting us compile with libraries without
-# necessarily defining all user-side functions until we use a library function that'd depend upon it.
-# An example would be `putchar_` for eyalroz's `printf` library.
+# The `-ffunction-sections` makes the compiler generate a section
+# for every function. This will allow the linker to later on garbage-collect
+# any unused functions via `--gc-sections`. This isn't necessarily for
+# space-saving reasons, but for letting us compile with libraries without
+# necessarily defining all user-side functions until we use a library function
+# that'd depend upon it. An example would be `putchar_` for eyalroz's `printf`.
+# library
 #
-# There's a similar thing for data with the flag `-fdata-sections`, but if we do this, then we won't be
-# able to reference any variables that end up being garbage-collected when we debug. This isn't a big
-# deal, but it is annoying when it happens, so we'll skip out on GC'ing data and only do functions.
+# There's a similar thing for data with the flag `-fdata-sections`,
+# but if we do this, then we won't be able to reference any variables
+# that end up being garbage-collected when we debug. This isn't a big
+# deal, but it is annoying when it happens, so we'll skip out on GC'ing
+# data and only do functions.

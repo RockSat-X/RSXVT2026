@@ -1,7 +1,7 @@
 #define CONCAT_(X, Y) X##Y
 #define CONCAT(X, Y)  CONCAT_(X, Y)
 
-ENTRY(__INTERRUPT_Reset) /* Just to indicate where program execution would begin for debugging purposes; doesn't actually affect anything. */
+ENTRY(INTERRUPT_Reset) /* Just to indicate where program execution would begin for debugging purposes; doesn't actually affect anything. */
 
 MEMORY
 {
@@ -48,7 +48,7 @@ SECTIONS
 
     .stack_output_section : ALIGN(32) /* For MPU region alignment. TODO If we're going to use the MPU to detect stack overflow? */
     {
-        .               += LINK_stack_size;
+        .               += MAIN_STACK_SIZE;
         LINK_stack_addr  = .;
 
         #define STACK_LOCATION_STM32H7S3L8H6 DTCM

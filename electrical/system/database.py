@@ -1,5 +1,66 @@
 #meta SYSTEM_DATABASE
 
+
+
+################################################################################
+#
+# For database entries with a list of valid values given explicitly.
+# e.g:
+# >
+# >    ('IWDG',
+# >        ('KR',
+# >            ('KEY', 'IWDG_KEY', (
+# >                '0xAAAA',
+# >                '0x5555',
+# >                '0xCCCC',
+# >            )),
+# >        ),
+# >    )
+#
+
+class SystemDatabaseOptions(types.SimpleNamespace):
+
+    def __iter__(self):
+        return iter(self.options)
+
+
+
+################################################################################
+#
+# For database entries that have valid values within an interval.
+# e.g:
+# >
+# >    ('SysTick',
+# >        ('LOAD',
+# >            ('RELOAD', 'SYSTICK_RELOAD', 1, (1 << 24) - 1),
+# >        ),
+# >    )
+# >
+#
+
+class SystemDatabaseMinMax(types.SimpleNamespace):
+
+
+
+    # Allow for sweeping through the whole range of possible values.
+
+    def __iter__(self):
+        return iter(range(self.minimum, self.maximum + 1))
+
+
+
+    # Determine if a value is within the minimum-maximum range.
+
+    def __contains__(self, value):
+        return self.minimum <= value <= self.maximum
+
+
+
+################################################################################
+#
+# Parse each MCU's database expression.
+#
+
 SYSTEM_DATABASE = {}
 
 for mcu in MCUS:
@@ -36,20 +97,20 @@ for mcu in MCUS:
             # >
 
             case (tag, value):
-                entries += [(tag, types.SimpleNamespace(
-                    value = value,
-                ))]
+
+                entries += [(tag, value)]
 
 
 
             # The constant's value is an inclusive min-max range.
             # e.g:
             # >
-            # >    ('pll_channel_freq', 1_000_000, 250_000_000)
+            # >    ('PLL_CHANNEL_FREQ', 1_000_000, 250_000_000)
             # >
 
             case (tag, minimum, maximum):
-                entries += [(tag, types.SimpleNamespace(
+
+                entries += [(tag, SystemDatabaseMinMax(
                     minimum = minimum,
                     maximum = maximum,
                 ))]
@@ -59,6 +120,7 @@ for mcu in MCUS:
             # Unsupported constant.
 
             case unknown:
+
                 raise ValueError(
                     f'Database constant entry is '
                     f'in an unknown format: {repr(unknown)}.'
@@ -68,8 +130,10 @@ for mcu in MCUS:
 
     # Parse the locations.
 
-    for section, *register_tree in location_tree:
+    for peripheral, *register_tree in location_tree:
+
         for register, *field_tree in register_tree:
+
             for location in field_tree:
 
                 match location:
@@ -81,27 +145,28 @@ for mcu in MCUS:
                     # >
                     # >    ('PWR',
                     # >        ('SR1',
-                    # >            ('ACTVOS', 'current_active_vos'),
+                    # >            ('ACTVOS', 'CURRENT_ACTIVE_VOS'),
                     # >        ),
                     # >    )
                     # >
 
                     case (field, tag):
-                        entries += [(tag, types.SimpleNamespace(
-                            section  = section,
-                            register = register,
-                            field    = field,
-                            value    = (False, True),
+
+                        entries += [(tag, SystemDatabaseOptions(
+                            peripheral = peripheral,
+                            register   = register,
+                            field      = field,
+                            options    = (False, True),
                         ))]
 
 
 
-                    # The location entry's value is directly given.
+                    # The location entry's list of valid values are given.
                     # e.g:
                     # >
                     # >    ('IWDG',
                     # >        ('KR',
-                    # >            ('KEY', 'iwdg_key', (
+                    # >            ('KEY', 'IWDG_KEY', (
                     # >                '0xAAAA',
                     # >                '0x5555',
                     # >                '0xCCCC',
@@ -110,12 +175,13 @@ for mcu in MCUS:
                     # >    )
                     # >
 
-                    case (field, tag, value):
-                        entries += [(tag, types.SimpleNamespace(
-                            section  = section,
-                            register = register,
-                            field    = field,
-                            value    = value,
+                    case (field, tag, options):
+
+                        entries += [(tag, SystemDatabaseOptions(
+                            peripheral = peripheral,
+                            register   = register,
+                            field      = field,
+                            options    = options,
                         ))]
 
 
@@ -125,18 +191,19 @@ for mcu in MCUS:
                     # >
                     # >    ('SysTick',
                     # >        ('LOAD',
-                    # >            ('RELOAD', 'systick_reload', 1, (1 << 24) - 1),
+                    # >            ('RELOAD', 'SYSTICK_RELOAD', 1, (1 << 24) - 1),
                     # >        ),
                     # >    )
                     # >
 
                     case (field, tag, minimum, maximum):
-                        entries += [(tag, types.SimpleNamespace(
-                            section  = section,
-                            register = register,
-                            field    = field,
-                            minimum  = minimum,
-                            maximum  = maximum,
+
+                        entries += [(tag, SystemDatabaseMinMax(
+                            peripheral  = peripheral,
+                            register    = register,
+                            field       = field,
+                            minimum     = minimum,
+                            maximum     = maximum,
                         ))]
 
 
@@ -144,6 +211,7 @@ for mcu in MCUS:
                     # Unsupported location format.
 
                     case unknown:
+
                         raise ValueError(
                             f'Database location entry is '
                             f'in an unknown format: {repr(unknown)}.'
@@ -159,15 +227,16 @@ for mcu in MCUS:
             f'there is already a database entry with the tag {repr(dupe)}.'
         )
 
-    if (dupe := find_dupe(
-        (entry.section, entry.register, entry.field)
-        for tag, entry in entries
-        if 'section'  in entry.__dict__
-    )) is not ...:
-        raise ValueError(
-            f'For {mcu}, '
-            f'there is already a database entry with the location {repr(dupe)}.'
-        )
+    # TODO Should we allow for redundant locations?
+    # if (dupe := find_dupe(
+    #     (entry.peripheral, entry.register, entry.field)
+    #     for tag, entry in entries
+    #     if hasattr(entry, 'peripheral')
+    # )) is not ...:
+    #     raise ValueError(
+    #         f'For {mcu}, '
+    #         f'there is already a database entry with the location {repr(dupe)}.'
+    #     )
 
     SYSTEM_DATABASE[mcu] = dict(entries)
 
