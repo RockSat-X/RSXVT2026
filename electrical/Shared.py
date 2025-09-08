@@ -77,7 +77,7 @@ TARGETS = ( # @/`Defining a TARGET`.
         mcu                = 'STM32H7S3L8H6',
         source_file_paths  = root('''
             ./electrical/SandboxNucleoBoard.c
-            ./electrical/Startup.S
+            ./electrical/system/Startup.S
         '''),
 
         use_freertos = False,
@@ -129,7 +129,7 @@ TARGETS = ( # @/`Defining a TARGET`.
         mcu                = 'STM32H533RET6',
         source_file_paths  = root('''
             ./electrical/SandboxNucleoBoard.c
-            ./electrical/Startup.S
+            ./electrical/system/Startup.S
         '''),
 
         use_freertos = False,
@@ -175,7 +175,7 @@ TARGETS = ( # @/`Defining a TARGET`.
         mcu                = 'STM32H533RET6',
         source_file_paths  = root('''
             ./electrical/DemoI2C.c
-            ./electrical/Startup.S
+            ./electrical/system/Startup.S
         '''),
 
         use_freertos = False,
@@ -229,7 +229,7 @@ TARGETS = ( # @/`Defining a TARGET`.
         mcu                = 'STM32H533RET6',
         source_file_paths  = root('''
             ./electrical/DemoTimer.c
-            ./electrical/Startup.S
+            ./electrical/system/Startup.S
         '''),
 
         use_freertos = False,
@@ -334,7 +334,7 @@ for target in TARGETS:
         root('./deps/FreeRTOS_Kernel/include'),
         root('./deps/printf/src'),
         root('.'),                               # For <deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h> and such.
-        root('./electrical'),                    # For <FreeRTOSConfig.h>.
+        root('./electrical/system'),             # For <FreeRTOSConfig.h>.
         MCUS[target.mcu].freertos_port_dir_path, # For <portmacro.h> and such.
     )
 
