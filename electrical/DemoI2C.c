@@ -54,9 +54,9 @@ main(void)
 
         for
         (
-            i32 slave_address = 0b0001'000'0; // @/`I2C Slave Address`.
-            slave_address <= 0b1110'111'0;    // "
-            slave_address += 2                // "
+            i32 slave_address = 0b0000'1000; // @/`I2C Slave Address`.
+            slave_address <= 0b0111'0111;    // "
+            slave_address += 1               // "
         )
         {
 

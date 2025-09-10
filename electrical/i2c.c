@@ -120,7 +120,7 @@ I2C_blocking_transfer
     {
         case I2CAddressType_eight:
         {
-            if ((address & 1) || !(0b0001'000'0 <= address && address <= 0b1110'111'0))
+            if (!(0b0000'1000 <= address && address <= 0b0111'0111))
                 panic;
         } break;
 
@@ -459,10 +459,27 @@ _I2C_update_once(enum I2CHandle handle)
             if (driver->error)
                 panic;
 
+            u32 sadd = {0};
+
+            switch (driver->address_type)
+            {
+                case I2CAddressType_eight:
+                {
+                    sadd = driver->address << 1; // @/`I2C Slave Address`.
+                } break;
+
+                case I2CAddressType_ten:
+                {
+                    sadd = driver->address;
+                } break;
+
+                default: panic;
+            }
+
             CMSIS_SET
             (
                 I2Cx   , CR2                   ,
-                SADD   , driver->address       ,
+                SADD   , sadd                  ,
                 RD_WRN , !!driver->operation   ,
                 NBYTES , driver->amount        ,
                 START  , true                  ,
@@ -683,20 +700,15 @@ _I2C_update_entirely(enum I2CHandle handle)
 
 // @/`I2C Slave Address`:
 //
-// The following only applies to the 7-bit I2C address:
+// There's a bit of ambiguity on whether or not an "I2C slave address" is
+// using the 7-bit convention (as used by the I2C specification) or the 8-bit
+// convention where the LSb is reserved for the read/write bit.
 //
-// When saying "slave address", it's a bit ambiguous as to whether or not
-// this includes the read/write bit. The I2C specification always uses
-// the 7-bit convention (the R/W bit is not a part of the "slave address")
-// but other people sometime use the 8-bit convention. In this I2C driver, we
-// are using the 8-bit convention where the LSb is "reserved" for the R/W bit,
-// since this works out better for the register-writes.
+// This driver uses the 7-bit convention because it's simpler to understand
+// that way; however, the underlying I2C hardware uses the 8-bit convention.
 //
-// So that being said, we should always expect the LSb of the "slave address"
-// to be zero. If it's not, the user is likely thinking in the 7-bit convention.
-//
-// Furthermore, not all I2C addresses are the same;
-// some are reserved or have special meaning.
+// To add another wrinkle, some of the 7-bit address space is reserved or have
+// a special meaning (e.g. general call).
 //
 // When using 10-bit addressing, it's all much simpler;
 // the entire address space is solely for slave devices.
