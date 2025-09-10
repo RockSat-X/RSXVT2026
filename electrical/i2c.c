@@ -215,17 +215,15 @@ I2C_reinit(enum I2CHandle handle)
 
     // Configure the peripheral.
 
-    CMSIS_SET // TODO Look over again.
+    CMSIS_SET
     (
-        I2Cx  , TIMINGR                , // TODO Handle other timing requirements?
-        PRESC , I2Cx_TIMINGR_PRESC_init, // Set the time base unit.
-        SCLDEL, 0                      , // TODO Important?
-        SDADEL, 0                      , // TODO Important?
-        SCLH  , I2Cx_TIMINGR_SCL_init  , // Determines the amount of high time.
-        SCLL  , I2Cx_TIMINGR_SCL_init  , // Determines the amount of low time.
+        I2Cx , TIMINGR                ,
+        PRESC, I2Cx_TIMINGR_PRESC_init, // Set the unit of time for SCLH and SCLL.
+        SCLH , I2Cx_TIMINGR_SCL_init  , // Amount of high time.
+        SCLL , I2Cx_TIMINGR_SCL_init  , // Amount of low time.
     );
 
-    CMSIS_SET // TODO Look over again.
+    CMSIS_SET
     (
         I2Cx  , CR1   , // Interrupts for:
         ERRIE , true  , //     - Error.
