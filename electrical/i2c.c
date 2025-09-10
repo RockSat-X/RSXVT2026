@@ -58,6 +58,12 @@ enum I2CDriverError : u32
     I2CDriverError_no_acknowledge,
 };
 
+enum I2CAddressType : u32
+{
+    I2CAddressType_eight = false,
+    I2CAddressType_ten   = true,
+};
+
 enum I2COperation : u32
 {
     I2COperation_write = false,
@@ -67,7 +73,8 @@ enum I2COperation : u32
 struct I2CDriver
 {
     volatile enum I2CDriverState state;
-    u8                           address;
+    u32                          address;
+    enum I2CAddressType          address_type;
     enum I2COperation            operation;
     u8*                          pointer;
     i32                          amount;
@@ -88,15 +95,20 @@ static struct I2CDriver _I2C_drivers[I2CHandle_COUNT] = {0};
 static useret enum I2CDriverError
 I2C_blocking_transfer
 (
-    enum I2CHandle    handle,
-    u8                address, // @/`I2C Slave Address`.
-    enum I2COperation operation,
-    u8*               pointer,
-    i32               amount
+    enum I2CHandle      handle,
+    u32                 address,      // @/`I2C Slave Address`.
+    enum I2CAddressType address_type, // "
+    enum I2COperation   operation,
+    u8*                 pointer,
+    i32                 amount
 )
 {
 
     _EXPAND_HANDLE
+
+
+
+    // Validation.
 
     if (!pointer)
         panic;
@@ -104,8 +116,22 @@ I2C_blocking_transfer
     if (amount <= 0)
         panic;
 
-    if ((address & 1) || !(0b0001'000'0 <= address && address <= 0b1110'111'0))
-        panic; // @/`I2C Slave Address`.
+    switch (address_type)
+    {
+        case I2CAddressType_eight:
+        {
+            if ((address & 1) || !(0b0001'000'0 <= address && address <= 0b1110'111'0))
+                panic;
+        } break;
+
+        case I2CAddressType_ten:
+        {
+            if (address >= (1 << 10))
+                panic;
+        } break;
+
+        default: panic;
+    }
 
 
 
@@ -116,14 +142,15 @@ I2C_blocking_transfer
         case I2CDriverState_standby:
         {
 
-            driver->address   = address;
-            driver->operation = operation;
-            driver->pointer   = pointer;
-            driver->amount    = amount;
-            driver->progress  = 0;
-            driver->error     = I2CDriverError_none;
+            driver->address      = address;
+            driver->address_type = address_type;
+            driver->operation    = operation;
+            driver->pointer      = pointer;
+            driver->amount       = amount;
+            driver->progress     = 0;
+            driver->error        = I2CDriverError_none;
             __DMB();
-            driver->state     = I2CDriverState_scheduled_transfer;
+            driver->state        = I2CDriverState_scheduled_transfer;
 
             NVIC_SET_PENDING(I2Cx_EV);
 
@@ -434,11 +461,13 @@ _I2C_update_once(enum I2CHandle handle)
 
             CMSIS_SET
             (
-                I2Cx  , CR2                ,
-                SADD  , driver->address    ,
-                RD_WRN, !!driver->operation,
-                NBYTES, driver->amount     ,
-                START , true               ,
+                I2Cx   , CR2                   ,
+                SADD   , driver->address       ,
+                RD_WRN , !!driver->operation   ,
+                NBYTES , driver->amount        ,
+                START  , true                  ,
+                HEAD10R, false                 ,
+                ADD10  , !!driver->address_type,
             );
 
             driver->state = I2CDriverState_transferring;
@@ -654,6 +683,8 @@ _I2C_update_entirely(enum I2CHandle handle)
 
 // @/`I2C Slave Address`:
 //
+// The following only applies to the 7-bit I2C address:
+//
 // When saying "slave address", it's a bit ambiguous as to whether or not
 // this includes the read/write bit. The I2C specification always uses
 // the 7-bit convention (the R/W bit is not a part of the "slave address")
@@ -666,4 +697,8 @@ _I2C_update_entirely(enum I2CHandle handle)
 //
 // Furthermore, not all I2C addresses are the same;
 // some are reserved or have special meaning.
+//
+// When using 10-bit addressing, it's all much simpler;
+// the entire address space is solely for slave devices.
+//
 // @/pg 16/tbl 4/`I2C`.

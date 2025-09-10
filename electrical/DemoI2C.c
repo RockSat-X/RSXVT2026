@@ -68,6 +68,7 @@ main(void)
                 (
                     I2CHandle_primary,
                     slave_address,
+                    I2CAddressType_eight,
                     I2COperation_read,
                     &(u8) {0},
                     1
