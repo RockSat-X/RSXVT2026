@@ -58,6 +58,12 @@ enum I2CDriverError : u32
     I2CDriverError_no_acknowledge,
 };
 
+enum I2CAddressType : u32
+{
+    I2CAddressType_eight = false,
+    I2CAddressType_ten   = true,
+};
+
 enum I2COperation : u32
 {
     I2COperation_write = false,
@@ -67,7 +73,8 @@ enum I2COperation : u32
 struct I2CDriver
 {
     volatile enum I2CDriverState state;
-    u8                           address;
+    u32                          address;
+    enum I2CAddressType          address_type;
     enum I2COperation            operation;
     u8*                          pointer;
     i32                          amount;
@@ -88,15 +95,20 @@ static struct I2CDriver _I2C_drivers[I2CHandle_COUNT] = {0};
 static useret enum I2CDriverError
 I2C_blocking_transfer
 (
-    enum I2CHandle    handle,
-    u8                address, // @/`I2C Slave Address`.
-    enum I2COperation operation,
-    u8*               pointer,
-    i32               amount
+    enum I2CHandle      handle,
+    u32                 address,      // @/`I2C Slave Address`.
+    enum I2CAddressType address_type, // "
+    enum I2COperation   operation,
+    u8*                 pointer,
+    i32                 amount
 )
 {
 
     _EXPAND_HANDLE
+
+
+
+    // Validation.
 
     if (!pointer)
         panic;
@@ -104,8 +116,22 @@ I2C_blocking_transfer
     if (amount <= 0)
         panic;
 
-    if ((address & 1) || !(0b0001'000'0 <= address && address <= 0b1110'111'0))
-        panic; // @/`I2C Slave Address`.
+    switch (address_type)
+    {
+        case I2CAddressType_eight:
+        {
+            if (!(0b0000'1000 <= address && address <= 0b0111'0111))
+                panic;
+        } break;
+
+        case I2CAddressType_ten:
+        {
+            if (address >= (1 << 10))
+                panic;
+        } break;
+
+        default: panic;
+    }
 
 
 
@@ -116,14 +142,15 @@ I2C_blocking_transfer
         case I2CDriverState_standby:
         {
 
-            driver->address   = address;
-            driver->operation = operation;
-            driver->pointer   = pointer;
-            driver->amount    = amount;
-            driver->progress  = 0;
-            driver->error     = I2CDriverError_none;
+            driver->address      = address;
+            driver->address_type = address_type;
+            driver->operation    = operation;
+            driver->pointer      = pointer;
+            driver->amount       = amount;
+            driver->progress     = 0;
+            driver->error        = I2CDriverError_none;
             __DMB();
-            driver->state     = I2CDriverState_scheduled_transfer;
+            driver->state        = I2CDriverState_scheduled_transfer;
 
             NVIC_SET_PENDING(I2Cx_EV);
 
@@ -215,17 +242,15 @@ I2C_reinit(enum I2CHandle handle)
 
     // Configure the peripheral.
 
-    CMSIS_SET // TODO Look over again.
+    CMSIS_SET
     (
-        I2Cx  , TIMINGR                , // TODO Handle other timing requirements?
-        PRESC , I2Cx_TIMINGR_PRESC_init, // Set the time base unit.
-        SCLDEL, 0                      , // TODO Important?
-        SDADEL, 0                      , // TODO Important?
-        SCLH  , I2Cx_TIMINGR_SCL_init  , // Determines the amount of high time.
-        SCLL  , I2Cx_TIMINGR_SCL_init  , // Determines the amount of low time.
+        I2Cx , TIMINGR                ,
+        PRESC, I2Cx_TIMINGR_PRESC_init, // Set the unit of time for SCLH and SCLL.
+        SCLH , I2Cx_TIMINGR_SCL_init  , // Amount of high time.
+        SCLL , I2Cx_TIMINGR_SCL_init  , // Amount of low time.
     );
 
-    CMSIS_SET // TODO Look over again.
+    CMSIS_SET
     (
         I2Cx  , CR1   , // Interrupts for:
         ERRIE , true  , //     - Error.
@@ -434,13 +459,31 @@ _I2C_update_once(enum I2CHandle handle)
             if (driver->error)
                 panic;
 
+            u32 sadd = {0};
+
+            switch (driver->address_type)
+            {
+                case I2CAddressType_eight:
+                {
+                    sadd = driver->address << 1; // @/`I2C Slave Address`.
+                } break;
+
+                case I2CAddressType_ten:
+                {
+                    sadd = driver->address;
+                } break;
+
+                default: panic;
+            }
+
             CMSIS_SET
             (
-                I2Cx  , CR2                ,
-                SADD  , driver->address    ,
-                RD_WRN, !!driver->operation,
-                NBYTES, driver->amount     ,
-                START , true               ,
+                I2Cx   , CR2                   ,
+                SADD   , sadd                  ,
+                RD_WRN , !!driver->operation   ,
+                NBYTES , driver->amount        ,
+                START  , true                  ,
+                ADD10  , !!driver->address_type,
             );
 
             driver->state = I2CDriverState_transferring;
@@ -656,16 +699,17 @@ _I2C_update_entirely(enum I2CHandle handle)
 
 // @/`I2C Slave Address`:
 //
-// When saying "slave address", it's a bit ambiguous as to whether or not
-// this includes the read/write bit. The I2C specification always uses
-// the 7-bit convention (the R/W bit is not a part of the "slave address")
-// but other people sometime use the 8-bit convention. In this I2C driver, we
-// are using the 8-bit convention where the LSb is "reserved" for the R/W bit,
-// since this works out better for the register-writes.
+// There's a bit of ambiguity on whether or not an "I2C slave address" is
+// using the 7-bit convention (as used by the I2C specification) or the 8-bit
+// convention where the LSb is reserved for the read/write bit.
 //
-// So that being said, we should always expect the LSb of the "slave address"
-// to be zero. If it's not, the user is likely thinking in the 7-bit convention.
+// This driver uses the 7-bit convention because it's simpler to understand
+// that way; however, the underlying I2C hardware uses the 8-bit convention.
 //
-// Furthermore, not all I2C addresses are the same;
-// some are reserved or have special meaning.
+// To add another wrinkle, some of the 7-bit address space is reserved or have
+// a special meaning (e.g. general call).
+//
+// When using 10-bit addressing, it's all much simpler;
+// the entire address space is solely for slave devices.
+//
 // @/pg 16/tbl 4/`I2C`.

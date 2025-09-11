@@ -46,17 +46,46 @@ main(void)
     // Test the I2C driver.
     //
 
-    for (;;)
+    for
+    (
+        enum I2CAddressType address_type = I2CAddressType_eight;
+        ;
+        address_type = !address_type // Flip-flop between 8-bit and 10-bit addressing.
+    )
     {
 
-        // Test every valid 7-bit address to see
-        // what slaves are connected to the I2C bus.
+        // Get the address range.
+
+        u32 start_address = {0};
+        u32 end_address   = {0};
+
+        switch (address_type)
+        {
+            case I2CAddressType_eight:
+            {
+                start_address = 0b0000'1000; // @/`I2C Slave Address`.
+                end_address   = 0b0111'0111; // "
+            } break;
+
+            case I2CAddressType_ten:
+            {
+                start_address = 0;
+                end_address   = (1 << 10) - 1;
+            } break;
+
+            default: panic;
+        }
+
+
+
+        // Test every valid 7-bit and 10-bit addresses to
+        // see what slaves are connected to the I2C bus.
 
         for
         (
-            i32 slave_address = 0b0001'000'0; // @/`I2C Slave Address`.
-            slave_address <= 0b1110'111'0;    // "
-            slave_address += 2                // "
+            u32 slave_address = start_address;
+            slave_address <= end_address;
+            slave_address += 1
         )
         {
 
@@ -68,6 +97,7 @@ main(void)
                 (
                     I2CHandle_primary,
                     slave_address,
+                    address_type,
                     I2COperation_read,
                     &(u8) {0},
                     1
@@ -81,12 +111,12 @@ main(void)
             {
                 case I2CDriverError_none:
                 {
-                    stlink_tx("Slave 0x%02X acknowledged!\n", slave_address);
+                    stlink_tx("Slave 0x%03X acknowledged!\n", slave_address);
                 } break;
 
                 case I2CDriverError_no_acknowledge:
                 {
-                    stlink_tx("Slave 0x%02X didn't acknowledge!\n", slave_address);
+                    stlink_tx("Slave 0x%03X didn't acknowledge!\n", slave_address);
                 } break;
 
                 default: panic;
@@ -98,7 +128,7 @@ main(void)
 
             GPIO_TOGGLE(led_green);
 
-            spinlock_nop(10'000'000); // TODO Let's use a real delay here.
+            spinlock_nop(1'000'000); // TODO Let's use a real delay here.
 
         }
 
