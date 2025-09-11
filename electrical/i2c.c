@@ -483,7 +483,6 @@ _I2C_update_once(enum I2CHandle handle)
                 RD_WRN , !!driver->operation   ,
                 NBYTES , driver->amount        ,
                 START  , true                  ,
-                HEAD10R, false                 ,
                 ADD10  , !!driver->address_type,
             );
 
