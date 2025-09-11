@@ -108,7 +108,6 @@ TARGETS = ( # @/`Defining a TARGET`.
             'APB4_CK'       : 150_000_000,
             'APB5_CK'       : 150_000_000,
             'SYSTICK_CK'    : None,
-            'USART1_BAUD'   : None,
             'USART2_BAUD'   : None,
             'USART3_BAUD'   : STLINK_BAUD,
             'UART4_BAUD'    : None,
