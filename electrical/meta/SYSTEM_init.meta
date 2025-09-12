@@ -1,0 +1,736 @@
+#define _PORT_FOR_GPIO_WRITE(NAME) __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__##NAME
+#define _NUMBER_FOR_GPIO_WRITE(NAME) __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__##NAME
+#define _PORT_FOR_GPIO_READ(NAME) __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__##NAME
+#define _NUMBER_FOR_GPIO_READ(NAME) __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__##NAME
+#if TARGET_NAME_IS_SandboxNucleoH7S3L8
+    enum NVICInterrupt : u32
+    {
+        NVICInterrupt_USART3 = USART3_IRQn,
+    };
+    static constexpr u32 NVICInterrupt_COUNT = 1;
+    extern void
+    SYSTEM_init(void)
+    {
+
+        //////////////////////////////////////////////////////////////// GPIOs ////////////////////////////////////////////////////////////////
+
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__led_red B
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__led_red 7
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__led_yellow D
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__led_yellow 13
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__led_green D
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__led_green 10
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__stlink_tx D
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_tx 8
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__stlink_rx D
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_rx 9
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__button C
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__button 13
+        CMSIS_SET
+        (
+            RCC    , AHB4ENR,
+            GPIOAEN, true   ,
+            GPIOBEN, true   ,
+            GPIOCEN, true   ,
+            GPIODEN, true   ,
+        );
+        CMSIS_SET(GPIOB, ODR, OD7, false);
+        CMSIS_SET
+        (
+            GPIOD, ODR  ,
+            OD13 , false,
+            OD10 , false,
+        );
+        CMSIS_SET(GPIOC, PUPDR, PUPD13, 0b01);
+        CMSIS_WRITE
+        (
+            GPIO_AFRH, GPIOD->AFR[1],
+            AFSEL8   , 7            ,
+            AFSEL9   , 7            ,
+        );
+        CMSIS_SET(GPIOB, MODER, MODE7, 0b01);
+        CMSIS_SET
+        (
+            GPIOD , MODER,
+            MODE13, 0b01 ,
+            MODE10, 0b01 ,
+            MODE8 , 0b10 ,
+            MODE9 , 0b10 ,
+        );
+        CMSIS_SET(GPIOC, MODER, MODE13, 0b00);
+
+        //////////////////////////////////////////////////////////////// Interrupts ////////////////////////////////////////////////////////////////
+
+        #define INTERRUPT_Default extern void INTERRUPT_Default(void)
+        #define INTERRUPT_MemManage extern void INTERRUPT_MemManage(void)
+        #define INTERRUPT_BusFault extern void INTERRUPT_BusFault(void)
+        #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
+        #define INTERRUPT_USART3 extern void INTERRUPT_USART3(void)
+        static_assert(0 <= 0 && 0 < (1 << __NVIC_PRIO_BITS));
+        NVIC->IPR[NVICInterrupt_USART3] = 0 << __NVIC_PRIO_BITS;
+        CMSIS_SET
+        (
+            SCB        , SHCSR,
+            BUSFAULTENA, true ,
+            MEMFAULTENA, true ,
+            USGFAULTENA, true ,
+        );
+
+        //////////////////////////////////////////////////////////////// Flash ////////////////////////////////////////////////////////////////
+
+        CMSIS_SET
+        (
+            FLASH     , ACR ,
+            LATENCY   , 0x7 ,
+            WRHIGHFREQ, 0b11,
+        );
+        while (CMSIS_GET(FLASH, ACR, LATENCY) != 0x7);
+        while (CMSIS_GET(FLASH, ACR, WRHIGHFREQ) != 0b11);
+
+        //////////////////////////////////////////////////////////////// Power Supply ////////////////////////////////////////////////////////////////
+
+        CMSIS_SET
+        (
+            PWR   , CSR2 ,
+            SDEN  , false,
+            LDOEN , true ,
+            BYPASS, false,
+        );
+        CMSIS_SET(PWR, CSR4, VOS, 1);
+        while (CMSIS_GET(PWR, SR1, ACTVOS) != 1);
+        while (!CMSIS_GET(PWR, SR1, ACTVOSRDY));
+
+        //////////////////////////////////////////////////////////////// Built-in Oscillators ////////////////////////////////////////////////////////////////
+
+        CMSIS_SET(RCC, CR, HSI48ON, true);
+        while (!CMSIS_GET(RCC, CR, HSI48RDY));
+        CMSIS_SET(RCC, CR, CSION, true);
+        while (!CMSIS_GET(RCC, CR, CSIRDY));
+
+        //////////////////////////////////////////////////////////////// Peripheral Clock Source ////////////////////////////////////////////////////////////////
+
+        CMSIS_SET(RCC, CCIPR1, CKPERSEL, 0b00);
+
+        //////////////////////////////////////////////////////////////// PLLs ////////////////////////////////////////////////////////////////
+
+        CMSIS_SET
+        (
+            RCC   , PLLCKSELR,
+            PLLSRC, 0b00     ,
+            DIVM1 , 8        ,
+            DIVM2 , 6        ,
+        );
+        CMSIS_SET
+        (
+            RCC    , PLLCFGR,
+            PLL1RGE, 3      ,
+            PLL1PEN, true   ,
+            PLL2RGE, 3      ,
+            PLL2SEN, true   ,
+        );
+        CMSIS_SET
+        (
+            RCC , PLL1DIVR1,
+            DIVN, 75 - 1   ,
+            DIVP, 1 - 1    ,
+        );
+        CMSIS_SET(RCC, PLL2DIVR1, DIVN, 75 - 1);
+        CMSIS_SET(RCC, PLL2DIVR2, DIVS, 4 - 1);
+        CMSIS_SET
+        (
+            RCC   , CR   ,
+            PLL1ON, true ,
+            PLL2ON, true ,
+            PLL3ON, false,
+        );
+        while (!CMSIS_GET(RCC, CR, PLL1RDY));
+        while (!CMSIS_GET(RCC, CR, PLL2RDY));
+
+        //////////////////////////////////////////////////////////////// System Clock Generation Unit ////////////////////////////////////////////////////////////////
+
+        CMSIS_SET(RCC, CDCFGR, CPRE, 0b0000);
+        CMSIS_SET(RCC, BMCFGR, BMPRE, 0b1000);
+        CMSIS_SET
+        (
+            RCC  , APBCFGR,
+            PPRE1, 0b100  ,
+            PPRE2, 0b100  ,
+            PPRE4, 0b100  ,
+            PPRE5, 0b100  ,
+        );
+        CMSIS_SET(RCC, CFGR, SW, 0b011);
+        while (CMSIS_GET(RCC, CFGR, SWS) != 0b011);
+
+        //////////////////////////////////////////////////////////////// USART2 / USART3 / UART4 / UART5 / UART7 / UART8 ////////////////////////////////////////////////////////////////
+
+        #define USART2_KERNEL_SOURCE_init 0b000
+        #define USART3_KERNEL_SOURCE_init 0b000
+        #define UART4_KERNEL_SOURCE_init 0b000
+        #define UART5_KERNEL_SOURCE_init 0b000
+        #define UART7_KERNEL_SOURCE_init 0b000
+        #define UART8_KERNEL_SOURCE_init 0b000
+        #define UXART_2_3_4_5_7_8_KERNEL_SOURCE_init 0b000
+        #define USART3_BRR_BRR_init 150
+        CMSIS_SET(RCC, CCIPR2, UART234578SEL, 0b000);
+    }
+    #define CLOCK_TREE_FREQUENCY_OF_CPU_CK     (600'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_AXI_AHB_CK (300'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_APB1_CK    (150'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_APB2_CK    (150'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_APB4_CK    (150'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_APB5_CK    (150'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_PLL1_P_CK  (600'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_PLL2_S_CK  (200'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_HSI_CK     ( 64'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_HSI48_CK   ( 48'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_CSI_CK     (  4'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_HSE_CK     (          0)
+    #define CLOCK_TREE_FREQUENCY_OF_LSE_CK     (          0)
+    #define CLOCK_TREE_FREQUENCY_OF_PER_CK     ( 64'000'000)
+#endif
+#if TARGET_NAME_IS_SandboxNucleoH533RE
+    enum NVICInterrupt : u32
+    {
+        NVICInterrupt_USART2 = USART2_IRQn,
+    };
+    static constexpr u32 NVICInterrupt_COUNT = 1;
+    extern void
+    SYSTEM_init(void)
+    {
+
+        //////////////////////////////////////////////////////////////// GPIOs ////////////////////////////////////////////////////////////////
+
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__led_green A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__led_green 5
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__stlink_tx A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_tx 2
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__stlink_rx A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_rx 3
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__button C
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__button 13
+        CMSIS_SET
+        (
+            RCC    , AHB2ENR,
+            GPIOAEN, true   ,
+            GPIOCEN, true   ,
+        );
+        CMSIS_SET(GPIOA, ODR, OD5, false);
+        CMSIS_SET(GPIOC, PUPDR, PUPD13, 0b01);
+        CMSIS_WRITE
+        (
+            GPIO_AFRL, GPIOA->AFR[0],
+            AFSEL2   , 7            ,
+            AFSEL3   , 7            ,
+        );
+        CMSIS_SET
+        (
+            GPIOA, MODER,
+            MODE5, 0b01 ,
+            MODE2, 0b10 ,
+            MODE3, 0b10 ,
+        );
+        CMSIS_SET(GPIOC, MODER, MODE13, 0b00);
+
+        //////////////////////////////////////////////////////////////// Interrupts ////////////////////////////////////////////////////////////////
+
+        #define INTERRUPT_Default extern void INTERRUPT_Default(void)
+        #define INTERRUPT_MemManage extern void INTERRUPT_MemManage(void)
+        #define INTERRUPT_BusFault extern void INTERRUPT_BusFault(void)
+        #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
+        #define INTERRUPT_USART2 extern void INTERRUPT_USART2(void)
+        static_assert(0 <= 0 && 0 < (1 << __NVIC_PRIO_BITS));
+        NVIC->IPR[NVICInterrupt_USART2] = 0 << __NVIC_PRIO_BITS;
+        CMSIS_SET
+        (
+            SCB        , SHCSR,
+            BUSFAULTENA, true ,
+            MEMFAULTENA, true ,
+            USGFAULTENA, true ,
+        );
+
+        //////////////////////////////////////////////////////////////// Flash ////////////////////////////////////////////////////////////////
+
+        CMSIS_SET
+        (
+            FLASH     , ACR ,
+            LATENCY   , 5   ,
+            WRHIGHFREQ, 0b10,
+        );
+        while (CMSIS_GET(FLASH, ACR, LATENCY) != 5);
+        while (CMSIS_GET(FLASH, ACR, WRHIGHFREQ) != 0b10);
+
+        //////////////////////////////////////////////////////////////// Power Supply ////////////////////////////////////////////////////////////////
+
+        CMSIS_SET
+        (
+            PWR   , SCCR ,
+            LDOEN , true ,
+            BYPASS, false,
+        );
+        CMSIS_SET(PWR, VOSCR, VOS, 0b11);
+        while (CMSIS_GET(PWR, VOSSR, ACTVOS) != 0b11);
+        while (!CMSIS_GET(PWR, VOSSR, ACTVOSRDY));
+
+        //////////////////////////////////////////////////////////////// Built-in Oscillators ////////////////////////////////////////////////////////////////
+
+        CMSIS_SET(RCC, CR, HSI48ON, true);
+        while (!CMSIS_GET(RCC, CR, HSI48RDY));
+        CMSIS_SET(RCC, CR, CSION, true);
+        while (!CMSIS_GET(RCC, CR, CSIRDY));
+
+        //////////////////////////////////////////////////////////////// PLLs ////////////////////////////////////////////////////////////////
+
+        CMSIS_SET
+        (
+            RCC    , PLL1CFGR,
+            PLL1SRC, 0b01    ,
+            PLL1M  , 8       ,
+            PLL1RGE, 2       ,
+            PLL1PEN, true    ,
+        );
+        CMSIS_SET
+        (
+            RCC  , PLL1DIVR,
+            PLL1N, 125 - 1 ,
+            PLL1P, 2 - 1   ,
+        );
+        CMSIS_SET(RCC, PLL2CFGR, PLL2SRC, 0b00);
+        CMSIS_SET(RCC, PLL3CFGR, PLL3SRC, 0b00);
+        CMSIS_SET
+        (
+            RCC   , CR   ,
+            PLL1ON, true ,
+            PLL2ON, false,
+            PLL3ON, false,
+        );
+        while (!CMSIS_GET(RCC, CR, PLL1RDY));
+
+        //////////////////////////////////////////////////////////////// System Clock Generation Unit ////////////////////////////////////////////////////////////////
+
+        CMSIS_SET
+        (
+            RCC  , CFGR2 ,
+            HPRE , 0b0000,
+            PPRE1, 0b000 ,
+            PPRE2, 0b000 ,
+            PPRE3, 0b000 ,
+        );
+        CMSIS_SET(RCC, CFGR1, SW, 0b011);
+        while (CMSIS_GET(RCC, CFGR1, SWS) != 0b011);
+
+        //////////////////////////////////////////////////////////////// USART2 ////////////////////////////////////////////////////////////////
+
+        #define USART2_KERNEL_SOURCE_init 0b000
+        #define UXART_2_KERNEL_SOURCE_init 0b000
+        #define USART2_BRR_BRR_init 250
+        CMSIS_SET(RCC, CCIPR1, USART2SEL, 0b000);
+    }
+    #define CLOCK_TREE_FREQUENCY_OF_CPU_CK     (250'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_APB1_CK    (250'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_APB2_CK    (250'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_APB3_CK    (250'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_PLL1_P_CK  (250'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_HSI_CK     ( 32'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_HSI48_CK   ( 48'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_CSI_CK     (  4'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_HSE_CK     (          0)
+    #define CLOCK_TREE_FREQUENCY_OF_LSE_CK     (          0)
+    #define CLOCK_TREE_FREQUENCY_OF_PER_CK     (          0)
+    #define CLOCK_TREE_FREQUENCY_OF_AXI_AHB_CK (250'000'000)
+#endif
+#if TARGET_NAME_IS_DemoI2C
+    enum NVICInterrupt : u32
+    {
+        NVICInterrupt_USART2  = USART2_IRQn,
+        NVICInterrupt_I2C1_EV = I2C1_EV_IRQn,
+        NVICInterrupt_I2C1_ER = I2C1_ER_IRQn,
+    };
+    static constexpr u32 NVICInterrupt_COUNT = 3;
+    extern void
+    SYSTEM_init(void)
+    {
+
+        //////////////////////////////////////////////////////////////// GPIOs ////////////////////////////////////////////////////////////////
+
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__led_green A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__led_green 5
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__stlink_tx A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_tx 2
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__stlink_rx A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_rx 3
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__button C
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__button 13
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__i2c1_scl B
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__i2c1_scl 6
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__i2c1_sda B
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__i2c1_sda 7
+        CMSIS_SET
+        (
+            RCC    , AHB2ENR,
+            GPIOAEN, true   ,
+            GPIOBEN, true   ,
+            GPIOCEN, true   ,
+        );
+        CMSIS_SET
+        (
+            GPIOB, OTYPER,
+            OT6  , true  ,
+            OT7  , true  ,
+        );
+        CMSIS_SET(GPIOA, ODR, OD5, false);
+        CMSIS_SET(GPIOC, PUPDR, PUPD13, 0b01);
+        CMSIS_SET
+        (
+            GPIOB, PUPDR,
+            PUPD6, 0b01 ,
+            PUPD7, 0b01 ,
+        );
+        CMSIS_WRITE
+        (
+            GPIO_AFRL, GPIOA->AFR[0],
+            AFSEL2   , 7            ,
+            AFSEL3   , 7            ,
+        );
+        CMSIS_WRITE
+        (
+            GPIO_AFRL, GPIOB->AFR[0],
+            AFSEL6   , 4            ,
+            AFSEL7   , 4            ,
+        );
+        CMSIS_SET
+        (
+            GPIOA, MODER,
+            MODE5, 0b01 ,
+            MODE2, 0b10 ,
+            MODE3, 0b10 ,
+        );
+        CMSIS_SET(GPIOC, MODER, MODE13, 0b00);
+        CMSIS_SET
+        (
+            GPIOB, MODER,
+            MODE6, 0b10 ,
+            MODE7, 0b10 ,
+        );
+
+        //////////////////////////////////////////////////////////////// Interrupts ////////////////////////////////////////////////////////////////
+
+        #define INTERRUPT_Default extern void INTERRUPT_Default(void)
+        #define INTERRUPT_MemManage extern void INTERRUPT_MemManage(void)
+        #define INTERRUPT_BusFault extern void INTERRUPT_BusFault(void)
+        #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
+        #define INTERRUPT_I2C1_EV extern void INTERRUPT_I2C1_EV(void)
+        #define INTERRUPT_I2C1_ER extern void INTERRUPT_I2C1_ER(void)
+        #define INTERRUPT_USART2 extern void INTERRUPT_USART2(void)
+        static_assert(0 <= 0 && 0 < (1 << __NVIC_PRIO_BITS));
+        NVIC->IPR[NVICInterrupt_USART2] = 0 << __NVIC_PRIO_BITS;
+        static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
+        NVIC->IPR[NVICInterrupt_I2C1_EV] = 1 << __NVIC_PRIO_BITS;
+        static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
+        NVIC->IPR[NVICInterrupt_I2C1_ER] = 1 << __NVIC_PRIO_BITS;
+        CMSIS_SET
+        (
+            SCB        , SHCSR,
+            BUSFAULTENA, true ,
+            MEMFAULTENA, true ,
+            USGFAULTENA, true ,
+        );
+
+        //////////////////////////////////////////////////////////////// Flash ////////////////////////////////////////////////////////////////
+
+        CMSIS_SET
+        (
+            FLASH     , ACR ,
+            LATENCY   , 5   ,
+            WRHIGHFREQ, 0b10,
+        );
+        while (CMSIS_GET(FLASH, ACR, LATENCY) != 5);
+        while (CMSIS_GET(FLASH, ACR, WRHIGHFREQ) != 0b10);
+
+        //////////////////////////////////////////////////////////////// Power Supply ////////////////////////////////////////////////////////////////
+
+        CMSIS_SET
+        (
+            PWR   , SCCR ,
+            LDOEN , true ,
+            BYPASS, false,
+        );
+        CMSIS_SET(PWR, VOSCR, VOS, 0b11);
+        while (CMSIS_GET(PWR, VOSSR, ACTVOS) != 0b11);
+        while (!CMSIS_GET(PWR, VOSSR, ACTVOSRDY));
+
+        //////////////////////////////////////////////////////////////// Built-in Oscillators ////////////////////////////////////////////////////////////////
+
+        CMSIS_SET(RCC, CR, HSI48ON, true);
+        while (!CMSIS_GET(RCC, CR, HSI48RDY));
+        CMSIS_SET(RCC, CR, CSION, true);
+        while (!CMSIS_GET(RCC, CR, CSIRDY));
+
+        //////////////////////////////////////////////////////////////// PLLs ////////////////////////////////////////////////////////////////
+
+        CMSIS_SET
+        (
+            RCC    , PLL1CFGR,
+            PLL1SRC, 0b01    ,
+            PLL1M  , 8       ,
+            PLL1RGE, 2       ,
+            PLL1PEN, true    ,
+        );
+        CMSIS_SET
+        (
+            RCC  , PLL1DIVR,
+            PLL1N, 125 - 1 ,
+            PLL1P, 2 - 1   ,
+        );
+        CMSIS_SET(RCC, PLL2CFGR, PLL2SRC, 0b00);
+        CMSIS_SET(RCC, PLL3CFGR, PLL3SRC, 0b00);
+        CMSIS_SET
+        (
+            RCC   , CR   ,
+            PLL1ON, true ,
+            PLL2ON, false,
+            PLL3ON, false,
+        );
+        while (!CMSIS_GET(RCC, CR, PLL1RDY));
+
+        //////////////////////////////////////////////////////////////// System Clock Generation Unit ////////////////////////////////////////////////////////////////
+
+        CMSIS_SET
+        (
+            RCC  , CFGR2 ,
+            HPRE , 0b0000,
+            PPRE1, 0b000 ,
+            PPRE2, 0b000 ,
+            PPRE3, 0b000 ,
+        );
+        CMSIS_SET(RCC, CFGR1, SW, 0b011);
+        while (CMSIS_GET(RCC, CFGR1, SWS) != 0b011);
+
+        //////////////////////////////////////////////////////////////// USART2 ////////////////////////////////////////////////////////////////
+
+        #define USART2_KERNEL_SOURCE_init 0b000
+        #define UXART_2_KERNEL_SOURCE_init 0b000
+        #define USART2_BRR_BRR_init 250
+        CMSIS_SET(RCC, CCIPR1, USART2SEL, 0b000);
+
+        //////////////////////////////////////////////////////////////// I2C1 ////////////////////////////////////////////////////////////////
+
+        #define I2C1_KERNEL_SOURCE_init 0b00
+        #define I2C1_TIMINGR_PRESC_init 4
+        #define I2C1_TIMINGR_SCL_init 250
+    }
+    #define CLOCK_TREE_FREQUENCY_OF_CPU_CK     (250'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_APB1_CK    (250'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_APB2_CK    (250'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_APB3_CK    (250'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_PLL1_P_CK  (250'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_HSI_CK     ( 32'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_HSI48_CK   ( 48'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_CSI_CK     (  4'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_HSE_CK     (          0)
+    #define CLOCK_TREE_FREQUENCY_OF_LSE_CK     (          0)
+    #define CLOCK_TREE_FREQUENCY_OF_PER_CK     (          0)
+    #define CLOCK_TREE_FREQUENCY_OF_AXI_AHB_CK (250'000'000)
+#endif
+#if TARGET_NAME_IS_DemoTimer
+    enum NVICInterrupt : u32
+    {
+        NVICInterrupt_USART2  = USART2_IRQn,
+        NVICInterrupt_TIM1_UP = TIM1_UP_IRQn,
+    };
+    static constexpr u32 NVICInterrupt_COUNT = 2;
+    extern void
+    SYSTEM_init(void)
+    {
+
+        //////////////////////////////////////////////////////////////// GPIOs ////////////////////////////////////////////////////////////////
+
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__led_green A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__led_green 5
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__stlink_tx A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_tx 2
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__stlink_rx A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_rx 3
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__button C
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__button 13
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__i2c1_scl B
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__i2c1_scl 6
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__i2c1_sda B
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__i2c1_sda 7
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__OC1 A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__OC1 8
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__OC1N A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__OC1N 7
+        CMSIS_SET
+        (
+            RCC    , AHB2ENR,
+            GPIOAEN, true   ,
+            GPIOBEN, true   ,
+            GPIOCEN, true   ,
+        );
+        CMSIS_SET
+        (
+            GPIOB, OTYPER,
+            OT6  , true  ,
+            OT7  , true  ,
+        );
+        CMSIS_SET(GPIOA, ODR, OD5, false);
+        CMSIS_SET(GPIOC, PUPDR, PUPD13, 0b01);
+        CMSIS_SET
+        (
+            GPIOB, PUPDR,
+            PUPD6, 0b01 ,
+            PUPD7, 0b01 ,
+        );
+        CMSIS_WRITE
+        (
+            GPIO_AFRL, GPIOA->AFR[0],
+            AFSEL2   , 7            ,
+            AFSEL3   , 7            ,
+            AFSEL7   , 1            ,
+        );
+        CMSIS_WRITE
+        (
+            GPIO_AFRL, GPIOB->AFR[0],
+            AFSEL6   , 4            ,
+            AFSEL7   , 4            ,
+        );
+        CMSIS_WRITE(GPIO_AFRH, GPIOA->AFR[1], AFSEL8, 1);
+        CMSIS_SET
+        (
+            GPIOA, MODER,
+            MODE5, 0b01 ,
+            MODE2, 0b10 ,
+            MODE3, 0b10 ,
+            MODE8, 0b10 ,
+            MODE7, 0b10 ,
+        );
+        CMSIS_SET(GPIOC, MODER, MODE13, 0b00);
+        CMSIS_SET
+        (
+            GPIOB, MODER,
+            MODE6, 0b10 ,
+            MODE7, 0b10 ,
+        );
+
+        //////////////////////////////////////////////////////////////// Interrupts ////////////////////////////////////////////////////////////////
+
+        #define INTERRUPT_Default extern void INTERRUPT_Default(void)
+        #define INTERRUPT_MemManage extern void INTERRUPT_MemManage(void)
+        #define INTERRUPT_BusFault extern void INTERRUPT_BusFault(void)
+        #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
+        #define INTERRUPT_TIM1_UP extern void INTERRUPT_TIM1_UP(void)
+        #define INTERRUPT_USART2 extern void INTERRUPT_USART2(void)
+        static_assert(0 <= 0 && 0 < (1 << __NVIC_PRIO_BITS));
+        NVIC->IPR[NVICInterrupt_USART2] = 0 << __NVIC_PRIO_BITS;
+        static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
+        NVIC->IPR[NVICInterrupt_TIM1_UP] = 1 << __NVIC_PRIO_BITS;
+        CMSIS_SET
+        (
+            SCB        , SHCSR,
+            BUSFAULTENA, true ,
+            MEMFAULTENA, true ,
+            USGFAULTENA, true ,
+        );
+
+        //////////////////////////////////////////////////////////////// Flash ////////////////////////////////////////////////////////////////
+
+        CMSIS_SET
+        (
+            FLASH     , ACR ,
+            LATENCY   , 5   ,
+            WRHIGHFREQ, 0b10,
+        );
+        while (CMSIS_GET(FLASH, ACR, LATENCY) != 5);
+        while (CMSIS_GET(FLASH, ACR, WRHIGHFREQ) != 0b10);
+
+        //////////////////////////////////////////////////////////////// Power Supply ////////////////////////////////////////////////////////////////
+
+        CMSIS_SET
+        (
+            PWR   , SCCR ,
+            LDOEN , true ,
+            BYPASS, false,
+        );
+        CMSIS_SET(PWR, VOSCR, VOS, 0b11);
+        while (CMSIS_GET(PWR, VOSSR, ACTVOS) != 0b11);
+        while (!CMSIS_GET(PWR, VOSSR, ACTVOSRDY));
+
+        //////////////////////////////////////////////////////////////// Built-in Oscillators ////////////////////////////////////////////////////////////////
+
+        CMSIS_SET(RCC, CR, HSI48ON, true);
+        while (!CMSIS_GET(RCC, CR, HSI48RDY));
+        CMSIS_SET(RCC, CR, CSION, true);
+        while (!CMSIS_GET(RCC, CR, CSIRDY));
+
+        //////////////////////////////////////////////////////////////// PLLs ////////////////////////////////////////////////////////////////
+
+        CMSIS_SET
+        (
+            RCC    , PLL1CFGR,
+            PLL1SRC, 0b01    ,
+            PLL1M  , 8       ,
+            PLL1RGE, 2       ,
+            PLL1PEN, true    ,
+        );
+        CMSIS_SET
+        (
+            RCC  , PLL1DIVR,
+            PLL1N, 125 - 1 ,
+            PLL1P, 2 - 1   ,
+        );
+        CMSIS_SET(RCC, PLL2CFGR, PLL2SRC, 0b00);
+        CMSIS_SET(RCC, PLL3CFGR, PLL3SRC, 0b00);
+        CMSIS_SET
+        (
+            RCC   , CR   ,
+            PLL1ON, true ,
+            PLL2ON, false,
+            PLL3ON, false,
+        );
+        while (!CMSIS_GET(RCC, CR, PLL1RDY));
+
+        //////////////////////////////////////////////////////////////// System Clock Generation Unit ////////////////////////////////////////////////////////////////
+
+        CMSIS_SET
+        (
+            RCC  , CFGR2 ,
+            HPRE , 0b0000,
+            PPRE1, 0b000 ,
+            PPRE2, 0b000 ,
+            PPRE3, 0b000 ,
+        );
+        CMSIS_SET(RCC, CFGR1, SW, 0b011);
+        while (CMSIS_GET(RCC, CFGR1, SWS) != 0b011);
+
+        //////////////////////////////////////////////////////////////// USART2 ////////////////////////////////////////////////////////////////
+
+        #define USART2_KERNEL_SOURCE_init 0b000
+        #define UXART_2_KERNEL_SOURCE_init 0b000
+        #define USART2_BRR_BRR_init 250
+        CMSIS_SET(RCC, CCIPR1, USART2SEL, 0b000);
+
+        //////////////////////////////////////////////////////////////// I2C1 ////////////////////////////////////////////////////////////////
+
+        #define I2C1_KERNEL_SOURCE_init 0b00
+        #define I2C1_TIMINGR_PRESC_init 4
+        #define I2C1_TIMINGR_SCL_init 250
+
+        //////////////////////////////////////////////////////////////// Timers ////////////////////////////////////////////////////////////////
+
+        #define GLOBAL_TIMER_PRESCALER_init false
+        #define TIM1_DIVIDER_init (239 - 1)
+        #define TIM1_MODULATION_init (65377 - 1)
+    }
+    #define CLOCK_TREE_FREQUENCY_OF_CPU_CK     (250'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_APB1_CK    (250'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_APB2_CK    (250'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_APB3_CK    (250'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_PLL1_P_CK  (250'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_HSI_CK     ( 32'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_HSI48_CK   ( 48'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_CSI_CK     (  4'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_HSE_CK     (          0)
+    #define CLOCK_TREE_FREQUENCY_OF_LSE_CK     (          0)
+    #define CLOCK_TREE_FREQUENCY_OF_PER_CK     (          0)
+    #define CLOCK_TREE_FREQUENCY_OF_AXI_AHB_CK (250'000'000)
+#endif

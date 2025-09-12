@@ -1,0 +1,623 @@
+#if TARGET_NAME_IS_SandboxNucleoH7S3L8
+    .word INTERRUPT_Reset      // [-15] Reset
+    .word INTERRUPT_Default    // [-14] NonMaskableInt
+    .word INTERRUPT_Default    // [-13] HardFault
+    .word INTERRUPT_Default    // [-12] MemoryManagement
+    .word INTERRUPT_BusFault   // [-11] BusFault
+    .word INTERRUPT_UsageFault // [-10] UsageFault
+    .word INTERRUPT_Default    // [ -9] Reserved
+    .word INTERRUPT_Default    // [ -8] Reserved
+    .word INTERRUPT_Default    // [ -7] Reserved
+    .word INTERRUPT_Default    // [ -6] Reserved
+    .word INTERRUPT_Default    // [ -5] SVCall
+    .word INTERRUPT_Default    // [ -4] DebugMonitor
+    .word INTERRUPT_Default    // [ -3] Reserved
+    .word INTERRUPT_Default    // [ -2] PendSV
+    .word INTERRUPT_Default    // [ -1] SysTick
+    .word INTERRUPT_Default    // [  0] PVD_PVM
+    .word INTERRUPT_Default    // [  1] Reserved
+    .word INTERRUPT_Default    // [  2] DTS
+    .word INTERRUPT_Default    // [  3] IWDG
+    .word INTERRUPT_Default    // [  4] WWDG
+    .word INTERRUPT_Default    // [  5] RCC
+    .word INTERRUPT_Default    // [  6] Reserved
+    .word INTERRUPT_Default    // [  7] Reserved
+    .word INTERRUPT_Default    // [  8] FLASH
+    .word INTERRUPT_Default    // [  9] RAMECC
+    .word INTERRUPT_Default    // [ 10] FPU
+    .word INTERRUPT_Default    // [ 11] Reserved
+    .word INTERRUPT_Default    // [ 12] Reserved
+    .word INTERRUPT_Default    // [ 13] TAMP
+    .word INTERRUPT_Default    // [ 14] Reserved
+    .word INTERRUPT_Default    // [ 15] Reserved
+    .word INTERRUPT_Default    // [ 16] EXTI0
+    .word INTERRUPT_Default    // [ 17] EXTI1
+    .word INTERRUPT_Default    // [ 18] EXTI2
+    .word INTERRUPT_Default    // [ 19] EXTI3
+    .word INTERRUPT_Default    // [ 20] EXTI4
+    .word INTERRUPT_Default    // [ 21] EXTI5
+    .word INTERRUPT_Default    // [ 22] EXTI6
+    .word INTERRUPT_Default    // [ 23] EXTI7
+    .word INTERRUPT_Default    // [ 24] EXTI8
+    .word INTERRUPT_Default    // [ 25] EXTI9
+    .word INTERRUPT_Default    // [ 26] EXTI10
+    .word INTERRUPT_Default    // [ 27] EXTI11
+    .word INTERRUPT_Default    // [ 28] EXTI12
+    .word INTERRUPT_Default    // [ 29] EXTI13
+    .word INTERRUPT_Default    // [ 30] EXTI14
+    .word INTERRUPT_Default    // [ 31] EXTI15
+    .word INTERRUPT_Default    // [ 32] RTC
+    .word INTERRUPT_Default    // [ 33] SAES
+    .word INTERRUPT_Default    // [ 34] CRYP
+    .word INTERRUPT_Default    // [ 35] PKA
+    .word INTERRUPT_Default    // [ 36] HASH
+    .word INTERRUPT_Default    // [ 37] RNG
+    .word INTERRUPT_Default    // [ 38] ADC1_2
+    .word INTERRUPT_Default    // [ 39] GPDMA1_Channel0
+    .word INTERRUPT_Default    // [ 40] GPDMA1_Channel1
+    .word INTERRUPT_Default    // [ 41] GPDMA1_Channel2
+    .word INTERRUPT_Default    // [ 42] GPDMA1_Channel3
+    .word INTERRUPT_Default    // [ 43] GPDMA1_Channel4
+    .word INTERRUPT_Default    // [ 44] GPDMA1_Channel5
+    .word INTERRUPT_Default    // [ 45] GPDMA1_Channel6
+    .word INTERRUPT_Default    // [ 46] GPDMA1_Channel7
+    .word INTERRUPT_Default    // [ 47] TIM1_BRK
+    .word INTERRUPT_Default    // [ 48] TIM1_UP
+    .word INTERRUPT_Default    // [ 49] TIM1_TRG_COM
+    .word INTERRUPT_Default    // [ 50] TIM1_CC
+    .word INTERRUPT_Default    // [ 51] TIM2
+    .word INTERRUPT_Default    // [ 52] TIM3
+    .word INTERRUPT_Default    // [ 53] TIM4
+    .word INTERRUPT_Default    // [ 54] TIM5
+    .word INTERRUPT_Default    // [ 55] TIM6
+    .word INTERRUPT_Default    // [ 56] TIM7
+    .word INTERRUPT_Default    // [ 57] TIM9
+    .word INTERRUPT_Default    // [ 58] SPI1
+    .word INTERRUPT_Default    // [ 59] SPI2
+    .word INTERRUPT_Default    // [ 60] SPI3
+    .word INTERRUPT_Default    // [ 61] SPI4
+    .word INTERRUPT_Default    // [ 62] SPI5
+    .word INTERRUPT_Default    // [ 63] SPI6
+    .word INTERRUPT_Default    // [ 64] HPDMA1_Channel0
+    .word INTERRUPT_Default    // [ 65] HPDMA1_Channel1
+    .word INTERRUPT_Default    // [ 66] HPDMA1_Channel2
+    .word INTERRUPT_Default    // [ 67] HPDMA1_Channel3
+    .word INTERRUPT_Default    // [ 68] HPDMA1_Channel4
+    .word INTERRUPT_Default    // [ 69] HPDMA1_Channel5
+    .word INTERRUPT_Default    // [ 70] HPDMA1_Channel6
+    .word INTERRUPT_Default    // [ 71] HPDMA1_Channel7
+    .word INTERRUPT_Default    // [ 72] SAI1_A
+    .word INTERRUPT_Default    // [ 73] SAI1_B
+    .word INTERRUPT_Default    // [ 74] SAI2_A
+    .word INTERRUPT_Default    // [ 75] SAI2_B
+    .word INTERRUPT_Default    // [ 76] I2C1_EV
+    .word INTERRUPT_Default    // [ 77] I2C1_ER
+    .word INTERRUPT_Default    // [ 78] I2C2_EV
+    .word INTERRUPT_Default    // [ 79] I2C2_ER
+    .word INTERRUPT_Default    // [ 80] I2C3_EV
+    .word INTERRUPT_Default    // [ 81] I2C3_ER
+    .word INTERRUPT_Default    // [ 82] USART1
+    .word INTERRUPT_Default    // [ 83] USART2
+    .word INTERRUPT_USART3     // [ 84] USART3
+    .word INTERRUPT_Default    // [ 85] UART4
+    .word INTERRUPT_Default    // [ 86] UART5
+    .word INTERRUPT_Default    // [ 87] UART7
+    .word INTERRUPT_Default    // [ 88] UART8
+    .word INTERRUPT_Default    // [ 89] I3C1_EV
+    .word INTERRUPT_Default    // [ 90] I3C1_ER
+    .word INTERRUPT_Default    // [ 91] OTG_HS
+    .word INTERRUPT_Default    // [ 92] ETH
+    .word INTERRUPT_Default    // [ 93] CORDIC
+    .word INTERRUPT_Default    // [ 94] GFXTIM
+    .word INTERRUPT_Default    // [ 95] DCMIPP
+    .word INTERRUPT_Default    // [ 96] Reserved
+    .word INTERRUPT_Default    // [ 97] Reserved
+    .word INTERRUPT_Default    // [ 98] DMA2D
+    .word INTERRUPT_Default    // [ 99] JPEG
+    .word INTERRUPT_Default    // [100] GFXMMU
+    .word INTERRUPT_Default    // [101] I3C1_WKUP
+    .word INTERRUPT_Default    // [102] MCE1
+    .word INTERRUPT_Default    // [103] MCE2
+    .word INTERRUPT_Default    // [104] MCE3
+    .word INTERRUPT_Default    // [105] XSPI1
+    .word INTERRUPT_Default    // [106] XSPI2
+    .word INTERRUPT_Default    // [107] FMC
+    .word INTERRUPT_Default    // [108] SDMMC1
+    .word INTERRUPT_Default    // [109] SDMMC2
+    .word INTERRUPT_Default    // [110] Reserved
+    .word INTERRUPT_Default    // [111] Reserved
+    .word INTERRUPT_Default    // [112] OTG_FS
+    .word INTERRUPT_Default    // [113] TIM12
+    .word INTERRUPT_Default    // [114] TIM13
+    .word INTERRUPT_Default    // [115] TIM14
+    .word INTERRUPT_Default    // [116] TIM15
+    .word INTERRUPT_Default    // [117] TIM16
+    .word INTERRUPT_Default    // [118] TIM17
+    .word INTERRUPT_Default    // [119] LPTIM1
+    .word INTERRUPT_Default    // [120] LPTIM2
+    .word INTERRUPT_Default    // [121] LPTIM3
+    .word INTERRUPT_Default    // [122] LPTIM4
+    .word INTERRUPT_Default    // [123] LPTIM5
+    .word INTERRUPT_Default    // [124] SPDIF_RX
+    .word INTERRUPT_Default    // [125] MDIOS
+    .word INTERRUPT_Default    // [126] ADF1_FLT0
+    .word INTERRUPT_Default    // [127] CRS
+    .word INTERRUPT_Default    // [128] UCPD1
+    .word INTERRUPT_Default    // [129] CEC
+    .word INTERRUPT_Default    // [130] PSSI
+    .word INTERRUPT_Default    // [131] LPUART1
+    .word INTERRUPT_Default    // [132] WAKEUP_PIN
+    .word INTERRUPT_Default    // [133] GPDMA1_Channel8
+    .word INTERRUPT_Default    // [134] GPDMA1_Channel9
+    .word INTERRUPT_Default    // [135] GPDMA1_Channel10
+    .word INTERRUPT_Default    // [136] GPDMA1_Channel11
+    .word INTERRUPT_Default    // [137] GPDMA1_Channel12
+    .word INTERRUPT_Default    // [138] GPDMA1_Channel13
+    .word INTERRUPT_Default    // [139] GPDMA1_Channel14
+    .word INTERRUPT_Default    // [140] GPDMA1_Channel15
+    .word INTERRUPT_Default    // [141] HPDMA1_Channel8
+    .word INTERRUPT_Default    // [142] HPDMA1_Channel9
+    .word INTERRUPT_Default    // [143] HPDMA1_Channel10
+    .word INTERRUPT_Default    // [144] HPDMA1_Channel11
+    .word INTERRUPT_Default    // [145] HPDMA1_Channel12
+    .word INTERRUPT_Default    // [146] HPDMA1_Channel13
+    .word INTERRUPT_Default    // [147] HPDMA1_Channel14
+    .word INTERRUPT_Default    // [148] HPDMA1_Channel15
+    .word INTERRUPT_Default    // [149] Reserved
+    .word INTERRUPT_Default    // [150] Reserved
+    .word INTERRUPT_Default    // [151] Reserved
+    .word INTERRUPT_Default    // [152] FDCAN1_IT0
+    .word INTERRUPT_Default    // [153] FDCAN1_IT1
+    .word INTERRUPT_Default    // [154] FDCAN2_IT0
+    .word INTERRUPT_Default    // [155] FDCAN2_IT1
+#endif
+#if TARGET_NAME_IS_SandboxNucleoH533RE
+    .word INTERRUPT_Reset      // [-15] Reset
+    .word INTERRUPT_Default    // [-14] NonMaskableInt
+    .word INTERRUPT_Default    // [-13] HardFault
+    .word INTERRUPT_Default    // [-12] MemoryManagement
+    .word INTERRUPT_BusFault   // [-11] BusFault
+    .word INTERRUPT_UsageFault // [-10] UsageFault
+    .word INTERRUPT_Default    // [ -9] SecureFault
+    .word INTERRUPT_Default    // [ -8] Reserved
+    .word INTERRUPT_Default    // [ -7] Reserved
+    .word INTERRUPT_Default    // [ -6] Reserved
+    .word INTERRUPT_Default    // [ -5] SVCall
+    .word INTERRUPT_Default    // [ -4] DebugMonitor
+    .word INTERRUPT_Default    // [ -3] Reserved
+    .word INTERRUPT_Default    // [ -2] PendSV
+    .word INTERRUPT_Default    // [ -1] SysTick
+    .word INTERRUPT_Default    // [  0] WWDG
+    .word INTERRUPT_Default    // [  1] PVD_AVD
+    .word INTERRUPT_Default    // [  2] RTC
+    .word INTERRUPT_Default    // [  3] RTC_S
+    .word INTERRUPT_Default    // [  4] TAMP
+    .word INTERRUPT_Default    // [  5] RAMCFG
+    .word INTERRUPT_Default    // [  6] FLASH
+    .word INTERRUPT_Default    // [  7] FLASH_S
+    .word INTERRUPT_Default    // [  8] GTZC
+    .word INTERRUPT_Default    // [  9] RCC
+    .word INTERRUPT_Default    // [ 10] RCC_S
+    .word INTERRUPT_Default    // [ 11] EXTI0
+    .word INTERRUPT_Default    // [ 12] EXTI1
+    .word INTERRUPT_Default    // [ 13] EXTI2
+    .word INTERRUPT_Default    // [ 14] EXTI3
+    .word INTERRUPT_Default    // [ 15] EXTI4
+    .word INTERRUPT_Default    // [ 16] EXTI5
+    .word INTERRUPT_Default    // [ 17] EXTI6
+    .word INTERRUPT_Default    // [ 18] EXTI7
+    .word INTERRUPT_Default    // [ 19] EXTI8
+    .word INTERRUPT_Default    // [ 20] EXTI9
+    .word INTERRUPT_Default    // [ 21] EXTI10
+    .word INTERRUPT_Default    // [ 22] EXTI11
+    .word INTERRUPT_Default    // [ 23] EXTI12
+    .word INTERRUPT_Default    // [ 24] EXTI13
+    .word INTERRUPT_Default    // [ 25] EXTI14
+    .word INTERRUPT_Default    // [ 26] EXTI15
+    .word INTERRUPT_Default    // [ 27] GPDMA1_Channel0
+    .word INTERRUPT_Default    // [ 28] GPDMA1_Channel1
+    .word INTERRUPT_Default    // [ 29] GPDMA1_Channel2
+    .word INTERRUPT_Default    // [ 30] GPDMA1_Channel3
+    .word INTERRUPT_Default    // [ 31] GPDMA1_Channel4
+    .word INTERRUPT_Default    // [ 32] GPDMA1_Channel5
+    .word INTERRUPT_Default    // [ 33] GPDMA1_Channel6
+    .word INTERRUPT_Default    // [ 34] GPDMA1_Channel7
+    .word INTERRUPT_Default    // [ 35] IWDG
+    .word INTERRUPT_Default    // [ 36] SAES
+    .word INTERRUPT_Default    // [ 37] ADC1
+    .word INTERRUPT_Default    // [ 38] DAC1
+    .word INTERRUPT_Default    // [ 39] FDCAN1_IT0
+    .word INTERRUPT_Default    // [ 40] FDCAN1_IT1
+    .word INTERRUPT_Default    // [ 41] TIM1_BRK
+    .word INTERRUPT_Default    // [ 42] TIM1_UP
+    .word INTERRUPT_Default    // [ 43] TIM1_TRG_COM
+    .word INTERRUPT_Default    // [ 44] TIM1_CC
+    .word INTERRUPT_Default    // [ 45] TIM2
+    .word INTERRUPT_Default    // [ 46] TIM3
+    .word INTERRUPT_Default    // [ 47] TIM4
+    .word INTERRUPT_Default    // [ 48] TIM5
+    .word INTERRUPT_Default    // [ 49] TIM6
+    .word INTERRUPT_Default    // [ 50] TIM7
+    .word INTERRUPT_Default    // [ 51] I2C1_EV
+    .word INTERRUPT_Default    // [ 52] I2C1_ER
+    .word INTERRUPT_Default    // [ 53] I2C2_EV
+    .word INTERRUPT_Default    // [ 54] I2C2_ER
+    .word INTERRUPT_Default    // [ 55] SPI1
+    .word INTERRUPT_Default    // [ 56] SPI2
+    .word INTERRUPT_Default    // [ 57] SPI3
+    .word INTERRUPT_Default    // [ 58] USART1
+    .word INTERRUPT_USART2     // [ 59] USART2
+    .word INTERRUPT_Default    // [ 60] USART3
+    .word INTERRUPT_Default    // [ 61] UART4
+    .word INTERRUPT_Default    // [ 62] UART5
+    .word INTERRUPT_Default    // [ 63] LPUART1
+    .word INTERRUPT_Default    // [ 64] LPTIM1
+    .word INTERRUPT_Default    // [ 65] TIM8_BRK
+    .word INTERRUPT_Default    // [ 66] TIM8_UP
+    .word INTERRUPT_Default    // [ 67] TIM8_TRG_COM
+    .word INTERRUPT_Default    // [ 68] TIM8_CC
+    .word INTERRUPT_Default    // [ 69] ADC2
+    .word INTERRUPT_Default    // [ 70] LPTIM2
+    .word INTERRUPT_Default    // [ 71] TIM15
+    .word INTERRUPT_Default    // [ 72] Reserved
+    .word INTERRUPT_Default    // [ 73] Reserved
+    .word INTERRUPT_Default    // [ 74] USB_DRD_FS
+    .word INTERRUPT_Default    // [ 75] CRS
+    .word INTERRUPT_Default    // [ 76] UCPD1
+    .word INTERRUPT_Default    // [ 77] FMC
+    .word INTERRUPT_Default    // [ 78] OCTOSPI1
+    .word INTERRUPT_Default    // [ 79] SDMMC1
+    .word INTERRUPT_Default    // [ 80] I2C3_EV
+    .word INTERRUPT_Default    // [ 81] I2C3_ER
+    .word INTERRUPT_Default    // [ 82] SPI4
+    .word INTERRUPT_Default    // [ 83] Reserved
+    .word INTERRUPT_Default    // [ 84] Reserved
+    .word INTERRUPT_Default    // [ 85] USART6
+    .word INTERRUPT_Default    // [ 86] Reserved
+    .word INTERRUPT_Default    // [ 87] Reserved
+    .word INTERRUPT_Default    // [ 88] Reserved
+    .word INTERRUPT_Default    // [ 89] Reserved
+    .word INTERRUPT_Default    // [ 90] GPDMA2_Channel0
+    .word INTERRUPT_Default    // [ 91] GPDMA2_Channel1
+    .word INTERRUPT_Default    // [ 92] GPDMA2_Channel2
+    .word INTERRUPT_Default    // [ 93] GPDMA2_Channel3
+    .word INTERRUPT_Default    // [ 94] GPDMA2_Channel4
+    .word INTERRUPT_Default    // [ 95] GPDMA2_Channel5
+    .word INTERRUPT_Default    // [ 96] GPDMA2_Channel6
+    .word INTERRUPT_Default    // [ 97] GPDMA2_Channel7
+    .word INTERRUPT_Default    // [ 98] Reserved
+    .word INTERRUPT_Default    // [ 99] Reserved
+    .word INTERRUPT_Default    // [100] Reserved
+    .word INTERRUPT_Default    // [101] Reserved
+    .word INTERRUPT_Default    // [102] Reserved
+    .word INTERRUPT_Default    // [103] FPU
+    .word INTERRUPT_Default    // [104] ICACHE
+    .word INTERRUPT_Default    // [105] DCACHE1
+    .word INTERRUPT_Default    // [106] Reserved
+    .word INTERRUPT_Default    // [107] Reserved
+    .word INTERRUPT_Default    // [108] DCMI_PSSI
+    .word INTERRUPT_Default    // [109] FDCAN2_IT0
+    .word INTERRUPT_Default    // [110] FDCAN2_IT1
+    .word INTERRUPT_Default    // [111] Reserved
+    .word INTERRUPT_Default    // [112] Reserved
+    .word INTERRUPT_Default    // [113] DTS
+    .word INTERRUPT_Default    // [114] RNG
+    .word INTERRUPT_Default    // [115] OTFDEC1
+    .word INTERRUPT_Default    // [116] AES
+    .word INTERRUPT_Default    // [117] HASH
+    .word INTERRUPT_Default    // [118] PKA
+    .word INTERRUPT_Default    // [119] CEC
+    .word INTERRUPT_Default    // [120] TIM12
+    .word INTERRUPT_Default    // [121] Reserved
+    .word INTERRUPT_Default    // [122] Reserved
+    .word INTERRUPT_Default    // [123] I3C1_EV
+    .word INTERRUPT_Default    // [124] I3C1_ER
+    .word INTERRUPT_Default    // [125] Reserved
+    .word INTERRUPT_Default    // [126] Reserved
+    .word INTERRUPT_Default    // [127] Reserved
+    .word INTERRUPT_Default    // [128] Reserved
+    .word INTERRUPT_Default    // [129] Reserved
+    .word INTERRUPT_Default    // [130] Reserved
+    .word INTERRUPT_Default    // [131] I3C2_EV
+    .word INTERRUPT_Default    // [132] I3C2_ER
+#endif
+#if TARGET_NAME_IS_DemoI2C
+    .word INTERRUPT_Reset      // [-15] Reset
+    .word INTERRUPT_Default    // [-14] NonMaskableInt
+    .word INTERRUPT_Default    // [-13] HardFault
+    .word INTERRUPT_Default    // [-12] MemoryManagement
+    .word INTERRUPT_BusFault   // [-11] BusFault
+    .word INTERRUPT_UsageFault // [-10] UsageFault
+    .word INTERRUPT_Default    // [ -9] SecureFault
+    .word INTERRUPT_Default    // [ -8] Reserved
+    .word INTERRUPT_Default    // [ -7] Reserved
+    .word INTERRUPT_Default    // [ -6] Reserved
+    .word INTERRUPT_Default    // [ -5] SVCall
+    .word INTERRUPT_Default    // [ -4] DebugMonitor
+    .word INTERRUPT_Default    // [ -3] Reserved
+    .word INTERRUPT_Default    // [ -2] PendSV
+    .word INTERRUPT_Default    // [ -1] SysTick
+    .word INTERRUPT_Default    // [  0] WWDG
+    .word INTERRUPT_Default    // [  1] PVD_AVD
+    .word INTERRUPT_Default    // [  2] RTC
+    .word INTERRUPT_Default    // [  3] RTC_S
+    .word INTERRUPT_Default    // [  4] TAMP
+    .word INTERRUPT_Default    // [  5] RAMCFG
+    .word INTERRUPT_Default    // [  6] FLASH
+    .word INTERRUPT_Default    // [  7] FLASH_S
+    .word INTERRUPT_Default    // [  8] GTZC
+    .word INTERRUPT_Default    // [  9] RCC
+    .word INTERRUPT_Default    // [ 10] RCC_S
+    .word INTERRUPT_Default    // [ 11] EXTI0
+    .word INTERRUPT_Default    // [ 12] EXTI1
+    .word INTERRUPT_Default    // [ 13] EXTI2
+    .word INTERRUPT_Default    // [ 14] EXTI3
+    .word INTERRUPT_Default    // [ 15] EXTI4
+    .word INTERRUPT_Default    // [ 16] EXTI5
+    .word INTERRUPT_Default    // [ 17] EXTI6
+    .word INTERRUPT_Default    // [ 18] EXTI7
+    .word INTERRUPT_Default    // [ 19] EXTI8
+    .word INTERRUPT_Default    // [ 20] EXTI9
+    .word INTERRUPT_Default    // [ 21] EXTI10
+    .word INTERRUPT_Default    // [ 22] EXTI11
+    .word INTERRUPT_Default    // [ 23] EXTI12
+    .word INTERRUPT_Default    // [ 24] EXTI13
+    .word INTERRUPT_Default    // [ 25] EXTI14
+    .word INTERRUPT_Default    // [ 26] EXTI15
+    .word INTERRUPT_Default    // [ 27] GPDMA1_Channel0
+    .word INTERRUPT_Default    // [ 28] GPDMA1_Channel1
+    .word INTERRUPT_Default    // [ 29] GPDMA1_Channel2
+    .word INTERRUPT_Default    // [ 30] GPDMA1_Channel3
+    .word INTERRUPT_Default    // [ 31] GPDMA1_Channel4
+    .word INTERRUPT_Default    // [ 32] GPDMA1_Channel5
+    .word INTERRUPT_Default    // [ 33] GPDMA1_Channel6
+    .word INTERRUPT_Default    // [ 34] GPDMA1_Channel7
+    .word INTERRUPT_Default    // [ 35] IWDG
+    .word INTERRUPT_Default    // [ 36] SAES
+    .word INTERRUPT_Default    // [ 37] ADC1
+    .word INTERRUPT_Default    // [ 38] DAC1
+    .word INTERRUPT_Default    // [ 39] FDCAN1_IT0
+    .word INTERRUPT_Default    // [ 40] FDCAN1_IT1
+    .word INTERRUPT_Default    // [ 41] TIM1_BRK
+    .word INTERRUPT_Default    // [ 42] TIM1_UP
+    .word INTERRUPT_Default    // [ 43] TIM1_TRG_COM
+    .word INTERRUPT_Default    // [ 44] TIM1_CC
+    .word INTERRUPT_Default    // [ 45] TIM2
+    .word INTERRUPT_Default    // [ 46] TIM3
+    .word INTERRUPT_Default    // [ 47] TIM4
+    .word INTERRUPT_Default    // [ 48] TIM5
+    .word INTERRUPT_Default    // [ 49] TIM6
+    .word INTERRUPT_Default    // [ 50] TIM7
+    .word INTERRUPT_I2C1_EV    // [ 51] I2C1_EV
+    .word INTERRUPT_I2C1_ER    // [ 52] I2C1_ER
+    .word INTERRUPT_Default    // [ 53] I2C2_EV
+    .word INTERRUPT_Default    // [ 54] I2C2_ER
+    .word INTERRUPT_Default    // [ 55] SPI1
+    .word INTERRUPT_Default    // [ 56] SPI2
+    .word INTERRUPT_Default    // [ 57] SPI3
+    .word INTERRUPT_Default    // [ 58] USART1
+    .word INTERRUPT_USART2     // [ 59] USART2
+    .word INTERRUPT_Default    // [ 60] USART3
+    .word INTERRUPT_Default    // [ 61] UART4
+    .word INTERRUPT_Default    // [ 62] UART5
+    .word INTERRUPT_Default    // [ 63] LPUART1
+    .word INTERRUPT_Default    // [ 64] LPTIM1
+    .word INTERRUPT_Default    // [ 65] TIM8_BRK
+    .word INTERRUPT_Default    // [ 66] TIM8_UP
+    .word INTERRUPT_Default    // [ 67] TIM8_TRG_COM
+    .word INTERRUPT_Default    // [ 68] TIM8_CC
+    .word INTERRUPT_Default    // [ 69] ADC2
+    .word INTERRUPT_Default    // [ 70] LPTIM2
+    .word INTERRUPT_Default    // [ 71] TIM15
+    .word INTERRUPT_Default    // [ 72] Reserved
+    .word INTERRUPT_Default    // [ 73] Reserved
+    .word INTERRUPT_Default    // [ 74] USB_DRD_FS
+    .word INTERRUPT_Default    // [ 75] CRS
+    .word INTERRUPT_Default    // [ 76] UCPD1
+    .word INTERRUPT_Default    // [ 77] FMC
+    .word INTERRUPT_Default    // [ 78] OCTOSPI1
+    .word INTERRUPT_Default    // [ 79] SDMMC1
+    .word INTERRUPT_Default    // [ 80] I2C3_EV
+    .word INTERRUPT_Default    // [ 81] I2C3_ER
+    .word INTERRUPT_Default    // [ 82] SPI4
+    .word INTERRUPT_Default    // [ 83] Reserved
+    .word INTERRUPT_Default    // [ 84] Reserved
+    .word INTERRUPT_Default    // [ 85] USART6
+    .word INTERRUPT_Default    // [ 86] Reserved
+    .word INTERRUPT_Default    // [ 87] Reserved
+    .word INTERRUPT_Default    // [ 88] Reserved
+    .word INTERRUPT_Default    // [ 89] Reserved
+    .word INTERRUPT_Default    // [ 90] GPDMA2_Channel0
+    .word INTERRUPT_Default    // [ 91] GPDMA2_Channel1
+    .word INTERRUPT_Default    // [ 92] GPDMA2_Channel2
+    .word INTERRUPT_Default    // [ 93] GPDMA2_Channel3
+    .word INTERRUPT_Default    // [ 94] GPDMA2_Channel4
+    .word INTERRUPT_Default    // [ 95] GPDMA2_Channel5
+    .word INTERRUPT_Default    // [ 96] GPDMA2_Channel6
+    .word INTERRUPT_Default    // [ 97] GPDMA2_Channel7
+    .word INTERRUPT_Default    // [ 98] Reserved
+    .word INTERRUPT_Default    // [ 99] Reserved
+    .word INTERRUPT_Default    // [100] Reserved
+    .word INTERRUPT_Default    // [101] Reserved
+    .word INTERRUPT_Default    // [102] Reserved
+    .word INTERRUPT_Default    // [103] FPU
+    .word INTERRUPT_Default    // [104] ICACHE
+    .word INTERRUPT_Default    // [105] DCACHE1
+    .word INTERRUPT_Default    // [106] Reserved
+    .word INTERRUPT_Default    // [107] Reserved
+    .word INTERRUPT_Default    // [108] DCMI_PSSI
+    .word INTERRUPT_Default    // [109] FDCAN2_IT0
+    .word INTERRUPT_Default    // [110] FDCAN2_IT1
+    .word INTERRUPT_Default    // [111] Reserved
+    .word INTERRUPT_Default    // [112] Reserved
+    .word INTERRUPT_Default    // [113] DTS
+    .word INTERRUPT_Default    // [114] RNG
+    .word INTERRUPT_Default    // [115] OTFDEC1
+    .word INTERRUPT_Default    // [116] AES
+    .word INTERRUPT_Default    // [117] HASH
+    .word INTERRUPT_Default    // [118] PKA
+    .word INTERRUPT_Default    // [119] CEC
+    .word INTERRUPT_Default    // [120] TIM12
+    .word INTERRUPT_Default    // [121] Reserved
+    .word INTERRUPT_Default    // [122] Reserved
+    .word INTERRUPT_Default    // [123] I3C1_EV
+    .word INTERRUPT_Default    // [124] I3C1_ER
+    .word INTERRUPT_Default    // [125] Reserved
+    .word INTERRUPT_Default    // [126] Reserved
+    .word INTERRUPT_Default    // [127] Reserved
+    .word INTERRUPT_Default    // [128] Reserved
+    .word INTERRUPT_Default    // [129] Reserved
+    .word INTERRUPT_Default    // [130] Reserved
+    .word INTERRUPT_Default    // [131] I3C2_EV
+    .word INTERRUPT_Default    // [132] I3C2_ER
+#endif
+#if TARGET_NAME_IS_DemoTimer
+    .word INTERRUPT_Reset      // [-15] Reset
+    .word INTERRUPT_Default    // [-14] NonMaskableInt
+    .word INTERRUPT_Default    // [-13] HardFault
+    .word INTERRUPT_Default    // [-12] MemoryManagement
+    .word INTERRUPT_BusFault   // [-11] BusFault
+    .word INTERRUPT_UsageFault // [-10] UsageFault
+    .word INTERRUPT_Default    // [ -9] SecureFault
+    .word INTERRUPT_Default    // [ -8] Reserved
+    .word INTERRUPT_Default    // [ -7] Reserved
+    .word INTERRUPT_Default    // [ -6] Reserved
+    .word INTERRUPT_Default    // [ -5] SVCall
+    .word INTERRUPT_Default    // [ -4] DebugMonitor
+    .word INTERRUPT_Default    // [ -3] Reserved
+    .word INTERRUPT_Default    // [ -2] PendSV
+    .word INTERRUPT_Default    // [ -1] SysTick
+    .word INTERRUPT_Default    // [  0] WWDG
+    .word INTERRUPT_Default    // [  1] PVD_AVD
+    .word INTERRUPT_Default    // [  2] RTC
+    .word INTERRUPT_Default    // [  3] RTC_S
+    .word INTERRUPT_Default    // [  4] TAMP
+    .word INTERRUPT_Default    // [  5] RAMCFG
+    .word INTERRUPT_Default    // [  6] FLASH
+    .word INTERRUPT_Default    // [  7] FLASH_S
+    .word INTERRUPT_Default    // [  8] GTZC
+    .word INTERRUPT_Default    // [  9] RCC
+    .word INTERRUPT_Default    // [ 10] RCC_S
+    .word INTERRUPT_Default    // [ 11] EXTI0
+    .word INTERRUPT_Default    // [ 12] EXTI1
+    .word INTERRUPT_Default    // [ 13] EXTI2
+    .word INTERRUPT_Default    // [ 14] EXTI3
+    .word INTERRUPT_Default    // [ 15] EXTI4
+    .word INTERRUPT_Default    // [ 16] EXTI5
+    .word INTERRUPT_Default    // [ 17] EXTI6
+    .word INTERRUPT_Default    // [ 18] EXTI7
+    .word INTERRUPT_Default    // [ 19] EXTI8
+    .word INTERRUPT_Default    // [ 20] EXTI9
+    .word INTERRUPT_Default    // [ 21] EXTI10
+    .word INTERRUPT_Default    // [ 22] EXTI11
+    .word INTERRUPT_Default    // [ 23] EXTI12
+    .word INTERRUPT_Default    // [ 24] EXTI13
+    .word INTERRUPT_Default    // [ 25] EXTI14
+    .word INTERRUPT_Default    // [ 26] EXTI15
+    .word INTERRUPT_Default    // [ 27] GPDMA1_Channel0
+    .word INTERRUPT_Default    // [ 28] GPDMA1_Channel1
+    .word INTERRUPT_Default    // [ 29] GPDMA1_Channel2
+    .word INTERRUPT_Default    // [ 30] GPDMA1_Channel3
+    .word INTERRUPT_Default    // [ 31] GPDMA1_Channel4
+    .word INTERRUPT_Default    // [ 32] GPDMA1_Channel5
+    .word INTERRUPT_Default    // [ 33] GPDMA1_Channel6
+    .word INTERRUPT_Default    // [ 34] GPDMA1_Channel7
+    .word INTERRUPT_Default    // [ 35] IWDG
+    .word INTERRUPT_Default    // [ 36] SAES
+    .word INTERRUPT_Default    // [ 37] ADC1
+    .word INTERRUPT_Default    // [ 38] DAC1
+    .word INTERRUPT_Default    // [ 39] FDCAN1_IT0
+    .word INTERRUPT_Default    // [ 40] FDCAN1_IT1
+    .word INTERRUPT_Default    // [ 41] TIM1_BRK
+    .word INTERRUPT_TIM1_UP    // [ 42] TIM1_UP
+    .word INTERRUPT_Default    // [ 43] TIM1_TRG_COM
+    .word INTERRUPT_Default    // [ 44] TIM1_CC
+    .word INTERRUPT_Default    // [ 45] TIM2
+    .word INTERRUPT_Default    // [ 46] TIM3
+    .word INTERRUPT_Default    // [ 47] TIM4
+    .word INTERRUPT_Default    // [ 48] TIM5
+    .word INTERRUPT_Default    // [ 49] TIM6
+    .word INTERRUPT_Default    // [ 50] TIM7
+    .word INTERRUPT_Default    // [ 51] I2C1_EV
+    .word INTERRUPT_Default    // [ 52] I2C1_ER
+    .word INTERRUPT_Default    // [ 53] I2C2_EV
+    .word INTERRUPT_Default    // [ 54] I2C2_ER
+    .word INTERRUPT_Default    // [ 55] SPI1
+    .word INTERRUPT_Default    // [ 56] SPI2
+    .word INTERRUPT_Default    // [ 57] SPI3
+    .word INTERRUPT_Default    // [ 58] USART1
+    .word INTERRUPT_USART2     // [ 59] USART2
+    .word INTERRUPT_Default    // [ 60] USART3
+    .word INTERRUPT_Default    // [ 61] UART4
+    .word INTERRUPT_Default    // [ 62] UART5
+    .word INTERRUPT_Default    // [ 63] LPUART1
+    .word INTERRUPT_Default    // [ 64] LPTIM1
+    .word INTERRUPT_Default    // [ 65] TIM8_BRK
+    .word INTERRUPT_Default    // [ 66] TIM8_UP
+    .word INTERRUPT_Default    // [ 67] TIM8_TRG_COM
+    .word INTERRUPT_Default    // [ 68] TIM8_CC
+    .word INTERRUPT_Default    // [ 69] ADC2
+    .word INTERRUPT_Default    // [ 70] LPTIM2
+    .word INTERRUPT_Default    // [ 71] TIM15
+    .word INTERRUPT_Default    // [ 72] Reserved
+    .word INTERRUPT_Default    // [ 73] Reserved
+    .word INTERRUPT_Default    // [ 74] USB_DRD_FS
+    .word INTERRUPT_Default    // [ 75] CRS
+    .word INTERRUPT_Default    // [ 76] UCPD1
+    .word INTERRUPT_Default    // [ 77] FMC
+    .word INTERRUPT_Default    // [ 78] OCTOSPI1
+    .word INTERRUPT_Default    // [ 79] SDMMC1
+    .word INTERRUPT_Default    // [ 80] I2C3_EV
+    .word INTERRUPT_Default    // [ 81] I2C3_ER
+    .word INTERRUPT_Default    // [ 82] SPI4
+    .word INTERRUPT_Default    // [ 83] Reserved
+    .word INTERRUPT_Default    // [ 84] Reserved
+    .word INTERRUPT_Default    // [ 85] USART6
+    .word INTERRUPT_Default    // [ 86] Reserved
+    .word INTERRUPT_Default    // [ 87] Reserved
+    .word INTERRUPT_Default    // [ 88] Reserved
+    .word INTERRUPT_Default    // [ 89] Reserved
+    .word INTERRUPT_Default    // [ 90] GPDMA2_Channel0
+    .word INTERRUPT_Default    // [ 91] GPDMA2_Channel1
+    .word INTERRUPT_Default    // [ 92] GPDMA2_Channel2
+    .word INTERRUPT_Default    // [ 93] GPDMA2_Channel3
+    .word INTERRUPT_Default    // [ 94] GPDMA2_Channel4
+    .word INTERRUPT_Default    // [ 95] GPDMA2_Channel5
+    .word INTERRUPT_Default    // [ 96] GPDMA2_Channel6
+    .word INTERRUPT_Default    // [ 97] GPDMA2_Channel7
+    .word INTERRUPT_Default    // [ 98] Reserved
+    .word INTERRUPT_Default    // [ 99] Reserved
+    .word INTERRUPT_Default    // [100] Reserved
+    .word INTERRUPT_Default    // [101] Reserved
+    .word INTERRUPT_Default    // [102] Reserved
+    .word INTERRUPT_Default    // [103] FPU
+    .word INTERRUPT_Default    // [104] ICACHE
+    .word INTERRUPT_Default    // [105] DCACHE1
+    .word INTERRUPT_Default    // [106] Reserved
+    .word INTERRUPT_Default    // [107] Reserved
+    .word INTERRUPT_Default    // [108] DCMI_PSSI
+    .word INTERRUPT_Default    // [109] FDCAN2_IT0
+    .word INTERRUPT_Default    // [110] FDCAN2_IT1
+    .word INTERRUPT_Default    // [111] Reserved
+    .word INTERRUPT_Default    // [112] Reserved
+    .word INTERRUPT_Default    // [113] DTS
+    .word INTERRUPT_Default    // [114] RNG
+    .word INTERRUPT_Default    // [115] OTFDEC1
+    .word INTERRUPT_Default    // [116] AES
+    .word INTERRUPT_Default    // [117] HASH
+    .word INTERRUPT_Default    // [118] PKA
+    .word INTERRUPT_Default    // [119] CEC
+    .word INTERRUPT_Default    // [120] TIM12
+    .word INTERRUPT_Default    // [121] Reserved
+    .word INTERRUPT_Default    // [122] Reserved
+    .word INTERRUPT_Default    // [123] I3C1_EV
+    .word INTERRUPT_Default    // [124] I3C1_ER
+    .word INTERRUPT_Default    // [125] Reserved
+    .word INTERRUPT_Default    // [126] Reserved
+    .word INTERRUPT_Default    // [127] Reserved
+    .word INTERRUPT_Default    // [128] Reserved
+    .word INTERRUPT_Default    // [129] Reserved
+    .word INTERRUPT_Default    // [130] Reserved
+    .word INTERRUPT_Default    // [131] I3C2_EV
+    .word INTERRUPT_Default    // [132] I3C2_ER
+#endif

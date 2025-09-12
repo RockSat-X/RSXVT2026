@@ -469,7 +469,7 @@ for target in TARGETS:
     # Additional search paths for the compiler to search through for #includes.
 
     include_file_paths = (
-        root(BUILD, 'meta'),
+        root('./electrical/meta'),
         root('./deps/CMSIS_6/CMSIS/Core/Include'),
         root('./deps/FreeRTOS_Kernel/include'),
         root('./deps/printf/src'),

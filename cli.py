@@ -558,7 +558,7 @@ def build(parameters):
 
     try:
         deps.pxd.metapreprocessor.do(
-            output_directory_path = root(BUILD, 'meta'),
+            output_directory_path = root('./electrical/meta'),
             source_file_paths     = metapreprocessor_file_paths,
             callback              = metadirective_callback,
         )
