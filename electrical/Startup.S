@@ -121,7 +121,7 @@ INTERRUPT_Reset:
 
             rows = []
 
-            for interrupt_i, interrupt_name in enumerate(system_database[mcu]['INTERRUPTS']):
+            for interrupt_i, interrupt_name in enumerate(system_database[target.mcu]['INTERRUPTS']):
 
                 interrupt_number = interrupt_i - 15
 
