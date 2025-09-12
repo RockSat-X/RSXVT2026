@@ -1,0 +1,53 @@
+#if TARGET_NAME_IS_SandboxNucleoH7S3L8
+    #define TARGET_USES_FREERTOS false
+    enum FreeRTOSTask : u32
+    {
+        FreeRTOSTask_button_observer,
+        FreeRTOSTask_green_blinker,
+        FreeRTOSTask_red_blinker,
+        FreeRTOSTask_yellow_blinker,
+        FreeRTOSTask_yapper,
+        FreeRTOSTask_captain_allears,
+    };
+    static constexpr u32 FreeRTOSTask_COUNT = 6;
+#endif
+#if TARGET_NAME_IS_SandboxNucleoH533RE
+    #define TARGET_USES_FREERTOS false
+    enum FreeRTOSTask : u32
+    {
+        FreeRTOSTask_button_observer,
+        FreeRTOSTask_green_blinker,
+        FreeRTOSTask_red_blinker,
+        FreeRTOSTask_yellow_blinker,
+        FreeRTOSTask_yapper,
+        FreeRTOSTask_captain_allears,
+    };
+    static constexpr u32 FreeRTOSTask_COUNT = 6;
+#endif
+#if TARGET_NAME_IS_DemoI2C
+    #define TARGET_USES_FREERTOS false
+    enum FreeRTOSTask : u32;
+    static constexpr u32 FreeRTOSTask_COUNT = 0;
+#endif
+#if TARGET_NAME_IS_DemoTimer
+    #define TARGET_USES_FREERTOS false
+    enum FreeRTOSTask : u32;
+    static constexpr u32 FreeRTOSTask_COUNT = 0;
+#endif
+#if TARGET_MCU_IS_STM32H7S3L8H6
+    #if TARGET_USES_FREERTOS
+        #include <deps/FreeRTOS_Kernel/tasks.c>
+        #include <deps/FreeRTOS_Kernel/queue.c>
+        #include <deps/FreeRTOS_Kernel/list.c>
+        #include <port.c>
+    #endif
+#endif
+#if TARGET_MCU_IS_STM32H533RET6
+    #if TARGET_USES_FREERTOS
+        #include <deps/FreeRTOS_Kernel/tasks.c>
+        #include <deps/FreeRTOS_Kernel/queue.c>
+        #include <deps/FreeRTOS_Kernel/list.c>
+        #include <port.c>
+        #include <portasm.c>
+    #endif
+#endif
