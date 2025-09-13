@@ -85,7 +85,7 @@
 //////////////////////////////////////////////////////////////// System Initialization ////////////////////////////////////////////////////////////////
 
 
-/* #meta IMPLEMENT_DRIVER_ALIASES : system_database
+/* #meta IMPLEMENT_DRIVER_ALIASES : system_properties
 
     def IMPLEMENT_DRIVER_ALIASES(
         *,
@@ -145,7 +145,7 @@
                     *(
                         (
                             cmsis_tuple_tag.format(common_name),
-                            CMSIS_TUPLE(system_database[target.mcu][cmsis_tuple_tag.format(instance)])
+                            CMSIS_TUPLE(target.mcu, cmsis_tuple_tag.format(instance))
                         )
                         for cmsis_tuple_tag in cmsis_tuple_tags
                     )
@@ -182,10 +182,10 @@
 
 
 #include "SYSTEM_init.meta"
-/* #meta system_parameterize, system_database, system_configurize, system_configurize, INTERRUPTS_THAT_MUST_BE_DEFINED
+/* #meta system_parameterize, system_properties, system_configurize, system_configurize, INTERRUPTS_THAT_MUST_BE_DEFINED
 
     from deps.stpy.configurize import INTERRUPTS_THAT_MUST_BE_DEFINED
-    from deps.stpy.system import do, system_parameterize, system_database, system_configurize, system_configurize
+    from deps.stpy.system import do, system_parameterize, system_properties, system_configurize, system_configurize
 
     for target in PER_TARGET():
         do(Meta, target)
@@ -199,7 +199,7 @@
 
         for routine in OrderedSet((
             *INTERRUPTS_THAT_MUST_BE_DEFINED,
-            *system_database[target.mcu]['INTERRUPTS']
+            *system_properties[target.mcu]['INTERRUPTS']
         )):
 
             if target.use_freertos and routine in MCUS[target.mcu].freertos_interrupts:

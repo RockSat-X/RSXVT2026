@@ -106,7 +106,7 @@ INTERRUPT_Reset:
             if missing := [
                 interrupt
                 for freertos_interrupt in MCUS[mcu].freertos_interrupts
-                if freertos_interrupt not in system_database[mcu]['INTERRUPTS']
+                if freertos_interrupt not in system_properties[mcu]['INTERRUPTS']
             ]:
                 raise RuntimeError(
                     f'FreeRTOS interrupts missing in {repr(mcu)} '
@@ -121,7 +121,7 @@ INTERRUPT_Reset:
 
             rows = []
 
-            for interrupt_i, interrupt_name in enumerate(system_database[target.mcu]['INTERRUPTS']):
+            for interrupt_i, interrupt_name in enumerate(system_properties[target.mcu]['INTERRUPTS']):
 
                 interrupt_number = interrupt_i - 15
 

@@ -2,7 +2,7 @@
 
 import types, functools
 from deps.pxd.utils import root
-from deps.stpy.database import system_database
+from deps.stpy.database import system_properties
 import types
 
 ################################################################################
@@ -411,7 +411,7 @@ def PER_TARGET():
 
 def PER_MCU(Meta):
 
-    for mcu in system_database:
+    for mcu in system_properties:
 
         with Meta.enter(f'#if TARGET_MCU_IS_{mcu}'):
 
