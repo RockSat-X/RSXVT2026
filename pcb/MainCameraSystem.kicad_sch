@@ -9306,7 +9306,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "RED"
+		(property "Value" "GREEN"
 			(at 167.64 261.9374 90)
 			(effects
 				(font
