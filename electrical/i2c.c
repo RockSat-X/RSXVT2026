@@ -14,7 +14,8 @@
             'NVICInterrupt_{}_ER',
             '{}_KERNEL_SOURCE_init',
             '{}_PRESC_init',
-            '{}_SCL_init',
+            '{}_SCLH_init',
+            '{}_SCLL_init',
         ),
         cmsis_tuple_tags = (
             '{}_RESET',
@@ -221,8 +222,8 @@ I2C_reinit(enum I2CHandle handle)
         PRESC , I2Cx_PRESC_init, // Set the time base unit.
         SCLDEL, 0              , // TODO Important?
         SDADEL, 0              , // TODO Important?
-        SCLH  , I2Cx_SCL_init  , // Determines the amount of high time.
-        SCLL  , I2Cx_SCL_init  , // Determines the amount of low time.
+        SCLH  , I2Cx_SCLH_init  , // Determines the amount of high time.
+        SCLL  , I2Cx_SCLL_init  , // Determines the amount of low time.
     );
 
     CMSIS_SET // TODO Look over again.
