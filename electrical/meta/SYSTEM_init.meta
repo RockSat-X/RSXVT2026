@@ -169,9 +169,7 @@
         #define UART5_KERNEL_SOURCE_init 0b000
         #define UART7_KERNEL_SOURCE_init 0b000
         #define UART8_KERNEL_SOURCE_init 0b000
-        #define UXART_2_3_4_5_7_8_KERNEL_SOURCE_init 0b000
-        #define USART3_BRR_BRR_init 150
-        CMSIS_SET(RCC, CCIPR2, UART234578SEL, 0b000);
+        #define USART3_BAUD_DIVIDER_init 150
     }
     #define CLOCK_TREE_FREQUENCY_OF_PLL1P_CK   (600'000'000)
     #define CLOCK_TREE_FREQUENCY_OF_PLL2S_CK   (200'000'000)
@@ -321,9 +319,7 @@
         //////////////////////////////////////////////////////////////// USART2 ////////////////////////////////////////////////////////////////
 
         #define USART2_KERNEL_SOURCE_init 0b000
-        #define UXART_2_KERNEL_SOURCE_init 0b000
-        #define USART2_BRR_BRR_init 250
-        CMSIS_SET(RCC, CCIPR1, USART2SEL, 0b000);
+        #define USART2_BAUD_DIVIDER_init 250
     }
     #define CLOCK_TREE_FREQUENCY_OF_PLL1P_CK   (250'000'000)
     #define CLOCK_TREE_FREQUENCY_OF_CPU_CK     (250'000'000)
@@ -508,15 +504,13 @@
         //////////////////////////////////////////////////////////////// USART2 ////////////////////////////////////////////////////////////////
 
         #define USART2_KERNEL_SOURCE_init 0b000
-        #define UXART_2_KERNEL_SOURCE_init 0b000
-        #define USART2_BRR_BRR_init 250
-        CMSIS_SET(RCC, CCIPR1, USART2SEL, 0b000);
+        #define USART2_BAUD_DIVIDER_init 250
 
         //////////////////////////////////////////////////////////////// I2C1 ////////////////////////////////////////////////////////////////
 
         #define I2C1_KERNEL_SOURCE_init 0b00
-        #define I2C1_TIMINGR_PRESC_init 4
-        #define I2C1_TIMINGR_SCL_init 250
+        #define I2C1_PRESC_init 4
+        #define I2C1_SCL_init 250
     }
     #define CLOCK_TREE_FREQUENCY_OF_PLL1P_CK   (250'000'000)
     #define CLOCK_TREE_FREQUENCY_OF_CPU_CK     (250'000'000)
@@ -705,15 +699,13 @@
         //////////////////////////////////////////////////////////////// USART2 ////////////////////////////////////////////////////////////////
 
         #define USART2_KERNEL_SOURCE_init 0b000
-        #define UXART_2_KERNEL_SOURCE_init 0b000
-        #define USART2_BRR_BRR_init 250
-        CMSIS_SET(RCC, CCIPR1, USART2SEL, 0b000);
+        #define USART2_BAUD_DIVIDER_init 250
 
         //////////////////////////////////////////////////////////////// I2C1 ////////////////////////////////////////////////////////////////
 
         #define I2C1_KERNEL_SOURCE_init 0b00
-        #define I2C1_TIMINGR_PRESC_init 4
-        #define I2C1_TIMINGR_SCL_init 250
+        #define I2C1_PRESC_init 4
+        #define I2C1_SCL_init 250
 
         //////////////////////////////////////////////////////////////// Timers ////////////////////////////////////////////////////////////////
 

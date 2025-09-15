@@ -25,7 +25,7 @@
         identifiers = (
             'NVICInterrupt_{}',
             '{}_KERNEL_SOURCE_init',
-            '{}_BRR_BRR_init',
+            '{}_BAUD_DIVIDER_init',
         ),
         cmsis_tuple_tags = (
             '{}_RESET',
@@ -223,8 +223,8 @@ UXART_init(enum UXARTHandle handle)
 
     // Configure the peripheral.
 
-    CMSIS_SET(UXARTx, BRR, BRR, UXARTx_BRR_BRR_init); // Set baud rate.
-    CMSIS_SET(UXARTx, CR3, EIE, true               ); // Trigger interrupt upon error.
+    CMSIS_SET(UXARTx, BRR, BRR, UXARTx_BAUD_DIVIDER_init); // Set baud rate.
+    CMSIS_SET(UXARTx, CR3, EIE, true                    ); // Trigger interrupt upon error.
     CMSIS_SET
     (
         UXARTx, CR1 ,
