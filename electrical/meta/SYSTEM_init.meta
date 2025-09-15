@@ -141,10 +141,9 @@
         CMSIS_SET(RCC, PLL2DIVR2, DIVS, 4 - 1);
         CMSIS_SET
         (
-            RCC   , CR   ,
-            PLL1ON, true ,
-            PLL2ON, true ,
-            PLL3ON, false,
+            RCC   , CR  ,
+            PLL1ON, true,
+            PLL2ON, true,
         );
         while (!CMSIS_GET(RCC, CR, PLL1RDY));
         while (!CMSIS_GET(RCC, CR, PLL2RDY));
@@ -172,22 +171,30 @@
         #define UART5_KERNEL_SOURCE_init 0b000
         #define UART7_KERNEL_SOURCE_init 0b000
         #define UART8_KERNEL_SOURCE_init 0b000
+        #define USART2_BAUD_DIVIDER_init Ellipsis
         #define USART3_BAUD_DIVIDER_init 150
+        #define UART4_BAUD_DIVIDER_init Ellipsis
+        #define UART5_BAUD_DIVIDER_init Ellipsis
+        #define UART7_BAUD_DIVIDER_init Ellipsis
+        #define UART8_BAUD_DIVIDER_init Ellipsis
     }
-    #define CLOCK_TREE_FREQUENCY_OF_PLL1P_CK   (600'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_PLL2S_CK   (200'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_CPU_CK     (600'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_AXI_AHB_CK (300'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_APB1_CK    (150'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_APB2_CK    (150'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_APB4_CK    (150'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_APB5_CK    (150'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_HSI_CK     ( 64'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_HSI48_CK   ( 48'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_CSI_CK     (  4'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_HSE_CK     (          0)
-    #define CLOCK_TREE_FREQUENCY_OF_LSE_CK     (          0)
-    #define CLOCK_TREE_FREQUENCY_OF_PER_CK     ( 64'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_0             (            0)
+    #define CLOCK_TREE_FREQUENCY_OF_CPU_CK        (  600'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_HSI_CK        (   64'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_HSI48_CK      (   48'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_CSI_CK        (    4'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_HSE_CK        (            0)
+    #define CLOCK_TREE_FREQUENCY_OF_LSE_CK        (            0)
+    #define CLOCK_TREE_FREQUENCY_OF_PER_CK        (   64'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_AXI_AHB_CK    (  300'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_PLL1P_CK      (  600'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_PLL2S_CK      (  200'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_PLL1_VCO_FREQ (600'000'000.0)
+    #define CLOCK_TREE_FREQUENCY_OF_PLL2_VCO_FREQ (800'000'000.0)
+    #define CLOCK_TREE_FREQUENCY_OF_APB1_CK       (  150'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_APB2_CK       (  150'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_APB4_CK       (  150'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_APB5_CK       (  150'000'000)
 #endif
 #if TARGET_NAME_IS_SandboxNucleoH533RE
     enum NVICInterrupt : u32
@@ -391,6 +398,19 @@
         #define TIM15_DIVIDER_init (Ellipsis - 1)
         #define TIM15_MODULATION_init (Ellipsis - 1)
     }
+    #define CLOCK_TREE_FREQUENCY_OF_0             (            0)
+    #define CLOCK_TREE_FREQUENCY_OF_CPU_CK        (  250'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_HSI_CK        (   32'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_HSI48_CK      (   48'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_CSI_CK        (    4'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_HSE_CK        (            0)
+    #define CLOCK_TREE_FREQUENCY_OF_LSE_CK        (            0)
+    #define CLOCK_TREE_FREQUENCY_OF_AXI_AHB_CK    (  250'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_PLL1P_CK      (  250'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_PLL1_VCO_FREQ (500'000'000.0)
+    #define CLOCK_TREE_FREQUENCY_OF_APB1_CK       (  250'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_APB2_CK       (  250'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_APB3_CK       (  250'000'000)
 #endif
 #if TARGET_NAME_IS_DemoI2C
     enum NVICInterrupt : u32
@@ -631,6 +651,19 @@
         #define TIM15_DIVIDER_init (Ellipsis - 1)
         #define TIM15_MODULATION_init (Ellipsis - 1)
     }
+    #define CLOCK_TREE_FREQUENCY_OF_0             (            0)
+    #define CLOCK_TREE_FREQUENCY_OF_CPU_CK        (  250'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_HSI_CK        (   32'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_HSI48_CK      (   48'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_CSI_CK        (    4'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_HSE_CK        (            0)
+    #define CLOCK_TREE_FREQUENCY_OF_LSE_CK        (            0)
+    #define CLOCK_TREE_FREQUENCY_OF_AXI_AHB_CK    (  250'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_PLL1P_CK      (  250'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_PLL1_VCO_FREQ (500'000'000.0)
+    #define CLOCK_TREE_FREQUENCY_OF_APB1_CK       (  250'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_APB2_CK       (  250'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_APB3_CK       (  250'000'000)
 #endif
 #if TARGET_NAME_IS_DemoTimer
     enum NVICInterrupt : u32
@@ -875,4 +908,17 @@
         #define TIM15_DIVIDER_init (Ellipsis - 1)
         #define TIM15_MODULATION_init (Ellipsis - 1)
     }
+    #define CLOCK_TREE_FREQUENCY_OF_0             (            0)
+    #define CLOCK_TREE_FREQUENCY_OF_CPU_CK        (  250'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_HSI_CK        (   32'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_HSI48_CK      (   48'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_CSI_CK        (    4'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_HSE_CK        (            0)
+    #define CLOCK_TREE_FREQUENCY_OF_LSE_CK        (            0)
+    #define CLOCK_TREE_FREQUENCY_OF_AXI_AHB_CK    (  250'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_PLL1P_CK      (  250'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_PLL1_VCO_FREQ (500'000'000.0)
+    #define CLOCK_TREE_FREQUENCY_OF_APB1_CK       (  250'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_APB2_CK       (  250'000'000)
+    #define CLOCK_TREE_FREQUENCY_OF_APB3_CK       (  250'000'000)
 #endif
