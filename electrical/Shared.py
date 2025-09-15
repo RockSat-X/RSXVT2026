@@ -85,7 +85,6 @@ TARGETS = ( # @/`Defining a TARGET`.
         main_stack_size = 8192,
 
         clock_tree = {
-            'meow' : False,
             'HSI_ENABLE'    : True,
             'HSI48_ENABLE'  : True,
             'CSI_ENABLE'    : True,
