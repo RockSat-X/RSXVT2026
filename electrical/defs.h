@@ -182,10 +182,10 @@
 
 
 #include "SYSTEM_init.meta"
-/* #meta system_parameterize, system_properties, system_configurize, system_configurize, INTERRUPTS_THAT_MUST_BE_DEFINED
+/* #meta system_properties, INTERRUPTS_THAT_MUST_BE_DEFINED
 
     from deps.stpy.configurize import INTERRUPTS_THAT_MUST_BE_DEFINED
-    from deps.stpy.system import do, system_parameterize, system_properties, system_configurize, system_configurize
+    from deps.stpy.system import do, system_properties
 
     for target in PER_TARGET():
         do(Meta, target)

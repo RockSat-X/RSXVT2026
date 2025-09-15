@@ -85,22 +85,23 @@ TARGETS = ( # @/`Defining a TARGET`.
         main_stack_size = 8192,
 
         clock_tree = {
+            'meow' : False,
             'HSI_ENABLE'    : True,
             'HSI48_ENABLE'  : True,
             'CSI_ENABLE'    : True,
             'PERIPHERAL_CLOCK_OPTION' : 'HSI_CK',
-            'PLL1_P_CK'     : 600_000_000,
-            'PLL1_Q_CK'     : None,
-            'PLL1_S_CK'     : None,
-            'PLL2_P_CK'     : None,
-            'PLL2_Q_CK'     : None,
-            'PLL2_R_CK'     : None,
-            'PLL2_T_CK'     : None,
-            'PLL2_S_CK'     : 200_000_000,
-            'PLL3_P_CK'     : None,
-            'PLL3_Q_CK'     : None,
-            'PLL3_R_CK'     : None,
-            'PLL3_S_CK'     : None,
+            'PLL1P_CK'     : 600_000_000,
+            'PLL1Q_CK'     : None,
+            'PLL1S_CK'     : None,
+            'PLL2P_CK'     : None,
+            'PLL2Q_CK'     : None,
+            'PLL2R_CK'     : None,
+            'PLL2T_CK'     : None,
+            'PLL2S_CK'     : 200_000_000,
+            'PLL3P_CK'     : None,
+            'PLL3Q_CK'     : None,
+            'PLL3R_CK'     : None,
+            'PLL3S_CK'     : None,
             'CPU_CK'        : 600_000_000,
             'AXI_AHB_CK'    : 300_000_000,
             'APB1_CK'       : 150_000_000,
@@ -154,18 +155,16 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         clock_tree = {
 
-            'PLL1_Q_CK' : None,
-            'PLL1_R_CK' : None,
+            'PLL1Q_CK' : None,
+            'PLL1R_CK' : None,
 
-            'PLL2_P_CK' : None,
-            'PLL2_Q_CK' : None,
-            'PLL2_R_CK' : None,
+            'PLL2P_CK' : None,
+            'PLL2Q_CK' : None,
+            'PLL2R_CK' : None,
 
-            'PLL3_P_CK' : None,
-            'PLL3_Q_CK' : None,
-            'PLL3_R_CK' : None,
-
-            'PERIPHERAL_CLOCK_OPTION' : None,
+            'PLL3P_CK' : None,
+            'PLL3Q_CK' : None,
+            'PLL3R_CK' : None,
 
             'USART1_BAUD' : None,
             'USART3_BAUD' : None,
@@ -190,7 +189,7 @@ TARGETS = ( # @/`Defining a TARGET`.
             'HSI_ENABLE'   : True,
             'HSI48_ENABLE' : True,
             'CSI_ENABLE'   : True,
-            'PLL1_P_CK'    : 250_000_000,
+            'PLL1P_CK'    : 250_000_000,
             'CPU_CK'       : 250_000_000,
             'APB1_CK'      : 250_000_000,
             'APB2_CK'      : 250_000_000,
@@ -235,18 +234,16 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         clock_tree = {
 
-            'PLL1_Q_CK' : None,
-            'PLL1_R_CK' : None,
+            'PLL1Q_CK' : None,
+            'PLL1R_CK' : None,
 
-            'PLL2_P_CK' : None,
-            'PLL2_Q_CK' : None,
-            'PLL2_R_CK' : None,
+            'PLL2P_CK' : None,
+            'PLL2Q_CK' : None,
+            'PLL2R_CK' : None,
 
-            'PLL3_P_CK' : None,
-            'PLL3_Q_CK' : None,
-            'PLL3_R_CK' : None,
-
-            'PERIPHERAL_CLOCK_OPTION' : None,
+            'PLL3P_CK' : None,
+            'PLL3Q_CK' : None,
+            'PLL3R_CK' : None,
 
             'USART1_BAUD' : None,
             'USART3_BAUD' : None,
@@ -271,7 +268,7 @@ TARGETS = ( # @/`Defining a TARGET`.
             'HSI_ENABLE'   : True,
             'HSI48_ENABLE' : True,
             'CSI_ENABLE'   : True,
-            'PLL1_P_CK'    : 250_000_000,
+            'PLL1P_CK'    : 250_000_000,
             'CPU_CK'       : 250_000_000,
             'APB1_CK'      : 250_000_000,
             'APB2_CK'      : 250_000_000,
@@ -324,18 +321,16 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         clock_tree = {
 
-            'PLL1_Q_CK' : None,
-            'PLL1_R_CK' : None,
+            'PLL1Q_CK' : None,
+            'PLL1R_CK' : None,
 
-            'PLL2_P_CK' : None,
-            'PLL2_Q_CK' : None,
-            'PLL2_R_CK' : None,
+            'PLL2P_CK' : None,
+            'PLL2Q_CK' : None,
+            'PLL2R_CK' : None,
 
-            'PLL3_P_CK' : None,
-            'PLL3_Q_CK' : None,
-            'PLL3_R_CK' : None,
-
-            'PERIPHERAL_CLOCK_OPTION' : None,
+            'PLL3P_CK' : None,
+            'PLL3Q_CK' : None,
+            'PLL3R_CK' : None,
 
             'USART1_BAUD' : None,
             'USART3_BAUD' : None,
@@ -360,7 +355,7 @@ TARGETS = ( # @/`Defining a TARGET`.
             'HSI_ENABLE'   : True,
             'HSI48_ENABLE' : True,
             'CSI_ENABLE'   : True,
-            'PLL1_P_CK'    : 250_000_000,
+            'PLL1P_CK'    : 250_000_000,
             'CPU_CK'       : 250_000_000,
             'APB1_CK'      : 250_000_000,
             'APB2_CK'      : 250_000_000,
