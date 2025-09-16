@@ -85,7 +85,7 @@
 //////////////////////////////////////////////////////////////// System Initialization ////////////////////////////////////////////////////////////////
 
 
-/* #meta IMPLEMENT_DRIVER_ALIASES : system_properties
+/* #meta IMPLEMENT_DRIVER_ALIASES : system_database
 
     def IMPLEMENT_DRIVER_ALIASES(
         *,
@@ -182,10 +182,10 @@
 
 
 #include "SYSTEM_init.meta"
-/* #meta system_properties, INTERRUPTS_THAT_MUST_BE_DEFINED
+/* #meta system_database, INTERRUPTS_THAT_MUST_BE_DEFINED
 
     from deps.stpy.configurize import INTERRUPTS_THAT_MUST_BE_DEFINED
-    from deps.stpy.system import do, system_properties
+    from deps.stpy.system import do, system_database
 
     for target in PER_TARGET():
         do(Meta, target)
@@ -199,7 +199,7 @@
 
         for routine in OrderedSet((
             *INTERRUPTS_THAT_MUST_BE_DEFINED,
-            *system_properties[target.mcu]['INTERRUPTS']
+            *system_database[target.mcu]['INTERRUPTS'].value
         )):
 
             if target.use_freertos and routine in MCUS[target.mcu].freertos_interrupts:

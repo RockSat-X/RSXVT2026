@@ -134,11 +134,11 @@
         CMSIS_SET
         (
             RCC , PLL1DIVR1,
-            DIVN, 75 - 1   ,
-            DIVP, 1 - 1    ,
+            DIVN, (75 - 1) ,
+            DIVP, (1 - 1)  ,
         );
-        CMSIS_SET(RCC, PLL2DIVR1, DIVN, 75 - 1);
-        CMSIS_SET(RCC, PLL2DIVR2, DIVS, 4 - 1);
+        CMSIS_SET(RCC, PLL2DIVR1, DIVN, (75 - 1));
+        CMSIS_SET(RCC, PLL2DIVR2, DIVS, (4 - 1));
         CMSIS_SET
         (
             RCC   , CR  ,
@@ -294,12 +294,10 @@
         );
         CMSIS_SET
         (
-            RCC  , PLL1DIVR,
-            PLL1N, 125 - 1 ,
-            PLL1P, 2 - 1   ,
+            RCC  , PLL1DIVR ,
+            PLL1N, (125 - 1),
+            PLL1P, (2 - 1)  ,
         );
-        CMSIS_SET(RCC, PLL2CFGR, PLL2SRC, 0b00);
-        CMSIS_SET(RCC, PLL3CFGR, PLL3SRC, 0b00);
         CMSIS_SET(RCC, CR, PLL1ON, true);
         while (!CMSIS_GET(RCC, CR, PLL1RDY));
 
@@ -475,12 +473,10 @@
         );
         CMSIS_SET
         (
-            RCC  , PLL1DIVR,
-            PLL1N, 125 - 1 ,
-            PLL1P, 2 - 1   ,
+            RCC  , PLL1DIVR ,
+            PLL1N, (125 - 1),
+            PLL1P, (2 - 1)  ,
         );
-        CMSIS_SET(RCC, PLL2CFGR, PLL2SRC, 0b00);
-        CMSIS_SET(RCC, PLL3CFGR, PLL3SRC, 0b00);
         CMSIS_SET(RCC, CR, PLL1ON, true);
         while (!CMSIS_GET(RCC, CR, PLL1RDY));
 
@@ -667,12 +663,10 @@
         );
         CMSIS_SET
         (
-            RCC  , PLL1DIVR,
-            PLL1N, 125 - 1 ,
-            PLL1P, 2 - 1   ,
+            RCC  , PLL1DIVR ,
+            PLL1N, (125 - 1),
+            PLL1P, (2 - 1)  ,
         );
-        CMSIS_SET(RCC, PLL2CFGR, PLL2SRC, 0b00);
-        CMSIS_SET(RCC, PLL3CFGR, PLL3SRC, 0b00);
         CMSIS_SET(RCC, CR, PLL1ON, true);
         while (!CMSIS_GET(RCC, CR, PLL1RDY));
 
