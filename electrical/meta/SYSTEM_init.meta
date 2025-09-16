@@ -42,8 +42,8 @@
         CMSIS_SET
         (
             GPIOD, ODR  ,
-            OD13 , false,
             OD10 , false,
+            OD13 , false,
         );
         CMSIS_SET(GPIOC, PUPDR, PUPD13, 0b01);
         CMSIS_WRITE
@@ -53,15 +53,15 @@
             AFSEL9   , 7            ,
         );
         CMSIS_SET(GPIOB, MODER, MODE7, 0b01);
+        CMSIS_SET(GPIOC, MODER, MODE13, 0b00);
         CMSIS_SET
         (
             GPIOD , MODER,
-            MODE13, 0b01 ,
-            MODE10, 0b01 ,
             MODE8 , 0b10 ,
             MODE9 , 0b10 ,
+            MODE10, 0b01 ,
+            MODE13, 0b01 ,
         );
-        CMSIS_SET(GPIOC, MODER, MODE13, 0b00);
 
 
 
@@ -268,9 +268,9 @@
         CMSIS_SET
         (
             GPIOA, MODER,
-            MODE5, 0b01 ,
             MODE2, 0b10 ,
             MODE3, 0b10 ,
+            MODE5, 0b01 ,
         );
         CMSIS_SET(GPIOC, MODER, MODE13, 0b00);
 
@@ -448,13 +448,13 @@
             OT7  , true  ,
         );
         CMSIS_SET(GPIOA, ODR, OD5, false);
-        CMSIS_SET(GPIOC, PUPDR, PUPD13, 0b01);
         CMSIS_SET
         (
             GPIOB, PUPDR,
             PUPD6, 0b01 ,
             PUPD7, 0b01 ,
         );
+        CMSIS_SET(GPIOC, PUPDR, PUPD13, 0b01);
         CMSIS_WRITE
         (
             GPIO_AFRL, GPIOA->AFR[0],
@@ -470,17 +470,17 @@
         CMSIS_SET
         (
             GPIOA, MODER,
-            MODE5, 0b01 ,
             MODE2, 0b10 ,
             MODE3, 0b10 ,
+            MODE5, 0b01 ,
         );
-        CMSIS_SET(GPIOC, MODER, MODE13, 0b00);
         CMSIS_SET
         (
             GPIOB, MODER,
             MODE6, 0b10 ,
             MODE7, 0b10 ,
         );
+        CMSIS_SET(GPIOC, MODER, MODE13, 0b00);
 
 
 
@@ -676,13 +676,13 @@
             OT7  , true  ,
         );
         CMSIS_SET(GPIOA, ODR, OD5, false);
-        CMSIS_SET(GPIOC, PUPDR, PUPD13, 0b01);
         CMSIS_SET
         (
             GPIOB, PUPDR,
             PUPD6, 0b01 ,
             PUPD7, 0b01 ,
         );
+        CMSIS_SET(GPIOC, PUPDR, PUPD13, 0b01);
         CMSIS_WRITE
         (
             GPIO_AFRL, GPIOA->AFR[0],
@@ -690,29 +690,29 @@
             AFSEL3   , 7            ,
             AFSEL7   , 1            ,
         );
+        CMSIS_WRITE(GPIO_AFRH, GPIOA->AFR[1], AFSEL8, 1);
         CMSIS_WRITE
         (
             GPIO_AFRL, GPIOB->AFR[0],
             AFSEL6   , 4            ,
             AFSEL7   , 4            ,
         );
-        CMSIS_WRITE(GPIO_AFRH, GPIOA->AFR[1], AFSEL8, 1);
         CMSIS_SET
         (
             GPIOA, MODER,
-            MODE5, 0b01 ,
             MODE2, 0b10 ,
             MODE3, 0b10 ,
-            MODE8, 0b10 ,
+            MODE5, 0b01 ,
             MODE7, 0b10 ,
+            MODE8, 0b10 ,
         );
-        CMSIS_SET(GPIOC, MODER, MODE13, 0b00);
         CMSIS_SET
         (
             GPIOB, MODER,
             MODE6, 0b10 ,
             MODE7, 0b10 ,
         );
+        CMSIS_SET(GPIOC, MODER, MODE13, 0b00);
 
 
 
