@@ -90,30 +90,14 @@ TARGETS = ( # @/`Defining a TARGET`.
             'CSI_ENABLE'    : True,
             'PERIPHERAL_CLOCK_OPTION' : 'HSI_CK',
             'PLL1P_CK'     : 600_000_000,
-            'PLL1Q_CK'     : None,
-            'PLL1S_CK'     : None,
-            'PLL2P_CK'     : None,
-            'PLL2Q_CK'     : None,
-            'PLL2R_CK'     : None,
-            'PLL2T_CK'     : None,
             'PLL2S_CK'     : 200_000_000,
-            'PLL3P_CK'     : None,
-            'PLL3Q_CK'     : None,
-            'PLL3R_CK'     : None,
-            'PLL3S_CK'     : None,
             'CPU_CK'        : 600_000_000,
             'AXI_AHB_CK'    : 300_000_000,
             'APB1_CK'       : 150_000_000,
             'APB2_CK'       : 150_000_000,
             'APB4_CK'       : 150_000_000,
             'APB5_CK'       : 150_000_000,
-            'SYSTICK_CK'    : None,
-            'USART2_BAUD'   : None,
             'USART3_BAUD'   : STLINK_BAUD,
-            'UART4_BAUD'    : None,
-            'UART5_BAUD'    : None,
-            'UART7_BAUD'    : None,
-            'UART8_BAUD'    : None,
         },
 
         gpios = (
@@ -154,37 +138,6 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         clock_tree = {
 
-            'PLL1Q_CK' : None,
-            'PLL1R_CK' : None,
-
-            'PLL2P_CK' : None,
-            'PLL2Q_CK' : None,
-            'PLL2R_CK' : None,
-
-            'PLL3P_CK' : None,
-            'PLL3Q_CK' : None,
-            'PLL3R_CK' : None,
-
-            'USART1_BAUD' : None,
-            'USART3_BAUD' : None,
-            'UART4_BAUD' : None,
-            'UART5_BAUD' : None,
-            'USART6_BAUD' : None,
-            'I2C1_BAUD' : None,
-            'I2C2_BAUD' : None,
-            'I2C3_BAUD' : None,
-            'TIM1_RATE' : None,
-            'TIM2_RATE' : None,
-            'TIM3_RATE' : None,
-            'TIM4_RATE' : None,
-            'TIM5_RATE' : None,
-            'TIM6_RATE' : None,
-            'TIM7_RATE' : None,
-            'TIM8_RATE' : None,
-            'TIM12_RATE' : None,
-            'TIM15_RATE' : None,
-
-
             'HSI_ENABLE'   : True,
             'HSI48_ENABLE' : True,
             'CSI_ENABLE'   : True,
@@ -193,7 +146,6 @@ TARGETS = ( # @/`Defining a TARGET`.
             'APB1_CK'      : 250_000_000,
             'APB2_CK'      : 250_000_000,
             'APB3_CK'      : 250_000_000,
-            'SYSTICK_CK'   : None,
             'USART2_BAUD'  : STLINK_BAUD,
         },
 
@@ -233,37 +185,6 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         clock_tree = {
 
-            'PLL1Q_CK' : None,
-            'PLL1R_CK' : None,
-
-            'PLL2P_CK' : None,
-            'PLL2Q_CK' : None,
-            'PLL2R_CK' : None,
-
-            'PLL3P_CK' : None,
-            'PLL3Q_CK' : None,
-            'PLL3R_CK' : None,
-
-            'USART1_BAUD' : None,
-            'USART3_BAUD' : None,
-            'UART4_BAUD' : None,
-            'UART5_BAUD' : None,
-            'USART6_BAUD' : None,
-            'I2C1_BAUD' : None,
-            'I2C2_BAUD' : None,
-            'I2C3_BAUD' : None,
-            'TIM1_RATE' : None,
-            'TIM2_RATE' : None,
-            'TIM3_RATE' : None,
-            'TIM4_RATE' : None,
-            'TIM5_RATE' : None,
-            'TIM6_RATE' : None,
-            'TIM7_RATE' : None,
-            'TIM8_RATE' : None,
-            'TIM12_RATE' : None,
-            'TIM15_RATE' : None,
-
-
             'HSI_ENABLE'   : True,
             'HSI48_ENABLE' : True,
             'CSI_ENABLE'   : True,
@@ -272,7 +193,6 @@ TARGETS = ( # @/`Defining a TARGET`.
             'APB1_CK'      : 250_000_000,
             'APB2_CK'      : 250_000_000,
             'APB3_CK'      : 250_000_000,
-            'SYSTICK_CK'   : None,
             'USART2_BAUD'  : STLINK_BAUD,
             'I2C1_BAUD'    : 100_000,
         },
@@ -320,37 +240,6 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         clock_tree = {
 
-            'PLL1Q_CK' : None,
-            'PLL1R_CK' : None,
-
-            'PLL2P_CK' : None,
-            'PLL2Q_CK' : None,
-            'PLL2R_CK' : None,
-
-            'PLL3P_CK' : None,
-            'PLL3Q_CK' : None,
-            'PLL3R_CK' : None,
-
-            'USART1_BAUD' : None,
-            'USART3_BAUD' : None,
-            'UART4_BAUD' : None,
-            'UART5_BAUD' : None,
-            'USART6_BAUD' : None,
-            'I2C1_BAUD' : None,
-            'I2C2_BAUD' : None,
-            'I2C3_BAUD' : None,
-            'TIM1_RATE' : None,
-            'TIM2_RATE' : None,
-            'TIM3_RATE' : None,
-            'TIM4_RATE' : None,
-            'TIM5_RATE' : None,
-            'TIM6_RATE' : None,
-            'TIM7_RATE' : None,
-            'TIM8_RATE' : None,
-            'TIM12_RATE' : None,
-            'TIM15_RATE' : None,
-
-
             'HSI_ENABLE'   : True,
             'HSI48_ENABLE' : True,
             'CSI_ENABLE'   : True,
@@ -359,7 +248,6 @@ TARGETS = ( # @/`Defining a TARGET`.
             'APB1_CK'      : 250_000_000,
             'APB2_CK'      : 250_000_000,
             'APB3_CK'      : 250_000_000,
-            'SYSTICK_CK'   : None,
             'USART2_BAUD'  : STLINK_BAUD,
             'I2C1_BAUD'    : 100_000,
             'TIM1_RATE'    : 16,

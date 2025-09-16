@@ -171,20 +171,13 @@
         #define UART5_KERNEL_SOURCE_init 0b000
         #define UART7_KERNEL_SOURCE_init 0b000
         #define UART8_KERNEL_SOURCE_init 0b000
-        #define USART2_BAUD_DIVIDER_init Ellipsis
         #define USART3_BAUD_DIVIDER_init 150
-        #define UART4_BAUD_DIVIDER_init Ellipsis
-        #define UART5_BAUD_DIVIDER_init Ellipsis
-        #define UART7_BAUD_DIVIDER_init Ellipsis
-        #define UART8_BAUD_DIVIDER_init Ellipsis
     }
     #define CLOCK_TREE_FREQUENCY_OF_0             (            0)
     #define CLOCK_TREE_FREQUENCY_OF_CPU_CK        (  600'000'000)
     #define CLOCK_TREE_FREQUENCY_OF_HSI_CK        (   64'000'000)
     #define CLOCK_TREE_FREQUENCY_OF_HSI48_CK      (   48'000'000)
     #define CLOCK_TREE_FREQUENCY_OF_CSI_CK        (    4'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_HSE_CK        (            0)
-    #define CLOCK_TREE_FREQUENCY_OF_LSE_CK        (            0)
     #define CLOCK_TREE_FREQUENCY_OF_PER_CK        (   64'000'000)
     #define CLOCK_TREE_FREQUENCY_OF_AXI_AHB_CK    (  300'000'000)
     #define CLOCK_TREE_FREQUENCY_OF_PLL1P_CK      (  600'000'000)
@@ -323,88 +316,16 @@
         CMSIS_SET(RCC, CFGR1, SW, 0b011);
         while (CMSIS_GET(RCC, CFGR1, SWS) != 0b011);
 
-        //////////////////////////////////////////////////////////////// USART1 ////////////////////////////////////////////////////////////////
-
-        #define USART1_KERNEL_SOURCE_init Ellipsis
-        #define USART1_BAUD_DIVIDER_init Ellipsis
-
         //////////////////////////////////////////////////////////////// USART2 ////////////////////////////////////////////////////////////////
 
         #define USART2_KERNEL_SOURCE_init 0b000
         #define USART2_BAUD_DIVIDER_init 250
-
-        //////////////////////////////////////////////////////////////// USART3 ////////////////////////////////////////////////////////////////
-
-        #define USART3_KERNEL_SOURCE_init Ellipsis
-        #define USART3_BAUD_DIVIDER_init Ellipsis
-
-        //////////////////////////////////////////////////////////////// UART4 ////////////////////////////////////////////////////////////////
-
-        #define UART4_KERNEL_SOURCE_init Ellipsis
-        #define UART4_BAUD_DIVIDER_init Ellipsis
-
-        //////////////////////////////////////////////////////////////// UART5 ////////////////////////////////////////////////////////////////
-
-        #define UART5_KERNEL_SOURCE_init Ellipsis
-        #define UART5_BAUD_DIVIDER_init Ellipsis
-
-        //////////////////////////////////////////////////////////////// USART6 ////////////////////////////////////////////////////////////////
-
-        #define USART6_KERNEL_SOURCE_init Ellipsis
-        #define USART6_BAUD_DIVIDER_init Ellipsis
-
-        //////////////////////////////////////////////////////////////// I2C1 ////////////////////////////////////////////////////////////////
-
-        #define I2C1_KERNEL_SOURCE_init Ellipsis
-        #define I2C1_PRESC_init Ellipsis
-        #define I2C1_SCLH_init Ellipsis
-        #define I2C1_SCLL_init Ellipsis
-
-        //////////////////////////////////////////////////////////////// I2C2 ////////////////////////////////////////////////////////////////
-
-        #define I2C2_KERNEL_SOURCE_init Ellipsis
-        #define I2C2_PRESC_init Ellipsis
-        #define I2C2_SCLH_init Ellipsis
-        #define I2C2_SCLL_init Ellipsis
-
-        //////////////////////////////////////////////////////////////// I2C3 ////////////////////////////////////////////////////////////////
-
-        #define I2C3_KERNEL_SOURCE_init Ellipsis
-        #define I2C3_PRESC_init Ellipsis
-        #define I2C3_SCLH_init Ellipsis
-        #define I2C3_SCLL_init Ellipsis
-
-        //////////////////////////////////////////////////////////////// Timers ////////////////////////////////////////////////////////////////
-
-        #define GLOBAL_TIMER_PRESCALER_init Ellipsis
-        #define TIM1_DIVIDER_init (Ellipsis - 1)
-        #define TIM1_MODULATION_init (Ellipsis - 1)
-        #define TIM2_DIVIDER_init (Ellipsis - 1)
-        #define TIM2_MODULATION_init (Ellipsis - 1)
-        #define TIM3_DIVIDER_init (Ellipsis - 1)
-        #define TIM3_MODULATION_init (Ellipsis - 1)
-        #define TIM4_DIVIDER_init (Ellipsis - 1)
-        #define TIM4_MODULATION_init (Ellipsis - 1)
-        #define TIM5_DIVIDER_init (Ellipsis - 1)
-        #define TIM5_MODULATION_init (Ellipsis - 1)
-        #define TIM6_DIVIDER_init (Ellipsis - 1)
-        #define TIM6_MODULATION_init (Ellipsis - 1)
-        #define TIM7_DIVIDER_init (Ellipsis - 1)
-        #define TIM7_MODULATION_init (Ellipsis - 1)
-        #define TIM8_DIVIDER_init (Ellipsis - 1)
-        #define TIM8_MODULATION_init (Ellipsis - 1)
-        #define TIM12_DIVIDER_init (Ellipsis - 1)
-        #define TIM12_MODULATION_init (Ellipsis - 1)
-        #define TIM15_DIVIDER_init (Ellipsis - 1)
-        #define TIM15_MODULATION_init (Ellipsis - 1)
     }
     #define CLOCK_TREE_FREQUENCY_OF_0             (            0)
     #define CLOCK_TREE_FREQUENCY_OF_CPU_CK        (  250'000'000)
     #define CLOCK_TREE_FREQUENCY_OF_HSI_CK        (   32'000'000)
     #define CLOCK_TREE_FREQUENCY_OF_HSI48_CK      (   48'000'000)
     #define CLOCK_TREE_FREQUENCY_OF_CSI_CK        (    4'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_HSE_CK        (            0)
-    #define CLOCK_TREE_FREQUENCY_OF_LSE_CK        (            0)
     #define CLOCK_TREE_FREQUENCY_OF_AXI_AHB_CK    (  250'000'000)
     #define CLOCK_TREE_FREQUENCY_OF_PLL1P_CK      (  250'000'000)
     #define CLOCK_TREE_FREQUENCY_OF_PLL1_VCO_FREQ (500'000'000.0)
@@ -576,35 +497,10 @@
         CMSIS_SET(RCC, CFGR1, SW, 0b011);
         while (CMSIS_GET(RCC, CFGR1, SWS) != 0b011);
 
-        //////////////////////////////////////////////////////////////// USART1 ////////////////////////////////////////////////////////////////
-
-        #define USART1_KERNEL_SOURCE_init Ellipsis
-        #define USART1_BAUD_DIVIDER_init Ellipsis
-
         //////////////////////////////////////////////////////////////// USART2 ////////////////////////////////////////////////////////////////
 
         #define USART2_KERNEL_SOURCE_init 0b000
         #define USART2_BAUD_DIVIDER_init 250
-
-        //////////////////////////////////////////////////////////////// USART3 ////////////////////////////////////////////////////////////////
-
-        #define USART3_KERNEL_SOURCE_init Ellipsis
-        #define USART3_BAUD_DIVIDER_init Ellipsis
-
-        //////////////////////////////////////////////////////////////// UART4 ////////////////////////////////////////////////////////////////
-
-        #define UART4_KERNEL_SOURCE_init Ellipsis
-        #define UART4_BAUD_DIVIDER_init Ellipsis
-
-        //////////////////////////////////////////////////////////////// UART5 ////////////////////////////////////////////////////////////////
-
-        #define UART5_KERNEL_SOURCE_init Ellipsis
-        #define UART5_BAUD_DIVIDER_init Ellipsis
-
-        //////////////////////////////////////////////////////////////// USART6 ////////////////////////////////////////////////////////////////
-
-        #define USART6_KERNEL_SOURCE_init Ellipsis
-        #define USART6_BAUD_DIVIDER_init Ellipsis
 
         //////////////////////////////////////////////////////////////// I2C1 ////////////////////////////////////////////////////////////////
 
@@ -612,52 +508,12 @@
         #define I2C1_PRESC_init 15
         #define I2C1_SCLH_init 250
         #define I2C1_SCLL_init 250
-
-        //////////////////////////////////////////////////////////////// I2C2 ////////////////////////////////////////////////////////////////
-
-        #define I2C2_KERNEL_SOURCE_init Ellipsis
-        #define I2C2_PRESC_init Ellipsis
-        #define I2C2_SCLH_init Ellipsis
-        #define I2C2_SCLL_init Ellipsis
-
-        //////////////////////////////////////////////////////////////// I2C3 ////////////////////////////////////////////////////////////////
-
-        #define I2C3_KERNEL_SOURCE_init Ellipsis
-        #define I2C3_PRESC_init Ellipsis
-        #define I2C3_SCLH_init Ellipsis
-        #define I2C3_SCLL_init Ellipsis
-
-        //////////////////////////////////////////////////////////////// Timers ////////////////////////////////////////////////////////////////
-
-        #define GLOBAL_TIMER_PRESCALER_init Ellipsis
-        #define TIM1_DIVIDER_init (Ellipsis - 1)
-        #define TIM1_MODULATION_init (Ellipsis - 1)
-        #define TIM2_DIVIDER_init (Ellipsis - 1)
-        #define TIM2_MODULATION_init (Ellipsis - 1)
-        #define TIM3_DIVIDER_init (Ellipsis - 1)
-        #define TIM3_MODULATION_init (Ellipsis - 1)
-        #define TIM4_DIVIDER_init (Ellipsis - 1)
-        #define TIM4_MODULATION_init (Ellipsis - 1)
-        #define TIM5_DIVIDER_init (Ellipsis - 1)
-        #define TIM5_MODULATION_init (Ellipsis - 1)
-        #define TIM6_DIVIDER_init (Ellipsis - 1)
-        #define TIM6_MODULATION_init (Ellipsis - 1)
-        #define TIM7_DIVIDER_init (Ellipsis - 1)
-        #define TIM7_MODULATION_init (Ellipsis - 1)
-        #define TIM8_DIVIDER_init (Ellipsis - 1)
-        #define TIM8_MODULATION_init (Ellipsis - 1)
-        #define TIM12_DIVIDER_init (Ellipsis - 1)
-        #define TIM12_MODULATION_init (Ellipsis - 1)
-        #define TIM15_DIVIDER_init (Ellipsis - 1)
-        #define TIM15_MODULATION_init (Ellipsis - 1)
     }
     #define CLOCK_TREE_FREQUENCY_OF_0             (            0)
     #define CLOCK_TREE_FREQUENCY_OF_CPU_CK        (  250'000'000)
     #define CLOCK_TREE_FREQUENCY_OF_HSI_CK        (   32'000'000)
     #define CLOCK_TREE_FREQUENCY_OF_HSI48_CK      (   48'000'000)
     #define CLOCK_TREE_FREQUENCY_OF_CSI_CK        (    4'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_HSE_CK        (            0)
-    #define CLOCK_TREE_FREQUENCY_OF_LSE_CK        (            0)
     #define CLOCK_TREE_FREQUENCY_OF_AXI_AHB_CK    (  250'000'000)
     #define CLOCK_TREE_FREQUENCY_OF_PLL1P_CK      (  250'000'000)
     #define CLOCK_TREE_FREQUENCY_OF_PLL1_VCO_FREQ (500'000'000.0)
@@ -833,35 +689,10 @@
         CMSIS_SET(RCC, CFGR1, SW, 0b011);
         while (CMSIS_GET(RCC, CFGR1, SWS) != 0b011);
 
-        //////////////////////////////////////////////////////////////// USART1 ////////////////////////////////////////////////////////////////
-
-        #define USART1_KERNEL_SOURCE_init Ellipsis
-        #define USART1_BAUD_DIVIDER_init Ellipsis
-
         //////////////////////////////////////////////////////////////// USART2 ////////////////////////////////////////////////////////////////
 
         #define USART2_KERNEL_SOURCE_init 0b000
         #define USART2_BAUD_DIVIDER_init 250
-
-        //////////////////////////////////////////////////////////////// USART3 ////////////////////////////////////////////////////////////////
-
-        #define USART3_KERNEL_SOURCE_init Ellipsis
-        #define USART3_BAUD_DIVIDER_init Ellipsis
-
-        //////////////////////////////////////////////////////////////// UART4 ////////////////////////////////////////////////////////////////
-
-        #define UART4_KERNEL_SOURCE_init Ellipsis
-        #define UART4_BAUD_DIVIDER_init Ellipsis
-
-        //////////////////////////////////////////////////////////////// UART5 ////////////////////////////////////////////////////////////////
-
-        #define UART5_KERNEL_SOURCE_init Ellipsis
-        #define UART5_BAUD_DIVIDER_init Ellipsis
-
-        //////////////////////////////////////////////////////////////// USART6 ////////////////////////////////////////////////////////////////
-
-        #define USART6_KERNEL_SOURCE_init Ellipsis
-        #define USART6_BAUD_DIVIDER_init Ellipsis
 
         //////////////////////////////////////////////////////////////// I2C1 ////////////////////////////////////////////////////////////////
 
@@ -870,51 +701,17 @@
         #define I2C1_SCLH_init 250
         #define I2C1_SCLL_init 250
 
-        //////////////////////////////////////////////////////////////// I2C2 ////////////////////////////////////////////////////////////////
-
-        #define I2C2_KERNEL_SOURCE_init Ellipsis
-        #define I2C2_PRESC_init Ellipsis
-        #define I2C2_SCLH_init Ellipsis
-        #define I2C2_SCLL_init Ellipsis
-
-        //////////////////////////////////////////////////////////////// I2C3 ////////////////////////////////////////////////////////////////
-
-        #define I2C3_KERNEL_SOURCE_init Ellipsis
-        #define I2C3_PRESC_init Ellipsis
-        #define I2C3_SCLH_init Ellipsis
-        #define I2C3_SCLL_init Ellipsis
-
         //////////////////////////////////////////////////////////////// Timers ////////////////////////////////////////////////////////////////
 
         #define GLOBAL_TIMER_PRESCALER_init false
         #define TIM1_DIVIDER_init (239 - 1)
         #define TIM1_MODULATION_init (65377 - 1)
-        #define TIM2_DIVIDER_init (Ellipsis - 1)
-        #define TIM2_MODULATION_init (Ellipsis - 1)
-        #define TIM3_DIVIDER_init (Ellipsis - 1)
-        #define TIM3_MODULATION_init (Ellipsis - 1)
-        #define TIM4_DIVIDER_init (Ellipsis - 1)
-        #define TIM4_MODULATION_init (Ellipsis - 1)
-        #define TIM5_DIVIDER_init (Ellipsis - 1)
-        #define TIM5_MODULATION_init (Ellipsis - 1)
-        #define TIM6_DIVIDER_init (Ellipsis - 1)
-        #define TIM6_MODULATION_init (Ellipsis - 1)
-        #define TIM7_DIVIDER_init (Ellipsis - 1)
-        #define TIM7_MODULATION_init (Ellipsis - 1)
-        #define TIM8_DIVIDER_init (Ellipsis - 1)
-        #define TIM8_MODULATION_init (Ellipsis - 1)
-        #define TIM12_DIVIDER_init (Ellipsis - 1)
-        #define TIM12_MODULATION_init (Ellipsis - 1)
-        #define TIM15_DIVIDER_init (Ellipsis - 1)
-        #define TIM15_MODULATION_init (Ellipsis - 1)
     }
     #define CLOCK_TREE_FREQUENCY_OF_0             (            0)
     #define CLOCK_TREE_FREQUENCY_OF_CPU_CK        (  250'000'000)
     #define CLOCK_TREE_FREQUENCY_OF_HSI_CK        (   32'000'000)
     #define CLOCK_TREE_FREQUENCY_OF_HSI48_CK      (   48'000'000)
     #define CLOCK_TREE_FREQUENCY_OF_CSI_CK        (    4'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_HSE_CK        (            0)
-    #define CLOCK_TREE_FREQUENCY_OF_LSE_CK        (            0)
     #define CLOCK_TREE_FREQUENCY_OF_AXI_AHB_CK    (  250'000'000)
     #define CLOCK_TREE_FREQUENCY_OF_PLL1P_CK      (  250'000'000)
     #define CLOCK_TREE_FREQUENCY_OF_PLL1_VCO_FREQ (500'000'000.0)
