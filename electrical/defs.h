@@ -85,7 +85,7 @@
 //////////////////////////////////////////////////////////////// System Initialization ////////////////////////////////////////////////////////////////
 
 
-/* #meta IMPLEMENT_DRIVER_ALIASES : system_database
+/* #meta IMPLEMENT_DRIVER_ALIASES
 
     def IMPLEMENT_DRIVER_ALIASES(
         *,
@@ -182,7 +182,7 @@
 
 
 #include "SYSTEM_init.meta"
-/* #meta system_database, INTERRUPTS_THAT_MUST_BE_DEFINED
+/* #meta INTERRUPTS_THAT_MUST_BE_DEFINED
 
     from deps.stpy.configurize import INTERRUPTS_THAT_MUST_BE_DEFINED
     from deps.stpy.system import do, system_database

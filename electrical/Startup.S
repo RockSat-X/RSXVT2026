@@ -98,6 +98,8 @@ INTERRUPT_Reset:
 
         import collections
 
+        from deps.stpy.database import system_database
+
 
 
         # Ensure all FreeRTOS interrupts has a place in the IVT.
