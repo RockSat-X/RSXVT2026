@@ -211,6 +211,7 @@
         #define UART8_KERNEL_SOURCE_init 0b000
         #define USART3_BAUD_DIVIDER_init 150
     }
+    #define CLOCK_TREE_FREQUENCY_OF_0             (            0)
     #define CLOCK_TREE_FREQUENCY_OF_CPU_CK        (  600'000'000)
     #define CLOCK_TREE_FREQUENCY_OF_HSI_CK        (   64'000'000)
     #define CLOCK_TREE_FREQUENCY_OF_HSI48_CK      (   48'000'000)
