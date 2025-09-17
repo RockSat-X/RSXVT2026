@@ -61,7 +61,8 @@
 
 
 
-#include "deps/stpy/system.h"
+#include <stdint.h>
+#include "deps/stpy/stpy.h"
 
 
 
@@ -182,10 +183,9 @@
 
 
 #include "STPY_init.meta"
-/* #meta INTERRUPTS_THAT_MUST_BE_DEFINED
+/* #meta
 
     from deps.stpy.mcus        import MCUS as MCUS_
-    from deps.stpy.configurize import INTERRUPTS_THAT_MUST_BE_DEFINED
     from deps.stpy.init        import init
 
     for target in PER_TARGET():
@@ -199,7 +199,7 @@
         # in contention with the same interrupt.
 
         for routine in OrderedSet((
-            *INTERRUPTS_THAT_MUST_BE_DEFINED,
+            *target.interrupts_that_must_be_defined,
             *MCUS_[target.mcu]['INTERRUPTS'].value
         )):
 
@@ -207,7 +207,7 @@
                 continue
 
             if routine not in (
-                *INTERRUPTS_THAT_MUST_BE_DEFINED,
+                *target.interrupts_that_must_be_defined,
                 *(name for name, niceness in target.interrupts)
             ):
                 continue

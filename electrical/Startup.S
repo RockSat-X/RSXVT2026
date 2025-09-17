@@ -141,7 +141,7 @@ INTERRUPT_Reset:
 
                 elif interrupt_name in (
                     'Reset',
-                    *INTERRUPTS_THAT_MUST_BE_DEFINED,
+                    *target.interrupts_that_must_be_defined,
                     *(name for name, niceness in target.interrupts)
                 ):
 

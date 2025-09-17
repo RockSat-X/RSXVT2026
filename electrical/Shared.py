@@ -119,7 +119,15 @@ TARGETS = ( # @/`Defining a TARGET`.
             'UXART' : (
                 ('stlink', 'USART3'),
             )
-        }
+        },
+
+        # TODO.
+        interrupts_that_must_be_defined = (
+            'Default',
+            'MemManage',
+            'BusFault',
+            'UsageFault'
+        ),
 
     ),
 
@@ -166,7 +174,15 @@ TARGETS = ( # @/`Defining a TARGET`.
             'UXART' : (
                 ('stlink', 'USART2'),
             )
-        }
+        },
+
+        # TODO.
+        interrupts_that_must_be_defined = (
+            'Default',
+            'MemManage',
+            'BusFault',
+            'UsageFault'
+        ),
 
     ),
 
@@ -221,7 +237,15 @@ TARGETS = ( # @/`Defining a TARGET`.
             'I2C' : (
                 ('primary', 'I2C1'),
             ),
-        }
+        },
+
+        # TODO.
+        interrupts_that_must_be_defined = (
+            'Default',
+            'MemManage',
+            'BusFault',
+            'UsageFault'
+        ),
 
     ),
 
@@ -275,7 +299,15 @@ TARGETS = ( # @/`Defining a TARGET`.
             'UXART' : (
                 ('stlink', 'USART2'),
             ),
-        }
+        },
+
+        # TODO.
+        interrupts_that_must_be_defined = (
+            'Default',
+            'MemManage',
+            'BusFault',
+            'UsageFault'
+        ),
 
     ),
 
