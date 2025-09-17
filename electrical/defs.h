@@ -181,7 +181,7 @@
 */
 
 
-#include "SYSTEM_init.meta"
+#include "STPY_init.meta"
 /* #meta INTERRUPTS_THAT_MUST_BE_DEFINED
 
     from deps.stpy.mcus        import MCUS as MCUS_
