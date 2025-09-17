@@ -14,6 +14,8 @@
 // Annoying!
 //
 
+
+
 .section .text
 .thumb_func
 INTERRUPT_Default_indirect:
@@ -82,98 +84,6 @@ INTERRUPT_Reset:
     // Finished initializing, we begin main!
 
     b main
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-.section .vector_table, "a"
-
-    .word LINK_stack_addr
-
-    #include "interrupt_vector_table.meta"
-    /* #meta
-
-        import collections
-
-        from deps.stpy.mcus import MCUS as MCUS_
-
-
-
-        # Ensure all FreeRTOS interrupts has a place in the IVT.
-
-        for mcu in MCUS:
-            if missing := [
-                interrupt
-                for freertos_interrupt in MCUS[mcu].freertos_interrupts
-                if freertos_interrupt not in MCUS_[mcu]['INTERRUPTS'].value
-            ]:
-                raise RuntimeError(
-                    f'FreeRTOS interrupts missing in {repr(mcu)} '
-                    f'interrupt vector table: {list(missing)}.'
-                )
-
-
-
-        # Make the IVT.
-
-        for target in PER_TARGET():
-
-            rows = []
-
-            for interrupt_i, interrupt_name in enumerate(MCUS_[target.mcu]['INTERRUPTS'].value):
-
-                interrupt_number = interrupt_i - 15
-
-                word = None
-
-                if interrupt_name is None:
-
-                    # No interrupt handler here.
-                    word = f'INTERRUPT_Default'
-
-                elif target.use_freertos and interrupt_name in MCUS[target.mcu].freertos_interrupts:
-
-                    # This interrupt will be supplied by FreeRTOS.
-                    word = f'{MCUS[target.mcu].freertos_interrupts[interrupt_name]}'
-
-                elif interrupt_name in (
-                    'Reset',
-                    *target.interrupts_that_must_be_defined,
-                    *(name for name, niceness in target.interrupts)
-                ):
-
-                    # This interrupt must be defined somewhere.
-                    word = f'INTERRUPT_{interrupt_name}'
-
-                else:
-
-                    # This interrupt isn't expected to be used by the target.
-                    word = f'INTERRUPT_Default'
-
-                rows += [(
-                    word,
-                    interrupt_number,
-                    'Reserved' if interrupt_name is None else interrupt_name,
-                )]
-
-
-
-            # Output nice looking table.
-
-            for word, interrupt_number, name in justify(
-                (
-                    ('<' , word            ),
-                    ('>' , interrupt_number),
-                    (None, name            ),
-                )
-                for word, interrupt_number, name in rows
-            ):
-                Meta.line(f'.word {word} // [{interrupt_number}] {name}')
-
-    */
 
 
 
