@@ -2,7 +2,7 @@
 
 import types, functools
 from deps.pxd.utils import root
-from deps.stpy.database import MCUS
+from deps.stpy.mcus import MCUS
 import types
 
 ################################################################################

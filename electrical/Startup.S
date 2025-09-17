@@ -98,7 +98,7 @@ INTERRUPT_Reset:
 
         import collections
 
-        from deps.stpy.database import MCUS as MCUS_
+        from deps.stpy.mcus import MCUS as MCUS_
 
 
 
