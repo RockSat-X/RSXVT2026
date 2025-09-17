@@ -69,11 +69,11 @@
 
 
 
+        #define INTERRUPT_BusFault extern void INTERRUPT_BusFault(void)
         #define INTERRUPT_Default extern void INTERRUPT_Default(void)
         #define INTERRUPT_MemManage extern void INTERRUPT_MemManage(void)
-        #define INTERRUPT_BusFault extern void INTERRUPT_BusFault(void)
-        #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
         #define INTERRUPT_USART3 extern void INTERRUPT_USART3(void)
+        #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
         static_assert(0 <= 0 && 0 < (1 << __NVIC_PRIO_BITS));
         NVIC->IPR[NVICInterrupt_USART3] = 0 << __NVIC_PRIO_BITS;
         CMSIS_SET
@@ -289,11 +289,11 @@
 
 
 
+        #define INTERRUPT_BusFault extern void INTERRUPT_BusFault(void)
         #define INTERRUPT_Default extern void INTERRUPT_Default(void)
         #define INTERRUPT_MemManage extern void INTERRUPT_MemManage(void)
-        #define INTERRUPT_BusFault extern void INTERRUPT_BusFault(void)
-        #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
         #define INTERRUPT_USART2 extern void INTERRUPT_USART2(void)
+        #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
         static_assert(0 <= 0 && 0 < (1 << __NVIC_PRIO_BITS));
         NVIC->IPR[NVICInterrupt_USART2] = 0 << __NVIC_PRIO_BITS;
         CMSIS_SET
@@ -506,13 +506,13 @@
 
 
 
-        #define INTERRUPT_Default extern void INTERRUPT_Default(void)
-        #define INTERRUPT_MemManage extern void INTERRUPT_MemManage(void)
         #define INTERRUPT_BusFault extern void INTERRUPT_BusFault(void)
-        #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
-        #define INTERRUPT_I2C1_EV extern void INTERRUPT_I2C1_EV(void)
+        #define INTERRUPT_Default extern void INTERRUPT_Default(void)
         #define INTERRUPT_I2C1_ER extern void INTERRUPT_I2C1_ER(void)
+        #define INTERRUPT_I2C1_EV extern void INTERRUPT_I2C1_EV(void)
+        #define INTERRUPT_MemManage extern void INTERRUPT_MemManage(void)
         #define INTERRUPT_USART2 extern void INTERRUPT_USART2(void)
+        #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
         static_assert(0 <= 0 && 0 < (1 << __NVIC_PRIO_BITS));
         NVIC->IPR[NVICInterrupt_USART2] = 0 << __NVIC_PRIO_BITS;
         static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
@@ -747,12 +747,12 @@
 
 
 
+        #define INTERRUPT_BusFault extern void INTERRUPT_BusFault(void)
         #define INTERRUPT_Default extern void INTERRUPT_Default(void)
         #define INTERRUPT_MemManage extern void INTERRUPT_MemManage(void)
-        #define INTERRUPT_BusFault extern void INTERRUPT_BusFault(void)
-        #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
         #define INTERRUPT_TIM1_UP extern void INTERRUPT_TIM1_UP(void)
         #define INTERRUPT_USART2 extern void INTERRUPT_USART2(void)
+        #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
         static_assert(0 <= 0 && 0 < (1 << __NVIC_PRIO_BITS));
         NVIC->IPR[NVICInterrupt_USART2] = 0 << __NVIC_PRIO_BITS;
         static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
