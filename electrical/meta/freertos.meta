@@ -34,6 +34,14 @@
     enum FreeRTOSTask : u32;
     static constexpr u32 FreeRTOSTask_COUNT = 0;
 #endif
+#if TARGET_MCU_IS_STM32H7S3L8H6
+    #if TARGET_USES_FREERTOS
+        #include <deps/FreeRTOS_Kernel/tasks.c>
+        #include <deps/FreeRTOS_Kernel/queue.c>
+        #include <deps/FreeRTOS_Kernel/list.c>
+        #include <port.c>
+    #endif
+#endif
 #if TARGET_MCU_IS_STM32H533RET6
     #if TARGET_USES_FREERTOS
         #include <deps/FreeRTOS_Kernel/tasks.c>
@@ -41,13 +49,5 @@
         #include <deps/FreeRTOS_Kernel/list.c>
         #include <port.c>
         #include <portasm.c>
-    #endif
-#endif
-#if TARGET_MCU_IS_STM32H7S3L8H6
-    #if TARGET_USES_FREERTOS
-        #include <deps/FreeRTOS_Kernel/tasks.c>
-        #include <deps/FreeRTOS_Kernel/queue.c>
-        #include <deps/FreeRTOS_Kernel/list.c>
-        #include <port.c>
     #endif
 #endif

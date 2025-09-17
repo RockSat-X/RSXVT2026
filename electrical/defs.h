@@ -185,7 +185,7 @@
 /* #meta INTERRUPTS_THAT_MUST_BE_DEFINED
 
     from deps.stpy.configurize import INTERRUPTS_THAT_MUST_BE_DEFINED
-    from deps.stpy.system import do, system_database
+    from deps.stpy.system import do, MCUS
 
     for target in PER_TARGET():
         do(Meta, target)
@@ -199,7 +199,7 @@
 
         for routine in OrderedSet((
             *INTERRUPTS_THAT_MUST_BE_DEFINED,
-            *system_database[target.mcu]['INTERRUPTS'].value
+            *MCUS[target.mcu]['INTERRUPTS'].value
         )):
 
             if target.use_freertos and routine in MCUS[target.mcu].freertos_interrupts:

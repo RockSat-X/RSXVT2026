@@ -158,9 +158,9 @@
         CMSIS_SET
         (
             RCC    , PLLCFGR,
-            PLL1RGE, 3      ,
+            PLL1RGE, 0b11   ,
             PLL1PEN, true   ,
-            PLL2RGE, 3      ,
+            PLL2RGE, 0b11   ,
             PLL2SEN, true   ,
         );
         CMSIS_SET
