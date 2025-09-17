@@ -186,10 +186,10 @@
 
     from deps.stpy.mcus        import MCUS as MCUS_
     from deps.stpy.configurize import INTERRUPTS_THAT_MUST_BE_DEFINED
-    from deps.stpy.system      import do
+    from deps.stpy.init        import init
 
     for target in PER_TARGET():
-        do(Meta, target)
+        init(Meta, target)
 
 
 
