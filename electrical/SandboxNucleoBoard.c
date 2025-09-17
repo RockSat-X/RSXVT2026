@@ -8,7 +8,7 @@
 extern noret void
 main(void)
 {
-    SYSTEM_init();
+    STPY_init();
     UXART_init(UXARTHandle_stlink);
 
 

@@ -12,7 +12,7 @@ main(void)
     // Miscellaneous initialization.
     //
 
-    SYSTEM_init();
+    STPY_init();
     UXART_init(UXARTHandle_stlink);
 
 

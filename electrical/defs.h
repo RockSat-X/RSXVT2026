@@ -184,8 +184,9 @@
 #include "SYSTEM_init.meta"
 /* #meta INTERRUPTS_THAT_MUST_BE_DEFINED
 
+    from deps.stpy.mcus        import MCUS as MCUS_
     from deps.stpy.configurize import INTERRUPTS_THAT_MUST_BE_DEFINED
-    from deps.stpy.system import do, MCUS
+    from deps.stpy.system      import do
 
     for target in PER_TARGET():
         do(Meta, target)
@@ -199,8 +200,17 @@
 
         for routine in OrderedSet((
             *INTERRUPTS_THAT_MUST_BE_DEFINED,
-            *MCUS[target.mcu]['INTERRUPTS'].value
+            *MCUS_[target.mcu]['INTERRUPTS'].value
         )):
+
+            if routine is None:
+                continue
+
+            if routine not in (
+                *INTERRUPTS_THAT_MUST_BE_DEFINED,
+                *(name for name, niceness in target.interrupts)
+            ):
+                continue
 
             if target.use_freertos and routine in MCUS[target.mcu].freertos_interrupts:
                 raise RuntimeError(

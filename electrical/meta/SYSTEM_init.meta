@@ -9,7 +9,7 @@
     };
     static constexpr u32 NVICInterrupt_COUNT = 1;
     extern void
-    SYSTEM_init(void)
+    STPY_init(void)
     {
 
 
@@ -210,22 +210,31 @@
         #define STPY_UART7_KERNEL_SOURCE 0b000
         #define STPY_UART8_KERNEL_SOURCE 0b000
         #define STPY_USART3_BAUD_DIVIDER 150
+
+
+
+        ///////////////////////////////// Clock-Tree /////////////////////////////////
+
+
+
+        #define STPY_0             (            0)
+        #define STPY_CPU_CK        (  600'000'000)
+        #define STPY_HSI_CK        (   64'000'000)
+        #define STPY_HSI48_CK      (   48'000'000)
+        #define STPY_CSI_CK        (    4'000'000)
+        #define STPY_PER_CK        (   64'000'000)
+        #define STPY_AXI_AHB_CK    (  300'000'000)
+        #define STPY_PLL1P_CK      (  600'000'000)
+        #define STPY_PLL2S_CK      (  200'000'000)
+        #define STPY_PLL1_VCO_FREQ (600'000'000.0)
+        #define STPY_PLL2_VCO_FREQ (800'000'000.0)
+        #define STPY_APB1_CK       (  150'000'000)
+        #define STPY_APB2_CK       (  150'000'000)
+        #define STPY_APB4_CK       (  150'000'000)
+        #define STPY_APB5_CK       (  150'000'000)
+
+
     }
-    #define CLOCK_TREE_FREQUENCY_OF_0             (            0)
-    #define CLOCK_TREE_FREQUENCY_OF_CPU_CK        (  600'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_HSI_CK        (   64'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_HSI48_CK      (   48'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_CSI_CK        (    4'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_PER_CK        (   64'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_AXI_AHB_CK    (  300'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_PLL1P_CK      (  600'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_PLL2S_CK      (  200'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_PLL1_VCO_FREQ (600'000'000.0)
-    #define CLOCK_TREE_FREQUENCY_OF_PLL2_VCO_FREQ (800'000'000.0)
-    #define CLOCK_TREE_FREQUENCY_OF_APB1_CK       (  150'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_APB2_CK       (  150'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_APB4_CK       (  150'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_APB5_CK       (  150'000'000)
 #endif
 #if TARGET_NAME_IS_SandboxNucleoH533RE
     enum NVICInterrupt : u32
@@ -234,7 +243,7 @@
     };
     static constexpr u32 NVICInterrupt_COUNT = 1;
     extern void
-    SYSTEM_init(void)
+    STPY_init(void)
     {
 
 
@@ -391,18 +400,27 @@
 
         #define STPY_USART2_KERNEL_SOURCE 0b000
         #define STPY_USART2_BAUD_DIVIDER 250
+
+
+
+        ///////////////////////////////// Clock-Tree /////////////////////////////////
+
+
+
+        #define STPY_0             (            0)
+        #define STPY_CPU_CK        (  250'000'000)
+        #define STPY_HSI_CK        (   32'000'000)
+        #define STPY_HSI48_CK      (   48'000'000)
+        #define STPY_CSI_CK        (    4'000'000)
+        #define STPY_AXI_AHB_CK    (  250'000'000)
+        #define STPY_PLL1P_CK      (  250'000'000)
+        #define STPY_PLL1_VCO_FREQ (500'000'000.0)
+        #define STPY_APB1_CK       (  250'000'000)
+        #define STPY_APB2_CK       (  250'000'000)
+        #define STPY_APB3_CK       (  250'000'000)
+
+
     }
-    #define CLOCK_TREE_FREQUENCY_OF_0             (            0)
-    #define CLOCK_TREE_FREQUENCY_OF_CPU_CK        (  250'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_HSI_CK        (   32'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_HSI48_CK      (   48'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_CSI_CK        (    4'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_AXI_AHB_CK    (  250'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_PLL1P_CK      (  250'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_PLL1_VCO_FREQ (500'000'000.0)
-    #define CLOCK_TREE_FREQUENCY_OF_APB1_CK       (  250'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_APB2_CK       (  250'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_APB3_CK       (  250'000'000)
 #endif
 #if TARGET_NAME_IS_DemoI2C
     enum NVICInterrupt : u32
@@ -413,7 +431,7 @@
     };
     static constexpr u32 NVICInterrupt_COUNT = 3;
     extern void
-    SYSTEM_init(void)
+    STPY_init(void)
     {
 
 
@@ -616,18 +634,27 @@
         #define STPY_I2C1_PRESC 15
         #define STPY_I2C1_SCLH 250
         #define STPY_I2C1_SCLL 250
+
+
+
+        ///////////////////////////////// Clock-Tree /////////////////////////////////
+
+
+
+        #define STPY_0             (            0)
+        #define STPY_CPU_CK        (  250'000'000)
+        #define STPY_HSI_CK        (   32'000'000)
+        #define STPY_HSI48_CK      (   48'000'000)
+        #define STPY_CSI_CK        (    4'000'000)
+        #define STPY_AXI_AHB_CK    (  250'000'000)
+        #define STPY_PLL1P_CK      (  250'000'000)
+        #define STPY_PLL1_VCO_FREQ (500'000'000.0)
+        #define STPY_APB1_CK       (  250'000'000)
+        #define STPY_APB2_CK       (  250'000'000)
+        #define STPY_APB3_CK       (  250'000'000)
+
+
     }
-    #define CLOCK_TREE_FREQUENCY_OF_0             (            0)
-    #define CLOCK_TREE_FREQUENCY_OF_CPU_CK        (  250'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_HSI_CK        (   32'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_HSI48_CK      (   48'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_CSI_CK        (    4'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_AXI_AHB_CK    (  250'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_PLL1P_CK      (  250'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_PLL1_VCO_FREQ (500'000'000.0)
-    #define CLOCK_TREE_FREQUENCY_OF_APB1_CK       (  250'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_APB2_CK       (  250'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_APB3_CK       (  250'000'000)
 #endif
 #if TARGET_NAME_IS_DemoTimer
     enum NVICInterrupt : u32
@@ -637,7 +664,7 @@
     };
     static constexpr u32 NVICInterrupt_COUNT = 2;
     extern void
-    SYSTEM_init(void)
+    STPY_init(void)
     {
 
 
@@ -855,16 +882,25 @@
         #define STPY_GLOBAL_TIMER_PRESCALER false
         #define STPY_TIM1_DIVIDER (239 - 1)
         #define STPY_TIM1_MODULATION (65377 - 1)
+
+
+
+        ///////////////////////////////// Clock-Tree /////////////////////////////////
+
+
+
+        #define STPY_0             (            0)
+        #define STPY_CPU_CK        (  250'000'000)
+        #define STPY_HSI_CK        (   32'000'000)
+        #define STPY_HSI48_CK      (   48'000'000)
+        #define STPY_CSI_CK        (    4'000'000)
+        #define STPY_AXI_AHB_CK    (  250'000'000)
+        #define STPY_PLL1P_CK      (  250'000'000)
+        #define STPY_PLL1_VCO_FREQ (500'000'000.0)
+        #define STPY_APB1_CK       (  250'000'000)
+        #define STPY_APB2_CK       (  250'000'000)
+        #define STPY_APB3_CK       (  250'000'000)
+
+
     }
-    #define CLOCK_TREE_FREQUENCY_OF_0             (            0)
-    #define CLOCK_TREE_FREQUENCY_OF_CPU_CK        (  250'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_HSI_CK        (   32'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_HSI48_CK      (   48'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_CSI_CK        (    4'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_AXI_AHB_CK    (  250'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_PLL1P_CK      (  250'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_PLL1_VCO_FREQ (500'000'000.0)
-    #define CLOCK_TREE_FREQUENCY_OF_APB1_CK       (  250'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_APB2_CK       (  250'000'000)
-    #define CLOCK_TREE_FREQUENCY_OF_APB3_CK       (  250'000'000)
 #endif

@@ -1,4 +1,4 @@
-#define configCPU_CLOCK_HZ                    CLOCK_TREE_FREQUENCY_OF_CPU_CK
+#define configCPU_CLOCK_HZ                    STPY_CPU_CK
 #define configTICK_RATE_HZ                    100
 
 #define configENABLE_TRUSTZONE                false
