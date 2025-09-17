@@ -1,16 +1,16 @@
 #meta types, log, ANSI,       root, justify, coalesce, find_dupe, mk_dict, OrderedSet, AllocatingNamespace, ContainedNamespace, CMSIS_SET, CMSIS_WRITE, CMSIS_SPINLOCK, CMSIS_TUPLE :
-from deps.pxd.utils    import root, justify, coalesce, find_dupe, mk_dict, OrderedSet, AllocatingNamespace, ContainedNamespace, c_repr
-from deps.pxd.log      import log, ANSI
-from deps.stpy.helpers import get_helpers
+from deps.pxd.utils        import root, justify, coalesce, find_dupe, mk_dict, OrderedSet, AllocatingNamespace, ContainedNamespace, c_repr
+from deps.pxd.log          import log, ANSI
+from deps.stpy.cmsis_tools import get_cmsis_tools
 import types
 
 
 
-helpers        = get_helpers(Meta)
-CMSIS_SET      = helpers.CMSIS_SET
-CMSIS_WRITE    = helpers.CMSIS_WRITE
-CMSIS_SPINLOCK = helpers.CMSIS_SPINLOCK
-CMSIS_TUPLE    = helpers.CMSIS_TUPLE
+cmsis_tools    = get_cmsis_tools(Meta)
+CMSIS_SET      = cmsis_tools.CMSIS_SET
+CMSIS_WRITE    = cmsis_tools.CMSIS_WRITE
+CMSIS_SPINLOCK = cmsis_tools.CMSIS_SPINLOCK
+CMSIS_TUPLE    = cmsis_tools.CMSIS_TUPLE
 
 
 
