@@ -203,13 +203,13 @@
 
 
 
-        #define USART2_KERNEL_SOURCE_init 0b000
-        #define USART3_KERNEL_SOURCE_init 0b000
-        #define UART4_KERNEL_SOURCE_init 0b000
-        #define UART5_KERNEL_SOURCE_init 0b000
-        #define UART7_KERNEL_SOURCE_init 0b000
-        #define UART8_KERNEL_SOURCE_init 0b000
-        #define USART3_BAUD_DIVIDER_init 150
+        #define STPY_USART2_KERNEL_SOURCE 0b000
+        #define STPY_USART3_KERNEL_SOURCE 0b000
+        #define STPY_UART4_KERNEL_SOURCE 0b000
+        #define STPY_UART5_KERNEL_SOURCE 0b000
+        #define STPY_UART7_KERNEL_SOURCE 0b000
+        #define STPY_UART8_KERNEL_SOURCE 0b000
+        #define STPY_USART3_BAUD_DIVIDER 150
     }
     #define CLOCK_TREE_FREQUENCY_OF_0             (            0)
     #define CLOCK_TREE_FREQUENCY_OF_CPU_CK        (  600'000'000)
@@ -389,8 +389,8 @@
 
 
 
-        #define USART2_KERNEL_SOURCE_init 0b000
-        #define USART2_BAUD_DIVIDER_init 250
+        #define STPY_USART2_KERNEL_SOURCE 0b000
+        #define STPY_USART2_BAUD_DIVIDER 250
     }
     #define CLOCK_TREE_FREQUENCY_OF_0             (            0)
     #define CLOCK_TREE_FREQUENCY_OF_CPU_CK        (  250'000'000)
@@ -603,8 +603,8 @@
 
 
 
-        #define USART2_KERNEL_SOURCE_init 0b000
-        #define USART2_BAUD_DIVIDER_init 250
+        #define STPY_USART2_KERNEL_SOURCE 0b000
+        #define STPY_USART2_BAUD_DIVIDER 250
 
 
 
@@ -612,10 +612,10 @@
 
 
 
-        #define I2C1_KERNEL_SOURCE_init 0b11
-        #define I2C1_PRESC_init 15
-        #define I2C1_SCLH_init 250
-        #define I2C1_SCLL_init 250
+        #define STPY_I2C1_KERNEL_SOURCE 0b11
+        #define STPY_I2C1_PRESC 15
+        #define STPY_I2C1_SCLH 250
+        #define STPY_I2C1_SCLL 250
     }
     #define CLOCK_TREE_FREQUENCY_OF_0             (            0)
     #define CLOCK_TREE_FREQUENCY_OF_CPU_CK        (  250'000'000)
@@ -832,8 +832,8 @@
 
 
 
-        #define USART2_KERNEL_SOURCE_init 0b000
-        #define USART2_BAUD_DIVIDER_init 250
+        #define STPY_USART2_KERNEL_SOURCE 0b000
+        #define STPY_USART2_BAUD_DIVIDER 250
 
 
 
@@ -841,10 +841,10 @@
 
 
 
-        #define I2C1_KERNEL_SOURCE_init 0b11
-        #define I2C1_PRESC_init 15
-        #define I2C1_SCLH_init 250
-        #define I2C1_SCLL_init 250
+        #define STPY_I2C1_KERNEL_SOURCE 0b11
+        #define STPY_I2C1_PRESC 15
+        #define STPY_I2C1_SCLH 250
+        #define STPY_I2C1_SCLL 250
 
 
 
@@ -852,9 +852,9 @@
 
 
 
-        #define GLOBAL_TIMER_PRESCALER_init false
-        #define TIM1_DIVIDER_init (239 - 1)
-        #define TIM1_MODULATION_init (65377 - 1)
+        #define STPY_GLOBAL_TIMER_PRESCALER false
+        #define STPY_TIM1_DIVIDER (239 - 1)
+        #define STPY_TIM1_MODULATION (65377 - 1)
     }
     #define CLOCK_TREE_FREQUENCY_OF_0             (            0)
     #define CLOCK_TREE_FREQUENCY_OF_CPU_CK        (  250'000'000)

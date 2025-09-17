@@ -12,10 +12,10 @@
         identifiers = (
             'NVICInterrupt_{}_EV',
             'NVICInterrupt_{}_ER',
-            '{}_KERNEL_SOURCE_init',
-            '{}_PRESC_init',
-            '{}_SCLH_init',
-            '{}_SCLL_init',
+            'STPY_{}_KERNEL_SOURCE',
+            'STPY_{}_PRESC',
+            'STPY_{}_SCLH',
+            'STPY_{}_SCLL',
         ),
         cmsis_tuple_tags = (
             '{}_RESET',
@@ -204,7 +204,7 @@ I2C_reinit(enum I2CHandle handle)
 
     // Set the kernel clock source for the peripheral.
 
-    CMSIS_PUT(I2Cx_KERNEL_SOURCE, I2Cx_KERNEL_SOURCE_init);
+    CMSIS_PUT(I2Cx_KERNEL_SOURCE, STPY_I2Cx_KERNEL_SOURCE);
 
 
 
@@ -219,11 +219,11 @@ I2C_reinit(enum I2CHandle handle)
     CMSIS_SET // TODO Look over again.
     (
         I2Cx  , TIMINGR        , // TODO Handle other timing requirements?
-        PRESC , I2Cx_PRESC_init, // Set the time base unit.
+        PRESC , STPY_I2Cx_PRESC, // Set the time base unit.
         SCLDEL, 0              , // TODO Important?
         SDADEL, 0              , // TODO Important?
-        SCLH  , I2Cx_SCLH_init  , // Determines the amount of high time.
-        SCLL  , I2Cx_SCLL_init  , // Determines the amount of low time.
+        SCLH  , STPY_I2Cx_SCLH , // Determines the amount of high time.
+        SCLL  , STPY_I2Cx_SCLL , // Determines the amount of low time.
     );
 
     CMSIS_SET // TODO Look over again.

@@ -23,7 +23,7 @@ main(void)
 
     // Set the prescaler that'll affect all timers' kernel frequency.
 
-    CMSIS_SET(RCC, CFGR1, TIMPRE, GLOBAL_TIMER_PRESCALER_init);
+    CMSIS_SET(RCC, CFGR1, TIMPRE, STPY_GLOBAL_TIMER_PRESCALER);
 
 
 
@@ -36,7 +36,7 @@ main(void)
     // Configure the divider to set the rate at
     // which the timer's counter will increment.
 
-    CMSIS_SET(TIM1, PSC, PSC, TIM1_DIVIDER_init);
+    CMSIS_SET(TIM1, PSC, PSC, STPY_TIM1_DIVIDER);
 
 
 
@@ -44,7 +44,7 @@ main(void)
     // will reach and then reset; this is when an
     // update event happens.
 
-    CMSIS_SET(TIM1, ARR, ARR, TIM1_MODULATION_init);
+    CMSIS_SET(TIM1, ARR, ARR, STPY_TIM1_MODULATION);
 
 
 
@@ -61,7 +61,7 @@ main(void)
     // Thus if we set the compare-value to be halfway between zero
     // and the modulation value, then we'd get a 50% duty cycle.
 
-    CMSIS_SET(TIM1, CCR1, CCR1, TIM1_MODULATION_init / 2);
+    CMSIS_SET(TIM1, CCR1, CCR1, STPY_TIM1_MODULATION / 2);
 
 
 

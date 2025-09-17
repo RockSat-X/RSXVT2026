@@ -11,9 +11,9 @@
     };
     static constexpr u32 I2CHandle_COUNT = 1;
     #define I2Cx_ I2C_
-    static const struct { typeof(I2C1) I2Cx; typeof(NVICInterrupt_I2C1_EV) NVICInterrupt_I2Cx_EV; typeof(NVICInterrupt_I2C1_ER) NVICInterrupt_I2Cx_ER; typeof(I2C1_KERNEL_SOURCE_init) I2Cx_KERNEL_SOURCE_init; typeof(I2C1_PRESC_init) I2Cx_PRESC_init; typeof(I2C1_SCLH_init) I2Cx_SCLH_init; typeof(I2C1_SCLL_init) I2Cx_SCLL_init; typeof((struct CMSISTuple) { &RCC->APB1LRSTR, RCC_APB1LRSTR_I2C1RST_Pos, RCC_APB1LRSTR_I2C1RST_Msk }) I2Cx_RESET; typeof((struct CMSISTuple) { &RCC->APB1LENR, RCC_APB1LENR_I2C1EN_Pos, RCC_APB1LENR_I2C1EN_Msk }) I2Cx_ENABLE; typeof((struct CMSISTuple) { &RCC->CCIPR4, RCC_CCIPR4_I2C1SEL_Pos, RCC_CCIPR4_I2C1SEL_Msk }) I2Cx_KERNEL_SOURCE; } I2C_TABLE[] =
+    static const struct { typeof(I2C1) I2Cx; typeof(NVICInterrupt_I2C1_EV) NVICInterrupt_I2Cx_EV; typeof(NVICInterrupt_I2C1_ER) NVICInterrupt_I2Cx_ER; typeof(STPY_I2C1_KERNEL_SOURCE) STPY_I2Cx_KERNEL_SOURCE; typeof(STPY_I2C1_PRESC) STPY_I2Cx_PRESC; typeof(STPY_I2C1_SCLH) STPY_I2Cx_SCLH; typeof(STPY_I2C1_SCLL) STPY_I2Cx_SCLL; typeof((struct CMSISTuple) { &RCC->APB1LRSTR, RCC_APB1LRSTR_I2C1RST_Pos, RCC_APB1LRSTR_I2C1RST_Msk }) I2Cx_RESET; typeof((struct CMSISTuple) { &RCC->APB1LENR, RCC_APB1LENR_I2C1EN_Pos, RCC_APB1LENR_I2C1EN_Msk }) I2Cx_ENABLE; typeof((struct CMSISTuple) { &RCC->CCIPR4, RCC_CCIPR4_I2C1SEL_Pos, RCC_CCIPR4_I2C1SEL_Msk }) I2Cx_KERNEL_SOURCE; } I2C_TABLE[] =
         {
-            [I2CHandle_primary] = { .I2Cx = I2C1, .NVICInterrupt_I2Cx_EV = NVICInterrupt_I2C1_EV, .NVICInterrupt_I2Cx_ER = NVICInterrupt_I2C1_ER, .I2Cx_KERNEL_SOURCE_init = I2C1_KERNEL_SOURCE_init, .I2Cx_PRESC_init = I2C1_PRESC_init, .I2Cx_SCLH_init = I2C1_SCLH_init, .I2Cx_SCLL_init = I2C1_SCLL_init, .I2Cx_RESET = (struct CMSISTuple) { &RCC->APB1LRSTR, RCC_APB1LRSTR_I2C1RST_Pos, RCC_APB1LRSTR_I2C1RST_Msk }, .I2Cx_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, RCC_APB1LENR_I2C1EN_Pos, RCC_APB1LENR_I2C1EN_Msk }, .I2Cx_KERNEL_SOURCE = (struct CMSISTuple) { &RCC->CCIPR4, RCC_CCIPR4_I2C1SEL_Pos, RCC_CCIPR4_I2C1SEL_Msk } },
+            [I2CHandle_primary] = { .I2Cx = I2C1, .NVICInterrupt_I2Cx_EV = NVICInterrupt_I2C1_EV, .NVICInterrupt_I2Cx_ER = NVICInterrupt_I2C1_ER, .STPY_I2Cx_KERNEL_SOURCE = STPY_I2C1_KERNEL_SOURCE, .STPY_I2Cx_PRESC = STPY_I2C1_PRESC, .STPY_I2Cx_SCLH = STPY_I2C1_SCLH, .STPY_I2Cx_SCLL = STPY_I2C1_SCLL, .I2Cx_RESET = (struct CMSISTuple) { &RCC->APB1LRSTR, RCC_APB1LRSTR_I2C1RST_Pos, RCC_APB1LRSTR_I2C1RST_Msk }, .I2Cx_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, RCC_APB1LENR_I2C1EN_Pos, RCC_APB1LENR_I2C1EN_Msk }, .I2Cx_KERNEL_SOURCE = (struct CMSISTuple) { &RCC->CCIPR4, RCC_CCIPR4_I2C1SEL_Pos, RCC_CCIPR4_I2C1SEL_Msk } },
         };
 #endif
 #if TARGET_NAME_IS_DemoTimer
@@ -32,10 +32,10 @@
     auto const I2Cx = I2C_TABLE[handle].I2Cx;\
     auto const NVICInterrupt_I2Cx_EV = I2C_TABLE[handle].NVICInterrupt_I2Cx_EV;\
     auto const NVICInterrupt_I2Cx_ER = I2C_TABLE[handle].NVICInterrupt_I2Cx_ER;\
-    auto const I2Cx_KERNEL_SOURCE_init = I2C_TABLE[handle].I2Cx_KERNEL_SOURCE_init;\
-    auto const I2Cx_PRESC_init = I2C_TABLE[handle].I2Cx_PRESC_init;\
-    auto const I2Cx_SCLH_init = I2C_TABLE[handle].I2Cx_SCLH_init;\
-    auto const I2Cx_SCLL_init = I2C_TABLE[handle].I2Cx_SCLL_init;\
+    auto const STPY_I2Cx_KERNEL_SOURCE = I2C_TABLE[handle].STPY_I2Cx_KERNEL_SOURCE;\
+    auto const STPY_I2Cx_PRESC = I2C_TABLE[handle].STPY_I2Cx_PRESC;\
+    auto const STPY_I2Cx_SCLH = I2C_TABLE[handle].STPY_I2Cx_SCLH;\
+    auto const STPY_I2Cx_SCLL = I2C_TABLE[handle].STPY_I2Cx_SCLL;\
     auto const I2Cx_RESET = I2C_TABLE[handle].I2Cx_RESET;\
     auto const I2Cx_ENABLE = I2C_TABLE[handle].I2Cx_ENABLE;\
     auto const I2Cx_KERNEL_SOURCE = I2C_TABLE[handle].I2Cx_KERNEL_SOURCE;\
