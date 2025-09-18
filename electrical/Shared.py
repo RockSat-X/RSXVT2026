@@ -73,32 +73,12 @@ TARGETS = ( # @/`Defining a TARGET`.
 
     types.SimpleNamespace(
 
-        name               = 'SandboxNucleoH7S3L8',
-        mcu                = 'STM32H7S3L8H6',
-        source_file_paths  = root('''
+        name              = 'SandboxNucleoH7S3L8',
+        mcu               = 'STM32H7S3L8H6',
+        source_file_paths = root('''
             ./electrical/SandboxNucleoBoard.c
             ./electrical/Startup.S
         '''),
-
-        use_freertos = False,
-
-        main_stack_size = 8192,
-
-        clock_tree = {
-            'HSI_ENABLE'    : True,
-            'HSI48_ENABLE'  : True,
-            'CSI_ENABLE'    : True,
-            'PERIPHERAL_CLOCK_OPTION' : 'HSI_CK',
-            'PLL1P_CK'     : 600_000_000,
-            'PLL2S_CK'     : 200_000_000,
-            'CPU_CK'        : 600_000_000,
-            'AXI_AHB_CK'    : 300_000_000,
-            'APB1_CK'       : 150_000_000,
-            'APB2_CK'       : 150_000_000,
-            'APB4_CK'       : 150_000_000,
-            'APB5_CK'       : 150_000_000,
-            'USART3_BAUD'   : STLINK_BAUD,
-        },
 
         gpios = (
             ('led_red'   , 'B7' , 'OUTPUT'    , { 'initlvl' : False       }),
@@ -121,33 +101,34 @@ TARGETS = ( # @/`Defining a TARGET`.
             )
         },
 
+        use_freertos    = False,
+        main_stack_size = 8192,
+        schema          = {
+            'HSI_ENABLE'              : True,
+            'HSI48_ENABLE'            : True,
+            'CSI_ENABLE'              : True,
+            'PERIPHERAL_CLOCK_OPTION' : 'HSI_CK',
+            'PLL1P_CK'                : 600_000_000,
+            'PLL2S_CK'                : 200_000_000,
+            'CPU_CK'                  : 600_000_000,
+            'AXI_AHB_CK'              : 300_000_000,
+            'APB1_CK'                 : 150_000_000,
+            'APB2_CK'                 : 150_000_000,
+            'APB4_CK'                 : 150_000_000,
+            'APB5_CK'                 : 150_000_000,
+            'USART3_BAUD'             : STLINK_BAUD,
+        },
+
     ),
 
     types.SimpleNamespace(
 
-        name               = 'SandboxNucleoH533RE',
-        mcu                = 'STM32H533RET6',
-        source_file_paths  = root('''
+        name              = 'SandboxNucleoH533RE',
+        mcu               = 'STM32H533RET6',
+        source_file_paths = root('''
             ./electrical/SandboxNucleoBoard.c
             ./electrical/Startup.S
         '''),
-
-        use_freertos = False,
-
-        main_stack_size = 8192,
-
-        clock_tree = {
-
-            'HSI_ENABLE'   : True,
-            'HSI48_ENABLE' : True,
-            'CSI_ENABLE'   : True,
-            'PLL1P_CK'    : 250_000_000,
-            'CPU_CK'       : 250_000_000,
-            'APB1_CK'      : 250_000_000,
-            'APB2_CK'      : 250_000_000,
-            'APB3_CK'      : 250_000_000,
-            'USART2_BAUD'  : STLINK_BAUD,
-        },
 
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False       }),
@@ -168,34 +149,30 @@ TARGETS = ( # @/`Defining a TARGET`.
             )
         },
 
-    ),
-
-    types.SimpleNamespace(
-
-        name               = 'DemoI2C',
-        mcu                = 'STM32H533RET6',
-        source_file_paths  = root('''
-            ./electrical/DemoI2C.c
-            ./electrical/Startup.S
-        '''),
-
-        use_freertos = False,
-
+        use_freertos    = False,
         main_stack_size = 8192,
-
-        clock_tree = {
-
+        schema          = {
             'HSI_ENABLE'   : True,
             'HSI48_ENABLE' : True,
             'CSI_ENABLE'   : True,
-            'PLL1P_CK'    : 250_000_000,
+            'PLL1P_CK'     : 250_000_000,
             'CPU_CK'       : 250_000_000,
             'APB1_CK'      : 250_000_000,
             'APB2_CK'      : 250_000_000,
             'APB3_CK'      : 250_000_000,
             'USART2_BAUD'  : STLINK_BAUD,
-            'I2C1_BAUD'    : 100_000,
         },
+
+    ),
+
+    types.SimpleNamespace(
+
+        name              = 'DemoI2C',
+        mcu               = 'STM32H533RET6',
+        source_file_paths = root('''
+            ./electrical/DemoI2C.c
+            ./electrical/Startup.S
+        '''),
 
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                                          }),
@@ -223,6 +200,21 @@ TARGETS = ( # @/`Defining a TARGET`.
             ),
         },
 
+        use_freertos    = False,
+        main_stack_size = 8192,
+        schema          = {
+            'HSI_ENABLE'   : True,
+            'HSI48_ENABLE' : True,
+            'CSI_ENABLE'   : True,
+            'PLL1P_CK'     : 250_000_000,
+            'CPU_CK'       : 250_000_000,
+            'APB1_CK'      : 250_000_000,
+            'APB2_CK'      : 250_000_000,
+            'APB3_CK'      : 250_000_000,
+            'USART2_BAUD'  : STLINK_BAUD,
+            'I2C1_BAUD'    : 100_000,
+        },
+
     ),
 
     types.SimpleNamespace(
@@ -233,25 +225,6 @@ TARGETS = ( # @/`Defining a TARGET`.
             ./electrical/DemoTimer.c
             ./electrical/Startup.S
         '''),
-
-        use_freertos = False,
-
-        main_stack_size = 8192,
-
-        clock_tree = {
-
-            'HSI_ENABLE'   : True,
-            'HSI48_ENABLE' : True,
-            'CSI_ENABLE'   : True,
-            'PLL1P_CK'    : 250_000_000,
-            'CPU_CK'       : 250_000_000,
-            'APB1_CK'      : 250_000_000,
-            'APB2_CK'      : 250_000_000,
-            'APB3_CK'      : 250_000_000,
-            'USART2_BAUD'  : STLINK_BAUD,
-            'I2C1_BAUD'    : 100_000,
-            'TIM1_RATE'    : 16,
-        },
 
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                                          }),
@@ -278,25 +251,27 @@ TARGETS = ( # @/`Defining a TARGET`.
             ),
         },
 
+        use_freertos    = False,
+        main_stack_size = 8192,
+        schema          = {
+            'HSI_ENABLE'   : True,
+            'HSI48_ENABLE' : True,
+            'CSI_ENABLE'   : True,
+            'PLL1P_CK'     : 250_000_000,
+            'CPU_CK'       : 250_000_000,
+            'APB1_CK'      : 250_000_000,
+            'APB2_CK'      : 250_000_000,
+            'APB3_CK'      : 250_000_000,
+            'USART2_BAUD'  : STLINK_BAUD,
+            'I2C1_BAUD'    : 100_000,
+            'TIM1_RATE'    : 16,
+        },
+
     ),
 
 )
 
 for target in TARGETS:
-
-    #'STM32H7S3L8H6':
-    #    {
-    #        'SysTick' : 'xPortSysTickHandler',
-    #        'SVCall'  : 'vPortSVCHandler'    ,
-    #        'PendSV'  : 'xPortPendSVHandler' ,
-    #    }
-
-    #'STM32H533RET6':
-    #    {
-    #        'SysTick' : 'SysTick_Handler',
-    #        'SVCall'  : 'SVC_Handler'    ,
-    #        'PendSV'  : 'PendSV_Handler' ,
-    #    }
 
     additional_interrupts = [
         ('Reset'     , None, {}),

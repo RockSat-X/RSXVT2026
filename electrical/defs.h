@@ -188,11 +188,17 @@ extern nullptr_t INITIAL_STACK_ADDRESS[];
 #include "STPY_init.meta"
 /* #meta
 
-    from deps.stpy.mcus        import MCUS as MCUS_
-    from deps.stpy.init        import init
+    from deps.stpy.init import init
 
     for target in PER_TARGET():
-        init(Meta, target)
+        init(
+            Meta       = Meta,
+            target     = target.name,
+            mcu        = target.mcu,
+            schema     = target.schema,
+            gpios      = target.gpios,
+            interrupts = target.interrupts,
+        )
 
 */
 
