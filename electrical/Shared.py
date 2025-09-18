@@ -92,7 +92,7 @@ TARGETS = ( # @/`Defining a TARGET`.
         ),
 
         interrupts = (
-            ('USART3', 0, {}),
+            ('USART3', 0),
         ),
 
         drivers = {
@@ -140,7 +140,7 @@ TARGETS = ( # @/`Defining a TARGET`.
         ),
 
         interrupts = (
-            ('USART2', 0, {}),
+            ('USART2', 0),
         ),
 
         drivers = {
@@ -186,9 +186,9 @@ TARGETS = ( # @/`Defining a TARGET`.
         ),
 
         interrupts = (
-            ('USART2' , 0, {}),
-            ('I2C1_EV', 1, {}),
-            ('I2C1_ER', 1, {}),
+            ('USART2' , 0),
+            ('I2C1_EV', 1),
+            ('I2C1_ER', 1),
         ),
 
         drivers = {
@@ -241,8 +241,8 @@ TARGETS = ( # @/`Defining a TARGET`.
 
 
         interrupts = (
-            ('USART2' , 0, {}),
-            ('TIM1_UP', 1, {}),
+            ('USART2' , 0),
+            ('TIM1_UP', 1),
         ),
 
         drivers = {
@@ -274,9 +274,9 @@ TARGETS = ( # @/`Defining a TARGET`.
 for target in TARGETS:
 
     additional_interrupts = [
-        ('Reset'     , None, {}),
-        ('BusFault'  , None, {}),
-        ('UsageFault', None, {}),
+        ('Reset'     , None),
+        ('BusFault'  , None),
+        ('UsageFault', None),
     ]
 
     if target.use_freertos:
