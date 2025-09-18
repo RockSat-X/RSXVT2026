@@ -123,6 +123,7 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         # TODO.
         interrupts_that_must_be_defined = (
+            'Reset',
             'Default',
             'MemManage',
             'BusFault',
@@ -178,6 +179,7 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         # TODO.
         interrupts_that_must_be_defined = (
+            'Reset',
             'Default',
             'MemManage',
             'BusFault',
@@ -241,6 +243,7 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         # TODO.
         interrupts_that_must_be_defined = (
+            'Reset',
             'Default',
             'MemManage',
             'BusFault',
@@ -303,6 +306,7 @@ TARGETS = ( # @/`Defining a TARGET`.
 
         # TODO.
         interrupts_that_must_be_defined = (
+            'Reset',
             'Default',
             'MemManage',
             'BusFault',

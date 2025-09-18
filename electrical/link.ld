@@ -25,9 +25,9 @@ SECTIONS
 
 
 
-    .vector_table_output_section :
+    .INTERRUPT_VECTOR_TABLE_output_section :
     {
-        KEEP(*(.vector_table))
+        KEEP(*(.INTERRUPT_VECTOR_TABLE))
     } > FLASH
 
     .text_output_section : ALIGN(4)
@@ -48,8 +48,8 @@ SECTIONS
 
     .stack_output_section : ALIGN(32) /* For MPU region alignment. TODO If we're going to use the MPU to detect stack overflow? */
     {
-        .               += MAIN_STACK_SIZE;
-        LINK_stack_addr  = .;
+        .                     += MAIN_STACK_SIZE;
+        INITIAL_STACK_ADDRESS  = .;
 
         #define STACK_LOCATION_STM32H7S3L8H6 DTCM
         #define STACK_LOCATION_STM32H533RET6 SRAM

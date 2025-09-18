@@ -60,6 +60,9 @@
 */
 
 
+extern nullptr_t INITIAL_STACK_ADDRESS[];
+#define INITIAL_STACK_ADDRESS ((u32) &INITIAL_STACK_ADDRESS)
+
 
 #include <stdint.h>
 #include "deps/stpy/stpy.h"
