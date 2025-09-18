@@ -1,7 +1,3 @@
-[submodule "deps/pxd"]
-	path = deps/pxd
-	url = https://github.com/PhucXDoan/pxd
-	branch = master
 [submodule "deps/CMSIS_6"]
 	path = deps/CMSIS_6
 	url = https://github.com/ARM-software/CMSIS_6.git

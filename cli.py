@@ -32,11 +32,11 @@ import types, shlex, pathlib, shutil, subprocess, time, zlib
 
 try:
 
-    import deps.pxd.metapreprocessor
-    import deps.pxd.cite
-    from   deps.pxd.ui    import ExitCode
-    from   deps.pxd.log   import log, ANSI, Indent
-    from   deps.pxd.utils import root, justify
+    import deps.stpy.pxd.metapreprocessor
+    import deps.stpy.pxd.cite
+    from   deps.stpy.pxd.ui    import ExitCode
+    from   deps.stpy.pxd.log   import log, ANSI, Indent
+    from   deps.stpy.pxd.utils import root, justify
 
 except ModuleNotFoundError as error:
 
@@ -405,7 +405,7 @@ def ui_verb_hook(verb, parameters):
 
 
 
-ui = deps.pxd.ui.UI(
+ui = deps.stpy.pxd.ui.UI(
     f'{root(pathlib.Path(__file__).name)}',
     f'The command line program (pronounced "clippy").',
     ui_verb_hook,
@@ -557,12 +557,12 @@ def build(parameters):
     log_header('Meta-preprocessing')
 
     try:
-        deps.pxd.metapreprocessor.do(
+        deps.stpy.pxd.metapreprocessor.do(
             output_directory_path = root('./electrical/meta'),
             source_file_paths     = metapreprocessor_file_paths,
             callback              = metadirective_callback,
         )
-    except deps.pxd.metapreprocessor.MetaError as error:
+    except deps.stpy.pxd.metapreprocessor.MetaError as error:
         error.dump()
         raise ExitCode(1)
 
@@ -915,7 +915,7 @@ def _(parameters):
 
 
 
-ui(deps.pxd.cite.ui)
+ui(deps.stpy.pxd.cite.ui)
 
 
 

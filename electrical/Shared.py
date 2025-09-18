@@ -1,8 +1,8 @@
 #meta STLINK_BAUD, TARGETS, MCUS, PER_MCU, PER_TARGET :
 
 import types, functools
-from deps.pxd.utils import root
-from deps.stpy.mcus import MCUS
+from deps.stpy.pxd.utils import root
+from deps.stpy.mcus      import MCUS
 import types
 
 ################################################################################
