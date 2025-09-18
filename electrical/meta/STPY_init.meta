@@ -357,6 +357,8 @@
             PLL1ON, true,
             PLL2ON, true,
         );
+        while (!CMSIS_GET(RCC, CR, PLL1RDY));
+        while (!CMSIS_GET(RCC, CR, PLL2RDY));
 
 
 
@@ -711,6 +713,7 @@
             PLL1P, 2 - 1   ,
         );
         CMSIS_SET(RCC, CR, PLL1ON, true);
+        while (!CMSIS_GET(RCC, CR, PLL1RDY));
 
 
 
@@ -1093,6 +1096,7 @@
             PLL1P, 2 - 1   ,
         );
         CMSIS_SET(RCC, CR, PLL1ON, true);
+        while (!CMSIS_GET(RCC, CR, PLL1RDY));
 
 
 
@@ -1489,6 +1493,7 @@
             PLL1P, 2 - 1   ,
         );
         CMSIS_SET(RCC, CR, PLL1ON, true);
+        while (!CMSIS_GET(RCC, CR, PLL1RDY));
 
 
 
