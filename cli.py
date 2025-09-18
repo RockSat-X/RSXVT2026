@@ -43,6 +43,11 @@ except ModuleNotFoundError as error:
     if 'pxd' not in error.name:
         raise # Likely a bug in the PXD module.
 
+    import traceback
+
+    traceback.print_exc()
+
+    print()
     print(f'[ERROR] Could not import "{error.name}"; maybe the Git submodules need to be initialized/updated? Try doing:')
     print(f'        > git submodule update --init --recursive')
     print(f'        If this still doesn\'t work, please raise an issue.')
