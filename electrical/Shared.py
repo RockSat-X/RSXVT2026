@@ -458,6 +458,7 @@ for target in TARGETS:
 
 
 
+# TODO Stale.
 # @/`Defining a TARGET`:
 #
 # A target is essentially a program for a specific microcontroller in mind.
