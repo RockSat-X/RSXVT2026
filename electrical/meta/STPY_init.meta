@@ -13,7 +13,7 @@
     extern void INTERRUPT_Reset(void);
     extern void INTERRUPT_USART3(void);
     extern void INTERRUPT_UsageFault(void);
-    void (* const INTERRUPT_VECTOR_TABLE[])(void)__attribute__((used, section(".INTERRUPT_VECTOR_TABLE"))) =
+    void (* const INTERRUPT_VECTOR_TABLE[])(void) __attribute__((used, section(".INTERRUPT_VECTOR_TABLE"))) =
         {
             (void*) INITIAL_STACK_ADDRESS, // [-16] Initial Stack Address
             INTERRUPT_Reset              , // [-15] Reset
@@ -427,7 +427,7 @@
     extern void INTERRUPT_Reset(void);
     extern void INTERRUPT_USART2(void);
     extern void INTERRUPT_UsageFault(void);
-    void (* const INTERRUPT_VECTOR_TABLE[])(void)__attribute__((used, section(".INTERRUPT_VECTOR_TABLE"))) =
+    void (* const INTERRUPT_VECTOR_TABLE[])(void) __attribute__((used, section(".INTERRUPT_VECTOR_TABLE"))) =
         {
             (void*) INITIAL_STACK_ADDRESS, // [-16] Initial Stack Address
             INTERRUPT_Reset              , // [-15] Reset
@@ -774,7 +774,7 @@
     extern void INTERRUPT_Reset(void);
     extern void INTERRUPT_USART2(void);
     extern void INTERRUPT_UsageFault(void);
-    void (* const INTERRUPT_VECTOR_TABLE[])(void)__attribute__((used, section(".INTERRUPT_VECTOR_TABLE"))) =
+    void (* const INTERRUPT_VECTOR_TABLE[])(void) __attribute__((used, section(".INTERRUPT_VECTOR_TABLE"))) =
         {
             (void*) INITIAL_STACK_ADDRESS, // [-16] Initial Stack Address
             INTERRUPT_Reset              , // [-15] Reset
@@ -1165,7 +1165,7 @@
     extern void INTERRUPT_TIM1_UP(void);
     extern void INTERRUPT_USART2(void);
     extern void INTERRUPT_UsageFault(void);
-    void (* const INTERRUPT_VECTOR_TABLE[])(void)__attribute__((used, section(".INTERRUPT_VECTOR_TABLE"))) =
+    void (* const INTERRUPT_VECTOR_TABLE[])(void) __attribute__((used, section(".INTERRUPT_VECTOR_TABLE"))) =
         {
             (void*) INITIAL_STACK_ADDRESS, // [-16] Initial Stack Address
             INTERRUPT_Reset              , // [-15] Reset

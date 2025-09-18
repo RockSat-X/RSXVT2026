@@ -194,28 +194,6 @@ extern nullptr_t INITIAL_STACK_ADDRESS[];
     for target in PER_TARGET():
         init(Meta, target)
 
-
-
-    for target in TARGETS:
-
-        # The target and FreeRTOS shouldn't be
-        # in contention with the same interrupt.
-
-        for routine in MCUS_[target.mcu]['INTERRUPTS'].value:
-
-            if routine is None:
-                continue
-
-            if routine not in (name for name, niceness in target.interrupts):
-                continue
-
-            if target.use_freertos and routine in MCUS[target.mcu].freertos_interrupts:
-                raise RuntimeError(
-                    f'FreeRTOS is already using the interrupt {repr(routine)}; '
-                    f'either disable FreeRTOS for target {repr(target.name)} or '
-                    f'just not use {repr(routine)}.'
-                )
-
 */
 
 

@@ -112,10 +112,7 @@ TARGETS = ( # @/`Defining a TARGET`.
         ),
 
         interrupts = (
-            ('Reset'     , None),
-            ('BusFault'  , None),
-            ('UsageFault', None),
-            ('USART3'    , 0   ),
+            ('USART3', 0, {}),
         ),
 
         drivers = {
@@ -162,10 +159,7 @@ TARGETS = ( # @/`Defining a TARGET`.
         ),
 
         interrupts = (
-            ('Reset'     , None),
-            ('BusFault'  , None),
-            ('UsageFault', None),
-            ('USART2'    , 0   ),
+            ('USART2', 0, {}),
         ),
 
         drivers = {
@@ -215,12 +209,9 @@ TARGETS = ( # @/`Defining a TARGET`.
         ),
 
         interrupts = (
-            ('Reset'     , None),
-            ('BusFault'  , None),
-            ('UsageFault', None),
-            ('USART2'    , 0   ),
-            ('I2C1_EV'   , 1   ),
-            ('I2C1_ER'   , 1   ),
+            ('USART2' , 0, {}),
+            ('I2C1_EV', 1, {}),
+            ('I2C1_ER', 1, {}),
         ),
 
         drivers = {
@@ -277,11 +268,8 @@ TARGETS = ( # @/`Defining a TARGET`.
 
 
         interrupts = (
-            ('Reset'     , None),
-            ('BusFault'  , None),
-            ('UsageFault', None),
-            ('USART2'    , 0   ),
-            ('TIM1_UP'   , 1   ),
+            ('USART2' , 0, {}),
+            ('TIM1_UP', 1, {}),
         ),
 
         drivers = {
@@ -293,6 +281,35 @@ TARGETS = ( # @/`Defining a TARGET`.
     ),
 
 )
+
+for target in TARGETS:
+
+    #'STM32H7S3L8H6':
+    #    {
+    #        'SysTick' : 'xPortSysTickHandler',
+    #        'SVCall'  : 'vPortSVCHandler'    ,
+    #        'PendSV'  : 'xPortPendSVHandler' ,
+    #    }
+
+    #'STM32H533RET6':
+    #    {
+    #        'SysTick' : 'SysTick_Handler',
+    #        'SVCall'  : 'SVC_Handler'    ,
+    #        'PendSV'  : 'PendSV_Handler' ,
+    #    }
+
+    additional_interrupts = [
+        ('Reset'     , None, {}),
+        ('BusFault'  , None, {}),
+        ('UsageFault', None, {}),
+    ]
+
+    if target.use_freertos:
+
+        for interrupt, symbol_name in MCUS[target.mcu].freertos_interrupts.items():
+            additional_interrupts += [(interrupt, None, { 'symbol_name' : symbol_name })]
+
+    target.interrupts = (*additional_interrupts, *target.interrupts)
 
 
 
