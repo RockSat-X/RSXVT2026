@@ -201,18 +201,12 @@ extern nullptr_t INITIAL_STACK_ADDRESS[];
         # The target and FreeRTOS shouldn't be
         # in contention with the same interrupt.
 
-        for routine in OrderedSet((
-            *target.interrupts_that_must_be_defined,
-            *MCUS_[target.mcu]['INTERRUPTS'].value
-        )):
+        for routine in MCUS_[target.mcu]['INTERRUPTS'].value:
 
             if routine is None:
                 continue
 
-            if routine not in (
-                *target.interrupts_that_must_be_defined,
-                *(name for name, niceness in target.interrupts)
-            ):
+            if routine not in (name for name, niceness in target.interrupts):
                 continue
 
             if target.use_freertos and routine in MCUS[target.mcu].freertos_interrupts:

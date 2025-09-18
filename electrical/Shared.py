@@ -112,7 +112,10 @@ TARGETS = ( # @/`Defining a TARGET`.
         ),
 
         interrupts = (
-            ('USART3', 0),
+            ('Reset'     , None),
+            ('BusFault'  , None),
+            ('UsageFault', None),
+            ('USART3'    , 0   ),
         ),
 
         drivers = {
@@ -120,15 +123,6 @@ TARGETS = ( # @/`Defining a TARGET`.
                 ('stlink', 'USART3'),
             )
         },
-
-        # TODO.
-        interrupts_that_must_be_defined = (
-            'Reset',
-            'Default',
-            'MemManage',
-            'BusFault',
-            'UsageFault'
-        ),
 
     ),
 
@@ -168,7 +162,10 @@ TARGETS = ( # @/`Defining a TARGET`.
         ),
 
         interrupts = (
-            ('USART2', 0),
+            ('Reset'     , None),
+            ('BusFault'  , None),
+            ('UsageFault', None),
+            ('USART2'    , 0   ),
         ),
 
         drivers = {
@@ -176,15 +173,6 @@ TARGETS = ( # @/`Defining a TARGET`.
                 ('stlink', 'USART2'),
             )
         },
-
-        # TODO.
-        interrupts_that_must_be_defined = (
-            'Reset',
-            'Default',
-            'MemManage',
-            'BusFault',
-            'UsageFault'
-        ),
 
     ),
 
@@ -227,9 +215,12 @@ TARGETS = ( # @/`Defining a TARGET`.
         ),
 
         interrupts = (
-            ('USART2' , 0),
-            ('I2C1_EV', 1),
-            ('I2C1_ER', 1),
+            ('Reset'     , None),
+            ('BusFault'  , None),
+            ('UsageFault', None),
+            ('USART2'    , 0   ),
+            ('I2C1_EV'   , 1   ),
+            ('I2C1_ER'   , 1   ),
         ),
 
         drivers = {
@@ -240,15 +231,6 @@ TARGETS = ( # @/`Defining a TARGET`.
                 ('primary', 'I2C1'),
             ),
         },
-
-        # TODO.
-        interrupts_that_must_be_defined = (
-            'Reset',
-            'Default',
-            'MemManage',
-            'BusFault',
-            'UsageFault'
-        ),
 
     ),
 
@@ -293,9 +275,13 @@ TARGETS = ( # @/`Defining a TARGET`.
             ('OC1N'      , 'A7' , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH1N'                                    }),
         ),
 
+
         interrupts = (
-            ('USART2' , 0),
-            ('TIM1_UP', 1),
+            ('Reset'     , None),
+            ('BusFault'  , None),
+            ('UsageFault', None),
+            ('USART2'    , 0   ),
+            ('TIM1_UP'   , 1   ),
         ),
 
         drivers = {
@@ -303,15 +289,6 @@ TARGETS = ( # @/`Defining a TARGET`.
                 ('stlink', 'USART2'),
             ),
         },
-
-        # TODO.
-        interrupts_that_must_be_defined = (
-            'Reset',
-            'Default',
-            'MemManage',
-            'BusFault',
-            'UsageFault'
-        ),
 
     ),
 

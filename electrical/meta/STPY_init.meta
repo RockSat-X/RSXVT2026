@@ -10,7 +10,6 @@
     static constexpr u32 NVICInterrupt_COUNT = 1;
     extern void INTERRUPT_BusFault(void);
     extern void INTERRUPT_Default(void);
-    extern void INTERRUPT_MemManage(void);
     extern void INTERRUPT_Reset(void);
     extern void INTERRUPT_USART3(void);
     extern void INTERRUPT_UsageFault(void);
@@ -191,7 +190,6 @@
         };
     #define INTERRUPT_BusFault extern void INTERRUPT_BusFault(void)
     #define INTERRUPT_Default extern void INTERRUPT_Default(void)
-    #define INTERRUPT_MemManage extern void INTERRUPT_MemManage(void)
     #define INTERRUPT_Reset extern void INTERRUPT_Reset(void)
     #define INTERRUPT_USART3 extern void INTERRUPT_USART3(void)
     #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
@@ -426,7 +424,6 @@
     static constexpr u32 NVICInterrupt_COUNT = 1;
     extern void INTERRUPT_BusFault(void);
     extern void INTERRUPT_Default(void);
-    extern void INTERRUPT_MemManage(void);
     extern void INTERRUPT_Reset(void);
     extern void INTERRUPT_USART2(void);
     extern void INTERRUPT_UsageFault(void);
@@ -584,7 +581,6 @@
         };
     #define INTERRUPT_BusFault extern void INTERRUPT_BusFault(void)
     #define INTERRUPT_Default extern void INTERRUPT_Default(void)
-    #define INTERRUPT_MemManage extern void INTERRUPT_MemManage(void)
     #define INTERRUPT_Reset extern void INTERRUPT_Reset(void)
     #define INTERRUPT_USART2 extern void INTERRUPT_USART2(void)
     #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
@@ -775,7 +771,6 @@
     extern void INTERRUPT_Default(void);
     extern void INTERRUPT_I2C1_ER(void);
     extern void INTERRUPT_I2C1_EV(void);
-    extern void INTERRUPT_MemManage(void);
     extern void INTERRUPT_Reset(void);
     extern void INTERRUPT_USART2(void);
     extern void INTERRUPT_UsageFault(void);
@@ -935,7 +930,6 @@
     #define INTERRUPT_Default extern void INTERRUPT_Default(void)
     #define INTERRUPT_I2C1_ER extern void INTERRUPT_I2C1_ER(void)
     #define INTERRUPT_I2C1_EV extern void INTERRUPT_I2C1_EV(void)
-    #define INTERRUPT_MemManage extern void INTERRUPT_MemManage(void)
     #define INTERRUPT_Reset extern void INTERRUPT_Reset(void)
     #define INTERRUPT_USART2 extern void INTERRUPT_USART2(void)
     #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
@@ -1167,7 +1161,6 @@
     static constexpr u32 NVICInterrupt_COUNT = 2;
     extern void INTERRUPT_BusFault(void);
     extern void INTERRUPT_Default(void);
-    extern void INTERRUPT_MemManage(void);
     extern void INTERRUPT_Reset(void);
     extern void INTERRUPT_TIM1_UP(void);
     extern void INTERRUPT_USART2(void);
@@ -1326,7 +1319,6 @@
         };
     #define INTERRUPT_BusFault extern void INTERRUPT_BusFault(void)
     #define INTERRUPT_Default extern void INTERRUPT_Default(void)
-    #define INTERRUPT_MemManage extern void INTERRUPT_MemManage(void)
     #define INTERRUPT_Reset extern void INTERRUPT_Reset(void)
     #define INTERRUPT_TIM1_UP extern void INTERRUPT_TIM1_UP(void)
     #define INTERRUPT_USART2 extern void INTERRUPT_USART2(void)
