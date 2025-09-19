@@ -483,7 +483,7 @@ INTERRUPT_Default
 
 
 
-#include "freertos.meta"
+#include "freertos_init.meta"
 /* #meta
 
     import types, re
