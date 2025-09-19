@@ -261,7 +261,7 @@
 		(uuid "40450705-7fc6-4ec1-82b4-6a801a043c7d")
 	)
 	(embedded_fonts no)
-	(model "${KIPRJMOD}/../deps/models/FlatFlexibleCableConnector.step"
+	(model "${KIPRJMOD}/models/FlatFlexibleCableConnector.step"
 		(offset
 			(xyz 0 1 0)
 		)
