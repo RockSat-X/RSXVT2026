@@ -431,6 +431,7 @@ def clean(parameters):
 
     directories = [
         BUILD,
+        './electrical/meta',
     ]
 
     for directory in directories:
