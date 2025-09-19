@@ -492,12 +492,6 @@ INTERRUPT_Default
 
 
 
-        # Macros for whether or not the target will be using FreeRTOS.
-
-        Meta.define('TARGET_USES_FREERTOS', target.use_freertos)
-
-
-
         # Find all the FreeRTOS tasks defined by the target.
         # Note that if `FREERTOS_TASK` is used in a file that's
         # included elsewhere, we would be missing that. In other

@@ -1,7 +1,7 @@
 #meta STLINK_BAUD, TARGETS, PER_MCU, PER_TARGET :
 
 import types
-from deps.stpy.pxd.utils import root
+from deps.stpy.pxd.utils import root, c_repr
 from deps.stpy.mcus      import MCUS
 
 
@@ -344,9 +344,10 @@ for target in TARGETS:
     # Additional macro defines.
 
     defines = [
-        ('TARGET_NAME'    , target.name           ),
-        ('TARGET_MCU'     , target.mcu            ),
-        ('MAIN_STACK_SIZE', target.main_stack_size),
+        ('TARGET_NAME'         , target.name           ),
+        ('TARGET_MCU'          , target.mcu            ),
+        ('TARGET_USES_FREERTOS', target.use_freertos   ),
+        ('MAIN_STACK_SIZE'     , target.main_stack_size),
     ]
 
     for other in TARGETS:
@@ -371,10 +372,10 @@ for target in TARGETS:
             -fno-eliminate-unused-debug-types
             -ffunction-sections
             -fcompare-debug-second
-            {'\n'.join(f'-D {name}="{value}"'    for name, value in defines                  )}
-            {'\n'.join(f'-W{name}'               for name        in enabled_warnings .split())}
-            {'\n'.join(f'-Wno-{name}'            for name        in disabled_warnings.split())}
-            {'\n'.join(f'-I "{path.as_posix()}"' for path        in include_file_paths       )}
+            {'\n'.join(f'-D {name}="{c_repr(value)}"' for name, value in defines                  )}
+            {'\n'.join(f'-W{name}'                    for name        in enabled_warnings .split())}
+            {'\n'.join(f'-Wno-{name}'                 for name        in disabled_warnings.split())}
+            {'\n'.join(f'-I "{path.as_posix()}"'      for path        in include_file_paths       )}
         '''
     )
 

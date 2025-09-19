@@ -1,5 +1,4 @@
 #if TARGET_NAME_IS_SandboxNucleoH7S3L8
-    #define TARGET_USES_FREERTOS false
     enum FreeRTOSTask : u32
     {
         FreeRTOSTask_button_observer,
@@ -12,7 +11,6 @@
     static constexpr u32 FreeRTOSTask_COUNT = 6;
 #endif
 #if TARGET_NAME_IS_SandboxNucleoH533RE
-    #define TARGET_USES_FREERTOS false
     enum FreeRTOSTask : u32
     {
         FreeRTOSTask_button_observer,
@@ -25,12 +23,10 @@
     static constexpr u32 FreeRTOSTask_COUNT = 6;
 #endif
 #if TARGET_NAME_IS_DemoI2C
-    #define TARGET_USES_FREERTOS false
     enum FreeRTOSTask : u32;
     static constexpr u32 FreeRTOSTask_COUNT = 0;
 #endif
 #if TARGET_NAME_IS_DemoTimer
-    #define TARGET_USES_FREERTOS false
     enum FreeRTOSTask : u32;
     static constexpr u32 FreeRTOSTask_COUNT = 0;
 #endif
