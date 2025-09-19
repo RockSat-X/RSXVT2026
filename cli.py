@@ -578,37 +578,10 @@ def build(parameters):
 
 
 
-    # Compile each source.
+    # Build each target.
 
     require(
         'arm-none-eabi-gcc',
-    )
-
-    for target in targets:
-
-        log_header(f'Compiling "{target.name}"')
-
-        for source_i, source in enumerate(target.source_file_paths):
-
-            object = root(BUILD, target.name, source.stem + '.o')
-
-            object.parent.mkdir(parents = True, exist_ok = True)
-
-            if source_i:
-                log()
-
-            execute(f'''
-                arm-none-eabi-gcc
-                    -o "{object.as_posix()}"
-                    -c "{source.as_posix()}"
-                    {target.compiler_flags}
-            ''')
-
-
-
-    # Link the firmware.
-
-    require(
         'arm-none-eabi-cpp',
         'arm-none-eabi-objcopy',
         'arm-none-eabi-gdb',
@@ -616,9 +589,22 @@ def build(parameters):
 
     for target in targets:
 
-        log_header(f'Linking "{target.name}"')
+        log_header(f'Compiling "{target.name}"')
+
+
+
+        # Create the build artifact folder.
+
+        execute(f'''
+            mkdir -p {root(BUILD, target.name)}
+        ''')
+
+        log()
+
+
 
         # Preprocess the linker file.
+
         execute(f'''
             arm-none-eabi-cpp
                 {target.compiler_flags}
@@ -630,21 +616,25 @@ def build(parameters):
 
         log()
 
-        # Link object files.
+
+
+        # Build the source files and link.
+
         execute(f'''
             arm-none-eabi-gcc
-                -o "{root(BUILD, target.name, target.name + '.elf').as_posix()}"
+                {' '.join(f'"{source}"' for source in target.source_file_paths)}
+                -o "{root('./build', target.name, target.name + '.elf')}"
                 -T "{root(BUILD, target.name, 'link.ld').as_posix()}"
-                {' '.join(
-                    f'"{root(BUILD, target.name, source.stem + '.o').as_posix()}"'
-                    for source in target.source_file_paths
-                )}
+                {target.compiler_flags}
                 {target.linker_flags}
         ''')
 
         log()
 
+
+
         # Turn ELF into raw binary.
+
         execute(f'''
             arm-none-eabi-objcopy
                 -S
