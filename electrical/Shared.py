@@ -17,9 +17,15 @@ BUILD = root('./build')
 MCU_SUPPORT = {
 
     'STM32H7S3L8H6' : {
-        'include_paths' : [
+        'include_paths' : (
             root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1'),
-        ],
+        ),
+        'freertos_source_file_paths' : root('''
+            ./deps/FreeRTOS_Kernel/tasks.c
+            ./deps/FreeRTOS_Kernel/queue.c
+            ./deps/FreeRTOS_Kernel/list.c
+            ./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1/port.c
+        '''),
         'freertos_interrupts' : (
             ('SysTick', None, { 'symbol' : 'xPortSysTickHandler' }),
             ('SVCall' , None, { 'symbol' : 'vPortSVCHandler'     }),
@@ -28,9 +34,16 @@ MCU_SUPPORT = {
     },
 
     'STM32H533RET6' : {
-        'include_paths' : [
+        'include_paths' : (
             root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
-        ],
+        ),
+        'freertos_source_file_paths' : root('''
+            ./deps/FreeRTOS_Kernel/tasks.c
+            ./deps/FreeRTOS_Kernel/queue.c
+            ./deps/FreeRTOS_Kernel/list.c
+            ./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure/port.c
+            ./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure/portasm.c
+        '''),
         'freertos_interrupts' : (
             ('SysTick', None, { 'symbol' : 'SysTick_Handler' }),
             ('SVCall' , None, { 'symbol' : 'SVC_Handler'     }),
@@ -290,6 +303,29 @@ for target in TARGETS:
 
 
 
+    # Some additional source files.
+
+    target.source_file_paths = (
+        *(MCU_SUPPORT[target.mcu]['freertos_source_file_paths'] if target.use_freertos else ()),
+        *target.source_file_paths
+    )
+
+
+
+    # Some include-directive search paths.
+
+    include_paths = (
+        root('./electrical/meta'),
+        root('./deps/CMSIS_6/CMSIS/Core/Include'),
+        root('./deps/FreeRTOS_Kernel/include'),
+        root('./deps/printf/src'),
+        root('.'),
+        root('./electrical'),
+        *MCU_SUPPORT[target.mcu]['include_paths'],
+    )
+
+
+
     # Flags for both the compiler and linker.
 
     architecture_flags = '''
@@ -327,19 +363,6 @@ for target in TARGETS:
     '''
 
 
-    # Additional search paths for the compiler to search through for #includes.
-
-    include_file_paths = (
-        root('./electrical/meta'),
-        root('./deps/CMSIS_6/CMSIS/Core/Include'),
-        root('./deps/FreeRTOS_Kernel/include'),
-        root('./deps/printf/src'),
-        root('.'),
-        root('./electrical'),
-        *MCU_SUPPORT[target.mcu]['include_paths'],
-    )
-
-
 
     # Additional macro defines.
 
@@ -375,7 +398,7 @@ for target in TARGETS:
             {'\n'.join(f'-D {name}="{c_repr(value)}"' for name, value in defines                  )}
             {'\n'.join(f'-W{name}'                    for name        in enabled_warnings .split())}
             {'\n'.join(f'-Wno-{name}'                 for name        in disabled_warnings.split())}
-            {'\n'.join(f'-I "{path.as_posix()}"'      for path        in include_file_paths       )}
+            {'\n'.join(f'-I "{path.as_posix()}"'      for path        in include_paths            )}
         '''
     )
 
