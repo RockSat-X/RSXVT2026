@@ -24,7 +24,7 @@ if not (sys.version_info.major == MAJOR and sys.version_info.minor >= MINOR):
 
 # Built-in modules.
 
-import types, shlex, pathlib, shutil, subprocess, time, zlib
+import types, shlex, pathlib, shutil, subprocess, time
 
 
 
@@ -504,12 +504,11 @@ def build(parameters):
 
     # Callback of things to do before and after the execution of a meta-directive.
 
-    elapsed  = 0
-    checksum = 0
+    elapsed = 0
 
     def metadirective_callback(index, meta_directives):
 
-        nonlocal elapsed, checksum
+        nonlocal elapsed
 
 
 
@@ -543,11 +542,10 @@ def build(parameters):
 
         # Record how long it takes to run this meta-directive.
 
-        start    = time.time()
-        output   = yield
-        end      = time.time()
-        delta    = end - start
-        checksum = zlib.adler32(output.encode('utf-8'), checksum)
+        start  = time.time()
+        output = yield
+        end    = time.time()
+        delta  = end - start
 
         if delta > 0.050:
             log(ANSI(f'^ {delta :.3}s', 'fg_yellow')) # Warn that this meta-directive took quite a while to execute.
@@ -571,7 +569,7 @@ def build(parameters):
         raise ExitCode(1)
 
     log()
-    log(ANSI(f'# Meta-preprocessor : {checksum :09_X} : {elapsed :.3f}s.', 'fg_magenta'))
+    log(ANSI(f'# Meta-preprocessor : {elapsed :.3f}s.', 'fg_magenta'))
 
     if parameters.metapreprocess_only:
         raise ExitCode(0)
@@ -648,14 +646,6 @@ def build(parameters):
     # Done!
 
     log_header(f'Hip-hip hooray! Built {', '.join(f'"{target.name}"' for target in targets)}!')
-
-    checksum = 0
-    for target in targets:
-        checksum = zlib.adler32(root('./build', target.name, target.name + '.bin').read_bytes())
-        log(ANSI(
-            f'# {target.name.ljust(max(len(t.name) for t in targets))} : {checksum :08_X}',
-            'fg_magenta'
-        ))
 
 
 
