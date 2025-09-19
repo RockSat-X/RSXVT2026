@@ -281,8 +281,8 @@ for target in TARGETS:
 
     if target.use_freertos:
 
-        for interrupt, symbol_name in MCUS[target.mcu].freertos_interrupts.items():
-            additional_interrupts += [(interrupt, None, { 'symbol_name' : symbol_name })]
+        for interrupt, symbol in MCUS[target.mcu].freertos_interrupts.items():
+            additional_interrupts += [(interrupt, None, { 'symbol' : symbol })]
 
     target.interrupts = (*additional_interrupts, *target.interrupts)
 
