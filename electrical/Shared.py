@@ -365,6 +365,7 @@ for target in TARGETS:
             -O0
             -ggdb3
             -std=gnu2x
+            -pipe
             -fmax-errors=1
             -fno-strict-aliasing
             -fno-eliminate-unused-debug-types
