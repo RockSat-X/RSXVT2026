@@ -1,0 +1,275 @@
+(footprint "Flat Flexible Cable 24-Pin 0.5mm Connector"
+	(version 20241229)
+	(generator "pcbnew")
+	(generator_version "9.0")
+	(layer "F.Cu")
+	(descr "FFC/FPC connector, 24 top-side contacts, 0.5mm pitch, SMT")
+	(property "Reference" "REF**"
+		(at 0 -3.11 0)
+		(layer "F.SilkS")
+		(uuid "ad38434b-cf30-4de1-805e-a2f612ce5001")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "Flat Flexible Cable 24-Pin 0.5mm Connector"
+		(at 0 4.95 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "00449bf4-f979-41ad-b7a1-b10d96932a8e")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" "https://gct.co/connector/ffc2b28"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "eadefd9a-53d4-41b0-b0b7-a8b66d236e04")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" "FFC/FPC connector, 24 top-side contacts, 0.5mm pitch, SMT"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "23bc41a4-6d83-4b9e-a686-7e1ba9d41bb7")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "DigiKey" "https://www.digikey.com/en/products/detail/gct/FFC2B28-24-G/10656928"
+		(at 0 0 0)
+		(layer "F.SilkS")
+		(hide yes)
+		(uuid "ee2f3916-e53f-49ff-8fc7-5a23a9316e94")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.1)
+			)
+		)
+	)
+	(attr smd)
+	(fp_line
+		(start -6 2)
+		(end 6 2)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "a272ba35-896b-4e4c-b9f3-a9180ad2b6e1")
+	)
+	(fp_line
+		(start -5.95 -2.7)
+		(end -5.75 -2.3)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "c80e6595-e11a-4072-a885-2d5802c92112")
+	)
+	(fp_line
+		(start -5.75 -2.3)
+		(end -5.55 -2.7)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "033089ae-e854-4c90-84af-f422b8a6ba20")
+	)
+	(fp_line
+		(start -5.55 -2.7)
+		(end -5.95 -2.7)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "2e2dabbe-eba5-401f-aaad-5db11dcb8889")
+	)
+	(pad "" smd rect
+		(at -6.875 0.35)
+		(size 1.25 3.1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "55d465f4-d2dc-42cd-a50a-1ca72b0953eb")
+	)
+	(pad "" smd rect
+		(at 6.875 0.35)
+		(size 1.25 3.1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "57e489f3-0cc2-4682-b15f-3133b1663c43")
+	)
+	(pad "1" smd rect
+		(at -5.75 -1.35)
+		(size 0.3 1.1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "8f5b4b5b-4433-4233-9f0c-74fb6497df40")
+	)
+	(pad "2" smd rect
+		(at -5.25 -1.35)
+		(size 0.3 1.1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "d9885336-f5d8-4eb5-a209-d99d32735c76")
+	)
+	(pad "3" smd rect
+		(at -4.75 -1.35)
+		(size 0.3 1.1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "192b17d1-7873-423d-91b1-08c78d069b47")
+	)
+	(pad "4" smd rect
+		(at -4.25 -1.35)
+		(size 0.3 1.1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "a41dd09f-dccb-46a9-b180-6298a71aeb00")
+	)
+	(pad "5" smd rect
+		(at -3.75 -1.35)
+		(size 0.3 1.1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "3d402054-26d3-4650-bc90-cb159fe37e23")
+	)
+	(pad "6" smd rect
+		(at -3.25 -1.35)
+		(size 0.3 1.1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "b8ad6296-26b5-4416-8b2f-b367beaf19e3")
+	)
+	(pad "7" smd rect
+		(at -2.75 -1.35)
+		(size 0.3 1.1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "c1254d37-cdb4-40ae-8111-7e88dd4c2074")
+	)
+	(pad "8" smd rect
+		(at -2.25 -1.35)
+		(size 0.3 1.1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "551b0afb-5591-4acb-a181-5653d375d372")
+	)
+	(pad "9" smd rect
+		(at -1.75 -1.35)
+		(size 0.3 1.1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "9dea128b-986c-45f0-854e-9e8de8945570")
+	)
+	(pad "10" smd rect
+		(at -1.25 -1.35)
+		(size 0.3 1.1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "1e8e7b55-4c47-4eb0-b862-23b7ff6dab52")
+	)
+	(pad "11" smd rect
+		(at -0.75 -1.35)
+		(size 0.3 1.1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "af33a797-e45c-4e54-82e9-b3599293f8d6")
+	)
+	(pad "12" smd rect
+		(at -0.25 -1.35)
+		(size 0.3 1.1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "e13241ac-52ec-4ad3-97c0-8b5304802fb1")
+	)
+	(pad "13" smd rect
+		(at 0.25 -1.35)
+		(size 0.3 1.1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "c24b6df7-8fca-4272-8724-ec627b80ebc5")
+	)
+	(pad "14" smd rect
+		(at 0.75 -1.35)
+		(size 0.3 1.1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "5fef9646-e15f-4770-a93d-b9731135ae22")
+	)
+	(pad "15" smd rect
+		(at 1.25 -1.35)
+		(size 0.3 1.1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "24d43292-c7e3-42c9-9525-a44f490e5d1f")
+	)
+	(pad "16" smd rect
+		(at 1.75 -1.35)
+		(size 0.3 1.1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "31a76b80-611c-489f-b359-1c612fe653c8")
+	)
+	(pad "17" smd rect
+		(at 2.25 -1.35)
+		(size 0.3 1.1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "980e8558-12b5-411f-aff2-fea31ad6a09e")
+	)
+	(pad "18" smd rect
+		(at 2.75 -1.35)
+		(size 0.3 1.1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "4ef94613-cbc0-447a-af5b-4ee7c4490acd")
+	)
+	(pad "19" smd rect
+		(at 3.25 -1.35)
+		(size 0.3 1.1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "97fab6f3-b7c9-4c1f-a032-d326a8517aa6")
+	)
+	(pad "20" smd rect
+		(at 3.75 -1.35)
+		(size 0.3 1.1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "eff719ab-cb6d-49e8-ac4d-689c8c846a3d")
+	)
+	(pad "21" smd rect
+		(at 4.25 -1.35)
+		(size 0.3 1.1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "a4264cf4-c03d-4729-b931-50de9e60ec95")
+	)
+	(pad "22" smd rect
+		(at 4.75 -1.35)
+		(size 0.3 1.1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "eb77a33f-240e-431e-b3fa-6e2d1f410dd0")
+	)
+	(pad "23" smd rect
+		(at 5.25 -1.35)
+		(size 0.3 1.1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "b235d34c-3d6f-4de6-bbbc-cc4a8981c33b")
+	)
+	(pad "24" smd rect
+		(at 5.75 -1.35)
+		(size 0.3 1.1)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "40450705-7fc6-4ec1-82b4-6a801a043c7d")
+	)
+	(embedded_fonts no)
+	(model "${KIPRJMOD}/models/FlatFlexibleCableConnector.step"
+		(offset
+			(xyz 0 1 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -90 -0 -0)
+		)
+	)
+)
