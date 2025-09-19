@@ -1,5 +1,4 @@
 .git/
 build/
-deps/
-!deps/mcu/
+deps/stpy/pxd/
 *.swp

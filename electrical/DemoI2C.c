@@ -1,4 +1,4 @@
-#include "system/defs.h"
+#include "system.h"
 #include "uxart.c"
 #include "i2c.c"
 
@@ -13,7 +13,7 @@ main(void)
     // Miscellaneous initialization.
     //
 
-    SYSTEM_init();
+    STPY_init();
     UXART_init(UXARTHandle_stlink);
 
 
