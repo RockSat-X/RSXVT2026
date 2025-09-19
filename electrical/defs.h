@@ -2,6 +2,20 @@
 
 
 
+/* #meta CMSIS_SET, CMSIS_WRITE, CMSIS_SPINLOCK, CMSIS_TUPLE :
+
+    from deps.stpy.cmsis_tools import get_cmsis_tools
+
+    cmsis_tools    = get_cmsis_tools(Meta)
+    CMSIS_SET      = cmsis_tools.CMSIS_SET
+    CMSIS_WRITE    = cmsis_tools.CMSIS_WRITE
+    CMSIS_SPINLOCK = cmsis_tools.CMSIS_SPINLOCK
+    CMSIS_TUPLE    = cmsis_tools.CMSIS_TUPLE
+
+*/
+
+
+
 #define false                   0
 #define true                    1
 #define STRINGIFY_(X)           #X
@@ -74,6 +88,7 @@ extern nullptr_t INITIAL_STACK_ADDRESS[];
 #if TARGET_MCU_IS_STM32H533RET6
     #include <deps/cmsis-device-h5/Include/stm32h533xx.h>
 #endif
+
 
 
 //////////////////////////////////////////////////////////////// System Initialization ////////////////////////////////////////////////////////////////
@@ -406,7 +421,7 @@ INTERRUPT_Default
 #include "freertos.meta"
 /* #meta
 
-    import re
+    import types, re
 
     for target in PER_TARGET():
 
