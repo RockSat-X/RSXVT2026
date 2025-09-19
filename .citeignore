@@ -1,4 +1,4 @@
 .git/
 build/
-deps/pxd/
+deps/stpy/pxd/
 *.swp
