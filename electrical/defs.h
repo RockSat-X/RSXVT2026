@@ -67,23 +67,13 @@ extern nullptr_t INITIAL_STACK_ADDRESS[];
 #include <stdint.h>
 #include "deps/stpy/stpy.h"
 
+#if TARGET_MCU_IS_STM32H7S3L8H6
+    #include <deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h>
+#endif
 
-
-//
-// Some more CMSIS stuff.
-//
-
-#include "cmsis.meta"
-/* #meta
-
-    # Include the CMSIS device header for the STM32 microcontroller.
-
-    for mcu in PER_MCU(Meta):
-
-        Meta.line(f'#include <{MCUS[mcu].cmsis_file_path.as_posix()}>')
-
-*/
-
+#if TARGET_MCU_IS_STM32H533RET6
+    #include <deps/cmsis-device-h5/Include/stm32h533xx.h>
+#endif
 
 
 //////////////////////////////////////////////////////////////// System Initialization ////////////////////////////////////////////////////////////////
@@ -510,19 +500,26 @@ INTERRUPT_Default
                 panic;
             ''')
 
-
-
-    # The necessary include-directives to compile with FreeRTOS.
-
-    for mcu in PER_MCU(Meta):
-
-        with Meta.enter('#if TARGET_USES_FREERTOS'):
-
-            for header in MCUS[mcu].freertos_source_files:
-                Meta.line(f'#include <{header}>')
-
 */
 
+#if TARGET_USES_FREERTOS
+
+    #if TARGET_MCU_IS_STM32H7S3L8H6
+        #include <deps/FreeRTOS_Kernel/tasks.c>
+        #include <deps/FreeRTOS_Kernel/queue.c>
+        #include <deps/FreeRTOS_Kernel/list.c>
+        #include <port.c>
+    #endif
+
+    #if TARGET_MCU_IS_STM32H533RET6
+        #include <deps/FreeRTOS_Kernel/tasks.c>
+        #include <deps/FreeRTOS_Kernel/queue.c>
+        #include <deps/FreeRTOS_Kernel/list.c>
+        #include <port.c>
+        #include <portasm.c>
+    #endif
+
+#endif
 
 
 #if TARGET_USES_FREERTOS

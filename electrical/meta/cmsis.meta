@@ -1,6 +1,0 @@
-#if TARGET_MCU_IS_STM32H7S3L8H6
-    #include <deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h>
-#endif
-#if TARGET_MCU_IS_STM32H533RET6
-    #include <deps/cmsis-device-h5/Include/stm32h533xx.h>
-#endif

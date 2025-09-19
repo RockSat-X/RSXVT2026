@@ -1,75 +1,52 @@
-#meta STLINK_BAUD, TARGETS, MCUS, PER_MCU, PER_TARGET :
+#meta STLINK_BAUD, TARGETS, PER_MCU, PER_TARGET :
 
-import types, functools
+import types
 from deps.stpy.pxd.utils import root
 from deps.stpy.mcus      import MCUS
-import types
+
+
 
 ################################################################################
-#
-# Communication speed with the ST-Link.
-#
+
+
 
 STLINK_BAUD = 1_000_000
 
-
-
-################################################################################
-#
-# Build directory where all build artifacts will be dumped to.
-#
-
 BUILD = root('./build')
 
+MCU_SUPPORT = {
 
-################################################################################
-#
-# Supported microcontrollers.
-# TODO Copy-pasta.
-#
+    'STM32H7S3L8H6' : {
+        'include_paths' : [
+            root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1'),
+        ],
+        'freertos_interrupts' : (
+            ('SysTick', None, { 'symbol' : 'xPortSysTickHandler' }),
+            ('SVCall' , None, { 'symbol' : 'vPortSVCHandler'     }),
+            ('PendSV' , None, { 'symbol' : 'xPortPendSVHandler'  }),
+        ),
+    },
 
-MCUS = {
-    'STM32H7S3L8H6' : types.SimpleNamespace(
-        cmsis_file_path        = root('./deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h'),
-        freertos_port_dir_path = root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1'),
-        freertos_interrupts    = {
-            'SysTick' : 'xPortSysTickHandler',
-            'SVCall'  : 'vPortSVCHandler'    ,
-            'PendSV'  : 'xPortPendSVHandler' ,
-        },
-        freertos_source_files = (
-            'deps/FreeRTOS_Kernel/tasks.c',
-            'deps/FreeRTOS_Kernel/queue.c',
-            'deps/FreeRTOS_Kernel/list.c',
-            'port.c',
+    'STM32H533RET6' : {
+        'include_paths' : [
+            root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
+        ],
+        'freertos_interrupts' : (
+            ('SysTick', None, { 'symbol' : 'SysTick_Handler' }),
+            ('SVCall' , None, { 'symbol' : 'SVC_Handler'     }),
+            ('PendSV' , None, { 'symbol' : 'PendSV_Handler'  }),
         ),
-    ),
-    'STM32H533RET6' : types.SimpleNamespace(
-        cmsis_file_path        = root('./deps/cmsis-device-h5/Include/stm32h533xx.h'),
-        freertos_port_dir_path = root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
-        freertos_interrupts    = {
-            'SysTick' : 'SysTick_Handler',
-            'SVCall'  : 'SVC_Handler'    ,
-            'PendSV'  : 'PendSV_Handler' ,
-        },
-        freertos_source_files = (
-            'deps/FreeRTOS_Kernel/tasks.c',
-            'deps/FreeRTOS_Kernel/queue.c',
-            'deps/FreeRTOS_Kernel/list.c',
-            'port.c',
-            'portasm.c',
-        ),
-    ),
+    },
+
 }
 
+TARGETS = (
 
 
-################################################################################
-#
-# Basic description of each of our firmware targets.
-#
 
-TARGETS = ( # @/`Defining a TARGET`.
+    ########################################
+
+
 
     types.SimpleNamespace(
 
@@ -121,6 +98,12 @@ TARGETS = ( # @/`Defining a TARGET`.
 
     ),
 
+
+
+    ########################################
+
+
+
     types.SimpleNamespace(
 
         name              = 'SandboxNucleoH533RE',
@@ -164,6 +147,12 @@ TARGETS = ( # @/`Defining a TARGET`.
         },
 
     ),
+
+
+
+    ########################################
+
+
 
     types.SimpleNamespace(
 
@@ -217,6 +206,12 @@ TARGETS = ( # @/`Defining a TARGET`.
 
     ),
 
+
+
+    ########################################
+
+
+
     types.SimpleNamespace(
 
         name               = 'DemoTimer',
@@ -269,50 +264,33 @@ TARGETS = ( # @/`Defining a TARGET`.
 
     ),
 
+
+
+    ########################################
+
+
+
 )
-
-for target in TARGETS:
-
-    additional_interrupts = [
-        ('Reset'     , None),
-        ('BusFault'  , None),
-        ('UsageFault', None),
-    ]
-
-    if target.use_freertos:
-
-        for interrupt, symbol in MCUS[target.mcu].freertos_interrupts.items():
-            additional_interrupts += [(interrupt, None, { 'symbol' : symbol })]
-
-    target.interrupts = (*additional_interrupts, *target.interrupts)
-
-
-
-def PER_TARGET():
-
-    for target in TARGETS:
-
-        with Meta.enter(f'#if TARGET_NAME_IS_{target.name}'):
-
-            yield target
-
-def PER_MCU(Meta):
-
-    for mcu in MCUS:
-
-        with Meta.enter(f'#if TARGET_MCU_IS_{mcu}'):
-
-            yield mcu
-
 
 
 
 ################################################################################
-#
-# Figure out the compiler and linker flags for each firmware target.
-#
+
+
 
 for target in TARGETS:
+
+
+
+    # Some additional interrupts.
+
+    target.interrupts = (
+        ('Reset'     , None),
+        ('BusFault'  , None),
+        ('UsageFault', None),
+        *(MCU_SUPPORT[target.mcu]['freertos_interrupts'] if target.use_freertos else ()),
+        *target.interrupts
+    )
 
 
 
@@ -360,9 +338,9 @@ for target in TARGETS:
         root('./deps/CMSIS_6/CMSIS/Core/Include'),
         root('./deps/FreeRTOS_Kernel/include'),
         root('./deps/printf/src'),
-        root('.'),                               # For <deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h> and such.
-        root('./electrical'),                    # For <FreeRTOSConfig.h>.
-        MCUS[target.mcu].freertos_port_dir_path, # For <portmacro.h> and such.
+        root('.'),
+        root('./electrical'),
+        *MCU_SUPPORT[target.mcu]['include_paths'],
     )
 
 
@@ -418,118 +396,31 @@ for target in TARGETS:
 
 
 
-
-
-
 ################################################################################
 
 
 
-# This meta-directive typically contains definitions for things that'll be
-# used both in other meta-directives and also in `cli.py`. Stuff like the
-# ST-Link baud rate is defined here because the clock-tree is automated by
-# a meta-directive in order to configure the UART for the right clock speed
-# and also so that `cli.py talk` can open the serial port to the right baud.
+def PER_TARGET():
+
+    for target in TARGETS:
+
+        with Meta.enter(f'#if TARGET_NAME_IS_{target.name}'):
+
+            yield target
 
 
 
-# TODO Stale.
-# @/`Defining a TARGET`:
-#
-# A target is essentially a program for a specific microcontroller in mind.
-# For this project, we'll have a target for the flight computer, camera
-# subsystems, and maybe some other stuff. As of writing, this is what defines
-# a target:
-#
-#     - name                 = Self-explanatory; the unique name of the target.
-#
-#     - mcu                  = The full commerical part number of an STM32
-#                              microcontroller as seen in `MCUS`. Technically,
-#                              the last few suffixes are not necessary because
-#                              they just indicate the flash size and operating
-#                              temperature and stuff, but I think it's a hassle
-#                              to deal with different variations of MCU "names",
-#                              so just might as well use the whole thing even
-#                              if it ends up being redundant later on.
-#
-#     - source_file_paths    = Source files that the build system will compile each
-#                              of and then link all together.
-#
-#     - use_freertos         = Whether or not to compile with FreeRTOS and set up
-#                              the task-scheduler. Typically, we'd disable FreeRTOS
-#                              when we want to start off programming in a simpler
-#                              environment where we don't have to worry about concurrency
-#                              and reentrance of code. Eventually, as the firmware
-#                              matures, we'd want to start using a task-scheduler
-#                              so we can have multiple systems in the firmware
-#                              work together and not have one big state machine
-#                              to handle it all.
-#
-#     - main_stack_size      = The amount of bytes to reserve for the stack of `main`.
-#                              This option is more useful when not using FreeRTOS.
-#                              If FreeRTOS is enabled, then each task will have their
-#                              own stack, the size of which can be individually specified.
-#                              Before the task-scheduler can starts, we still go into
-#                              `main`, so this option is still used, albeit less
-#                              critically.
-#                              TODO Look more into how FreeRTOS organizes its memory.
-#
-#     - clock_tree           = Options relating to configuring the MCU's clock-tree.
-#                              The available options right now is pretty undocumented since
-#                              it heavily depends upon the implementation of `parameterize`;
-#                              things there are still non-comprehensive and quite experimental.
-#                              Nonetheless, some of the stuff should be self-explanatory, like
-#                              if you want to change the baud rate of a UART peripheral or
-#                              something, then it's pretty easy to do right here; but if you
-#                              have a lot of questions, then you should probably see
-#                              `parameterize` anyways.
-#
-#     - gpios                = This is where we define the GPIOs of our target; what
-#                              input/outputs it has, which pins are being used for what
-#                              particular peripherals, and maybe other stuff too like the
-#                              slew rate or pull up/down configuration. This table of GPIOs
-#                              is very useful, because later on when we make our PCBs, we can
-#                              write a meta-directive to verify that the PCB matches our
-#                              GPIO table (TODO).
-#
-#     - interrupts           = This table defines most of the interrupts that'll be used
-#                              by the target. For instance, Any time you're writing a driver
-#                              for a peripheral, and that peripheral uses interrupts, you
-#                              should add an entry to this table. Once you do so, macros
-#                              will be created to allow the interrupt to be enabled in the
-#                              NVIC. It should be noted that the priority value of interrupts
-#                              work on a niceless level, so the lower the number is, the higher
-#                              priority it actually is.
-#
-#     - drivers              = Essentially a table describing the drivers that the target
-#                              needs and will be using. To see what this setting actually does,
-#                              I suggest diving into some of the drivers' source code.
-#
-# It's also useful to have a "sandbox" target where it's pretty much
-# just a demo program for a Nucleo board; some LEDS blinking, maybe
-# reacting to button presses, and printing out to serial port. This
-# is just so we can easily test things out whenever we're writing
-# some new drivers or something.
-#
-# As of writing, these are the steps to making a new target:
-#
-#     1. Jump start by copy-pasting an existing target in `TARGETS`,
-#        maybe "SandboxNucleoH533RE". Rename the target to something
-#        unique, which for our example, let's say "FooBar".
-#
-#     2. Change the MCU (if needed) and modify `source_file_paths`
-#        to have the main C file you wish to compile with.
-#        If your new target name is "FooBar", you should probably
-#        make a new C file called "FooBar.c". In this C file,
-#        you can copy from <SandboxNucleoBoard.c> but remove all
-#        the FreeRTOS task stuff; you should have at least `main`.
-#
-#     3. Recompile; things should work, but this process I described
-#        here might've changed because I added a new feature or
-#        something to the build process. In the event that I forgot
-#        to update this, read the error message and figure out what
-#        is missing.
+def PER_MCU(Meta):
 
+    for mcu in MCUS:
+
+        with Meta.enter(f'#if TARGET_MCU_IS_{mcu}'):
+
+            yield mcu
+
+
+
+################################################################################
 
 
 
