@@ -399,21 +399,21 @@
 
 
 
-        #define STPY_0             (            0)
-        #define STPY_CPU_CK        (  600'000'000)
-        #define STPY_HSI_CK        (   64'000'000)
-        #define STPY_HSI48_CK      (   48'000'000)
-        #define STPY_CSI_CK        (    4'000'000)
-        #define STPY_PER_CK        (   64'000'000)
-        #define STPY_AXI_AHB_CK    (  300'000'000)
-        #define STPY_PLL1P_CK      (  600'000'000)
-        #define STPY_PLL2S_CK      (  200'000'000)
-        #define STPY_PLL1_VCO_FREQ (600'000'000.0)
-        #define STPY_PLL2_VCO_FREQ (800'000'000.0)
-        #define STPY_APB1_CK       (  150'000'000)
-        #define STPY_APB2_CK       (  150'000'000)
-        #define STPY_APB4_CK       (  150'000'000)
-        #define STPY_APB5_CK       (  150'000'000)
+        #define STPY_0             (          0)
+        #define STPY_CPU_CK        (600'000'000)
+        #define STPY_HSI_CK        ( 64'000'000)
+        #define STPY_HSI48_CK      ( 48'000'000)
+        #define STPY_CSI_CK        (  4'000'000)
+        #define STPY_PER_CK        ( 64'000'000)
+        #define STPY_AXI_AHB_CK    (300'000'000)
+        #define STPY_PLL1P_CK      (600'000'000)
+        #define STPY_PLL2S_CK      (200'000'000)
+        #define STPY_PLL1_VCO_FREQ (600'000'000)
+        #define STPY_PLL2_VCO_FREQ (800'000'000)
+        #define STPY_APB1_CK       (150'000'000)
+        #define STPY_APB2_CK       (150'000'000)
+        #define STPY_APB4_CK       (150'000'000)
+        #define STPY_APB5_CK       (150'000'000)
 
 
     }
@@ -747,17 +747,17 @@
 
 
 
-        #define STPY_0             (            0)
-        #define STPY_CPU_CK        (  250'000'000)
-        #define STPY_HSI_CK        (   32'000'000)
-        #define STPY_HSI48_CK      (   48'000'000)
-        #define STPY_CSI_CK        (    4'000'000)
-        #define STPY_AXI_AHB_CK    (  250'000'000)
-        #define STPY_PLL1P_CK      (  250'000'000)
-        #define STPY_PLL1_VCO_FREQ (500'000'000.0)
-        #define STPY_APB1_CK       (  250'000'000)
-        #define STPY_APB2_CK       (  250'000'000)
-        #define STPY_APB3_CK       (  250'000'000)
+        #define STPY_0             (          0)
+        #define STPY_CPU_CK        (250'000'000)
+        #define STPY_HSI_CK        ( 32'000'000)
+        #define STPY_HSI48_CK      ( 48'000'000)
+        #define STPY_CSI_CK        (  4'000'000)
+        #define STPY_AXI_AHB_CK    (250'000'000)
+        #define STPY_PLL1P_CK      (250'000'000)
+        #define STPY_PLL1_VCO_FREQ (500'000'000)
+        #define STPY_APB1_CK       (250'000'000)
+        #define STPY_APB2_CK       (250'000'000)
+        #define STPY_APB3_CK       (250'000'000)
 
 
     }
@@ -1141,17 +1141,17 @@
 
 
 
-        #define STPY_0             (            0)
-        #define STPY_CPU_CK        (  250'000'000)
-        #define STPY_HSI_CK        (   32'000'000)
-        #define STPY_HSI48_CK      (   48'000'000)
-        #define STPY_CSI_CK        (    4'000'000)
-        #define STPY_AXI_AHB_CK    (  250'000'000)
-        #define STPY_PLL1P_CK      (  250'000'000)
-        #define STPY_PLL1_VCO_FREQ (500'000'000.0)
-        #define STPY_APB1_CK       (  250'000'000)
-        #define STPY_APB2_CK       (  250'000'000)
-        #define STPY_APB3_CK       (  250'000'000)
+        #define STPY_0             (          0)
+        #define STPY_CPU_CK        (250'000'000)
+        #define STPY_HSI_CK        ( 32'000'000)
+        #define STPY_HSI48_CK      ( 48'000'000)
+        #define STPY_CSI_CK        (  4'000'000)
+        #define STPY_AXI_AHB_CK    (250'000'000)
+        #define STPY_PLL1P_CK      (250'000'000)
+        #define STPY_PLL1_VCO_FREQ (500'000'000)
+        #define STPY_APB1_CK       (250'000'000)
+        #define STPY_APB2_CK       (250'000'000)
+        #define STPY_APB3_CK       (250'000'000)
 
 
     }
@@ -1548,17 +1548,17 @@
 
 
 
-        #define STPY_0             (            0)
-        #define STPY_CPU_CK        (  250'000'000)
-        #define STPY_HSI_CK        (   32'000'000)
-        #define STPY_HSI48_CK      (   48'000'000)
-        #define STPY_CSI_CK        (    4'000'000)
-        #define STPY_AXI_AHB_CK    (  250'000'000)
-        #define STPY_PLL1P_CK      (  250'000'000)
-        #define STPY_PLL1_VCO_FREQ (500'000'000.0)
-        #define STPY_APB1_CK       (  250'000'000)
-        #define STPY_APB2_CK       (  250'000'000)
-        #define STPY_APB3_CK       (  250'000'000)
+        #define STPY_0             (          0)
+        #define STPY_CPU_CK        (250'000'000)
+        #define STPY_HSI_CK        ( 32'000'000)
+        #define STPY_HSI48_CK      ( 48'000'000)
+        #define STPY_CSI_CK        (  4'000'000)
+        #define STPY_AXI_AHB_CK    (250'000'000)
+        #define STPY_PLL1P_CK      (250'000'000)
+        #define STPY_PLL1_VCO_FREQ (500'000'000)
+        #define STPY_APB1_CK       (250'000'000)
+        #define STPY_APB2_CK       (250'000'000)
+        #define STPY_APB3_CK       (250'000'000)
 
 
     }
