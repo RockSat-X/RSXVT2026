@@ -189,7 +189,7 @@ extern nullptr_t INITIAL_STACK_ADDRESS[];
 
 */
 
-
+#define STPY_IMPLEMENTATION true
 #include "STPY_init.meta"
 /* #meta
 
