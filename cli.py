@@ -327,7 +327,10 @@ def execute(
     nonzero_exit_code_ok  = False
 ):
 
-    # Determine the shell command we'll be executing based on the operating system.
+
+
+    # Determine the shell commands we'll be
+    # executing based on the operating system.
 
     if cmd is not None and powershell is not None:
         raise RuntimeError(
@@ -339,58 +342,113 @@ def execute(
 
         case 'win32':
             use_powershell = cmd is None and powershell is not None
-            command        = powershell if use_powershell else cmd
+            commands       = powershell if use_powershell else cmd
 
         case _:
-            command        = bash
+            commands       = bash
             use_powershell = False
 
-    if command is None:
-        command = default
+    if commands is None:
+        commands = default
 
-    if command is None:
+    if commands is None:
         raise RuntimeError(
             f'Missing shell command for platform "{sys.platform}"; '
             f'please raise an issue or patch the script yourself.'
         )
 
-    if use_powershell:
-        require('pwsh')
+    if isinstance(commands, str):
+        commands = [commands]
 
 
 
-    # Carry out the shell command.
+    # Process each command to have it be split into shell tokens.
 
-    lexer                  = shlex.shlex(command)
-    lexer.quotes           = '"'
-    lexer.whitespace_split = True
-    lexer.commenters       = ''
-    lexer_parts            = list(lexer)
-    command                = ' '.join(lexer_parts)
+    for command_i in range(len(commands)):
 
-    log(
-        '{} {}',
-        ANSI(f'$ {lexer_parts[0]}', 'fg_bright_green'),
-        ' '.join(lexer_parts[1:]),
-    )
 
-    if use_powershell:
-        command = ['pwsh', '-Command', command]
 
-    try:
-        subprocess_exit_code = subprocess.call(command, shell = True)
-    except KeyboardInterrupt:
-        if keyboard_interrupt_ok:
-            subprocess_exit_code = None
-        else:
-            raise
+        # On Windows, Python will call CMD.exe
+        # to run the shell command, so we'll
+        # have to invoke PowerShell to run the
+        # command if PowerShell is needed.
 
-    if subprocess_exit_code and not nonzero_exit_code_ok:
-        log()
-        log(ANSI(f'[ERROR] Shell command exited with a non-zero code of {subprocess_exit_code}.', 'fg_red'))
-        raise ExitCode(subprocess_exit_code)
+        if use_powershell:
+            commands[command_i] = shlex.join([
+                'pwsh', '-Command', commands[command_i]
+            ])
 
-    return subprocess_exit_code
+
+
+        # The lexing that's done here is to do a lot
+        # of the funny business involving escaping quotes
+        # and what not.
+
+        lexer                  = shlex.shlex(commands[command_i])
+        lexer.quotes           = '"'
+        lexer.whitespace_split = True
+        lexer.commenters       = ''
+        commands[command_i]    = list(lexer)
+
+
+
+    # Execute each shell command.
+
+    processes = []
+
+    for command_i, command in enumerate(commands):
+
+        if command_i:
+            log()
+
+        log(
+            '{} {}',
+            ANSI(f'$ {command[0]}', 'fg_bright_green'),
+            ' '.join(command[1:]),
+        )
+
+        processes += [subprocess.Popen(' '.join(command), shell = True)]
+
+
+
+    # Wait on each subprocess to be done.
+
+    for process in processes:
+
+
+
+        # Sometimes commands might stall, so the user
+        # might CTRL-C to kill the subprocess.
+
+        try:
+            subprocess_exit_code = process.wait()
+
+        except KeyboardInterrupt:
+
+            if keyboard_interrupt_ok:
+                subprocess_exit_code = None
+            else:
+                raise
+
+
+
+        # Check results.
+
+        if subprocess_exit_code and not nonzero_exit_code_ok:
+            log()
+            log(ANSI(f'[ERROR] Shell command exited with a non-zero code of {subprocess_exit_code}.', 'fg_red'))
+            raise ExitCode(subprocess_exit_code)
+
+
+
+    # TODO:
+    # For right now, we'll return the exit code for
+    # when there's only one shell command to be executed.
+    # I'd like for this to be more consistent in the future,
+    # however.
+
+    if len(processes) == 1:
+        return subprocess_exit_code
 
 
 
@@ -577,7 +635,7 @@ def build(parameters):
 
 
 
-    # Build each target.
+    # Build the targets in parallel.
 
     require(
         'arm-none-eabi-gcc',
@@ -586,65 +644,70 @@ def build(parameters):
         'arm-none-eabi-gdb',
     )
 
-    for target in targets:
-
-        log_header(f'Compiling "{target.name}"')
 
 
+    log_header(f'Build Artifact Folder')
 
-        # Create the build artifact folder.
+    execute(
+        bash = [
+            f'mkdir -p {root(BUILD, target.name)}'
+            for target in targets
+        ],
+        cmd = [
+            f'''
+                if not exist "{root(BUILD, target.name)}" (
+                    mkdir {root(BUILD, target.name)}
+                )
+            '''
+            for target in targets
+        ],
+    )
 
-        execute(f'''
-            mkdir -p {root(BUILD, target.name)}
-        ''')
-
-        log()
 
 
-
-        # Preprocess the linker file.
-
-        execute(f'''
+    log_header(f'Linker File Preprocessing')
+    execute([
+        f'''
             arm-none-eabi-cpp
                 {target.compiler_flags}
                 -E
                 -x c
                 -o "{root(BUILD, target.name, 'link.ld').as_posix()}"
                 "{root('./electrical/link.ld').as_posix()}"
-        ''')
+        '''
+        for target in targets
+    ])
 
-        log()
 
 
-
-        # Build the source files and link.
-
-        execute(f'''
+    log_header(f'Building')
+    execute([
+        f'''
             arm-none-eabi-gcc
                 {' '.join(f'"{source}"' for source in target.source_file_paths)}
                 -o "{root('./build', target.name, target.name + '.elf')}"
                 -T "{root(BUILD, target.name, 'link.ld').as_posix()}"
                 {target.compiler_flags}
                 {target.linker_flags}
-        ''')
+        '''
+        for target in targets
+    ])
 
-        log()
 
 
-
-        # Turn ELF into raw binary.
-
-        execute(f'''
+    log_header(f'Binary Conversion')
+    execute([
+        f'''
             arm-none-eabi-objcopy
                 -S
                 -O binary
                 "{root(BUILD, target.name, target.name + '.elf').as_posix()}"
                 "{root(BUILD, target.name, target.name + '.bin').as_posix()}"
-        ''')
+        '''
+        for target in targets
+    ])
 
 
-
-    # Done!
 
     log_header(f'Hip-hip hooray! Built {', '.join(f'"{target.name}"' for target in targets)}!')
 
