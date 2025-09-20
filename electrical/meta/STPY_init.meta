@@ -1123,8 +1123,8 @@
 
 
 
-            #define STPY_I2C1_KERNEL_SOURCE 0b11
-            #define STPY_I2C1_PRESC 15
+            #define STPY_I2C1_KERNEL_SOURCE 0b00
+            #define STPY_I2C1_PRESC 4
             #define STPY_I2C1_SCLH 250
             #define STPY_I2C1_SCLL 250
 
