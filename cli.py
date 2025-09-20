@@ -647,12 +647,21 @@ def build(parameters):
 
 
     log_header(f'Build Artifact Folder')
-    execute([
-        f'''
-            mkdir -p {root(BUILD, target.name)}
-        '''
-        for target in targets
-    ])
+
+    execute(
+        bash = [
+            f'mkdir -p {root(BUILD, target.name)}'
+            for target in targets
+        ],
+        cmd = [
+            f'''
+                if not exist "{root(BUILD, target.name)}" (
+                    mkdir {root(BUILD, target.name)}
+                )
+            '''
+            for target in targets
+        ],
+    )
 
 
 
@@ -947,7 +956,6 @@ def _(parameters):
         log_stlinks(stlinks)
     else:
         log('No ST-Link detected by STM32_Programmer_CLI.')
-
 
 
 
