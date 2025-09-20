@@ -211,7 +211,7 @@ TARGETS = (
             'APB2_CK'      : 250_000_000,
             'APB3_CK'      : 250_000_000,
             'USART2_BAUD'  : STLINK_BAUD,
-            'I2C1_BAUD'    : 100_000,
+            'I2C1_BAUD'    : 1_000,
         },
 
     ),
@@ -296,11 +296,15 @@ TARGETS = (
 
         interrupts = (
             ('USART2', 0),
+            ('SPI1'  , 1),
         ),
 
         drivers = {
             'UXART' : (
                 ('stlink', 'USART2'),
+            ),
+            'SPI' : (
+                ('primary', 'SPI1'),
             ),
         },
 

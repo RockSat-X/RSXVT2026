@@ -1,5 +1,6 @@
 #include "system.h"
 #include "uxart.c"
+#include "spi.c"
 
 
 
@@ -14,6 +15,15 @@ main(void)
 
     STPY_init();
     UXART_init(UXARTHandle_stlink);
+
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    //
+    // Initialize the SPI driver for each peripheral used by the target.
+    //
+
+    SPI_reinit(SPIHandle_primary);
 
 
 
