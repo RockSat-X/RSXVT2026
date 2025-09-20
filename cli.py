@@ -722,7 +722,7 @@ def build(parameters):
     },
     {
         'name'        : 'target',
-        'description' : 'Name of the target MCU to program.',
+        'description' : 'Name of the program to flash the target MCU with.',
         'type'        : { target.name : target for target in TARGETS },
         'default'     : TARGETS[0] if len(TARGETS) == 1 else ...,
     },

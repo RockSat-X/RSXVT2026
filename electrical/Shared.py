@@ -1,6 +1,6 @@
 #meta STLINK_BAUD, TARGETS, PER_MCU, PER_TARGET :
 
-import types
+import types, collections
 from deps.stpy.pxd.utils import root, c_repr
 from deps.stpy.mcus      import MCUS
 
@@ -231,16 +231,14 @@ TARGETS = (
         '''),
 
         gpios = (
-            ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                                          }),
-            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'                                    }),
-            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'                                    }),
-            ('swdio'     , 'A13', None        , {                                                            }),
-            ('swclk'     , 'A14', None        , {                                                            }),
-            ('button'    , 'C13', 'INPUT'     , { 'pull'    : 'UP'                                           }),
-            ('i2c1_scl'  , 'B6' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL', 'open_drain' : True, 'pull' : 'UP' }),
-            ('i2c1_sda'  , 'B7' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA', 'open_drain' : True, 'pull' : 'UP' }),
-            ('OC1'       , 'A8' , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH1'                                     }),
-            ('OC1N'      , 'A7' , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH1N'                                    }),
+            ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False       }),
+            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX' }),
+            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX' }),
+            ('swdio'     , 'A13', None        , {                         }),
+            ('swclk'     , 'A14', None        , {                         }),
+            ('button'    , 'C13', 'INPUT'     , { 'pull'    : 'UP'        }),
+            ('OC1'       , 'A8' , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH1'  }),
+            ('OC1N'      , 'A7' , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH1N' }),
         ),
 
 
@@ -267,8 +265,57 @@ TARGETS = (
             'APB2_CK'      : 250_000_000,
             'APB3_CK'      : 250_000_000,
             'USART2_BAUD'  : STLINK_BAUD,
-            'I2C1_BAUD'    : 100_000,
             'TIM1_RATE'    : 16,
+        },
+
+    ),
+
+
+
+    ########################################
+
+
+
+    types.SimpleNamespace(
+
+        name               = 'DemoSPI',
+        mcu                = 'STM32H533RET6',
+        source_file_paths  = root('''
+            ./electrical/DemoSPI.c
+        '''),
+
+        gpios = (
+            ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False       }),
+            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX' }),
+            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX' }),
+            ('swdio'     , 'A13', None        , {                         }),
+            ('swclk'     , 'A14', None        , {                         }),
+            ('button'    , 'C13', 'INPUT'     , { 'pull'    : 'UP'        }),
+        ),
+
+
+        interrupts = (
+            ('USART2', 0),
+        ),
+
+        drivers = {
+            'UXART' : (
+                ('stlink', 'USART2'),
+            ),
+        },
+
+        use_freertos    = False,
+        main_stack_size = 8192,
+        schema          = {
+            'HSI_ENABLE'   : True,
+            'HSI48_ENABLE' : True,
+            'CSI_ENABLE'   : True,
+            'PLL1P_CK'     : 250_000_000,
+            'CPU_CK'       : 250_000_000,
+            'APB1_CK'      : 250_000_000,
+            'APB2_CK'      : 250_000_000,
+            'APB3_CK'      : 250_000_000,
+            'USART2_BAUD'  : STLINK_BAUD,
         },
 
     ),
@@ -284,6 +331,24 @@ TARGETS = (
 
 
 ################################################################################
+
+
+
+if duplicate_names := [
+    name
+    for name, count in collections.Counter(
+        target.name
+        for target in TARGETS
+    ).items()
+    if count >= 2
+]:
+
+    duplicate_name = duplicate_names[0]
+
+    raise RuntimeError(
+        'There are multiple targets by the '
+        f'name of {repr(duplicate_name)}!'
+    )
 
 
 
