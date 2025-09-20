@@ -10,8 +10,11 @@
         cmsis_name  = 'SPI',
         common_name = 'SPIx',
         identifiers = (
+            'NVICInterrupt_{}',
         ),
         cmsis_tuple_tags = (
+            '{}_RESET',
+            '{}_ENABLE',
         ),
     )
 
@@ -62,6 +65,37 @@ SPI_reinit(enum SPIHandle handle)
 {
 
     _EXPAND_HANDLE
+
+
+
+    // Reset-cycle the peripheral.
+
+    CMSIS_PUT(SPIx_RESET, true );
+    CMSIS_PUT(SPIx_RESET, false);
+
+    *driver = (struct SPIDriver) {0};
+
+
+
+    // Enable the interrupts.
+
+    NVIC_ENABLE(SPIx);
+
+
+
+    // Set the kernel clock source for the peripheral.
+
+    // TODO.
+
+
+
+    // Enable the peripheral.
+
+    CMSIS_PUT(SPIx_ENABLE, true);
+
+
+
+    // Configure the peripheral.
 
     sorry
 

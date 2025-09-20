@@ -17,9 +17,9 @@
     };
     static constexpr u32 SPIHandle_COUNT = 1;
     #define SPIx_ SPI_
-    static const struct { typeof(SPI1) SPIx; } SPI_TABLE[] =
+    static const struct { typeof(SPI1) SPIx; typeof(NVICInterrupt_SPI1) NVICInterrupt_SPIx; typeof((struct CMSISTuple) { &RCC->APB2RSTR, RCC_APB2RSTR_SPI1RST_Pos, RCC_APB2RSTR_SPI1RST_Msk }) SPIx_RESET; typeof((struct CMSISTuple) { &RCC->APB2ENR, RCC_APB2ENR_SPI1EN_Pos, RCC_APB2ENR_SPI1EN_Msk }) SPIx_ENABLE; } SPI_TABLE[] =
         {
-            [SPIHandle_primary] = { .SPIx = SPI1 },
+            [SPIHandle_primary] = { .SPIx = SPI1, .NVICInterrupt_SPIx = NVICInterrupt_SPI1, .SPIx_RESET = (struct CMSISTuple) { &RCC->APB2RSTR, RCC_APB2RSTR_SPI1RST_Pos, RCC_APB2RSTR_SPI1RST_Msk }, .SPIx_ENABLE = (struct CMSISTuple) { &RCC->APB2ENR, RCC_APB2ENR_SPI1EN_Pos, RCC_APB2ENR_SPI1EN_Msk } },
         };
 #endif
 #undef _EXPAND_HANDLE
@@ -33,6 +33,9 @@
     struct SPIDriver* const driver = &_SPI_drivers[handle];\
     \
     auto const SPIx = SPI_TABLE[handle].SPIx;\
+    auto const NVICInterrupt_SPIx = SPI_TABLE[handle].NVICInterrupt_SPIx;\
+    auto const SPIx_RESET = SPI_TABLE[handle].SPIx_RESET;\
+    auto const SPIx_ENABLE = SPI_TABLE[handle].SPIx_ENABLE;\
 
 
 #if TARGET_NAME_IS_SandboxNucleoH7S3L8
