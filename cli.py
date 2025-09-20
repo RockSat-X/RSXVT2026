@@ -363,26 +363,13 @@ def execute(
 
 
     # Process each command to have it be split into shell tokens.
+    # The lexing that's done here is to do a lot of the funny
+    # business involving escaping quotes and what not. To be honest,
+    # it's a little out my depth, mainly because I frankly do not
+    # care enough to get it 100% correct; it working most of the time
+    # is good enough for me.
 
     for command_i in range(len(commands)):
-
-
-
-        # On Windows, Python will call CMD.exe
-        # to run the shell command, so we'll
-        # have to invoke PowerShell to run the
-        # command if PowerShell is needed.
-
-        if use_powershell:
-            commands[command_i] = shlex.join([
-                'pwsh', '-Command', commands[command_i]
-            ])
-
-
-
-        # The lexing that's done here is to do a lot
-        # of the funny business involving escaping quotes
-        # and what not.
 
         lexer                  = shlex.shlex(commands[command_i])
         lexer.quotes           = '"'
@@ -407,7 +394,19 @@ def execute(
             ' '.join(command[1:]),
         )
 
-        processes += [subprocess.Popen(' '.join(command), shell = True)]
+        command = ' '.join(command)
+
+        if use_powershell:
+
+            # On Windows, Python will call CMD.exe
+            # to run the shell command, so we'll
+            # have to invoke PowerShell to run the
+            # command if PowerShell is needed.
+            processes += [subprocess.Popen(['pwsh', '-Command', command], shell = False)]
+
+        else:
+
+            processes += [subprocess.Popen(command, shell = True)]
 
 
 
