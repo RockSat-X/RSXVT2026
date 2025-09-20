@@ -1334,10 +1334,6 @@
             #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_rx 3
             #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__button C
             #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__button 13
-            #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__i2c1_scl B
-            #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__i2c1_scl 6
-            #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__i2c1_sda B
-            #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__i2c1_sda 7
             #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__OC1 A
             #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__OC1 8
             #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__OC1N A
@@ -1346,22 +1342,9 @@
             (
                 RCC    , AHB2ENR,
                 GPIOAEN, true   ,
-                GPIOBEN, true   ,
                 GPIOCEN, true   ,
             );
-            CMSIS_SET
-            (
-                GPIOB, OTYPER,
-                OT6  , true  ,
-                OT7  , true  ,
-            );
             CMSIS_SET(GPIOA, ODR, OD5, false);
-            CMSIS_SET
-            (
-                GPIOB, PUPDR,
-                PUPD6, 0b01 ,
-                PUPD7, 0b01 ,
-            );
             CMSIS_SET(GPIOC, PUPDR, PUPD13, 0b01);
             CMSIS_WRITE
             (
@@ -1371,12 +1354,6 @@
                 AFSEL7   , 1            ,
             );
             CMSIS_WRITE(GPIO_AFRH, GPIOA->AFR[1], AFSEL8, 1);
-            CMSIS_WRITE
-            (
-                GPIO_AFRL, GPIOB->AFR[0],
-                AFSEL6   , 4            ,
-                AFSEL7   , 4            ,
-            );
             CMSIS_SET
             (
                 GPIOA, MODER,
@@ -1385,12 +1362,6 @@
                 MODE5, 0b01 ,
                 MODE7, 0b10 ,
                 MODE8, 0b10 ,
-            );
-            CMSIS_SET
-            (
-                GPIOB, MODER,
-                MODE6, 0b10 ,
-                MODE7, 0b10 ,
             );
             CMSIS_SET(GPIOC, MODER, MODE13, 0b00);
 
@@ -1509,17 +1480,6 @@
 
             #define STPY_USART2_KERNEL_SOURCE 0b000
             #define STPY_USART2_BAUD_DIVIDER 250
-
-
-
-            //////////////////////////////////// I2C1 ////////////////////////////////////
-
-
-
-            #define STPY_I2C1_KERNEL_SOURCE 0b11
-            #define STPY_I2C1_PRESC 15
-            #define STPY_I2C1_SCLH 250
-            #define STPY_I2C1_SCLL 250
 
 
 
