@@ -1,6 +1,6 @@
 #meta STLINK_BAUD, TARGETS, PER_MCU, PER_TARGET :
 
-import types
+import types, collections
 from deps.stpy.pxd.utils import root, c_repr
 from deps.stpy.mcus      import MCUS
 
@@ -284,6 +284,24 @@ TARGETS = (
 
 
 ################################################################################
+
+
+
+if duplicate_names := [
+    name
+    for name, count in collections.Counter(
+        target.name
+        for target in TARGETS
+    ).items()
+    if count >= 2
+]:
+
+    duplicate_name = duplicate_names[0]
+
+    raise RuntimeError(
+        'There are multiple targets by the '
+        f'name of {repr(duplicate_name)}!'
+    )
 
 
 
