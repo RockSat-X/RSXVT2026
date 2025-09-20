@@ -296,11 +296,15 @@ TARGETS = (
 
         interrupts = (
             ('USART2', 0),
+            ('SPI1'  , 1),
         ),
 
         drivers = {
             'UXART' : (
                 ('stlink', 'USART2'),
+            ),
+            'SPI' : (
+                ('primary', 'SPI1'),
             ),
         },
 
