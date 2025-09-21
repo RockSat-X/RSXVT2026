@@ -21,19 +21,9 @@ main(void)
         for (i32 iteration = 0;; iteration += 1)
         {
 
-            // @/`Nucleo Buttons`.
-
-            b32 button_active = GPIO_READ(button);
-
-            #if TARGET_NAME_IS_SandboxNucleoH7S3L8
-                button_active = !button_active;
-            #endif
-
-
-
             // Blink the LED.
 
-            if (button_active)
+            if (GPIO_ACTIVE(button)) // @/`Nucleo Buttons`.
             {
                 spinlock_nop(50'000'000);
             }
@@ -96,11 +86,7 @@ FREERTOS_TASK(button_observer, 1024, 0)
 
         // @/`Nucleo Buttons`.
 
-        b32 current_button_pressed = GPIO_READ(button);
-
-        #if TARGET_NAME_IS_SandboxNucleoH7S3L8
-            current_button_pressed = !current_button_pressed;
-        #endif
+        b32 current_button_pressed = GPIO_ACTIVE(button);
 
 
 

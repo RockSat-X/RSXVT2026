@@ -2,6 +2,7 @@
 #define _NUMBER_FOR_GPIO_WRITE(NAME) __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__##NAME
 #define _PORT_FOR_GPIO_READ(NAME) __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__##NAME
 #define _NUMBER_FOR_GPIO_READ(NAME) __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__##NAME
+#define _ACTIVE_FOR_GPIO_READ(NAME) __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__##NAME
 #if TARGET_NAME_IS_SandboxNucleoH7S3L8
     #if STPY_IMPLEMENTATION
         enum NVICInterrupt : u32
@@ -216,6 +217,7 @@
             #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_rx 9
             #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__button C
             #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__button 13
+            #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__button !
             CMSIS_SET
             (
                 RCC    , AHB4ENR,
@@ -601,6 +603,7 @@
             #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_rx 3
             #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__button C
             #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__button 13
+            #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__button
             CMSIS_SET
             (
                 RCC    , AHB2ENR,
@@ -946,6 +949,7 @@
             #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_rx 3
             #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__button C
             #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__button 13
+            #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__button
             #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__i2c1_scl B
             #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__i2c1_scl 6
             #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__i2c1_sda B
@@ -1332,6 +1336,7 @@
             #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_rx 3
             #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__button C
             #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__button 13
+            #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__button
             #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__OC1 A
             #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__OC1 8
             #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__OC1N A
@@ -1694,6 +1699,7 @@
             #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_rx 3
             #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__button C
             #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__button 13
+            #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__button
             CMSIS_SET
             (
                 RCC    , AHB2ENR,
