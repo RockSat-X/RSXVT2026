@@ -48,9 +48,9 @@ main(void)
 
     for
     (
-        enum I2CAddressType address_type = I2CAddressType_eight;
+        enum I2CAddressType address_type = I2CAddressType_seven;
         ;
-        address_type = !address_type // Flip-flop between 8-bit and 10-bit addressing.
+        address_type = !address_type // Flip-flop between 7-bit and 10-bit addressing.
     )
     {
 
@@ -61,7 +61,7 @@ main(void)
 
         switch (address_type)
         {
-            case I2CAddressType_eight:
+            case I2CAddressType_seven:
             {
                 start_address = 0b0000'1000; // @/`I2C Slave Address`.
                 end_address   = 0b0111'0111; // "
