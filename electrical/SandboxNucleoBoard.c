@@ -21,15 +21,25 @@ main(void)
         for (i32 iteration = 0;; iteration += 1)
         {
 
+            // @/`Nucleo Buttons`.
+
+            b32 button_active = GPIO_READ(button);
+
+            #if TARGET_NAME_IS_SandboxNucleoH7S3L8
+                button_active = !button_active;
+            #endif
+
+
+
             // Blink the LED.
 
-            if (GPIO_READ(button)) // @/`Nucleo Buttons`.
+            if (button_active)
             {
-                spinlock_nop(100'000'000);
+                spinlock_nop(50'000'000);
             }
             else
             {
-                spinlock_nop(50'000'000);
+                spinlock_nop(100'000'000);
             }
 
             GPIO_TOGGLE(led_green);
@@ -86,7 +96,11 @@ FREERTOS_TASK(button_observer, 1024, 0)
 
         // @/`Nucleo Buttons`.
 
-        b32 current_button_pressed = !GPIO_READ(button);
+        b32 current_button_pressed = GPIO_READ(button);
+
+        #if TARGET_NAME_IS_SandboxNucleoH7S3L8
+            current_button_pressed = !current_button_pressed;
+        #endif
 
 
 
@@ -480,6 +494,8 @@ FREERTOS_TASK(captain_allears, 1024, 0)
 // You can write your SPI drivers and what not, and then later we worry about
 // how to make sure we can use it in a concurrent-safe way.
 
+
+
 // @/`Nucleo Buttons`:
 //
 // There's two buttons on Nucleo boards: one for reset and one for the
@@ -488,7 +504,6 @@ FREERTOS_TASK(captain_allears, 1024, 0)
 // the user manual or just by inspecting the PCB file of the Nucleo board.
 // The way we define GPIOs is in the file <Shared.py> with the option `gpios`.
 //
-// Note that the way the button is implemented on the Nucleo boards is that
-// pressing it will tie the GPIO to ground. Thus, if we read a high value
-// on the GPIO, then the button is unpressed; if it's zero, then the button
-// is pressed.
+// Note that the way the button is implemented on the Nucleo boards varies;
+// sometimes the button connect the input GPIO to VDD or GND, and sometimes
+// there's a pull resistor and sometimes not.

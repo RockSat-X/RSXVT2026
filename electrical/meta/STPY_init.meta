@@ -608,7 +608,6 @@
                 GPIOCEN, true   ,
             );
             CMSIS_SET(GPIOA, ODR, OD5, false);
-            CMSIS_SET(GPIOC, PUPDR, PUPD13, 0b01);
             CMSIS_WRITE
             (
                 GPIO_AFRL, GPIOA->AFR[0],
@@ -971,7 +970,6 @@
                 PUPD6, 0b01 ,
                 PUPD7, 0b01 ,
             );
-            CMSIS_SET(GPIOC, PUPDR, PUPD13, 0b01);
             CMSIS_WRITE
             (
                 GPIO_AFRL, GPIOA->AFR[0],
@@ -1345,7 +1343,6 @@
                 GPIOCEN, true   ,
             );
             CMSIS_SET(GPIOA, ODR, OD5, false);
-            CMSIS_SET(GPIOC, PUPDR, PUPD13, 0b01);
             CMSIS_WRITE
             (
                 GPIO_AFRL, GPIOA->AFR[0],
@@ -1704,7 +1701,6 @@
                 GPIOCEN, true   ,
             );
             CMSIS_SET(GPIOA, ODR, OD5, false);
-            CMSIS_SET(GPIOC, PUPDR, PUPD13, 0b01);
             CMSIS_WRITE
             (
                 GPIO_AFRL, GPIOA->AFR[0],
