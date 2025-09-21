@@ -22,6 +22,9 @@
             [SPIHandle_primary] = { .SPIx = SPI1, .NVICInterrupt_SPIx = NVICInterrupt_SPI1, .SPIx_RESET = (struct CMSISTuple) { &RCC->APB2RSTR, RCC_APB2RSTR_SPI1RST_Pos, RCC_APB2RSTR_SPI1RST_Msk }, .SPIx_ENABLE = (struct CMSISTuple) { &RCC->APB2ENR, RCC_APB2ENR_SPI1EN_Pos, RCC_APB2ENR_SPI1EN_Msk } },
         };
 #endif
+#if TARGET_NAME_IS_SensorShield
+    #error Target "SensorShield" cannot use the SPI driver without first specifying the peripheral instances to have handles for.
+#endif
 #undef _EXPAND_HANDLE
 #define _EXPAND_HANDLE\
     \
@@ -56,4 +59,6 @@
         _SPI_update_entirely(SPIHandle_primary);
     }
 
+#endif
+#if TARGET_NAME_IS_SensorShield
 #endif
