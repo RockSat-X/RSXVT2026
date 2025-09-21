@@ -61,7 +61,7 @@ enum I2CDriverError : u32
 
 enum I2CAddressType : u32
 {
-    I2CAddressType_eight = false,
+    I2CAddressType_seven = false,
     I2CAddressType_ten   = true,
 };
 
@@ -119,7 +119,7 @@ I2C_blocking_transfer
 
     switch (address_type)
     {
-        case I2CAddressType_eight:
+        case I2CAddressType_seven:
         {
             if (!(0b0000'1000 <= address && address <= 0b0111'0111))
                 panic;
@@ -464,7 +464,7 @@ _I2C_update_once(enum I2CHandle handle)
 
             switch (driver->address_type)
             {
-                case I2CAddressType_eight:
+                case I2CAddressType_seven:
                 {
                     sadd = driver->address << 1; // @/`I2C Slave Address`.
                 } break;
