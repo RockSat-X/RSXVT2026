@@ -70,14 +70,14 @@ TARGETS = (
         '''),
 
         gpios = (
-            ('led_red'   , 'B7' , 'OUTPUT'    , { 'initlvl' : False       }),
-            ('led_yellow', 'D13', 'OUTPUT'    , { 'initlvl' : False       }),
-            ('led_green' , 'D10', 'OUTPUT'    , { 'initlvl' : False       }),
-            ('stlink_tx' , 'D8' , 'ALTERNATE' , { 'altfunc' : 'USART3_TX' }),
-            ('stlink_rx' , 'D9' , 'ALTERNATE' , { 'altfunc' : 'USART3_RX' }),
-            ('swdio'     , 'A13', None        , {                         }),
-            ('swclk'     , 'A14', None        , {                         }),
-            ('button'    , 'C13', 'INPUT'     , { 'pull'    : 'UP'        }),
+            ('led_red'   , 'B7' , 'OUTPUT'    , { 'initlvl' : False               }),
+            ('led_yellow', 'D13', 'OUTPUT'    , { 'initlvl' : False               }),
+            ('led_green' , 'D10', 'OUTPUT'    , { 'initlvl' : False               }),
+            ('stlink_tx' , 'D8' , 'ALTERNATE' , { 'altfunc' : 'USART3_TX'         }),
+            ('stlink_rx' , 'D9' , 'ALTERNATE' , { 'altfunc' : 'USART3_RX'         }),
+            ('swdio'     , 'A13', None        , {                                 }),
+            ('swclk'     , 'A14', None        , {                                 }),
+            ('button'    , 'C13', 'INPUT'     , { 'pull' : 'UP', 'active' : False }),
         ),
 
         interrupts = (
@@ -125,12 +125,12 @@ TARGETS = (
         '''),
 
         gpios = (
-            ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False       }),
-            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX' }),
-            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX' }),
-            ('swdio'     , 'A13', None        , {                         }),
-            ('swclk'     , 'A14', None        , {                         }),
-            ('button'    , 'C13', 'INPUT'     , { 'pull'    : 'UP'        }),
+            ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False              }),
+            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'        }),
+            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'        }),
+            ('swdio'     , 'A13', None        , {                                }),
+            ('swclk'     , 'A14', None        , {                                }),
+            ('button'    , 'C13', 'INPUT'     , { 'pull' : None, 'active' : True }),
         ),
 
         interrupts = (
@@ -179,7 +179,7 @@ TARGETS = (
             ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'                                    }),
             ('swdio'     , 'A13', None        , {                                                            }),
             ('swclk'     , 'A14', None        , {                                                            }),
-            ('button'    , 'C13', 'INPUT'     , { 'pull'    : 'UP'                                           }),
+            ('button'    , 'C13', 'INPUT'     , { 'pull'    : None, 'active' : True                          }),
             ('i2c1_scl'  , 'B6' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL', 'open_drain' : True, 'pull' : 'UP' }),
             ('i2c1_sda'  , 'B7' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA', 'open_drain' : True, 'pull' : 'UP' }),
         ),
@@ -231,14 +231,14 @@ TARGETS = (
         '''),
 
         gpios = (
-            ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False       }),
-            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX' }),
-            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX' }),
-            ('swdio'     , 'A13', None        , {                         }),
-            ('swclk'     , 'A14', None        , {                         }),
-            ('button'    , 'C13', 'INPUT'     , { 'pull'    : 'UP'        }),
-            ('OC1'       , 'A8' , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH1'  }),
-            ('OC1N'      , 'A7' , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH1N' }),
+            ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                 }),
+            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'           }),
+            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'           }),
+            ('swdio'     , 'A13', None        , {                                   }),
+            ('swclk'     , 'A14', None        , {                                   }),
+            ('button'    , 'C13', 'INPUT'     , { 'pull'    : None, 'active' : True }),
+            ('OC1'       , 'A8' , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH1'            }),
+            ('OC1N'      , 'A7' , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH1N'           }),
         ),
 
 
@@ -285,15 +285,15 @@ TARGETS = (
         '''),
 
         gpios = (
-            ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False       }),
-            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX' }),
-            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX' }),
-            ('swdio'     , 'A13', None        , {                         }),
-            ('swclk'     , 'A14', None        , {                         }),
-            ('button'    , 'C13', 'INPUT'     , { 'pull'    : 'UP'        }),
-            ('sck'       , 'B2' , 'ALTERNATE' , { 'altfunc' : 'SPI2_SCK'  }),
-            ('mosi'      , 'B15', 'ALTERNATE' , { 'altfunc' : 'SPI2_MOSI' }),
-            ('miso'      , 'C2' , 'ALTERNATE' , { 'altfunc' : 'SPI2_MISO' }),
+            ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                 }),
+            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'           }),
+            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'           }),
+            ('swdio'     , 'A13', None        , {                                   }),
+            ('swclk'     , 'A14', None        , {                                   }),
+            ('button'    , 'C13', 'INPUT'     , { 'pull'    : None, 'active' : True }),
+            ('sck'       , 'B2' , 'ALTERNATE' , { 'altfunc' : 'SPI2_SCK'            }),
+            ('mosi'      , 'B15', 'ALTERNATE' , { 'altfunc' : 'SPI2_MOSI'           }),
+            ('miso'      , 'C2' , 'ALTERNATE' , { 'altfunc' : 'SPI2_MISO'           }),
         ),
 
 
