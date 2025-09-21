@@ -1700,6 +1700,8 @@
             #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__button C
             #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__button 13
             #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__button
+            #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__nss B
+            #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__nss 1
             #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__sck B
             #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__sck 2
             #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__mosi B
@@ -1720,7 +1722,12 @@
                 AFSEL2   , 7            ,
                 AFSEL3   , 7            ,
             );
-            CMSIS_WRITE(GPIO_AFRL, GPIOB->AFR[0], AFSEL2, 6);
+            CMSIS_WRITE
+            (
+                GPIO_AFRL, GPIOB->AFR[0],
+                AFSEL1   , 5            ,
+                AFSEL2   , 6            ,
+            );
             CMSIS_WRITE(GPIO_AFRH, GPIOB->AFR[1], AFSEL15, 5);
             CMSIS_WRITE(GPIO_AFRL, GPIOC->AFR[0], AFSEL2, 5);
             CMSIS_SET
@@ -1733,6 +1740,7 @@
             CMSIS_SET
             (
                 GPIOB , MODER,
+                MODE1 , 0b10 ,
                 MODE2 , 0b10 ,
                 MODE15, 0b10 ,
             );

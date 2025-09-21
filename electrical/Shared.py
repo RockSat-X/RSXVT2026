@@ -291,6 +291,7 @@ TARGETS = (
             ('swdio'     , 'A13', None        , {                                   }),
             ('swclk'     , 'A14', None        , {                                   }),
             ('button'    , 'C13', 'INPUT'     , { 'pull'    : None, 'active' : True }),
+            ('nss'       , 'B1' , 'ALTERNATE' , { 'altfunc' : 'SPI2_NSS'            }),
             ('sck'       , 'B2' , 'ALTERNATE' , { 'altfunc' : 'SPI2_SCK'            }),
             ('mosi'      , 'B15', 'ALTERNATE' , { 'altfunc' : 'SPI2_MOSI'           }),
             ('miso'      , 'C2' , 'ALTERNATE' , { 'altfunc' : 'SPI2_MISO'           }),
