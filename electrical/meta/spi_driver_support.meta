@@ -22,6 +22,9 @@
             [SPIHandle_primary] = { .SPIx = SPI2, .NVICInterrupt_SPIx = NVICInterrupt_SPI2, .STPY_SPIx_KERNEL_SOURCE = STPY_SPI2_KERNEL_SOURCE, .STPY_SPIx_BYPASS_DIVIDER = STPY_SPI2_BYPASS_DIVIDER, .STPY_SPIx_DIVIDER = STPY_SPI2_DIVIDER, .SPIx_RESET = (struct CMSISTuple) { &RCC->APB1LRSTR, CONCAT(RCC_, APB1LRSTR_SPI2RST_Pos), CONCAT(RCC_, APB1LRSTR_SPI2RST_Msk) }, .SPIx_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_SPI2EN_Pos), CONCAT(RCC_, APB1LENR_SPI2EN_Msk) }, .SPIx_KERNEL_SOURCE = (struct CMSISTuple) { &RCC->CCIPR3, CONCAT(RCC_, CCIPR3_SPI2SEL_Pos), CONCAT(RCC_, CCIPR3_SPI2SEL_Msk) } },
         };
 #endif
+#if TARGET_NAME_IS_DemoTimekeeping
+    #error Target "DemoTimekeeping" cannot use the SPI driver without first specifying the peripheral instances to have handles for.
+#endif
 #undef _EXPAND_HANDLE
 #define _EXPAND_HANDLE\
     \
@@ -59,4 +62,6 @@
         _SPI_update_entirely(SPIHandle_primary);
     }
 
+#endif
+#if TARGET_NAME_IS_DemoTimekeeping
 #endif
