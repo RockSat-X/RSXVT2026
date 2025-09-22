@@ -31,9 +31,19 @@ main(void)
 
     for (;;)
     {
-        stlink_tx("Sorry! The SPI driver is to be implemented. Come back later!\n");
+
+        enum SPIDriverError error =
+            SPI_blocking_transfer
+            (
+                SPIHandle_primary,
+                (u8[]) { 0xDE, 0xAD, 0xBE, 0xEF },
+                (u8[4]) {0},
+                4
+            );
+
         GPIO_TOGGLE(led_green);
         spinlock_nop(100'000'000);
+
     }
 
 }
