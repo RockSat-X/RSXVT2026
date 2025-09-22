@@ -76,7 +76,6 @@
     auto const UXARTx_ENABLE = UXART_TABLE[handle].UXARTx_ENABLE;\
     auto const UXARTx_KERNEL_SOURCE = UXART_TABLE[handle].UXARTx_KERNEL_SOURCE;\
 
-
 #if TARGET_NAME_IS_SandboxNucleoH7S3L8
 
     static void

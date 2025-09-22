@@ -396,7 +396,6 @@
             #define STPY_UART8_KERNEL_SOURCE 0b000
             #define STPY_USART3_BAUD_DIVIDER 150
 
-
         }
     #endif
     #undef STPY_IMPLEMENTATION
@@ -739,7 +738,6 @@
 
             #define STPY_USART2_KERNEL_SOURCE 0b000
             #define STPY_USART2_BAUD_DIVIDER 250
-
 
         }
     #endif
@@ -1130,7 +1128,6 @@
             #define STPY_I2C1_SCLH 250
             #define STPY_I2C1_SCLL 250
 
-
         }
     #endif
     #undef STPY_IMPLEMENTATION
@@ -1492,7 +1489,6 @@
             #define STPY_GLOBAL_TIMER_PRESCALER false
             #define STPY_TIM1_DIVIDER (239 - 1)
             #define STPY_TIM1_MODULATION (65377 - 1)
-
 
         }
     #endif
@@ -1896,7 +1892,6 @@
             #define STPY_SPI2_KERNEL_SOURCE 0b001
             #define STPY_SPI2_BYPASS_DIVIDER false
             #define STPY_SPI2_DIVIDER 0b111
-
 
         }
     #endif
