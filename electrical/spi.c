@@ -53,7 +53,6 @@ enum SPIDriverState : u32
 
 
 
-
 enum SPIDriverError : u32
 {
     SPIDriverError_none,
@@ -64,8 +63,8 @@ enum SPIDriverError : u32
 struct SPIDriver
 {
     volatile enum SPIDriverState state;
-    u8*                          tx_pointer;
-    u8*                          rx_pointer;
+    u8*                          tx_buffer;
+    u8*                          rx_buffer;
     i32                          amount;
     i32                          tx_progress;
     i32                          rx_progress;
@@ -86,8 +85,8 @@ static useret enum SPIDriverError
 SPI_blocking_transfer
 (
     enum SPIHandle handle,
-    u8*            tx_pointer,
-    u8*            rx_pointer,
+    u8*            tx_buffer,
+    u8*            rx_buffer,
     i32            amount
 )
 {
@@ -98,10 +97,10 @@ SPI_blocking_transfer
 
     // Validation.
 
-    if (!tx_pointer)
+    if (!tx_buffer)
         panic;
 
-    if (!rx_pointer)
+    if (!rx_buffer)
         panic;
 
     if (amount <= 0)
@@ -116,8 +115,8 @@ SPI_blocking_transfer
         case SPIDriverState_standby:
         {
 
-            driver->tx_pointer  = tx_pointer;
-            driver->rx_pointer  = rx_pointer;
+            driver->tx_buffer   = tx_buffer;
+            driver->rx_buffer   = rx_buffer;
             driver->amount      = amount;
             driver->tx_progress = 0;
             driver->rx_progress = 0;
@@ -255,10 +254,15 @@ _SPI_update_once(enum SPIHandle handle)
     };
     enum SPIInterruptEvent interrupt_event  = {0};
     u32                    interrupt_status = SPIx->SR;
+    u32                    interrupt_enable = SPIx->IER;
 
 
 
-    // Data overrun error... somehow?
+    // There's new data available from the slave but the RX-FIFO
+    // is full. However, this shouldn't be possible, because we
+    // prioritize reading from the RX-FIFO first before pushing
+    // data into the TX-FIFO to advance the SPI transfer.
+    // @/pg 2417/sec 52.5.2/`H533rm`.
 
     if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, OVR))
     {
@@ -267,7 +271,11 @@ _SPI_update_once(enum SPIHandle handle)
 
 
 
-    // Data underrun error... somehow?
+    // The hardware attempted to read from the TX-FIFO to transmit
+    // the data, but the TX-FIFO was empty. This shouldn't be
+    // possible, however, because this is only during
+    // slave-transmitter mode.
+    // @/pg 2418/sec 52.5.2/`H533rm`.
 
     else if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, UDR))
     {
@@ -276,7 +284,10 @@ _SPI_update_once(enum SPIHandle handle)
 
 
 
-    // A packet is available to read from the FIFO?
+    // There is a word available to be popped from the RX-FIFO.
+    // We must prioritize reading from the RX-FIFO first before
+    // we push any new data in the TX-FIFO so we can avoid a
+    // data overrun situation.
 
     else if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, RXP))
     {
@@ -285,12 +296,18 @@ _SPI_update_once(enum SPIHandle handle)
 
 
 
-    // A packet of data can be written to the FIFO (and should be written)?
+    // The next word can be pushed into the TX-FIFO.
+    // When we have pushed all the data that's needed for the
+    // transfer, the TXTF status gets asserted and disables
+    // the TXP interrupt; nonetheless, the TXP status can still
+    // be set, so we have to make sure there's actually new data
+    // to even be pushed into the TX-FIFO.
+    // @/pg 2458/sec 52.11.6/`H533rm`.
 
     else if
     (
         CMSIS_GET_FROM(interrupt_status, SPIx, SR, TXP) &&
-        CMSIS_GET(SPIx, IER, TXPIE)
+        CMSIS_GET_FROM(interrupt_enable, SPIx, IER, TXPIE)
     )
     {
         interrupt_event = SPIInterruptEvent_data_needs_to_be_written;
@@ -298,7 +315,16 @@ _SPI_update_once(enum SPIHandle handle)
 
 
 
-    // All data has been sent/received for the transfer?
+    // The last bit of the last word has been sent out. Note that
+    // this could lead to a potential issue where we disable and
+    // reenable the SPI peripheral before the last bit is sampled
+    // properly by the receiver. The most robust workaround this is
+    // probably the one suggested by the errata where we insert a
+    // delay between EOT and the disabling of SPI; however, this
+    // issue is pretty niche, and most of the time does not manifest.
+    // If data corrupt crops up and we find this to be the cause, we
+    // can implement a delay here somewhere.
+    // @/pg 26/sec 2.16.2/`H533er`.
 
     else if (CMSIS_GET_FROM(interrupt_status, SPI, SR, EOT))
     {
@@ -318,6 +344,9 @@ _SPI_update_once(enum SPIHandle handle)
             if (interrupt_event)
                 panic;
 
+            if (interrupt_status & interrupt_enable)
+                panic;
+
             return SPIUpdateOnce_yield;
 
         } break;
@@ -332,14 +361,32 @@ _SPI_update_once(enum SPIHandle handle)
             if (interrupt_event)
                 panic;
 
+            if (interrupt_status & interrupt_enable)
+                panic;
 
-            // TODO Asserts.
+            if (CMSIS_GET(SPIx, CR1, CSTART))
+                panic;
 
-            CMSIS_SET(SPIx, CR2, TSIZE , driver->amount);
-            CMSIS_SET(SPIx, CR1, SPE   , false         ); // TODO Explain.
-            CMSIS_SET(SPIx, CR1, SPE   , true          );
-            CMSIS_SET(SPIx, CR1, CSTART, true          );
-            CMSIS_SET // TODO Explain.
+            // @/pg 2382/tbl 569/`H533rm`.
+            if (!(0 <= driver->amount && driver->amount <= 65535))
+                panic;
+
+
+
+            // We have to disable and renable the SPI peripheral
+            // between every transaction since this is the way to
+            // "restart the internal state machine properly".
+            // @/pg 2413/sec 52.42.12/`H533rm`.
+
+            CMSIS_SET(SPIx, CR1, SPE, false);
+            {
+                CMSIS_SET(SPIx, CR2, TSIZE, driver->amount);
+            }
+            CMSIS_SET(SPIx, CR1, SPE, true);
+
+
+
+            CMSIS_SET
             (
                 SPIx , IER , // Enable interrupts for:
                 OVRIE, true, //     - Overrun error.
@@ -348,6 +395,12 @@ _SPI_update_once(enum SPIHandle handle)
                 TXPIE, true, //     - FIFO has space for a packet to be sent; gets cleared when TXTF happens.
                 RXPIE, true, //     - FIFO received a packet to be read.
             );
+
+
+
+            // Begin the transfer!
+
+            CMSIS_SET(SPIx, CR1, CSTART, true);
 
             driver->state = SPIDriverState_transferring;
 
@@ -366,18 +419,26 @@ _SPI_update_once(enum SPIHandle handle)
 
             case SPIInterruptEvent_none:
             {
+
+                if (interrupt_status & interrupt_enable)
+                    panic;
+
                 return SPIUpdateOnce_yield;
+
             } break;
 
 
 
-            // TODO.
+            // Pop a word from the RX-FIFO.
 
             case SPIInterruptEvent_data_available_to_read:
             {
 
-                driver->rx_pointer[driver->rx_progress]  = *(u8*) &SPIx->RXDR;
-                driver->rx_progress                     += 1;
+                if (!(0 <= driver->rx_progress && driver->rx_progress < driver->amount))
+                    panic;
+
+                driver->rx_buffer[driver->rx_progress]  = *(u8*) &SPIx->RXDR;
+                driver->rx_progress                    += 1;
 
                 return SPIUpdateOnce_again;
 
@@ -385,24 +446,37 @@ _SPI_update_once(enum SPIHandle handle)
 
 
 
-            // TODO.
+            // Push a word into the TX-FIFO.
 
             case SPIInterruptEvent_data_needs_to_be_written:
             {
 
-                *(u8*) &SPIx->TXDR   = driver->tx_pointer[driver->tx_progress];
+                if (!(0 <= driver->tx_progress && driver->tx_progress < driver->amount))
+                    panic;
+
+                *(u8*) &SPIx->TXDR   = driver->tx_buffer[driver->tx_progress];
                 driver->tx_progress += 1;
 
 
 
                 // Once we have finished pushing all the data for the transfer
                 // into the FIFO, the TXTF interrupt flag gets asserted and the
-                // TXPIE interrupt automatically gets disabled.
+                // TXP interrupt automatically gets disabled.
 
                 if (driver->tx_progress == driver->amount)
                 {
+
+                    if (!CMSIS_GET(SPIx, SR, TXTF))
+                        panic; // Should've been asserted.
+
+                    if (CMSIS_GET(SPIx, IER, TXPIE))
+                        panic; // Should've been cleared.
+
                     CMSIS_SET(SPIx, IFCR, TXTFC, true); // Clear the asserted TXTF flag.
+
                 }
+
+
 
                 return SPIUpdateOnce_again;
 
@@ -410,14 +484,18 @@ _SPI_update_once(enum SPIHandle handle)
 
 
 
-            // TODO.
+            // We can now conclude the SPI transfer.
 
             case SPIInterruptEvent_end_of_transfer:
             {
 
                 CMSIS_SET(SPIx, IFCR, EOTC, true); // Clear the flag.
 
-                // TODO Asserts.
+                if (driver->rx_progress != driver->amount)
+                    panic;
+
+                if (driver->tx_progress != driver->amount)
+                    panic;
 
                 driver->state = SPIDriverState_standby;
 
