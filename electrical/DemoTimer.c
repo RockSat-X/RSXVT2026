@@ -65,6 +65,15 @@ main(void)
 
 
 
+    // Trigger an update event so that the shadow registers
+    // ARR, PSC, and CCRx are what we initialize them to be.
+    // The hardware uses shadow registers in order for updates
+    // to these registers not result in a corrupt timer output.
+
+    CMSIS_SET(TIM1, EGR, UG, true);
+
+
+
     // Enable the OC1 pin output.
 
     CMSIS_SET(TIM1, CCER, CC1E, true);
