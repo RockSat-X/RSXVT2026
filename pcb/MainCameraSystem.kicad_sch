@@ -1420,7 +1420,7 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "Connector:USB_B"
+		(symbol "Connector:USB_B_Micro"
 			(pin_names
 				(offset 1.016)
 			)
@@ -1436,7 +1436,7 @@
 					(justify left)
 				)
 			)
-			(property "Value" "USB_B"
+			(property "Value" "USB_B_Micro"
 				(at -5.08 8.89 0)
 				(effects
 					(font
@@ -1463,7 +1463,7 @@
 					(hide yes)
 				)
 			)
-			(property "Description" "USB Type B connector"
+			(property "Description" "USB Micro Type B connector"
 				(at 0 0 0)
 				(effects
 					(font
@@ -1472,7 +1472,7 @@
 					(hide yes)
 				)
 			)
-			(property "ki_keywords" "connector USB"
+			(property "ki_keywords" "connector USB micro"
 				(at 0 0 0)
 				(effects
 					(font
@@ -1490,7 +1490,7 @@
 					(hide yes)
 				)
 			)
-			(symbol "USB_B_0_1"
+			(symbol "USB_B_Micro_0_1"
 				(rectangle
 					(start -5.08 -7.62)
 					(end 5.08 7.62)
@@ -1504,8 +1504,8 @@
 				)
 				(polyline
 					(pts
-						(xy -4.064 4.318) (xy -2.286 4.318) (xy -2.286 5.715) (xy -2.667 6.096) (xy -3.683 6.096) (xy -4.064 5.715)
-						(xy -4.064 4.318)
+						(xy -4.699 5.842) (xy -4.699 5.588) (xy -4.445 4.826) (xy -4.445 4.572) (xy -1.651 4.572) (xy -1.651 4.826)
+						(xy -1.397 5.588) (xy -1.397 5.842) (xy -4.699 5.842)
 					)
 					(stroke
 						(width 0)
@@ -1515,9 +1515,10 @@
 						(type none)
 					)
 				)
-				(rectangle
-					(start -3.81 5.588)
-					(end -2.54 4.572)
+				(polyline
+					(pts
+						(xy -4.318 5.588) (xy -1.778 5.588) (xy -2.032 4.826) (xy -4.064 4.826) (xy -4.318 5.588)
+					)
 					(stroke
 						(width 0)
 						(type default)
@@ -1651,8 +1652,19 @@
 						(type none)
 					)
 				)
+				(rectangle
+					(start 5.08 -5.207)
+					(end 4.318 -4.953)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
 			)
-			(symbol "USB_B_1_1"
+			(symbol "USB_B_Micro_1_1"
 				(pin passive line
 					(at -2.54 -10.16 90)
 					(length 2.54)
@@ -1663,7 +1675,7 @@
 							)
 						)
 					)
-					(number "5"
+					(number "6"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -1681,7 +1693,7 @@
 							)
 						)
 					)
-					(number "4"
+					(number "5"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -1736,6 +1748,24 @@
 						)
 					)
 					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 7.62 -5.08 180)
+					(length 2.54)
+					(name "ID"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -6495,7 +6525,7 @@
 		(at 59.69 250.19)
 		(diameter 0)
 		(color 0 0 0 0)
-		(uuid "4c953c6d-6473-475d-9333-9d5f8fc7a256")
+		(uuid "3a25370b-c6db-455f-97cf-23499341071d")
 	)
 	(junction
 		(at 231.14 105.41)
@@ -6524,6 +6554,10 @@
 	(no_connect
 		(at 115.57 229.87)
 		(uuid "042cd0fe-dffb-4420-a916-12a89fca5d2d")
+	)
+	(no_connect
+		(at 67.31 245.11)
+		(uuid "22a52496-3c24-4eb5-8761-0a7345c460be")
 	)
 	(no_connect
 		(at 332.74 152.4)
@@ -7764,6 +7798,86 @@
 		)
 	)
 	(symbol
+		(lib_id "Connector:USB_B_Micro")
+		(at 59.69 240.03 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "3283386e-3c47-40b2-9fa1-5367bffcdb5a")
+		(property "Reference" "J4"
+			(at 59.69 227.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "USB_B_Micro"
+			(at 59.69 229.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Connector_USB:USB_Micro-B_Molex-105017-0001"
+			(at 63.5 241.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 63.5 241.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "USB Micro Type B connector"
+			(at 59.69 240.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "b4f95371-c4ec-4829-b457-7e65cd54b6ea")
+		)
+		(pin "4"
+			(uuid "54741d73-8c52-46f0-b98b-1592ecf759c6")
+		)
+		(pin "1"
+			(uuid "6957d9d7-3669-4c9c-9158-79ecd0fbc4b7")
+		)
+		(pin "6"
+			(uuid "7632506c-9a04-4d62-8d10-be42ac9ab34f")
+		)
+		(pin "3"
+			(uuid "2a733d88-e0bf-450b-9145-8759f30bc78e")
+		)
+		(pin "5"
+			(uuid "7ddff7cd-fd7e-4e3e-899a-5eb6c0d5e52b")
+		)
+		(instances
+			(project ""
+				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
+					(reference "J4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:+3.3V")
 		(at 332.74 177.8 90)
 		(unit 1)
@@ -8223,7 +8337,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
 			(at 165.608 251.46 90)
 			(effects
 				(font
@@ -8428,7 +8542,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_1206_3216Metric_Pad1.42x1.75mm_HandSolder"
 			(at 157.48 259.08 0)
 			(effects
 				(font
@@ -8546,83 +8660,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Connector:USB_B")
-		(at 59.69 240.03 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "60159a44-fe10-46f5-978a-c569b3fb7d15")
-		(property "Reference" "J4"
-			(at 59.69 227.33 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "USB_B"
-			(at 59.69 229.87 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 63.5 241.3 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 63.5 241.3 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "USB Type B connector"
-			(at 59.69 240.03 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "6ba2d469-fd01-4512-b8d1-2b0c75e554b6")
-		)
-		(pin "5"
-			(uuid "9604a6fb-b676-47d4-9286-835378de6e57")
-		)
-		(pin "4"
-			(uuid "86229b48-172d-4756-a178-239f4b2a06c2")
-		)
-		(pin "3"
-			(uuid "2b783f17-641b-4bae-8031-bd63f5c8aabb")
-		)
-		(pin "1"
-			(uuid "d6a38ee7-1048-4ac7-b88a-5e7b6d5ad4b1")
-		)
-		(instances
-			(project ""
-				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "J4")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:R")
 		(at 157.48 251.46 0)
 		(unit 1)
@@ -8649,7 +8686,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
 			(at 155.702 251.46 90)
 			(effects
 				(font
@@ -9315,7 +9352,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_1206_3216Metric_Pad1.42x1.75mm_HandSolder"
 			(at 163.83 259.08 0)
 			(effects
 				(font
