@@ -1514,13 +1514,13 @@
         enum NVICInterrupt : u32
         {
             NVICInterrupt_USART2 = USART2_IRQn,
-            NVICInterrupt_SPI1   = SPI1_IRQn,
+            NVICInterrupt_SPI2   = SPI2_IRQn,
         };
         static constexpr u32 NVICInterrupt_COUNT = 2;
         extern void INTERRUPT_BusFault(void);
         extern void INTERRUPT_Default(void);
         extern void INTERRUPT_Reset(void);
-        extern void INTERRUPT_SPI1(void);
+        extern void INTERRUPT_SPI2(void);
         extern void INTERRUPT_USART2(void);
         extern void INTERRUPT_UsageFault(void);
         void (* const INTERRUPT_VECTOR_TABLE[])(void) __attribute__((used, section(".INTERRUPT_VECTOR_TABLE"))) =
@@ -1596,8 +1596,8 @@
                 INTERRUPT_Default            , // [ 52] I2C1_ER
                 INTERRUPT_Default            , // [ 53] I2C2_EV
                 INTERRUPT_Default            , // [ 54] I2C2_ER
-                INTERRUPT_SPI1               , // [ 55] SPI1
-                INTERRUPT_Default            , // [ 56] SPI2
+                INTERRUPT_Default            , // [ 55] SPI1
+                INTERRUPT_SPI2               , // [ 56] SPI2
                 INTERRUPT_Default            , // [ 57] SPI3
                 INTERRUPT_Default            , // [ 58] USART1
                 INTERRUPT_USART2             , // [ 59] USART2
@@ -1678,7 +1678,7 @@
         #define INTERRUPT_BusFault extern void INTERRUPT_BusFault(void)
         #define INTERRUPT_Default extern void INTERRUPT_Default(void)
         #define INTERRUPT_Reset extern void INTERRUPT_Reset(void)
-        #define INTERRUPT_SPI1 extern void INTERRUPT_SPI1(void)
+        #define INTERRUPT_SPI2 extern void INTERRUPT_SPI2(void)
         #define INTERRUPT_USART2 extern void INTERRUPT_USART2(void)
         #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
         extern void
@@ -1700,10 +1700,19 @@
             #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__button C
             #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__button 13
             #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__button
+            #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__nss B
+            #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__nss 1
+            #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__sck B
+            #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__sck 2
+            #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__mosi B
+            #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__mosi 15
+            #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__miso C
+            #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__miso 2
             CMSIS_SET
             (
                 RCC    , AHB2ENR,
                 GPIOAEN, true   ,
+                GPIOBEN, true   ,
                 GPIOCEN, true   ,
             );
             CMSIS_SET(GPIOA, ODR, OD5, false);
@@ -1713,6 +1722,14 @@
                 AFSEL2   , 7            ,
                 AFSEL3   , 7            ,
             );
+            CMSIS_WRITE
+            (
+                GPIO_AFRL, GPIOB->AFR[0],
+                AFSEL1   , 5            ,
+                AFSEL2   , 6            ,
+            );
+            CMSIS_WRITE(GPIO_AFRH, GPIOB->AFR[1], AFSEL15, 5);
+            CMSIS_WRITE(GPIO_AFRL, GPIOC->AFR[0], AFSEL2, 5);
             CMSIS_SET
             (
                 GPIOA, MODER,
@@ -1720,7 +1737,19 @@
                 MODE3, 0b10 ,
                 MODE5, 0b01 ,
             );
-            CMSIS_SET(GPIOC, MODER, MODE13, 0b00);
+            CMSIS_SET
+            (
+                GPIOB , MODER,
+                MODE1 , 0b10 ,
+                MODE2 , 0b10 ,
+                MODE15, 0b10 ,
+            );
+            CMSIS_SET
+            (
+                GPIOC , MODER,
+                MODE2 , 0b10 ,
+                MODE13, 0b00 ,
+            );
 
 
 
@@ -1730,8 +1759,8 @@
 
             static_assert(0 <= 0 && 0 < (1 << __NVIC_PRIO_BITS));
             NVIC->IPR[NVICInterrupt_USART2] = 0 << __NVIC_PRIO_BITS;
-            static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
-            NVIC->IPR[NVICInterrupt_SPI1] = 1 << __NVIC_PRIO_BITS;
+            static_assert(0 <= 2 && 2 < (1 << __NVIC_PRIO_BITS));
+            NVIC->IPR[NVICInterrupt_SPI2] = 2 << __NVIC_PRIO_BITS;
             CMSIS_SET
             (
                 SCB        , SHCSR,
@@ -1809,8 +1838,28 @@
                 PLL1N, 125 - 1 ,
                 PLL1P, 2 - 1   ,
             );
-            CMSIS_SET(RCC, CR, PLL1ON, true);
+            CMSIS_SET
+            (
+                RCC    , PLL2CFGR,
+                PLL2SRC, 0b01    ,
+                PLL2M  , 3       ,
+                PLL2RGE, 3       ,
+                PLL2PEN, true    ,
+            );
+            CMSIS_SET
+            (
+                RCC  , PLL2DIVR,
+                PLL2N, 12 - 1  ,
+                PLL2P, 128 - 1 ,
+            );
+            CMSIS_SET
+            (
+                RCC   , CR  ,
+                PLL1ON, true,
+                PLL2ON, true,
+            );
             while (!CMSIS_GET(RCC, CR, PLL1RDY));
+            while (!CMSIS_GET(RCC, CR, PLL2RDY));
 
 
 
@@ -1839,6 +1888,16 @@
             #define STPY_USART2_BAUD_DIVIDER 250
 
 
+
+            //////////////////////////////////// SPI2 ////////////////////////////////////
+
+
+
+            #define STPY_SPI2_KERNEL_SOURCE 0b001
+            #define STPY_SPI2_BYPASS_DIVIDER false
+            #define STPY_SPI2_DIVIDER 0b111
+
+
         }
     #endif
     #undef STPY_IMPLEMENTATION
@@ -1849,7 +1908,9 @@
     #define STPY_CSI_CK        (  4'000'000)
     #define STPY_AXI_AHB_CK    (250'000'000)
     #define STPY_PLL1P_CK      (250'000'000)
+    #define STPY_PLL2P_CK      (  1'000'000)
     #define STPY_PLL1_VCO_FREQ (500'000'000)
+    #define STPY_PLL2_VCO_FREQ (128'000'000)
     #define STPY_APB1_CK       (250'000'000)
     #define STPY_APB2_CK       (250'000'000)
     #define STPY_APB3_CK       (250'000'000)

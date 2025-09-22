@@ -285,18 +285,22 @@ TARGETS = (
         '''),
 
         gpios = (
-            ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False              }),
-            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'        }),
-            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'        }),
-            ('swdio'     , 'A13', None        , {                                }),
-            ('swclk'     , 'A14', None        , {                                }),
-            ('button'    , 'C13', 'INPUT'     , { 'pull' : None, 'active' : True }),
+            ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                 }),
+            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'           }),
+            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'           }),
+            ('swdio'     , 'A13', None        , {                                   }),
+            ('swclk'     , 'A14', None        , {                                   }),
+            ('button'    , 'C13', 'INPUT'     , { 'pull'    : None, 'active' : True }),
+            ('nss'       , 'B1' , 'ALTERNATE' , { 'altfunc' : 'SPI2_NSS'            }),
+            ('sck'       , 'B2' , 'ALTERNATE' , { 'altfunc' : 'SPI2_SCK'            }),
+            ('mosi'      , 'B15', 'ALTERNATE' , { 'altfunc' : 'SPI2_MOSI'           }),
+            ('miso'      , 'C2' , 'ALTERNATE' , { 'altfunc' : 'SPI2_MISO'           }),
         ),
 
 
         interrupts = (
             ('USART2', 0),
-            ('SPI1'  , 1),
+            ('SPI2'  , 2),
         ),
 
         drivers = {
@@ -304,7 +308,7 @@ TARGETS = (
                 ('stlink', 'USART2'),
             ),
             'SPI' : (
-                ('primary', 'SPI1'),
+                ('primary', 'SPI2'),
             ),
         },
 
@@ -315,11 +319,13 @@ TARGETS = (
             'HSI48_ENABLE' : True,
             'CSI_ENABLE'   : True,
             'PLL1P_CK'     : 250_000_000,
+            'PLL2P_CK'     :   1_000_000,
             'CPU_CK'       : 250_000_000,
             'APB1_CK'      : 250_000_000,
             'APB2_CK'      : 250_000_000,
             'APB3_CK'      : 250_000_000,
             'USART2_BAUD'  : STLINK_BAUD,
+            'SPI2_BAUD'    : 3_900,
         },
 
     ),
