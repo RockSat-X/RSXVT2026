@@ -24,8 +24,8 @@
         common_name = 'UXARTx',
         identifiers = (
             'NVICInterrupt_{}',
-            '{}_KERNEL_SOURCE_init',
-            '{}_BRR_BRR_init',
+            'STPY_{}_KERNEL_SOURCE',
+            'STPY_{}_BAUD_DIVIDER',
         ),
         cmsis_tuple_tags = (
             '{}_RESET',
@@ -211,7 +211,7 @@ UXART_init(enum UXARTHandle handle)
 
     // Set the kernel clock source for the peripheral.
 
-    CMSIS_PUT(UXARTx_KERNEL_SOURCE, UXARTx_KERNEL_SOURCE_init);
+    CMSIS_PUT(UXARTx_KERNEL_SOURCE, STPY_UXARTx_KERNEL_SOURCE);
 
 
 
@@ -223,8 +223,8 @@ UXART_init(enum UXARTHandle handle)
 
     // Configure the peripheral.
 
-    CMSIS_SET(UXARTx, BRR, BRR, UXARTx_BRR_BRR_init); // Set baud rate.
-    CMSIS_SET(UXARTx, CR3, EIE, true               ); // Trigger interrupt upon error.
+    CMSIS_SET(UXARTx, BRR, BRR, STPY_UXARTx_BAUD_DIVIDER); // Set baud rate.
+    CMSIS_SET(UXARTx, CR3, EIE, true                    ); // Trigger interrupt upon error.
     CMSIS_SET
     (
         UXARTx, CR1 ,

@@ -1,6 +1,6 @@
 // Welcome to the sandbox! Please read the comments at the end of the file.
 
-#include "system/defs.h"
+#include "system.h"
 #include "uxart.c"
 
 
@@ -8,9 +8,9 @@
 extern noret void
 main(void)
 {
-    SYSTEM_init();
-    UXART_init(UXARTHandle_stlink);
 
+    STPY_init();
+    UXART_init(UXARTHandle_stlink);
 
     #if TARGET_USES_FREERTOS
 
@@ -23,13 +23,13 @@ main(void)
 
             // Blink the LED.
 
-            if (GPIO_READ(button)) // @/`Nucleo Buttons`.
+            if (GPIO_ACTIVE(button)) // @/`Nucleo Buttons`.
             {
-                spinlock_nop(100'000'000);
+                spinlock_nop(50'000'000);
             }
             else
             {
-                spinlock_nop(50'000'000);
+                spinlock_nop(100'000'000);
             }
 
             GPIO_TOGGLE(led_green);
@@ -54,6 +54,7 @@ main(void)
         }
 
     #endif
+
 }
 
 
@@ -86,7 +87,7 @@ FREERTOS_TASK(button_observer, 1024, 0)
 
         // @/`Nucleo Buttons`.
 
-        b32 current_button_pressed = !GPIO_READ(button);
+        b32 current_button_pressed = GPIO_ACTIVE(button);
 
 
 
@@ -284,9 +285,8 @@ FREERTOS_TASK(captain_allears, 1024, 0)
 //
 // ... and third, you might notice that `TARGETS` is defined within a Python
 // file, and the truth is that a lot of this codebase is actually written
-// in Python! If you go explore and look at other source files, especially
-// the ones in the <./electrical/system/> directory, there's actually a lot
-// of Python code, most of which is inside C-style comments.
+// in Python! If you go explore and look at other source files, there's actually
+// a lot of Python code, most of which is inside C-style comments.
 //
 // Does this mean we are running Python code
 // on the STM32 microcontrollers?
@@ -481,6 +481,8 @@ FREERTOS_TASK(captain_allears, 1024, 0)
 // You can write your SPI drivers and what not, and then later we worry about
 // how to make sure we can use it in a concurrent-safe way.
 
+
+
 // @/`Nucleo Buttons`:
 //
 // There's two buttons on Nucleo boards: one for reset and one for the
@@ -489,7 +491,6 @@ FREERTOS_TASK(captain_allears, 1024, 0)
 // the user manual or just by inspecting the PCB file of the Nucleo board.
 // The way we define GPIOs is in the file <Shared.py> with the option `gpios`.
 //
-// Note that the way the button is implemented on the Nucleo boards is that
-// pressing it will tie the GPIO to ground. Thus, if we read a high value
-// on the GPIO, then the button is unpressed; if it's zero, then the button
-// is pressed.
+// Note that the way the button is implemented on the Nucleo boards varies;
+// sometimes the button connect the input GPIO to VDD or GND, and sometimes
+// there's a pull resistor and sometimes not.

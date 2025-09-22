@@ -24,7 +24,7 @@ if not (sys.version_info.major == MAJOR and sys.version_info.minor >= MINOR):
 
 # Built-in modules.
 
-import types, shlex, pathlib, shutil, subprocess, time, zlib
+import types, shlex, pathlib, shutil, subprocess, time
 
 
 
@@ -32,17 +32,22 @@ import types, shlex, pathlib, shutil, subprocess, time, zlib
 
 try:
 
-    import deps.pxd.metapreprocessor
-    import deps.pxd.cite
-    from   deps.pxd.ui    import ExitCode
-    from   deps.pxd.log   import log, ANSI, Indent
-    from   deps.pxd.utils import root, justify
+    import deps.stpy.pxd.metapreprocessor
+    import deps.stpy.pxd.cite
+    from   deps.stpy.pxd.ui    import ExitCode
+    from   deps.stpy.pxd.log   import log, ANSI, Indent
+    from   deps.stpy.pxd.utils import root, justify
 
 except ModuleNotFoundError as error:
 
     if 'pxd' not in error.name:
         raise # Likely a bug in the PXD module.
 
+    import traceback
+
+    traceback.print_exc()
+
+    print()
     print(f'[ERROR] Could not import "{error.name}"; maybe the Git submodules need to be initialized/updated? Try doing:')
     print(f'        > git submodule update --init --recursive')
     print(f'        If this still doesn\'t work, please raise an issue.')
@@ -322,7 +327,10 @@ def execute(
     nonzero_exit_code_ok  = False
 ):
 
-    # Determine the shell command we'll be executing based on the operating system.
+
+
+    # Determine the shell commands we'll be
+    # executing based on the operating system.
 
     if cmd is not None and powershell is not None:
         raise RuntimeError(
@@ -334,58 +342,112 @@ def execute(
 
         case 'win32':
             use_powershell = cmd is None and powershell is not None
-            command        = powershell if use_powershell else cmd
+            commands       = powershell if use_powershell else cmd
 
         case _:
-            command        = bash
+            commands       = bash
             use_powershell = False
 
-    if command is None:
-        command = default
+    if commands is None:
+        commands = default
 
-    if command is None:
+    if commands is None:
         raise RuntimeError(
             f'Missing shell command for platform "{sys.platform}"; '
             f'please raise an issue or patch the script yourself.'
         )
 
-    if use_powershell:
-        require('pwsh')
+    if isinstance(commands, str):
+        commands = [commands]
 
 
 
-    # Carry out the shell command.
+    # Process each command to have it be split into shell tokens.
+    # The lexing that's done here is to do a lot of the funny
+    # business involving escaping quotes and what not. To be honest,
+    # it's a little out my depth, mainly because I frankly do not
+    # care enough to get it 100% correct; it working most of the time
+    # is good enough for me.
 
-    lexer                  = shlex.shlex(command)
-    lexer.quotes           = '"'
-    lexer.whitespace_split = True
-    lexer.commenters       = ''
-    lexer_parts            = list(lexer)
-    command                = ' '.join(lexer_parts)
+    for command_i in range(len(commands)):
 
-    log(
-        '{} {}',
-        ANSI(f'$ {lexer_parts[0]}', 'fg_bright_green'),
-        ' '.join(lexer_parts[1:]),
-    )
+        lexer                  = shlex.shlex(commands[command_i])
+        lexer.quotes           = '"'
+        lexer.whitespace_split = True
+        lexer.commenters       = ''
+        commands[command_i]    = list(lexer)
 
-    if use_powershell:
-        command = ['pwsh', '-Command', command]
 
-    try:
-        subprocess_exit_code = subprocess.call(command, shell = True)
-    except KeyboardInterrupt:
-        if keyboard_interrupt_ok:
-            subprocess_exit_code = None
+
+    # Execute each shell command.
+
+    processes = []
+
+    for command_i, command in enumerate(commands):
+
+        if command_i:
+            log()
+
+        log(
+            '{} {}',
+            ANSI(f'$ {command[0]}', 'fg_bright_green'),
+            ' '.join(command[1:]),
+        )
+
+        command = ' '.join(command)
+
+        if use_powershell:
+
+            # On Windows, Python will call CMD.exe
+            # to run the shell command, so we'll
+            # have to invoke PowerShell to run the
+            # command if PowerShell is needed.
+            processes += [subprocess.Popen(['pwsh', '-Command', command], shell = False)]
+
         else:
-            raise
 
-    if subprocess_exit_code and not nonzero_exit_code_ok:
-        log()
-        log(ANSI(f'[ERROR] Shell command exited with a non-zero code of {subprocess_exit_code}.', 'fg_red'))
-        raise ExitCode(subprocess_exit_code)
+            processes += [subprocess.Popen(command, shell = True)]
 
-    return subprocess_exit_code
+
+
+    # Wait on each subprocess to be done.
+
+    for process in processes:
+
+
+
+        # Sometimes commands might stall, so the user
+        # might CTRL-C to kill the subprocess.
+
+        try:
+            subprocess_exit_code = process.wait()
+
+        except KeyboardInterrupt:
+
+            if keyboard_interrupt_ok:
+                subprocess_exit_code = None
+            else:
+                raise
+
+
+
+        # Check results.
+
+        if subprocess_exit_code and not nonzero_exit_code_ok:
+            log()
+            log(ANSI(f'[ERROR] Shell command exited with a non-zero code of {subprocess_exit_code}.', 'fg_red'))
+            raise ExitCode(subprocess_exit_code)
+
+
+
+    # TODO:
+    # For right now, we'll return the exit code for
+    # when there's only one shell command to be executed.
+    # I'd like for this to be more consistent in the future,
+    # however.
+
+    if len(processes) == 1:
+        return subprocess_exit_code
 
 
 
@@ -405,7 +467,7 @@ def ui_verb_hook(verb, parameters):
 
 
 
-ui = deps.pxd.ui.UI(
+ui = deps.stpy.pxd.ui.UI(
     f'{root(pathlib.Path(__file__).name)}',
     f'The command line program (pronounced "clippy").',
     ui_verb_hook,
@@ -426,6 +488,7 @@ def clean(parameters):
 
     directories = [
         BUILD,
+        './electrical/meta',
     ]
 
     for directory in directories:
@@ -499,12 +562,11 @@ def build(parameters):
 
     # Callback of things to do before and after the execution of a meta-directive.
 
-    elapsed  = 0
-    checksum = 0
+    elapsed = 0
 
     def metadirective_callback(index, meta_directives):
 
-        nonlocal elapsed, checksum
+        nonlocal elapsed
 
 
 
@@ -538,11 +600,10 @@ def build(parameters):
 
         # Record how long it takes to run this meta-directive.
 
-        start    = time.time()
-        output   = yield
-        end      = time.time()
-        delta    = end - start
-        checksum = zlib.adler32(output.encode('utf-8'), checksum)
+        start  = time.time()
+        output = yield
+        end    = time.time()
+        delta  = end - start
 
         if delta > 0.050:
             log(ANSI(f'^ {delta :.3}s', 'fg_yellow')) # Warn that this meta-directive took quite a while to execute.
@@ -556,111 +617,98 @@ def build(parameters):
     log_header('Meta-preprocessing')
 
     try:
-        deps.pxd.metapreprocessor.do(
-            output_directory_path = root(BUILD, 'meta'),
+        deps.stpy.pxd.metapreprocessor.do(
+            output_directory_path = root('./electrical/meta'),
             source_file_paths     = metapreprocessor_file_paths,
             callback              = metadirective_callback,
         )
-    except deps.pxd.metapreprocessor.MetaError as error:
+    except deps.stpy.pxd.metapreprocessor.MetaError as error:
         error.dump()
         raise ExitCode(1)
 
     log()
-    log(ANSI(f'# Meta-preprocessor : {checksum :09_X} : {elapsed :.3f}s.', 'fg_magenta'))
+    log(ANSI(f'# Meta-preprocessor : {elapsed :.3f}s.', 'fg_magenta'))
 
     if parameters.metapreprocess_only:
         raise ExitCode(0)
 
 
 
-    # Compile each source.
+    # Build the targets in parallel.
 
     require(
         'arm-none-eabi-gcc',
-    )
-
-    for target in targets:
-
-        log_header(f'Compiling "{target.name}"')
-
-        for source_i, source in enumerate(target.source_file_paths):
-
-            object = root(BUILD, target.name, source.stem + '.o')
-
-            object.parent.mkdir(parents = True, exist_ok = True)
-
-            if source_i:
-                log()
-
-            execute(f'''
-                arm-none-eabi-gcc
-                    -o "{object.as_posix()}"
-                    -c "{source.as_posix()}"
-                    {target.compiler_flags}
-            ''')
-
-
-
-    # Link the firmware.
-
-    require(
         'arm-none-eabi-cpp',
         'arm-none-eabi-objcopy',
         'arm-none-eabi-gdb',
     )
 
-    for target in targets:
 
-        log_header(f'Linking "{target.name}"')
 
-        # Preprocess the linker file.
-        execute(f'''
+    log_header(f'Build Artifact Folder')
+
+    execute(
+        bash = [
+            f'mkdir -p {root(BUILD, target.name)}'
+            for target in targets
+        ],
+        cmd = [
+            f'''
+                if not exist "{root(BUILD, target.name)}" (
+                    mkdir {root(BUILD, target.name)}
+                )
+            '''
+            for target in targets
+        ],
+    )
+
+
+
+    log_header(f'Linker File Preprocessing')
+    execute([
+        f'''
             arm-none-eabi-cpp
                 {target.compiler_flags}
                 -E
                 -x c
                 -o "{root(BUILD, target.name, 'link.ld').as_posix()}"
-                "{root('./electrical/system/link.ld').as_posix()}"
-        ''')
+                "{root('./electrical/link.ld').as_posix()}"
+        '''
+        for target in targets
+    ])
 
-        log()
 
-        # Link object files.
-        execute(f'''
+
+    log_header(f'Building')
+    execute([
+        f'''
             arm-none-eabi-gcc
-                -o "{root(BUILD, target.name, target.name + '.elf').as_posix()}"
+                {' '.join(f'"{source}"' for source in target.source_file_paths)}
+                -o "{root('./build', target.name, target.name + '.elf')}"
                 -T "{root(BUILD, target.name, 'link.ld').as_posix()}"
-                {' '.join(
-                    f'"{root(BUILD, target.name, source.stem + '.o').as_posix()}"'
-                    for source in target.source_file_paths
-                )}
+                {target.compiler_flags}
                 {target.linker_flags}
-        ''')
+        '''
+        for target in targets
+    ])
 
-        log()
 
-        # Turn ELF into raw binary.
-        execute(f'''
+
+    log_header(f'Binary Conversion')
+    execute([
+        f'''
             arm-none-eabi-objcopy
                 -S
                 -O binary
                 "{root(BUILD, target.name, target.name + '.elf').as_posix()}"
                 "{root(BUILD, target.name, target.name + '.bin').as_posix()}"
-        ''')
+        '''
+        for target in targets
+    ])
 
 
-
-    # Done!
 
     log_header(f'Hip-hip hooray! Built {', '.join(f'"{target.name}"' for target in targets)}!')
-
-    checksum = 0
-    for target in targets:
-        checksum = zlib.adler32(root('./build', target.name, target.name + '.bin').read_bytes())
-        log(ANSI(
-            f'# {target.name.ljust(max(len(t.name) for t in targets))} : {checksum :08_X}',
-            'fg_magenta'
-        ))
 
 
 
@@ -674,7 +722,7 @@ def build(parameters):
     },
     {
         'name'        : 'target',
-        'description' : 'Name of the target MCU to program.',
+        'description' : 'Name of the program to flash the target MCU with.',
         'type'        : { target.name : target for target in TARGETS },
         'default'     : TARGETS[0] if len(TARGETS) == 1 else ...,
     },
@@ -914,7 +962,7 @@ def _(parameters):
 
 
 
-ui(deps.pxd.cite.ui)
+ui(deps.stpy.pxd.cite.ui)
 
 
 

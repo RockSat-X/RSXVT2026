@@ -13,3 +13,6 @@ data/
 _autosave-*.kicad_pcb
 fp-info-cache
 \#auto_saved_files\#
+
+# SolidWorks.
+~$*

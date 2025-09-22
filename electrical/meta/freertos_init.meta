@@ -1,0 +1,36 @@
+#if TARGET_NAME_IS_SandboxNucleoH7S3L8
+    enum FreeRTOSTask : u32
+    {
+        FreeRTOSTask_button_observer,
+        FreeRTOSTask_green_blinker,
+        FreeRTOSTask_red_blinker,
+        FreeRTOSTask_yellow_blinker,
+        FreeRTOSTask_yapper,
+        FreeRTOSTask_captain_allears,
+    };
+    static constexpr u32 FreeRTOSTask_COUNT = 6;
+#endif
+#if TARGET_NAME_IS_SandboxNucleoH533RE
+    enum FreeRTOSTask : u32
+    {
+        FreeRTOSTask_button_observer,
+        FreeRTOSTask_green_blinker,
+        FreeRTOSTask_red_blinker,
+        FreeRTOSTask_yellow_blinker,
+        FreeRTOSTask_yapper,
+        FreeRTOSTask_captain_allears,
+    };
+    static constexpr u32 FreeRTOSTask_COUNT = 6;
+#endif
+#if TARGET_NAME_IS_DemoI2C
+    enum FreeRTOSTask : u32;
+    static constexpr u32 FreeRTOSTask_COUNT = 0;
+#endif
+#if TARGET_NAME_IS_DemoTimer
+    enum FreeRTOSTask : u32;
+    static constexpr u32 FreeRTOSTask_COUNT = 0;
+#endif
+#if TARGET_NAME_IS_DemoSPI
+    enum FreeRTOSTask : u32;
+    static constexpr u32 FreeRTOSTask_COUNT = 0;
+#endif

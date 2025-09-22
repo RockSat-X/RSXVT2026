@@ -5,7 +5,9 @@
 @/`H7S3ds`     : STM32H7S3x8 STM32H7S7x8 Data Sheet (November 2024) (DS14359) (Rev 4)
 @/`H533rm`     : STM32H523/33xx, STM32H562/63xx, and STM32H573xx Reference Manual (April 2025) (RM0481) (Rev 4).
 @/`H533ds`     : STM32H533xx Data Sheet (November 2024) (DS14539) (Rev 2).
+@/`H533er`     : STM32H523xx/33xx Errata Sheet (ES0621) (Rev 2) (Feburary 2025).
 @/`LIS2MDL`    : Digital Output Magnetic Sensor Datasheet (DS12144) (Rev 6) (July 2024) (https://www.st.com/resource/en/datasheet/lis2mdl.pdf).
 @/`LSM6DSV16X` : 6-axis IMU with Embedded Sensor Fusion (DS13510) (Rev 4) (May 2023) (https://www.st.com/resource/en/datasheet/lsm6dsv16x.pdf).
 @/`LSM6DSV32X` : 6-axis IMU with 32 G Accelerometer (DS13511) (Rev 2) (February 2024) (https://www.st.com/resource/en/datasheet/lsm6dsv32x.pdf)
 @/`I2C`        : I2C Specification (UM10204) (Rev. 7.0) (1 October 2021) (https://www.nxp.com/docs/en/user-guide/UM10204.pdf).
+@/`MCP2221A`   : MCP2221A Datasheet (https://ww1.microchip.com/downloads/en/DeviceDoc/20005565C.pdf).
