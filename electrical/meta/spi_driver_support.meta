@@ -41,7 +41,6 @@
     auto const SPIx_ENABLE = SPI_TABLE[handle].SPIx_ENABLE;\
     auto const SPIx_KERNEL_SOURCE = SPI_TABLE[handle].SPIx_KERNEL_SOURCE;\
 
-
 #if TARGET_NAME_IS_SandboxNucleoH7S3L8
 #endif
 #if TARGET_NAME_IS_SandboxNucleoH533RE

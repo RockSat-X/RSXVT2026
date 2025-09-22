@@ -8,9 +8,9 @@
 extern noret void
 main(void)
 {
+
     STPY_init();
     UXART_init(UXARTHandle_stlink);
-
 
     #if TARGET_USES_FREERTOS
 
@@ -54,6 +54,7 @@ main(void)
         }
 
     #endif
+
 }
 
 

@@ -43,7 +43,6 @@
     auto const I2Cx_ENABLE = I2C_TABLE[handle].I2Cx_ENABLE;\
     auto const I2Cx_KERNEL_SOURCE = I2C_TABLE[handle].I2Cx_KERNEL_SOURCE;\
 
-
 #if TARGET_NAME_IS_SandboxNucleoH7S3L8
 #endif
 #if TARGET_NAME_IS_SandboxNucleoH533RE
