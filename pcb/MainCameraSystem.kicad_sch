@@ -7823,7 +7823,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Connector_USB:USB_Micro-B_Molex-105017-0001"
+		(property "Footprint" "Connector_USB:USB_Micro-B_Molex_47346-0001"
 			(at 74.93 242.57 0)
 			(effects
 				(font
