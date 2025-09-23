@@ -16,3 +16,5 @@
     #define TIMEKEEPING_TIMER_    TIM1_
     #define TIMEKEEPING_TIMER     TIM1
 #endif
+#if TARGET_NAME_IS_DemoSDMMC
+#endif

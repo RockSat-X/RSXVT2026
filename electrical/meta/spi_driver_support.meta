@@ -25,6 +25,9 @@
 #if TARGET_NAME_IS_DemoTimekeeping
     #error Target "DemoTimekeeping" cannot use the SPI driver without first specifying the peripheral instances to have handles for.
 #endif
+#if TARGET_NAME_IS_DemoSDMMC
+    #error Target "DemoSDMMC" cannot use the SPI driver without first specifying the peripheral instances to have handles for.
+#endif
 #undef _EXPAND_HANDLE
 #define _EXPAND_HANDLE\
     \
@@ -64,4 +67,6 @@
 
 #endif
 #if TARGET_NAME_IS_DemoTimekeeping
+#endif
+#if TARGET_NAME_IS_DemoSDMMC
 #endif
