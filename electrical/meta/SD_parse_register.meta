@@ -1,0 +1,156 @@
+#define SD_parse_register(DST, SRC)\
+    _Generic\
+    (\
+        (DST),\
+        struct SDCardSpecificData* : _SD_parse_SDCardSpecificData,\
+        struct SDConfigurationRegister* : _SD_parse_SDConfigurationRegister,\
+        struct SDSwitchFunctionStatus* : _SD_parse_SDSwitchFunctionStatus\
+    )((DST), (SRC))\
+
+static useret b32
+_SD_parse_SDCardSpecificData(struct SDCardSpecificData* dst, u8* src)
+{
+    memzero(dst);
+    switch ((src[0] >> 6))
+    {
+        case SDCardSpecificDataVersion_2:
+        {
+            *dst =
+                (struct SDCardSpecificData)
+                {
+                    .CSD_STRUCTURE         = (src[0] >> 6)                                 ,
+                    .v2_CSD_STRUCTURE      = (src[0] >> 6)                                 ,
+                    .v2_TAAC               = src[1]                                        ,
+                    .v2_NSAC               = src[2]                                        ,
+                    .v2_TRAN_SPEED         = src[3]                                        ,
+                    .v2_CCC                = (src[5] >> 4) | (src[4] << 4)                 ,
+                    .v2_READ_BL_LEN        = (src[5] & 15)                                 ,
+                    .v2_READ_BL_PARTIAL    = (src[6] >> 7)                                 ,
+                    .v2_WRITE_BLK_MISALIGN = ((src[6] >> 6) & 1)                           ,
+                    .v2_READ_BLK_MISALIGN  = ((src[6] >> 5) & 1)                           ,
+                    .v2_DSR_IMP            = ((src[6] >> 4) & 1)                           ,
+                    .v2_C_SIZE             = src[9] | (src[8] << 8) | ((src[7] & 63) << 16),
+                    .v2_ERASE_BLK_EN       = ((src[10] >> 6) & 1)                          ,
+                    .v2_SECTOR_SIZE        = (src[11] >> 7) | ((src[10] & 63) << 1)        ,
+                    .v2_WP_GRP_SIZE        = (src[11] & 127)                               ,
+                    .v2_WP_GRP_ENABLE      = (src[12] >> 7)                                ,
+                    .v2_R2W_FACTOR         = ((src[12] >> 2) & 7)                          ,
+                    .v2_WRITE_BL_LEN       = (src[13] >> 6) | ((src[12] & 3) << 2)         ,
+                    .v2_WRITE_BL_PARTIAL   = ((src[13] >> 5) & 1)                          ,
+                    .v2_FILE_FORMAT_GRP    = (src[14] >> 7)                                ,
+                    .v2_COPY               = ((src[14] >> 6) & 1)                          ,
+                    .v2_PERM_WRITE_PROTECT = ((src[14] >> 5) & 1)                          ,
+                    .v2_TEMP_WRITE_PROTECT = ((src[14] >> 4) & 1)                          ,
+                    .v2_FILE_FORMAT        = ((src[14] >> 2) & 3)                          ,
+                    .v2_WP_UPC             = ((src[14] >> 1) & 1)                          ,
+                    .v2_CRC                = (src[15] >> 1)                                ,
+                };
+            if (dst->v2_TAAC               != 0x0E        ) return false;
+            if (dst->v2_NSAC               != 0x00        ) return false;
+            if (dst->v2_TRAN_SPEED         != 0b0'0110'010) return false;
+            if (dst->v2_READ_BL_LEN        != 0x09        ) return false;
+            if (dst->v2_READ_BL_PARTIAL    != 0           ) return false;
+            if (dst->v2_WRITE_BLK_MISALIGN != 0           ) return false;
+            if (dst->v2_READ_BLK_MISALIGN  != 0           ) return false;
+            if (dst->v2_ERASE_BLK_EN       != 1           ) return false;
+            if (dst->v2_SECTOR_SIZE        != 0x7F        ) return false;
+            if (dst->v2_WP_GRP_SIZE        != 0x00        ) return false;
+            if (dst->v2_WP_GRP_ENABLE      != 0           ) return false;
+            if (dst->v2_R2W_FACTOR         != 0x02        ) return false;
+            if (dst->v2_WRITE_BL_LEN       != 0x09        ) return false;
+            if (dst->v2_WRITE_BL_PARTIAL   != 0           ) return false;
+            if (dst->v2_FILE_FORMAT_GRP    != 0           ) return false;
+            if (dst->v2_FILE_FORMAT        != 0           ) return false;
+        } break;
+        default: return false;
+    }
+    return true;
+}
+static useret b32
+_SD_parse_SDConfigurationRegister(struct SDConfigurationRegister* dst, u8* src)
+{
+    memzero(dst);
+    switch ((src[0] >> 4))
+    {
+        case SDConfigurationRegisterVersion_1:
+        {
+            *dst =
+                (struct SDConfigurationRegister)
+                {
+                    .SCR_STRUCTURE            = (src[0] >> 4)                      ,
+                    .v1_SCR_STRUCTURE         = (src[0] >> 4)                      ,
+                    .v1_SD_SPEC               = (src[0] & 15)                      ,
+                    .v1_DATA_STAT_AFTER_ERASE = (src[1] >> 7)                      ,
+                    .v1_SD_SECURITY           = ((src[1] >> 4) & 7)                ,
+                    .v1_SD_BUS_WIDTHS         = (src[1] & 15)                      ,
+                    .v1_SD_SPEC3              = (src[2] >> 7)                      ,
+                    .v1_EX_SECURITY           = ((src[2] >> 3) & 15)               ,
+                    .v1_SD_SPEC4              = ((src[2] >> 2) & 1)                ,
+                    .v1_SD_SPECX              = (src[3] >> 6) | ((src[2] & 3) << 2),
+                    .v1_CMD_SUPPORT           = (src[3] & 31)                      ,
+                };
+        } break;
+        default: return false;
+    }
+    return true;
+}
+static useret b32
+_SD_parse_SDSwitchFunctionStatus(struct SDSwitchFunctionStatus* dst, u8* src)
+{
+    memzero(dst);
+    switch (src[17])
+    {
+        case SDSwitchFunctionStatusVersion_1:
+        {
+            *dst =
+                (struct SDSwitchFunctionStatus)
+                {
+                    .version              = src[17]                 ,
+                    .v1_max_consumption   = src[1] | (src[0] << 8)  ,
+                    .v1_group_6_support   = src[3] | (src[2] << 8)  ,
+                    .v1_group_5_support   = src[5] | (src[4] << 8)  ,
+                    .v1_group_4_support   = src[7] | (src[6] << 8)  ,
+                    .v1_group_3_support   = src[9] | (src[8] << 8)  ,
+                    .v1_group_2_support   = src[11] | (src[10] << 8),
+                    .v1_group_1_support   = src[13] | (src[12] << 8),
+                    .v1_group_6_selection = (src[14] >> 4)          ,
+                    .v1_group_5_selection = (src[14] & 15)          ,
+                    .v1_group_4_selection = (src[15] >> 4)          ,
+                    .v1_group_3_selection = (src[15] & 15)          ,
+                    .v1_group_2_selection = (src[16] >> 4)          ,
+                    .v1_group_1_selection = (src[16] & 15)          ,
+                    .v1_version           = src[17]                 ,
+                };
+        } break;
+        case SDSwitchFunctionStatusVersion_2:
+        {
+            *dst =
+                (struct SDSwitchFunctionStatus)
+                {
+                    .version              = src[17]                 ,
+                    .v2_max_consumption   = src[1] | (src[0] << 8)  ,
+                    .v2_group_6_support   = src[3] | (src[2] << 8)  ,
+                    .v2_group_5_support   = src[5] | (src[4] << 8)  ,
+                    .v2_group_4_support   = src[7] | (src[6] << 8)  ,
+                    .v2_group_3_support   = src[9] | (src[8] << 8)  ,
+                    .v2_group_2_support   = src[11] | (src[10] << 8),
+                    .v2_group_1_support   = src[13] | (src[12] << 8),
+                    .v2_group_6_selection = (src[14] >> 4)          ,
+                    .v2_group_5_selection = (src[14] & 15)          ,
+                    .v2_group_4_selection = (src[15] >> 4)          ,
+                    .v2_group_3_selection = (src[15] & 15)          ,
+                    .v2_group_2_selection = (src[16] >> 4)          ,
+                    .v2_group_1_selection = (src[16] & 15)          ,
+                    .v2_version           = src[17]                 ,
+                    .v2_group_6_busy      = src[19] | (src[18] << 8),
+                    .v2_group_5_busy      = src[21] | (src[20] << 8),
+                    .v2_group_4_busy      = src[23] | (src[22] << 8),
+                    .v2_group_3_busy      = src[25] | (src[24] << 8),
+                    .v2_group_2_busy      = src[27] | (src[26] << 8),
+                    .v2_group_1_busy      = src[29] | (src[28] << 8),
+                };
+        } break;
+        default: return false;
+    }
+    return true;
+}
