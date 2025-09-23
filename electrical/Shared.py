@@ -610,7 +610,7 @@ def PER_TARGET():
 
 
 
-def PER_MCU(Meta):
+def PER_MCU():
 
     for mcu in MCUS:
 
