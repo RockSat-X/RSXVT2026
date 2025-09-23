@@ -18,3 +18,5 @@
 #endif
 #if TARGET_NAME_IS_DemoSDMMC
 #endif
+#if TARGET_NAME_IS_SensorShield
+#endif

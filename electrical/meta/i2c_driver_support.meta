@@ -28,6 +28,18 @@
 #if TARGET_NAME_IS_DemoSDMMC
     #error Target "DemoSDMMC" cannot use the I2C driver without first specifying the peripheral instances to have handles for.
 #endif
+#if TARGET_NAME_IS_SensorShield
+    enum I2CHandle : u32
+    {
+        I2CHandle_primary,
+    };
+    static constexpr u32 I2CHandle_COUNT = 1;
+    #define I2Cx_ I2C_
+    static const struct { typeof(I2C1) I2Cx; typeof(NVICInterrupt_I2C1_EV) NVICInterrupt_I2Cx_EV; typeof(NVICInterrupt_I2C1_ER) NVICInterrupt_I2Cx_ER; typeof(STPY_I2C1_KERNEL_SOURCE) STPY_I2Cx_KERNEL_SOURCE; typeof(STPY_I2C1_PRESC) STPY_I2Cx_PRESC; typeof(STPY_I2C1_SCLH) STPY_I2Cx_SCLH; typeof(STPY_I2C1_SCLL) STPY_I2Cx_SCLL; typeof((struct CMSISTuple) { &RCC->APB1LRSTR, CONCAT(RCC_, APB1LRSTR_I2C1RST_Pos), CONCAT(RCC_, APB1LRSTR_I2C1RST_Msk) }) I2Cx_RESET; typeof((struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_I2C1EN_Pos), CONCAT(RCC_, APB1LENR_I2C1EN_Msk) }) I2Cx_ENABLE; typeof((struct CMSISTuple) { &RCC->CCIPR4, CONCAT(RCC_, CCIPR4_I2C1SEL_Pos), CONCAT(RCC_, CCIPR4_I2C1SEL_Msk) }) I2Cx_KERNEL_SOURCE; } I2C_TABLE[] =
+        {
+            [I2CHandle_primary] = { .I2Cx = I2C1, .NVICInterrupt_I2Cx_EV = NVICInterrupt_I2C1_EV, .NVICInterrupt_I2Cx_ER = NVICInterrupt_I2C1_ER, .STPY_I2Cx_KERNEL_SOURCE = STPY_I2C1_KERNEL_SOURCE, .STPY_I2Cx_PRESC = STPY_I2C1_PRESC, .STPY_I2Cx_SCLH = STPY_I2C1_SCLH, .STPY_I2Cx_SCLL = STPY_I2C1_SCLL, .I2Cx_RESET = (struct CMSISTuple) { &RCC->APB1LRSTR, CONCAT(RCC_, APB1LRSTR_I2C1RST_Pos), CONCAT(RCC_, APB1LRSTR_I2C1RST_Msk) }, .I2Cx_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_I2C1EN_Pos), CONCAT(RCC_, APB1LENR_I2C1EN_Msk) }, .I2Cx_KERNEL_SOURCE = (struct CMSISTuple) { &RCC->CCIPR4, CONCAT(RCC_, CCIPR4_I2C1SEL_Pos), CONCAT(RCC_, CCIPR4_I2C1SEL_Msk) } },
+        };
+#endif
 #undef _EXPAND_HANDLE
 #define _EXPAND_HANDLE\
     \
@@ -80,4 +92,24 @@
 #if TARGET_NAME_IS_DemoTimekeeping
 #endif
 #if TARGET_NAME_IS_DemoSDMMC
+#endif
+#if TARGET_NAME_IS_SensorShield
+
+    static void
+    _I2C_update_entirely(enum I2CHandle handle);
+
+    INTERRUPT_I2C1_EV
+    {
+        _I2C_update_entirely(I2CHandle_primary);
+    }
+
+
+    static void
+    _I2C_update_entirely(enum I2CHandle handle);
+
+    INTERRUPT_I2C1_ER
+    {
+        _I2C_update_entirely(I2CHandle_primary);
+    }
+
 #endif
