@@ -11,3 +11,4 @@
 @/`LSM6DSV32X` : 6-axis IMU with 32 G Accelerometer (DS13511) (Rev 2) (February 2024) (https://www.st.com/resource/en/datasheet/lsm6dsv32x.pdf)
 @/`I2C`        : I2C Specification (UM10204) (Rev. 7.0) (1 October 2021) (https://www.nxp.com/docs/en/user-guide/UM10204.pdf).
 @/`MCP2221A`   : MCP2221A Datasheet (https://ww1.microchip.com/downloads/en/DeviceDoc/20005565C.pdf).
+@/`SD`         : SD Specifications Part 1 Physical Layer Simplified Specification Version 9.10 (December 1, 2023) (sdcard.org/downloads/pls/pdf/?f=Part1PhysicalLayerSimplifiedSpecificationVer9.10Fin_20231201.pdf).
