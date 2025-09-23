@@ -17,10 +17,16 @@
     };
     static constexpr u32 SPIHandle_COUNT = 1;
     #define SPIx_ SPI_
-    static const struct { typeof(SPI1) SPIx; typeof(NVICInterrupt_SPI1) NVICInterrupt_SPIx; typeof((struct CMSISTuple) { &RCC->APB2RSTR, RCC_APB2RSTR_SPI1RST_Pos, RCC_APB2RSTR_SPI1RST_Msk }) SPIx_RESET; typeof((struct CMSISTuple) { &RCC->APB2ENR, RCC_APB2ENR_SPI1EN_Pos, RCC_APB2ENR_SPI1EN_Msk }) SPIx_ENABLE; } SPI_TABLE[] =
+    static const struct { typeof(SPI2) SPIx; typeof(NVICInterrupt_SPI2) NVICInterrupt_SPIx; typeof(STPY_SPI2_KERNEL_SOURCE) STPY_SPIx_KERNEL_SOURCE; typeof(STPY_SPI2_BYPASS_DIVIDER) STPY_SPIx_BYPASS_DIVIDER; typeof(STPY_SPI2_DIVIDER) STPY_SPIx_DIVIDER; typeof((struct CMSISTuple) { &RCC->APB1LRSTR, CONCAT(RCC_, APB1LRSTR_SPI2RST_Pos), CONCAT(RCC_, APB1LRSTR_SPI2RST_Msk) }) SPIx_RESET; typeof((struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_SPI2EN_Pos), CONCAT(RCC_, APB1LENR_SPI2EN_Msk) }) SPIx_ENABLE; typeof((struct CMSISTuple) { &RCC->CCIPR3, CONCAT(RCC_, CCIPR3_SPI2SEL_Pos), CONCAT(RCC_, CCIPR3_SPI2SEL_Msk) }) SPIx_KERNEL_SOURCE; } SPI_TABLE[] =
         {
-            [SPIHandle_primary] = { .SPIx = SPI1, .NVICInterrupt_SPIx = NVICInterrupt_SPI1, .SPIx_RESET = (struct CMSISTuple) { &RCC->APB2RSTR, RCC_APB2RSTR_SPI1RST_Pos, RCC_APB2RSTR_SPI1RST_Msk }, .SPIx_ENABLE = (struct CMSISTuple) { &RCC->APB2ENR, RCC_APB2ENR_SPI1EN_Pos, RCC_APB2ENR_SPI1EN_Msk } },
+            [SPIHandle_primary] = { .SPIx = SPI2, .NVICInterrupt_SPIx = NVICInterrupt_SPI2, .STPY_SPIx_KERNEL_SOURCE = STPY_SPI2_KERNEL_SOURCE, .STPY_SPIx_BYPASS_DIVIDER = STPY_SPI2_BYPASS_DIVIDER, .STPY_SPIx_DIVIDER = STPY_SPI2_DIVIDER, .SPIx_RESET = (struct CMSISTuple) { &RCC->APB1LRSTR, CONCAT(RCC_, APB1LRSTR_SPI2RST_Pos), CONCAT(RCC_, APB1LRSTR_SPI2RST_Msk) }, .SPIx_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_SPI2EN_Pos), CONCAT(RCC_, APB1LENR_SPI2EN_Msk) }, .SPIx_KERNEL_SOURCE = (struct CMSISTuple) { &RCC->CCIPR3, CONCAT(RCC_, CCIPR3_SPI2SEL_Pos), CONCAT(RCC_, CCIPR3_SPI2SEL_Msk) } },
         };
+#endif
+#if TARGET_NAME_IS_DemoTimekeeping
+    #error Target "DemoTimekeeping" cannot use the SPI driver without first specifying the peripheral instances to have handles for.
+#endif
+#if TARGET_NAME_IS_DemoSDMMC
+    #error Target "DemoSDMMC" cannot use the SPI driver without first specifying the peripheral instances to have handles for.
 #endif
 #if TARGET_NAME_IS_SensorShield
     #error Target "SensorShield" cannot use the SPI driver without first specifying the peripheral instances to have handles for.
@@ -37,9 +43,12 @@
     \
     auto const SPIx = SPI_TABLE[handle].SPIx;\
     auto const NVICInterrupt_SPIx = SPI_TABLE[handle].NVICInterrupt_SPIx;\
+    auto const STPY_SPIx_KERNEL_SOURCE = SPI_TABLE[handle].STPY_SPIx_KERNEL_SOURCE;\
+    auto const STPY_SPIx_BYPASS_DIVIDER = SPI_TABLE[handle].STPY_SPIx_BYPASS_DIVIDER;\
+    auto const STPY_SPIx_DIVIDER = SPI_TABLE[handle].STPY_SPIx_DIVIDER;\
     auto const SPIx_RESET = SPI_TABLE[handle].SPIx_RESET;\
     auto const SPIx_ENABLE = SPI_TABLE[handle].SPIx_ENABLE;\
-
+    auto const SPIx_KERNEL_SOURCE = SPI_TABLE[handle].SPIx_KERNEL_SOURCE;\
 
 #if TARGET_NAME_IS_SandboxNucleoH7S3L8
 #endif
@@ -54,11 +63,15 @@
     static void
     _SPI_update_entirely(enum SPIHandle handle);
 
-    INTERRUPT_SPI1
+    INTERRUPT_SPI2
     {
         _SPI_update_entirely(SPIHandle_primary);
     }
 
+#endif
+#if TARGET_NAME_IS_DemoTimekeeping
+#endif
+#if TARGET_NAME_IS_DemoSDMMC
 #endif
 #if TARGET_NAME_IS_SensorShield
 #endif
