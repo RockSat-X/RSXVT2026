@@ -1,4 +1,3 @@
-#include "system.h"
 #include "uxart.c"
 #include "i2c.c"
 
@@ -28,7 +27,7 @@ main(void)
     // starts working.
     //
 
-    spinlock_nop(100'000'000); // TODO Let's use a real delay here.
+    spinlock_nop(100'000'000);
 
 
 
@@ -128,7 +127,7 @@ main(void)
 
             GPIO_TOGGLE(led_green);
 
-            spinlock_nop(1'000'000); // TODO Let's use a real delay here.
+            spinlock_nop(1'000'000);
 
         }
 
@@ -138,7 +137,7 @@ main(void)
 
         stlink_tx("--------------------------------\n");
 
-        spinlock_nop(400'000'000); // TODO Let's use a real delay here.
+        spinlock_nop(400'000'000);
 
     }
 
