@@ -1,6 +1,8 @@
 #include "system.h"
 #include "uxart.c"
+#include "sd.meta"
 #include "sd_initer.c"
+#include "sd_cmder.c"
 
 
 
