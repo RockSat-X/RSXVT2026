@@ -1,9 +1,6 @@
 #include "system.h"
 #include "uxart.c"
-#include "sd.meta"
-#include "sd_initer.c"
-#include "sd_cmder.c"
-
+#include "sd.c"
 
 
 extern noret void
@@ -22,7 +19,7 @@ main(void)
 
     ////////////////////////////////////////////////////////////////////////////////
 
-
+    SD_reinit(SDHandle_primary);
 
     for (i32 iteration = 0;; iteration += 1)
     {

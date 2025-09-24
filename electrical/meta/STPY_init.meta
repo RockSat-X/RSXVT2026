@@ -2263,11 +2263,13 @@
         enum NVICInterrupt : u32
         {
             NVICInterrupt_USART2 = USART2_IRQn,
+            NVICInterrupt_SDMMC1 = SDMMC1_IRQn,
         };
-        static constexpr u32 NVICInterrupt_COUNT = 1;
+        static constexpr u32 NVICInterrupt_COUNT = 2;
         extern void INTERRUPT_BusFault(void);
         extern void INTERRUPT_Default(void);
         extern void INTERRUPT_Reset(void);
+        extern void INTERRUPT_SDMMC1(void);
         extern void INTERRUPT_USART2(void);
         extern void INTERRUPT_UsageFault(void);
         void (* const INTERRUPT_VECTOR_TABLE[])(void) __attribute__((used, section(".INTERRUPT_VECTOR_TABLE"))) =
@@ -2367,7 +2369,7 @@
                 INTERRUPT_Default            , // [ 76] UCPD1
                 INTERRUPT_Default            , // [ 77] FMC
                 INTERRUPT_Default            , // [ 78] OCTOSPI1
-                INTERRUPT_Default            , // [ 79] SDMMC1
+                INTERRUPT_SDMMC1             , // [ 79] SDMMC1
                 INTERRUPT_Default            , // [ 80] I2C3_EV
                 INTERRUPT_Default            , // [ 81] I2C3_ER
                 INTERRUPT_Default            , // [ 82] SPI4
@@ -2425,6 +2427,7 @@
         #define INTERRUPT_BusFault extern void INTERRUPT_BusFault(void)
         #define INTERRUPT_Default extern void INTERRUPT_Default(void)
         #define INTERRUPT_Reset extern void INTERRUPT_Reset(void)
+        #define INTERRUPT_SDMMC1 extern void INTERRUPT_SDMMC1(void)
         #define INTERRUPT_USART2 extern void INTERRUPT_USART2(void)
         #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
         extern void
@@ -2513,6 +2516,8 @@
 
             static_assert(0 <= 0 && 0 < (1 << __NVIC_PRIO_BITS));
             NVIC->IPR[NVICInterrupt_USART2] = 0 << __NVIC_PRIO_BITS;
+            static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
+            NVIC->IPR[NVICInterrupt_SDMMC1] = 1 << __NVIC_PRIO_BITS;
             CMSIS_SET
             (
                 SCB        , SHCSR,

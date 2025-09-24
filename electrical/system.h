@@ -90,6 +90,7 @@ typedef double             f64; static_assert(sizeof(f64) == 8);
 
 #define sorry halt_(false);
 #define panic halt_(true)
+#define bug   panic
 extern noret void
 halt_(b32 panicking);
 

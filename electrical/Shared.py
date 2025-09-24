@@ -410,12 +410,16 @@ TARGETS = (
 
         interrupts = (
             ('USART2', 0),
+            ('SDMMC1', 1),
         ),
 
         drivers = {
             'UXART' : (
                 ('stlink', 'USART2'),
             ),
+            'SD' : (
+                ('primary', 'SDMMC1'),
+            )
         },
 
         use_freertos    = False,
