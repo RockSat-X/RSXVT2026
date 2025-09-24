@@ -2583,12 +2583,14 @@
                 PLL1M  , 8       ,
                 PLL1RGE, 2       ,
                 PLL1PEN, true    ,
+                PLL1QEN, true    ,
             );
             CMSIS_SET
             (
                 RCC  , PLL1DIVR,
                 PLL1N, 125 - 1 ,
                 PLL1P, 2 - 1   ,
+                PLL1Q, 50 - 1  ,
             );
             CMSIS_SET(RCC, CR, PLL1ON, true);
             while (!CMSIS_GET(RCC, CR, PLL1RDY));
@@ -2619,6 +2621,18 @@
             #define STPY_USART2_KERNEL_SOURCE 0b000
             #define STPY_USART2_BAUD_DIVIDER 250
 
+
+
+            /////////////////////////////////// SDMMC1 ///////////////////////////////////
+
+
+
+            #define STPY_SDMMC1_KERNEL_SOURCE 0b0
+            #define STPY_SDMMC1_INITIAL_DIVIDER 0x032
+            #define STPY_SDMMC1_INITIAL_DATATIME 1000
+            #define STPY_SDMMC1_FULL_DIVIDER 0x005
+            #define STPY_SDMMC1_FULL_DATATIME 10000
+
         }
     #endif
     #undef STPY_IMPLEMENTATION
@@ -2629,6 +2643,7 @@
     #define STPY_CSI_CK        (  4'000'000)
     #define STPY_AXI_AHB_CK    (250'000'000)
     #define STPY_PLL1P_CK      (250'000'000)
+    #define STPY_PLL1Q_CK      ( 10'000'000)
     #define STPY_PLL1_VCO_FREQ (500'000'000)
     #define STPY_APB1_CK       (250'000'000)
     #define STPY_APB2_CK       (250'000'000)

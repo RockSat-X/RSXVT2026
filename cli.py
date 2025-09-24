@@ -746,7 +746,7 @@ def flash(parameters):
 
         if attempts == 3:
             with ANSI('fg_red'):
-                log('''
+                log(f'''
 
                     [ERROR] Failed to flash; this might be because...
                             - the binary file haven\'t been built yet.

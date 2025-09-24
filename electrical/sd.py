@@ -2,42 +2,69 @@
 #meta SD_CMDS, SD_REGISTERS
 
 import types
+from deps.stpy.mcus      import MCUS
 from deps.stpy.pxd.utils import SimpleNamespaceTable, justify
 
 
 
 ################################################################################
 #
-# Some SD commands that'll be used. @/pg 128/sec 4.7.4/`SD`.
+# Some SD commands that'll be used.
+# @/pg 128/sec 4.7.4/`SD`.
 #
 
 
 
 SD_CMDS = SimpleNamespaceTable(
-    ('name'                   , 'code', 'acmd', 'resp', 'receiving'),
-    ('GO_IDLE_STATE'          , 0     , False , None  , False      ),
-    ('ALL_SEND_CID'           , 2     , False , 'r2'  , False      ),
-    ('SEND_RELATIVE_ADDR'     , 3     , False , 'r6'  , False      ),
-    ('SWITCH_FUNC'            , 6     , False , 'r1'  , True       ),
-    ('SELECT_DESELECT_CARD'   , 7     , False , 'r1b' , False      ),
-    ('SEND_IF_COND'           , 8     , False , 'r7'  , False      ),
-    ('SEND_CSD'               , 9     , False , 'r2'  , False      ),
-    ('STOP_TRANSMISSION'      , 12    , False , 'r1b' , False      ),
-    ('SEND_STATUS_TASK_STATUS', 13    , False , 'r1'  , False      ),
-    ('SET_BLOCK_LEN'          , 16    , False , 'r1'  , False      ),
-    ('READ_SINGLE_BLOCK'      , 17    , False , 'r1'  , True       ),
-    ('READ_MULTIPLE_BLOCK'    , 18    , False , 'r1'  , True       ),
-    ('WRITE_BLOCK'            , 24    , False , 'r1'  , False      ),
-    ('WRITE_MULTIPLE_BLOCK'   , 25    , False , 'r1'  , False      ),
-    ('APP_CMD'                , 55    , False , 'r1'  , False      ),
-    ('SET_BUS_WIDTH'          , 6     , True  , 'r1'  , False      ),
-    ('SD_SEND_OP_COND'        , 41    , True  , 'r3'  , False      ),
-    ('SEND_SCR'               , 51    , True  , 'r1'  , True       ),
+    ('name'                   , 'code', 'acmd', 'waitresp', 'receiving'),
+    ('GO_IDLE_STATE'          , 0     , False , 'none'    , False      ),
+    ('ALL_SEND_CID'           , 2     , False , 'r2'      , False      ),
+    ('SEND_RELATIVE_ADDR'     , 3     , False , 'r6'      , False      ),
+    ('SWITCH_FUNC'            , 6     , False , 'r1'      , True       ),
+    ('SELECT_DESELECT_CARD'   , 7     , False , 'r1b'     , False      ),
+    ('SEND_IF_COND'           , 8     , False , 'r7'      , False      ),
+    ('SEND_CSD'               , 9     , False , 'r2'      , False      ),
+    ('STOP_TRANSMISSION'      , 12    , False , 'r1b'     , False      ),
+    ('SEND_STATUS_TASK_STATUS', 13    , False , 'r1'      , False      ),
+    ('SET_BLOCK_LEN'          , 16    , False , 'r1'      , False      ),
+    ('READ_SINGLE_BLOCK'      , 17    , False , 'r1'      , True       ),
+    ('READ_MULTIPLE_BLOCK'    , 18    , False , 'r1'      , True       ),
+    ('WRITE_BLOCK'            , 24    , False , 'r1'      , False      ),
+    ('WRITE_MULTIPLE_BLOCK'   , 25    , False , 'r1'      , False      ),
+    ('APP_CMD'                , 55    , False , 'r1'      , False      ),
+    ('SET_BUS_WIDTH'          , 6     , True  , 'r1'      , False      ),
+    ('SD_SEND_OP_COND'        , 41    , True  , 'r3'      , False      ),
+    ('SEND_SCR'               , 51    , True  , 'r1'      , True       ),
 )
 
 
 
 Meta.enums('SDCmd', 'u32', (cmd.name for cmd in SD_CMDS))
+
+
+
+for mcu in PER_MCU():
+
+    sdmmc_waitresp = MCUS[mcu].database.get('SDMMC_WAITRESP', None)
+
+    if sdmmc_waitresp is None:
+        continue
+
+    Meta.enums('SDWaitRespType', 'u32', sdmmc_waitresp.value.keys())
+    Meta.enums('SDWaitRespCode', 'u32', sdmmc_waitresp.value.items())
+
+
+
+Meta.lut('SD_CMDS', (
+    (
+        ('u8'                 , 'code'         , cmd.code                        ),
+        ('b32'                , 'acmd'         , cmd.acmd                        ),
+        ('enum SDWaitRespType', 'waitresp_type', f'SDWaitRespType_{cmd.waitresp}'),
+        ('enum SDWaitRespCode', 'waitresp_code', f'SDWaitRespCode_{cmd.waitresp}'),
+        ('b32'                , 'receiving'    , cmd.receiving                   ),
+    )
+    for cmd in SD_CMDS
+))
 
 
 
