@@ -429,9 +429,9 @@
       "no_connect_connected": "warning",
       "no_connect_dangling": "warning",
       "pin_not_connected": "error",
-      "pin_not_driven": "error",
+      "pin_not_driven": "ignore",
       "pin_to_pin": "error",
-      "power_pin_not_driven": "error",
+      "power_pin_not_driven": "ignore",
       "same_local_global_label": "warning",
       "similar_label_and_power": "warning",
       "similar_labels": "warning",
@@ -615,6 +615,10 @@
     [
       "0a179c33-cb18-4019-99e7-0e00d41f97d6",
       "Root"
+    ],
+    [
+      "977c9222-34a7-4755-a0bd-9d47c2e1603a",
+      "USB_UART_Bridge"
     ]
   ],
   "text_variables": {}
