@@ -4142,10 +4142,6 @@
 		(uuid "c926bead-169a-4c7c-9d82-6b4d8f88cb4f")
 	)
 	(no_connect
-		(at 215.9 217.17)
-		(uuid "00a407a5-c570-4021-bfd0-fbf4479db2ed")
-	)
-	(no_connect
 		(at 215.9 133.35)
 		(uuid "0424da89-132a-408a-b3bf-e20c60af3e93")
 	)
@@ -4184,10 +4180,6 @@
 	(no_connect
 		(at 215.9 143.51)
 		(uuid "1d2b0e4c-2022-45c6-8565-cfca8cffda45")
-	)
-	(no_connect
-		(at 215.9 212.09)
-		(uuid "1eb7ccb1-2432-422a-a018-868a750b0846")
 	)
 	(no_connect
 		(at 154.94 158.75)
@@ -4262,10 +4254,6 @@
 		(uuid "4f82e223-53f1-4a6a-8754-c80f0e0df9ec")
 	)
 	(no_connect
-		(at 215.9 179.07)
-		(uuid "50b7a95a-ce57-4140-88ce-1c2bbbe4984e")
-	)
-	(no_connect
 		(at 215.9 105.41)
 		(uuid "57be9b5f-1b16-43be-b4bf-a015956400de")
 	)
@@ -4284,10 +4272,6 @@
 	(no_connect
 		(at 154.94 156.21)
 		(uuid "61412dd9-373d-4550-8ee3-efd66cd1e961")
-	)
-	(no_connect
-		(at 215.9 219.71)
-		(uuid "64a2ca1c-5799-45df-8a23-aca694e1dcc0")
 	)
 	(no_connect
 		(at 154.94 207.01)
@@ -4326,20 +4310,12 @@
 		(uuid "81d07e52-3ba6-4339-a0e6-7f1e430a98f1")
 	)
 	(no_connect
-		(at 215.9 153.67)
-		(uuid "8884f541-a70f-41ca-be87-0667cd12afd1")
-	)
-	(no_connect
 		(at 215.9 107.95)
 		(uuid "9636bf54-e8d4-48fd-8d6a-bb57eb057657")
 	)
 	(no_connect
 		(at 154.94 148.59)
 		(uuid "96b16463-4f4e-4f0c-8c45-56d1c69a896b")
-	)
-	(no_connect
-		(at 215.9 214.63)
-		(uuid "9755382a-947b-4193-aa17-ce9981259a3c")
 	)
 	(no_connect
 		(at 154.94 125.73)
@@ -4761,6 +4737,94 @@
 			)
 		)
 	)
+	(global_label "SD_DAT0"
+		(shape bidirectional)
+		(at 215.9 179.07 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "55a4fc83-bdda-4b38-9d5a-ed8260f08c80")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 227.9793 179.07 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "SD_CLK"
+		(shape bidirectional)
+		(at 215.9 219.71 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "63962e55-a6c1-4de4-85da-4b5413f02073")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 227.0117 219.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "SD_DAT0"
+		(shape bidirectional)
+		(at 275.59 144.78 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "654aa915-ee92-4192-9a0c-60148b2b1a52")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 263.5107 144.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "SD_DAT1"
+		(shape bidirectional)
+		(at 215.9 212.09 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "66a6af9a-a5e0-4041-b7ce-9c1ded9e2d4a")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 227.9793 212.09 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "SWDIO"
 		(shape bidirectional)
 		(at 290.83 111.76 0)
@@ -4779,6 +4843,182 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "SD_DAT2"
+		(shape bidirectional)
+		(at 215.9 214.63 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "7087ff95-97d7-45e2-8752-add837bbe12d")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 227.9793 214.63 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "SD_CMD"
+		(shape bidirectional)
+		(at 215.9 153.67 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "7ee83780-caa2-4f4d-b814-055a26fcceb4")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 227.435 153.67 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "SD_DAT3"
+		(shape bidirectional)
+		(at 275.59 152.4 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "934ce538-26f7-438a-a38a-2f99ea7879d6")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 263.5107 152.4 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "SD_CMD"
+		(shape bidirectional)
+		(at 275.59 142.24 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "9c284f27-582a-43c1-b5b6-e4c8759f07c5")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 264.055 142.24 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "SD_DAT2"
+		(shape bidirectional)
+		(at 275.59 149.86 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "a86b364e-f817-4897-a8c1-deef5791300b")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 263.5107 149.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "SD_DAT3"
+		(shape bidirectional)
+		(at 215.9 217.17 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "aac9b610-440f-4c5b-b5d9-6fc1b7777adb")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 227.9793 217.17 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "SD_CLK"
+		(shape bidirectional)
+		(at 275.59 139.7 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "ab70c59e-53d1-4b8f-83be-328ea4776f01")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 264.4783 139.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "SD_DAT1"
+		(shape bidirectional)
+		(at 275.59 147.32 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "aba9e1d4-b60c-45bb-8b85-4b1051cb536e")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 263.5107 147.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
 				(hide yes)
 			)
 		)
@@ -6777,6 +7017,110 @@
 			(project "MainFlightComputer"
 				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
 					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 275.59 137.16)
+		(size 20.32 17.78)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+			(color 132 0 0 1)
+		)
+		(fill
+			(color 255 255 194 1.0000)
+		)
+		(uuid "998c97d1-aa6d-4f6c-85fa-1c013216ee76")
+		(property "Sheetname" "uSD"
+			(at 275.59 136.4484 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+				(hide yes)
+			)
+		)
+		(property "Sheetfile" "uSD.kicad_sch"
+			(at 275.59 155.5246 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "DATA1" bidirectional
+			(at 275.59 147.32 180)
+			(uuid "34ee8406-62cf-4eb7-89a5-3507fe163447")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "DATA0" bidirectional
+			(at 275.59 144.78 180)
+			(uuid "3bcdce8c-520f-4162-8a14-a69b79ee46a5")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "CMD" bidirectional
+			(at 275.59 142.24 180)
+			(uuid "e0acdcfa-b232-46e2-b008-da928818fc38")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "DATA2" bidirectional
+			(at 275.59 149.86 180)
+			(uuid "d87fa737-de44-4cf0-be09-ad7235902194")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "DATA3" bidirectional
+			(at 275.59 152.4 180)
+			(uuid "53b48828-3ba4-4d10-bcdf-a4004c2604df")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "CLK" bidirectional
+			(at 275.59 139.7 180)
+			(uuid "fd27f326-e0d3-476c-aa28-2205aa4fae33")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(instances
+			(project "MainFlightComputer"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
+					(page "3")
 				)
 			)
 		)
