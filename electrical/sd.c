@@ -151,24 +151,11 @@ static const struct { SDMMC_TypeDef* peripheral; enum NVICInterrupt interrupt; }
 
 
 
-#define _SD_REALIZE_CONTEXT                                                \
-    struct SDDriver* _SD_driver          = &_SD_drivers   [sd];            \
-    SDMMC_TypeDef*   SDMMC               = SD_DRIVER_TABLE[sd].peripheral; \
-    u32              NVICInterrupt_SDMMC = SD_DRIVER_TABLE[sd].interrupt
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-
 static void
-_SD_check_deadlock(enum SD sd)
+_SD_check_deadlock(enum SDHandle handle)
 {
-    _SD_REALIZE_CONTEXT;
-
     // TODO.
-    //volatile u32 last_isr_timestamp_ms = _SD_driver->last_isr_timestamp_ms;
+    //volatile u32 last_isr_timestamp_ms = driver->last_isr_timestamp_ms;
     //__DMB();
     //volatile u32 now_ms = systick_ms;
 
@@ -176,8 +163,8 @@ _SD_check_deadlock(enum SD sd)
 
     //if (inactivity_ms >= SDMMC_MAX_DEADLOCK_DURATION_MS)
     //{
-    //    _SD_driver->state = SDDriverState_error;
-    //    _SD_driver->error = SDDriverError_sdmmc_deadlocked;
+    //    driver->state = SDDriverState_error;
+    //    driver->error = SDDriverError_sdmmc_deadlocked;
     //}
 }
 
@@ -195,18 +182,19 @@ static useret enum SDDo : u32
     SDDo_driver_error,
     SDDo_bug,
 }
-SD_do(enum SD sd, enum SDOp op, struct Sector* sector, u32 addr)
+SD_do(enum SDHandle handle, enum SDOp op, struct Sector* sector, u32 addr)
 {
+
+    _EXPAND_HANDLE
+
     #undef  ret
     #define ret(NAME) return SDDo_##NAME
-
-    _SD_REALIZE_CONTEXT;
 
     if (!sector)
         bug;
 
-    enum SDTaskState   task_state   = _SD_driver->task.state;
-    enum SDDriverState driver_state = _SD_driver->state;
+    enum SDTaskState   task_state   = driver->task.state;
+    enum SDDriverState driver_state = driver->state;
 
     if (driver_state == SDDriverState_error)
     {
@@ -216,11 +204,11 @@ SD_do(enum SD sd, enum SDOp op, struct Sector* sector, u32 addr)
     {
         if (task_state != SDTaskState_unscheduled)
         {
-            if (_SD_driver->task.op     != op    )
+            if (driver->task.op     != op    )
                 bug; // Make sure it's corresponding to the same operation.
-            if (_SD_driver->task.sector != sector)
+            if (driver->task.sector != sector)
                 bug; // "
-            if (_SD_driver->task.addr   != addr  )
+            if (driver->task.addr   != addr  )
                 bug; // "
         }
 
@@ -228,30 +216,30 @@ SD_do(enum SD sd, enum SDOp op, struct Sector* sector, u32 addr)
         {
             case SDTaskState_unscheduled:
             {
-                _SD_driver->task.op     = op;
-                _SD_driver->task.sector = sector;
-                _SD_driver->task.addr   = addr;
+                driver->task.op     = op;
+                driver->task.sector = sector;
+                driver->task.addr   = addr;
 
                 __DMB(); // `SDTaskState_booked` will indicate that the task is available for the SDMMC ISR to process.
 
-                _SD_driver->task.state = SDTaskState_booked;
+                driver->task.state = SDTaskState_booked;
 
-                NVIC_SET_PENDING(SDMMC); // Alert SD driver of the new task.
+                NVIC_SET_PENDING(SDx); // Alert SD driver of the new task.
 
                 ret(task_in_progress);
             } break;
 
             case SDTaskState_done:
             {
-                _SD_driver->task.state = SDTaskState_unscheduled;
+                driver->task.state = SDTaskState_unscheduled;
                 ret(task_completed);
             } break;
 
             case SDTaskState_booked:
             {
-                _SD_check_deadlock(sd);
+                _SD_check_deadlock(handle);
 
-                driver_state = _SD_driver->state;
+                driver_state = driver->state;
 
                 if (driver_state == SDDriverState_error)
                 {
@@ -283,21 +271,22 @@ static useret enum SDPoll : u32
     SDPoll_driver_error,
     SDPoll_bug,
 }
-SD_poll(enum SD sd)
+SD_poll(enum SDHandle handle)
 {
+
+    _EXPAND_HANDLE
+
     #undef  ret
     #define ret(NAME) return SDPoll_##NAME
 
-    _SD_REALIZE_CONTEXT;
-
-    enum SDTaskState   task_state   = _SD_driver->task.state;
-    enum SDDriverState driver_state = _SD_driver->state;
+    enum SDTaskState   task_state   = driver->task.state;
+    enum SDDriverState driver_state = driver->state;
 
     if (task_state == SDTaskState_error)
     {
         // We check for task error first before driver error so that the caller
         // can clear the task error before worrying about if there's any driver errors.
-        _SD_driver->task.state = SDTaskState_unscheduled;
+        driver->task.state = SDTaskState_unscheduled;
         ret(cleared_task_error);
     }
     else if (driver_state == SDDriverState_error)
@@ -308,9 +297,9 @@ SD_poll(enum SD sd)
     {
         case SDTaskState_booked:
         {
-            _SD_check_deadlock(sd);
+            _SD_check_deadlock(handle);
 
-            driver_state = _SD_driver->state;
+            driver_state = driver->state;
 
             if (driver_state == SDDriverState_error)
             {
