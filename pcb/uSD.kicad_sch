@@ -1185,10 +1185,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "407c88b0-482e-4426-9e65-987b14fef448")
+			(uuid "8e753240-a609-4b7c-980d-43d3a2fe5dc9")
 		)
 		(pin "2"
-			(uuid "ef1ae50d-1e4a-4ede-b696-63b31a18deca")
+			(uuid "122823c3-2278-427a-9c20-eb608689577a")
 		)
 		(instances
 			(project "MainFlightComputer"
@@ -1253,10 +1253,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "cd9146e2-184a-4bc3-82c7-f69d26743f0f")
+			(uuid "f7ddd4be-f8e9-41a3-9891-03f49fa7eb34")
 		)
 		(pin "2"
-			(uuid "9b9e184a-0e4a-481e-b6d8-9b5ce4504874")
+			(uuid "9162558d-0fa6-4b2f-8164-dfea7eb69e2d")
 		)
 		(instances
 			(project "MainFlightComputer"
@@ -1321,10 +1321,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "dc10fb3b-5283-42ac-9eb1-a51dd6eb132d")
+			(uuid "b047ff9c-4928-46bb-97bf-a59d8fd8e017")
 		)
 		(pin "2"
-			(uuid "aa920ebc-51d8-4f86-b0c8-470b9b2b9339")
+			(uuid "71648e93-f31f-4c74-aff5-22fba52bed35")
 		)
 		(instances
 			(project "MainFlightComputer"
@@ -1389,10 +1389,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "97969c67-56e1-4715-804b-9db19f798537")
+			(uuid "cc27d46c-1ca4-4471-a058-e7f920d49ade")
 		)
 		(pin "2"
-			(uuid "8ad8756d-863f-433d-950a-57ac9f6d50a4")
+			(uuid "65ec8825-2f6b-4789-ad82-1110968e4310")
 		)
 		(instances
 			(project "MainFlightComputer"
@@ -1457,10 +1457,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "d0c135e5-24d3-4f01-a8ee-297ae9dfcfe0")
+			(uuid "6722b014-6951-4701-8e95-06b08e971d92")
 		)
 		(pin "2"
-			(uuid "08a5bb8f-1fd8-41d4-9ae6-7b2fc37fc84d")
+			(uuid "65f83fe3-f7e7-41b7-bc2f-8e87fb4bc5e4")
 		)
 		(instances
 			(project "MainFlightComputer"
@@ -1527,10 +1527,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "13dfdf7b-8861-48c7-96b6-e7068db12c70")
+			(uuid "144b1976-ac78-4479-babf-c364f22ad870")
 		)
 		(pin "2"
-			(uuid "28b5dbfb-0119-48eb-ae81-44455c0dbec1")
+			(uuid "d07fe3e4-da01-4293-87f2-c243c153cb5e")
 		)
 		(instances
 			(project "MainFlightComputer"
@@ -1597,10 +1597,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "9be783a2-88c7-4674-b49a-415c54862039")
+			(uuid "31cbf156-86ee-472f-b32f-353abe8dfce7")
 		)
 		(pin "2"
-			(uuid "f6c09d78-7b47-4d90-a9c4-7f69806d351c")
+			(uuid "16e582ca-08bf-4db6-b3dc-be8ac2c64517")
 		)
 		(instances
 			(project "MainFlightComputer"
@@ -1665,31 +1665,31 @@
 			)
 		)
 		(pin "7"
-			(uuid "a12d2d4f-39c8-48f7-8471-4ad7c7e65f7e")
+			(uuid "229cb71f-8e9c-4e88-9d8c-357576c7ee6d")
 		)
 		(pin "2"
-			(uuid "5ef7a90f-554a-45c7-9de9-dfd6c5bb3e45")
+			(uuid "0b46887b-1d35-4159-a0fb-e458b91d3694")
 		)
 		(pin "9"
-			(uuid "3deaed8e-c987-471e-9467-cf1c4d6bd5c4")
+			(uuid "0de590a4-5c12-4c19-94dc-92a3ec8b7572")
 		)
 		(pin "1"
-			(uuid "b70d3ad2-16b2-462d-ade7-35cadc90fce1")
+			(uuid "0e2b706e-3b61-4584-90f4-64bd23b39d5c")
 		)
 		(pin "6"
-			(uuid "41f95b21-4395-422d-b527-4d84aeced6ee")
+			(uuid "7a8b1642-e6cc-482f-a17a-438b5764e150")
 		)
 		(pin "5"
-			(uuid "7287091a-979b-4802-9006-9a51d4feb8a9")
+			(uuid "d769f69a-dc84-456e-ab39-a800a3ae16a6")
 		)
 		(pin "8"
-			(uuid "bf8e9c50-0578-4918-a237-2738af6eaa94")
+			(uuid "90e2f502-f628-488e-bb89-35b8c6aabd60")
 		)
 		(pin "3"
-			(uuid "d6f52f98-c827-4fcb-9733-e01021de29c8")
+			(uuid "2e83c44e-187c-400d-a44e-9d21e802e3cc")
 		)
 		(pin "4"
-			(uuid "23a64e26-7066-4731-b9b2-1fa95085f1f4")
+			(uuid "67ada249-3033-4ba6-b9f9-dd956cceba21")
 		)
 		(instances
 			(project "MainFlightComputer"
@@ -1755,7 +1755,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "f38a0f19-4953-40ec-bdcc-20f955e5c93b")
+			(uuid "d5627166-6fd2-4e0d-b3f9-6d44af282462")
 		)
 		(instances
 			(project "MainFlightComputer"
@@ -1823,7 +1823,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "6e2ea30f-b2c2-4f8f-b681-36ba3860068f")
+			(uuid "21b5df0a-b36b-4d35-a56a-3fa5f3432557")
 		)
 		(instances
 			(project "MainFlightComputer"
@@ -1891,7 +1891,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "ec1533c0-5ba5-4b68-ac41-89a2336360c4")
+			(uuid "a69f879f-2ecf-4446-9b11-3377aedce7be")
 		)
 		(instances
 			(project "MainFlightComputer"
@@ -1956,10 +1956,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "10a0407f-c875-4126-be97-af8dfcd34f43")
+			(uuid "62821b03-00e8-4aca-a0fc-4b9116458e77")
 		)
 		(pin "2"
-			(uuid "14ed77be-2f80-46d8-b8f4-6ecf0f479955")
+			(uuid "90995d64-d8e9-4f9f-9b38-40db3e332707")
 		)
 		(instances
 			(project "MainFlightComputer"
@@ -2026,10 +2026,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "5825b939-b772-4f0d-9557-ee7a28c49fe2")
+			(uuid "f552543f-5275-46ed-b4c1-1eff6443fed3")
 		)
 		(pin "2"
-			(uuid "83a005a9-8ea9-4b71-9c11-33a7126a3bff")
+			(uuid "a6c8c48d-64bc-460e-a46f-41bd1573a5d6")
 		)
 		(instances
 			(project "MainFlightComputer"

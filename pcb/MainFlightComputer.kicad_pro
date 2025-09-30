@@ -617,12 +617,16 @@
       "Root"
     ],
     [
-      "977c9222-34a7-4755-a0bd-9d47c2e1603a",
+      "b2b2887e-ac36-4199-87f1-23d769fda1d4",
       "USB_UART_Bridge"
     ],
     [
       "998c97d1-aa6d-4f6c-85fa-1c013216ee76",
       "uSD"
+    ],
+    [
+      "4084990c-2f2a-49e6-b0d0-e7eb5cede66f",
+      "Debug"
     ]
   ],
   "text_variables": {}
