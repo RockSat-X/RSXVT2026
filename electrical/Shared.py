@@ -224,9 +224,9 @@ TARGETS = (
 
     types.SimpleNamespace(
 
-        name               = 'DemoTimer',
-        mcu                = 'STM32H533RET6',
-        source_file_paths  = root('''
+        name              = 'DemoTimer',
+        mcu               = 'STM32H533RET6',
+        source_file_paths = root('''
             ./electrical/DemoTimer.c
         '''),
 
@@ -277,9 +277,9 @@ TARGETS = (
 
     types.SimpleNamespace(
 
-        name               = 'DemoSPI',
-        mcu                = 'STM32H533RET6',
-        source_file_paths  = root('''
+        name              = 'DemoSPI',
+        mcu               = 'STM32H533RET6',
+        source_file_paths = root('''
             ./electrical/DemoSPI.c
         '''),
 
@@ -336,9 +336,9 @@ TARGETS = (
 
     types.SimpleNamespace(
 
-        name               = 'DemoTimekeeping',
-        mcu                = 'STM32H533RET6',
-        source_file_paths  = root('''
+        name              = 'DemoTimekeeping',
+        mcu               = 'STM32H533RET6',
+        source_file_paths = root('''
             ./electrical/DemoTimekeeping.c
         '''),
 
@@ -387,9 +387,9 @@ TARGETS = (
 
     types.SimpleNamespace(
 
-        name               = 'DemoSDMMC',
-        mcu                = 'STM32H533RET6',
-        source_file_paths  = root('''
+        name              = 'DemoSDMMC',
+        mcu               = 'STM32H533RET6',
+        source_file_paths = root('''
             ./electrical/DemoSDMMC.c
         '''),
 
@@ -502,6 +502,8 @@ TARGETS = (
 
 
     ########################################
+
+
 
 )
 
