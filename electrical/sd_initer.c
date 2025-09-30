@@ -59,10 +59,12 @@ struct SDIniter
         u8  switch_func_status[64];
     } local;
 
-    struct SDIniterFeedback // To be filled out by the caller before updating with the results of the previous command.
+    // To be filled out by the caller before updating
+    // with the results of the previous command.
+    struct SDIniterFeedback
     {
         b32 cmd_failed;
-        u32 response[4]; // Card command response with the first word being the most-significant bits of the response.
+        u32 response[4]; // Begins with the first 32 most-significant bits.
     } feedback;
 
     struct SDIniterCmd
@@ -80,6 +82,8 @@ struct SDIniter
 
 
 
+#undef  ret
+#define ret(NAME) return SDIniterHandleFeedback_##NAME
 static useret enum SDIniterHandleFeedback : u32
 {
     SDIniterHandleFeedback_ok,
@@ -90,11 +94,8 @@ static useret enum SDIniterHandleFeedback : u32
 _SDIniter_handle_feedback(struct SDIniter* initer)
 {
 
-    #undef  ret
-    #define ret(NAME) return SDIniterHandleFeedback_##NAME
-
     if (!initer)
-        ret(bug);
+        bug;
 
     initer->cmd = (struct SDIniterCmd) {0};
 
@@ -117,7 +118,7 @@ _SDIniter_handle_feedback(struct SDIniter* initer)
                 // Feedback said SD command failed,
                 // but SD-initer hasn't given the
                 // caller any SD commands yet.
-                ret(bug);
+                bug;
 
             initer->state = SDIniterState_GO_IDLE_STATE;
 
@@ -272,8 +273,8 @@ _SDIniter_handle_feedback(struct SDIniter* initer)
             if (((initer->feedback.response[0] >> 9) & 0b1111) != SDCardState_ident)
                 ret(support_issue);
 
-             // The RCA is needed for some commands.
-             // @/pg 144/sec 4.9.5/`SD`.
+            // The RCA is needed for some commands.
+            // @/pg 144/sec 4.9.5/`SD`.
             initer->rca   = initer->feedback.response[0] >> 16;
             initer->state = SDIniterState_SEND_CSD;
 
@@ -292,6 +293,9 @@ _SDIniter_handle_feedback(struct SDIniter* initer)
         case SDIniterState_SEND_CSD:
         {
 
+            if (initer->feedback.cmd_failed)
+                ret(support_issue);
+
             union
             {
                 u32 words[4];
@@ -307,11 +311,6 @@ _SDIniter_handle_feedback(struct SDIniter* initer)
                 };
 
             struct SDCardSpecificData csd = {0};
-
-
-
-            if (initer->feedback.cmd_failed)
-                ret(support_issue);
 
             if (!SD_parse_register(&csd, card_specific_data_data.bytes))
                 ret(support_issue);
@@ -383,10 +382,6 @@ _SDIniter_handle_feedback(struct SDIniter* initer)
         case SDIniterState_SEND_SCR:
         {
 
-            struct SDConfigurationRegister scr = {0};
-
-
-
             if (initer->feedback.cmd_failed)
                 ret(support_issue);
 
@@ -394,6 +389,8 @@ _SDIniter_handle_feedback(struct SDIniter* initer)
                 // Transitioned out of the transmission state.
                 // @/pg 76/fig 4-13/`SD`.
                 ret(support_issue);
+
+            struct SDConfigurationRegister scr = {0};
 
             if (!SD_parse_register(&scr, initer->local.sd_config_reg))
                 ret(support_issue);
@@ -444,12 +441,10 @@ _SDIniter_handle_feedback(struct SDIniter* initer)
         case SDIniterState_SWITCH_FUNC:
         {
 
-            struct SDSwitchFunctionStatus sfs = {0};
-
-
-
             if (initer->feedback.cmd_failed)
                 ret(support_issue);
+
+            struct SDSwitchFunctionStatus sfs = {0};
 
             if (!SD_parse_register(&sfs, initer->local.switch_func_status))
                 ret(support_issue);
@@ -529,7 +524,7 @@ _SDIniter_handle_feedback(struct SDIniter* initer)
             if (initer->feedback.cmd_failed)
                 // No reason for the caller to
                 // fail configuring the bus width.
-                ret(bug);
+                bug;
 
             initer->state = SDIniterState_done;
 
@@ -539,8 +534,8 @@ _SDIniter_handle_feedback(struct SDIniter* initer)
 
         ////////////////////////////////////////////////////////////////////////////////
 
-        case SDIniterState_done : ret(bug); // We're already done; there's nothing left to do!
-        default                 : ret(bug);
+        case SDIniterState_done : bug; // We're already done; there's nothing left to do!
+        default                 : bug;
 
     }
 
@@ -554,6 +549,8 @@ _SDIniter_handle_feedback(struct SDIniter* initer)
 
 
 
+#undef  ret
+#define ret(NAME) return SDIniterUpdate_##NAME
 static useret enum SDIniterUpdate : u32
 {
     SDIniterUpdate_do_cmd,
@@ -566,11 +563,8 @@ static useret enum SDIniterUpdate : u32
 SDIniter_update(struct SDIniter* initer)
 {
 
-    #undef  ret
-    #define ret(NAME) return SDIniterUpdate_##NAME
-
     if (!initer)
-        ret(bug);
+        bug;
 
 
 
@@ -598,8 +592,8 @@ SDIniter_update(struct SDIniter* initer)
 
         case SDIniterHandleFeedback_ok                    : break;
         case SDIniterHandleFeedback_card_likely_unmounted : ret(card_likely_unmounted);
-        case SDIniterHandleFeedback_bug                   : ret(bug);
-        default                                           : ret(bug);
+        case SDIniterHandleFeedback_bug                   : bug;
+        default                                           : bug;
     }
 
 
@@ -614,62 +608,170 @@ SDIniter_update(struct SDIniter* initer)
     switch (initer->state)
     {
 
-        #define ret_do_cmd(...)                                     \
-            do                                                      \
-            {                                                       \
-                initer->cmd = (struct SDIniterCmd) { __VA_ARGS__ }; \
-                ret(do_cmd);                                        \
-            }                                                       \
-            while (false)
+        case SDIniterState_GO_IDLE_STATE:
+        {
 
-        case SDIniterState_GO_IDLE_STATE        : ret_do_cmd(.cmd = SDCmd_GO_IDLE_STATE       ,                              );
-        case SDIniterState_SEND_IF_COND         : ret_do_cmd(.cmd = SDCmd_SEND_IF_COND        , .arg = SD_INTERFACE_CONDITION);
-        case SDIniterState_ALL_SEND_CID         : ret_do_cmd(.cmd = SDCmd_ALL_SEND_CID        ,                              );
-        case SDIniterState_SEND_RELATIVE_ADDR   : ret_do_cmd(.cmd = SDCmd_SEND_RELATIVE_ADDR  ,                              );
-        case SDIniterState_SEND_CSD             : ret_do_cmd(.cmd = SDCmd_SEND_CSD            , .arg = initer->rca << 16     );
-        case SDIniterState_SELECT_DESELECT_CARD : ret_do_cmd(.cmd = SDCmd_SELECT_DESELECT_CARD, .arg = initer->rca << 16     );
-        case SDIniterState_SET_BUS_WIDTH        : ret_do_cmd(.cmd = SDCmd_SET_BUS_WIDTH       , .arg = 0b10                  ); // @/pg 133/tbl 4-32/`SD`.
+            initer->cmd =
+                (struct SDIniterCmd)
+                {
+                    .cmd = SDCmd_GO_IDLE_STATE,
+                };
+
+            ret(do_cmd);
+
+        } break;
+
+        case SDIniterState_SEND_IF_COND:
+        {
+
+            initer->cmd =
+                (struct SDIniterCmd)
+                {
+                    .cmd = SDCmd_SEND_IF_COND,
+                    .arg = SD_INTERFACE_CONDITION,
+                };
+
+            ret(do_cmd);
+
+        } break;
+
+        case SDIniterState_ALL_SEND_CID:
+        {
+
+            initer->cmd =
+                (struct SDIniterCmd)
+                {
+                    .cmd = SDCmd_ALL_SEND_CID,
+                };
+
+            ret(do_cmd);
+
+        } break;
+
+        case SDIniterState_SEND_RELATIVE_ADDR:
+        {
+
+            initer->cmd =
+                (struct SDIniterCmd)
+                {
+                    .cmd = SDCmd_SEND_RELATIVE_ADDR,
+                };
+
+            ret(do_cmd);
+
+        } break;
+
+        case SDIniterState_SEND_CSD:
+        {
+
+            initer->cmd =
+                (struct SDIniterCmd)
+                {
+                    .cmd = SDCmd_SEND_CSD,
+                    .arg = initer->rca << 16,
+                };
+
+            ret(do_cmd);
+
+        } break;
+
+        case SDIniterState_SELECT_DESELECT_CARD:
+        {
+
+            initer->cmd =
+                (struct SDIniterCmd)
+                {
+                    .cmd = SDCmd_SELECT_DESELECT_CARD,
+                    .arg = initer->rca << 16,
+                };
+
+            ret(do_cmd);
+
+        } break;
+
+        case SDIniterState_SET_BUS_WIDTH:
+        {
+
+            initer->cmd =
+                (struct SDIniterCmd)
+                {
+                    .cmd = SDCmd_SET_BUS_WIDTH,
+                    .arg = 0b10, // @/pg 133/tbl 4-32/`SD`.
+                };
+
+            ret(do_cmd);
+
+        } break;
 
         case SDIniterState_SD_SEND_OP_COND:
-            ret_do_cmd
-            (
-                .cmd = SDCmd_SD_SEND_OP_COND,
-                .arg =
-                    (                                         // @/pg 71/fig 4-3/`SD`.
-                        (1 << 30) |                           // We support high-capacity cards.
-                        (1 << 28) |                           // XPC bit where we get a nice performance boost at the cost of power usage.
-                        0b00000000'11111111'10000000'00000000 // Our voltage window range is 2.7-3.6V. @/pg 249/tbl 5-1/`SD`
-                    ),
-            );
+        {
+
+            initer->cmd =
+                (struct SDIniterCmd)
+                {
+                    .cmd = SDCmd_SD_SEND_OP_COND,
+                    .arg =
+                        (                                         // @/pg 71/fig 4-3/`SD`.
+                            (1 << 30) |                           // We support high-capacity cards.
+                            (1 << 28) |                           // XPC bit where we get a nice performance boost at the cost of power usage.
+                            0b00000000'11111111'10000000'00000000 // Our voltage window range is 2.7-3.6V. @/pg 249/tbl 5-1/`SD`
+                        ),
+                };
+
+            ret(do_cmd);
+
+        } break;
 
         case SDIniterState_SEND_SCR:
-            ret_do_cmd
-            (
-                .cmd  = SDCmd_SEND_SCR,
-                .arg  = 0,
-                .data = initer->local.sd_config_reg,
-                .size = sizeof(initer->local.sd_config_reg),
-            );
+        {
+
+            initer->cmd =
+                (struct SDIniterCmd)
+                {
+                    .cmd  = SDCmd_SEND_SCR,
+                    .arg  = 0,
+                    .data = initer->local.sd_config_reg,
+                    .size = sizeof(initer->local.sd_config_reg),
+                };
+
+            ret(do_cmd);
+
+        } break;
 
         case SDIniterState_SWITCH_FUNC:
-            ret_do_cmd
-            (
-                .cmd = SDCmd_SWITCH_FUNC,
-                .arg =
-                    (
-                        (1   << 31) | // We're going to change some functions around... @/pg 136/tbl 4-32/`SD`.
-                        (0xF << 12) | // No influence on power-limit group. @/pg 107/tbl 4-11/`SD`.
-                        (0xF <<  8) | // No influence on driver-strength group.
-                        (0x1 <<  0)   // We want high-speed! @/pg 115/sec 4.3.11/`SD`.
-                    ),
-                .data = initer->local.switch_func_status,
-                .size = sizeof(initer->local.switch_func_status),
-            );
+        {
 
-        case SDIniterState_caller_set_bus_width : ret(caller_set_bus_width);
-        case SDIniterState_done                 : ret(done);
-        case SDIniterState_uninited             : ret(bug);
-        default                                 : ret(bug);
+            initer->cmd =
+                (struct SDIniterCmd)
+                {
+                    .cmd = SDCmd_SWITCH_FUNC,
+                    .arg =
+                        (
+                            (1   << 31) | // We're going to change some functions around... @/pg 136/tbl 4-32/`SD`.
+                            (0xF << 12) | // No influence on power-limit group. @/pg 107/tbl 4-11/`SD`.
+                            (0xF <<  8) | // No influence on driver-strength group.
+                            (0x1 <<  0)   // We want high-speed! @/pg 115/sec 4.3.11/`SD`.
+                        ),
+                    .data = initer->local.switch_func_status,
+                    .size = sizeof(initer->local.switch_func_status),
+                };
+
+            ret(do_cmd);
+
+        } break;
+
+        case SDIniterState_caller_set_bus_width:
+        {
+            ret(caller_set_bus_width);
+        } break;
+
+        case SDIniterState_done:
+        {
+            ret(done);
+        } break;
+
+        case SDIniterState_uninited : bug;
+        default                     : bug;
 
     }
 

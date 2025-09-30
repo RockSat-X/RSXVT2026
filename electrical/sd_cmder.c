@@ -56,6 +56,8 @@ struct SDCmder
 
 
 
+#undef  ret
+#define ret(NAME) return SDTransferDataManually_##NAME
 static useret enum SDTransferDataManually : u32
 {
     SDTransferDataManually_done,
@@ -65,33 +67,30 @@ static useret enum SDTransferDataManually : u32
 _SDCmder_transfer_data_manually(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 {
 
-    #undef  ret
-    #define ret(NAME) return SDTransferDataManually_##NAME
-
 
 
     // Some checks.
 
     if (!SDMMC)
-        ret(bug);
+        bug;
 
     if (!cmder)
-        ret(bug);
+        bug;
 
     if (cmder->error)
-        ret(bug);
+        bug;
 
     if (!cmder->data)
-        ret(bug);
+        bug;
 
     if (cmder->state != SDCmderState_undergoing_data_transfer)
-        ret(bug);
+        bug;
 
     if (cmder->remaining < cmder->block_size)
-        ret(bug);
+        bug;
 
     if (cmder->remaining % cmder->block_size)
-        ret(bug);
+        bug;
 
 
 
@@ -105,9 +104,8 @@ _SDCmder_transfer_data_manually(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
     )
     {
 
-
         if (!CMSIS_GET(SDMMC, STA, DPSMACT))
-            ret(bug);
+            bug;
 
         while (true)
         {
@@ -153,6 +151,8 @@ _SDCmder_transfer_data_manually(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
 
 
+#undef  ret
+#define ret(NAME) return SDCmderUpdate_##NAME
 static useret enum SDCmderUpdate : u32
 {
     SDCmderUpdate_again,
@@ -165,14 +165,11 @@ static useret enum SDCmderUpdate : u32
 SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 {
 
-    #undef  ret
-    #define ret(NAME) return SDCmderUpdate_##NAME
-
     if (!SDMMC)
-        ret(bug);
+        bug;
 
     if (!cmder)
-        ret(bug);
+        bug;
 
     u32 status_snapshot = SDMMC->STA;
 
@@ -214,40 +211,40 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             if (status_snapshot & SDMMC->MASK)
                 // There shouldn't be any
                 // leftover interrupt events.
-                ret(bug);
+                bug;
 
             if (CMSIS_GET_FROM(status_snapshot, SDMMC, STA, BUSYD0))
                 // Nor should the SDMMC state
                 // machine think the D0 line is busy.
-                ret(bug);
+                bug;
 
             if (cmder->cmd == SDCmd_APP_CMD)
                 // APP_CMD and STOP_TRANSMISSION are handled
                 // automatically, so there should be no
                 // reason to execute this command directly.
-                ret(bug);
+                bug;
 
             if (cmder->cmd == SDCmd_STOP_TRANSMISSION)
-                ret(bug);
+                bug;
 
             if (cmder->effective_cmd == SDCmd_APP_CMD && !SD_CMDS[cmder->cmd].acmd)
                 // APP_CMD prefixing shouldn't be done
                 // for commands that don't need it.
-                ret(bug);
+                bug;
 
             if (CMSIS_GET_FROM(status_snapshot, SDMMC, STA, CPSMACT))
                 // Nothing should be active, except maybe
                 // for the DPSM when we need to stop it.
-                ret(bug);
+                bug;
 
             if (!iff(cmder->stopping_transmission, CMSIS_GET_FROM(status_snapshot, SDMMC, STA, DPSMACT)))
                 // TODO What if doing multiple reads/writes?
-                ret(bug);
+                bug;
 
             if (!iff(cmder->stopping_transmission && CMSIS_GET_FROM(status_snapshot, SDMMC, STA, DPSMACT), cmder->error))
                 // There should be only errors if we're having
                 // to send a STOP_TRANSMISSION to reset the DPSM.
-                ret(bug);
+                bug;
 
 
 
@@ -259,17 +256,38 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
             if (cmder->stopping_transmission)
             {
+
                 if (cmder->effective_cmd == SDCmd_STOP_TRANSMISSION)
-                    ret(bug); // Should only be sent once.
+                    // The STOP_TRANSMISSION command
+                    // should've only been sent once.
+                    bug;
+
                 cmder->effective_cmd = SDCmd_STOP_TRANSMISSION;
                 actual_arg           = 0;
                 transferring_data    = false;
+
             }
             else if (SD_CMDS[cmder->cmd].acmd && cmder->effective_cmd != SDCmd_APP_CMD)
             {
-                cmder->effective_cmd = SDCmd_APP_CMD;            // We need to send the APP_CMD prefix first.
-                actual_arg           = ((u32) cmder->rca) << 16; // The relative card address (RCA) is 0x0000 in idle state. @/pg 67/sec 4.2.2/`SD`.
-                transferring_data    = false;
+
+                // We need to send the APP_CMD prefix first.
+
+                cmder->effective_cmd = SDCmd_APP_CMD;
+
+
+
+                // It's fine if we haven't gotten the RCA yet during
+                // initialization, because it's 0x0000 in idle state.
+                // @/pg 67/sec 4.2.2/`SD`.
+
+                actual_arg = ((u32) cmder->rca) << 16;
+
+
+
+                // The APP_CMD itself obviously won't have a data transfer stage.
+
+                transferring_data = false;
+
             }
             else
             {
@@ -292,36 +310,32 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                     // Must be a power of two no
                     // greater than 2^14 = 16384 bytes.
                     // @/pg 2807/sec 59.10.9/`H7S3rm`.
-                    // @/pg 2486/sec 60.10.9/`H730rm`.
-                    ret(bug);
+                    bug;
 
                 if (cmder->remaining % cmder->block_size)
                     // Amount of data must be a multiple of the
                     // data-block or else it'll be truncated.
                     // @/pg 2807/sec 59.10.9/`H7S3rm`.
-                    // @/pg 2486/sec 60.10.9/`H730rm`.
-                    ret(bug);
+                    bug;
 
                 if (cmder->remaining % sizeof(u32))
                     // Assuming amount of data is also a multiple of word
                     // size so we won't have to deal with padding bytes.
-                    ret(bug);
+                    bug;
 
                 if (cmder->remaining >= (1 << 25))
                     // Transfer limit of the DATALENGTH field.
                     // @/pg 2805/sec 59.10.8/`H7S3rm`.
-                    // @/pg 2484/sec 60.10.8/`H730rm`.
-                    ret(bug);
+                    bug;
 
                 if (cmder->remaining < 1)
                     // There must be data to be transferred.
-                    ret(bug);
+                    bug;
 
                 if (CMSIS_GET_FROM(status_snapshot, SDMMC, STA, DPSMACT))
                     // The DPSM must be inactive in order to be configured.
                     // @/pg 2807/sec 59.10.9/`H7S3rm`.
-                    // @/pg 2486/sec 60.10.9/`H730rm`.
-                    ret(bug);
+                    bug;
 
 
 
@@ -345,12 +359,9 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             // Configure command packet and begin
             // the command-path state machine.
             // @/pg 2751/fig 860/`H7S3rm`.
-            // @/pg 2430/fig 738/`H730rm`.
 
             if (CMSIS_GET(SDMMC, CMD, CPSMEN))
-                // The command-path state machine
-                // shouldn't already be enabled...
-                ret(bug);
+                bug;
 
             CMSIS_SET(SDMMC, ARG, CMDARG, actual_arg);
             CMSIS_SET
@@ -381,7 +392,7 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
         {
 
             if (!iff(cmder->error, cmder->effective_cmd == SDCmd_STOP_TRANSMISSION))
-                ret(bug);
+                bug;
 
 
 
@@ -389,7 +400,7 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             {
 
                 if (cmder->effective_cmd != SDCmd_STOP_TRANSMISSION)
-                    ret(bug);
+                    bug;
 
                 // The data timeout is likely from the previous
                 // command that we're stopping the transmission of.
@@ -419,7 +430,7 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             }
             else if (status_snapshot & SDMMC->MASK)
             {
-                ret(bug); // There should be no other interrupt event.
+                bug; // There should be no other interrupt event.
             }
             else
             {
@@ -458,7 +469,7 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
         {
 
             if (!iff(cmder->error, cmder->effective_cmd == SDCmd_STOP_TRANSMISSION))
-                ret(bug);
+                bug;
 
 
 
@@ -477,7 +488,7 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             // There should be no other interrupt event.
             else if (status_snapshot & SDMMC->MASK)
             {
-                ret(bug);
+                bug;
             }
 
             // No SDMMC interrupt event of interest actually happened.
@@ -491,15 +502,15 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             if (CMSIS_GET_FROM(status_snapshot, SDMMC, STA, CPSMACT))
                 // Command-path state machine
                 // should've been done by now.
-                ret(bug);
+                bug;
 
 
 
             if
             (
-                SDMMC->RESPCMD != SD_CMDS[cmder->effective_cmd].code                // Response must match the expected command code...
-                && SD_CMDS[cmder->effective_cmd].waitresp_type != SDWaitRespType_r2 // ... unless the response doesn't have the command-index field anyways.
-                && SD_CMDS[cmder->effective_cmd].waitresp_type != SDWaitRespType_r3 // "
+                SDMMC->RESPCMD != SD_CMDS[cmder->effective_cmd].code                // Response must match the expected command code
+                && SD_CMDS[cmder->effective_cmd].waitresp_type != SDWaitRespType_r2 // unless the response doesn't have the
+                && SD_CMDS[cmder->effective_cmd].waitresp_type != SDWaitRespType_r3 // command-index field anyways.
             )
             {
                 cmder->error = SDCmderError_cmd_code_mismatch;
@@ -521,7 +532,7 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                     // Ensure the next command is
                     // interpreted as ACMD.
                     // @/pg 148/tbl 4-42/`SD`.
-                    ret(bug);
+                    bug;
 
                 cmder->state = SDCmderState_scheduled_command;
 
@@ -557,7 +568,7 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
         {
 
             if (cmder->error)
-                ret(bug);
+                bug;
 
 
 
@@ -568,8 +579,8 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 {
                     case SDTransferDataManually_done         : break;
                     case SDTransferDataManually_data_timeout : break;
-                    case SDTransferDataManually_bug          : ret(bug);
-                    default                                  : ret(bug);
+                    case SDTransferDataManually_bug          : bug;
+                    default                                  : bug;
                 }
             }
 
@@ -578,12 +589,12 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             if (STATUS_POP(RXOVERR))
             {
                 // should've stopped to prevent this...
-                ret(bug);
+                bug;
             }
             else if (STATUS_POP(TXUNDERR))
             {
                 // The clock should've stopped to prevent this...
-                ret(bug);
+                bug;
             }
             else if (STATUS_POP(DCRCFAIL))
             {
@@ -598,25 +609,25 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 if (SD_CMDS[cmder->cmd].receiving && cmder->remaining)
                     // There shouldn't be
                     // anything left to transmit.
-                    ret(bug);
+                    bug;
             }
             else if (STATUS_POP(DBCKEND)) // Data-block successfully sent/received with matching CRC16?
             {
                 if (!cmder->remaining)
                     // There should be some data left,
                     // or else DATAEND would've been set.
-                    ret(bug);
+                    bug;
             }
             else if (status_snapshot & SDMMC->MASK)
             {
                 // There should be no
                 // other interrupt event.
-                ret(bug);
+                bug;
             }
             else if (CMSIS_GET_FROM(status_snapshot, SDMMC, STA, BUSYD0))
             {
                 // SDMMC shouldn't be thinking the card is busy.
-                ret(bug);
+                bug;
             }
             else
             {
@@ -632,19 +643,19 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 if (CMSIS_GET_FROM(status_snapshot, SDMMC, STA, CPSMACT))
                     // The CPSM should be
                     // disabled at this point.
-                    ret(bug);
+                    bug;
 
                 if (!iff(CMSIS_GET_FROM(status_snapshot, SDMMC, STA, DPSMACT), (cmder->error == SDCmderError_data_timeout)))
                     // The DPSM should only be still enabled
                     // if and only if there's a data timeout.
                     // We'll need to send a STOP_TRANSMISSION
                     // later to get it back to idle state.
-                    ret(bug);
+                    bug;
 
                 if (!cmder->error && cmder->remaining)
                     // We should've transmitted/received
                     // everything if everything's swell.
-                    ret(bug);
+                    bug;
 
                 // Either we're aborting or we transferred everything.
                 cmder->state = SDCmderState_command_attempted;
@@ -681,7 +692,7 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             else if (status_snapshot & SDMMC->MASK)
             {
                 // There should be no other interrupt event.
-                ret(bug);
+                bug;
             }
             else
             {
@@ -712,7 +723,7 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
         {
 
             if (!iff(cmder->stopping_transmission, cmder->effective_cmd == SDCmd_STOP_TRANSMISSION))
-                ret(bug);
+                bug;
 
             if (CMSIS_GET_FROM(status_snapshot, SDMMC, STA, BUSYD0END) || CMSIS_GET_FROM(status_snapshot, SDMMC, STA, BUSYD0))
             {
@@ -721,7 +732,7 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             }
             else if (status_snapshot & SDMMC->MASK)
             {
-                ret(bug); // There should be no other interrupt event.
+                bug; // There should be no other interrupt event.
             }
             else if (CMSIS_GET_FROM(status_snapshot, SDMMC, STA, DPSMACT)) // @/`Sending STOP_TRANSMISSION`.
             {
@@ -729,7 +740,7 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 if (cmder->stopping_transmission)
                     ret(sdmmc_needs_reinit); // @/`Unacknowledged STOP_TRANSMISSION Command`.
                 if (!cmder->error)
-                    ret(bug);
+                    bug;
                 cmder->state                 = SDCmderState_scheduled_command;
                 cmder->stopping_transmission = true;
 
@@ -746,7 +757,7 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
 
 
-        default: ret(bug);
+        default: bug;
 
     }
 
@@ -775,7 +786,6 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 // is sent if the DPSM is being used.
 //
 // @/pg 2756/tbl 622/`H7S3rm`.
-// @/pg 2435/tbl 484/`H730rm`.
 
 
 
@@ -805,4 +815,3 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 // to get around this.
 //
 // @/pg 2759/fig 864/`H7S3rm`.
-// @/pg 2438/fig 742/`H730rm`.

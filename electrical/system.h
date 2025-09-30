@@ -90,6 +90,14 @@ typedef double             f64; static_assert(sizeof(f64) == 8);
 
 #define sorry halt_(false);
 #define panic halt_(true)
+#define bug       \
+    do            \
+    {             \
+        sorry;    \
+        ret(bug); \
+    }             \
+    while (false)
+
 extern noret void
 halt_(b32 panicking);
 
@@ -750,6 +758,13 @@ halt_(b32 panicking) // @/`Halting`.
 // indicating whether or not a `panic` or a `sorry` condition
 // has occured; how this is implemented, if at all, is
 // entirely dependent upon the target.
+//
+// A `bug` is a less extreme version of `panic` where the function
+// that the `bug` gets triggered in will return immediately via `ret(bug)`.
+// This allows us to bubble up the error to handle gracefully by the caller
+// if possible rather than blowing up the entire program like `panic` will.
+// The `bug` macro also allows for us to halt right at where it's triggered
+// for debugging purposes.
 
 
 
