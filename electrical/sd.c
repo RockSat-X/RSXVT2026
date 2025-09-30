@@ -372,8 +372,8 @@ SD_reinit(enum SDHandle handle)
 
     // Configure the peripheral.
 
-    CMSIS_SET(SDx, POWER  , PWRCTRL , 0b11                       ); // Power the clock.
-    CMSIS_SET(SDx, DTIMER , DATATIME, STPY_SDMMC1_INITIAL_DIVIDER); // Max timeout period.
+    CMSIS_SET(SDx, POWER  , PWRCTRL , 0b11                        ); // Power the clock.
+    CMSIS_SET(SDx, DTIMER , DATATIME, STPY_SDMMC1_INITIAL_DATATIME); // Max timeout period.
     CMSIS_SET
     (
         SDx    , CLKCR                      , // TODO Use PWRSAV?
