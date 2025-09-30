@@ -2316,11 +2316,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "65a5dc05-cb68-436c-99cf-e30f3e9cd7b3")
+			(uuid "112934e1-710f-4922-8630-1fd977aa02d0")
 		)
 		(instances
 			(project "MainFlightComputer"
-				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/977c9222-34a7-4755-a0bd-9d47c2e1603a"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/b2b2887e-ac36-4199-87f1-23d769fda1d4"
 					(reference "#PWR04")
 					(unit 1)
 				)
@@ -2384,11 +2384,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "48e53d27-6aaf-4d48-9006-0fd03b16ce98")
+			(uuid "f4886824-cb44-48f7-a71d-873306c69b8c")
 		)
 		(instances
 			(project "MainFlightComputer"
-				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/977c9222-34a7-4755-a0bd-9d47c2e1603a"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/b2b2887e-ac36-4199-87f1-23d769fda1d4"
 					(reference "#PWR05")
 					(unit 1)
 				)
@@ -2449,26 +2449,26 @@
 			)
 		)
 		(pin "2"
-			(uuid "b4f95371-c4ec-4829-b457-7e65cd54b6ea")
+			(uuid "1795f84d-b33e-4918-a628-0990b76f2244")
 		)
 		(pin "4"
-			(uuid "54741d73-8c52-46f0-b98b-1592ecf759c6")
+			(uuid "35dc8210-3edd-4670-82ae-471675701927")
 		)
 		(pin "1"
-			(uuid "6957d9d7-3669-4c9c-9158-79ecd0fbc4b7")
+			(uuid "781b45b8-320a-4462-854b-acc1d65b423a")
 		)
 		(pin "6"
-			(uuid "7632506c-9a04-4d62-8d10-be42ac9ab34f")
+			(uuid "5197198f-04ae-4a6c-845d-6257ab5c59cc")
 		)
 		(pin "3"
-			(uuid "2a733d88-e0bf-450b-9145-8759f30bc78e")
+			(uuid "a25ad766-c2b8-4778-b3e6-ed19bc258083")
 		)
 		(pin "5"
-			(uuid "7ddff7cd-fd7e-4e3e-899a-5eb6c0d5e52b")
+			(uuid "37e4093a-0097-4c8c-804c-0f49c633d3bf")
 		)
 		(instances
 			(project "MainFlightComputer"
-				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/977c9222-34a7-4755-a0bd-9d47c2e1603a"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/b2b2887e-ac36-4199-87f1-23d769fda1d4"
 					(reference "J1")
 					(unit 1)
 				)
@@ -2530,11 +2530,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "6cd72b14-3e36-48e4-aa70-e9b379faa471")
+			(uuid "4006b1a2-30f3-4bd6-8435-9b7a561080c5")
 		)
 		(instances
 			(project "MainFlightComputer"
-				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/977c9222-34a7-4755-a0bd-9d47c2e1603a"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/b2b2887e-ac36-4199-87f1-23d769fda1d4"
 					(reference "#PWR010")
 					(unit 1)
 				)
@@ -2597,14 +2597,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "bbb791fb-eee1-46ac-a0fc-946c257c491e")
+			(uuid "8a660dce-caaf-4981-87f5-f3c48a8ffcc9")
 		)
 		(pin "2"
-			(uuid "45c61956-bd24-4c5e-8959-03f69548bbb1")
+			(uuid "4635a428-1ac4-4364-8f0f-310c02d240d6")
 		)
 		(instances
 			(project "MainFlightComputer"
-				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/977c9222-34a7-4755-a0bd-9d47c2e1603a"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/b2b2887e-ac36-4199-87f1-23d769fda1d4"
 					(reference "R2")
 					(unit 1)
 				)
@@ -2667,11 +2667,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "7d70bd84-8547-4f9c-b4a0-58eb46b783e8")
+			(uuid "0349cc1c-12dc-4607-9db5-a36e89243e7e")
 		)
 		(instances
 			(project "MainFlightComputer"
-				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/977c9222-34a7-4755-a0bd-9d47c2e1603a"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/b2b2887e-ac36-4199-87f1-23d769fda1d4"
 					(reference "#PWR011")
 					(unit 1)
 				)
@@ -2743,14 +2743,14 @@
 			)
 		)
 		(pin "2"
-			(uuid "d11b6a52-4509-4688-bfb7-627d218752e4")
+			(uuid "a56f5c4a-3b64-409a-88f3-7937a7f62909")
 		)
 		(pin "1"
-			(uuid "9dd22bfe-7652-4eb7-9511-7b21e4603f02")
+			(uuid "2bf08520-3db4-43fc-8b93-135f466d993e")
 		)
 		(instances
 			(project "MainFlightComputer"
-				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/977c9222-34a7-4755-a0bd-9d47c2e1603a"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/b2b2887e-ac36-4199-87f1-23d769fda1d4"
 					(reference "D1")
 					(unit 1)
 				)
@@ -2812,14 +2812,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "8d291149-9ecd-4380-b5ca-1b21af063bb6")
+			(uuid "3f1d8281-f710-4344-8ac1-0ca75b3ed836")
 		)
 		(pin "2"
-			(uuid "251745be-c484-4632-823f-32782fb66d49")
+			(uuid "d379f06a-48a7-4c0d-8f01-be000298ae44")
 		)
 		(instances
 			(project "MainFlightComputer"
-				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/977c9222-34a7-4755-a0bd-9d47c2e1603a"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/b2b2887e-ac36-4199-87f1-23d769fda1d4"
 					(reference "R1")
 					(unit 1)
 				)
@@ -2882,14 +2882,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "1a3abbbc-d24e-40f5-8f18-9840b86306e4")
+			(uuid "6f325c67-b528-4085-a707-af9d5b3fb8e3")
 		)
 		(pin "2"
-			(uuid "e9544de2-4936-41b0-9d1a-43e8924f8095")
+			(uuid "926c0cb7-87a7-4579-8b39-8dbdb8e51370")
 		)
 		(instances
 			(project "MainFlightComputer"
-				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/977c9222-34a7-4755-a0bd-9d47c2e1603a"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/b2b2887e-ac36-4199-87f1-23d769fda1d4"
 					(reference "C2")
 					(unit 1)
 				)
@@ -2951,11 +2951,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "cab3d7b2-197b-46f5-a36d-d8055768fb94")
+			(uuid "797f5587-2dc7-4504-b9ad-0ea348507b29")
 		)
 		(instances
 			(project "MainFlightComputer"
-				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/977c9222-34a7-4755-a0bd-9d47c2e1603a"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/b2b2887e-ac36-4199-87f1-23d769fda1d4"
 					(reference "#PWR013")
 					(unit 1)
 				)
@@ -3018,11 +3018,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "9ed2a376-7668-439d-a27e-d5b7bdd4f46a")
+			(uuid "abf5ea6a-a014-4e0b-bfd7-88a2e2266522")
 		)
 		(instances
 			(project "MainFlightComputer"
-				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/977c9222-34a7-4755-a0bd-9d47c2e1603a"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/b2b2887e-ac36-4199-87f1-23d769fda1d4"
 					(reference "#PWR08")
 					(unit 1)
 				)
@@ -3085,50 +3085,50 @@
 			)
 		)
 		(pin "7"
-			(uuid "536c3401-450c-4b1a-bd19-b549321fc152")
+			(uuid "3d4a9da7-1e67-4de7-9fa4-c5b428dca8e2")
 		)
 		(pin "2"
-			(uuid "23a5b548-9c24-4fb2-a8aa-d2c5e84d7f2b")
+			(uuid "cacffe6e-82b9-48f0-814f-188682890ccf")
 		)
 		(pin "5"
-			(uuid "60d182ea-ddbc-4967-8282-5e43f1546087")
+			(uuid "d3747d6a-d2e8-444a-90d4-8990cfc0da81")
 		)
 		(pin "11"
-			(uuid "6b4bb3f3-43f7-4cbf-a0a9-69abdf6ab104")
+			(uuid "b532d296-04db-45e0-b6ba-d80229432f08")
 		)
 		(pin "12"
-			(uuid "1b21a28f-3562-4b2e-9793-cb00d729cb3b")
+			(uuid "6c0b06f3-5548-4b47-a504-29bea564a1b9")
 		)
 		(pin "6"
-			(uuid "2795043f-5ca1-47e4-81aa-88b7532805a5")
+			(uuid "ce3239c6-855b-4fb9-86cb-7b7025b8b2f1")
 		)
 		(pin "3"
-			(uuid "6ae17c5d-e018-4b0f-8c07-a2c6d9c284ee")
+			(uuid "822b1b22-d5cb-420f-a183-b4e5082c7178")
 		)
 		(pin "8"
-			(uuid "12fdc03a-d14c-46e7-8036-03b718771e98")
+			(uuid "b2907877-b62d-40be-821b-ecd57ef62fa6")
 		)
 		(pin "14"
-			(uuid "549fc7ef-3234-4dee-934f-246210dabd58")
+			(uuid "b689f7bf-3a5f-4a21-abd6-4358e884758b")
 		)
 		(pin "1"
-			(uuid "5d156390-5854-4130-a417-0e6d7bd535d5")
+			(uuid "f9ba4132-44a4-4fcf-ac3f-f40418911a58")
 		)
 		(pin "9"
-			(uuid "bfc9d015-3f42-44df-83b1-75f0b1c226a8")
+			(uuid "55715bcb-de4d-4a1a-a6b4-4fbd80e43fc2")
 		)
 		(pin "10"
-			(uuid "3ed7f9f3-b20c-4b39-8a43-52beeaee9b62")
+			(uuid "d2ddfc51-d685-471b-ae86-23e005bcc64a")
 		)
 		(pin "4"
-			(uuid "2a5d0b71-802d-46a8-bf68-8658a65b6eb9")
+			(uuid "a9c6dd34-43ad-42e5-ab0b-3908f0474b3c")
 		)
 		(pin "13"
-			(uuid "a050bb90-42f4-4e09-862d-125a62016ee6")
+			(uuid "73c6c635-3e0a-458b-81e3-00e3263f9529")
 		)
 		(instances
 			(project "MainFlightComputer"
-				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/977c9222-34a7-4755-a0bd-9d47c2e1603a"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/b2b2887e-ac36-4199-87f1-23d769fda1d4"
 					(reference "U2")
 					(unit 1)
 				)
@@ -3200,14 +3200,14 @@
 			)
 		)
 		(pin "2"
-			(uuid "ab872643-190f-44e7-9871-f60187066fdd")
+			(uuid "31274eb8-fb43-4365-95a5-8332c8f24fbb")
 		)
 		(pin "1"
-			(uuid "3a5e5b48-76bc-40d5-a80b-aa7fa02e0aa9")
+			(uuid "044fd0c2-cc74-43d7-a32d-4a14b37877e7")
 		)
 		(instances
 			(project "MainFlightComputer"
-				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/977c9222-34a7-4755-a0bd-9d47c2e1603a"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/b2b2887e-ac36-4199-87f1-23d769fda1d4"
 					(reference "D2")
 					(unit 1)
 				)
@@ -3269,11 +3269,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "ad0dba3c-b33e-4112-bb67-7dde93e594d4")
+			(uuid "50aebdb3-8d48-4539-905c-0aba8b9941a9")
 		)
 		(instances
 			(project "MainFlightComputer"
-				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/977c9222-34a7-4755-a0bd-9d47c2e1603a"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/b2b2887e-ac36-4199-87f1-23d769fda1d4"
 					(reference "#PWR07")
 					(unit 1)
 				)
@@ -3334,14 +3334,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "e2fec50d-670c-4b7b-afe3-18b1c7c9b600")
+			(uuid "cb5f26ed-7230-4fe8-a51a-44fd4eefc29f")
 		)
 		(pin "2"
-			(uuid "329f5011-83c0-407c-b59d-4e3dcd446ffe")
+			(uuid "c17d49fa-0404-44a0-8000-483ea69dd565")
 		)
 		(instances
 			(project "MainFlightComputer"
-				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/977c9222-34a7-4755-a0bd-9d47c2e1603a"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/b2b2887e-ac36-4199-87f1-23d769fda1d4"
 					(reference "JP1")
 					(unit 1)
 				)
@@ -3404,11 +3404,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "e54c1e2a-d4b9-4121-a1f6-b2d2946ceb21")
+			(uuid "8ca78839-d13e-49e7-a7d3-fb185ba6048e")
 		)
 		(instances
 			(project "MainFlightComputer"
-				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/977c9222-34a7-4755-a0bd-9d47c2e1603a"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/b2b2887e-ac36-4199-87f1-23d769fda1d4"
 					(reference "#PWR09")
 					(unit 1)
 				)
@@ -3469,23 +3469,23 @@
 			)
 		)
 		(pin "1"
-			(uuid "67ba18f8-2c99-44f1-899a-2ab5514d7522")
+			(uuid "1946e4fb-c911-48ed-8bfc-224d13b52c3d")
 		)
 		(pin "2"
-			(uuid "84b07485-4c29-46ea-bdea-d8a33918053f")
+			(uuid "d74e70ed-db57-45cb-a4a9-0315f1859852")
 		)
 		(pin "4"
-			(uuid "98c6b9ad-2d87-4b46-b89c-d141bf847d92")
+			(uuid "ff7c9811-6ada-430c-8033-50c6877e957b")
 		)
 		(pin "5"
-			(uuid "3b641707-1221-4690-8cb5-b652eea5453f")
+			(uuid "7d93e7a5-c51e-4f10-b024-d7a03ad678b3")
 		)
 		(pin "3"
-			(uuid "a0c721e1-d05c-4c06-af67-87940a5bee2f")
+			(uuid "2a9f0582-34ce-4bed-bef2-f2eebccda827")
 		)
 		(instances
 			(project "MainFlightComputer"
-				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/977c9222-34a7-4755-a0bd-9d47c2e1603a"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/b2b2887e-ac36-4199-87f1-23d769fda1d4"
 					(reference "U3")
 					(unit 1)
 				)
@@ -3548,11 +3548,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "8cc86293-0f62-4763-a23a-7624b0f37144")
+			(uuid "d8825faf-2927-4239-aec6-0af5d434ed79")
 		)
 		(instances
 			(project "MainFlightComputer"
-				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/977c9222-34a7-4755-a0bd-9d47c2e1603a"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/b2b2887e-ac36-4199-87f1-23d769fda1d4"
 					(reference "#PWR012")
 					(unit 1)
 				)
@@ -3614,14 +3614,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "3ee1ff62-f36b-48f6-b7be-e6492c5ac0bf")
+			(uuid "87661f10-a488-4b06-bde9-be60f582a522")
 		)
 		(pin "2"
-			(uuid "63bce8b8-173d-470a-8368-7e05f4321898")
+			(uuid "cd9714da-9300-4225-8959-d3dbbfac3d85")
 		)
 		(instances
 			(project "MainFlightComputer"
-				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/977c9222-34a7-4755-a0bd-9d47c2e1603a"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/b2b2887e-ac36-4199-87f1-23d769fda1d4"
 					(reference "C4")
 					(unit 1)
 				)
@@ -3684,14 +3684,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "b36fdfbb-97ce-4b84-9a07-afa3a6da4c7a")
+			(uuid "0541d9d6-6163-4607-a155-ec3b0faedf88")
 		)
 		(pin "2"
-			(uuid "c95dbc9c-5670-4c7a-8b9d-1277c898b2d4")
+			(uuid "1b23bfb7-9853-4ad0-9068-35393b75778a")
 		)
 		(instances
 			(project "MainFlightComputer"
-				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/977c9222-34a7-4755-a0bd-9d47c2e1603a"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/b2b2887e-ac36-4199-87f1-23d769fda1d4"
 					(reference "C1")
 					(unit 1)
 				)
@@ -3753,14 +3753,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "3d6ee62c-b40c-4e63-818c-8666c2ab4240")
+			(uuid "5f813900-441f-49af-9aed-b5d1de384a43")
 		)
 		(pin "2"
-			(uuid "1352d997-0a05-4615-aedf-2bc29f9d1bf8")
+			(uuid "0e55b656-49f3-4a11-8023-0da59cb7daf8")
 		)
 		(instances
 			(project "MainFlightComputer"
-				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/977c9222-34a7-4755-a0bd-9d47c2e1603a"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/b2b2887e-ac36-4199-87f1-23d769fda1d4"
 					(reference "C3")
 					(unit 1)
 				)
@@ -3824,11 +3824,11 @@
 			)
 		)
 		(pin "1"
-			(uuid "b9d8f485-cd7f-4d77-a188-de4fdb61eb64")
+			(uuid "c05e2eda-0300-402a-850f-6d0f6e0214fc")
 		)
 		(instances
 			(project "MainFlightComputer"
-				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/977c9222-34a7-4755-a0bd-9d47c2e1603a"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/b2b2887e-ac36-4199-87f1-23d769fda1d4"
 					(reference "#PWR06")
 					(unit 1)
 				)
