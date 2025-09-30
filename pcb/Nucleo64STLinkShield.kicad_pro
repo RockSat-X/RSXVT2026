@@ -447,13 +447,11 @@
     }
   },
   "libraries": {
-    "pinned_footprint_libs": [
-      "pcb"
-    ],
+    "pinned_footprint_libs": [],
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "MainFlightComputer.kicad_pro",
+    "filename": "Nucleo64STLinkShield.kicad_pro",
     "version": 3
   },
   "net_settings": {
@@ -580,7 +578,7 @@
       "field_names": [],
       "intersheets_ref_own_page": false,
       "intersheets_ref_prefix": "",
-      "intersheets_ref_short": false,
+      "intersheets_ref_short": true,
       "intersheets_ref_show": false,
       "intersheets_ref_suffix": "",
       "junction_size_choice": 3,
@@ -613,7 +611,7 @@
   },
   "sheets": [
     [
-      "0a179c33-cb18-4019-99e7-0e00d41f97d6",
+      "dc931235-6a3d-461b-9fb0-f5879d72cf99",
       "Root"
     ]
   ],

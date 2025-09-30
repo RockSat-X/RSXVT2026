@@ -847,6 +847,19 @@
 			(embedded_fonts no)
 		)
 	)
+	(rectangle
+		(start 75.057 76.708)
+		(end 197.485 121.92)
+		(stroke
+			(width 0.8128)
+			(type solid)
+			(color 255 0 0 1)
+		)
+		(fill
+			(type none)
+		)
+		(uuid b291b4cd-116f-478f-a040-ee00e27729c8)
+	)
 	(text "TODO: Look more into series terminating\nresistors for SD card bus lines."
 		(exclude_from_sim no)
 		(at 127 86.36 0)
@@ -860,6 +873,21 @@
 			)
 		)
 		(uuid "c3c1ea46-5e0c-4727-88e5-528056633ad8")
+	)
+	(text "uSD Connector."
+		(exclude_from_sim no)
+		(at 74.93 74.93 0)
+		(effects
+			(font
+				(size 3.2512 3.2512)
+				(thickness 0.6502)
+				(bold yes)
+				(italic yes)
+				(color 255 0 0 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "ddbe5ec6-ccc2-4de4-9215-163e98d32952")
 	)
 	(junction
 		(at 96.52 100.33)
@@ -1065,71 +1093,137 @@
 		)
 		(uuid "fe35119d-1171-42d2-a214-6410864a4d3e")
 	)
-	(hierarchical_label "CLK"
-		(shape bidirectional)
-		(at 125.73 102.87 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "1bb2bd3c-a6f4-47d4-ab9a-4d397a7035e1")
-	)
-	(hierarchical_label "DATA3"
-		(shape bidirectional)
-		(at 125.73 95.25 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "57b01429-fef4-46eb-885c-e867d66ed183")
-	)
-	(hierarchical_label "DATA0"
-		(shape bidirectional)
-		(at 125.73 107.95 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "a4292542-54c0-47eb-ad15-b9ace74de902")
-	)
-	(hierarchical_label "CMD"
+	(global_label "SD_CMD"
 		(shape bidirectional)
 		(at 125.73 97.79 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify right)
 		)
-		(uuid "b9ff4eb6-3079-4769-b0b9-3d29070ca8f4")
+		(uuid "75d776b1-9058-44f9-9bb4-937e86ab1cf1")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 114.195 97.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
 	)
-	(hierarchical_label "DATA1"
+	(global_label "SD_DAT1"
 		(shape bidirectional)
 		(at 125.73 110.49 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify right)
 		)
-		(uuid "bfc3ef0c-8e89-4190-b33b-2a2e55db0605")
+		(uuid "a685c905-553c-43b9-bc35-dfcf1e8ce332")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 113.6507 110.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
 	)
-	(hierarchical_label "DATA2"
+	(global_label "SD_DAT2"
 		(shape bidirectional)
 		(at 125.73 92.71 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify right)
 		)
-		(uuid "d2c797ce-ac08-4564-a87b-6dfbd303038d")
+		(uuid "d7563d35-f09f-4a13-af8b-a0b5ec153ad8")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 113.6507 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "SD_DAT0"
+		(shape bidirectional)
+		(at 125.73 107.95 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "dcb68076-2a2c-4693-867f-60198b68427b")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 113.6507 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "SD_CLK"
+		(shape bidirectional)
+		(at 125.73 102.87 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "e4b53aad-1bc7-4217-8afa-1ca5053925fb")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 114.6183 102.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "SD_DAT3"
+		(shape bidirectional)
+		(at 125.73 95.25 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "f26f0229-5a2b-474f-8a36-565c35efee53")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 113.6507 95.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:R_Small")
