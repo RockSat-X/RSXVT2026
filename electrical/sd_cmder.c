@@ -56,6 +56,8 @@ struct SDCmder
 
 
 
+#undef  ret
+#define ret(NAME) return SDTransferDataManually_##NAME
 static useret enum SDTransferDataManually : u32
 {
     SDTransferDataManually_done,
@@ -64,9 +66,6 @@ static useret enum SDTransferDataManually : u32
 }
 _SDCmder_transfer_data_manually(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 {
-
-    #undef  ret
-    #define ret(NAME) return SDTransferDataManually_##NAME
 
 
 
@@ -104,7 +103,6 @@ _SDCmder_transfer_data_manually(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
         word_index += sizeof(u32)
     )
     {
-
 
         if (!CMSIS_GET(SDMMC, STA, DPSMACT))
             bug;
@@ -153,6 +151,8 @@ _SDCmder_transfer_data_manually(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
 
 
+#undef  ret
+#define ret(NAME) return SDCmderUpdate_##NAME
 static useret enum SDCmderUpdate : u32
 {
     SDCmderUpdate_again,
@@ -164,9 +164,6 @@ static useret enum SDCmderUpdate : u32
 }
 SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 {
-
-    #undef  ret
-    #define ret(NAME) return SDCmderUpdate_##NAME
 
     if (!SDMMC)
         bug;
@@ -259,17 +256,38 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
             if (cmder->stopping_transmission)
             {
+
                 if (cmder->effective_cmd == SDCmd_STOP_TRANSMISSION)
-                    bug; // Should only be sent once.
+                    // The STOP_TRANSMISSION command
+                    // should've only been sent once.
+                    bug;
+
                 cmder->effective_cmd = SDCmd_STOP_TRANSMISSION;
                 actual_arg           = 0;
                 transferring_data    = false;
+
             }
             else if (SD_CMDS[cmder->cmd].acmd && cmder->effective_cmd != SDCmd_APP_CMD)
             {
-                cmder->effective_cmd = SDCmd_APP_CMD;            // We need to send the APP_CMD prefix first.
-                actual_arg           = ((u32) cmder->rca) << 16; // The relative card address (RCA) is 0x0000 in idle state. @/pg 67/sec 4.2.2/`SD`.
-                transferring_data    = false;
+
+                // We need to send the APP_CMD prefix first.
+
+                cmder->effective_cmd = SDCmd_APP_CMD;
+
+
+
+                // It's fine if we haven't gotten the RCA yet during
+                // initialization, because it's 0x0000 in idle state.
+                // @/pg 67/sec 4.2.2/`SD`.
+
+                actual_arg = ((u32) cmder->rca) << 16;
+
+
+
+                // The APP_CMD itself obviously won't have a data transfer stage.
+
+                transferring_data = false;
+
             }
             else
             {
@@ -292,14 +310,12 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                     // Must be a power of two no
                     // greater than 2^14 = 16384 bytes.
                     // @/pg 2807/sec 59.10.9/`H7S3rm`.
-                    // @/pg 2486/sec 60.10.9/`H730rm`.
                     bug;
 
                 if (cmder->remaining % cmder->block_size)
                     // Amount of data must be a multiple of the
                     // data-block or else it'll be truncated.
                     // @/pg 2807/sec 59.10.9/`H7S3rm`.
-                    // @/pg 2486/sec 60.10.9/`H730rm`.
                     bug;
 
                 if (cmder->remaining % sizeof(u32))
@@ -310,7 +326,6 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 if (cmder->remaining >= (1 << 25))
                     // Transfer limit of the DATALENGTH field.
                     // @/pg 2805/sec 59.10.8/`H7S3rm`.
-                    // @/pg 2484/sec 60.10.8/`H730rm`.
                     bug;
 
                 if (cmder->remaining < 1)
@@ -320,7 +335,6 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 if (CMSIS_GET_FROM(status_snapshot, SDMMC, STA, DPSMACT))
                     // The DPSM must be inactive in order to be configured.
                     // @/pg 2807/sec 59.10.9/`H7S3rm`.
-                    // @/pg 2486/sec 60.10.9/`H730rm`.
                     bug;
 
 
@@ -345,11 +359,8 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             // Configure command packet and begin
             // the command-path state machine.
             // @/pg 2751/fig 860/`H7S3rm`.
-            // @/pg 2430/fig 738/`H730rm`.
 
             if (CMSIS_GET(SDMMC, CMD, CPSMEN))
-                // The command-path state machine
-                // shouldn't already be enabled...
                 bug;
 
             CMSIS_SET(SDMMC, ARG, CMDARG, actual_arg);
@@ -497,9 +508,9 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
             if
             (
-                SDMMC->RESPCMD != SD_CMDS[cmder->effective_cmd].code                // Response must match the expected command code...
-                && SD_CMDS[cmder->effective_cmd].waitresp_type != SDWaitRespType_r2 // ... unless the response doesn't have the command-index field anyways.
-                && SD_CMDS[cmder->effective_cmd].waitresp_type != SDWaitRespType_r3 // "
+                SDMMC->RESPCMD != SD_CMDS[cmder->effective_cmd].code                // Response must match the expected command code
+                && SD_CMDS[cmder->effective_cmd].waitresp_type != SDWaitRespType_r2 // unless the response doesn't have the
+                && SD_CMDS[cmder->effective_cmd].waitresp_type != SDWaitRespType_r3 // command-index field anyways.
             )
             {
                 cmder->error = SDCmderError_cmd_code_mismatch;
@@ -775,7 +786,6 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 // is sent if the DPSM is being used.
 //
 // @/pg 2756/tbl 622/`H7S3rm`.
-// @/pg 2435/tbl 484/`H730rm`.
 
 
 
@@ -805,4 +815,3 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 // to get around this.
 //
 // @/pg 2759/fig 864/`H7S3rm`.
-// @/pg 2438/fig 742/`H730rm`.
