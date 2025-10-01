@@ -1085,6 +1085,167 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Device:Buzzer"
+			(pin_names
+				(offset 0.0254)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "BZ"
+				(at 3.81 1.27 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "Buzzer"
+				(at 3.81 -1.27 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" ""
+				(at -0.635 2.54 90)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at -0.635 2.54 90)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Buzzer, polarized"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "quartz resonator ceramic"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "*Buzzer*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "Buzzer_0_1"
+				(polyline
+					(pts
+						(xy -1.651 1.905) (xy -1.143 1.905)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.397 2.159) (xy -1.397 1.651)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(arc
+					(start 0 3.175)
+					(mid 3.1612 0)
+					(end 0 -3.175)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 3.175) (xy 0 -3.175)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "Buzzer_1_1"
+				(pin passive line
+					(at -2.54 2.54 0)
+					(length 2.54)
+					(name "+"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -2.54 -2.54 0)
+					(length 2.54)
+					(name "-"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "Device:C_Small"
 			(pin_numbers
 				(hide yes)
@@ -5749,6 +5910,19 @@
 		)
 		(uuid e534fc97-2bae-4eef-8383-8d95492975ac)
 	)
+	(rectangle
+		(start 349.885 283.845)
+		(end 452.755 330.835)
+		(stroke
+			(width 0.8128)
+			(type solid)
+			(color 255 0 0 1)
+		)
+		(fill
+			(type none)
+		)
+		(uuid fce2f34b-6fcd-4ac7-8fb0-e81597e51762)
+	)
 	(text "Debug Connector."
 		(exclude_from_sim no)
 		(at 349.885 236.855 0)
@@ -5789,6 +5963,49 @@
 			(justify left bottom)
 		)
 		(uuid "3726e879-10b1-4a9c-89a9-6484728406f4")
+	)
+	(text "TODO: Instead of a resistor, we might use a\ntransistor to allow for larger current driving."
+		(exclude_from_sim no)
+		(at 427.228 288.798 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+				(bold yes)
+				(italic yes)
+				(color 255 0 255 1)
+			)
+		)
+		(uuid "38b23919-9ae9-4853-a323-7e8d3cab861c")
+	)
+	(text "TODO: The AST1109MLTRQ and WT-1205 buzzers\nhave similar footprint area, but the former\nhas a much smaller height. As precaution,\nwe'll have a footprint for both buzzers in\ncase we design for the AST1109MLTRQ wrong."
+		(exclude_from_sim no)
+		(at 427.736 301.498 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+				(bold yes)
+				(italic yes)
+				(color 255 0 255 1)
+			)
+		)
+		(uuid "74665719-fb0a-4a16-8634-fdd527d95513")
+	)
+	(text "Debug Buzzer."
+		(exclude_from_sim no)
+		(at 349.758 282.194 0)
+		(effects
+			(font
+				(size 3.2512 3.2512)
+				(thickness 0.6502)
+				(bold yes)
+				(italic yes)
+				(color 255 0 0 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "7a58611c-9fce-4009-9822-995b47a2362f")
 	)
 	(text "\"If there are two VCAP pins (such as for the LQFP64 package), each pin must be\nconnected to a 2.2uF (typical) capacitor (for a total approximately 4.4 uF).\"\n@/pg 35/sec 8.2/`H533an`.\n@/pg 12/fig 6/`H533an`."
 		(exclude_from_sim no)
@@ -6027,10 +6244,22 @@
 		(uuid "d2be1c2d-b80c-48d0-9cc1-a5181ec11b04")
 	)
 	(junction
+		(at 369.57 309.88)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "df85193d-11e4-4209-a628-d9e31db57709")
+	)
+	(junction
 		(at 417.83 115.57)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "e3632ba0-d425-4463-8ee5-7ea87c781469")
+	)
+	(junction
+		(at 382.27 309.88)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "eea6600d-668d-4886-8c32-a3d2d41456c9")
 	)
 	(no_connect
 		(at 215.9 133.35)
@@ -6440,6 +6669,16 @@
 	)
 	(wire
 		(pts
+			(xy 382.27 299.72) (xy 382.27 300.99)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "234d98ca-f621-4043-9cf8-c50d3b98dce9")
+	)
+	(wire
+		(pts
 			(xy 412.75 210.82) (xy 420.37 210.82)
 		)
 		(stroke
@@ -6517,6 +6756,16 @@
 			(type default)
 		)
 		(uuid "329412be-65e6-4405-9520-43246234b6de")
+	)
+	(wire
+		(pts
+			(xy 360.68 309.88) (xy 369.57 309.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "33746903-4627-4783-920e-e2201f491bf1")
 	)
 	(wire
 		(pts
@@ -6660,6 +6909,16 @@
 	)
 	(wire
 		(pts
+			(xy 389.89 316.23) (xy 389.89 309.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "64363ead-d485-4986-a62c-05a57e74ad23")
+	)
+	(wire
+		(pts
 			(xy 374.65 80.01) (xy 374.65 127)
 		)
 		(stroke
@@ -6720,6 +6979,16 @@
 	)
 	(wire
 		(pts
+			(xy 375.92 292.1) (xy 375.92 295.91)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "76117091-bcc2-47f5-8473-cc6e83d73d7e")
+	)
+	(wire
+		(pts
 			(xy 370.84 205.74) (xy 382.27 205.74)
 		)
 		(stroke
@@ -6750,6 +7019,16 @@
 	)
 	(wire
 		(pts
+			(xy 382.27 308.61) (xy 382.27 309.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7e5a4436-23fd-440a-bc1d-d10e20d6235d")
+	)
+	(wire
+		(pts
 			(xy 148.59 217.17) (xy 154.94 217.17)
 		)
 		(stroke
@@ -6767,6 +7046,16 @@
 			(type default)
 		)
 		(uuid "8857bfd7-4b01-40f3-bfcc-ecb772c970b5")
+	)
+	(wire
+		(pts
+			(xy 374.65 292.1) (xy 375.92 292.1)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8b41cea5-7263-45ea-910e-f691c94e34e2")
 	)
 	(wire
 		(pts
@@ -6830,6 +7119,16 @@
 	)
 	(wire
 		(pts
+			(xy 369.57 308.61) (xy 369.57 309.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9fe1deab-fef9-4414-b5c1-86853ce83155")
+	)
+	(wire
+		(pts
 			(xy 190.5 91.44) (xy 193.04 91.44)
 		)
 		(stroke
@@ -6867,6 +7166,16 @@
 			(type default)
 		)
 		(uuid "a88c1a34-e70f-48ba-a32a-dda087aae06b")
+	)
+	(wire
+		(pts
+			(xy 389.89 309.88) (xy 382.27 309.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a89a44d1-9dcb-4096-864f-ebce4958ba69")
 	)
 	(wire
 		(pts
@@ -6927,6 +7236,16 @@
 			(type default)
 		)
 		(uuid "d5a5cd58-2e63-42db-85bf-d65175e766b8")
+	)
+	(wire
+		(pts
+			(xy 360.68 309.88) (xy 360.68 316.23)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "dae4017f-163b-494d-96c3-1bf18863d4bf")
 	)
 	(wire
 		(pts
@@ -7000,6 +7319,16 @@
 	)
 	(wire
 		(pts
+			(xy 369.57 299.72) (xy 369.57 300.99)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ed259ffb-9018-482d-87c5-e8d14310ad43")
+	)
+	(wire
+		(pts
 			(xy 401.32 82.55) (xy 401.32 80.01)
 		)
 		(stroke
@@ -7047,6 +7376,16 @@
 			(type default)
 		)
 		(uuid "fe35119d-1171-42d2-a214-6410864a4d3e")
+	)
+	(wire
+		(pts
+			(xy 369.57 309.88) (xy 382.27 309.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ff97512a-aee4-49fb-bfb0-a647f84778fd")
 	)
 	(wire
 		(pts
@@ -7241,6 +7580,28 @@
 		(uuid "27ce3fbe-a310-4d2b-9af2-db4f46773fa0")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 357.1884 251.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "BUZZER"
+		(shape bidirectional)
+		(at 374.65 292.1 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "32a95f82-e1ef-4c54-bbf8-3c37d4684a8d")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 363.115 292.1 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7913,6 +8274,142 @@
 		)
 	)
 	(symbol
+		(lib_id "power:GND")
+		(at 389.89 321.31 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "0de52c73-ccc2-4ab0-8daf-c309bd15386c")
+		(property "Reference" "#PWR029"
+			(at 389.89 327.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 389.8901 325.12 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 389.89 321.31 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 389.89 321.31 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 389.89 321.31 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "16fd033e-293c-44d0-8528-b9c16d393f25")
+		)
+		(instances
+			(project "MainFlightComputer"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
+					(reference "#PWR029")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 360.68 321.31 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "0f906b30-1563-4e0b-aa64-60f811cccd16")
+		(property "Reference" "#PWR028"
+			(at 360.68 327.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 360.6801 325.12 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 360.68 321.31 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 360.68 321.31 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 360.68 321.31 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "16989980-56dd-46aa-889a-087d9b091363")
+		)
+		(instances
+			(project "MainFlightComputer"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
+					(reference "#PWR028")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:R_Small")
 		(at 405.13 193.04 90)
 		(unit 1)
@@ -8393,6 +8890,76 @@
 			(project ""
 				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
 					(reference "J1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:Buzzer")
+		(at 392.43 318.77 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp yes)
+		(fields_autoplaced yes)
+		(uuid "38d79031-2f60-403e-9b6b-a77f85be3dde")
+		(property "Reference" "BZ2"
+			(at 396.24 317.4999 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "WT-1205"
+			(at 396.24 320.0399 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Buzzer_Beeper:MagneticBuzzer_ProSignal_ABT-410-RC"
+			(at 391.795 316.23 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 391.795 316.23 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Buzzer, polarized"
+			(at 392.43 318.77 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "db63d145-6d93-4862-b580-d930b546a068")
+		)
+		(pin "1"
+			(uuid "7fa3a8bf-4821-40b1-93b5-a737477a4b35")
+		)
+		(instances
+			(project "MainFlightComputer"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
+					(reference "BZ2")
 					(unit 1)
 				)
 			)
@@ -9855,6 +10422,79 @@
 			(project "MainFlightComputer"
 				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
 					(reference "#PWR09")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Jumper:Jumper_3_Bridged12")
+		(at 375.92 299.72 0)
+		(mirror x)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(uuid "80afd286-b202-4d51-b3d5-6cc4c4f020a6")
+		(property "Reference" "JP3"
+			(at 375.92 303.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "Jumper_3_Bridged12"
+			(at 374.6501 302.26 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
+			(at 375.92 299.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 375.92 299.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Jumper, 3-pole, pins 1+2 closed/bridged"
+			(at 375.92 299.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "9c2c78b1-beae-43f2-a8ad-14c892f079a3")
+		)
+		(pin "3"
+			(uuid "2ab771d9-6df0-4307-968a-261899d06eab")
+		)
+		(pin "1"
+			(uuid "6dd970b5-21d7-418b-8191-07aa43668735")
+		)
+		(instances
+			(project "MainFlightComputer"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
+					(reference "JP3")
 					(unit 1)
 				)
 			)
@@ -11394,6 +12034,75 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:R")
+		(at 369.57 304.8 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "d3a94a81-6e98-48b0-8207-26685fc02a13")
+		(property "Reference" "R9"
+			(at 367.03 303.5299 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "100"
+			(at 367.03 306.0699 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
+			(at 367.792 304.8 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 369.57 304.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 369.57 304.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "ea290874-2701-4298-863f-47f546040782")
+		)
+		(pin "2"
+			(uuid "eba07aaf-eb3d-4c98-95d4-a032a8f41179")
+		)
+		(instances
+			(project "MainFlightComputer"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
+					(reference "R9")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 452.12 90.17 0)
 		(unit 1)
@@ -11594,6 +12303,146 @@
 			(project ""
 				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
 					(reference "C7")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:Buzzer")
+		(at 363.22 318.77 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "ed9430c6-e21b-46d4-b8d9-6e32e945b389")
+		(property "Reference" "BZ1"
+			(at 367.03 317.4999 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "AST1109MLTRQ"
+			(at 367.03 320.0399 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Buzzer_Beeper:Buzzer_Mallory_AST1109MLTRQ"
+			(at 362.585 316.23 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 362.585 316.23 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Buzzer, polarized"
+			(at 363.22 318.77 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "e141d8b0-fcc6-485f-a6b6-3ceeac4eb58f")
+		)
+		(pin "1"
+			(uuid "669f15ab-51de-4b82-b827-5c3ac8ce8a2e")
+		)
+		(instances
+			(project ""
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
+					(reference "BZ1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 382.27 304.8 0)
+		(mirror y)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "f075f643-c677-405c-addf-e4c38a3a8419")
+		(property "Reference" "R10"
+			(at 384.81 303.5299 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "50"
+			(at 384.81 306.0699 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
+			(at 384.048 304.8 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 382.27 304.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 382.27 304.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "ea0f2f30-3165-4182-ba44-928cfa592975")
+		)
+		(pin "2"
+			(uuid "7ef6856f-86d5-45cb-8e7d-1ba6d4cd36f2")
+		)
+		(instances
+			(project "MainFlightComputer"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
+					(reference "R10")
 					(unit 1)
 				)
 			)
