@@ -1,6 +1,8 @@
 #include "system.h"
 #include "uxart.c"
 #include "sd.c"
+#include "filesystem.c"
+
 
 
 extern noret void
@@ -31,6 +33,7 @@ main(void)
     // Test the SD driver.
     //
 
+#if 0
     i32 driver_error_count = 0;
     i32 task_error_count   = 0;
 
@@ -153,6 +156,46 @@ main(void)
         GPIO_TOGGLE(led_green);
         spinlock_nop(100'000'000);
 
+    }
+#endif
+
+
+
+#if 1
+    {
+        FRESULT fr;
+        FATFS   fs;
+        FIL     fil;
+
+        /* Open or create a log file and ready to append */
+        f_mount(&fs, "", 0);
+        {
+            /* Opens an existing file. If not exist, creates a new file. */
+            fr = f_open(&fil, "logfile.txt", FA_WRITE | FA_OPEN_ALWAYS);
+            if (fr == FR_OK) {
+                /* Seek to end of the file to append data */
+                fr = f_lseek(&fil, f_size(&fil));
+                if (fr != FR_OK)
+                    f_close(&fil);
+            }
+        }
+
+        if (fr != FR_OK) panic;
+
+        /* Append a line */
+        f_printf(&fil, "%02u/%02u/%u, %2u:%02u\n", 1, 2, 3, 4, 5);
+
+        /* Close the file */
+        f_close(&fil);
+    }
+#endif
+
+
+
+    for (;;)
+    {
+        GPIO_TOGGLE(led_green);
+        spinlock_nop(100'000'000);
     }
 
 }
