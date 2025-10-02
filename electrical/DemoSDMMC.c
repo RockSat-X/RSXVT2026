@@ -70,8 +70,6 @@ main(void)
                 // The sector-read was a success!
             } break;
 
-
-
             case SDDo_task_error:
             {
 
@@ -115,6 +113,7 @@ main(void)
             case SDDo_task_in_progress : panic;
             case SDDo_bug              : panic;
             default                    : panic;
+
         }
 
 
