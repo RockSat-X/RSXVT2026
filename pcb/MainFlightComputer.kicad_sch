@@ -7731,7 +7731,7 @@
 		)
 		(uuid "9561bb8a-046a-4054-bc7a-72f35823a6f4")
 	)
-	(text "USB-UART Bridge."
+	(text "USB-UART Bridge (V1 : Vertical USB)."
 		(exclude_from_sim no)
 		(at 314.198 85.852 0)
 		(effects
@@ -11789,7 +11789,7 @@
 				)
 			)
 		)
-		(property "Value" "USB_B_Micro"
+		(property "Value" "614105150721"
 			(at 323.85 153.67 0)
 			(effects
 				(font
@@ -11797,7 +11797,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Connector_USB:USB_Micro-B_Molex_47346-0001"
+		(property "Footprint" "pcb:USB_Micro-B_Wuerth_614105150721_Vertical"
 			(at 327.66 165.1 0)
 			(effects
 				(font
