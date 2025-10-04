@@ -2,14 +2,15 @@
 	(version 20241229)
 	(generator "pcbnew")
 	(generator_version "9.0")
+	(locked yes)
 	(layer "F.Cu")
 	(descr "Housing for the Main Camera System.")
-	(property "Reference" "REF**"
+	(property "Reference" "N1"
 		(at 0 -0.5 0)
 		(unlocked yes)
 		(layer "F.SilkS")
 		(hide yes)
-		(uuid "74ae104c-a3bc-4497-abfd-c472b3dfff48")
+		(uuid "a99c6772-c5d0-4182-a94d-8ae8778eb9ab")
 		(effects
 			(font
 				(size 1 1)
@@ -17,12 +18,12 @@
 			)
 		)
 	)
-	(property "Value" "Val**"
+	(property "Value" "Housing"
 		(at 0 1 0)
 		(unlocked yes)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "c14cae57-90e6-4bdd-8bb3-825d4fa36721")
+		(uuid "bfa8dbd0-addb-410b-a10c-e1c584309b88")
 		(effects
 			(font
 				(size 1 1)
@@ -30,12 +31,12 @@
 			)
 		)
 	)
-	(property "Datasheet" ""
+	(property "Datasheet" "~"
 		(at 0 0 0)
 		(unlocked yes)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "c1c45a2c-8088-4e06-bc4d-3f7de8696a8c")
+		(uuid "74a921b1-65d2-4455-9abb-a14a4952dfcc")
 		(effects
 			(font
 				(size 1 1)
@@ -43,12 +44,12 @@
 			)
 		)
 	)
-	(property "Description" ""
+	(property "Description" "Housing"
 		(at 0 0 0)
 		(unlocked yes)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "2dd8b5ee-3b14-4d00-afe0-cc90dad28d24")
+		(uuid "d5e8078a-e213-411c-be93-850490fbc0bc")
 		(effects
 			(font
 				(size 1 1)
@@ -65,7 +66,7 @@
 			(type default)
 		)
 		(layer "User.1")
-		(uuid "fe3caaf9-260a-4a07-a2f8-5a90e94fc7af")
+		(uuid "bc84993d-377a-4aaf-b7f2-84fb2f3f2497")
 	)
 	(fp_line
 		(start 0 -1)
@@ -75,7 +76,7 @@
 			(type default)
 		)
 		(layer "User.1")
-		(uuid "fa85b5c5-f18f-47b9-af1b-1a574f423d06")
+		(uuid "16923cd7-5767-42b0-81f2-9e7ff3c7ff0b")
 	)
 	(fp_circle
 		(center 0 0)
@@ -86,12 +87,13 @@
 		)
 		(fill no)
 		(layer "User.1")
-		(uuid "3306ed2f-b33f-49e6-914d-7f0cae831f99")
+		(uuid "e0a4b400-d5ba-43e1-af54-fa9e83092590")
 	)
 	(embedded_fonts no)
 	(model "${KIPRJMOD}/models/ElectronicsBoxCase_AN-14F-01.step"
+		(opacity 0.9000)
 		(offset
-			(xyz 0 0 0)
+			(xyz -10 24 31)
 		)
 		(scale
 			(xyz 1 1 1)

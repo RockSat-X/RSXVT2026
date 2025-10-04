@@ -2,7 +2,7 @@
 	(version 20250114)
 	(generator "eeschema")
 	(generator_version "9.0")
-	(uuid "4cf18df7-e737-4c65-af51-d97d6ab50bbe")
+	(uuid "113fff21-53bd-430f-8b24-3e3302725e5a")
 	(paper "A4")
 	(lib_symbols
 		(symbol "Connector:USB_B_Micro"
@@ -1723,7 +1723,7 @@
 		)
 		(uuid "3726e879-10b1-4a9c-89a9-6484728406f4")
 	)
-	(text "USB-UART Bridge."
+	(text "USB-UART Bridge (V1 : Vertical USB)."
 		(exclude_from_sim no)
 		(at 314.198 85.852 0)
 		(effects
@@ -2786,7 +2786,7 @@
 				)
 			)
 		)
-		(property "Value" "USB_B_Micro"
+		(property "Value" "614105150721"
 			(at 323.85 153.67 0)
 			(effects
 				(font
@@ -2794,7 +2794,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Connector_USB:USB_Micro-B_Molex_47346-0001"
+		(property "Footprint" "pcb:USB_Micro-B_Wuerth_614105150721_Vertical"
 			(at 327.66 165.1 0)
 			(effects
 				(font
