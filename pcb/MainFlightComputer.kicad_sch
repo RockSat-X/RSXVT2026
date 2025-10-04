@@ -11858,7 +11858,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "38d79031-2f60-403e-9b6b-a77f85be3dde")
 		(property "Reference" "BZ2"
