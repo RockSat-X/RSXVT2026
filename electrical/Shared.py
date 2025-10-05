@@ -87,6 +87,8 @@ TARGETS = (
             ./electrical/SandboxNucleoBoard.c
         '''),
 
+        schematic_file_path = None,
+
         gpios = (
             ('led_red'   , 'B7' , 'OUTPUT'    , { 'initlvl' : False               }),
             ('led_yellow', 'D13', 'OUTPUT'    , { 'initlvl' : False               }),
@@ -142,6 +144,8 @@ TARGETS = (
             ./electrical/SandboxNucleoBoard.c
         '''),
 
+        schematic_file_path = None,
+
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False              }),
             ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'        }),
@@ -190,6 +194,8 @@ TARGETS = (
         source_file_paths = root('''
             ./electrical/DemoI2C.c
         '''),
+
+        schematic_file_path = None,
 
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                                          }),
@@ -248,6 +254,8 @@ TARGETS = (
             ./electrical/DemoTimer.c
         '''),
 
+        schematic_file_path = None,
+
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                 }),
             ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'           }),
@@ -300,6 +308,8 @@ TARGETS = (
         source_file_paths = root('''
             ./electrical/DemoSPI.c
         '''),
+
+        schematic_file_path = None,
 
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                 }),
@@ -360,6 +370,8 @@ TARGETS = (
             ./electrical/DemoTimekeeping.c
         '''),
 
+        schematic_file_path = None,
+
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False              }),
             ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'        }),
@@ -410,6 +422,8 @@ TARGETS = (
         source_file_paths = root('''
             ./electrical/DemoSDMMC.c
         '''),
+
+        schematic_file_path = None,
 
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                 }),
@@ -473,6 +487,7 @@ TARGETS = (
         source_file_paths = root('''
             ./electrical/SensorShield.c
         '''),
+        schematic_file_path = None,
 
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                                          }),
@@ -528,6 +543,8 @@ TARGETS = (
         name              = 'MainFlightComputer',
         mcu               = 'STM32H533VET6',
         source_file_paths = (),
+
+        schematic_file_path = root('./pcb/MainFlightComputer.kicad_sch'),
 
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False              }),
