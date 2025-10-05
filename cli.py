@@ -989,6 +989,18 @@ def checkPCBs(parameters):
 
 
 
+    # We must run the meta-preprocessor first to
+    # verify every target's GPIO parameterization.
+
+    execute('./cli.py build --metapreprocess-only')
+
+    log()
+
+
+
+    # We can now move onto ensuring every target's
+    # GPIO matches up with what's in the schematic.
+
     for target in TARGETS:
 
 
