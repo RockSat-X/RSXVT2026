@@ -617,10 +617,20 @@ for target in TARGETS:
         ('MAIN_STACK_SIZE'     , target.main_stack_size),
     ]
 
-    for other in TARGETS:
+    for other_target in TARGETS:
         defines += [
-            (f'TARGET_NAME_IS_{other.name}', int(other.name == target.name)),
-            (f'TARGET_MCU_IS_{other.mcu}'  , int(other.mcu  == target.mcu )),
+            (
+                f'TARGET_NAME_IS_{other_target.name}',
+                int(other_target.name == target.name)
+            ),
+        ]
+
+    for other_mcu in MCU_SUPPORT:
+        defines += [
+            (
+                f'TARGET_MCU_IS_{other_mcu}',
+                int(other_mcu == target.mcu)
+            ),
         ]
 
 
@@ -679,7 +689,7 @@ def PER_MCU():
 
     for mcu in MCUS:
 
-        if any(target.mcu == mcu for target in TARGETS):
+        if mcu in MCU_SUPPORT:
 
             with Meta.enter(f'#if TARGET_MCU_IS_{mcu}'):
 
