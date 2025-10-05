@@ -970,6 +970,118 @@ ui(deps.stpy.pxd.cite.ui)
 
 
 
+@ui(
+    {
+        'description' : 'Check the correctness of PCBs; note, this is very experimental!',
+    },
+)
+def checkPCBs(parameters):
+
+
+
+    import deps.stpy.pxd.sexp
+    import deps.stpy.mcus
+
+
+
+    # TODO Iterate on TARGETS.
+
+    schematic_file_path = root('./pcb/MainFlightComputer.kicad_sch')
+    netlist_file_path   = pathlib.Path(f'{root('./build', schematic_file_path.stem).as_posix()}.net')
+    mcu                 = 'STM32H533VET6'
+
+
+
+    # Get the netlist.
+
+    require('kicad-cli')
+
+    execute(f'''
+        kicad-cli
+            sch export netlist "{schematic_file_path.as_posix()}"
+            --output "{netlist_file_path.as_posix()}"
+            --format orcadpcb2
+    ''')
+
+    sexp = netlist_file_path.read_text()
+    sexp = sexp.removesuffix('*\n') # Not sure why there's a trailing asterisk.
+    sexp = deps.stpy.pxd.sexp.parse_sexp(sexp)
+
+
+
+    # Find the MCU's netlist.
+
+    matches = []
+
+    for entry in sexp:
+        match entry:
+            case uid, footprint_name, reference, value, *nets:
+                if value == mcu:
+                    matches += [nets]
+
+    if not matches:
+        log(ANSI(
+            f'[ERROR] No symbol with value of {repr(mcu)} '
+            f'was found in {repr(schematic_file_path.as_posix())}!',
+            'fg_red'
+        ))
+        raise ExitCode(1)
+
+    if len(matches) >= 2:
+        log(ANSI(
+            f'Multiple symbols with value of {repr(mcu)} '
+            f'were found in {repr(schematic_file_path.as_posix())}!',
+            'fg_red'
+        ))
+        raise ExitCode(1)
+
+    netlist, = matches
+    pinouts  = deps.stpy.mcus.MCUS[mcu].pinouts
+
+
+
+    # TODO.
+
+    for pin_position, pin_net in netlist:
+
+
+
+        # The pin position is sometimes just a number,
+        # but for some packages like BGA, it might be a 2D
+        # coordinate (letter-number pair like 'J7').
+        # The s-exp parser will parse the 1D coordinate as
+        # an actual integer but the 2D coordinate as a string.
+        # Thus, to keep things consistent, we always convert
+        # the position back into a string.
+
+        pin_position = str(pin_position)
+
+
+
+        # Skip unused pins.
+
+        if pin_net.startswith('unconnected-('):
+            continue
+
+
+
+        # Skip things like power pins.
+
+        if pinouts[pin_position].type != 'I/O':
+            continue
+
+
+
+        # TODO.
+
+        print(pin_position, pin_net, pinouts[pin_position].name)
+
+
+
+################################################################################################################################
+
+
+
 exit(ui.invoke(sys.argv[1:]))
 
 
