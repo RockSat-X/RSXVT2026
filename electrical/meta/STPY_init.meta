@@ -3043,3 +3043,5 @@
     #define STPY_APB2_CK       (250'000'000)
     #define STPY_APB3_CK       (250'000'000)
 #endif
+#if TARGET_NAME_IS_MainFlightComputer
+#endif

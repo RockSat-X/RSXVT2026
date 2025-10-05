@@ -651,6 +651,7 @@ def build(parameters):
         bash = [
             f'mkdir -p {root(BUILD, target.name)}'
             for target in targets
+            if target.source_file_paths
         ],
         cmd = [
             f'''
@@ -659,6 +660,7 @@ def build(parameters):
                 )
             '''
             for target in targets
+            if target.source_file_paths
         ],
     )
 
@@ -675,6 +677,7 @@ def build(parameters):
                 "{root('./electrical/link.ld').as_posix()}"
         '''
         for target in targets
+        if target.source_file_paths
     ])
 
 
@@ -690,6 +693,7 @@ def build(parameters):
                 {target.linker_flags}
         '''
         for target in targets
+        if target.source_file_paths
     ])
 
 
@@ -704,6 +708,7 @@ def build(parameters):
                 "{root(BUILD, target.name, target.name + '.bin').as_posix()}"
         '''
         for target in targets
+        if target.source_file_paths
     ])
 
 

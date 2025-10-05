@@ -94,6 +94,9 @@
             [UXARTHandle_stlink] = { .UXARTx = USART2, .NVICInterrupt_UXARTx = NVICInterrupt_USART2, .STPY_UXARTx_KERNEL_SOURCE = STPY_USART2_KERNEL_SOURCE, .STPY_UXARTx_BAUD_DIVIDER = STPY_USART2_BAUD_DIVIDER, .UXARTx_RESET = (struct CMSISTuple) { &RCC->APB1LRSTR, CONCAT(RCC_, APB1LRSTR_USART2RST_Pos), CONCAT(RCC_, APB1LRSTR_USART2RST_Msk) }, .UXARTx_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_USART2EN_Pos), CONCAT(RCC_, APB1LENR_USART2EN_Msk) }, .UXARTx_KERNEL_SOURCE = (struct CMSISTuple) { &RCC->CCIPR1, CONCAT(RCC_, CCIPR1_USART2SEL_Pos), CONCAT(RCC_, CCIPR1_USART2SEL_Msk) } },
         };
 #endif
+#if TARGET_NAME_IS_MainFlightComputer
+    #error Target "MainFlightComputer" cannot use the UXART driver without first specifying the peripheral instances to have handles for.
+#endif
 #undef _EXPAND_HANDLE
 #define _EXPAND_HANDLE\
     \
@@ -199,4 +202,6 @@
         _UXART_update(UXARTHandle_stlink);
     }
 
+#endif
+#if TARGET_NAME_IS_MainFlightComputer
 #endif

@@ -51,6 +51,24 @@ MCU_SUPPORT = {
         ),
     },
 
+    'STM32H533VET6' : {
+        'include_paths' : (
+            root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
+        ),
+        'freertos_source_file_paths' : root('''
+            ./deps/FreeRTOS_Kernel/tasks.c
+            ./deps/FreeRTOS_Kernel/queue.c
+            ./deps/FreeRTOS_Kernel/list.c
+            ./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure/port.c
+            ./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure/portasm.c
+        '''),
+        'freertos_interrupts' : (
+            ('SysTick', None, { 'symbol' : 'SysTick_Handler' }),
+            ('SVCall' , None, { 'symbol' : 'SVC_Handler'     }),
+            ('PendSV' , None, { 'symbol' : 'PendSV_Handler'  }),
+        ),
+    },
+
 }
 
 TARGETS = (
@@ -496,6 +514,37 @@ TARGETS = (
             'USART2_BAUD'  : STLINK_BAUD,
             'I2C1_BAUD'    : 1_000,
         },
+
+    ),
+
+
+
+    ########################################
+
+
+
+    types.SimpleNamespace(
+
+        name              = 'MainFlightComputer',
+        mcu               = 'STM32H533VET6',
+        source_file_paths = (),
+
+        gpios = (
+            ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False              }),
+            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'        }),
+            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'        }),
+            ('swdio'     , 'A13', None        , {                                }),
+            ('swclk'     , 'A14', None        , {                                }),
+            ('button'    , 'C13', 'INPUT'     , { 'pull' : None, 'active' : True }),
+        ),
+
+        interrupts = (),
+
+        drivers = {},
+
+        use_freertos    = False,
+        main_stack_size = 8192,
+        schema          = None,
 
     ),
 

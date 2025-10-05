@@ -114,7 +114,7 @@ halt_(b32 panicking);
     #include <deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h>
 #endif
 
-#if TARGET_MCU_IS_STM32H533RET6
+#if TARGET_MCU_IS_STM32H533RET6 || TARGET_MCU_IS_STM32H533VET6
     #include <deps/cmsis-device-h5/Include/stm32h533xx.h>
 #endif
 
@@ -148,6 +148,15 @@ extern nullptr_t INITIAL_STACK_ADDRESS[];
     from deps.stpy.init import init
 
     for target in PER_TARGET():
+
+        if target.schema is None:
+            # This target will not be parameterized.
+            # This is useful for whenever we want to
+            # make a target to check GPIOs of a PCB
+            # but we haven't implemented the code for
+            # it yet.
+            continue
+
         init(
             Meta       = Meta,
             target     = target.name,
