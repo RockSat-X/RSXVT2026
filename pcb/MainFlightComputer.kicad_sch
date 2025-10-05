@@ -8584,10 +8584,6 @@
 		(uuid "45a5ba70-cd41-4011-9379-3ebe4b114570")
 	)
 	(no_connect
-		(at 196.85 254)
-		(uuid "4877636b-4aad-49b7-a54f-bf001e3bb16a")
-	)
-	(no_connect
 		(at 135.89 220.98)
 		(uuid "4f82e223-53f1-4a6a-8754-c80f0e0df9ec")
 	)
@@ -9921,6 +9917,16 @@
 	)
 	(wire
 		(pts
+			(xy 196.85 254) (xy 213.36 254)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "eaaf4357-a74a-4935-8f7f-3b80127a99aa")
+	)
+	(wire
+		(pts
 			(xy 22.86 129.54) (xy 22.86 130.81)
 		)
 		(stroke
@@ -10058,6 +10064,16 @@
 			(justify right bottom)
 		)
 		(uuid "cf872794-e7ef-4465-8f72-edd4ab75658c")
+	)
+	(label "button"
+		(at 207.01 254 0)
+		(effects
+			(font
+				(size 0.635 0.635)
+			)
+			(justify left bottom)
+		)
+		(uuid "d560561d-9add-4650-9dfc-dda4a60ac7b6")
 	)
 	(label "PWR_BY_USB_EN"
 		(at 383.54 114.3 180)
@@ -11821,6 +11837,77 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:R")
+		(at 223.52 257.81 0)
+		(mirror y)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp yes)
+		(fields_autoplaced yes)
+		(uuid "0ee63296-36de-4cc5-92a4-08637bd9f6e0")
+		(property "Reference" "R18"
+			(at 226.06 256.5399 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "1K"
+			(at 226.06 259.0799 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
+			(at 225.298 257.81 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 223.52 257.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 223.52 257.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "137de585-861d-4cfe-97f5-c9c2751d5dfa")
+		)
+		(pin "2"
+			(uuid "f2e78795-44e9-4a05-b5f1-1f873ae92554")
+		)
+		(instances
+			(project "MainFlightComputer"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
+					(reference "R18")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 323.85 306.07 0)
 		(unit 1)
@@ -12357,6 +12444,74 @@
 			(project ""
 				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
 					(reference "R2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Switch:SW_Push")
+		(at 218.44 254 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp yes)
+		(fields_autoplaced yes)
+		(uuid "19f97214-9dee-4763-b231-d737b2c70727")
+		(property "Reference" "SW2"
+			(at 218.44 246.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "B3U-1000P-B"
+			(at 218.44 248.92 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Button_Switch_SMD:SW_SPST_B3U-1000P-B"
+			(at 218.44 248.92 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 218.44 248.92 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Push button switch, generic, two pins"
+			(at 218.44 254 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "548cd1f5-79df-40d1-8ec3-2d9df5811083")
+		)
+		(pin "2"
+			(uuid "eff24fc9-f3e7-4f5f-b4cc-71126e33a6bc")
+		)
+		(instances
+			(project "MainFlightComputer"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
+					(reference "SW2")
 					(unit 1)
 				)
 			)
@@ -14336,6 +14491,75 @@
 			(project ""
 				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
 					(reference "#PWR024")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 223.52 261.62 0)
+		(mirror y)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "504b3004-1c21-47ac-a3c4-738693eaa782")
+		(property "Reference" "#PWR051"
+			(at 223.52 267.97 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 223.5199 265.43 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 223.52 261.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 223.52 261.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 223.52 261.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "334c70ee-f1ee-45c0-920a-80f03c8fb163")
+		)
+		(instances
+			(project "MainFlightComputer"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
+					(reference "#PWR051")
 					(unit 1)
 				)
 			)
