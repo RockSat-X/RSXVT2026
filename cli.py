@@ -614,7 +614,10 @@ def build(parameters):
 
     # Begin meta-preprocessing!
 
-    log_header('Meta-preprocessing')
+    if not parameters.metapreprocess_only:
+        log_header('Meta-preprocessing')
+    else:
+        log()
 
     try:
         deps.stpy.pxd.metapreprocessor.do(
@@ -989,11 +992,28 @@ def checkPCBs(parameters):
 
 
 
+    # We must run the meta-preprocessor first to
+    # verify every target's GPIO parameterization.
+
+    execute('./cli.py build --metapreprocess-only')
+
+    log()
+
+
+
+    # We can now move onto ensuring every target's
+    # GPIO matches up with what's in the schematic.
+
     for target in TARGETS:
 
 
 
         if target.schematic_file_path is None:
+            log(
+                f'{ANSI('[SKIPPING]', 'bg_white', 'fg_black')} '
+                f'{repr(target.name)}'
+            )
+            log()
             continue
 
         netlist_file_path = pathlib.Path(f'{root('./build', target.schematic_file_path.stem).as_posix()}.net')
@@ -1099,8 +1119,10 @@ def checkPCBs(parameters):
 
 
                 # The schematic and target disagree on GPIO.
+                # Note that KiCad prepends a '/' if the net
+                # is defined by a local net label.
 
-                if gpio_name != pin_net:
+                if gpio_name != pin_net.removeprefix('/'):
                     issues += [
                         f'Pin {repr(pinouts[pin_position].name)} ({repr(gpio_name)}) '
                         f'has net {repr(pin_net)}.'
@@ -1162,11 +1184,10 @@ def checkPCBs(parameters):
 
         else:
 
-            log(ANSI(
-                f'Target {repr(target.name)} and '
-                f'schematic {repr(target.schematic_file_path.as_posix())} passed!',
-                'fg_green'
-            ))
+            log(
+                f'{ANSI('[PASSED]', 'bg_bright_green', 'fg_black')} '
+                f'{repr(target.name)}'
+            )
 
         log()
 
