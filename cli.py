@@ -994,6 +994,8 @@ def checkPCBs(parameters):
     schematic_file_path = root('./pcb/MainFlightComputer.kicad_sch')
     netlist_file_path   = pathlib.Path(f'{root('./build', schematic_file_path.stem).as_posix()}.net')
     mcu                 = 'STM32H533VET6'
+    target,             = [target for target in TARGETS if target.name == 'MainFlightComputer']
+    pinouts             = deps.stpy.mcus.MCUS[mcu].pinouts
 
 
 
@@ -1040,26 +1042,29 @@ def checkPCBs(parameters):
         ))
         raise ExitCode(1)
 
+
+    # The pin position is sometimes just a number,
+    # but for some packages like BGA, it might be a 2D
+    # coordinate (letter-number pair like 'J7').
+    # The s-exp parser will parse the 1D coordinate as
+    # an actual integer but the 2D coordinate as a string.
+    # Thus, to keep things consistent, we always convert
+    # the position back into a string.
+
     netlist, = matches
-    pinouts  = deps.stpy.mcus.MCUS[mcu].pinouts
+    netlist  = {
+        str(position) : net
+        for position, net in netlist
+    }
 
 
 
-    # TODO.
+    # We look for discrepancies between the
+    # netlist and the target's GPIO list.
 
-    for pin_position, pin_net in netlist:
+    issues = []
 
-
-
-        # The pin position is sometimes just a number,
-        # but for some packages like BGA, it might be a 2D
-        # coordinate (letter-number pair like 'J7').
-        # The s-exp parser will parse the 1D coordinate as
-        # an actual integer but the 2D coordinate as a string.
-        # Thus, to keep things consistent, we always convert
-        # the position back into a string.
-
-        pin_position = str(pin_position)
+    for pin_position, pin_net in netlist.items():
 
 
 
@@ -1077,9 +1082,85 @@ def checkPCBs(parameters):
 
 
 
-        # TODO.
+        # Try to find the corresponding GPIO used by the target.
 
-        print(pin_position, pin_net, pinouts[pin_position].name)
+        gpio_name = [
+            gpio_name
+            for gpio_name, gpio_pin, gpio_type, gpio_settings in target.gpios
+            if f'P{gpio_pin}' == pinouts[pin_position].name
+        ]
+
+        if gpio_name:
+
+            gpio_name, = gpio_name
+
+
+
+            # The schematic and target disagree on GPIO.
+
+            if gpio_name != pin_net:
+                issues += [
+                    f'Pin {repr(pinouts[pin_position].name)} ({repr(gpio_name)}) '
+                    f'has net {repr(pin_net)}.'
+                ]
+
+
+
+        # Extraneous GPIO in the schematic.
+
+        else:
+
+            issues += [
+                f'Pin {repr(pinouts[pin_position].name)} ({repr(pin_net)}) '
+                f'is not defined for the target.'
+            ]
+
+
+
+    # We check to see if the target has any GPIOs that
+    # are not in the schematic. We don't have to check
+    # if the GPIO name and net match up because we did
+    # that already.
+
+    for gpio_name, gpio_pin, gpio_type, gpio_settings in target.gpios:
+
+        if gpio_pin is None:
+            continue
+
+        pin_position, = [
+            pin_position
+            for pin_position, pin in pinouts.items()
+            if pin.name == f'P{gpio_pin}'
+        ]
+
+        pin_net = netlist[pin_position]
+
+        if pin_net.startswith('unconnected-('):
+
+            issues += [
+                f'Pin {repr(pinouts[pin_position].name)} ({repr(gpio_name)}) '
+                f'is unconnected in the schematic.'
+            ]
+
+
+
+    # Report all the issues we found.
+
+    if issues:
+
+        with ANSI('fg_yellow'), Indent('[WARNING] ', hanging = True):
+
+            log(f'For target {repr(target.name)} and schematic {repr(schematic_file_path.as_posix())}:')
+
+            for issue in issues:
+                log(f'    - {issue}')
+
+    else:
+
+        log(ANSI(
+            f'Target {repr(target.name)} and schematic {repr(schematic_file_path.as_posix())} passed!',
+            'fg_green'
+        ))
 
 
 
