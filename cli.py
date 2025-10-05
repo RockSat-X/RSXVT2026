@@ -651,6 +651,7 @@ def build(parameters):
         bash = [
             f'mkdir -p {root(BUILD, target.name)}'
             for target in targets
+            if target.source_file_paths
         ],
         cmd = [
             f'''
@@ -659,6 +660,7 @@ def build(parameters):
                 )
             '''
             for target in targets
+            if target.source_file_paths
         ],
     )
 
@@ -675,6 +677,7 @@ def build(parameters):
                 "{root('./electrical/link.ld').as_posix()}"
         '''
         for target in targets
+        if target.source_file_paths
     ])
 
 
@@ -690,6 +693,7 @@ def build(parameters):
                 {target.linker_flags}
         '''
         for target in targets
+        if target.source_file_paths
     ])
 
 
@@ -704,6 +708,7 @@ def build(parameters):
                 "{root(BUILD, target.name, target.name + '.bin').as_posix()}"
         '''
         for target in targets
+        if target.source_file_paths
     ])
 
 
@@ -963,6 +968,207 @@ def _(parameters):
 
 
 ui(deps.stpy.pxd.cite.ui)
+
+
+
+################################################################################################################################
+
+
+
+@ui(
+    {
+        'description' : 'Check the correctness of PCBs; note, this is very experimental!',
+    },
+)
+def checkPCBs(parameters):
+
+
+
+    import deps.stpy.pxd.sexp
+    import deps.stpy.mcus
+
+
+
+    for target in TARGETS:
+
+
+
+        if target.schematic_file_path is None:
+            continue
+
+        netlist_file_path = pathlib.Path(f'{root('./build', target.schematic_file_path.stem).as_posix()}.net')
+        pinouts           = deps.stpy.mcus.MCUS[target.mcu].pinouts
+
+
+
+        # Get the netlist.
+
+        require('kicad-cli')
+
+        execute(f'''
+            kicad-cli
+                sch export netlist "{target.schematic_file_path.as_posix()}"
+                --output "{netlist_file_path.as_posix()}"
+                --format orcadpcb2
+        ''')
+
+        sexp = netlist_file_path.read_text()
+        sexp = sexp.removesuffix('*\n') # Not sure why there's a trailing asterisk.
+        sexp = deps.stpy.pxd.sexp.parse_sexp(sexp)
+
+
+
+        # Find the MCU's netlist.
+
+        matches = []
+
+        for entry in sexp:
+            match entry:
+                case uid, footprint_name, reference, value, *nets:
+                    if value == target.mcu:
+                        matches += [nets]
+
+        if not matches:
+            log(ANSI(
+                f'[ERROR] No symbol with value of {repr(target.mcu)} '
+                f'was found in {repr(target.schematic_file_path.as_posix())}!',
+                'fg_red'
+            ))
+            raise ExitCode(1)
+
+        if len(matches) >= 2:
+            log(ANSI(
+                f'Multiple symbols with value of {repr(target.mcu)} '
+                f'were found in {repr(target.schematic_file_path.as_posix())}!',
+                'fg_red'
+            ))
+            raise ExitCode(1)
+
+
+        # The pin position is sometimes just a number,
+        # but for some packages like BGA, it might be a 2D
+        # coordinate (letter-number pair like 'J7').
+        # The s-exp parser will parse the 1D coordinate as
+        # an actual integer but the 2D coordinate as a string.
+        # Thus, to keep things consistent, we always convert
+        # the position back into a string.
+
+        netlist, = matches
+        netlist  = {
+            str(position) : net
+            for position, net in netlist
+        }
+
+
+
+        # We look for discrepancies between the
+        # netlist and the target's GPIO list.
+
+        issues = []
+
+        for pin_position, pin_net in netlist.items():
+
+
+
+            # Skip unused pins.
+
+            if pin_net.startswith('unconnected-('):
+                continue
+
+
+
+            # Skip things like power pins.
+
+            if pinouts[pin_position].type != 'I/O':
+                continue
+
+
+
+            # Try to find the corresponding GPIO used by the target.
+
+            gpio_name = [
+                gpio_name
+                for gpio_name, gpio_pin, gpio_type, gpio_settings in target.gpios
+                if f'P{gpio_pin}' == pinouts[pin_position].name
+            ]
+
+            if gpio_name:
+
+                gpio_name, = gpio_name
+
+
+
+                # The schematic and target disagree on GPIO.
+
+                if gpio_name != pin_net:
+                    issues += [
+                        f'Pin {repr(pinouts[pin_position].name)} ({repr(gpio_name)}) '
+                        f'has net {repr(pin_net)}.'
+                    ]
+
+
+
+            # Extraneous GPIO in the schematic.
+
+            else:
+
+                issues += [
+                    f'Pin {repr(pinouts[pin_position].name)} ({repr(pin_net)}) '
+                    f'is not defined for the target.'
+                ]
+
+
+
+        # We check to see if the target has any GPIOs that
+        # are not in the schematic. We don't have to check
+        # if the GPIO name and net match up because we did
+        # that already.
+
+        for gpio_name, gpio_pin, gpio_type, gpio_settings in target.gpios:
+
+            if gpio_pin is None:
+                continue
+
+            pin_position, = [
+                pin_position
+                for pin_position, pin in pinouts.items()
+                if pin.name == f'P{gpio_pin}'
+            ]
+
+            pin_net = netlist[pin_position]
+
+            if pin_net.startswith('unconnected-('):
+
+                issues += [
+                    f'Pin {repr(pinouts[pin_position].name)} ({repr(gpio_name)}) '
+                    f'is unconnected in the schematic.'
+                ]
+
+
+
+        # Report all the issues we found.
+
+        if issues:
+
+            with ANSI('fg_yellow'), Indent('[WARNING] ', hanging = True):
+
+                log(
+                    f'For target {repr(target.name)} and '
+                    f'schematic {repr(target.schematic_file_path.as_posix())}:'
+                )
+
+                for issue in issues:
+                    log(f'    - {issue}')
+
+        else:
+
+            log(ANSI(
+                f'Target {repr(target.name)} and '
+                f'schematic {repr(target.schematic_file_path.as_posix())} passed!',
+                'fg_green'
+            ))
+
+        log()
 
 
 

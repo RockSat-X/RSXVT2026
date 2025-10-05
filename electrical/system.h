@@ -114,7 +114,7 @@ halt_(b32 panicking);
     #include <deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h>
 #endif
 
-#if TARGET_MCU_IS_STM32H533RET6
+#if TARGET_MCU_IS_STM32H533RET6 || TARGET_MCU_IS_STM32H533VET6
     #include <deps/cmsis-device-h5/Include/stm32h533xx.h>
 #endif
 
@@ -148,6 +148,7 @@ extern nullptr_t INITIAL_STACK_ADDRESS[];
     from deps.stpy.init import init
 
     for target in PER_TARGET():
+
         init(
             Meta       = Meta,
             target     = target.name,

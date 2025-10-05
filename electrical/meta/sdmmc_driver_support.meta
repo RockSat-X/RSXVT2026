@@ -31,6 +31,9 @@
 #if TARGET_NAME_IS_SensorShield
     #error Target "SensorShield" cannot use the SD driver without first specifying the peripheral instances to have handles for.
 #endif
+#if TARGET_NAME_IS_MainFlightComputer
+    #error Target "MainFlightComputer" cannot use the SD driver without first specifying the peripheral instances to have handles for.
+#endif
 #undef _EXPAND_HANDLE
 #define _EXPAND_HANDLE\
     \
@@ -76,4 +79,6 @@
 
 #endif
 #if TARGET_NAME_IS_SensorShield
+#endif
+#if TARGET_NAME_IS_MainFlightComputer
 #endif

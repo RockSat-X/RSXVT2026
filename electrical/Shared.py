@@ -51,6 +51,24 @@ MCU_SUPPORT = {
         ),
     },
 
+    'STM32H533VET6' : {
+        'include_paths' : (
+            root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
+        ),
+        'freertos_source_file_paths' : root('''
+            ./deps/FreeRTOS_Kernel/tasks.c
+            ./deps/FreeRTOS_Kernel/queue.c
+            ./deps/FreeRTOS_Kernel/list.c
+            ./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure/port.c
+            ./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure/portasm.c
+        '''),
+        'freertos_interrupts' : (
+            ('SysTick', None, { 'symbol' : 'SysTick_Handler' }),
+            ('SVCall' , None, { 'symbol' : 'SVC_Handler'     }),
+            ('PendSV' , None, { 'symbol' : 'PendSV_Handler'  }),
+        ),
+    },
+
 }
 
 TARGETS = (
@@ -68,6 +86,8 @@ TARGETS = (
         source_file_paths = root('''
             ./electrical/SandboxNucleoBoard.c
         '''),
+
+        schematic_file_path = None,
 
         gpios = (
             ('led_red'   , 'B7' , 'OUTPUT'    , { 'initlvl' : False               }),
@@ -124,6 +144,8 @@ TARGETS = (
             ./electrical/SandboxNucleoBoard.c
         '''),
 
+        schematic_file_path = None,
+
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False              }),
             ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'        }),
@@ -172,6 +194,8 @@ TARGETS = (
         source_file_paths = root('''
             ./electrical/DemoI2C.c
         '''),
+
+        schematic_file_path = None,
 
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                                          }),
@@ -230,6 +254,8 @@ TARGETS = (
             ./electrical/DemoTimer.c
         '''),
 
+        schematic_file_path = None,
+
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                 }),
             ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'           }),
@@ -282,6 +308,8 @@ TARGETS = (
         source_file_paths = root('''
             ./electrical/DemoSPI.c
         '''),
+
+        schematic_file_path = None,
 
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                 }),
@@ -342,6 +370,8 @@ TARGETS = (
             ./electrical/DemoTimekeeping.c
         '''),
 
+        schematic_file_path = None,
+
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False              }),
             ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'        }),
@@ -392,6 +422,8 @@ TARGETS = (
         source_file_paths = root('''
             ./electrical/DemoSDMMC.c
         '''),
+
+        schematic_file_path = None,
 
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                 }),
@@ -455,6 +487,7 @@ TARGETS = (
         source_file_paths = root('''
             ./electrical/SensorShield.c
         '''),
+        schematic_file_path = None,
 
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                                          }),
@@ -505,6 +538,39 @@ TARGETS = (
 
 
 
+    types.SimpleNamespace(
+
+        name              = 'MainFlightComputer',
+        mcu               = 'STM32H533VET6',
+        source_file_paths = (),
+
+        schematic_file_path = root('./pcb/MainFlightComputer.kicad_sch'),
+
+        gpios = (
+            ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False              }),
+            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'        }),
+            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'        }),
+            ('swdio'     , 'A13', None        , {                                }),
+            ('swclk'     , 'A14', None        , {                                }),
+            ('button'    , 'C13', 'INPUT'     , { 'pull' : None, 'active' : True }),
+        ),
+
+        interrupts = None,
+
+        drivers = {},
+
+        use_freertos    = False,
+        main_stack_size = 8192,
+        schema          = None,
+
+    ),
+
+
+
+    ########################################
+
+
+
 )
 
 
@@ -535,15 +601,24 @@ for target in TARGETS:
 
 
 
-    # Some additional interrupts.
 
-    target.interrupts = (
-        ('Reset'     , None),
-        ('BusFault'  , None),
-        ('UsageFault', None),
-        *(MCU_SUPPORT[target.mcu]['freertos_interrupts'] if target.use_freertos else ()),
-        *target.interrupts
-    )
+    if target.interrupts is None:
+
+        # Absolutely no interrupts!
+
+        target.interrupts = ()
+
+    else:
+
+        # Some additional interrupts.
+
+        target.interrupts = (
+            ('Reset'     , None),
+            ('BusFault'  , None),
+            ('UsageFault', None),
+            *(MCU_SUPPORT[target.mcu]['freertos_interrupts'] if target.use_freertos else ()),
+            *target.interrupts
+        )
 
 
 
@@ -617,10 +692,20 @@ for target in TARGETS:
         ('MAIN_STACK_SIZE'     , target.main_stack_size),
     ]
 
-    for other in TARGETS:
+    for other_target in TARGETS:
         defines += [
-            (f'TARGET_NAME_IS_{other.name}', int(other.name == target.name)),
-            (f'TARGET_MCU_IS_{other.mcu}'  , int(other.mcu  == target.mcu )),
+            (
+                f'TARGET_NAME_IS_{other_target.name}',
+                int(other_target.name == target.name)
+            ),
+        ]
+
+    for other_mcu in MCU_SUPPORT:
+        defines += [
+            (
+                f'TARGET_MCU_IS_{other_mcu}',
+                int(other_mcu == target.mcu)
+            ),
         ]
 
 
@@ -679,9 +764,11 @@ def PER_MCU():
 
     for mcu in MCUS:
 
-        with Meta.enter(f'#if TARGET_MCU_IS_{mcu}'):
+        if mcu in MCU_SUPPORT:
 
-            yield mcu
+            with Meta.enter(f'#if TARGET_MCU_IS_{mcu}'):
+
+                yield mcu
 
 
 

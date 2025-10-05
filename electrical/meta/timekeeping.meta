@@ -20,3 +20,5 @@
 #endif
 #if TARGET_NAME_IS_SensorShield
 #endif
+#if TARGET_NAME_IS_MainFlightComputer
+#endif
