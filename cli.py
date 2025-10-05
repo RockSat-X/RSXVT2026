@@ -614,7 +614,10 @@ def build(parameters):
 
     # Begin meta-preprocessing!
 
-    log_header('Meta-preprocessing')
+    if not parameters.metapreprocess_only:
+        log_header('Meta-preprocessing')
+    else:
+        log()
 
     try:
         deps.stpy.pxd.metapreprocessor.do(
