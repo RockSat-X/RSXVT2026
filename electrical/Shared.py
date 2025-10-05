@@ -679,9 +679,11 @@ def PER_MCU():
 
     for mcu in MCUS:
 
-        with Meta.enter(f'#if TARGET_MCU_IS_{mcu}'):
+        if any(target.mcu == mcu for target in TARGETS):
 
-            yield mcu
+            with Meta.enter(f'#if TARGET_MCU_IS_{mcu}'):
+
+                yield mcu
 
 
 
