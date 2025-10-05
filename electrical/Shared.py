@@ -555,7 +555,7 @@ TARGETS = (
             ('button'    , 'C13', 'INPUT'     , { 'pull' : None, 'active' : True }),
         ),
 
-        interrupts = (),
+        interrupts = None,
 
         drivers = {},
 
@@ -601,15 +601,24 @@ for target in TARGETS:
 
 
 
-    # Some additional interrupts.
 
-    target.interrupts = (
-        ('Reset'     , None),
-        ('BusFault'  , None),
-        ('UsageFault', None),
-        *(MCU_SUPPORT[target.mcu]['freertos_interrupts'] if target.use_freertos else ()),
-        *target.interrupts
-    )
+    if target.interrupts is None:
+
+        # Absolutely no interrupts!
+
+        target.interrupts = ()
+
+    else:
+
+        # Some additional interrupts.
+
+        target.interrupts = (
+            ('Reset'     , None),
+            ('BusFault'  , None),
+            ('UsageFault', None),
+            *(MCU_SUPPORT[target.mcu]['freertos_interrupts'] if target.use_freertos else ()),
+            *target.interrupts
+        )
 
 
 

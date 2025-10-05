@@ -149,14 +149,6 @@ extern nullptr_t INITIAL_STACK_ADDRESS[];
 
     for target in PER_TARGET():
 
-        if target.schema is None:
-            # This target will not be parameterized.
-            # This is useful for whenever we want to
-            # make a target to check GPIOs of a PCB
-            # but we haven't implemented the code for
-            # it yet.
-            continue
-
         init(
             Meta       = Meta,
             target     = target.name,
