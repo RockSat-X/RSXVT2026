@@ -1114,8 +1114,10 @@ def checkPCBs(parameters):
 
 
                 # The schematic and target disagree on GPIO.
+                # Note that KiCad prepends a '/' if the net
+                # is defined by a local net label.
 
-                if gpio_name != pin_net:
+                if gpio_name != pin_net.removeprefix('/'):
                     issues += [
                         f'Pin {repr(pinouts[pin_position].name)} ({repr(gpio_name)}) '
                         f'has net {repr(pin_net)}.'
