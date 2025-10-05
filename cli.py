@@ -1009,6 +1009,11 @@ def checkPCBs(parameters):
 
 
         if target.schematic_file_path is None:
+            log(
+                f'{ANSI('[SKIPPING]', 'bg_white', 'fg_black')} '
+                f'{repr(target.name)}'
+            )
+            log()
             continue
 
         netlist_file_path = pathlib.Path(f'{root('./build', target.schematic_file_path.stem).as_posix()}.net')
@@ -1179,11 +1184,10 @@ def checkPCBs(parameters):
 
         else:
 
-            log(ANSI(
-                f'Target {repr(target.name)} and '
-                f'schematic {repr(target.schematic_file_path.as_posix())} passed!',
-                'fg_green'
-            ))
+            log(
+                f'{ANSI('[PASSED]', 'bg_bright_green', 'fg_black')} '
+                f'{repr(target.name)}'
+            )
 
         log()
 
