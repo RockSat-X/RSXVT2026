@@ -23,7 +23,7 @@ main(void)
 
             // Blink the LED.
 
-            if (GPIO_ACTIVE(button)) // @/`Nucleo Buttons`.
+            if (GPIO_READ(button)) // @/`Nucleo Buttons`.
             {
                 spinlock_nop(50'000'000);
             }
@@ -87,7 +87,7 @@ FREERTOS_TASK(button_observer, 1024, 0)
 
         // @/`Nucleo Buttons`.
 
-        b32 current_button_pressed = GPIO_ACTIVE(button);
+        b32 current_button_pressed = GPIO_READ(button);
 
 
 
