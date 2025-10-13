@@ -2,7 +2,7 @@
 	(version 20250114)
 	(generator "eeschema")
 	(generator_version "9.0")
-	(uuid "cdca4c86-ba39-460a-835b-e50a8c67d23a")
+	(uuid "6424f6ae-0545-4159-b321-fee9bac73a7a")
 	(paper "A4")
 	(lib_symbols
 		(symbol "Device:Buzzer"
@@ -581,8 +581,8 @@
 		)
 	)
 	(rectangle
-		(start 349.885 283.845)
-		(end 452.755 330.835)
+		(start 313.055 268.605)
+		(end 420.37 315.595)
 		(stroke
 			(width 0.8128)
 			(type solid)
@@ -595,7 +595,7 @@
 	)
 	(text "TODO: Instead of a resistor, we might use a\ntransistor to allow for larger current driving."
 		(exclude_from_sim no)
-		(at 427.228 288.798 0)
+		(at 390.398 273.558 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -609,7 +609,7 @@
 	)
 	(text "TODO: The AST1109MLTRQ and WT-1205 buzzers\nhave similar footprint area, but the former\nhas a much smaller height. As precaution,\nwe'll have a footprint for both buzzers in\ncase we design for the AST1109MLTRQ wrong."
 		(exclude_from_sim no)
-		(at 427.736 301.498 0)
+		(at 390.906 286.258 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -621,9 +621,9 @@
 		)
 		(uuid "74665719-fb0a-4a16-8634-fdd527d95513")
 	)
-	(text "Debug Buzzer."
+	(text "Debug Buzzer (V1 : Lowercase net-name)."
 		(exclude_from_sim no)
-		(at 349.758 282.194 0)
+		(at 312.928 266.954 0)
 		(effects
 			(font
 				(size 3.2512 3.2512)
@@ -637,20 +637,20 @@
 		(uuid "7a58611c-9fce-4009-9822-995b47a2362f")
 	)
 	(junction
-		(at 369.57 309.88)
+		(at 332.74 294.64)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "df85193d-11e4-4209-a628-d9e31db57709")
 	)
 	(junction
-		(at 382.27 309.88)
+		(at 345.44 294.64)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "eea6600d-668d-4886-8c32-a3d2d41456c9")
 	)
 	(wire
 		(pts
-			(xy 382.27 299.72) (xy 382.27 300.99)
+			(xy 345.44 284.48) (xy 345.44 285.75)
 		)
 		(stroke
 			(width 0)
@@ -660,7 +660,7 @@
 	)
 	(wire
 		(pts
-			(xy 360.68 309.88) (xy 369.57 309.88)
+			(xy 323.85 294.64) (xy 332.74 294.64)
 		)
 		(stroke
 			(width 0)
@@ -670,7 +670,7 @@
 	)
 	(wire
 		(pts
-			(xy 389.89 316.23) (xy 389.89 309.88)
+			(xy 353.06 300.99) (xy 353.06 294.64)
 		)
 		(stroke
 			(width 0)
@@ -680,7 +680,7 @@
 	)
 	(wire
 		(pts
-			(xy 375.92 292.1) (xy 375.92 295.91)
+			(xy 339.09 276.86) (xy 339.09 280.67)
 		)
 		(stroke
 			(width 0)
@@ -690,7 +690,7 @@
 	)
 	(wire
 		(pts
-			(xy 382.27 308.61) (xy 382.27 309.88)
+			(xy 345.44 293.37) (xy 345.44 294.64)
 		)
 		(stroke
 			(width 0)
@@ -700,7 +700,7 @@
 	)
 	(wire
 		(pts
-			(xy 374.65 292.1) (xy 375.92 292.1)
+			(xy 337.82 276.86) (xy 339.09 276.86)
 		)
 		(stroke
 			(width 0)
@@ -710,7 +710,7 @@
 	)
 	(wire
 		(pts
-			(xy 369.57 308.61) (xy 369.57 309.88)
+			(xy 332.74 293.37) (xy 332.74 294.64)
 		)
 		(stroke
 			(width 0)
@@ -720,7 +720,7 @@
 	)
 	(wire
 		(pts
-			(xy 389.89 309.88) (xy 382.27 309.88)
+			(xy 353.06 294.64) (xy 345.44 294.64)
 		)
 		(stroke
 			(width 0)
@@ -730,7 +730,7 @@
 	)
 	(wire
 		(pts
-			(xy 360.68 309.88) (xy 360.68 316.23)
+			(xy 323.85 294.64) (xy 323.85 300.99)
 		)
 		(stroke
 			(width 0)
@@ -740,7 +740,7 @@
 	)
 	(wire
 		(pts
-			(xy 369.57 299.72) (xy 369.57 300.99)
+			(xy 332.74 284.48) (xy 332.74 285.75)
 		)
 		(stroke
 			(width 0)
@@ -750,7 +750,7 @@
 	)
 	(wire
 		(pts
-			(xy 369.57 309.88) (xy 382.27 309.88)
+			(xy 332.74 294.64) (xy 345.44 294.64)
 		)
 		(stroke
 			(width 0)
@@ -758,9 +758,9 @@
 		)
 		(uuid "ff97512a-aee4-49fb-bfb0-a647f84778fd")
 	)
-	(global_label "BUZZER"
+	(global_label "buzzer"
 		(shape bidirectional)
-		(at 374.65 292.1 180)
+		(at 337.82 276.86 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -770,7 +770,7 @@
 		)
 		(uuid "32a95f82-e1ef-4c54-bbf8-3c37d4684a8d")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 363.115 292.1 0)
+			(at 327.4945 276.86 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -782,7 +782,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 389.89 321.31 0)
+		(at 353.06 306.07 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -791,7 +791,7 @@
 		(fields_autoplaced yes)
 		(uuid "0de52c73-ccc2-4ab0-8daf-c309bd15386c")
 		(property "Reference" "#PWR029"
-			(at 389.89 327.66 0)
+			(at 353.06 312.42 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -800,7 +800,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 389.8901 325.12 90)
+			(at 353.0601 309.88 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -810,7 +810,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 389.89 321.31 0)
+			(at 353.06 306.07 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -819,7 +819,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 389.89 321.31 0)
+			(at 353.06 306.07 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -828,7 +828,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 389.89 321.31 0)
+			(at 353.06 306.07 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -850,7 +850,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 360.68 321.31 0)
+		(at 323.85 306.07 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -859,7 +859,7 @@
 		(fields_autoplaced yes)
 		(uuid "0f906b30-1563-4e0b-aa64-60f811cccd16")
 		(property "Reference" "#PWR028"
-			(at 360.68 327.66 0)
+			(at 323.85 312.42 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -868,7 +868,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 360.6801 325.12 90)
+			(at 323.8501 309.88 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -878,7 +878,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 360.68 321.31 0)
+			(at 323.85 306.07 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -887,7 +887,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 360.68 321.31 0)
+			(at 323.85 306.07 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -896,7 +896,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 360.68 321.31 0)
+			(at 323.85 306.07 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -918,16 +918,16 @@
 	)
 	(symbol
 		(lib_id "Device:Buzzer")
-		(at 392.43 318.77 0)
+		(at 355.6 303.53 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "38d79031-2f60-403e-9b6b-a77f85be3dde")
 		(property "Reference" "BZ2"
-			(at 396.24 317.4999 0)
+			(at 359.41 302.2599 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -936,7 +936,7 @@
 			)
 		)
 		(property "Value" "WT-1205"
-			(at 396.24 320.0399 0)
+			(at 359.41 304.7999 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -945,7 +945,7 @@
 			)
 		)
 		(property "Footprint" "Buzzer_Beeper:MagneticBuzzer_ProSignal_ABT-410-RC"
-			(at 391.795 316.23 90)
+			(at 354.965 300.99 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -954,7 +954,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 391.795 316.23 90)
+			(at 354.965 300.99 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -963,7 +963,7 @@
 			)
 		)
 		(property "Description" "Buzzer, polarized"
-			(at 392.43 318.77 0)
+			(at 355.6 303.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -988,7 +988,7 @@
 	)
 	(symbol
 		(lib_id "Jumper:Jumper_3_Bridged12")
-		(at 375.92 299.72 0)
+		(at 339.09 284.48 0)
 		(mirror x)
 		(unit 1)
 		(exclude_from_sim no)
@@ -997,7 +997,7 @@
 		(dnp no)
 		(uuid "80afd286-b202-4d51-b3d5-6cc4c4f020a6")
 		(property "Reference" "JP3"
-			(at 375.92 303.53 0)
+			(at 339.09 288.29 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1005,7 +1005,7 @@
 			)
 		)
 		(property "Value" "Jumper_3_Bridged12"
-			(at 374.6501 302.26 90)
+			(at 337.8201 287.02 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1015,7 +1015,7 @@
 			)
 		)
 		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
-			(at 375.92 299.72 0)
+			(at 339.09 284.48 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1024,7 +1024,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 375.92 299.72 0)
+			(at 339.09 284.48 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1033,7 +1033,7 @@
 			)
 		)
 		(property "Description" "Jumper, 3-pole, pins 1+2 closed/bridged"
-			(at 375.92 299.72 0)
+			(at 339.09 284.48 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1061,7 +1061,7 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 369.57 304.8 0)
+		(at 332.74 289.56 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -1069,7 +1069,7 @@
 		(dnp no)
 		(uuid "d3a94a81-6e98-48b0-8207-26685fc02a13")
 		(property "Reference" "R9"
-			(at 367.03 303.5299 0)
+			(at 330.2 288.2899 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1078,7 +1078,7 @@
 			)
 		)
 		(property "Value" "100"
-			(at 367.03 306.0699 0)
+			(at 330.2 290.8299 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1087,7 +1087,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
-			(at 367.792 304.8 90)
+			(at 330.962 289.56 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1096,7 +1096,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 369.57 304.8 0)
+			(at 332.74 289.56 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1105,7 +1105,7 @@
 			)
 		)
 		(property "Description" "Resistor"
-			(at 369.57 304.8 0)
+			(at 332.74 289.56 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1130,7 +1130,7 @@
 	)
 	(symbol
 		(lib_id "Device:Buzzer")
-		(at 363.22 318.77 0)
+		(at 326.39 303.53 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -1139,7 +1139,7 @@
 		(fields_autoplaced yes)
 		(uuid "ed9430c6-e21b-46d4-b8d9-6e32e945b389")
 		(property "Reference" "BZ1"
-			(at 367.03 317.4999 0)
+			(at 330.2 302.2599 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1148,7 +1148,7 @@
 			)
 		)
 		(property "Value" "AST1109MLTRQ"
-			(at 367.03 320.0399 0)
+			(at 330.2 304.7999 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1157,7 +1157,7 @@
 			)
 		)
 		(property "Footprint" "Buzzer_Beeper:Buzzer_Mallory_AST1109MLTRQ"
-			(at 362.585 316.23 90)
+			(at 325.755 300.99 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1166,7 +1166,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 362.585 316.23 90)
+			(at 325.755 300.99 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1175,7 +1175,7 @@
 			)
 		)
 		(property "Description" "Buzzer, polarized"
-			(at 363.22 318.77 0)
+			(at 326.39 303.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1200,7 +1200,7 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 382.27 304.8 0)
+		(at 345.44 289.56 0)
 		(mirror y)
 		(unit 1)
 		(exclude_from_sim no)
@@ -1209,7 +1209,7 @@
 		(dnp no)
 		(uuid "f075f643-c677-405c-addf-e4c38a3a8419")
 		(property "Reference" "R10"
-			(at 384.81 303.5299 0)
+			(at 347.98 288.2899 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1218,7 +1218,7 @@
 			)
 		)
 		(property "Value" "50"
-			(at 384.81 306.0699 0)
+			(at 347.98 290.8299 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1227,7 +1227,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
-			(at 384.048 304.8 90)
+			(at 347.218 289.56 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1236,7 +1236,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 382.27 304.8 0)
+			(at 345.44 289.56 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1245,7 +1245,7 @@
 			)
 		)
 		(property "Description" "Resistor"
-			(at 382.27 304.8 0)
+			(at 345.44 289.56 0)
 			(effects
 				(font
 					(size 1.27 1.27)

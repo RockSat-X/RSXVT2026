@@ -2,7 +2,7 @@
 	(version 20250114)
 	(generator "eeschema")
 	(generator_version "9.0")
-	(uuid "113fff21-53bd-430f-8b24-3e3302725e5a")
+	(uuid "64f80361-c40c-48e0-b77c-8424d779ecd4")
 	(paper "A4")
 	(lib_symbols
 		(symbol "Connector:USB_B_Micro"
@@ -1723,7 +1723,7 @@
 		)
 		(uuid "3726e879-10b1-4a9c-89a9-6484728406f4")
 	)
-	(text "USB-UART Bridge (V1 : Vertical USB)."
+	(text "USB-UART Bridge (V3 : Reset Pull-Up)."
 		(exclude_from_sim no)
 		(at 314.198 85.852 0)
 		(effects
@@ -1753,14 +1753,14 @@
 	)
 	(text "VDD and VUSB will be tied together.\n@/pg 18/fig 1-5/`MCP2221A`."
 		(exclude_from_sim no)
-		(at 380.492 148.336 0)
+		(at 386.588 145.542 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 				(thickness 0.1588)
 				(color 255 0 0 1)
 			)
-			(justify right bottom)
+			(justify left bottom)
 		)
 		(uuid "e6417f9b-01c3-4c0d-b4f6-596b9c494d9e")
 	)
@@ -1777,7 +1777,7 @@
 		)
 		(uuid "e678685c-7e7a-46b1-8bff-0caccb5aaa63")
 	)
-	(text "SERIAL_OUT is where the MCU\ntransmit the data and SERIAL_IN\nis where the UART-bridge transmits\nthe data that came from the PC."
+	(text "serial_tx is where the MCU\ntransmit the data and serial_rx\nis where the UART-bridge transmits\nthe data that came from the PC."
 		(exclude_from_sim no)
 		(at 395.478 158.496 0)
 		(effects
@@ -1795,6 +1795,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "04027563-e648-4f7d-95ac-ec54cafb99d0")
+	)
+	(junction
+		(at 363.22 153.67)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "199ac039-6ac7-471b-a742-1c345317d18d")
 	)
 	(junction
 		(at 416.56 111.76)
@@ -2146,6 +2152,16 @@
 	)
 	(wire
 		(pts
+			(xy 355.6 153.67) (xy 363.22 153.67)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b46646eb-7f61-4a12-8d03-686e162e89cb")
+	)
+	(wire
+		(pts
 			(xy 331.47 163.83) (xy 372.11 163.83)
 		)
 		(stroke
@@ -2163,6 +2179,16 @@
 			(type default)
 		)
 		(uuid "ccbbcd61-bc45-435c-b43c-db0a9f7e860c")
+	)
+	(wire
+		(pts
+			(xy 363.22 153.67) (xy 372.11 153.67)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "cf24893f-55d9-41c2-bf74-37ee7e6c7f23")
 	)
 	(wire
 		(pts
@@ -2274,9 +2300,9 @@
 		)
 		(uuid "ff511c69-1cb4-4895-90a6-e60b66e56bc0")
 	)
-	(global_label "SERIAL_RESET"
+	(global_label "serial_reset"
 		(shape bidirectional)
-		(at 372.11 153.67 180)
+		(at 355.6 153.67 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2286,7 +2312,7 @@
 		)
 		(uuid "019f2c37-40aa-44b4-84fa-f4a204794306")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 354.9508 153.67 0)
+			(at 340.4968 153.67 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2296,7 +2322,7 @@
 			)
 		)
 	)
-	(global_label "SERIAL_OUT"
+	(global_label "serial_tx"
 		(shape bidirectional)
 		(at 392.43 161.29 0)
 		(fields_autoplaced yes)
@@ -2308,7 +2334,7 @@
 		)
 		(uuid "07baab42-c87a-41b9-b602-6d51eded3b60")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 407.4727 161.29 0)
+			(at 404.5698 161.29 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2318,7 +2344,7 @@
 			)
 		)
 	)
-	(global_label "SERIAL_IN"
+	(global_label "serial_rx"
 		(shape bidirectional)
 		(at 392.43 163.83 0)
 		(fields_autoplaced yes)
@@ -2330,7 +2356,7 @@
 		)
 		(uuid "22187db7-4832-4880-a1ba-5498de13c93a")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 405.7794 163.83 0)
+			(at 404.6303 163.83 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2843,6 +2869,72 @@
 			(project ""
 				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
 					(reference "J1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3.3V")
+		(at 363.22 146.05 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "38c090ef-be6e-409d-85e3-cf92942c1855")
+		(property "Reference" "#PWR052"
+			(at 363.22 149.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3.3V"
+			(at 363.22 140.97 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 363.22 146.05 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 363.22 146.05 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 363.22 146.05 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "4591148c-0eb6-498e-b8f2-b2322962c3b2")
+		)
+		(instances
+			(project "MainFlightComputer"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
+					(reference "#PWR052")
 					(unit 1)
 				)
 			)
@@ -3921,6 +4013,75 @@
 			(project ""
 				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
 					(reference "#PWR022")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 363.22 149.86 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp yes)
+		(uuid "bd5e4869-7b56-46f2-9d48-1faf4158f596")
+		(property "Reference" "R19"
+			(at 360.68 148.5899 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "10K"
+			(at 360.68 151.1299 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
+			(at 361.442 149.86 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 363.22 149.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 363.22 149.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "52970667-798f-437b-8adb-9d7a5b1ad9d7")
+		)
+		(pin "2"
+			(uuid "ec470237-2fc1-4e83-969e-502b36891c02")
+		)
+		(instances
+			(project "MainFlightComputer"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
+					(reference "R19")
 					(unit 1)
 				)
 			)

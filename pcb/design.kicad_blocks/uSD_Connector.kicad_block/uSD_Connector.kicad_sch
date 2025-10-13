@@ -2,7 +2,7 @@
 	(version 20250114)
 	(generator "eeschema")
 	(generator_version "9.0")
-	(uuid "a4c613f0-7337-46d1-bea3-1fd40c2eb6cf")
+	(uuid "25ac2373-5c5b-4157-ae3b-5f42f38e6a3b")
 	(paper "A4")
 	(lib_symbols
 		(symbol "Connector:Micro_SD_Card"
@@ -874,7 +874,7 @@
 		)
 		(uuid "c3c1ea46-5e0c-4727-88e5-528056633ad8")
 	)
-	(text "uSD Connector (V1 : Lowercase nets)."
+	(text "uSD Connector (V2 : More verbose net-names)."
 		(exclude_from_sim no)
 		(at 313.69 207.01 0)
 		(effects
@@ -1115,7 +1115,7 @@
 			)
 		)
 	)
-	(global_label "sd_d1"
+	(global_label "sd_data_1"
 		(shape bidirectional)
 		(at 364.49 242.57 180)
 		(fields_autoplaced yes)
@@ -1127,7 +1127,7 @@
 		)
 		(uuid "a685c905-553c-43b9-bc35-dfcf1e8ce332")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 354.8903 242.57 0)
+			(at 350.899 242.57 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1137,7 +1137,7 @@
 			)
 		)
 	)
-	(global_label "sd_d2"
+	(global_label "sd_data_2"
 		(shape bidirectional)
 		(at 364.49 224.79 180)
 		(fields_autoplaced yes)
@@ -1149,7 +1149,7 @@
 		)
 		(uuid "d7563d35-f09f-4a13-af8b-a0b5ec153ad8")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 354.8903 224.79 0)
+			(at 350.899 224.79 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1159,7 +1159,7 @@
 			)
 		)
 	)
-	(global_label "sd_d0"
+	(global_label "sd_data_0"
 		(shape bidirectional)
 		(at 364.49 240.03 180)
 		(fields_autoplaced yes)
@@ -1171,7 +1171,7 @@
 		)
 		(uuid "dcb68076-2a2c-4693-867f-60198b68427b")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 354.8903 240.03 0)
+			(at 350.899 240.03 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1181,7 +1181,7 @@
 			)
 		)
 	)
-	(global_label "sd_ck"
+	(global_label "sd_clock"
 		(shape bidirectional)
 		(at 364.49 234.95 180)
 		(fields_autoplaced yes)
@@ -1193,7 +1193,7 @@
 		)
 		(uuid "e4b53aad-1bc7-4217-8afa-1ca5053925fb")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 355.1321 234.95 0)
+			(at 352.2293 234.95 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1203,7 +1203,7 @@
 			)
 		)
 	)
-	(global_label "sd_d3"
+	(global_label "sd_data_3"
 		(shape bidirectional)
 		(at 364.49 227.33 180)
 		(fields_autoplaced yes)
@@ -1215,7 +1215,7 @@
 		)
 		(uuid "f26f0229-5a2b-474f-8a36-565c35efee53")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 354.8903 227.33 0)
+			(at 350.899 227.33 0)
 			(effects
 				(font
 					(size 1.27 1.27)
