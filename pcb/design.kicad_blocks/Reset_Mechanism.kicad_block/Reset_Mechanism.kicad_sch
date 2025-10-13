@@ -2,7 +2,7 @@
 	(version 20250114)
 	(generator "eeschema")
 	(generator_version "9.0")
-	(uuid "e20427e3-8edc-45e4-bbeb-492a70819d72")
+	(uuid "e7669d17-d22e-441b-b5b8-00ae747919b4")
 	(paper "A4")
 	(lib_symbols
 		(symbol "Device:C_Small"
@@ -252,192 +252,6 @@
 					(at 0 -3.81 90)
 					(length 1.27)
 					(name "~"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(embedded_fonts no)
-		)
-		(symbol "Jumper:SolderJumper_2_Open"
-			(pin_numbers
-				(hide yes)
-			)
-			(pin_names
-				(offset 0)
-				(hide yes)
-			)
-			(exclude_from_sim no)
-			(in_bom no)
-			(on_board yes)
-			(property "Reference" "JP"
-				(at 0 2.032 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Value" "SolderJumper_2_Open"
-				(at 0 -2.54 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Footprint" ""
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" "~"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Description" "Solder Jumper, 2-pole, open"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_keywords" "solder jumper SPST"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_fp_filters" "SolderJumper*Open*"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(symbol "SolderJumper_2_Open_0_1"
-				(polyline
-					(pts
-						(xy -0.254 1.016) (xy -0.254 -1.016)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(arc
-					(start -0.254 -1.016)
-					(mid -1.2656 0)
-					(end -0.254 1.016)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(arc
-					(start -0.254 -1.016)
-					(mid -1.2656 0)
-					(end -0.254 1.016)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type outline)
-					)
-				)
-				(arc
-					(start 0.254 1.016)
-					(mid 1.2656 0)
-					(end 0.254 -1.016)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(arc
-					(start 0.254 1.016)
-					(mid 1.2656 0)
-					(end 0.254 -1.016)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type outline)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0.254 1.016) (xy 0.254 -1.016)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-			)
-			(symbol "SolderJumper_2_Open_1_1"
-				(pin passive line
-					(at -3.81 0 0)
-					(length 2.54)
-					(name "A"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 3.81 0 180)
-					(length 2.54)
-					(name "B"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -833,8 +647,8 @@
 		)
 	)
 	(rectangle
-		(start 312.928 329.565)
-		(end 384.81 370.205)
+		(start 339.598 287.655)
+		(end 447.04 328.295)
 		(stroke
 			(width 0.8128)
 			(type solid)
@@ -845,9 +659,9 @@
 		)
 		(uuid ab67face-6424-4a26-993c-a80e631a4187)
 	)
-	(text "Reset Mechanism."
+	(text "Reset Mechanism (V3 : Pull-up footprint)."
 		(exclude_from_sim no)
-		(at 313.055 327.66 0)
+		(at 339.725 285.75 0)
 		(effects
 			(font
 				(size 3.2512 3.2512)
@@ -862,7 +676,7 @@
 	)
 	(text "TODO: Document the things we need to\ndo on the PCBs before finalizing for VCC?"
 		(exclude_from_sim no)
-		(at 336.55 332.994 0)
+		(at 363.22 291.084 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -875,14 +689,24 @@
 		(uuid "3e143816-f9f5-4b46-8bfa-cd0fac7edf5d")
 	)
 	(junction
-		(at 342.9 353.06)
+		(at 386.08 311.15)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "6037bfa8-c7bf-4134-9e78-fe4f167590e5")
 	)
 	(wire
 		(pts
-			(xy 342.9 353.06) (xy 349.25 353.06)
+			(xy 410.21 311.15) (xy 402.59 311.15)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2a27fa59-64a3-48ca-8851-0ac7e8467672")
+	)
+	(wire
+		(pts
+			(xy 386.08 311.15) (xy 392.43 311.15)
 		)
 		(stroke
 			(width 0)
@@ -892,7 +716,7 @@
 	)
 	(wire
 		(pts
-			(xy 335.28 353.06) (xy 342.9 353.06)
+			(xy 378.46 311.15) (xy 386.08 311.15)
 		)
 		(stroke
 			(width 0)
@@ -902,7 +726,7 @@
 	)
 	(wire
 		(pts
-			(xy 342.9 353.06) (xy 342.9 354.33)
+			(xy 386.08 311.15) (xy 386.08 312.42)
 		)
 		(stroke
 			(width 0)
@@ -912,7 +736,7 @@
 	)
 	(wire
 		(pts
-			(xy 342.9 359.41) (xy 342.9 360.68)
+			(xy 386.08 317.5) (xy 386.08 318.77)
 		)
 		(stroke
 			(width 0)
@@ -920,9 +744,19 @@
 		)
 		(uuid "82722458-11e0-46bf-89a9-fd5b0e0c106a")
 	)
+	(label "RESET_PRESSED"
+		(at 402.59 311.15 0)
+		(effects
+			(font
+				(size 0.635 0.635)
+			)
+			(justify left bottom)
+		)
+		(uuid "7a7c4bd2-94c2-4e20-bb9c-030127e9e273")
+	)
 	(global_label "RESET"
 		(shape bidirectional)
-		(at 335.28 353.06 180)
+		(at 378.46 311.15 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -932,7 +766,7 @@
 		)
 		(uuid "d435dea4-63ce-4ca3-a065-39466df005de")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 325.4384 353.06 0)
+			(at 368.6184 311.15 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -944,7 +778,7 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 359.41 356.87 0)
+		(at 410.21 314.96 0)
 		(mirror y)
 		(unit 1)
 		(exclude_from_sim no)
@@ -954,7 +788,7 @@
 		(fields_autoplaced yes)
 		(uuid "08a150b6-618e-4ade-8ee2-84330e57946b")
 		(property "Reference" "R16"
-			(at 361.95 355.5999 0)
+			(at 412.75 313.6899 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -963,7 +797,7 @@
 			)
 		)
 		(property "Value" "1K"
-			(at 361.95 358.1399 0)
+			(at 412.75 316.2299 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -972,7 +806,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
-			(at 361.188 356.87 90)
+			(at 411.988 314.96 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -981,7 +815,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 359.41 356.87 0)
+			(at 410.21 314.96 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -990,7 +824,7 @@
 			)
 		)
 		(property "Description" "Resistor"
-			(at 359.41 356.87 0)
+			(at 410.21 314.96 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1015,7 +849,7 @@
 	)
 	(symbol
 		(lib_id "Device:C_Small")
-		(at 342.9 356.87 0)
+		(at 386.08 314.96 0)
 		(mirror y)
 		(unit 1)
 		(exclude_from_sim no)
@@ -1024,7 +858,7 @@
 		(dnp yes)
 		(uuid "168310b9-c513-49d6-8774-34d50dcec344")
 		(property "Reference" "C11"
-			(at 340.36 355.6062 0)
+			(at 383.54 313.6962 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1033,7 +867,7 @@
 			)
 		)
 		(property "Value" "100n"
-			(at 340.36 358.1462 0)
+			(at 383.54 316.2362 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1042,7 +876,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder"
-			(at 342.9 356.87 0)
+			(at 386.08 314.96 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1051,7 +885,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 342.9 356.87 0)
+			(at 386.08 314.96 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1060,7 +894,7 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor, small symbol"
-			(at 342.9 356.87 0)
+			(at 386.08 314.96 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1085,7 +919,7 @@
 	)
 	(symbol
 		(lib_id "Switch:SW_Push")
-		(at 354.33 353.06 0)
+		(at 397.51 311.15 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -1094,23 +928,23 @@
 		(fields_autoplaced yes)
 		(uuid "59a97cdc-3f89-4e34-8607-8a9c9d6ff420")
 		(property "Reference" "SW1"
-			(at 354.33 345.44 0)
+			(at 397.51 303.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 			)
 		)
-		(property "Value" "B3U-1000P-B"
-			(at 354.33 347.98 0)
+		(property "Value" "B3U-1000P"
+			(at 397.51 306.07 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 			)
 		)
-		(property "Footprint" "Button_Switch_SMD:SW_SPST_B3U-1000P-B"
-			(at 354.33 347.98 0)
+		(property "Footprint" "Button_Switch_SMD:SW_SPST_B3U-1000P"
+			(at 397.51 306.07 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1119,7 +953,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 354.33 347.98 0)
+			(at 397.51 306.07 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1128,7 +962,7 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
-			(at 354.33 353.06 0)
+			(at 397.51 311.15 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1153,7 +987,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 342.9 360.68 0)
+		(at 386.08 318.77 0)
 		(mirror y)
 		(unit 1)
 		(exclude_from_sim no)
@@ -1163,7 +997,7 @@
 		(fields_autoplaced yes)
 		(uuid "5e8a2503-78df-45c8-b618-0e10589e651b")
 		(property "Reference" "#PWR043"
-			(at 342.9 367.03 0)
+			(at 386.08 325.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1172,7 +1006,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 342.8999 364.49 90)
+			(at 386.0799 322.58 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1182,7 +1016,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 342.9 360.68 0)
+			(at 386.08 318.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1191,7 +1025,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 342.9 360.68 0)
+			(at 386.08 318.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1200,7 +1034,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 342.9 360.68 0)
+			(at 386.08 318.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1222,7 +1056,7 @@
 	)
 	(symbol
 		(lib_id "power:+3.3V")
-		(at 342.9 345.44 0)
+		(at 386.08 303.53 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -1231,7 +1065,7 @@
 		(fields_autoplaced yes)
 		(uuid "9907adb5-5bfe-4c0b-aef9-ee9ffd17ee4e")
 		(property "Reference" "#PWR044"
-			(at 342.9 349.25 0)
+			(at 386.08 307.34 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1240,7 +1074,7 @@
 			)
 		)
 		(property "Value" "+3.3V"
-			(at 342.9 340.36 0)
+			(at 386.08 298.45 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1248,7 +1082,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 342.9 345.44 0)
+			(at 386.08 303.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1257,7 +1091,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 342.9 345.44 0)
+			(at 386.08 303.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1266,7 +1100,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-			(at 342.9 345.44 0)
+			(at 386.08 303.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1287,35 +1121,34 @@
 		)
 	)
 	(symbol
-		(lib_id "Jumper:SolderJumper_2_Open")
-		(at 342.9 349.25 90)
+		(lib_id "Device:R")
+		(at 386.08 307.34 0)
 		(unit 1)
 		(exclude_from_sim no)
-		(in_bom no)
+		(in_bom yes)
 		(on_board yes)
-		(dnp no)
-		(uuid "b4f31a8b-dcb3-4994-a3a5-c6d933c0a911")
-		(property "Reference" "JP4"
-			(at 340.614 349.25 90)
+		(dnp yes)
+		(uuid "9ba2ccb3-f586-45bf-95c5-d3236ff6ba31")
+		(property "Reference" "R32"
+			(at 383.54 306.0699 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 			)
 		)
-		(property "Value" "SolderJumper_2_Open"
-			(at 340.36 350.5199 90)
+		(property "Value" "100"
+			(at 383.54 308.6099 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
-				(hide yes)
+				(justify right)
 			)
 		)
-		(property "Footprint" "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
-			(at 342.9 349.25 0)
+		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
+			(at 384.302 307.34 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1324,7 +1157,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 342.9 349.25 0)
+			(at 386.08 307.34 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1332,8 +1165,8 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "Solder Jumper, 2-pole, open"
-			(at 342.9 349.25 0)
+		(property "Description" "Resistor"
+			(at 386.08 307.34 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1342,15 +1175,15 @@
 			)
 		)
 		(pin "1"
-			(uuid "18d82055-f72f-455e-a340-3a2b8c2087df")
+			(uuid "d42f7551-8da7-48b1-90eb-0fce66eb3987")
 		)
 		(pin "2"
-			(uuid "47fdefcd-03c1-4c4a-a774-86b13b87aa29")
+			(uuid "c7a225be-4ea8-4c8a-91f0-e9f21ad8aff4")
 		)
 		(instances
-			(project ""
+			(project "MainFlightComputer"
 				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
-					(reference "JP4")
+					(reference "R32")
 					(unit 1)
 				)
 			)
@@ -1358,7 +1191,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 359.41 360.68 0)
+		(at 410.21 318.77 0)
 		(mirror y)
 		(unit 1)
 		(exclude_from_sim no)
@@ -1368,7 +1201,7 @@
 		(fields_autoplaced yes)
 		(uuid "f29cfe8a-6296-4421-9e90-8d3825c9cde5")
 		(property "Reference" "#PWR042"
-			(at 359.41 367.03 0)
+			(at 410.21 325.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1377,7 +1210,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 359.4099 364.49 90)
+			(at 410.2099 322.58 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1387,7 +1220,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 359.41 360.68 0)
+			(at 410.21 318.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1396,7 +1229,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 359.41 360.68 0)
+			(at 410.21 318.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1405,7 +1238,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 359.41 360.68 0)
+			(at 410.21 318.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
