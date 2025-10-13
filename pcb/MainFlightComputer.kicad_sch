@@ -7903,8 +7903,8 @@
 		(uuid b291b4cd-116f-478f-a040-ee00e27729c8)
 	)
 	(rectangle
-		(start 421.767 268.478)
-		(end 513.08 321.31)
+		(start 424.307 268.478)
+		(end 515.62 321.31)
 		(stroke
 			(width 0.8128)
 			(type solid)
@@ -7930,7 +7930,7 @@
 	)
 	(rectangle
 		(start 313.055 268.605)
-		(end 415.925 315.595)
+		(end 420.37 315.595)
 		(stroke
 			(width 0.8128)
 			(type solid)
@@ -8027,7 +8027,7 @@
 	)
 	(text "TODO: @/url:`https://github.com/RockSat-X/RSXVT2026/issues/97`."
 		(exclude_from_sim no)
-		(at 465.582 318.008 0)
+		(at 468.122 318.008 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -8067,7 +8067,7 @@
 		)
 		(uuid "74665719-fb0a-4a16-8634-fdd527d95513")
 	)
-	(text "Debug Buzzer."
+	(text "Debug Buzzer (V1 : Lowercase net-name)."
 		(exclude_from_sim no)
 		(at 312.928 266.954 0)
 		(effects
@@ -8097,7 +8097,7 @@
 	)
 	(text "TODO: Multiple debug LEDs?"
 		(exclude_from_sim no)
-		(at 438.404 271.78 0)
+		(at 440.944 271.78 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -8179,7 +8179,7 @@
 	)
 	(text "Debug LED (V1 : Lowercase nets)."
 		(exclude_from_sim no)
-		(at 421.64 266.7 0)
+		(at 424.18 266.7 0)
 		(effects
 			(font
 				(size 3.2512 3.2512)
@@ -8644,10 +8644,6 @@
 		(uuid "e19ae2c4-b34e-4009-8aa1-3e08511cce5f")
 	)
 	(no_connect
-		(at 135.89 172.72)
-		(uuid "e1cb7522-4f92-4ee9-a0b1-aed2c1947d9e")
-	)
-	(no_connect
 		(at 196.85 241.3)
 		(uuid "eb4c8eaa-348d-47cb-868d-835119ecb1a6")
 	)
@@ -8795,7 +8791,7 @@
 	)
 	(wire
 		(pts
-			(xy 458.47 292.1) (xy 464.82 292.1)
+			(xy 461.01 292.1) (xy 467.36 292.1)
 		)
 		(stroke
 			(width 0)
@@ -8805,7 +8801,7 @@
 	)
 	(wire
 		(pts
-			(xy 469.9 290.83) (xy 469.9 294.64)
+			(xy 472.44 290.83) (xy 472.44 294.64)
 		)
 		(stroke
 			(width 0)
@@ -8815,7 +8811,7 @@
 	)
 	(wire
 		(pts
-			(xy 469.9 307.34) (xy 469.9 302.26)
+			(xy 472.44 307.34) (xy 472.44 302.26)
 		)
 		(stroke
 			(width 0)
@@ -8875,7 +8871,7 @@
 	)
 	(wire
 		(pts
-			(xy 458.47 292.1) (xy 458.47 294.64)
+			(xy 461.01 292.1) (xy 461.01 294.64)
 		)
 		(stroke
 			(width 0)
@@ -8885,7 +8881,7 @@
 	)
 	(wire
 		(pts
-			(xy 474.98 290.83) (xy 474.98 292.1)
+			(xy 477.52 290.83) (xy 477.52 292.1)
 		)
 		(stroke
 			(width 0)
@@ -8995,7 +8991,7 @@
 	)
 	(wire
 		(pts
-			(xy 453.39 304.8) (xy 458.47 304.8)
+			(xy 455.93 304.8) (xy 461.01 304.8)
 		)
 		(stroke
 			(width 0)
@@ -9055,7 +9051,7 @@
 	)
 	(wire
 		(pts
-			(xy 464.82 292.1) (xy 464.82 290.83)
+			(xy 467.36 292.1) (xy 467.36 290.83)
 		)
 		(stroke
 			(width 0)
@@ -9165,7 +9161,7 @@
 	)
 	(wire
 		(pts
-			(xy 453.39 307.34) (xy 469.9 307.34)
+			(xy 455.93 307.34) (xy 472.44 307.34)
 		)
 		(stroke
 			(width 0)
@@ -9225,7 +9221,7 @@
 	)
 	(wire
 		(pts
-			(xy 481.33 292.1) (xy 481.33 294.64)
+			(xy 483.87 292.1) (xy 483.87 294.64)
 		)
 		(stroke
 			(width 0)
@@ -9325,7 +9321,7 @@
 	)
 	(wire
 		(pts
-			(xy 453.39 309.88) (xy 481.33 309.88)
+			(xy 455.93 309.88) (xy 483.87 309.88)
 		)
 		(stroke
 			(width 0)
@@ -9455,7 +9451,7 @@
 	)
 	(wire
 		(pts
-			(xy 474.98 292.1) (xy 481.33 292.1)
+			(xy 477.52 292.1) (xy 483.87 292.1)
 		)
 		(stroke
 			(width 0)
@@ -9475,7 +9471,7 @@
 	)
 	(wire
 		(pts
-			(xy 481.33 309.88) (xy 481.33 302.26)
+			(xy 483.87 309.88) (xy 483.87 302.26)
 		)
 		(stroke
 			(width 0)
@@ -9685,7 +9681,7 @@
 	)
 	(wire
 		(pts
-			(xy 458.47 304.8) (xy 458.47 302.26)
+			(xy 461.01 304.8) (xy 461.01 302.26)
 		)
 		(stroke
 			(width 0)
@@ -10311,7 +10307,7 @@
 			)
 		)
 	)
-	(global_label "BUZZER"
+	(global_label "buzzer"
 		(shape bidirectional)
 		(at 337.82 276.86 180)
 		(fields_autoplaced yes)
@@ -10323,7 +10319,7 @@
 		)
 		(uuid "32a95f82-e1ef-4c54-bbf8-3c37d4684a8d")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 326.285 276.86 0)
+			(at 327.4945 276.86 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10423,7 +10419,7 @@
 	)
 	(global_label "led_channel_green"
 		(shape bidirectional)
-		(at 453.39 307.34 180)
+		(at 455.93 307.34 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -10433,7 +10429,7 @@
 		)
 		(uuid "430bafee-98a4-4714-996f-3c5bc5719015")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 431.7557 307.34 0)
+			(at 434.2957 307.34 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10973,7 +10969,7 @@
 	)
 	(global_label "led_channel_red"
 		(shape bidirectional)
-		(at 453.39 304.8 180)
+		(at 455.93 304.8 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -10983,7 +10979,7 @@
 		)
 		(uuid "a3dac1f6-5bb5-480b-be03-c08156cf3247")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 433.9933 304.8 0)
+			(at 436.5333 304.8 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11521,6 +11517,28 @@
 			)
 		)
 	)
+	(global_label "buzzer"
+		(shape bidirectional)
+		(at 135.89 172.72 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "ea3b53ad-d96f-43fb-8116-441a60ef5982")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 125.5645 172.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "spi_miso_B"
 		(shape bidirectional)
 		(at 196.85 180.34 0)
@@ -11545,7 +11563,7 @@
 	)
 	(global_label "led_channel_blue"
 		(shape bidirectional)
-		(at 453.39 309.88 180)
+		(at 455.93 309.88 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -11555,7 +11573,7 @@
 		)
 		(uuid "f19453a7-bff5-4eb6-a2e7-2949e9214937")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 432.9653 309.88 0)
+			(at 435.5053 309.88 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13624,7 +13642,7 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 469.9 298.45 0)
+		(at 472.44 298.45 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -13632,7 +13650,7 @@
 		(dnp no)
 		(uuid "3a1945a1-9791-426f-8f40-c82072f7c55f")
 		(property "Reference" "R12"
-			(at 467.36 297.1799 0)
+			(at 469.9 297.1799 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13641,7 +13659,7 @@
 			)
 		)
 		(property "Value" "2K"
-			(at 467.36 299.7199 0)
+			(at 469.9 299.7199 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13650,7 +13668,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
-			(at 468.122 298.45 90)
+			(at 470.662 298.45 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13659,7 +13677,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 469.9 298.45 0)
+			(at 472.44 298.45 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13668,7 +13686,7 @@
 			)
 		)
 		(property "Description" "Resistor"
-			(at 469.9 298.45 0)
+			(at 472.44 298.45 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15558,7 +15576,7 @@
 	)
 	(symbol
 		(lib_id "Device:LED_ABRG")
-		(at 469.9 285.75 90)
+		(at 472.44 285.75 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -15567,7 +15585,7 @@
 		(fields_autoplaced yes)
 		(uuid "70afc40a-9521-47d7-9c0c-84eb21c3ecf2")
 		(property "Reference" "D4"
-			(at 478.79 284.4799 90)
+			(at 481.33 284.4799 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15576,7 +15594,7 @@
 			)
 		)
 		(property "Value" "150141M173100"
-			(at 478.79 287.0199 90)
+			(at 481.33 287.0199 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15585,7 +15603,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_RGB_Wuerth-PLCC4_3.2x2.8mm_150141M173100"
-			(at 471.17 285.75 0)
+			(at 473.71 285.75 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15594,7 +15612,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 471.17 285.75 0)
+			(at 473.71 285.75 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15603,7 +15621,7 @@
 			)
 		)
 		(property "Description" "RGB LED, anode/blue/red/green"
-			(at 469.9 285.75 0)
+			(at 472.44 285.75 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17611,7 +17629,7 @@
 	)
 	(symbol
 		(lib_id "power:+3.3V")
-		(at 469.9 280.67 0)
+		(at 472.44 280.67 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -17620,7 +17638,7 @@
 		(fields_autoplaced yes)
 		(uuid "b8fecc59-1ab6-4c30-94a8-1741e8ff3788")
 		(property "Reference" "#PWR039"
-			(at 469.9 284.48 0)
+			(at 472.44 284.48 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17629,7 +17647,7 @@
 			)
 		)
 		(property "Value" "+3.3V"
-			(at 469.9 275.59 0)
+			(at 472.44 275.59 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17637,7 +17655,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 469.9 280.67 0)
+			(at 472.44 280.67 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17646,7 +17664,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 469.9 280.67 0)
+			(at 472.44 280.67 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17655,7 +17673,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-			(at 469.9 280.67 0)
+			(at 472.44 280.67 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17812,7 +17830,7 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 481.33 298.45 0)
+		(at 483.87 298.45 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -17820,7 +17838,7 @@
 		(dnp no)
 		(uuid "bf22d91a-ccdd-4258-a9de-d0120a481ae4")
 		(property "Reference" "R13"
-			(at 478.79 297.1799 0)
+			(at 481.33 297.1799 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17829,7 +17847,7 @@
 			)
 		)
 		(property "Value" "2K"
-			(at 478.79 299.7199 0)
+			(at 481.33 299.7199 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17838,7 +17856,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
-			(at 479.552 298.45 90)
+			(at 482.092 298.45 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17847,7 +17865,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 481.33 298.45 0)
+			(at 483.87 298.45 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17856,7 +17874,7 @@
 			)
 		)
 		(property "Description" "Resistor"
-			(at 481.33 298.45 0)
+			(at 483.87 298.45 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -18640,7 +18658,7 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 458.47 298.45 0)
+		(at 461.01 298.45 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -18648,7 +18666,7 @@
 		(dnp no)
 		(uuid "df3c8aee-13f1-4eba-87ee-618f28e9f30d")
 		(property "Reference" "R11"
-			(at 455.93 297.1799 0)
+			(at 458.47 297.1799 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -18657,7 +18675,7 @@
 			)
 		)
 		(property "Value" "2K"
-			(at 455.93 299.7199 0)
+			(at 458.47 299.7199 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -18666,7 +18684,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
-			(at 456.692 298.45 90)
+			(at 459.232 298.45 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -18675,7 +18693,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 458.47 298.45 0)
+			(at 461.01 298.45 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -18684,7 +18702,7 @@
 			)
 		)
 		(property "Description" "Resistor"
-			(at 458.47 298.45 0)
+			(at 461.01 298.45 0)
 			(effects
 				(font
 					(size 1.27 1.27)
