@@ -8109,7 +8109,7 @@
 		)
 		(uuid "9561bb8a-046a-4054-bc7a-72f35823a6f4")
 	)
-	(text "USB-UART Bridge (V2 : Changed net-names)."
+	(text "USB-UART Bridge (V3 : Reset Pull-Up)."
 		(exclude_from_sim no)
 		(at 314.198 85.852 0)
 		(effects
@@ -8222,14 +8222,14 @@
 	)
 	(text "VDD and VUSB will be tied together.\n@/pg 18/fig 1-5/`MCP2221A`."
 		(exclude_from_sim no)
-		(at 380.492 148.336 0)
+		(at 386.588 145.542 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 				(thickness 0.1588)
 				(color 255 0 0 1)
 			)
-			(justify right bottom)
+			(justify left bottom)
 		)
 		(uuid "e6417f9b-01c3-4c0d-b4f6-596b9c494d9e")
 	)
@@ -8270,6 +8270,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "04027563-e648-4f7d-95ac-ec54cafb99d0")
+	)
+	(junction
+		(at 363.22 153.67)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "199ac039-6ac7-471b-a742-1c345317d18d")
 	)
 	(junction
 		(at 416.56 111.76)
@@ -9601,6 +9607,16 @@
 	)
 	(wire
 		(pts
+			(xy 355.6 153.67) (xy 363.22 153.67)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b46646eb-7f61-4a12-8d03-686e162e89cb")
+	)
+	(wire
+		(pts
 			(xy 323.85 232.41) (xy 335.28 232.41)
 		)
 		(stroke
@@ -9688,6 +9704,16 @@
 			(type default)
 		)
 		(uuid "ce1c80e4-5a1b-411c-bf3d-ba209634ebd4")
+	)
+	(wire
+		(pts
+			(xy 363.22 153.67) (xy 372.11 153.67)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "cf24893f-55d9-41c2-bf74-37ee7e6c7f23")
 	)
 	(wire
 		(pts
@@ -10023,7 +10049,7 @@
 	)
 	(global_label "serial_reset"
 		(shape bidirectional)
-		(at 372.11 153.67 180)
+		(at 355.6 153.67 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -10033,7 +10059,7 @@
 		)
 		(uuid "019f2c37-40aa-44b4-84fa-f4a204794306")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 357.0068 153.67 0)
+			(at 340.4968 153.67 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13561,6 +13587,72 @@
 			(project "MainFlightComputer"
 				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
 					(reference "R17")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3.3V")
+		(at 363.22 146.05 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "38c090ef-be6e-409d-85e3-cf92942c1855")
+		(property "Reference" "#PWR052"
+			(at 363.22 149.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3.3V"
+			(at 363.22 140.97 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 363.22 146.05 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 363.22 146.05 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 363.22 146.05 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "4591148c-0eb6-498e-b8f2-b2322962c3b2")
+		)
+		(instances
+			(project "MainFlightComputer"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
+					(reference "#PWR052")
 					(unit 1)
 				)
 			)
@@ -17822,6 +17914,75 @@
 			(project ""
 				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
 					(reference "#PWR015")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 363.22 149.86 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp yes)
+		(uuid "bd5e4869-7b56-46f2-9d48-1faf4158f596")
+		(property "Reference" "R19"
+			(at 360.68 148.5899 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "10K"
+			(at 360.68 151.1299 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
+			(at 361.442 149.86 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 363.22 149.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 363.22 149.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "52970667-798f-437b-8adb-9d7a5b1ad9d7")
+		)
+		(pin "2"
+			(uuid "ec470237-2fc1-4e83-969e-502b36891c02")
+		)
+		(instances
+			(project "MainFlightComputer"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
+					(reference "R19")
 					(unit 1)
 				)
 			)
