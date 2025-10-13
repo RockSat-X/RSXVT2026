@@ -1012,10 +1012,19 @@ def checkPCBs(parameters):
     # We must run the meta-preprocessor first to
     # verify every target's GPIO parameterization.
 
-    build(types.SimpleNamespace(
-        target              = None,
-        metapreprocess_only = True,
-    ))
+    try: # TODO Bum hack with the UI module...
+
+        exit_code = build(types.SimpleNamespace(
+            target              = None,
+            metapreprocess_only = True,
+        ))
+
+        if exit_code:
+            raise ExitCode(exit_code)
+
+    except ExitCode as exit_code:
+        if exit_code.args[0]:
+            raise
 
     log()
 
