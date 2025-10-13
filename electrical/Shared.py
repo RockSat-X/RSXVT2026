@@ -558,7 +558,7 @@ TARGETS = (
             ('serial_reset'     , 'D10', 'OUTPUT'    , { 'initlvl' : True                    }),
             ('serial_rx'        , 'D11', 'ALTERNATE' , { 'altfunc' : 'UART4_RX'              }),
             ('serial_tx'        , 'D12', 'ALTERNATE' , { 'altfunc' : 'UART4_TX'              }),
-            ('button'           , 'C13', 'INPUT'     , { 'pull'    : None, 'active' : True   }),
+            ('user_button'      , 'E14', 'INPUT'     , { 'pull'    : None, 'active' : True   }),
             ('buzzer'           , 'E5' , 'ALTERNATE' , { 'altfunc' : 'TIM15_CH1'             }),
             ('sd_cmd'           , 'B2' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CMD'            }),
             ('sd_data_0'        , 'B13', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D0'             }),
