@@ -8620,12 +8620,20 @@
 		(uuid "bf872cf2-91f5-44f2-87e2-8cd84d0d45eb")
 	)
 	(no_connect
+		(at 135.89 213.36)
+		(uuid "c6d7bd9c-3651-45f2-89c1-eb6fe810ff71")
+	)
+	(no_connect
 		(at 135.89 236.22)
 		(uuid "c752a30a-7c0f-4aaf-b75d-38a5099b0c9f")
 	)
 	(no_connect
 		(at 196.85 238.76)
 		(uuid "d47e3b67-b8b6-4fc4-bad7-8cef2891481a")
+	)
+	(no_connect
+		(at 135.89 208.28)
+		(uuid "d6502d08-bded-44a5-a4f7-f1a9eeb5b94b")
 	)
 	(no_connect
 		(at 392.43 173.99)
@@ -8642,6 +8650,10 @@
 	(no_connect
 		(at 135.89 167.64)
 		(uuid "fc9d8122-d282-4069-8d74-55ce6ea4702f")
+	)
+	(no_connect
+		(at 135.89 210.82)
+		(uuid "fdf02b97-fff9-49a7-a68c-f0a770dfabd1")
 	)
 	(no_connect
 		(at 135.89 198.12)
@@ -11263,7 +11275,7 @@
 			)
 		)
 	)
-	(global_label "spi_clk_B"
+	(global_label "spi_clock_B"
 		(shape bidirectional)
 		(at 259.08 121.92 180)
 		(fields_autoplaced yes)
@@ -11275,7 +11287,7 @@
 		)
 		(uuid "cdd54de0-8d6f-48d3-a194-482fa16894b1")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 246.2145 121.92 0)
+			(at 243.9769 121.92 0)
 			(effects
 				(font
 					(size 1.27 1.27)
