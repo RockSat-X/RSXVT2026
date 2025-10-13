@@ -173,6 +173,21 @@ def require(*needed_programs):
 
 
 
+        # Kicad-CLI.
+
+        elif missing_program in (roster := [
+            'kicad-cli'
+        ]):
+
+            log(f'''
+                Python couldn't find "{missing_program}" in your PATH.
+                This program comes along with KiCad, so on Windows,
+                you might find it at "C:\\Program Files\\KiCad\\9.0\\bin\\{missing_program}.exe".
+                Thus, add something like "C:\\Program Files\\KiCad\\9.0\\bin" to your PATH.
+            ''')
+
+
+
         # Not implemented.
 
         else:
@@ -990,12 +1005,14 @@ def checkPCBs(parameters):
     import deps.stpy.pxd.sexp
     import deps.stpy.mcus
 
+    require('kicad-cli')
+
 
 
     # We must run the meta-preprocessor first to
     # verify every target's GPIO parameterization.
 
-    execute('./cli.py build --metapreprocess-only')
+    execute(f'{root('./cli.py')} build --metapreprocess-only')
 
     log()
 
@@ -1022,8 +1039,6 @@ def checkPCBs(parameters):
 
 
         # Get the netlist.
-
-        require('kicad-cli')
 
         execute(f'''
             kicad-cli
