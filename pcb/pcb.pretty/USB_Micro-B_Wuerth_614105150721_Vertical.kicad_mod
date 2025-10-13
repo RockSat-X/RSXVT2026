@@ -313,4 +313,16 @@
 			(xyz 90 -0 -0)
 		)
 	)
+	(model "${KIPRJMOD}/models/Micro_USB_Plug.step"
+		(opacity 0.2100)
+		(offset
+			(xyz 1.3 -0.1 7.6)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -0 180 180)
+		)
+	)
 )
