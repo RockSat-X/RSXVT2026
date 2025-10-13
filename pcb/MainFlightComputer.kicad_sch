@@ -8356,10 +8356,6 @@
 		(uuid "ffd35cf8-c97d-466e-8f80-1e31ea255312")
 	)
 	(no_connect
-		(at 189.23 127)
-		(uuid "0424da89-132a-408a-b3bf-e20c60af3e93")
-	)
-	(no_connect
 		(at 189.23 193.04)
 		(uuid "0b1c5f5a-6b73-4769-b17c-0ecc3d9b97e0")
 	)
@@ -8404,20 +8400,20 @@
 		(uuid "2df17ccc-c2e8-40fd-8ede-b71c82fcfe6a")
 	)
 	(no_connect
-		(at 128.27 116.84)
-		(uuid "36330f65-23e8-413f-b62b-bca97d5a8917")
+		(at 189.23 109.22)
+		(uuid "32521232-31ed-48e7-b785-81ee91282ea0")
 	)
 	(no_connect
-		(at 128.27 127)
-		(uuid "412b6b40-a955-4403-87a6-a969e9518217")
+		(at 128.27 116.84)
+		(uuid "36330f65-23e8-413f-b62b-bca97d5a8917")
 	)
 	(no_connect
 		(at 128.27 154.94)
 		(uuid "42849c94-190a-4f32-a4c8-78076426760b")
 	)
 	(no_connect
-		(at 189.23 121.92)
-		(uuid "45a5ba70-cd41-4011-9379-3ebe4b114570")
+		(at 189.23 124.46)
+		(uuid "4e2c20aa-62a9-4b4b-8f90-f655a2267b37")
 	)
 	(no_connect
 		(at 189.23 99.06)
@@ -8440,8 +8436,8 @@
 		(uuid "6bb5dca3-8a50-4e47-b95b-167d8ea18b67")
 	)
 	(no_connect
-		(at 189.23 124.46)
-		(uuid "6ec121bd-91cf-4a79-9026-9770ee71a2c2")
+		(at 189.23 114.3)
+		(uuid "7417bc55-eaff-49c6-b025-8b393367aa5d")
 	)
 	(no_connect
 		(at 189.23 119.38)
@@ -8454,6 +8450,10 @@
 	(no_connect
 		(at 189.23 185.42)
 		(uuid "81d07e52-3ba6-4339-a0e6-7f1e430a98f1")
+	)
+	(no_connect
+		(at 189.23 111.76)
+		(uuid "8ab6795e-5e86-4033-8f53-2e7fba196f5d")
 	)
 	(no_connect
 		(at 189.23 101.6)
@@ -8474,10 +8474,6 @@
 	(no_connect
 		(at 189.23 220.98)
 		(uuid "af653b26-bb8f-4170-8cf4-03108ef3257d")
-	)
-	(no_connect
-		(at 128.27 132.08)
-		(uuid "b12f1eea-585e-4166-ab9c-063b581c0663")
 	)
 	(no_connect
 		(at 189.23 116.84)
@@ -8516,6 +8512,10 @@
 		(uuid "d9d3ac16-a7de-4673-aec8-ee455639b58c")
 	)
 	(no_connect
+		(at 189.23 121.92)
+		(uuid "e389e4b0-d169-42f2-896c-93c6704fcefe")
+	)
+	(no_connect
 		(at 189.23 215.9)
 		(uuid "eae46f87-6cbf-4f94-810f-8a7df8739c48")
 	)
@@ -8524,12 +8524,12 @@
 		(uuid "eb4c8eaa-348d-47cb-868d-835119ecb1a6")
 	)
 	(no_connect
-		(at 128.27 144.78)
-		(uuid "ef5e79d1-3f1d-4b70-8c4d-a96d7701a830")
+		(at 189.23 127)
+		(uuid "ebd50ff4-6223-4234-b879-24358229cd5d")
 	)
 	(no_connect
-		(at 128.27 129.54)
-		(uuid "fc9d8122-d282-4069-8d74-55ce6ea4702f")
+		(at 128.27 144.78)
+		(uuid "ef5e79d1-3f1d-4b70-8c4d-a96d7701a830")
 	)
 	(no_connect
 		(at 128.27 172.72)
@@ -10701,6 +10701,28 @@
 			)
 		)
 	)
+	(global_label "led_channel_red"
+		(shape bidirectional)
+		(at 128.27 127 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "1f3cf105-5d25-4af3-b410-e330a2c6f7ea")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 108.8733 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "spi_ready_A"
 		(shape bidirectional)
 		(at 293.37 142.24 180)
@@ -10736,50 +10758,6 @@
 		(uuid "22187db7-4832-4880-a1ba-5498de13c93a")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 431.3003 121.92 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "led_channel_blue"
-		(shape bidirectional)
-		(at 189.23 114.3 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "24c9ff63-1f88-4172-9a22-588eb9f2ca94")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 209.6547 114.3 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "led_channel_red"
-		(shape bidirectional)
-		(at 189.23 109.22 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "2707d501-5df2-4304-99cb-faf099f55423")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 208.6267 109.22 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11396,6 +11374,28 @@
 		(uuid "75d776b1-9058-44f9-9bb4-937e86ab1cf1")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 379.9879 187.96 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "led_channel_green"
+		(shape bidirectional)
+		(at 128.27 129.54 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "774fc1a0-bbf1-4a75-8c64-47baab3b13db")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 106.6357 129.54 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12219,28 +12219,6 @@
 			)
 		)
 	)
-	(global_label "led_channel_green"
-		(shape bidirectional)
-		(at 189.23 111.76 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "e4828528-be13-4499-9f8a-8c3c9492a7b7")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 210.8643 111.76 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "sd_clock"
 		(shape bidirectional)
 		(at 391.16 193.04 180)
@@ -12254,6 +12232,28 @@
 		(uuid "e4b53aad-1bc7-4217-8afa-1ca5053925fb")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 378.8993 193.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "led_channel_blue"
+		(shape bidirectional)
+		(at 128.27 132.08 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "e722cb8d-baec-428a-a881-dda5b6e43fe5")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 107.8453 132.08 0)
 			(effects
 				(font
 					(size 1.27 1.27)

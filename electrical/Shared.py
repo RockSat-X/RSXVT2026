@@ -547,9 +547,9 @@ TARGETS = (
         schematic_file_path = root('./pcb/MainFlightComputer.kicad_sch'),
 
         gpios = (
-            ('led_channel_red'  , 'A4' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False }),
-            ('led_channel_green', 'A5' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False }),
-            ('led_channel_blue' , 'A6' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False }),
+            ('led_channel_red'  , 'E2' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False }),
+            ('led_channel_green', 'E3' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False }),
+            ('led_channel_blue' , 'E4' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False }),
             ('stlink_tx'        , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'             }),
             ('stlink_rx'        , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'             }),
             ('swdio'            , 'A13', None        , {                                     }),
