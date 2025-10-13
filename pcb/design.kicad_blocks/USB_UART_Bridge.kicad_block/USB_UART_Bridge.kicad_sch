@@ -2,7 +2,7 @@
 	(version 20250114)
 	(generator "eeschema")
 	(generator_version "9.0")
-	(uuid "113fff21-53bd-430f-8b24-3e3302725e5a")
+	(uuid "bebf696a-dadc-4462-bede-c90c0cd3ea19")
 	(paper "A4")
 	(lib_symbols
 		(symbol "Connector:USB_B_Micro"
@@ -1723,7 +1723,7 @@
 		)
 		(uuid "3726e879-10b1-4a9c-89a9-6484728406f4")
 	)
-	(text "USB-UART Bridge (V1 : Vertical USB)."
+	(text "USB-UART Bridge (V2 : Changed net-names)."
 		(exclude_from_sim no)
 		(at 314.198 85.852 0)
 		(effects
@@ -1777,7 +1777,7 @@
 		)
 		(uuid "e678685c-7e7a-46b1-8bff-0caccb5aaa63")
 	)
-	(text "SERIAL_OUT is where the MCU\ntransmit the data and SERIAL_IN\nis where the UART-bridge transmits\nthe data that came from the PC."
+	(text "serial_tx is where the MCU\ntransmit the data and serial_rx\nis where the UART-bridge transmits\nthe data that came from the PC."
 		(exclude_from_sim no)
 		(at 395.478 158.496 0)
 		(effects
@@ -2274,7 +2274,7 @@
 		)
 		(uuid "ff511c69-1cb4-4895-90a6-e60b66e56bc0")
 	)
-	(global_label "SERIAL_RESET"
+	(global_label "serial_reset"
 		(shape bidirectional)
 		(at 372.11 153.67 180)
 		(fields_autoplaced yes)
@@ -2286,7 +2286,7 @@
 		)
 		(uuid "019f2c37-40aa-44b4-84fa-f4a204794306")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 354.9508 153.67 0)
+			(at 357.0068 153.67 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2296,7 +2296,7 @@
 			)
 		)
 	)
-	(global_label "SERIAL_OUT"
+	(global_label "serial_tx"
 		(shape bidirectional)
 		(at 392.43 161.29 0)
 		(fields_autoplaced yes)
@@ -2308,7 +2308,7 @@
 		)
 		(uuid "07baab42-c87a-41b9-b602-6d51eded3b60")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 407.4727 161.29 0)
+			(at 404.5698 161.29 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2318,7 +2318,7 @@
 			)
 		)
 	)
-	(global_label "SERIAL_IN"
+	(global_label "serial_rx"
 		(shape bidirectional)
 		(at 392.43 163.83 0)
 		(fields_autoplaced yes)
@@ -2330,7 +2330,7 @@
 		)
 		(uuid "22187db7-4832-4880-a1ba-5498de13c93a")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 405.7794 163.83 0)
+			(at 404.6303 163.83 0)
 			(effects
 				(font
 					(size 1.27 1.27)

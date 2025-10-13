@@ -8109,7 +8109,7 @@
 		)
 		(uuid "9561bb8a-046a-4054-bc7a-72f35823a6f4")
 	)
-	(text "USB-UART Bridge (V1 : Vertical USB)."
+	(text "USB-UART Bridge (V2 : Changed net-names)."
 		(exclude_from_sim no)
 		(at 314.198 85.852 0)
 		(effects
@@ -8246,7 +8246,7 @@
 		)
 		(uuid "e678685c-7e7a-46b1-8bff-0caccb5aaa63")
 	)
-	(text "SERIAL_OUT is where the MCU\ntransmit the data and SERIAL_IN\nis where the UART-bridge transmits\nthe data that came from the PC."
+	(text "serial_tx is where the MCU\ntransmit the data and serial_rx\nis where the UART-bridge transmits\nthe data that came from the PC."
 		(exclude_from_sim no)
 		(at 395.478 158.496 0)
 		(effects
@@ -8532,10 +8532,6 @@
 		(uuid "36330f65-23e8-413f-b62b-bca97d5a8917")
 	)
 	(no_connect
-		(at 135.89 233.68)
-		(uuid "36f45f32-8086-43a2-886d-8911668aafcc")
-	)
-	(no_connect
 		(at 135.89 165.1)
 		(uuid "412b6b40-a955-4403-87a6-a969e9518217")
 	)
@@ -8604,10 +8600,6 @@
 		(uuid "af653b26-bb8f-4170-8cf4-03108ef3257d")
 	)
 	(no_connect
-		(at 135.89 228.6)
-		(uuid "b04ea65d-c76f-48f4-9ea8-2e7b5c997f52")
-	)
-	(no_connect
 		(at 135.89 170.18)
 		(uuid "b12f1eea-585e-4166-ab9c-063b581c0663")
 	)
@@ -8638,10 +8630,6 @@
 	(no_connect
 		(at 392.43 173.99)
 		(uuid "d9d3ac16-a7de-4673-aec8-ee455639b58c")
-	)
-	(no_connect
-		(at 135.89 231.14)
-		(uuid "e19ae2c4-b34e-4009-8aa1-3e08511cce5f")
 	)
 	(no_connect
 		(at 196.85 241.3)
@@ -10021,7 +10009,7 @@
 			)
 		)
 	)
-	(global_label "SERIAL_RESET"
+	(global_label "serial_reset"
 		(shape bidirectional)
 		(at 372.11 153.67 180)
 		(fields_autoplaced yes)
@@ -10033,7 +10021,7 @@
 		)
 		(uuid "019f2c37-40aa-44b4-84fa-f4a204794306")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 354.9508 153.67 0)
+			(at 357.0068 153.67 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10065,7 +10053,7 @@
 			)
 		)
 	)
-	(global_label "SERIAL_OUT"
+	(global_label "serial_tx"
 		(shape bidirectional)
 		(at 392.43 161.29 0)
 		(fields_autoplaced yes)
@@ -10077,12 +10065,34 @@
 		)
 		(uuid "07baab42-c87a-41b9-b602-6d51eded3b60")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 407.4727 161.29 0)
+			(at 404.5698 161.29 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "serial_reset"
+		(shape bidirectional)
+		(at 135.89 228.6 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "088b2c27-9f26-40ff-886d-bb81385a5f62")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 120.7868 228.6 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
 				(hide yes)
 			)
 		)
@@ -10153,7 +10163,7 @@
 			)
 		)
 	)
-	(global_label "SERIAL_IN"
+	(global_label "serial_rx"
 		(shape bidirectional)
 		(at 392.43 163.83 0)
 		(fields_autoplaced yes)
@@ -10165,7 +10175,7 @@
 		)
 		(uuid "22187db7-4832-4880-a1ba-5498de13c93a")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 405.7794 163.83 0)
+			(at 404.6303 163.83 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10659,6 +10669,28 @@
 			)
 		)
 	)
+	(global_label "serial_rx"
+		(shape bidirectional)
+		(at 135.89 231.14 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "673945a1-8bd2-4a94-8113-c1a0e610a6a6")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 123.6897 231.14 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "swdio"
 		(shape bidirectional)
 		(at 497.84 237.49 180)
@@ -11112,6 +11144,28 @@
 		(uuid "b18efd25-1ddc-43c7-8ae3-7e080383b2c9")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 245.7912 119.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "serial_tx"
+		(shape bidirectional)
+		(at 135.89 233.68 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "ba2b73ad-5746-4e12-b42d-6241ff5651d3")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 123.7502 233.68 0)
 			(effects
 				(font
 					(size 1.27 1.27)
