@@ -1012,7 +1012,10 @@ def checkPCBs(parameters):
     # We must run the meta-preprocessor first to
     # verify every target's GPIO parameterization.
 
-    execute(f'{root('./cli.py')} build --metapreprocess-only')
+    build(types.SimpleNamespace(
+        target              = None,
+        metapreprocess_only = True,
+    ))
 
     log()
 
