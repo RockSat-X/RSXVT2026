@@ -20333,7 +20333,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "100"
+		(property "Value" "800"
 			(at 356.87 248.9199 0)
 			(effects
 				(font
@@ -20869,7 +20869,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(fields_autoplaced yes)
 		(uuid "ed9430c6-e21b-46d4-b8d9-6e32e945b389")
 		(property "Reference" "BZ1"
@@ -21018,7 +21018,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "50"
+		(property "Value" "400"
 			(at 374.65 248.9199 0)
 			(effects
 				(font
