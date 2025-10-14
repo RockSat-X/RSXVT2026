@@ -2,7 +2,7 @@
 	(version 20250114)
 	(generator "eeschema")
 	(generator_version "9.0")
-	(uuid "dcaa53f5-4b7d-4130-ae68-9ba612091ff3")
+	(uuid "896ecc4e-268e-4bd9-b7b8-6ad626a24cb0")
 	(paper "A4")
 	(lib_symbols
 		(symbol "Connector:Micro_SD_Card"
@@ -874,7 +874,7 @@
 		)
 		(uuid "c3c1ea46-5e0c-4727-88e5-528056633ad8")
 	)
-	(text "uSD Connector (V3 : Net-labels)."
+	(text "uSD Connector (V4 : Added part number)."
 		(exclude_from_sim no)
 		(at 340.36 165.1 0)
 		(effects
@@ -1290,7 +1290,7 @@
 		(at 396.24 182.88 90)
 		(unit 1)
 		(exclude_from_sim no)
-		(in_bom no)
+		(in_bom yes)
 		(on_board yes)
 		(dnp no)
 		(uuid "111d1952-a559-42dd-8e4e-d91b8bbefb11")
@@ -1358,7 +1358,7 @@
 		(at 396.24 193.04 90)
 		(unit 1)
 		(exclude_from_sim no)
-		(in_bom no)
+		(in_bom yes)
 		(on_board yes)
 		(dnp no)
 		(uuid "188d5dae-76a8-4275-a9f6-9b5bcb934a4c")
@@ -1426,7 +1426,7 @@
 		(at 401.32 185.42 90)
 		(unit 1)
 		(exclude_from_sim no)
-		(in_bom no)
+		(in_bom yes)
 		(on_board yes)
 		(dnp no)
 		(uuid "1a8102a4-d3c1-44d0-b108-db525952ba17")
@@ -1494,7 +1494,7 @@
 		(at 396.24 198.12 90)
 		(unit 1)
 		(exclude_from_sim no)
-		(in_bom no)
+		(in_bom yes)
 		(on_board yes)
 		(dnp no)
 		(uuid "3b49be11-1227-476c-b3d7-db75677d6149")
@@ -1562,7 +1562,7 @@
 		(at 406.4 187.96 90)
 		(unit 1)
 		(exclude_from_sim no)
-		(in_bom no)
+		(in_bom yes)
 		(on_board yes)
 		(dnp no)
 		(uuid "4fb855b8-0e98-4f5c-8957-324468962ec7")
@@ -1775,20 +1775,19 @@
 		(dnp no)
 		(uuid "961ac9ca-4a3c-48bb-b7fa-06ce0c23d6e9")
 		(property "Reference" "J3"
-			(at 439.42 174.752 0)
+			(at 439.293 171.958 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 			)
 		)
-		(property "Value" "Micro_SD_Card"
-			(at 440.055 173.99 0)
+		(property "Value" "0472192001"
+			(at 439.42 174.498 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(hide yes)
 			)
 		)
 		(property "Footprint" "pcb:microSD_HC_Molex_47219-2001"
@@ -2061,7 +2060,7 @@
 		(at 401.32 200.66 90)
 		(unit 1)
 		(exclude_from_sim no)
-		(in_bom no)
+		(in_bom yes)
 		(on_board yes)
 		(dnp no)
 		(uuid "fa6f3aa4-138a-42e3-a7b3-299cd67e3eec")
