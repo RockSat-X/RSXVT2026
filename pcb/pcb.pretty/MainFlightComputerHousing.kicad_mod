@@ -2,6 +2,7 @@
 	(version 20241229)
 	(generator "pcbnew")
 	(generator_version "9.0")
+	(locked yes)
 	(layer "F.Cu")
 	(descr "Housing for the Main Camera System.")
 	(property "Reference" "N1"
@@ -9,7 +10,7 @@
 		(unlocked yes)
 		(layer "F.SilkS")
 		(hide yes)
-		(uuid "a99c6772-c5d0-4182-a94d-8ae8778eb9ab")
+		(uuid "d8829946-4070-4aae-9040-c7e0aaedc2c3")
 		(effects
 			(font
 				(size 1 1)
@@ -22,7 +23,7 @@
 		(unlocked yes)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "bfa8dbd0-addb-410b-a10c-e1c584309b88")
+		(uuid "f7d8b342-5f88-499f-a313-34a1386a8cbb")
 		(effects
 			(font
 				(size 1 1)
@@ -35,7 +36,7 @@
 		(unlocked yes)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "74a921b1-65d2-4455-9abb-a14a4952dfcc")
+		(uuid "9844a795-d0a3-42fc-a618-6fa15864332f")
 		(effects
 			(font
 				(size 1 1)
@@ -48,7 +49,7 @@
 		(unlocked yes)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "d5e8078a-e213-411c-be93-850490fbc0bc")
+		(uuid "b764ea59-ac52-46eb-9432-97187a89079e")
 		(effects
 			(font
 				(size 1 1)
@@ -56,6 +57,7 @@
 			)
 		)
 	)
+	(attr exclude_from_bom)
 	(fp_line
 		(start -1 0)
 		(end 1 0)
@@ -64,7 +66,7 @@
 			(type default)
 		)
 		(layer "User.1")
-		(uuid "bc84993d-377a-4aaf-b7f2-84fb2f3f2497")
+		(uuid "052c79ff-8a2f-423b-9551-a3dfb1706c8f")
 	)
 	(fp_line
 		(start 0 -1)
@@ -74,7 +76,7 @@
 			(type default)
 		)
 		(layer "User.1")
-		(uuid "16923cd7-5767-42b0-81f2-9e7ff3c7ff0b")
+		(uuid "0d8b4c49-4f28-4d9c-8d80-8beed726220c")
 	)
 	(fp_circle
 		(center 0 0)
@@ -85,13 +87,13 @@
 		)
 		(fill no)
 		(layer "User.1")
-		(uuid "e0a4b400-d5ba-43e1-af54-fa9e83092590")
+		(uuid "eaec4ef6-50fd-4a0c-b530-c9d473f0cd05")
 	)
 	(embedded_fonts no)
 	(model "${KIPRJMOD}/models/ElectronicsBoxCase_AN-14F-01.step"
 		(opacity 0.9000)
 		(offset
-			(xyz -10 24 31)
+			(xyz 0 24 31)
 		)
 		(scale
 			(xyz 1 1 1)
