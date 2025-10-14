@@ -7705,7 +7705,7 @@
 	)
 	(rectangle
 		(start 340.487 166.878)
-		(end 467.36 212.09)
+		(end 477.52 212.09)
 		(stroke
 			(width 0.8128)
 			(type solid)
@@ -8006,7 +8006,7 @@
 		)
 		(uuid "dd8eafd5-7995-42a0-a00b-709bfc858d7c")
 	)
-	(text "uSD Connector (V4 : Added part number)."
+	(text "uSD Connector (V5 : Addressed ERC)."
 		(exclude_from_sim no)
 		(at 340.36 165.1 0)
 		(effects
@@ -8398,6 +8398,10 @@
 	(no_connect
 		(at 189.23 129.54)
 		(uuid "2df17ccc-c2e8-40fd-8ede-b71c82fcfe6a")
+	)
+	(no_connect
+		(at 189.23 147.32)
+		(uuid "31be45af-88bc-4f6f-b904-199950b853ab")
 	)
 	(no_connect
 		(at 189.23 109.22)
@@ -8797,16 +8801,6 @@
 	)
 	(wire
 		(pts
-			(xy 398.78 182.88) (xy 416.56 182.88)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "22572e98-1dd2-4470-a952-0ed0147b3739")
-	)
-	(wire
-		(pts
 			(xy 372.11 242.57) (xy 372.11 243.84)
 		)
 		(stroke
@@ -8814,16 +8808,6 @@
 			(type default)
 		)
 		(uuid "234d98ca-f621-4043-9cf8-c50d3b98dce9")
-	)
-	(wire
-		(pts
-			(xy 403.86 200.66) (xy 416.56 200.66)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "236dc311-f386-4b3e-91ef-5cfbc1134319")
 	)
 	(wire
 		(pts
@@ -8864,16 +8848,6 @@
 			(type default)
 		)
 		(uuid "285d0680-bb16-4f94-bcfa-f411440f2eaa")
-	)
-	(wire
-		(pts
-			(xy 373.38 195.58) (xy 416.56 195.58)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "290ffc85-dffb-4d67-9495-8950eb1d0b4a")
 	)
 	(wire
 		(pts
@@ -9007,6 +8981,16 @@
 	)
 	(wire
 		(pts
+			(xy 373.38 190.5) (xy 425.45 190.5)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "378d3bd0-4e34-4956-b3f1-ba45d2bf8991")
+	)
+	(wire
+		(pts
 			(xy 482.6 262.89) (xy 485.14 262.89)
 		)
 		(stroke
@@ -9014,16 +8998,6 @@
 			(type default)
 		)
 		(uuid "3968009f-386a-4898-a761-eba905f9ff34")
-	)
-	(wire
-		(pts
-			(xy 403.86 185.42) (xy 416.56 185.42)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "3b5a0711-33b3-4720-a358-39b4bb4413d5")
 	)
 	(wire
 		(pts
@@ -9044,16 +9018,6 @@
 			(type default)
 		)
 		(uuid "3cce4595-2e81-4c28-840d-75a421905135")
-	)
-	(wire
-		(pts
-			(xy 398.78 198.12) (xy 416.56 198.12)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "4209108c-a403-4e77-bdd3-a140d29d50e8")
 	)
 	(wire
 		(pts
@@ -9167,6 +9131,16 @@
 	)
 	(wire
 		(pts
+			(xy 403.86 185.42) (xy 425.45 185.42)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "523ae0b0-c1cf-4fa0-b4b6-9cde21b1d0c3")
+	)
+	(wire
+		(pts
 			(xy 391.16 187.96) (xy 403.86 187.96)
 		)
 		(stroke
@@ -9194,6 +9168,16 @@
 			(type default)
 		)
 		(uuid "54f9a8a7-e788-48f2-81bc-92a1e1fca36c")
+	)
+	(wire
+		(pts
+			(xy 408.94 187.96) (xy 425.45 187.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5569664c-8d84-487a-b486-1d4621d30e70")
 	)
 	(wire
 		(pts
@@ -9607,6 +9591,16 @@
 	)
 	(wire
 		(pts
+			(xy 398.78 193.04) (xy 425.45 193.04)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8d7b35d3-deb5-49f7-ad01-e7e58d6e4df8")
+	)
+	(wire
+		(pts
 			(xy 504.19 250.19) (xy 513.08 250.19)
 		)
 		(stroke
@@ -9634,6 +9628,16 @@
 			(type default)
 		)
 		(uuid "956662dd-6a34-4d02-817f-1c758d01762d")
+	)
+	(wire
+		(pts
+			(xy 403.86 200.66) (xy 425.45 200.66)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "97caf5ab-0562-487a-bbb6-7c93a374e6fe")
 	)
 	(wire
 		(pts
@@ -9814,6 +9818,26 @@
 			(type default)
 		)
 		(uuid "b56ea892-c41f-4f5a-9ec4-b560b14e8638")
+	)
+	(wire
+		(pts
+			(xy 398.78 198.12) (xy 425.45 198.12)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b80ac4c6-64b4-4ebc-9116-94ea52449e0a")
+	)
+	(wire
+		(pts
+			(xy 373.38 195.58) (xy 425.45 195.58)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b87f4dc6-66f1-45f6-97ee-ff797f27495d")
 	)
 	(wire
 		(pts
@@ -10047,16 +10071,6 @@
 	)
 	(wire
 		(pts
-			(xy 373.38 190.5) (xy 416.56 190.5)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "e00a0c7e-4ee8-487e-b1e0-2b0ac97931cd")
-	)
-	(wire
-		(pts
 			(xy 26.67 91.44) (xy 38.1 91.44)
 		)
 		(stroke
@@ -10147,6 +10161,16 @@
 	)
 	(wire
 		(pts
+			(xy 398.78 182.88) (xy 425.45 182.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f24473ea-5561-4d63-85c0-3152f0fede52")
+	)
+	(wire
+		(pts
 			(xy 392.43 72.39) (xy 392.43 69.85)
 		)
 		(stroke
@@ -10154,16 +10178,6 @@
 			(type default)
 		)
 		(uuid "f5f9fc01-18d3-46cf-bd28-be17c04669b5")
-	)
-	(wire
-		(pts
-			(xy 398.78 193.04) (xy 416.56 193.04)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "f64c697f-959e-4976-b410-81bb400a724a")
 	)
 	(wire
 		(pts
@@ -10237,16 +10251,6 @@
 	)
 	(wire
 		(pts
-			(xy 408.94 187.96) (xy 416.56 187.96)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "fe35119d-1171-42d2-a214-6410864a4d3e")
-	)
-	(wire
-		(pts
 			(xy 359.41 252.73) (xy 372.11 252.73)
 		)
 		(stroke
@@ -10315,8 +10319,8 @@
 		)
 		(uuid "5fbcd7e1-7023-4941-bb10-316840503984")
 	)
-	(label "SD_CMD"
-		(at 415.29 187.96 180)
+	(label "SD_CONNECTOR_CMD"
+		(at 424.18 187.96 180)
 		(effects
 			(font
 				(size 0.635 0.635)
@@ -10365,8 +10369,8 @@
 		)
 		(uuid "7a7c4bd2-94c2-4e20-bb9c-030127e9e273")
 	)
-	(label "SD_CLK"
-		(at 415.29 193.04 180)
+	(label "SD_CONNECTOR_CLK"
+		(at 424.18 193.04 180)
 		(effects
 			(font
 				(size 0.635 0.635)
@@ -10395,8 +10399,8 @@
 		)
 		(uuid "b98051d4-c7c2-452a-9548-6783ea4d3e21")
 	)
-	(label "SD_DAT0"
-		(at 415.29 198.12 180)
+	(label "SD_CONNECTOR_DAT0"
+		(at 424.18 198.12 180)
 		(effects
 			(font
 				(size 0.635 0.635)
@@ -10425,8 +10429,8 @@
 		)
 		(uuid "cd8295c2-41dd-40e7-9ca0-fcfb832d2541")
 	)
-	(label "SD_DAT3"
-		(at 415.29 185.42 180)
+	(label "SD_CONNECTOR_DAT3"
+		(at 424.18 185.42 180)
 		(effects
 			(font
 				(size 0.635 0.635)
@@ -10455,8 +10459,8 @@
 		)
 		(uuid "cf872794-e7ef-4465-8f72-edd4ab75658c")
 	)
-	(label "SD_DAT2"
-		(at 415.29 182.88 180)
+	(label "SD_CONNECTOR_DAT2"
+		(at 424.18 182.88 180)
 		(effects
 			(font
 				(size 0.635 0.635)
@@ -10485,8 +10489,8 @@
 		)
 		(uuid "e91e3f96-517a-43ad-b9bb-80dc2285ce98")
 	)
-	(label "SD_DAT1"
-		(at 415.29 200.66 180)
+	(label "SD_CONNECTOR_DAT1"
+		(at 424.18 200.66 180)
 		(effects
 			(font
 				(size 0.635 0.635)
@@ -18193,7 +18197,7 @@
 	)
 	(symbol
 		(lib_id "Connector:Micro_SD_Card")
-		(at 439.42 190.5 0)
+		(at 448.31 190.5 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -18201,7 +18205,7 @@
 		(dnp no)
 		(uuid "961ac9ca-4a3c-48bb-b7fa-06ce0c23d6e9")
 		(property "Reference" "J3"
-			(at 439.293 171.958 0)
+			(at 448.183 171.958 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -18209,7 +18213,7 @@
 			)
 		)
 		(property "Value" "0472192001"
-			(at 439.42 174.498 0)
+			(at 448.31 174.498 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -18217,7 +18221,7 @@
 			)
 		)
 		(property "Footprint" "pcb:microSD_HC_Molex_47219-2001"
-			(at 468.63 182.88 0)
+			(at 477.52 182.88 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -18226,7 +18230,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.we-online.com/components/products/datasheet/693072010801.pdf"
-			(at 439.42 190.5 0)
+			(at 448.31 190.5 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -18235,7 +18239,7 @@
 			)
 		)
 		(property "Description" "Micro SD Card Socket"
-			(at 439.42 190.5 0)
+			(at 448.31 190.5 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20106,7 +20110,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 459.74 205.74 90)
+		(at 468.63 205.74 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -20115,7 +20119,7 @@
 		(fields_autoplaced yes)
 		(uuid "cce3ddfe-aeba-4fd0-8f35-de6364f4eb70")
 		(property "Reference" "#PWR026"
-			(at 466.09 205.74 0)
+			(at 474.98 205.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20124,7 +20128,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 463.55 205.7399 90)
+			(at 472.44 205.7399 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20134,7 +20138,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 459.74 205.74 0)
+			(at 468.63 205.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20143,7 +20147,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 459.74 205.74 0)
+			(at 468.63 205.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20152,7 +20156,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 459.74 205.74 0)
+			(at 468.63 205.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
