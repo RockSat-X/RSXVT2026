@@ -2,14 +2,15 @@
 	(version 20241229)
 	(generator "pcbnew")
 	(generator_version "9.0")
+	(locked yes)
 	(layer "F.Cu")
 	(descr "Housing for the Main Camera System.")
-	(property "Reference" "REF**"
+	(property "Reference" "N1"
 		(at 0 -0.5 0)
 		(unlocked yes)
 		(layer "F.SilkS")
 		(hide yes)
-		(uuid "74ae104c-a3bc-4497-abfd-c472b3dfff48")
+		(uuid "e06e0adb-5e3c-42ed-9662-de59972a37e5")
 		(effects
 			(font
 				(size 1 1)
@@ -17,12 +18,12 @@
 			)
 		)
 	)
-	(property "Value" "Val**"
+	(property "Value" "Housing"
 		(at 0 1 0)
 		(unlocked yes)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "c14cae57-90e6-4bdd-8bb3-825d4fa36721")
+		(uuid "8568d5a6-27aa-4020-9e11-ac58320610f0")
 		(effects
 			(font
 				(size 1 1)
@@ -30,12 +31,12 @@
 			)
 		)
 	)
-	(property "Datasheet" ""
+	(property "Datasheet" "~"
 		(at 0 0 0)
 		(unlocked yes)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "c1c45a2c-8088-4e06-bc4d-3f7de8696a8c")
+		(uuid "d756d68f-d2d0-4842-8402-86004e1d60a3")
 		(effects
 			(font
 				(size 1 1)
@@ -43,12 +44,12 @@
 			)
 		)
 	)
-	(property "Description" ""
+	(property "Description" "Housing"
 		(at 0 0 0)
 		(unlocked yes)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "2dd8b5ee-3b14-4d00-afe0-cc90dad28d24")
+		(uuid "78954261-5409-44d6-ba81-e864ed60efce")
 		(effects
 			(font
 				(size 1 1)
@@ -65,7 +66,7 @@
 			(type default)
 		)
 		(layer "User.1")
-		(uuid "fe3caaf9-260a-4a07-a2f8-5a90e94fc7af")
+		(uuid "c1f513dd-63a8-41ad-b9f1-07d657def512")
 	)
 	(fp_line
 		(start 0 -1)
@@ -75,7 +76,7 @@
 			(type default)
 		)
 		(layer "User.1")
-		(uuid "fa85b5c5-f18f-47b9-af1b-1a574f423d06")
+		(uuid "efd55c03-d033-43e9-adbf-0cc453b4b513")
 	)
 	(fp_circle
 		(center 0 0)
@@ -86,12 +87,12 @@
 		)
 		(fill no)
 		(layer "User.1")
-		(uuid "3306ed2f-b33f-49e6-914d-7f0cae831f99")
+		(uuid "287165c3-0fce-4972-a793-bc6692288cd7")
 	)
 	(embedded_fonts no)
 	(model "${KIPRJMOD}/models/Nucleo64_STLink_Debugger.step"
 		(offset
-			(xyz 10 -31.5 -12.8)
+			(xyz 10 -31.5 -14.3)
 		)
 		(scale
 			(xyz 1 1 1)
