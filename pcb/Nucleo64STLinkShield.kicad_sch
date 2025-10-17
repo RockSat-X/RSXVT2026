@@ -1615,6 +1615,18 @@
 		)
 		(uuid e534fc97-2bae-4eef-8383-8d95492975ac)
 	)
+	(text "The CN2 connector on the Nucleo-64 ST-Link needs to\nbe open-circuit to debug an external target.\n@/pg 20/fig 8/`UM1724`."
+		(exclude_from_sim no)
+		(at 166.878 135.636 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.1588)
+				(color 255 0 0 1)
+			)
+		)
+		(uuid "072a7982-4e9c-4936-a275-608408c33b2c")
+	)
 	(text "Debug Connector (V1 : Lowercase net-names)."
 		(exclude_from_sim no)
 		(at 84.455 71.755 0)
@@ -1630,6 +1642,30 @@
 		)
 		(uuid "28ce3385-9b32-48cd-a7f0-876fd3b1a082")
 	)
+	(text "Note the TX/RX swap here.\n@/pg 20/fig 8/`UM1724`.\n@/pg 26/sec 7.10/`UM1724`."
+		(exclude_from_sim no)
+		(at 110.744 161.036 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.1588)
+				(color 255 0 0 1)
+			)
+		)
+		(uuid "36af9b79-7525-410e-b485-d7dcc68256ec")
+	)
+	(text "The SWD connector doesn't provide\nthe target power, but we can use\nthis USB jumper to source +3.3V."
+		(exclude_from_sim no)
+		(at 167.132 160.782 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.1588)
+				(color 255 0 0 1)
+			)
+		)
+		(uuid "6764a329-43ae-4c15-a5c0-121a8946c281")
+	)
 	(text "TODO: If space allows, it'd be really nice to\nuse an IDC connector instead for the debug stuff."
 		(exclude_from_sim no)
 		(at 107.95 118.618 0)
@@ -1644,6 +1680,60 @@
 		)
 		(uuid "7027113a-c5ef-40ef-9326-046bd13de4f9")
 	)
+	(text "@/pg 20/tbl 5/`UM1724`."
+		(exclude_from_sim no)
+		(at 110.49 134.112 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.1588)
+				(color 255 0 0 1)
+			)
+		)
+		(uuid "cde95a92-fa62-4cd5-a033-fce23eef1a9a")
+	)
+	(no_connect
+		(at 162.56 168.91)
+		(uuid "0a45b3b0-c613-4b28-b011-f6ad68c5ae21")
+	)
+	(no_connect
+		(at 162.56 144.78)
+		(uuid "8e2e51b9-1aa2-454a-9cd8-b03b065a6243")
+	)
+	(no_connect
+		(at 162.56 149.86)
+		(uuid "9fa33f10-24b2-478f-a667-08d15abaa901")
+	)
+	(no_connect
+		(at 162.56 147.32)
+		(uuid "a2eef344-5457-4891-83bd-a2eb601a6b07")
+	)
+	(no_connect
+		(at 162.56 142.24)
+		(uuid "c2ef2427-3a61-4f11-bfef-7f1e4102050a")
+	)
+	(global_label "stlink_tx"
+		(shape bidirectional)
+		(at 105.41 168.91 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "409f28a2-a8fa-4de7-aa58-cdaf55e064d4")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 93.3912 168.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "swdio"
 		(shape bidirectional)
 		(at 140.97 100.33 180)
@@ -1657,6 +1747,50 @@
 		(uuid "4a613be7-b30c-4c10-93fb-8a4cbd32938b")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 131.6121 100.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "RESET"
+		(shape bidirectional)
+		(at 105.41 148.59 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "50b34cfd-7ce7-4617-8813-08ae1c8897b6")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 95.5684 148.59 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "stlink_rx"
+		(shape bidirectional)
+		(at 105.41 166.37 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "57b05c62-499e-47ed-9216-514b68910930")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 93.3307 166.37 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1732,6 +1866,28 @@
 			)
 		)
 	)
+	(global_label "swo"
+		(shape bidirectional)
+		(at 105.41 151.13 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "785f6134-9681-4236-9649-5f7e23c9fd26")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 97.8059 151.13 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "swclk"
 		(shape bidirectional)
 		(at 140.97 97.79 180)
@@ -1767,6 +1923,50 @@
 		(uuid "bc5d3f78-1097-4f00-9421-fd60e3ce289e")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 133.3659 102.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "swclk"
+		(shape bidirectional)
+		(at 105.41 140.97 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "c6718c4c-b1ee-469b-8c16-981e43487d51")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 96.173 140.97 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "swdio"
+		(shape bidirectional)
+		(at 105.41 146.05 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "cee2bbe4-b19d-4ccb-bfcd-01292f3e3a6e")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 96.0521 146.05 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1944,7 +2144,7 @@
 	)
 	(symbol
 		(lib_id "Connector_Generic:Conn_01x02")
-		(at 142.24 171.45 0)
+		(at 167.64 166.37 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -1953,7 +2153,7 @@
 		(fields_autoplaced yes)
 		(uuid "453bb0fd-5bbf-4839-b81e-5f5f68477025")
 		(property "Reference" "J4"
-			(at 144.78 171.4499 0)
+			(at 170.18 166.3699 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1962,7 +2162,7 @@
 			)
 		)
 		(property "Value" "USB Power"
-			(at 144.78 173.9899 0)
+			(at 170.18 168.9099 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1971,7 +2171,7 @@
 			)
 		)
 		(property "Footprint" "Connector_PinSocket_2.54mm:PinSocket_1x02_P2.54mm_Vertical"
-			(at 142.24 171.45 0)
+			(at 167.64 166.37 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1980,7 +2180,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 142.24 171.45 0)
+			(at 167.64 166.37 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1989,7 +2189,7 @@
 			)
 		)
 		(property "Description" "Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"
-			(at 142.24 171.45 0)
+			(at 167.64 166.37 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2013,8 +2213,143 @@
 		)
 	)
 	(symbol
+		(lib_id "power:GND")
+		(at 105.41 143.51 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "55fb9b9f-ee69-469e-8dc2-7e9f7edaac01")
+		(property "Reference" "#PWR02"
+			(at 99.06 143.51 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 101.6 143.5101 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 105.41 143.51 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 105.41 143.51 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 105.41 143.51 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "a0027134-3ad4-4831-bd03-091cef7b36a1")
+		)
+		(instances
+			(project "Nucleo64STLinkShield"
+				(path "/dc931235-6a3d-461b-9fb0-f5879d72cf99"
+					(reference "#PWR02")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3.3V")
+		(at 105.41 138.43 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "70265417-636e-44e6-9ffc-ceea7920c1f3")
+		(property "Reference" "#PWR01"
+			(at 109.22 138.43 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3.3V"
+			(at 101.6 138.4299 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 105.41 138.43 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 105.41 138.43 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 105.41 138.43 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "05d79900-d39e-40d3-ba24-0e7de2356957")
+		)
+		(instances
+			(project "Nucleo64STLinkShield"
+				(path "/dc931235-6a3d-461b-9fb0-f5879d72cf99"
+					(reference "#PWR01")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Connector_Generic:Conn_01x06")
-		(at 142.24 142.24 0)
+		(at 110.49 143.51 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2023,7 +2358,7 @@
 		(fields_autoplaced yes)
 		(uuid "75c19f02-acaf-4b10-b0a5-8135e1a81b88")
 		(property "Reference" "J1"
-			(at 144.78 142.2399 0)
+			(at 113.03 143.5099 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2032,7 +2367,7 @@
 			)
 		)
 		(property "Value" "SWD"
-			(at 144.78 144.7799 0)
+			(at 113.03 146.0499 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2041,7 +2376,7 @@
 			)
 		)
 		(property "Footprint" "Connector_PinSocket_2.54mm:PinSocket_1x06_P2.54mm_Vertical"
-			(at 142.24 142.24 0)
+			(at 110.49 143.51 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2050,7 +2385,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 142.24 142.24 0)
+			(at 110.49 143.51 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2059,7 +2394,7 @@
 			)
 		)
 		(property "Description" "Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)"
-			(at 142.24 142.24 0)
+			(at 110.49 143.51 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2318,7 +2653,7 @@
 	)
 	(symbol
 		(lib_id "Connector_Generic:Conn_01x04")
-		(at 142.24 156.21 0)
+		(at 167.64 144.78 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2327,7 +2662,7 @@
 		(fields_autoplaced yes)
 		(uuid "baebf4d0-a93c-4070-a47a-addca6daa68c")
 		(property "Reference" "J5"
-			(at 144.78 156.2099 0)
+			(at 170.18 144.7799 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2336,7 +2671,7 @@
 			)
 		)
 		(property "Value" "Nucleo-64 ST-Link Selector"
-			(at 144.78 158.7499 0)
+			(at 170.18 147.3199 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2345,7 +2680,7 @@
 			)
 		)
 		(property "Footprint" "Connector_PinSocket_2.54mm:PinSocket_1x04_P2.54mm_Vertical"
-			(at 142.24 156.21 0)
+			(at 167.64 144.78 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2354,7 +2689,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 142.24 156.21 0)
+			(at 167.64 144.78 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2363,7 +2698,7 @@
 			)
 		)
 		(property "Description" "Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"
-			(at 142.24 156.21 0)
+			(at 167.64 144.78 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2394,7 +2729,7 @@
 	)
 	(symbol
 		(lib_id "Connector_Generic:Conn_01x02")
-		(at 142.24 165.1 0)
+		(at 110.49 166.37 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2403,7 +2738,7 @@
 		(fields_autoplaced yes)
 		(uuid "bd3cf707-8212-4338-a3db-d8eb3ce1fc64")
 		(property "Reference" "J3"
-			(at 144.78 165.0999 0)
+			(at 113.03 166.3699 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2412,7 +2747,7 @@
 			)
 		)
 		(property "Value" "UART"
-			(at 144.78 167.6399 0)
+			(at 113.03 168.9099 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2421,7 +2756,7 @@
 			)
 		)
 		(property "Footprint" "Connector_PinSocket_2.54mm:PinSocket_1x02_P2.54mm_Vertical"
-			(at 142.24 165.1 0)
+			(at 110.49 166.37 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2430,7 +2765,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 142.24 165.1 0)
+			(at 110.49 166.37 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2439,7 +2774,7 @@
 			)
 		)
 		(property "Description" "Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"
-			(at 142.24 165.1 0)
+			(at 110.49 166.37 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2457,6 +2792,73 @@
 			(project ""
 				(path "/dc931235-6a3d-461b-9fb0-f5879d72cf99"
 					(reference "J3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3.3V")
+		(at 162.56 166.37 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "ee15c790-6cdc-476e-bd17-bbe5f79a6032")
+		(property "Reference" "#PWR03"
+			(at 166.37 166.37 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3.3V"
+			(at 158.75 166.3699 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 162.56 166.37 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 162.56 166.37 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 162.56 166.37 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "37e73512-b84f-41b5-a048-14ac8da019df")
+		)
+		(instances
+			(project "Nucleo64STLinkShield"
+				(path "/dc931235-6a3d-461b-9fb0-f5879d72cf99"
+					(reference "#PWR03")
 					(unit 1)
 				)
 			)
