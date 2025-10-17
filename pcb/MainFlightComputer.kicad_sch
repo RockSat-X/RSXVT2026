@@ -7881,7 +7881,7 @@
 		)
 		(uuid "74665719-fb0a-4a16-8634-fdd527d95513")
 	)
-	(text "Debug Buzzer (V1 : Lowercase net-name)."
+	(text "Debug Buzzer (V2 : Updated resistors)."
 		(exclude_from_sim no)
 		(at 339.598 225.044 0)
 		(effects
@@ -7991,7 +7991,7 @@
 		)
 		(uuid "dcf1e5b8-182a-4f77-a82b-b998f56ef1b4")
 	)
-	(text "Debug LED (V2 : Added net-labels)."
+	(text "Debug LED (V4 : Updated resistors)."
 		(exclude_from_sim no)
 		(at 450.85 224.79 0)
 		(effects

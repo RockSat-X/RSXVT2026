@@ -2,7 +2,7 @@
 	(version 20250114)
 	(generator "eeschema")
 	(generator_version "9.0")
-	(uuid "4e6024a0-a2c5-4661-b4c5-c9fc20e2e606")
+	(uuid "672ccd4a-3c0e-4232-96db-288059d49464")
 	(paper "A4")
 	(lib_symbols
 		(symbol "Device:LED_ABRG"
@@ -799,7 +799,7 @@
 		)
 		(uuid "9561bb8a-046a-4054-bc7a-72f35823a6f4")
 	)
-	(text "Debug LED (V2 : Added net-labels)."
+	(text "Debug LED (V4 : Updated resistors)."
 		(exclude_from_sim no)
 		(at 450.85 224.79 0)
 		(effects
@@ -1058,7 +1058,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "2K"
+		(property "Value" "100"
 			(at 496.57 257.8099 0)
 			(effects
 				(font
@@ -1269,7 +1269,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "2K"
+		(property "Value" "100"
 			(at 510.54 257.8099 0)
 			(effects
 				(font
@@ -1338,7 +1338,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "2K"
+		(property "Value" "300"
 			(at 482.6 257.8099 0)
 			(effects
 				(font
