@@ -2667,6 +2667,74 @@
 		)
 	)
 	(symbol
+		(lib_id "power:GND")
+		(at 119.38 127 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "01a07849-22ca-4a0a-ab38-13c54cedda93")
+		(property "Reference" "#PWR02"
+			(at 113.03 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 115.57 127.0001 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 119.38 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 119.38 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 119.38 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "f5778a25-e96a-4dfa-9a60-e69f35f5a74f")
+		)
+		(instances
+			(project "Nucleo64STLinkShield"
+				(path "/dc931235-6a3d-461b-9fb0-f5879d72cf99"
+					(reference "#PWR02")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:+3.3V")
 		(at 170.18 171.45 90)
 		(unit 1)
@@ -3245,6 +3313,87 @@
 		)
 	)
 	(symbol
+		(lib_id "Connector_Generic:Conn_01x06")
+		(at 124.46 127 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "4e9c60ed-aa40-48de-bb16-bc1fb37773d6")
+		(property "Reference" "J1"
+			(at 127 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "SWD"
+			(at 127 129.5399 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Connector_PinSocket_2.54mm:PinSocket_1x06_P2.54mm_Vertical"
+			(at 124.46 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 124.46 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(at 124.46 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "d24ebef3-d5c9-4d8a-bc1d-ab299fe61973")
+		)
+		(pin "1"
+			(uuid "0fa32842-4f3f-417e-97ba-f15f49c35b55")
+		)
+		(pin "3"
+			(uuid "9f62cab3-990c-46c8-b3d2-d586e2f9a407")
+		)
+		(pin "5"
+			(uuid "2162d335-086b-4587-8520-d67ed76f7a6b")
+		)
+		(pin "4"
+			(uuid "6af9afcd-2683-4f47-b720-3885b965dffe")
+		)
+		(pin "6"
+			(uuid "19384056-f112-4c45-be1e-586c4dc9294a")
+		)
+		(instances
+			(project "Nucleo64STLinkShield"
+				(path "/dc931235-6a3d-461b-9fb0-f5879d72cf99"
+					(reference "J1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 193.04 168.91 90)
 		(mirror x)
@@ -3314,74 +3463,6 @@
 		)
 	)
 	(symbol
-		(lib_id "power:GND")
-		(at 119.38 127 270)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "55fb9b9f-ee69-469e-8dc2-7e9f7edaac01")
-		(property "Reference" "#PWR02"
-			(at 113.03 127 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "GND"
-			(at 115.57 127.0001 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-		(property "Footprint" ""
-			(at 119.38 127 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 119.38 127 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 119.38 127 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "a0027134-3ad4-4831-bd03-091cef7b36a1")
-		)
-		(instances
-			(project "Nucleo64STLinkShield"
-				(path "/dc931235-6a3d-461b-9fb0-f5879d72cf99"
-					(reference "#PWR02")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:+3.3V")
 		(at 119.38 121.92 90)
 		(unit 1)
@@ -3443,88 +3524,6 @@
 			(project "Nucleo64STLinkShield"
 				(path "/dc931235-6a3d-461b-9fb0-f5879d72cf99"
 					(reference "#PWR01")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Connector_Generic:Conn_01x06")
-		(at 124.46 127 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "75c19f02-acaf-4b10-b0a5-8135e1a81b88")
-		(property "Reference" "J1"
-			(at 127 126.9999 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "SWD"
-			(at 127 129.5399 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Connector_PinSocket_2.54mm:PinSocket_1x06_P2.54mm_Vertical"
-			(at 124.46 127 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 124.46 127 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)"
-			(at 124.46 127 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "6"
-			(uuid "3149ebe0-b37d-4218-a4d2-5cfcd7eebdb0")
-		)
-		(pin "5"
-			(uuid "0ab46d5f-fe96-438a-a435-359ea2f35913")
-		)
-		(pin "2"
-			(uuid "bdc84403-c73f-4025-8608-3e61e90a538b")
-		)
-		(pin "3"
-			(uuid "cb4069ca-8c91-406d-ad34-43146e323412")
-		)
-		(pin "4"
-			(uuid "c9b166bd-871b-4e43-af3a-4c556a81c110")
-		)
-		(pin "1"
-			(uuid "d77631f8-86ab-4268-86a9-befc7c927d49")
-		)
-		(instances
-			(project ""
-				(path "/dc931235-6a3d-461b-9fb0-f5879d72cf99"
-					(reference "J1")
 					(unit 1)
 				)
 			)
@@ -4054,7 +4053,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "Conn_01x06"
+		(property "Value" "Conn_01x03"
 			(at 185.42 173.9899 0)
 			(effects
 				(font
@@ -4273,7 +4272,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "Conn_01x06"
+		(property "Value" "Conn_01x03"
 			(at 177.8 173.9899 0)
 			(effects
 				(font
