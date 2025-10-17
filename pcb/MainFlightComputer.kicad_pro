@@ -51,8 +51,47 @@
           "min_clearance": 0.5
         }
       },
-      "diff_pair_dimensions": [],
-      "drc_exclusions": [],
+      "diff_pair_dimensions": [
+        {
+          "gap": 0.0,
+          "via_gap": 0.0,
+          "width": 0.0
+        }
+      ],
+      "drc_exclusions": [
+        [
+          "courtyards_overlap|165627552|93763643|327f746b-b874-4261-a765-f1aaead0a4f0|d573a625-543d-4094-aaf5-a6d56ef1f7b7",
+          ""
+        ],
+        [
+          "silk_over_copper|167100000|106000000|3dd044e5-76d7-4174-bb9e-5a7bff1a93b8|00000000-0000-0000-0000-000000000000",
+          ""
+        ],
+        [
+          "silk_overlap|161400000|100000000|3dd044e5-76d7-4174-bb9e-5a7bff1a93b8|92dbece1-bf83-43db-8dcc-9b6e9aa246f3",
+          ""
+        ],
+        [
+          "silk_overlap|164650000|105600000|3dd044e5-76d7-4174-bb9e-5a7bff1a93b8|fc485065-274c-40b2-bac9-18cafa1f9b86",
+          ""
+        ],
+        [
+          "silk_overlap|164650000|94400000|0fe07b60-6897-4991-ac0e-457f6d3284c2|3dd044e5-76d7-4174-bb9e-5a7bff1a93b8",
+          ""
+        ],
+        [
+          "silk_overlap|167350000|105600000|3dd044e5-76d7-4174-bb9e-5a7bff1a93b8|c8c0391e-76cd-4f74-8644-c487ee0a015c",
+          ""
+        ],
+        [
+          "silk_overlap|167350000|94400000|3dd044e5-76d7-4174-bb9e-5a7bff1a93b8|735347f0-af7c-4c63-b04f-85c4288a08dc",
+          ""
+        ],
+        [
+          "silk_overlap|170600000|100000000|3dd044e5-76d7-4174-bb9e-5a7bff1a93b8|aee3e5e2-0b32-4f8c-992e-fce2fe3cd14e",
+          ""
+        ]
+      ],
       "meta": {
         "version": 2
       },
@@ -125,7 +164,7 @@
         "min_hole_to_hole": 0.25,
         "min_microvia_diameter": 0.2,
         "min_microvia_drill": 0.1,
-        "min_resolved_spokes": 2,
+        "min_resolved_spokes": 1,
         "min_silk_clearance": 0.0,
         "min_text_height": 0.8,
         "min_text_thickness": 0.08,
@@ -180,7 +219,9 @@
           "td_width_to_size_filter_ratio": 0.9
         }
       ],
-      "track_widths": [],
+      "track_widths": [
+        0.0
+      ],
       "tuning_pattern_settings": {
         "diff_pair_defaults": {
           "corner_radius_percentage": 80,
@@ -207,7 +248,12 @@
           "spacing": 0.6
         }
       },
-      "via_dimensions": [],
+      "via_dimensions": [
+        {
+          "diameter": 0.0,
+          "drill": 0.0
+        }
+      ],
       "zones_allow_external_fillets": false
     },
     "ipc2581": {
@@ -437,7 +483,7 @@
       "similar_labels": "warning",
       "similar_power": "warning",
       "simulation_model_issue": "ignore",
-      "single_global_label": "ignore",
+      "single_global_label": "error",
       "unannotated": "error",
       "unconnected_wire_endpoint": "warning",
       "undefined_netclass": "error",

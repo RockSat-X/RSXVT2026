@@ -559,7 +559,7 @@ TARGETS = (
             ('serial_rx'        , 'D11', 'ALTERNATE' , { 'altfunc' : 'UART4_RX'              }),
             ('serial_tx'        , 'D12', 'ALTERNATE' , { 'altfunc' : 'UART4_TX'              }),
             ('user_button'      , 'E14', 'INPUT'     , { 'pull'    : None, 'active' : True   }),
-            ('buzzer'           , 'E5' , 'ALTERNATE' , { 'altfunc' : 'TIM15_CH1'             }),
+            ('buzzer'           , 'C6' , 'ALTERNATE' , { 'altfunc' : 'TIM8_CH1'              }),
             ('sd_cmd'           , 'D2' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CMD'            }),
             ('sd_data_0'        , 'C8' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D0'             }),
             ('sd_data_1'        , 'C9' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D1'             }),
