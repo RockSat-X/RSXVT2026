@@ -2,7 +2,7 @@
 	(version 20250114)
 	(generator "eeschema")
 	(generator_version "9.0")
-	(uuid "90d05270-148f-4204-86bc-ac620dbb72b0")
+	(uuid "fb82b13a-a57e-4e84-b953-d7eb4300da3f")
 	(paper "A4")
 	(lib_symbols
 		(symbol "Device:Buzzer"
@@ -621,7 +621,7 @@
 		)
 		(uuid "74665719-fb0a-4a16-8634-fdd527d95513")
 	)
-	(text "Debug Buzzer (V2 : Updated resistors)."
+	(text "Debug Buzzer (V3 : Added net-label)."
 		(exclude_from_sim no)
 		(at 339.598 225.044 0)
 		(effects
@@ -757,6 +757,16 @@
 			(type default)
 		)
 		(uuid "ff97512a-aee4-49fb-bfb0-a647f84778fd")
+	)
+	(label "BUZZER_ANODE"
+		(at 379.73 252.73 0)
+		(effects
+			(font
+				(size 0.635 0.635)
+			)
+			(justify left bottom)
+		)
+		(uuid "c2aa2b74-ff0f-4c51-81cb-43fbd634fc8f")
 	)
 	(global_label "buzzer"
 		(shape bidirectional)
@@ -996,7 +1006,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "80afd286-b202-4d51-b3d5-6cc4c4f020a6")
-		(property "Reference" "JP3"
+		(property "Reference" "JP2"
 			(at 365.76 246.38 0)
 			(effects
 				(font
@@ -1053,7 +1063,7 @@
 		(instances
 			(project "MainFlightComputer"
 				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
-					(reference "JP3")
+					(reference "JP2")
 					(unit 1)
 				)
 			)
@@ -1068,7 +1078,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "d3a94a81-6e98-48b0-8207-26685fc02a13")
-		(property "Reference" "R9"
+		(property "Reference" "R22"
 			(at 356.87 246.3799 0)
 			(effects
 				(font
@@ -1077,7 +1087,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "800"
+		(property "Value" "100"
 			(at 356.87 248.9199 0)
 			(effects
 				(font
@@ -1122,7 +1132,7 @@
 		(instances
 			(project "MainFlightComputer"
 				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
-					(reference "R9")
+					(reference "R22")
 					(unit 1)
 				)
 			)
@@ -1135,7 +1145,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "ed9430c6-e21b-46d4-b8d9-6e32e945b389")
 		(property "Reference" "BZ1"
@@ -1208,7 +1218,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "f075f643-c677-405c-addf-e4c38a3a8419")
-		(property "Reference" "R10"
+		(property "Reference" "R27"
 			(at 374.65 246.3799 0)
 			(effects
 				(font
@@ -1217,7 +1227,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "400"
+		(property "Value" "50"
 			(at 374.65 248.9199 0)
 			(effects
 				(font
@@ -1262,7 +1272,7 @@
 		(instances
 			(project "MainFlightComputer"
 				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
-					(reference "R10")
+					(reference "R27")
 					(unit 1)
 				)
 			)

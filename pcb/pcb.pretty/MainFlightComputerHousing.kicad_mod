@@ -10,7 +10,7 @@
 		(unlocked yes)
 		(layer "F.SilkS")
 		(hide yes)
-		(uuid "d8829946-4070-4aae-9040-c7e0aaedc2c3")
+		(uuid "5c3fa1b2-25b8-45e0-adbc-17e21a8e6cc1")
 		(effects
 			(font
 				(size 1 1)
@@ -23,7 +23,7 @@
 		(unlocked yes)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "f7d8b342-5f88-499f-a313-34a1386a8cbb")
+		(uuid "daa23736-35ae-414e-b037-706a7852ed65")
 		(effects
 			(font
 				(size 1 1)
@@ -36,7 +36,7 @@
 		(unlocked yes)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "9844a795-d0a3-42fc-a618-6fa15864332f")
+		(uuid "d6f0e5ab-35f4-4c7a-83b0-e4311ced1ca4")
 		(effects
 			(font
 				(size 1 1)
@@ -49,7 +49,7 @@
 		(unlocked yes)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "b764ea59-ac52-46eb-9432-97187a89079e")
+		(uuid "b0c51b6a-6484-46f0-81ea-8a3aacaaec17")
 		(effects
 			(font
 				(size 1 1)
@@ -66,7 +66,7 @@
 			(type default)
 		)
 		(layer "User.1")
-		(uuid "052c79ff-8a2f-423b-9551-a3dfb1706c8f")
+		(uuid "02838e64-9167-493b-975b-37e467db222f")
 	)
 	(fp_line
 		(start 0 -1)
@@ -76,7 +76,7 @@
 			(type default)
 		)
 		(layer "User.1")
-		(uuid "0d8b4c49-4f28-4d9c-8d80-8beed726220c")
+		(uuid "0829d0e2-23f0-4940-849a-71ae6d51a143")
 	)
 	(fp_circle
 		(center 0 0)
@@ -87,13 +87,13 @@
 		)
 		(fill no)
 		(layer "User.1")
-		(uuid "eaec4ef6-50fd-4a0c-b530-c9d473f0cd05")
+		(uuid "372de2ca-0362-4dd8-841b-d0127b4043a7")
 	)
 	(embedded_fonts no)
 	(model "${KIPRJMOD}/models/ElectronicsBoxCase_AN-14F-01.step"
 		(opacity 0.9000)
 		(offset
-			(xyz 0 24 31)
+			(xyz 0 15 31)
 		)
 		(scale
 			(xyz 1 1 1)
