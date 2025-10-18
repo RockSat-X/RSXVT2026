@@ -349,153 +349,167 @@ _I2C_update_once(enum I2CHandle handle)
 
     _EXPAND_HANDLE
 
+
+
+    enum I2CInterruptEvent : u32
+    {
+        I2CInterruptEvent_none,
+        I2CInterruptEvent_nack_signaled,
+        I2CInterruptEvent_stop_signaled,
+        I2CInterruptEvent_transfer_completed,
+        I2CInterruptEvent_data_available_to_read,
+        I2CInterruptEvent_ready_to_transmit_data,
+        I2CInterruptEvent_address_match,
+    };
+    enum I2CInterruptEvent interrupt_event  = {0};
+    u32                    interrupt_status = I2Cx->ISR;
+
+
+
+    // Currently not implemented.
+    // TODO Handle gracefully?
+    // @/pg 2116/sec 48.4.17/`H533rm`.
+
+    if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, BERR))
+    {
+        panic;
+    }
+
+
+
+    // Currently not implemented.
+    // TODO Handle gracefully?
+    // @/pg 2116/sec 48.4.17/`H533rm`.
+
+    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, ARLO))
+    {
+        panic;
+    }
+
+
+
+    // Currently not implemented.
+    // TODO Detect if clock-stretching goes on for too long?
+    // @/pg 2117/sec 48.4.17/`H533rm`.
+
+    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, TIMEOUT))
+    {
+        panic;
+    }
+
+
+
+    // This status bit is only applicable to SMBus.
+    // @/pg 2117/sec 48.4.17/`H533rm`.
+
+    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, ALERT))
+    {
+        panic;
+    }
+
+
+
+    // This status bit is only applicable to SMBus.
+    // @/pg 2117/sec 48.4.17/`H533rm`.
+
+    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, PECERR))
+    {
+        panic;
+    }
+
+
+
+    // Transfer reloaded.
+    // @/pg 2095/sec 48.4.9/`H533rm`.
+
+    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, TCR))
+    {
+        panic;
+    }
+
+
+
+    // Clock-stretching is enabled by default, so we
+    // shouldn't be getting any data overrun/underrun.
+    // @/pg 2117/sec 48.4.17/`H533rm`.
+
+    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, OVR))
+    {
+        panic;
+    }
+
+
+
+    // @/pg 2085/sec 48.4.8/`H533rm`.
+
+    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, NACKF))
+    {
+        interrupt_event = I2CInterruptEvent_nack_signaled;
+    }
+
+
+
+    // @/pg 2085/sec 48.4.8/`H533rm`.
+
+    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, STOPF))
+    {
+        interrupt_event = I2CInterruptEvent_stop_signaled;
+    }
+
+
+
+    // @/pg 2095/sec 48.4.9/`H533rm`.
+
+    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, TC))
+    {
+        interrupt_event = I2CInterruptEvent_transfer_completed;
+    }
+
+
+
+    // @/pg 2089/sec 48.4.8/`H533rm`.
+
+    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, RXNE))
+    {
+        interrupt_event = I2CInterruptEvent_data_available_to_read;
+    }
+
+
+
+    // @/pg 2085/sec 48.4.8/`H533rm`.
+
+    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, TXIS))
+    {
+        interrupt_event = I2CInterruptEvent_ready_to_transmit_data;
+    }
+
+
+
+    // @/pg 2088/fig 639/`H533rm`.
+
+    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, ADDR))
+    {
+        interrupt_event = I2CInterruptEvent_address_match;
+    }
+
+
+
+    // Nothing notable happened.
+
+    else
+    {
+        interrupt_event = I2CInterruptEvent_none;
+    }
+
+
+
+    // Handle the interrupt event.
+
     switch (I2Cx_DRIVER_ROLE)
     {
 
         case I2CDriverRole_master:
         {
-
-            enum I2CInterruptEvent : u32
-            {
-                I2CInterruptEvent_none,
-                I2CInterruptEvent_nack_signaled,
-                I2CInterruptEvent_stop_signaled,
-                I2CInterruptEvent_transfer_completed,
-                I2CInterruptEvent_data_available_to_read,
-                I2CInterruptEvent_ready_to_transmit_data,
-            };
-            enum I2CInterruptEvent interrupt_event  = {0};
-            u32                    interrupt_status = I2Cx->ISR;
-
-
-
-            // Currently not implemented.
-            // TODO Handle gracefully?
-            // @/pg 2116/sec 48.4.17/`H533rm`.
-
-            if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, BERR))
-            {
-                panic;
-            }
-
-
-
-            // Currently not implemented.
-            // TODO Handle gracefully?
-            // @/pg 2116/sec 48.4.17/`H533rm`.
-
-            else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, ARLO))
-            {
-                panic;
-            }
-
-
-
-            // Currently not implemented.
-            // TODO Detect if clock-stretching goes on for too long?
-            // @/pg 2117/sec 48.4.17/`H533rm`.
-
-            else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, TIMEOUT))
-            {
-                panic;
-            }
-
-
-
-            // This status bit is only applicable to SMBus.
-            // @/pg 2117/sec 48.4.17/`H533rm`.
-
-            else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, ALERT))
-            {
-                panic;
-            }
-
-
-
-            // This status bit is only applicable to SMBus.
-            // @/pg 2117/sec 48.4.17/`H533rm`.
-
-            else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, PECERR))
-            {
-                panic;
-            }
-
-
-
-            // Transfer reloaded.
-            // @/pg 2095/sec 48.4.9/`H533rm`.
-
-            else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, TCR))
-            {
-                panic;
-            }
-
-
-
-            // Clock-stretching is enabled by default, so we
-            // shouldn't be getting any data overrun/underrun.
-            // @/pg 2117/sec 48.4.17/`H533rm`.
-
-            else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, OVR))
-            {
-                panic;
-            }
-
-
-
-            // @/pg 2085/sec 48.4.8/`H533rm`.
-
-            else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, NACKF))
-            {
-                interrupt_event = I2CInterruptEvent_nack_signaled;
-            }
-
-
-
-            // @/pg 2085/sec 48.4.8/`H533rm`.
-
-            else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, STOPF))
-            {
-                interrupt_event = I2CInterruptEvent_stop_signaled;
-            }
-
-
-
-            // @/pg 2095/sec 48.4.9/`H533rm`.
-
-            else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, TC))
-            {
-                interrupt_event = I2CInterruptEvent_transfer_completed;
-            }
-
-
-
-            // @/pg 2089/sec 48.4.8/`H533rm`.
-
-            else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, RXNE))
-            {
-                interrupt_event = I2CInterruptEvent_data_available_to_read;
-            }
-
-
-
-            // @/pg 2085/sec 48.4.8/`H533rm`.
-
-            else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, TXIS))
-            {
-                interrupt_event = I2CInterruptEvent_ready_to_transmit_data;
-            }
-
-
-
-            // Nothing notable happened.
-
-            else
-            {
-                interrupt_event = I2CInterruptEvent_none;
-            }
-
-
 
             switch (driver->state)
             {
@@ -677,6 +691,7 @@ _I2C_update_once(enum I2CHandle handle)
 
 
                     case I2CInterruptEvent_stop_signaled : panic;
+                    case I2CInterruptEvent_address_match : panic;
                     default                              : panic;
 
                 } break;
@@ -717,6 +732,7 @@ _I2C_update_once(enum I2CHandle handle)
                     case I2CInterruptEvent_data_available_to_read : panic;
                     case I2CInterruptEvent_ready_to_transmit_data : panic;
                     case I2CInterruptEvent_nack_signaled          : panic;
+                    case I2CInterruptEvent_address_match          : panic;
                     default                                       : panic;
 
                 } break;
@@ -729,10 +745,16 @@ _I2C_update_once(enum I2CHandle handle)
 
         } break;
 
+
+
         case I2CDriverRole_slave:
         {
+
             sorry
+
         } break;
+
+
 
         default: panic;
 
