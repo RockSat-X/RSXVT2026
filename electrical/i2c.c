@@ -657,7 +657,7 @@ _I2C_update_once(enum I2CHandle handle)
 
                         u8 data = driver->pointer[driver->progress];
 
-                        // Push data into the RX-buffer.
+                        // Push data into the TX-buffer.
                         CMSIS_SET(I2Cx, TXDR, TXDATA, data);
 
                         driver->progress += 1;
