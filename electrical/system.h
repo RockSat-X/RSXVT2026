@@ -631,7 +631,10 @@ halt_(b32 panicking) // @/`Halting`.
             Meta.enums(
                 f'{driver_name}Handle',
                 'u32',
-                (handle for handle, instance in target.drivers[driver_name])
+                (
+                    driver_settings['handle']
+                    for driver_settings in target.drivers[driver_name]
+                )
             )
 
 
@@ -651,21 +654,21 @@ halt_(b32 panicking) // @/`Halting`.
 
             Meta.lut( f'{driver_name}_TABLE', (
                 (
-                    f'{driver_name}Handle_{handle}',
-                    (common_name, instance),
+                    f'{driver_name}Handle_{driver_settings['handle']}',
+                    (common_name, driver_settings['peripheral']),
                     *(
-                        (identifier.format(common_name), identifier.format(instance))
+                        (identifier.format(common_name), identifier.format(driver_settings['peripheral']))
                         for identifier in identifiers
                     ),
                     *(
                         (
                             cmsis_tuple_tag.format(common_name),
-                            CMSIS_TUPLE(target.mcu, cmsis_tuple_tag.format(instance))
+                            CMSIS_TUPLE(target.mcu, cmsis_tuple_tag.format(driver_settings['peripheral']))
                         )
                         for cmsis_tuple_tag in cmsis_tuple_tags
                     )
                 )
-                for handle, instance in target.drivers[driver_name]
+                for driver_settings in target.drivers[driver_name]
             ))
 
 

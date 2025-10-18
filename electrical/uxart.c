@@ -36,16 +36,16 @@
 
     for target in PER_TARGET():
 
-        for handle, instance in target.drivers.get('UXART', ()):
+        for driver_settings in target.drivers.get('UXART', ()):
 
             Meta.line(f'''
 
                 static void
                 _UXART_update(enum UXARTHandle handle);
 
-                INTERRUPT_{instance}
+                INTERRUPT_{driver_settings['peripheral']}
                 {{
-                    _UXART_update(UXARTHandle_{handle});
+                    _UXART_update(UXARTHandle_{driver_settings['handle']});
                 }}
 
             ''')

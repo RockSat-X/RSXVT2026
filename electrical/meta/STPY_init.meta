@@ -775,12 +775,16 @@
             NVICInterrupt_USART2  = USART2_IRQn,
             NVICInterrupt_I2C1_EV = I2C1_EV_IRQn,
             NVICInterrupt_I2C1_ER = I2C1_ER_IRQn,
+            NVICInterrupt_I2C2_EV = I2C2_EV_IRQn,
+            NVICInterrupt_I2C2_ER = I2C2_ER_IRQn,
         };
-        static constexpr u32 NVICInterrupt_COUNT = 3;
+        static constexpr u32 NVICInterrupt_COUNT = 5;
         extern void INTERRUPT_BusFault(void);
         extern void INTERRUPT_Default(void);
         extern void INTERRUPT_I2C1_ER(void);
         extern void INTERRUPT_I2C1_EV(void);
+        extern void INTERRUPT_I2C2_ER(void);
+        extern void INTERRUPT_I2C2_EV(void);
         extern void INTERRUPT_Reset(void);
         extern void INTERRUPT_USART2(void);
         extern void INTERRUPT_UsageFault(void);
@@ -855,8 +859,8 @@
                 INTERRUPT_Default            , // [ 50] TIM7
                 INTERRUPT_I2C1_EV            , // [ 51] I2C1_EV
                 INTERRUPT_I2C1_ER            , // [ 52] I2C1_ER
-                INTERRUPT_Default            , // [ 53] I2C2_EV
-                INTERRUPT_Default            , // [ 54] I2C2_ER
+                INTERRUPT_I2C2_EV            , // [ 53] I2C2_EV
+                INTERRUPT_I2C2_ER            , // [ 54] I2C2_ER
                 INTERRUPT_Default            , // [ 55] SPI1
                 INTERRUPT_Default            , // [ 56] SPI2
                 INTERRUPT_Default            , // [ 57] SPI3
@@ -940,6 +944,8 @@
         #define INTERRUPT_Default extern void INTERRUPT_Default(void)
         #define INTERRUPT_I2C1_ER extern void INTERRUPT_I2C1_ER(void)
         #define INTERRUPT_I2C1_EV extern void INTERRUPT_I2C1_EV(void)
+        #define INTERRUPT_I2C2_ER extern void INTERRUPT_I2C2_ER(void)
+        #define INTERRUPT_I2C2_EV extern void INTERRUPT_I2C2_EV(void)
         #define INTERRUPT_Reset extern void INTERRUPT_Reset(void)
         #define INTERRUPT_USART2 extern void INTERRUPT_USART2(void)
         #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
@@ -966,12 +972,18 @@
             #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__button C
             #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__button 13
             #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__button
-            #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__i2c1_scl B
-            #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__i2c1_scl 6
-            #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__i2c1_scl
-            #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__i2c1_sda B
-            #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__i2c1_sda 7
-            #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__i2c1_sda
+            #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__queen_clock B
+            #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__queen_clock 6
+            #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__queen_clock
+            #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__queen_data B
+            #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__queen_data 7
+            #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__queen_data
+            #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__bee_clock B
+            #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__bee_clock 10
+            #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__bee_clock
+            #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__bee_data B
+            #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__bee_data 12
+            #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__bee_data
             CMSIS_SET
             (
                 RCC    , AHB2ENR,
@@ -984,13 +996,17 @@
                 GPIOB, OTYPER,
                 OT6  , true  ,
                 OT7  , true  ,
+                OT10 , true  ,
+                OT12 , true  ,
             );
             CMSIS_SET(GPIOA, ODR, OD5, false);
             CMSIS_SET
             (
-                GPIOB, PUPDR,
-                PUPD6, 0b01 ,
-                PUPD7, 0b01 ,
+                GPIOB , PUPDR,
+                PUPD6 , 0b01 ,
+                PUPD7 , 0b01 ,
+                PUPD10, 0b01 ,
+                PUPD12, 0b01 ,
             );
             CMSIS_WRITE
             (
@@ -1004,6 +1020,12 @@
                 AFSEL6   , 4            ,
                 AFSEL7   , 4            ,
             );
+            CMSIS_WRITE
+            (
+                GPIO_AFRH, GPIOB->AFR[1],
+                AFSEL10  , 4            ,
+                AFSEL12  , 4            ,
+            );
             CMSIS_SET
             (
                 GPIOA, MODER,
@@ -1013,9 +1035,11 @@
             );
             CMSIS_SET
             (
-                GPIOB, MODER,
-                MODE6, 0b10 ,
-                MODE7, 0b10 ,
+                GPIOB , MODER,
+                MODE6 , 0b10 ,
+                MODE7 , 0b10 ,
+                MODE10, 0b10 ,
+                MODE12, 0b10 ,
             );
             CMSIS_SET(GPIOC, MODER, MODE13, 0b00);
 
@@ -1031,6 +1055,10 @@
             NVIC->IPR[NVICInterrupt_I2C1_EV] = 1 << __NVIC_PRIO_BITS;
             static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
             NVIC->IPR[NVICInterrupt_I2C1_ER] = 1 << __NVIC_PRIO_BITS;
+            static_assert(0 <= 2 && 2 < (1 << __NVIC_PRIO_BITS));
+            NVIC->IPR[NVICInterrupt_I2C2_EV] = 2 << __NVIC_PRIO_BITS;
+            static_assert(0 <= 2 && 2 < (1 << __NVIC_PRIO_BITS));
+            NVIC->IPR[NVICInterrupt_I2C2_ER] = 2 << __NVIC_PRIO_BITS;
             CMSIS_SET
             (
                 SCB        , SHCSR,
@@ -1147,6 +1175,17 @@
             #define STPY_I2C1_PRESC 7
             #define STPY_I2C1_SCLH 250
             #define STPY_I2C1_SCLL 250
+
+
+
+            //////////////////////////////////// I2C2 ////////////////////////////////////
+
+
+
+            #define STPY_I2C2_KERNEL_SOURCE 0b11
+            #define STPY_I2C2_PRESC 7
+            #define STPY_I2C2_SCLH 250
+            #define STPY_I2C2_SCLL 250
 
         }
     #endif
