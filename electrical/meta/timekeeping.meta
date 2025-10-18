@@ -4,6 +4,8 @@
 #endif
 #if TARGET_NAME_IS_DemoI2C
 #endif
+#if TARGET_NAME_IS_DemoI2CSlave
+#endif
 #if TARGET_NAME_IS_DemoTimer
 #endif
 #if TARGET_NAME_IS_DemoSPI
