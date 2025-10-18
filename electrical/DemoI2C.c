@@ -142,17 +142,20 @@ main(void)
                 enum I2CAddressType address_type  = I2CAddressType_seven;
                 u32                 slave_address = TMP_SLAVE_ADDRESS;
 
+                static u8 TMP = 0;
+
                 enum I2CDriverError error =
                     I2C_blocking_transfer
                     (
                         I2CHandle_queen,
                         slave_address,
                         address_type,
-                        I2COperation_write,
-                        &(u8) {0xAB},
+                        I2COperation_read,
+                        &TMP,
                         1
                     );
 
+                TMP += 1;
 
 
                 // Check the results of the transfer.
@@ -178,7 +181,7 @@ main(void)
 
                 GPIO_TOGGLE(led_green);
 
-                spinlock_nop(40'000'000);
+                spinlock_nop(100'000'000);
 
             }
 
@@ -190,4 +193,41 @@ main(void)
 
     }
 
+}
+
+
+
+static void
+INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
+{
+    switch (handle)
+    {
+
+        case I2CHandle_bee: switch (event)
+        {
+
+            case I2CSlaveEvent_data_available_to_read:
+            {
+                // TODO.
+            } break;
+
+            case I2CSlaveEvent_ready_to_transmit_data:
+            {
+                static u8 TMP = 0;
+                *data = ++TMP;
+            } break;
+
+            case I2CSlaveEvent_stop_signaled:
+            {
+                // TODO.
+            } break;
+
+            default: panic;
+
+        } break;
+
+        case I2CHandle_queen : panic;
+        default              : panic;
+
+    }
 }

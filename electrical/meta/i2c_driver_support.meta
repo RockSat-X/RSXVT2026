@@ -89,8 +89,10 @@
     auto const I2Cx_KERNEL_SOURCE = I2C_TABLE[handle].I2Cx_KERNEL_SOURCE;\
 
 #if TARGET_NAME_IS_SandboxNucleoH7S3L8
+    #define INTERRUPT_i2c_slave_callback(...)
 #endif
 #if TARGET_NAME_IS_SandboxNucleoH533RE
+    #define INTERRUPT_i2c_slave_callback(...)
 #endif
 #if TARGET_NAME_IS_DemoI2C
 
@@ -129,14 +131,20 @@
         _I2C_update_entirely(I2CHandle_bee);
     }
 
+    static void
+    INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data);
 #endif
 #if TARGET_NAME_IS_DemoTimer
+    #define INTERRUPT_i2c_slave_callback(...)
 #endif
 #if TARGET_NAME_IS_DemoSPI
+    #define INTERRUPT_i2c_slave_callback(...)
 #endif
 #if TARGET_NAME_IS_DemoTimekeeping
+    #define INTERRUPT_i2c_slave_callback(...)
 #endif
 #if TARGET_NAME_IS_DemoSDMMC
+    #define INTERRUPT_i2c_slave_callback(...)
 #endif
 #if TARGET_NAME_IS_SensorShield
 
@@ -157,6 +165,8 @@
         _I2C_update_entirely(I2CHandle_primary);
     }
 
+    #define INTERRUPT_i2c_slave_callback(...)
 #endif
 #if TARGET_NAME_IS_MainFlightComputer
+    #define INTERRUPT_i2c_slave_callback(...)
 #endif

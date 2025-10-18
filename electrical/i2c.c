@@ -10,7 +10,12 @@ enum I2CDriverRole : u32
     I2CDriverRole_slave,
 };
 
-
+enum I2CSlaveEvent : u32
+{
+    I2CSlaveEvent_data_available_to_read,
+    I2CSlaveEvent_ready_to_transmit_data,
+    I2CSlaveEvent_stop_signaled,
+};
 
 #include "i2c_driver_support.meta"
 /* #meta
@@ -64,6 +69,17 @@ enum I2CDriverRole : u32
                     }}
 
                 ''')
+
+        if any(
+            driver_settings['role'] == 'slave'
+            for driver_settings in target.drivers.get('I2C', ())
+        ):
+            Meta.line(f'''
+                static void
+                INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data);
+            ''')
+        else:
+            Meta.define('INTERRUPT_i2c_slave_callback', ('...'), '')
 
 */
 
@@ -776,6 +792,8 @@ _I2C_update_once(enum I2CHandle handle)
 
                     CMSIS_SET(I2Cx, ICR, STOPCF, true);
 
+                    INTERRUPT_i2c_slave_callback(handle, I2CSlaveEvent_stop_signaled, nullptr);
+
                     return I2CUpdateOnce_again;
 
                 } break;
@@ -788,8 +806,9 @@ _I2C_update_once(enum I2CHandle handle)
                 case I2CInterruptEvent_data_available_to_read:
                 {
 
-                    // Pop from the RX-buffer.
                     u8 data = CMSIS_GET(I2Cx, RXDR, RXDATA);
+
+                    INTERRUPT_i2c_slave_callback(handle, I2CSlaveEvent_data_available_to_read, &data);
 
                     return I2CUpdateOnce_again;
 
@@ -798,7 +817,11 @@ _I2C_update_once(enum I2CHandle handle)
                 case I2CInterruptEvent_ready_to_transmit_data:
                 {
 
-                    CMSIS_SET(I2Cx, TXDR, TXDATA, 0xBA);
+                    u8 data = {0};
+
+                    INTERRUPT_i2c_slave_callback(handle, I2CSlaveEvent_ready_to_transmit_data, &data);
+
+                    CMSIS_SET(I2Cx, TXDR, TXDATA, data);
 
                     return I2CUpdateOnce_again;
 
