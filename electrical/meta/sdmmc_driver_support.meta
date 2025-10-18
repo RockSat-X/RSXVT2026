@@ -7,9 +7,6 @@
 #if TARGET_NAME_IS_DemoI2C
     #error Target "DemoI2C" cannot use the SD driver without first specifying the peripheral instances to have handles for.
 #endif
-#if TARGET_NAME_IS_DemoI2CSlave
-    #error Target "DemoI2CSlave" cannot use the SD driver without first specifying the peripheral instances to have handles for.
-#endif
 #if TARGET_NAME_IS_DemoTimer
     #error Target "DemoTimer" cannot use the SD driver without first specifying the peripheral instances to have handles for.
 #endif
@@ -63,8 +60,6 @@
 #if TARGET_NAME_IS_SandboxNucleoH533RE
 #endif
 #if TARGET_NAME_IS_DemoI2C
-#endif
-#if TARGET_NAME_IS_DemoI2CSlave
 #endif
 #if TARGET_NAME_IS_DemoTimer
 #endif
