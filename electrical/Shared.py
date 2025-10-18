@@ -257,20 +257,24 @@ TARGETS = (
         schematic_file_path = None,
 
         gpios = (
-            ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                                          }),
-            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'                                    }),
-            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'                                    }),
-            ('swdio'     , 'A13', None        , {                                                            }),
-            ('swclk'     , 'A14', None        , {                                                            }),
-            ('button'    , 'C13', 'INPUT'     , { 'pull'    : None, 'active' : True                          }),
-            ('i2c1_scl'  , 'B6' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL', 'open_drain' : True, 'pull' : 'UP' }),
-            ('i2c1_sda'  , 'B7' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA', 'open_drain' : True, 'pull' : 'UP' }),
+            ('led_green'  , 'A5' , 'OUTPUT'    , { 'initlvl' : False                                          }),
+            ('stlink_tx'  , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'                                    }),
+            ('stlink_rx'  , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'                                    }),
+            ('swdio'      , 'A13', None        , {                                                            }),
+            ('swclk'      , 'A14', None        , {                                                            }),
+            ('button'     , 'C13', 'INPUT'     , { 'pull'    : None, 'active' : True                          }),
+            ('queen_clock', 'B6' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL', 'open_drain' : True, 'pull' : 'UP' }),
+            ('queen_data' , 'B7' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA', 'open_drain' : True, 'pull' : 'UP' }),
+            ('bee_clock'  , 'B10' , 'ALTERNATE', { 'altfunc' : 'I2C2_SCL', 'open_drain' : True, 'pull' : 'UP' }),
+            ('bee_data'   , 'B12' , 'ALTERNATE', { 'altfunc' : 'I2C2_SDA', 'open_drain' : True, 'pull' : 'UP' }),
         ),
 
         interrupts = (
             ('USART2' , 0),
             ('I2C1_EV', 1),
             ('I2C1_ER', 1),
+            ('I2C2_EV', 2),
+            ('I2C2_ER', 2),
         ),
 
         drivers = {
@@ -278,7 +282,8 @@ TARGETS = (
                 ('stlink', 'USART2'),
             ),
             'I2C' : (
-                ('primary', 'I2C1'),
+                ('queen', 'I2C1'),
+                ('bee'  , 'I2C2'),
             ),
         },
 
@@ -295,6 +300,7 @@ TARGETS = (
             'APB3_CK'      : 250_000_000,
             'USART2_BAUD'  : STLINK_BAUD,
             'I2C1_BAUD'    : 1_000,
+            'I2C2_BAUD'    : 1_000,
         },
 
     ),

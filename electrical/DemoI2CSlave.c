@@ -37,7 +37,8 @@ main(void)
     // Initialize the I2C driver for each peripheral used by the target.
     //
 
-    I2C_reinit(I2CHandle_primary);
+    I2C_reinit(I2CHandle_queen);
+    I2C_reinit(I2CHandle_bee  );
 
 
 
@@ -95,7 +96,7 @@ main(void)
             enum I2CDriverError error =
                 I2C_blocking_transfer
                 (
-                    I2CHandle_primary,
+                    I2CHandle_queen,
                     slave_address,
                     address_type,
                     I2COperation_read,
