@@ -4,7 +4,7 @@
 
 
 
-#define DEMO_MODE 0 // See below for different kinds of tests.
+#define DEMO_MODE 1 // See below for different kinds of tests.
 
 
 
@@ -74,7 +74,7 @@ main(void)
                     // We try to read a single byte from the slave at the
                     // current slave address to see if we get an acknowledge.
 
-                    enum I2CDriverError error =
+                    enum I2CMasterError error =
                         I2C_blocking_transfer
                         (
                             I2CHandle_queen,
@@ -91,12 +91,12 @@ main(void)
 
                     switch (error)
                     {
-                        case I2CDriverError_none:
+                        case I2CMasterError_none:
                         {
                             stlink_tx("Slave 0x%03X acknowledged!\n", slave_address);
                         } break;
 
-                        case I2CDriverError_no_acknowledge:
+                        case I2CMasterError_no_acknowledge:
                         {
                             stlink_tx("Slave 0x%03X didn't acknowledge!\n", slave_address);
                         } break;
@@ -148,7 +148,7 @@ main(void)
 
                     char message[] = "Doing taxes suck!";
 
-                    enum I2CDriverError error =
+                    enum I2CMasterError error =
                         I2C_blocking_transfer
                         (
                             I2CHandle_queen,
@@ -165,12 +165,12 @@ main(void)
 
                     switch (error)
                     {
-                        case I2CDriverError_none:
+                        case I2CMasterError_none:
                         {
                             stlink_tx("Queen : transmission successful!\n");
                         } break;
 
-                        case I2CDriverError_no_acknowledge:
+                        case I2CMasterError_no_acknowledge:
                         {
                             stlink_tx("Queen : transmission failed!\n");
                         } break;
@@ -198,7 +198,7 @@ main(void)
 
                     char response[24] = {0};
 
-                    enum I2CDriverError error =
+                    enum I2CMasterError error =
                         I2C_blocking_transfer
                         (
                             I2CHandle_queen,
@@ -215,12 +215,12 @@ main(void)
 
                     switch (error)
                     {
-                        case I2CDriverError_none:
+                        case I2CMasterError_none:
                         {
                             stlink_tx("Queen : reception successful! : `%.*s`\n", sizeof(response), response);
                         } break;
 
-                        case I2CDriverError_no_acknowledge:
+                        case I2CMasterError_no_acknowledge:
                         {
                             stlink_tx("Queen : reception failed!\n");
                         } break;
