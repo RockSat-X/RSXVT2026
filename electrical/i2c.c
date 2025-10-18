@@ -236,41 +236,48 @@ I2C_reinit(enum I2CHandle handle)
 
     _EXPAND_HANDLE
 
+
+
+    // Reset-cycle the peripheral.
+
+    CMSIS_PUT(I2Cx_RESET, true );
+    CMSIS_PUT(I2Cx_RESET, false);
+
+    *driver = (struct I2CDriver) {0};
+
+
+
+    // Enable the interrupts.
+
+    NVIC_ENABLE(I2Cx_EV);
+    NVIC_ENABLE(I2Cx_ER);
+
+
+
+    // Set the kernel clock source for the peripheral.
+
+    CMSIS_PUT(I2Cx_KERNEL_SOURCE, STPY_I2Cx_KERNEL_SOURCE);
+
+
+
+    // Enable the peripheral.
+
+    CMSIS_PUT(I2Cx_ENABLE, true);
+
+
+
+    // Configure the peripheral.
+
     switch (I2Cx_DRIVER_ROLE)
     {
 
+
+
+        // The I2C peripheral will work as a controller.
+        // @/pg 2091/sec 48.4.9/`H533rm`.
+
         case I2CDriverRole_master:
         {
-
-            // Reset-cycle the peripheral.
-
-            CMSIS_PUT(I2Cx_RESET, true );
-            CMSIS_PUT(I2Cx_RESET, false);
-
-            *driver = (struct I2CDriver) {0};
-
-
-
-            // Enable the interrupts.
-
-            NVIC_ENABLE(I2Cx_EV);
-            NVIC_ENABLE(I2Cx_ER);
-
-
-
-            // Set the kernel clock source for the peripheral.
-
-            CMSIS_PUT(I2Cx_KERNEL_SOURCE, STPY_I2Cx_KERNEL_SOURCE);
-
-
-
-            // Enable the peripheral.
-
-            CMSIS_PUT(I2Cx_ENABLE, true);
-
-
-
-            // Configure the peripheral.
 
             CMSIS_SET
             (
@@ -280,29 +287,49 @@ I2C_reinit(enum I2CHandle handle)
                 SCLL  , STPY_I2Cx_SCLL , // Determines the amount of low time.
             );
 
+        } break;
+
+
+
+        // The I2C peripheral will work as a target.
+        // @/pg 2082/sec 48.4.8/`H533rm`.
+
+        case I2CDriverRole_slave:
+        {
+
             CMSIS_SET
             (
-                I2Cx  , CR1   , // Interrupts for:
-                ERRIE , true  , //     - Error.
-                TCIE  , true  , //     - Transfer completed.
-                STOPIE, true  , //     - STOP signal.
-                NACKIE, true  , //     - NACK signal.
-                RXIE  , true  , //     - Reception of data.
-                TXIE  , true  , //     - Transmission of data.
-                DNF   , 15    , // Max out the digital filtering.
-                PE    , true  , // Enable the peripheral.
+                I2Cx   , OAR1           ,
+                OA1EN  , true           , // Enable the address.
+                OA1MODE, false          , // The address is 7-bit.
+                OA1    , 0b011'0100 << 1, // TODO Customize by user.
             );
 
         } break;
 
-        case I2CDriverRole_slave:
-        {
-            sorry
-        } break;
+
 
         default: panic;
 
     }
+
+
+
+    // Select the interrupt events.
+
+    CMSIS_SET
+    (
+        I2Cx  , CR1   , // Interrupts for:
+        ERRIE , true  , //     - Error.
+        TCIE  , true  , //     - Transfer completed.
+        STOPIE, true  , //     - STOP signal.
+        NACKIE, true  , //     - NACK signal.
+        ADDRIE, true  , //     - Address match.
+        RXIE  , true  , //     - Reception of data.
+        TXIE  , true  , //     - Transmission of data.
+        DNF   , 15    , // Max out the digital filtering.
+        PE    , true  , // Enable the peripheral.
+    );
 
 }
 
