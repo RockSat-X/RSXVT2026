@@ -38,7 +38,7 @@ main(void)
             // We try to read a single byte from the slave at the
             // current slave address to see if we get an acknowledge.
 
-            enum I2CDriverError error =
+            enum I2CMasterError error =
                 I2C_blocking_transfer
                 (
                     I2CHandle_primary,
@@ -55,12 +55,12 @@ main(void)
 
             switch (error)
             {
-                case I2CDriverError_none:
+                case I2CMasterError_none:
                 {
                     stlink_tx("Slave 0x%03X acknowledged!\n", addresses[address_i]);
                 } break;
 
-                case I2CDriverError_no_acknowledge:
+                case I2CMasterError_no_acknowledge:
                 {
                     stlink_tx("Slave 0x%03X didn't acknowledge!\n", addresses[address_i]);
                 } break;

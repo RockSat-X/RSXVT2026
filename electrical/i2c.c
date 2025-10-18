@@ -1,5 +1,3 @@
-#define TMP_SLAVE_ADDRESS 0b011'0100
-
 ////////////////////////////////////////////////////////////////////////////////
 
 
@@ -8,6 +6,15 @@ enum I2CDriverRole : u32
 {
     I2CDriverRole_master,
     I2CDriverRole_slave,
+};
+
+
+
+enum I2CSlaveEvent : u32
+{
+    I2CSlaveEvent_data_available_to_read,
+    I2CSlaveEvent_ready_to_transmit_data,
+    I2CSlaveEvent_stop_signaled,
 };
 
 
@@ -26,6 +33,20 @@ enum I2CDriverRole : u32
                 f'I2CDriverRole_{driver_settings['role']}'
             )
 
+            address = driver_settings.get('address', None)
+
+            if address is not None and not (0b0000_1000 <= address <= 0b0111_0111):
+                raise ValueError(
+                    f'Target {repr(target.name)} has '
+                    f'I2C peripheral {repr(driver_settings['handle'])} '
+                    f'with invalid 7-bit address of {repr(address)}.'
+                )
+
+            Meta.define(
+                f'{driver_settings['peripheral']}_SLAVE_ADDRESS',
+                f'((u16) 0x{driver_settings['address'] if address is not None else 0 :03X})'
+            )
+
 
 
     IMPLEMENT_DRIVER_ALIASES(
@@ -40,6 +61,7 @@ enum I2CDriverRole : u32
             'STPY_{}_SCLH',
             'STPY_{}_SCLL',
             '{}_DRIVER_ROLE',
+            '{}_SLAVE_ADDRESS',
         ),
         cmsis_tuple_tags = (
             '{}_RESET',
@@ -48,7 +70,11 @@ enum I2CDriverRole : u32
         ),
     )
 
+
+
     for target in PER_TARGET():
+
+
 
         for driver_settings in target.drivers.get('I2C', ()):
 
@@ -65,22 +91,49 @@ enum I2CDriverRole : u32
 
                 ''')
 
+
+
+        if any(driver_settings['role'] == 'slave' for driver_settings in target.drivers.get('I2C', ())):
+
+            Meta.line('''
+                static void
+                INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data);
+            ''')
+
+        else:
+
+            Meta.line('''
+                static void
+                INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
+                {
+                    panic;
+                }
+            ''')
+
 */
 
 
 
-enum I2CDriverState : u32
+enum I2CMasterState : u32
 {
-    I2CDriverState_standby,
-    I2CDriverState_scheduled_transfer,
-    I2CDriverState_transferring,
-    I2CDriverState_stopping,
+    I2CMasterState_standby,
+    I2CMasterState_scheduled_transfer,
+    I2CMasterState_transferring,
+    I2CMasterState_stopping,
 };
 
-enum I2CDriverError : u32
+enum I2CSlaveState : u32
 {
-    I2CDriverError_none,
-    I2CDriverError_no_acknowledge,
+    I2CSlaveState_standby,
+    I2CSlaveState_receiving_data,
+    I2CSlaveState_sending_data,
+    I2CSlaveState_stopping,
+};
+
+enum I2CMasterError : u32
+{
+    I2CMasterError_none,
+    I2CMasterError_no_acknowledge,
 };
 
 enum I2CAddressType : u32
@@ -97,14 +150,25 @@ enum I2COperation : u32
 
 struct I2CDriver
 {
-    volatile enum I2CDriverState state;
-    u32                          address;
-    enum I2CAddressType          address_type;
-    enum I2COperation            operation;
-    u8*                          pointer;
-    i32                          amount;
-    i32                          progress;
-    enum I2CDriverError          error;
+    union
+    {
+        struct
+        {
+            volatile enum I2CMasterState state;
+            u32                          address;
+            enum I2CAddressType          address_type;
+            enum I2COperation            operation;
+            u8*                          pointer;
+            i32                          amount;
+            i32                          progress;
+            enum I2CMasterError          error;
+        } master;
+
+        struct
+        {
+            volatile enum I2CSlaveState state;
+        } slave;
+    };
 };
 
 
@@ -117,7 +181,7 @@ static struct I2CDriver _I2C_drivers[I2CHandle_COUNT] = {0};
 
 
 
-static useret enum I2CDriverError
+static useret enum I2CMasterError
 I2C_blocking_transfer
 (
     enum I2CHandle      handle,
@@ -165,28 +229,28 @@ I2C_blocking_transfer
 
     // Schedule the transfer.
 
-    switch (driver->state)
+    switch (driver->master.state)
     {
-        case I2CDriverState_standby:
+        case I2CMasterState_standby:
         {
 
-            driver->address      = address;
-            driver->address_type = address_type;
-            driver->operation    = operation;
-            driver->pointer      = pointer;
-            driver->amount       = amount;
-            driver->progress     = 0;
-            driver->error        = I2CDriverError_none;
+            driver->master.address      = address;
+            driver->master.address_type = address_type;
+            driver->master.operation    = operation;
+            driver->master.pointer      = pointer;
+            driver->master.amount       = amount;
+            driver->master.progress     = 0;
+            driver->master.error        = I2CMasterError_none;
             __DMB();
-            driver->state        = I2CDriverState_scheduled_transfer;
+            driver->master.state        = I2CMasterState_scheduled_transfer;
 
             NVIC_SET_PENDING(I2Cx_EV);
 
         } break;
 
-        case I2CDriverState_scheduled_transfer : panic;
-        case I2CDriverState_transferring       : panic;
-        case I2CDriverState_stopping           : panic;
+        case I2CMasterState_scheduled_transfer : panic;
+        case I2CMasterState_transferring       : panic;
+        case I2CMasterState_stopping           : panic;
         default                                : panic;
     }
 
@@ -196,23 +260,23 @@ I2C_blocking_transfer
 
     while (true)
     {
-        switch (driver->state)
+        switch (driver->master.state)
         {
 
             // The driver just finished!
 
-            case I2CDriverState_standby:
+            case I2CMasterState_standby:
             {
-                return driver->error;
+                return driver->master.error;
             } break;
 
 
 
             // The driver is still busy with our transfer.
 
-            case I2CDriverState_scheduled_transfer:
-            case I2CDriverState_transferring:
-            case I2CDriverState_stopping:
+            case I2CMasterState_scheduled_transfer:
+            case I2CMasterState_transferring:
+            case I2CMasterState_stopping:
             {
                 // Keep waiting...
             } break;
@@ -301,10 +365,10 @@ I2C_reinit(enum I2CHandle handle)
 
             CMSIS_SET
             (
-                I2Cx   , OAR1                  ,
-                OA1EN  , true                  , // Enable the address.
-                OA1MODE, false                 , // The address is 7-bit.
-                OA1    , TMP_SLAVE_ADDRESS << 1, // TODO Customize by user.
+                I2Cx   , OAR1                   ,
+                OA1EN  , true                   , // Enable the address.
+                OA1MODE, false                  , // We currently only support I2C
+                OA1    , I2Cx_SLAVE_ADDRESS << 1, // driver slave addresses of 7-bit.
             );
 
         } break;
@@ -368,24 +432,22 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-    // Currently not implemented.
-    // TODO Handle gracefully?
+    // TODO Handle gracefully.
     // @/pg 2116/sec 48.4.17/`H533rm`.
 
     if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, BERR))
     {
-        panic;
+        sorry
     }
 
 
 
-    // Currently not implemented.
-    // TODO Handle gracefully?
+    // TODO Handle gracefully.
     // @/pg 2116/sec 48.4.17/`H533rm`.
 
     else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, ARLO))
     {
-        panic;
+        sorry
     }
 
 
@@ -510,15 +572,20 @@ _I2C_update_once(enum I2CHandle handle)
     switch (I2Cx_DRIVER_ROLE)
     {
 
+        ////////////////////////////////////////////////////////////////////////////////
+        //
+        // Master initiates all data transfers.
+        //
+
         case I2CDriverRole_master:
         {
 
-            switch (driver->state)
+            switch (driver->master.state)
             {
 
                 // Nothing to do until the user schedules a transfer.
 
-                case I2CDriverState_standby:
+                case I2CMasterState_standby:
                 {
 
                     if (interrupt_event)
@@ -532,33 +599,33 @@ _I2C_update_once(enum I2CHandle handle)
 
                 // The user has a transfer they want to do.
 
-                case I2CDriverState_scheduled_transfer:
+                case I2CMasterState_scheduled_transfer:
                 {
 
                     if (interrupt_event)
                         panic;
 
-                    if (!(1 <= driver->amount && driver->amount <= 255))
+                    if (!(1 <= driver->master.amount && driver->master.amount <= 255))
                         panic;
 
                     if (CMSIS_GET(I2Cx, CR2, START))
                         panic;
 
-                    if (driver->error)
+                    if (driver->master.error)
                         panic;
 
                     u32 sadd = {0};
 
-                    switch (driver->address_type)
+                    switch (driver->master.address_type)
                     {
                         case I2CAddressType_seven:
                         {
-                            sadd = driver->address << 1; // @/`I2C Slave Address`.
+                            sadd = driver->master.address << 1; // @/`I2C Slave Address`.
                         } break;
 
                         case I2CAddressType_ten:
                         {
-                            sadd = driver->address;
+                            sadd = driver->master.address;
                         } break;
 
                         default: panic;
@@ -566,15 +633,15 @@ _I2C_update_once(enum I2CHandle handle)
 
                     CMSIS_SET
                     (
-                        I2Cx   , CR2                   ,
-                        SADD   , sadd                  ,
-                        RD_WRN , !!driver->operation   ,
-                        NBYTES , driver->amount        ,
-                        START  , true                  ,
-                        ADD10  , !!driver->address_type,
+                        I2Cx   , CR2                          ,
+                        SADD   , sadd                         ,
+                        RD_WRN , !!driver->master.operation   ,
+                        NBYTES , driver->master.amount        ,
+                        START  , true                         ,
+                        ADD10  , !!driver->master.address_type,
                     );
 
-                    driver->state = I2CDriverState_transferring;
+                    driver->master.state = I2CMasterState_transferring;
 
                     return I2CUpdateOnce_again;
 
@@ -584,7 +651,7 @@ _I2C_update_once(enum I2CHandle handle)
 
                 // We're in the process of doing the transfer.
 
-                case I2CDriverState_transferring: switch (interrupt_event)
+                case I2CMasterState_transferring: switch (interrupt_event)
                 {
 
                     // Nothing to do until there's an interrupt status.
@@ -592,7 +659,7 @@ _I2C_update_once(enum I2CHandle handle)
                     case I2CInterruptEvent_none:
                     {
 
-                        if (driver->error)
+                        if (driver->master.error)
                             panic;
 
                         return I2CUpdateOnce_yield;
@@ -606,7 +673,7 @@ _I2C_update_once(enum I2CHandle handle)
                     case I2CInterruptEvent_nack_signaled:
                     {
 
-                        if (driver->error)
+                        if (driver->master.error)
                             panic;
 
                         CMSIS_SET(I2Cx, ICR, NACKCF, true);
@@ -614,8 +681,8 @@ _I2C_update_once(enum I2CHandle handle)
                         // Begin sending out the STOP signal.
                         CMSIS_SET(I2Cx, CR2, STOP, true);
 
-                        driver->state = I2CDriverState_stopping;
-                        driver->error = I2CDriverError_no_acknowledge;
+                        driver->master.state = I2CMasterState_stopping;
+                        driver->master.error = I2CMasterError_no_acknowledge;
 
                         return I2CUpdateOnce_again;
 
@@ -628,17 +695,17 @@ _I2C_update_once(enum I2CHandle handle)
                     case I2CInterruptEvent_data_available_to_read:
                     {
 
-                        if (driver->error)
+                        if (driver->master.error)
                             panic;
 
-                        if (!(0 <= driver->progress && driver->progress < driver->amount))
+                        if (!(0 <= driver->master.progress && driver->master.progress < driver->master.amount))
                             panic;
 
                         // Pop from the RX-buffer.
                         u8 data = CMSIS_GET(I2Cx, RXDR, RXDATA);
 
-                        driver->pointer[driver->progress]  = data;
-                        driver->progress                  += 1;
+                        driver->master.pointer[driver->master.progress]  = data;
+                        driver->master.progress                         += 1;
 
                         return I2CUpdateOnce_again;
 
@@ -651,18 +718,18 @@ _I2C_update_once(enum I2CHandle handle)
                     case I2CInterruptEvent_ready_to_transmit_data:
                     {
 
-                        if (driver->error)
+                        if (driver->master.error)
                             panic;
 
-                        if (!(0 <= driver->progress && driver->progress < driver->amount))
+                        if (!(0 <= driver->master.progress && driver->master.progress < driver->master.amount))
                             panic;
 
-                        u8 data = driver->pointer[driver->progress];
+                        u8 data = driver->master.pointer[driver->master.progress];
 
                         // Push data into the TX-buffer.
                         CMSIS_SET(I2Cx, TXDR, TXDATA, data);
 
-                        driver->progress += 1;
+                        driver->master.progress += 1;
 
                         return I2CUpdateOnce_again;
 
@@ -675,16 +742,16 @@ _I2C_update_once(enum I2CHandle handle)
                     case I2CInterruptEvent_transfer_completed:
                     {
 
-                        if (driver->error)
+                        if (driver->master.error)
                             panic;
 
-                        if (!iff(driver->progress == driver->amount, !driver->error))
+                        if (!iff(driver->master.progress == driver->master.amount, !driver->master.error))
                             panic;
 
                         // Begin sending out the STOP signal.
                         CMSIS_SET(I2Cx, CR2, STOP, true);
 
-                        driver->state = I2CDriverState_stopping;
+                        driver->master.state = I2CMasterState_stopping;
 
                         return I2CUpdateOnce_again;
 
@@ -702,7 +769,7 @@ _I2C_update_once(enum I2CHandle handle)
 
                 // We're in the process of stopping the transfer.
 
-                case I2CDriverState_stopping: switch (interrupt_event)
+                case I2CMasterState_stopping: switch (interrupt_event)
                 {
 
                     // Nothing to do until there's an interrupt status.
@@ -719,12 +786,12 @@ _I2C_update_once(enum I2CHandle handle)
                     case I2CInterruptEvent_stop_signaled:
                     {
 
-                        if (!iff(driver->progress == driver->amount, !driver->error))
+                        if (!iff(driver->master.progress == driver->master.amount, !driver->master.error))
                             panic;
 
                         CMSIS_SET(I2Cx, ICR, STOPCF, true);
 
-                        driver->state = I2CDriverState_standby;
+                        driver->master.state = I2CMasterState_standby;
 
                         return I2CUpdateOnce_again;
 
@@ -749,88 +816,208 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
+        ////////////////////////////////////////////////////////////////////////////////
+        //
+        // Slave must wait for all data transfers.
+        //
+
         case I2CDriverRole_slave:
         {
 
             switch (interrupt_event)
             {
 
+                // Nothing to do until there's an interrupt status.
+
                 case I2CInterruptEvent_none:
                 {
-
                     return I2CUpdateOnce_yield;
-
                 } break;
 
-                case I2CInterruptEvent_nack_signaled:
-                {
 
-                    CMSIS_SET(I2Cx, ICR, NACKCF, true);
 
-                    return I2CUpdateOnce_again;
-
-                } break;
-
-                case I2CInterruptEvent_stop_signaled:
-                {
-
-                    CMSIS_SET(I2Cx, ICR, STOPCF, true);
-
-                    return I2CUpdateOnce_again;
-
-                } break;
-
-                case I2CInterruptEvent_transfer_completed:
-                {
-                    sorry
-                } break;
-
-                case I2CInterruptEvent_data_available_to_read:
-                {
-
-                    // Pop from the RX-buffer.
-                    u8 data = CMSIS_GET(I2Cx, RXDR, RXDATA);
-
-                    return I2CUpdateOnce_again;
-
-                } break;
-
-                case I2CInterruptEvent_ready_to_transmit_data:
-                {
-
-                    CMSIS_SET(I2Cx, TXDR, TXDATA, 0xBA);
-
-                    return I2CUpdateOnce_again;
-
-                } break;
+                // The slave I2C driver just got called on.
 
                 case I2CInterruptEvent_address_match:
                 {
+
+                    if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, ADDCODE) != I2Cx_SLAVE_ADDRESS)
+                        // Address must match with what we were configured with.
+                        panic;
+
+                    if (!CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, TXE))
+                        // There shouldn't be anything still in the TX-buffer.
+                        panic;
+
+                    if (driver->slave.state != I2CSlaveState_standby)
+                        // Unexpected interrupt event given the I2C driver state.
+                        panic;
+
+
+
+                    // Acknowledge the interrupt.
 
                     CMSIS_SET(I2Cx, ICR, ADDRCF, true);
 
 
 
-                    if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, ADDCODE) != TMP_SLAVE_ADDRESS)
-                        panic;
-
-
-                    CMSIS_SET(I2Cx, ISR, TXE, true); // Flush the transmit buffer.
+                    // Determine the data transfer direction.
 
                     b32 master_wants_to_read = CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, DIR);
 
                     if (master_wants_to_read)
                     {
-                        return I2CUpdateOnce_again;
+                        driver->slave.state = I2CSlaveState_sending_data;
                     }
                     else
                     {
-                        return I2CUpdateOnce_again;
+                        driver->slave.state = I2CSlaveState_receiving_data;
                     }
+
+                    return I2CUpdateOnce_again;
 
                 } break;
 
-                default: panic;
+
+
+                // The master wants data.
+
+                case I2CInterruptEvent_ready_to_transmit_data:
+                {
+
+                    if (driver->slave.state != I2CSlaveState_sending_data)
+                        // Unexpected interrupt event given the I2C driver state.
+                        panic;
+
+
+
+                    // Dummy value when the user has no more data to send.
+
+                    u8 data = 0xFF;
+
+
+
+                    // Get the next byte that the user wants to send.
+
+                    INTERRUPT_i2c_slave_callback(handle, I2CSlaveEvent_ready_to_transmit_data, &data);
+
+
+
+                    // Push into the TX-buffer.
+
+                    CMSIS_SET(I2Cx, TXDR, TXDATA, data);
+
+                    return I2CUpdateOnce_again;
+
+                } break;
+
+
+
+                // The master sent us data.
+
+                case I2CInterruptEvent_data_available_to_read:
+                {
+
+                    if (driver->slave.state != I2CSlaveState_receiving_data)
+                        // Unexpected interrupt event given the I2C driver state.
+                        panic;
+
+
+
+                    // Pop from the RX-buffer.
+
+                    u8 data = CMSIS_GET(I2Cx, RXDR, RXDATA);
+
+
+
+                    // Let the user handle the data.
+
+                    INTERRUPT_i2c_slave_callback(handle, I2CSlaveEvent_data_available_to_read, &data);
+
+                    return I2CUpdateOnce_again;
+
+                } break;
+
+
+
+                // The master can NACK on the data we just sent them to
+                // indicate an error, but most of the time, this is just
+                // happens whenever the master received the last byte, so
+                // this will be the only situation we should be expecting it.
+
+                case I2CInterruptEvent_nack_signaled:
+                {
+
+                    if (driver->slave.state != I2CSlaveState_sending_data)
+                        // Unexpected interrupt event given the I2C driver state.
+                        panic;
+
+
+
+                    // Acknowledge the interrupt event.
+
+                    CMSIS_SET(I2Cx, ICR, NACKCF, true);
+
+
+
+                    // We should be expecting the stop signal next.
+
+                    driver->slave.state = I2CSlaveState_stopping;
+
+                    return I2CUpdateOnce_again;
+
+                } break;
+
+
+
+                // We've reached the end of the transfer.
+                // TODO I don't think this will happen if there's a repeated start;
+                //      we should test it.
+
+                case I2CInterruptEvent_stop_signaled:
+                {
+
+                    if
+                    (
+                        driver->slave.state != I2CSlaveState_receiving_data &&
+                        driver->slave.state != I2CSlaveState_stopping
+                    )
+                        // Unexpected interrupt event given the I2C driver state.
+                        panic;
+
+
+
+                    // Acknowledge the interrupt event.
+
+                    CMSIS_SET(I2Cx, ICR, STOPCF, true);
+
+
+
+                    // Let the user know that the transfer ended.
+
+                    INTERRUPT_i2c_slave_callback(handle, I2CSlaveEvent_stop_signaled, nullptr);
+
+
+
+                    // Flush the transmit buffer so any left-over data
+                    // won't accidentally be transmitted on the next transfer.
+
+                    CMSIS_SET(I2Cx, ISR, TXE, true);
+
+
+
+                    // Ready for the next transfer.
+
+                    driver->slave.state = I2CSlaveState_standby;
+
+                    return I2CUpdateOnce_again;
+
+                } break;
+
+
+
+                case I2CInterruptEvent_transfer_completed : panic;
+                default                                   : panic;
 
             }
 
