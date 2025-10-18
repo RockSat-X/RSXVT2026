@@ -784,7 +784,7 @@ def flash(parameters):
         # Not the first try?
 
         elif attempts:
-            log('''
+            log(f'''
 
                 {ANSI('[WARNING] Failed to flash (maybe due to verification error); trying again...', 'fg_yellow')}
 
