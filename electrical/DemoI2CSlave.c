@@ -59,8 +59,8 @@ main(void)
                 I2CHandle_queen,
                 slave_address,
                 address_type,
-                I2COperation_read,
-                &(u8) {0},
+                I2COperation_write,
+                &(u8) {0xAB},
                 1
             );
 

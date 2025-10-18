@@ -787,7 +787,12 @@ _I2C_update_once(enum I2CHandle handle)
 
                 case I2CInterruptEvent_data_available_to_read:
                 {
-                    sorry
+
+                    // Pop from the RX-buffer.
+                    u8 data = CMSIS_GET(I2Cx, RXDR, RXDATA);
+
+                    return I2CUpdateOnce_again;
+
                 } break;
 
                 case I2CInterruptEvent_ready_to_transmit_data:
@@ -820,7 +825,7 @@ _I2C_update_once(enum I2CHandle handle)
                     }
                     else
                     {
-                        sorry
+                        return I2CUpdateOnce_again;
                     }
 
                 } break;
