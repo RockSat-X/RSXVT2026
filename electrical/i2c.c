@@ -830,7 +830,7 @@ _I2C_update_once(enum I2CHandle handle)
                 case I2CInterruptEvent_ready_to_transmit_data:
                 {
 
-                    u8 data = {0};
+                    u8 data = 0xFF;
 
                     INTERRUPT_i2c_slave_callback(handle, I2CSlaveEvent_ready_to_transmit_data, &data);
 
