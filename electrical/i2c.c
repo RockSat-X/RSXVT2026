@@ -1,3 +1,5 @@
+#define TMP_SLAVE_ADDRESS 0b011'0100
+
 ////////////////////////////////////////////////////////////////////////////////
 
 
@@ -299,10 +301,10 @@ I2C_reinit(enum I2CHandle handle)
 
             CMSIS_SET
             (
-                I2Cx   , OAR1           ,
-                OA1EN  , true           , // Enable the address.
-                OA1MODE, false          , // The address is 7-bit.
-                OA1    , 0b011'0100 << 1, // TODO Customize by user.
+                I2Cx   , OAR1                  ,
+                OA1EN  , true                  , // Enable the address.
+                OA1MODE, false                 , // The address is 7-bit.
+                OA1    , TMP_SLAVE_ADDRESS << 1, // TODO Customize by user.
             );
 
         } break;
@@ -750,7 +752,82 @@ _I2C_update_once(enum I2CHandle handle)
         case I2CDriverRole_slave:
         {
 
-            sorry
+            switch (interrupt_event)
+            {
+
+                case I2CInterruptEvent_none:
+                {
+
+                    return I2CUpdateOnce_yield;
+
+                } break;
+
+                case I2CInterruptEvent_nack_signaled:
+                {
+
+                    CMSIS_SET(I2Cx, ICR, NACKCF, true);
+
+                    return I2CUpdateOnce_again;
+
+                } break;
+
+                case I2CInterruptEvent_stop_signaled:
+                {
+
+                    CMSIS_SET(I2Cx, ICR, STOPCF, true);
+
+                    return I2CUpdateOnce_again;
+
+                } break;
+
+                case I2CInterruptEvent_transfer_completed:
+                {
+                    sorry
+                } break;
+
+                case I2CInterruptEvent_data_available_to_read:
+                {
+                    sorry
+                } break;
+
+                case I2CInterruptEvent_ready_to_transmit_data:
+                {
+
+                    CMSIS_SET(I2Cx, TXDR, TXDATA, 0xBA);
+
+                    return I2CUpdateOnce_again;
+
+                } break;
+
+                case I2CInterruptEvent_address_match:
+                {
+
+                    CMSIS_SET(I2Cx, ICR, ADDRCF, true);
+
+
+
+                    if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, ADDCODE) != TMP_SLAVE_ADDRESS)
+                        panic;
+
+
+                    CMSIS_SET(I2Cx, ISR, TXE, true); // Flush the transmit buffer.
+
+                    b32 master_wants_to_read = CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, DIR);
+
+                    if (master_wants_to_read)
+                    {
+                        return I2CUpdateOnce_again;
+                    }
+                    else
+                    {
+                        sorry
+                    }
+
+                } break;
+
+                default: panic;
+
+            }
 
         } break;
 
