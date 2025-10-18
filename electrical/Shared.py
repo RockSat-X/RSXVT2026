@@ -219,7 +219,7 @@ TARGETS = (
                 { 'handle' : 'stlink', 'peripheral' : 'USART2' },
             ),
             'I2C' : (
-                { 'handle' : 'primary', 'peripheral' : 'I2C1' },
+                { 'handle' : 'primary', 'peripheral' : 'I2C1', 'role' : 'master' },
             ),
         },
 
@@ -282,8 +282,8 @@ TARGETS = (
                 { 'handle' : 'stlink', 'peripheral' : 'USART2' },
             ),
             'I2C' : (
-                { 'handle' : 'queen', 'peripheral' : 'I2C1' },
-                { 'handle' : 'bee'  , 'peripheral' : 'I2C2' },
+                { 'handle' : 'queen', 'peripheral' : 'I2C1', 'role' : 'master' },
+                { 'handle' : 'bee'  , 'peripheral' : 'I2C2', 'role' : 'slave'  },
             ),
         },
 
@@ -576,7 +576,7 @@ TARGETS = (
                 { 'handle' : 'stlink', 'peripheral' : 'USART2' },
             ),
             'I2C' : (
-                { 'handle' : 'primary', 'peripheral' : 'I2C1' },
+                { 'handle' : 'primary', 'peripheral' : 'I2C1', 'role' : 'master' },
             ),
         },
 
