@@ -106,7 +106,7 @@ TARGETS = (
 
         drivers = {
             'UXART' : (
-                ('stlink', 'USART3'),
+                { 'handle' : 'stlink', 'peripheral' : 'USART3' },
             )
         },
 
@@ -161,7 +161,7 @@ TARGETS = (
 
         drivers = {
             'UXART' : (
-                ('stlink', 'USART2'),
+                { 'handle' : 'stlink', 'peripheral' : 'USART2' },
             )
         },
 
@@ -216,10 +216,10 @@ TARGETS = (
 
         drivers = {
             'UXART' : (
-                ('stlink', 'USART2'),
+                { 'handle' : 'stlink', 'peripheral' : 'USART2' },
             ),
             'I2C' : (
-                ('primary', 'I2C1'),
+                { 'handle' : 'primary', 'peripheral' : 'I2C1' },
             ),
         },
 
@@ -279,11 +279,11 @@ TARGETS = (
 
         drivers = {
             'UXART' : (
-                ('stlink', 'USART2'),
+                { 'handle' : 'stlink', 'peripheral' : 'USART2' },
             ),
             'I2C' : (
-                ('queen', 'I2C1'),
-                ('bee'  , 'I2C2'),
+                { 'handle' : 'queen', 'peripheral' : 'I2C1' },
+                { 'handle' : 'bee'  , 'peripheral' : 'I2C2' },
             ),
         },
 
@@ -339,7 +339,7 @@ TARGETS = (
 
         drivers = {
             'UXART' : (
-                ('stlink', 'USART2'),
+                { 'handle' : 'stlink', 'peripheral' : 'USART2' },
             ),
         },
 
@@ -396,10 +396,10 @@ TARGETS = (
 
         drivers = {
             'UXART' : (
-                ('stlink', 'USART2'),
+                { 'handle' : 'stlink', 'peripheral' : 'USART2' },
             ),
             'SPI' : (
-                ('primary', 'SPI2'),
+                { 'handle' : 'primary', 'peripheral' : 'SPI2' },
             ),
         },
 
@@ -452,7 +452,7 @@ TARGETS = (
 
         drivers = {
             'UXART' : (
-                ('stlink', 'USART2'),
+                { 'handle' : 'stlink', 'peripheral' : 'USART2' },
             ),
             'TIMEKEEPING' : 'TIM1',
         },
@@ -512,10 +512,10 @@ TARGETS = (
 
         drivers = {
             'UXART' : (
-                ('stlink', 'USART2'),
+                { 'handle' : 'stlink', 'peripheral' : 'USART2' },
             ),
             'SD' : (
-                ('primary', 'SDMMC1'),
+                { 'handle' : 'primary', 'peripheral' : 'SDMMC1' },
             )
         },
 
@@ -573,10 +573,10 @@ TARGETS = (
 
         drivers = {
             'UXART' : (
-                ('stlink', 'USART2'),
+                { 'handle' : 'stlink', 'peripheral' : 'USART2' },
             ),
             'I2C' : (
-                ('primary', 'I2C1'),
+                { 'handle' : 'primary', 'peripheral' : 'I2C1' },
             ),
         },
 

@@ -24,16 +24,16 @@
 
     for target in PER_TARGET():
 
-        for handle, instance in target.drivers.get('SPI', ()):
+        for driver_settings in target.drivers.get('SPI', ()):
 
             Meta.line(f'''
 
                 static void
                 _SPI_update_entirely(enum SPIHandle handle);
 
-                INTERRUPT_{instance}
+                INTERRUPT_{driver_settings['peripheral']}
                 {{
-                    _SPI_update_entirely(SPIHandle_{handle});
+                    _SPI_update_entirely(SPIHandle_{driver_settings['handle']});
                 }}
 
             ''')

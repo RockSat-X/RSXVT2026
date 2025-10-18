@@ -32,16 +32,16 @@
 
     for target in PER_TARGET():
 
-        for handle, instance in target.drivers.get('SD', ()):
+        for driver_settings in target.drivers.get('SD', ()):
 
             Meta.line(f'''
 
                 static void
                 _SD_update_entirely(enum SDHandle handle);
 
-                INTERRUPT_{instance}
+                INTERRUPT_{driver_settings['peripheral']}
                 {{
-                    _SD_update_entirely(SDHandle_{handle});
+                    _SD_update_entirely(SDHandle_{driver_settings['handle']});
                 }}
 
             ''')

@@ -26,7 +26,7 @@
 
     for target in PER_TARGET():
 
-        for handle, instance in target.drivers.get('I2C', ()):
+        for driver_settings in target.drivers.get('I2C', ()):
 
             for suffix in ('EV', 'ER'):
                 Meta.line(f'''
@@ -34,9 +34,9 @@
                     static void
                     _I2C_update_entirely(enum I2CHandle handle);
 
-                    INTERRUPT_{instance}_{suffix}
+                    INTERRUPT_{driver_settings['peripheral']}_{suffix}
                     {{
-                        _I2C_update_entirely(I2CHandle_{handle});
+                        _I2C_update_entirely(I2CHandle_{driver_settings['handle']});
                     }}
 
                 ''')
