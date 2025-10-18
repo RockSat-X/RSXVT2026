@@ -140,7 +140,7 @@ main(void)
             {
 
                 enum I2CAddressType address_type  = I2CAddressType_seven;
-                u32                 slave_address = TMP_SLAVE_ADDRESS;
+                u32                 slave_address = I2C_TABLE[I2CHandle_bee].I2Cx_SLAVE_ADDRESS;
 
                 static u8 TMP = 0;
 

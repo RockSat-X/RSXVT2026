@@ -1,5 +1,3 @@
-#define TMP_SLAVE_ADDRESS 0b011'0100
-
 ////////////////////////////////////////////////////////////////////////////////
 
 
@@ -31,6 +29,20 @@ enum I2CSlaveEvent : u32
                 f'I2CDriverRole_{driver_settings['role']}'
             )
 
+            if (address := driver_settings.get('address', None)) is not None:
+                if not (0b0000_1000 <= address <= 0b0111_0111):
+                    raise ValueError(
+                        f'Target {repr(target.name)} has '
+                        f'I2C peripheral {repr(driver_settings['handle'])} '
+                        f'with invalid 7-bit address of {repr(address)}.'
+                    )
+
+            Meta.define(
+                f'{driver_settings['peripheral']}_SLAVE_ADDRESS',
+                f'((u16) 0x{driver_settings['address'] if driver_settings['role'] == 'slave' else 0 :03X})'
+            )
+
+
 
 
     IMPLEMENT_DRIVER_ALIASES(
@@ -45,6 +57,7 @@ enum I2CSlaveEvent : u32
             'STPY_{}_SCLH',
             'STPY_{}_SCLL',
             '{}_DRIVER_ROLE',
+            '{}_SLAVE_ADDRESS',
         ),
         cmsis_tuple_tags = (
             '{}_RESET',
@@ -317,10 +330,10 @@ I2C_reinit(enum I2CHandle handle)
 
             CMSIS_SET
             (
-                I2Cx   , OAR1                  ,
-                OA1EN  , true                  , // Enable the address.
-                OA1MODE, false                 , // The address is 7-bit.
-                OA1    , TMP_SLAVE_ADDRESS << 1, // TODO Customize by user.
+                I2Cx   , OAR1                   ,
+                OA1EN  , true                   , // Enable the address.
+                OA1MODE, false                  , // We currently only support I2C
+                OA1    , I2Cx_SLAVE_ADDRESS << 1, // driver slave addresses of 7-bit.
             );
 
         } break;
@@ -834,7 +847,7 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-                    if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, ADDCODE) != TMP_SLAVE_ADDRESS)
+                    if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, ADDCODE) != I2Cx_SLAVE_ADDRESS)
                         panic;
 
 

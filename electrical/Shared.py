@@ -223,8 +223,8 @@ TARGETS = (
                 { 'handle' : 'stlink', 'peripheral' : 'USART2' },
             ),
             'I2C' : (
-                { 'handle' : 'queen', 'peripheral' : 'I2C1', 'role' : 'master' },
-                { 'handle' : 'bee'  , 'peripheral' : 'I2C2', 'role' : 'slave'  },
+                { 'handle' : 'queen', 'peripheral' : 'I2C1', 'role' : 'master'                         },
+                { 'handle' : 'bee'  , 'peripheral' : 'I2C2', 'role' : 'slave', 'address' : 0b_001_1110 },
             ),
         },
 
