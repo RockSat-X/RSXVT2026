@@ -15,3 +15,4 @@
 @/`SD`         : SD Specifications Part 1 Physical Layer Simplified Specification Version 9.10 (December 1, 2023) (sdcard.org/downloads/pls/pdf/?f=Part1PhysicalLayerSimplifiedSpecificationVer9.10Fin_20231201.pdf).
 @/`AP2112`     : "600mA CMOS LDO REGULATOR WITH ENABLE" (DS39724) (Rev 2) (June 2017) (diodes.com/assets/Datasheets/AP2112.pdf).
 @/`UM1724`     : STM32 Nucleo-64 Board User Guide (UM1724) (September 2025) (Rev 17).
+@/`TMC2209`    : TMC2209 Datasheet (Rev. 1.09) (2023-FEB-16) (analog.com/media/en/technical-documentation/data-sheets/TMC2209_datasheet_rev1.09.pdf).
