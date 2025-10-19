@@ -104,11 +104,13 @@ TARGETS = (
             ('USART3', 0),
         ),
 
-        drivers = {
-            'UXART' : (
-                { 'handle' : 'stlink', 'peripheral' : 'USART3' },
-            )
-        },
+        drivers = (
+            {
+                'type'       : 'UXART',
+                'peripheral' : 'USART3',
+                'handle'     : 'stlink',
+            },
+        ),
 
         use_freertos    = False,
         main_stack_size = 8192,
@@ -159,11 +161,13 @@ TARGETS = (
             ('USART2', 0),
         ),
 
-        drivers = {
-            'UXART' : (
-                { 'handle' : 'stlink', 'peripheral' : 'USART2' },
-            )
-        },
+        drivers = (
+            {
+                'type'       : 'UXART',
+                'peripheral' : 'USART2',
+                'handle'     : 'stlink',
+            },
+        ),
 
         use_freertos    = False,
         main_stack_size = 8192,
@@ -198,16 +202,16 @@ TARGETS = (
         schematic_file_path = None,
 
         gpios = (
-            ('led_green'  , 'A5' , 'OUTPUT'    , { 'initlvl' : False                                          }),
-            ('stlink_tx'  , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'                                    }),
-            ('stlink_rx'  , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'                                    }),
-            ('swdio'      , 'A13', None        , {                                                            }),
-            ('swclk'      , 'A14', None        , {                                                            }),
-            ('button'     , 'C13', 'INPUT'     , { 'pull'    : None, 'active' : True                          }),
-            ('queen_clock', 'B6' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL', 'open_drain' : True, 'pull' : 'UP' }),
-            ('queen_data' , 'B7' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA', 'open_drain' : True, 'pull' : 'UP' }),
-            ('bee_clock'  , 'B10' , 'ALTERNATE', { 'altfunc' : 'I2C2_SCL', 'open_drain' : True, 'pull' : 'UP' }),
-            ('bee_data'   , 'B12' , 'ALTERNATE', { 'altfunc' : 'I2C2_SDA', 'open_drain' : True, 'pull' : 'UP' }),
+            ('led_green'  , 'A5' , 'OUTPUT'   , { 'initlvl' : False                                          }),
+            ('stlink_tx'  , 'A2' , 'ALTERNATE', { 'altfunc' : 'USART2_TX'                                    }),
+            ('stlink_rx'  , 'A3' , 'ALTERNATE', { 'altfunc' : 'USART2_RX'                                    }),
+            ('swdio'      , 'A13', None       , {                                                            }),
+            ('swclk'      , 'A14', None       , {                                                            }),
+            ('button'     , 'C13', 'INPUT'    , { 'pull'    : None, 'active' : True                          }),
+            ('queen_clock', 'B6' , 'ALTERNATE', { 'altfunc' : 'I2C1_SCL', 'open_drain' : True, 'pull' : 'UP' }),
+            ('queen_data' , 'B7' , 'ALTERNATE', { 'altfunc' : 'I2C1_SDA', 'open_drain' : True, 'pull' : 'UP' }),
+            ('bee_clock'  , 'B10', 'ALTERNATE', { 'altfunc' : 'I2C2_SCL', 'open_drain' : True, 'pull' : 'UP' }),
+            ('bee_data'   , 'B12', 'ALTERNATE', { 'altfunc' : 'I2C2_SDA', 'open_drain' : True, 'pull' : 'UP' }),
         ),
 
         interrupts = (
@@ -218,15 +222,26 @@ TARGETS = (
             ('I2C2_ER', 2),
         ),
 
-        drivers = {
-            'UXART' : (
-                { 'handle' : 'stlink', 'peripheral' : 'USART2' },
-            ),
-            'I2C' : (
-                { 'handle' : 'queen', 'peripheral' : 'I2C1', 'role' : 'master'                         },
-                { 'handle' : 'bee'  , 'peripheral' : 'I2C2', 'role' : 'slave', 'address' : 0b_001_1110 },
-            ),
-        },
+        drivers = (
+            {
+                'type'       : 'UXART',
+                'peripheral' : 'USART2',
+                'handle'     : 'stlink',
+            },
+            {
+                'type'       : 'I2C',
+                'peripheral' : 'I2C1',
+                'handle'     : 'queen',
+                'role'       : 'master',
+            },
+            {
+                'type'       : 'I2C',
+                'peripheral' : 'I2C2',
+                'handle'     : 'bee',
+                'role'       : 'slave',
+                'address'    : 0b_001_1110,
+            },
+        ),
 
         use_freertos    = False,
         main_stack_size = 8192,
@@ -278,11 +293,13 @@ TARGETS = (
             ('TIM1_UP', 1),
         ),
 
-        drivers = {
-            'UXART' : (
-                { 'handle' : 'stlink', 'peripheral' : 'USART2' },
-            ),
-        },
+        drivers = (
+            {
+                'type'       : 'UXART',
+                'peripheral' : 'USART2',
+                'handle'     : 'stlink',
+            },
+        ),
 
         use_freertos    = False,
         main_stack_size = 8192,
@@ -335,14 +352,18 @@ TARGETS = (
             ('SPI2'  , 2),
         ),
 
-        drivers = {
-            'UXART' : (
-                { 'handle' : 'stlink', 'peripheral' : 'USART2' },
-            ),
-            'SPI' : (
-                { 'handle' : 'primary', 'peripheral' : 'SPI2' },
-            ),
-        },
+        drivers = (
+            {
+                'type'       : 'UXART',
+                'peripheral' : 'USART2',
+                'handle'     : 'stlink',
+            },
+            {
+                'type'       : 'SPI',
+                'peripheral' : 'SPI2',
+                'handle'     : 'primary',
+            },
+        ),
 
         use_freertos    = False,
         main_stack_size = 8192,
@@ -391,12 +412,17 @@ TARGETS = (
             ('USART2', 0),
         ),
 
-        drivers = {
-            'UXART' : (
-                { 'handle' : 'stlink', 'peripheral' : 'USART2' },
-            ),
-            'TIMEKEEPING' : 'TIM1',
-        },
+        drivers = (
+            {
+                'type'       : 'UXART',
+                'peripheral' : 'USART2',
+                'handle'     : 'stlink',
+            },
+            {
+                'type'       : 'TIMEKEEPING',
+                'peripheral' : 'TIM1',
+            },
+        ),
 
         use_freertos    = False,
         main_stack_size = 8192,
@@ -451,14 +477,18 @@ TARGETS = (
             ('SDMMC1', 1),
         ),
 
-        drivers = {
-            'UXART' : (
-                { 'handle' : 'stlink', 'peripheral' : 'USART2' },
-            ),
-            'SD' : (
-                { 'handle' : 'primary', 'peripheral' : 'SDMMC1' },
-            )
-        },
+        drivers = (
+            {
+                'type'       : 'UXART',
+                'peripheral' : 'USART2',
+                'handle'     : 'stlink',
+            },
+            {
+                'type'       : 'SD',
+                'peripheral' : 'SDMMC1',
+                'handle'     : 'primary',
+            },
+        ),
 
         use_freertos    = False,
         main_stack_size = 8192,
@@ -512,14 +542,19 @@ TARGETS = (
             ('I2C1_ER', 1),
         ),
 
-        drivers = {
-            'UXART' : (
-                { 'handle' : 'stlink', 'peripheral' : 'USART2' },
-            ),
-            'I2C' : (
-                { 'handle' : 'primary', 'peripheral' : 'I2C1', 'role' : 'master' },
-            ),
-        },
+        drivers = (
+            {
+                'type'       : 'UXART',
+                'peripheral' : 'USART2',
+                'handle'     : 'stlink',
+            },
+            {
+                'type'       : 'I2C',
+                'peripheral' : 'I2C1',
+                'handle'     : 'primary',
+                'role'       : 'master',
+            },
+        ),
 
         use_freertos    = False,
         main_stack_size = 8192,
@@ -596,7 +631,7 @@ TARGETS = (
 
         interrupts = None,
 
-        drivers = {},
+        drivers = (),
 
         use_freertos    = False,
         main_stack_size = 8192,

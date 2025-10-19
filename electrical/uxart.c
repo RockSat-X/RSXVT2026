@@ -18,37 +18,21 @@
 #include "uxart_driver_support.meta"
 /* #meta
 
-    IMPLEMENT_DRIVER_ALIASES(
-        driver_name = 'UXART',
+    IMPLEMENT_DRIVER_SUPPORT(
+        driver_type = 'UXART',
         cmsis_name  = 'USART',
         common_name = 'UXARTx',
-        identifiers = (
-            'NVICInterrupt_{}',
-            'STPY_{}_KERNEL_SOURCE',
-            'STPY_{}_BAUD_DIVIDER',
-        ),
-        cmsis_tuple_tags = (
-            '{}_RESET',
-            '{}_ENABLE',
-            '{}_KERNEL_SOURCE',
+        entries     = (
+            { 'name'      : '{}'                   , 'value'       : ... },
+            { 'name'      : 'NVICInterrupt_{}'     , 'value'       : ... },
+            { 'name'      : 'STPY_{}_KERNEL_SOURCE', 'value'       : ... },
+            { 'name'      : 'STPY_{}_BAUD_DIVIDER' , 'value'       : ... },
+            { 'name'      : '{}_RESET'             , 'cmsis_tuple' : ... },
+            { 'name'      : '{}_ENABLE'            , 'cmsis_tuple' : ... },
+            { 'name'      : '{}_KERNEL_SOURCE'     , 'cmsis_tuple' : ... },
+            { 'interrupt' : 'INTERRUPT_{}'                               },
         ),
     )
-
-    for target in PER_TARGET():
-
-        for driver_settings in target.drivers.get('UXART', ()):
-
-            Meta.line(f'''
-
-                static void
-                _UXART_update(enum UXARTHandle handle);
-
-                INTERRUPT_{driver_settings['peripheral']}
-                {{
-                    _UXART_update(UXARTHandle_{driver_settings['handle']});
-                }}
-
-            ''')
 
 */
 
@@ -255,7 +239,7 @@ UXART_init(enum UXARTHandle handle)
 
 
 static void
-_UXART_update(enum UXARTHandle handle)
+_UXART_driver_interrupt(enum UXARTHandle handle)
 {
 
     _EXPAND_HANDLE

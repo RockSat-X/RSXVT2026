@@ -1,14 +1,14 @@
 #if TARGET_NAME_IS_SandboxNucleoH7S3L8
-    #error Target "SandboxNucleoH7S3L8" cannot use the SPI driver without first specifying the peripheral instances to have handles for.
+    #error Target 'SandboxNucleoH7S3L8' defines no handle for the 'SPI' driver.
 #endif
 #if TARGET_NAME_IS_SandboxNucleoH533RE
-    #error Target "SandboxNucleoH533RE" cannot use the SPI driver without first specifying the peripheral instances to have handles for.
+    #error Target 'SandboxNucleoH533RE' defines no handle for the 'SPI' driver.
 #endif
 #if TARGET_NAME_IS_DemoI2C
-    #error Target "DemoI2C" cannot use the SPI driver without first specifying the peripheral instances to have handles for.
+    #error Target 'DemoI2C' defines no handle for the 'SPI' driver.
 #endif
 #if TARGET_NAME_IS_DemoTimer
-    #error Target "DemoTimer" cannot use the SPI driver without first specifying the peripheral instances to have handles for.
+    #error Target 'DemoTimer' defines no handle for the 'SPI' driver.
 #endif
 #if TARGET_NAME_IS_DemoSPI
     enum SPIHandle : u32
@@ -21,29 +21,30 @@
         {
             [SPIHandle_primary] = { .SPIx = SPI2, .NVICInterrupt_SPIx = NVICInterrupt_SPI2, .STPY_SPIx_KERNEL_SOURCE = STPY_SPI2_KERNEL_SOURCE, .STPY_SPIx_BYPASS_DIVIDER = STPY_SPI2_BYPASS_DIVIDER, .STPY_SPIx_DIVIDER = STPY_SPI2_DIVIDER, .SPIx_RESET = (struct CMSISTuple) { &RCC->APB1LRSTR, CONCAT(RCC_, APB1LRSTR_SPI2RST_Pos), CONCAT(RCC_, APB1LRSTR_SPI2RST_Msk) }, .SPIx_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_SPI2EN_Pos), CONCAT(RCC_, APB1LENR_SPI2EN_Msk) }, .SPIx_KERNEL_SOURCE = (struct CMSISTuple) { &RCC->CCIPR3, CONCAT(RCC_, CCIPR3_SPI2SEL_Pos), CONCAT(RCC_, CCIPR3_SPI2SEL_Msk) } },
         };
+    static void
+    _SPI_driver_interrupt(enum SPIHandle handle);
+    INTERRUPT_SPI2
+    {
+        _SPI_driver_interrupt(SPIHandle_primary);
+    }
 #endif
 #if TARGET_NAME_IS_DemoTimekeeping
-    #error Target "DemoTimekeeping" cannot use the SPI driver without first specifying the peripheral instances to have handles for.
+    #error Target 'DemoTimekeeping' defines no handle for the 'SPI' driver.
 #endif
 #if TARGET_NAME_IS_DemoSDMMC
-    #error Target "DemoSDMMC" cannot use the SPI driver without first specifying the peripheral instances to have handles for.
+    #error Target 'DemoSDMMC' defines no handle for the 'SPI' driver.
 #endif
 #if TARGET_NAME_IS_SensorShield
-    #error Target "SensorShield" cannot use the SPI driver without first specifying the peripheral instances to have handles for.
+    #error Target 'SensorShield' defines no handle for the 'SPI' driver.
 #endif
 #if TARGET_NAME_IS_MainFlightComputer
-    #error Target "MainFlightComputer" cannot use the SPI driver without first specifying the peripheral instances to have handles for.
+    #error Target 'MainFlightComputer' defines no handle for the 'SPI' driver.
 #endif
 #undef _EXPAND_HANDLE
 #define _EXPAND_HANDLE\
-    \
     if (!(0 <= handle && handle < SPIHandle_COUNT))\
-    {\
         panic;\
-    }\
-    \
-    struct SPIDriver* const driver = &_SPI_drivers[handle];\
-    \
+    auto const driver = &_SPI_drivers[handle];\
     auto const SPIx = SPI_TABLE[handle].SPIx;\
     auto const NVICInterrupt_SPIx = SPI_TABLE[handle].NVICInterrupt_SPIx;\
     auto const STPY_SPIx_KERNEL_SOURCE = SPI_TABLE[handle].STPY_SPIx_KERNEL_SOURCE;\
@@ -53,30 +54,3 @@
     auto const SPIx_ENABLE = SPI_TABLE[handle].SPIx_ENABLE;\
     auto const SPIx_KERNEL_SOURCE = SPI_TABLE[handle].SPIx_KERNEL_SOURCE;\
 
-#if TARGET_NAME_IS_SandboxNucleoH7S3L8
-#endif
-#if TARGET_NAME_IS_SandboxNucleoH533RE
-#endif
-#if TARGET_NAME_IS_DemoI2C
-#endif
-#if TARGET_NAME_IS_DemoTimer
-#endif
-#if TARGET_NAME_IS_DemoSPI
-
-    static void
-    _SPI_update_entirely(enum SPIHandle handle);
-
-    INTERRUPT_SPI2
-    {
-        _SPI_update_entirely(SPIHandle_primary);
-    }
-
-#endif
-#if TARGET_NAME_IS_DemoTimekeeping
-#endif
-#if TARGET_NAME_IS_DemoSDMMC
-#endif
-#if TARGET_NAME_IS_SensorShield
-#endif
-#if TARGET_NAME_IS_MainFlightComputer
-#endif

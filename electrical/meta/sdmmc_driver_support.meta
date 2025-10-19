@@ -1,20 +1,20 @@
 #if TARGET_NAME_IS_SandboxNucleoH7S3L8
-    #error Target "SandboxNucleoH7S3L8" cannot use the SD driver without first specifying the peripheral instances to have handles for.
+    #error Target 'SandboxNucleoH7S3L8' defines no handle for the 'SD' driver.
 #endif
 #if TARGET_NAME_IS_SandboxNucleoH533RE
-    #error Target "SandboxNucleoH533RE" cannot use the SD driver without first specifying the peripheral instances to have handles for.
+    #error Target 'SandboxNucleoH533RE' defines no handle for the 'SD' driver.
 #endif
 #if TARGET_NAME_IS_DemoI2C
-    #error Target "DemoI2C" cannot use the SD driver without first specifying the peripheral instances to have handles for.
+    #error Target 'DemoI2C' defines no handle for the 'SD' driver.
 #endif
 #if TARGET_NAME_IS_DemoTimer
-    #error Target "DemoTimer" cannot use the SD driver without first specifying the peripheral instances to have handles for.
+    #error Target 'DemoTimer' defines no handle for the 'SD' driver.
 #endif
 #if TARGET_NAME_IS_DemoSPI
-    #error Target "DemoSPI" cannot use the SD driver without first specifying the peripheral instances to have handles for.
+    #error Target 'DemoSPI' defines no handle for the 'SD' driver.
 #endif
 #if TARGET_NAME_IS_DemoTimekeeping
-    #error Target "DemoTimekeeping" cannot use the SD driver without first specifying the peripheral instances to have handles for.
+    #error Target 'DemoTimekeeping' defines no handle for the 'SD' driver.
 #endif
 #if TARGET_NAME_IS_DemoSDMMC
     enum SDHandle : u32
@@ -23,27 +23,28 @@
     };
     static constexpr u32 SDHandle_COUNT = 1;
     #define SDx_ SDMMC_
-    static const struct { typeof(SDMMC1) SDx; typeof(NVICInterrupt_SDMMC1) NVICInterrupt_SDx; typeof(STPY_SDMMC1_KERNEL_SOURCE) STPY_SDx_KERNEL_SOURCE; typeof(STPY_SDMMC1_INITIAL_DIVIDER) STPY_SDx_INITIAL_DIVIDER; typeof(STPY_SDMMC1_INITIAL_DATATIME) STPY_SDx_INITIAL_DATATIME; typeof(STPY_SDMMC1_FULL_DIVIDER) STPY_SDx_FULL_DIVIDER; typeof(STPY_SDMMC1_FULL_DATATIME) STPY_SDx_FULL_DATATIME; typeof((struct CMSISTuple) { &RCC->AHB4ENR, CONCAT(RCC_, AHB4ENR_SDMMC1EN_Pos), CONCAT(RCC_, AHB4ENR_SDMMC1EN_Msk) }) SDx_ENABLE; typeof((struct CMSISTuple) { &RCC->AHB4RSTR, CONCAT(RCC_, AHB4RSTR_SDMMC1RST_Pos), CONCAT(RCC_, AHB4RSTR_SDMMC1RST_Msk) }) SDx_RESET; typeof((struct CMSISTuple) { &RCC->CCIPR4, CONCAT(RCC_, CCIPR4_SDMMC1SEL_Pos), CONCAT(RCC_, CCIPR4_SDMMC1SEL_Msk) }) SDx_KERNEL_SOURCE; } SD_TABLE[] =
+    static const struct { typeof(SDMMC1) SDx; typeof(NVICInterrupt_SDMMC1) NVICInterrupt_SDx; typeof(STPY_SDMMC1_KERNEL_SOURCE) STPY_SDx_KERNEL_SOURCE; typeof(STPY_SDMMC1_INITIAL_DIVIDER) STPY_SDx_INITIAL_DIVIDER; typeof(STPY_SDMMC1_INITIAL_DATATIME) STPY_SDx_INITIAL_DATATIME; typeof(STPY_SDMMC1_FULL_DIVIDER) STPY_SDx_FULL_DIVIDER; typeof(STPY_SDMMC1_FULL_DATATIME) STPY_SDx_FULL_DATATIME; typeof((struct CMSISTuple) { &RCC->AHB4RSTR, CONCAT(RCC_, AHB4RSTR_SDMMC1RST_Pos), CONCAT(RCC_, AHB4RSTR_SDMMC1RST_Msk) }) SDx_RESET; typeof((struct CMSISTuple) { &RCC->AHB4ENR, CONCAT(RCC_, AHB4ENR_SDMMC1EN_Pos), CONCAT(RCC_, AHB4ENR_SDMMC1EN_Msk) }) SDx_ENABLE; typeof((struct CMSISTuple) { &RCC->CCIPR4, CONCAT(RCC_, CCIPR4_SDMMC1SEL_Pos), CONCAT(RCC_, CCIPR4_SDMMC1SEL_Msk) }) SDx_KERNEL_SOURCE; } SD_TABLE[] =
         {
-            [SDHandle_primary] = { .SDx = SDMMC1, .NVICInterrupt_SDx = NVICInterrupt_SDMMC1, .STPY_SDx_KERNEL_SOURCE = STPY_SDMMC1_KERNEL_SOURCE, .STPY_SDx_INITIAL_DIVIDER = STPY_SDMMC1_INITIAL_DIVIDER, .STPY_SDx_INITIAL_DATATIME = STPY_SDMMC1_INITIAL_DATATIME, .STPY_SDx_FULL_DIVIDER = STPY_SDMMC1_FULL_DIVIDER, .STPY_SDx_FULL_DATATIME = STPY_SDMMC1_FULL_DATATIME, .SDx_ENABLE = (struct CMSISTuple) { &RCC->AHB4ENR, CONCAT(RCC_, AHB4ENR_SDMMC1EN_Pos), CONCAT(RCC_, AHB4ENR_SDMMC1EN_Msk) }, .SDx_RESET = (struct CMSISTuple) { &RCC->AHB4RSTR, CONCAT(RCC_, AHB4RSTR_SDMMC1RST_Pos), CONCAT(RCC_, AHB4RSTR_SDMMC1RST_Msk) }, .SDx_KERNEL_SOURCE = (struct CMSISTuple) { &RCC->CCIPR4, CONCAT(RCC_, CCIPR4_SDMMC1SEL_Pos), CONCAT(RCC_, CCIPR4_SDMMC1SEL_Msk) } },
+            [SDHandle_primary] = { .SDx = SDMMC1, .NVICInterrupt_SDx = NVICInterrupt_SDMMC1, .STPY_SDx_KERNEL_SOURCE = STPY_SDMMC1_KERNEL_SOURCE, .STPY_SDx_INITIAL_DIVIDER = STPY_SDMMC1_INITIAL_DIVIDER, .STPY_SDx_INITIAL_DATATIME = STPY_SDMMC1_INITIAL_DATATIME, .STPY_SDx_FULL_DIVIDER = STPY_SDMMC1_FULL_DIVIDER, .STPY_SDx_FULL_DATATIME = STPY_SDMMC1_FULL_DATATIME, .SDx_RESET = (struct CMSISTuple) { &RCC->AHB4RSTR, CONCAT(RCC_, AHB4RSTR_SDMMC1RST_Pos), CONCAT(RCC_, AHB4RSTR_SDMMC1RST_Msk) }, .SDx_ENABLE = (struct CMSISTuple) { &RCC->AHB4ENR, CONCAT(RCC_, AHB4ENR_SDMMC1EN_Pos), CONCAT(RCC_, AHB4ENR_SDMMC1EN_Msk) }, .SDx_KERNEL_SOURCE = (struct CMSISTuple) { &RCC->CCIPR4, CONCAT(RCC_, CCIPR4_SDMMC1SEL_Pos), CONCAT(RCC_, CCIPR4_SDMMC1SEL_Msk) } },
         };
+    static void
+    _SD_driver_interrupt(enum SDHandle handle);
+    INTERRUPT_SDMMC1
+    {
+        _SD_driver_interrupt(SDHandle_primary);
+    }
 #endif
 #if TARGET_NAME_IS_SensorShield
-    #error Target "SensorShield" cannot use the SD driver without first specifying the peripheral instances to have handles for.
+    #error Target 'SensorShield' defines no handle for the 'SD' driver.
 #endif
 #if TARGET_NAME_IS_MainFlightComputer
-    #error Target "MainFlightComputer" cannot use the SD driver without first specifying the peripheral instances to have handles for.
+    #error Target 'MainFlightComputer' defines no handle for the 'SD' driver.
 #endif
 #undef _EXPAND_HANDLE
 #define _EXPAND_HANDLE\
-    \
     if (!(0 <= handle && handle < SDHandle_COUNT))\
-    {\
         panic;\
-    }\
-    \
-    struct SDDriver* const driver = &_SD_drivers[handle];\
-    \
+    auto const driver = &_SD_drivers[handle];\
     auto const SDx = SD_TABLE[handle].SDx;\
     auto const NVICInterrupt_SDx = SD_TABLE[handle].NVICInterrupt_SDx;\
     auto const STPY_SDx_KERNEL_SOURCE = SD_TABLE[handle].STPY_SDx_KERNEL_SOURCE;\
@@ -51,34 +52,7 @@
     auto const STPY_SDx_INITIAL_DATATIME = SD_TABLE[handle].STPY_SDx_INITIAL_DATATIME;\
     auto const STPY_SDx_FULL_DIVIDER = SD_TABLE[handle].STPY_SDx_FULL_DIVIDER;\
     auto const STPY_SDx_FULL_DATATIME = SD_TABLE[handle].STPY_SDx_FULL_DATATIME;\
-    auto const SDx_ENABLE = SD_TABLE[handle].SDx_ENABLE;\
     auto const SDx_RESET = SD_TABLE[handle].SDx_RESET;\
+    auto const SDx_ENABLE = SD_TABLE[handle].SDx_ENABLE;\
     auto const SDx_KERNEL_SOURCE = SD_TABLE[handle].SDx_KERNEL_SOURCE;\
 
-#if TARGET_NAME_IS_SandboxNucleoH7S3L8
-#endif
-#if TARGET_NAME_IS_SandboxNucleoH533RE
-#endif
-#if TARGET_NAME_IS_DemoI2C
-#endif
-#if TARGET_NAME_IS_DemoTimer
-#endif
-#if TARGET_NAME_IS_DemoSPI
-#endif
-#if TARGET_NAME_IS_DemoTimekeeping
-#endif
-#if TARGET_NAME_IS_DemoSDMMC
-
-    static void
-    _SD_update_entirely(enum SDHandle handle);
-
-    INTERRUPT_SDMMC1
-    {
-        _SD_update_entirely(SDHandle_primary);
-    }
-
-#endif
-#if TARGET_NAME_IS_SensorShield
-#endif
-#if TARGET_NAME_IS_MainFlightComputer
-#endif

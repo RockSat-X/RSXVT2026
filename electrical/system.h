@@ -600,41 +600,47 @@ halt_(b32 panicking) // @/`Halting`.
 
 
 
-/* #meta IMPLEMENT_DRIVER_ALIASES
+/* #meta IMPLEMENT_DRIVER_SUPPORT
 
-    def IMPLEMENT_DRIVER_ALIASES(
+    import types
+
+    def IMPLEMENT_DRIVER_SUPPORT(
         *,
-        driver_name,
+        driver_type,
         cmsis_name,
         common_name,
-        identifiers,
-        cmsis_tuple_tags,
+        entries,
     ):
 
         for target in PER_TARGET():
 
 
 
-            if driver_name not in target.drivers:
+            # e.g: Get all of the I2C drivers for the current target.
+
+            drivers = [
+                driver
+                for driver in target.drivers
+                if driver['type'] == driver_type
+            ]
+
+            if not drivers:
 
                 Meta.line(
-                    f'#error Target "{target.name}" cannot use the {driver_name} driver '
-                    f'without first specifying the peripheral instances to have handles for.'
+                    f'#error Target {repr(target.name)} defines no '
+                    f'handle for the {repr(driver_type)} driver.'
                 )
 
                 continue
 
 
 
-            # Have the user be able to specify a specific driver unit.
+            # e.g: Make enumeration of all I2C driver handles defined by the target.
 
             Meta.enums(
-                f'{driver_name}Handle',
+                f'{driver_type}Handle',
                 'u32',
-                (
-                    driver_settings['handle']
-                    for driver_settings in target.drivers[driver_name]
-                )
+                (driver['handle'] for driver in drivers)
             )
 
 
@@ -649,51 +655,128 @@ halt_(b32 panicking) // @/`Halting`.
 
 
 
-            # Create a look-up table to map the moniker
-            # name to the actual underyling value.
+            # e.g: Make a look-up table for the I2C driver so we can
+            #      read/write to registers based on an arbitrary I2C handle.
 
-            Meta.lut( f'{driver_name}_TABLE', (
-                (
-                    f'{driver_name}Handle_{driver_settings['handle']}',
-                    (common_name, driver_settings['peripheral']),
-                    *(
-                        (identifier.format(common_name), identifier.format(driver_settings['peripheral']))
-                        for identifier in identifiers
-                    ),
-                    *(
-                        (
-                            cmsis_tuple_tag.format(common_name),
-                            CMSIS_TUPLE(target.mcu, cmsis_tuple_tag.format(driver_settings['peripheral']))
-                        )
-                        for cmsis_tuple_tag in cmsis_tuple_tags
-                    )
+            fields = []
+
+            for entry in entries:
+
+                field = types.SimpleNamespace(
+                    identifier = None,
+                    values     = None,
                 )
-                for driver_settings in target.drivers[driver_name]
+
+                match entry:
+
+
+
+                    # The entry's value will be determined by a function given the driver.
+                    # If the function is not given, then it's assumed that the value
+                    # is the same as the entry's name but mapped with the driver's peripheral.
+
+                    case { 'name' : name, 'value' : function, **rest } if not rest:
+
+                        field.identifier = name.format(common_name)
+                        field.values     = [
+                            name.format(driver['peripheral']) if function is ... else function(driver)
+                            for driver in drivers
+                        ]
+
+
+
+                    # The entry's value has to be constructed as a CMSIS tuple.
+
+                    case { 'name' : name, 'cmsis_tuple' : Ellipses, **rest } if not rest:
+
+                        field.identifier = name.format(common_name)
+                        field.values     = [
+                            CMSIS_TUPLE(target.mcu, name.format(driver['peripheral']))
+                            for driver in drivers
+                        ]
+
+
+
+                    # This entry isn't part of the look-up table.
+
+                    case { 'interrupt' : name, **rest } if not rest:
+
+                        continue
+
+
+
+                    # Something else entirely...
+
+                    case unknown:
+
+                        raise ValueError(f'Unknown entry format: {repr(unknown)}.')
+
+
+
+                fields += [field]
+
+
+
+            # TODO Rework `Meta.lut`...
+
+            Meta.lut(f'{driver_type}_TABLE', (
+                (
+                    f'{driver_type}Handle_{driver['handle']}',
+                    *(
+                        (field.identifier, field.values[driver_i])
+                        for field in fields
+                    ),
+                ) for driver_i, driver in enumerate(drivers)
             ))
 
 
 
-        # Macro to mostly bring stuff in the
-        # look-up table into the local scope.
+            # e.g: All of the I2C interrupt routines will be redirected
+            #      to a common procedure of `_I2C_driver_interrupt`.
+
+            Meta.line(f'''
+                static void
+                _{driver_type}_driver_interrupt(enum {driver_type}Handle handle);
+            ''')
+
+            for driver in drivers:
+
+                for entry in entries:
+
+                    if (interrupt := entry.get('interrupt', None)) is not None:
+
+                        Meta.line(f'''
+                            {interrupt.format(driver['peripheral'])}
+                            {{
+                                _{driver_type}_driver_interrupt({driver_type}Handle_{driver['handle']});
+                            }}
+                        ''')
+
+
+
+        # e.g: Make a macro to bring all of the fields
+        #      in the look-up table into the local stack
+        #      given a I2C handle.
 
         Meta.line('#undef _EXPAND_HANDLE')
 
         with Meta.enter('#define _EXPAND_HANDLE'):
 
             Meta.line(f'''
-
-                if (!(0 <= handle && handle < {driver_name}Handle_COUNT))
-                {{
+                if (!(0 <= handle && handle < {driver_type}Handle_COUNT))
                     panic;
-                }}
-
-                struct {driver_name}Driver* const driver = &_{driver_name}_drivers[handle];
-
+                auto const driver = &_{driver_type}_drivers[handle];
             ''')
 
-            for alias in (common_name, *identifiers, *cmsis_tuple_tags):
+            for entry in entries:
+
+                if 'name' not in entry:
+                    continue
+
+                field = entry['name'].format(common_name)
+
                 Meta.line(f'''
-                    auto const {alias.format(common_name)} = {driver_name}_TABLE[handle].{alias.format(common_name)};
+                    auto const {field} = {driver_type}_TABLE[handle].{field};
                 ''')
 
 */

@@ -11,40 +11,24 @@
 #include "sdmmc_driver_support.meta"
 /* #meta
 
-    IMPLEMENT_DRIVER_ALIASES(
-        driver_name = 'SD',
+    IMPLEMENT_DRIVER_SUPPORT(
+        driver_type = 'SD',
         cmsis_name  = 'SDMMC',
         common_name = 'SDx',
-        identifiers = (
-            'NVICInterrupt_{}',
-            'STPY_{}_KERNEL_SOURCE',
-            'STPY_{}_INITIAL_DIVIDER',
-            'STPY_{}_INITIAL_DATATIME',
-            'STPY_{}_FULL_DIVIDER',
-            'STPY_{}_FULL_DATATIME',
-        ),
-        cmsis_tuple_tags = (
-            '{}_ENABLE',
-            '{}_RESET',
-            '{}_KERNEL_SOURCE',
+        entries     = (
+            { 'name'      : '{}'                      , 'value'       : ... },
+            { 'name'      : 'NVICInterrupt_{}'        , 'value'       : ... },
+            { 'name'      : 'STPY_{}_KERNEL_SOURCE'   , 'value'       : ... },
+            { 'name'      : 'STPY_{}_INITIAL_DIVIDER' , 'value'       : ... },
+            { 'name'      : 'STPY_{}_INITIAL_DATATIME', 'value'       : ... },
+            { 'name'      : 'STPY_{}_FULL_DIVIDER'    , 'value'       : ... },
+            { 'name'      : 'STPY_{}_FULL_DATATIME'   , 'value'       : ... },
+            { 'name'      : '{}_RESET'                , 'cmsis_tuple' : ... },
+            { 'name'      : '{}_ENABLE'               , 'cmsis_tuple' : ... },
+            { 'name'      : '{}_KERNEL_SOURCE'        , 'cmsis_tuple' : ... },
+            { 'interrupt' : 'INTERRUPT_{}'                                  },
         ),
     )
-
-    for target in PER_TARGET():
-
-        for driver_settings in target.drivers.get('SD', ()):
-
-            Meta.line(f'''
-
-                static void
-                _SD_update_entirely(enum SDHandle handle);
-
-                INTERRUPT_{driver_settings['peripheral']}
-                {{
-                    _SD_update_entirely(SDHandle_{driver_settings['handle']});
-                }}
-
-            ''')
 
 */
 
@@ -765,7 +749,7 @@ _SD_update_once(enum SDHandle handle)
 
 
 static void
-_SD_update_entirely(enum SDHandle handle)
+_SD_driver_interrupt(enum SDHandle handle)
 {
 
     _EXPAND_HANDLE
