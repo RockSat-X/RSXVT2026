@@ -19,14 +19,14 @@
 /* #meta
 
     IMPLEMENT_DRIVER_SUPPORT(
-        driver_name = 'UXART',
+        driver_type = 'UXART',
         cmsis_name  = 'USART',
         common_name = 'UXARTx',
         entries     = (
-            { 'name'      : '{}'                   , 'macro'       : ... },
-            { 'name'      : 'NVICInterrupt_{}'     , 'macro'       : ... },
-            { 'name'      : 'STPY_{}_KERNEL_SOURCE', 'macro'       : ... },
-            { 'name'      : 'STPY_{}_BAUD_DIVIDER' , 'macro'       : ... },
+            { 'name'      : '{}'                   , 'value'       : ... },
+            { 'name'      : 'NVICInterrupt_{}'     , 'value'       : ... },
+            { 'name'      : 'STPY_{}_KERNEL_SOURCE', 'value'       : ... },
+            { 'name'      : 'STPY_{}_BAUD_DIVIDER' , 'value'       : ... },
             { 'name'      : '{}_RESET'             , 'cmsis_tuple' : ... },
             { 'name'      : '{}_ENABLE'            , 'cmsis_tuple' : ... },
             { 'name'      : '{}_KERNEL_SOURCE'     , 'cmsis_tuple' : ... },
@@ -239,7 +239,7 @@ UXART_init(enum UXARTHandle handle)
 
 
 static void
-_UXART_update_entirely(enum UXARTHandle handle)
+_UXART_driver_interrupt(enum UXARTHandle handle)
 {
 
     _EXPAND_HANDLE

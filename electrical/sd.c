@@ -12,17 +12,17 @@
 /* #meta
 
     IMPLEMENT_DRIVER_SUPPORT(
-        driver_name = 'SD',
+        driver_type = 'SD',
         cmsis_name  = 'SDMMC',
         common_name = 'SDx',
         entries     = (
-            { 'name'      : '{}'                      , 'macro'       : ... },
-            { 'name'      : 'NVICInterrupt_{}'        , 'macro'       : ... },
-            { 'name'      : 'STPY_{}_KERNEL_SOURCE'   , 'macro'       : ... },
-            { 'name'      : 'STPY_{}_INITIAL_DIVIDER' , 'macro'       : ... },
-            { 'name'      : 'STPY_{}_INITIAL_DATATIME', 'macro'       : ... },
-            { 'name'      : 'STPY_{}_FULL_DIVIDER'    , 'macro'       : ... },
-            { 'name'      : 'STPY_{}_FULL_DATATIME'   , 'macro'       : ... },
+            { 'name'      : '{}'                      , 'value'       : ... },
+            { 'name'      : 'NVICInterrupt_{}'        , 'value'       : ... },
+            { 'name'      : 'STPY_{}_KERNEL_SOURCE'   , 'value'       : ... },
+            { 'name'      : 'STPY_{}_INITIAL_DIVIDER' , 'value'       : ... },
+            { 'name'      : 'STPY_{}_INITIAL_DATATIME', 'value'       : ... },
+            { 'name'      : 'STPY_{}_FULL_DIVIDER'    , 'value'       : ... },
+            { 'name'      : 'STPY_{}_FULL_DATATIME'   , 'value'       : ... },
             { 'name'      : '{}_RESET'                , 'cmsis_tuple' : ... },
             { 'name'      : '{}_ENABLE'               , 'cmsis_tuple' : ... },
             { 'name'      : '{}_KERNEL_SOURCE'        , 'cmsis_tuple' : ... },
@@ -749,7 +749,7 @@ _SD_update_once(enum SDHandle handle)
 
 
 static void
-_SD_update_entirely(enum SDHandle handle)
+_SD_driver_interrupt(enum SDHandle handle)
 {
 
     _EXPAND_HANDLE

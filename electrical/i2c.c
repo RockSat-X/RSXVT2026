@@ -23,25 +23,25 @@ enum I2CSlaveEvent : u32
 /* #meta
 
     IMPLEMENT_DRIVER_SUPPORT(
-        driver_name = 'I2C',
+        driver_type = 'I2C',
         cmsis_name  = 'I2C',
         common_name = 'I2Cx',
         entries     = (
             {
-                'name'    : '{}_DRIVER_ROLE',
-                'f_value' : lambda driver: f'I2CDriverRole_{driver['role']}',
+                'name'  : '{}_DRIVER_ROLE',
+                'value' : lambda driver: f'I2CDriverRole_{driver['role']}',
             },
             {
-                'name'    : '{}_SLAVE_ADDRESS',
-                'f_value' : lambda driver: f'((u16) 0x{driver.get('address', 0) :03X})',
+                'name'  : '{}_SLAVE_ADDRESS',
+                'value' : lambda driver: f'((u16) 0x{driver.get('address', 0) :03X})',
             },
-            { 'name'      : '{}'                   , 'macro'       : ... },
-            { 'name'      : 'NVICInterrupt_{}_EV'  , 'macro'       : ... },
-            { 'name'      : 'NVICInterrupt_{}_ER'  , 'macro'       : ... },
-            { 'name'      : 'STPY_{}_KERNEL_SOURCE', 'macro'       : ... },
-            { 'name'      : 'STPY_{}_PRESC'        , 'macro'       : ... },
-            { 'name'      : 'STPY_{}_SCLH'         , 'macro'       : ... },
-            { 'name'      : 'STPY_{}_SCLL'         , 'macro'       : ... },
+            { 'name'      : '{}'                   , 'value'       : ... },
+            { 'name'      : 'NVICInterrupt_{}_EV'  , 'value'       : ... },
+            { 'name'      : 'NVICInterrupt_{}_ER'  , 'value'       : ... },
+            { 'name'      : 'STPY_{}_KERNEL_SOURCE', 'value'       : ... },
+            { 'name'      : 'STPY_{}_PRESC'        , 'value'       : ... },
+            { 'name'      : 'STPY_{}_SCLH'         , 'value'       : ... },
+            { 'name'      : 'STPY_{}_SCLL'         , 'value'       : ... },
             { 'name'      : '{}_RESET'             , 'cmsis_tuple' : ... },
             { 'name'      : '{}_ENABLE'            , 'cmsis_tuple' : ... },
             { 'name'      : '{}_KERNEL_SOURCE'     , 'cmsis_tuple' : ... },
@@ -1007,7 +1007,7 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 static void
-_I2C_update_entirely(enum I2CHandle handle)
+_I2C_driver_interrupt(enum I2CHandle handle)
 {
 
     _EXPAND_HANDLE

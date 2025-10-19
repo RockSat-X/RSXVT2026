@@ -10,10 +10,10 @@
             [UXARTHandle_stlink] = { .UXARTx = USART3, .NVICInterrupt_UXARTx = NVICInterrupt_USART3, .STPY_UXARTx_KERNEL_SOURCE = STPY_USART3_KERNEL_SOURCE, .STPY_UXARTx_BAUD_DIVIDER = STPY_USART3_BAUD_DIVIDER, .UXARTx_RESET = (struct CMSISTuple) { &RCC->APB1RSTR1, CONCAT(RCC_, APB1RSTR1_USART3RST_Pos), CONCAT(RCC_, APB1RSTR1_USART3RST_Msk) }, .UXARTx_ENABLE = (struct CMSISTuple) { &RCC->APB1ENR1, CONCAT(RCC_, APB1ENR1_USART3EN_Pos), CONCAT(RCC_, APB1ENR1_USART3EN_Msk) }, .UXARTx_KERNEL_SOURCE = (struct CMSISTuple) { &RCC->CCIPR2, CONCAT(RCC_, CCIPR2_UART234578SEL_Pos), CONCAT(RCC_, CCIPR2_UART234578SEL_Msk) } },
         };
     static void
-    _UXART_update_entirely(enum UXARTHandle handle);
+    _UXART_driver_interrupt(enum UXARTHandle handle);
     INTERRUPT_USART3
     {
-        _UXART_update_entirely(UXARTHandle_stlink);
+        _UXART_driver_interrupt(UXARTHandle_stlink);
     }
 #endif
 #if TARGET_NAME_IS_SandboxNucleoH533RE
@@ -28,10 +28,10 @@
             [UXARTHandle_stlink] = { .UXARTx = USART2, .NVICInterrupt_UXARTx = NVICInterrupt_USART2, .STPY_UXARTx_KERNEL_SOURCE = STPY_USART2_KERNEL_SOURCE, .STPY_UXARTx_BAUD_DIVIDER = STPY_USART2_BAUD_DIVIDER, .UXARTx_RESET = (struct CMSISTuple) { &RCC->APB1LRSTR, CONCAT(RCC_, APB1LRSTR_USART2RST_Pos), CONCAT(RCC_, APB1LRSTR_USART2RST_Msk) }, .UXARTx_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_USART2EN_Pos), CONCAT(RCC_, APB1LENR_USART2EN_Msk) }, .UXARTx_KERNEL_SOURCE = (struct CMSISTuple) { &RCC->CCIPR1, CONCAT(RCC_, CCIPR1_USART2SEL_Pos), CONCAT(RCC_, CCIPR1_USART2SEL_Msk) } },
         };
     static void
-    _UXART_update_entirely(enum UXARTHandle handle);
+    _UXART_driver_interrupt(enum UXARTHandle handle);
     INTERRUPT_USART2
     {
-        _UXART_update_entirely(UXARTHandle_stlink);
+        _UXART_driver_interrupt(UXARTHandle_stlink);
     }
 #endif
 #if TARGET_NAME_IS_DemoI2C
@@ -46,10 +46,10 @@
             [UXARTHandle_stlink] = { .UXARTx = USART2, .NVICInterrupt_UXARTx = NVICInterrupt_USART2, .STPY_UXARTx_KERNEL_SOURCE = STPY_USART2_KERNEL_SOURCE, .STPY_UXARTx_BAUD_DIVIDER = STPY_USART2_BAUD_DIVIDER, .UXARTx_RESET = (struct CMSISTuple) { &RCC->APB1LRSTR, CONCAT(RCC_, APB1LRSTR_USART2RST_Pos), CONCAT(RCC_, APB1LRSTR_USART2RST_Msk) }, .UXARTx_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_USART2EN_Pos), CONCAT(RCC_, APB1LENR_USART2EN_Msk) }, .UXARTx_KERNEL_SOURCE = (struct CMSISTuple) { &RCC->CCIPR1, CONCAT(RCC_, CCIPR1_USART2SEL_Pos), CONCAT(RCC_, CCIPR1_USART2SEL_Msk) } },
         };
     static void
-    _UXART_update_entirely(enum UXARTHandle handle);
+    _UXART_driver_interrupt(enum UXARTHandle handle);
     INTERRUPT_USART2
     {
-        _UXART_update_entirely(UXARTHandle_stlink);
+        _UXART_driver_interrupt(UXARTHandle_stlink);
     }
 #endif
 #if TARGET_NAME_IS_DemoTimer
@@ -64,10 +64,10 @@
             [UXARTHandle_stlink] = { .UXARTx = USART2, .NVICInterrupt_UXARTx = NVICInterrupt_USART2, .STPY_UXARTx_KERNEL_SOURCE = STPY_USART2_KERNEL_SOURCE, .STPY_UXARTx_BAUD_DIVIDER = STPY_USART2_BAUD_DIVIDER, .UXARTx_RESET = (struct CMSISTuple) { &RCC->APB1LRSTR, CONCAT(RCC_, APB1LRSTR_USART2RST_Pos), CONCAT(RCC_, APB1LRSTR_USART2RST_Msk) }, .UXARTx_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_USART2EN_Pos), CONCAT(RCC_, APB1LENR_USART2EN_Msk) }, .UXARTx_KERNEL_SOURCE = (struct CMSISTuple) { &RCC->CCIPR1, CONCAT(RCC_, CCIPR1_USART2SEL_Pos), CONCAT(RCC_, CCIPR1_USART2SEL_Msk) } },
         };
     static void
-    _UXART_update_entirely(enum UXARTHandle handle);
+    _UXART_driver_interrupt(enum UXARTHandle handle);
     INTERRUPT_USART2
     {
-        _UXART_update_entirely(UXARTHandle_stlink);
+        _UXART_driver_interrupt(UXARTHandle_stlink);
     }
 #endif
 #if TARGET_NAME_IS_DemoSPI
@@ -82,10 +82,10 @@
             [UXARTHandle_stlink] = { .UXARTx = USART2, .NVICInterrupt_UXARTx = NVICInterrupt_USART2, .STPY_UXARTx_KERNEL_SOURCE = STPY_USART2_KERNEL_SOURCE, .STPY_UXARTx_BAUD_DIVIDER = STPY_USART2_BAUD_DIVIDER, .UXARTx_RESET = (struct CMSISTuple) { &RCC->APB1LRSTR, CONCAT(RCC_, APB1LRSTR_USART2RST_Pos), CONCAT(RCC_, APB1LRSTR_USART2RST_Msk) }, .UXARTx_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_USART2EN_Pos), CONCAT(RCC_, APB1LENR_USART2EN_Msk) }, .UXARTx_KERNEL_SOURCE = (struct CMSISTuple) { &RCC->CCIPR1, CONCAT(RCC_, CCIPR1_USART2SEL_Pos), CONCAT(RCC_, CCIPR1_USART2SEL_Msk) } },
         };
     static void
-    _UXART_update_entirely(enum UXARTHandle handle);
+    _UXART_driver_interrupt(enum UXARTHandle handle);
     INTERRUPT_USART2
     {
-        _UXART_update_entirely(UXARTHandle_stlink);
+        _UXART_driver_interrupt(UXARTHandle_stlink);
     }
 #endif
 #if TARGET_NAME_IS_DemoTimekeeping
@@ -100,10 +100,10 @@
             [UXARTHandle_stlink] = { .UXARTx = USART2, .NVICInterrupt_UXARTx = NVICInterrupt_USART2, .STPY_UXARTx_KERNEL_SOURCE = STPY_USART2_KERNEL_SOURCE, .STPY_UXARTx_BAUD_DIVIDER = STPY_USART2_BAUD_DIVIDER, .UXARTx_RESET = (struct CMSISTuple) { &RCC->APB1LRSTR, CONCAT(RCC_, APB1LRSTR_USART2RST_Pos), CONCAT(RCC_, APB1LRSTR_USART2RST_Msk) }, .UXARTx_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_USART2EN_Pos), CONCAT(RCC_, APB1LENR_USART2EN_Msk) }, .UXARTx_KERNEL_SOURCE = (struct CMSISTuple) { &RCC->CCIPR1, CONCAT(RCC_, CCIPR1_USART2SEL_Pos), CONCAT(RCC_, CCIPR1_USART2SEL_Msk) } },
         };
     static void
-    _UXART_update_entirely(enum UXARTHandle handle);
+    _UXART_driver_interrupt(enum UXARTHandle handle);
     INTERRUPT_USART2
     {
-        _UXART_update_entirely(UXARTHandle_stlink);
+        _UXART_driver_interrupt(UXARTHandle_stlink);
     }
 #endif
 #if TARGET_NAME_IS_DemoSDMMC
@@ -118,10 +118,10 @@
             [UXARTHandle_stlink] = { .UXARTx = USART2, .NVICInterrupt_UXARTx = NVICInterrupt_USART2, .STPY_UXARTx_KERNEL_SOURCE = STPY_USART2_KERNEL_SOURCE, .STPY_UXARTx_BAUD_DIVIDER = STPY_USART2_BAUD_DIVIDER, .UXARTx_RESET = (struct CMSISTuple) { &RCC->APB1LRSTR, CONCAT(RCC_, APB1LRSTR_USART2RST_Pos), CONCAT(RCC_, APB1LRSTR_USART2RST_Msk) }, .UXARTx_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_USART2EN_Pos), CONCAT(RCC_, APB1LENR_USART2EN_Msk) }, .UXARTx_KERNEL_SOURCE = (struct CMSISTuple) { &RCC->CCIPR1, CONCAT(RCC_, CCIPR1_USART2SEL_Pos), CONCAT(RCC_, CCIPR1_USART2SEL_Msk) } },
         };
     static void
-    _UXART_update_entirely(enum UXARTHandle handle);
+    _UXART_driver_interrupt(enum UXARTHandle handle);
     INTERRUPT_USART2
     {
-        _UXART_update_entirely(UXARTHandle_stlink);
+        _UXART_driver_interrupt(UXARTHandle_stlink);
     }
 #endif
 #if TARGET_NAME_IS_SensorShield
@@ -136,25 +136,20 @@
             [UXARTHandle_stlink] = { .UXARTx = USART2, .NVICInterrupt_UXARTx = NVICInterrupt_USART2, .STPY_UXARTx_KERNEL_SOURCE = STPY_USART2_KERNEL_SOURCE, .STPY_UXARTx_BAUD_DIVIDER = STPY_USART2_BAUD_DIVIDER, .UXARTx_RESET = (struct CMSISTuple) { &RCC->APB1LRSTR, CONCAT(RCC_, APB1LRSTR_USART2RST_Pos), CONCAT(RCC_, APB1LRSTR_USART2RST_Msk) }, .UXARTx_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_USART2EN_Pos), CONCAT(RCC_, APB1LENR_USART2EN_Msk) }, .UXARTx_KERNEL_SOURCE = (struct CMSISTuple) { &RCC->CCIPR1, CONCAT(RCC_, CCIPR1_USART2SEL_Pos), CONCAT(RCC_, CCIPR1_USART2SEL_Msk) } },
         };
     static void
-    _UXART_update_entirely(enum UXARTHandle handle);
+    _UXART_driver_interrupt(enum UXARTHandle handle);
     INTERRUPT_USART2
     {
-        _UXART_update_entirely(UXARTHandle_stlink);
+        _UXART_driver_interrupt(UXARTHandle_stlink);
     }
 #endif
 #if TARGET_NAME_IS_MainFlightComputer
-    #error Target "MainFlightComputer" cannot use the UXART driver without first specifying the peripheral instances to have handles for.
+    #error Target 'MainFlightComputer' defines no handle for the 'UXART' driver.
 #endif
 #undef _EXPAND_HANDLE
 #define _EXPAND_HANDLE\
-    \
     if (!(0 <= handle && handle < UXARTHandle_COUNT))\
-    {\
         panic;\
-    }\
-    \
-    struct UXARTDriver* const driver = &_UXART_drivers[handle];\
-    \
+    auto const driver = &_UXART_drivers[handle];\
     auto const UXARTx = UXART_TABLE[handle].UXARTx;\
     auto const NVICInterrupt_UXARTx = UXART_TABLE[handle].NVICInterrupt_UXARTx;\
     auto const STPY_UXARTx_KERNEL_SOURCE = UXART_TABLE[handle].STPY_UXARTx_KERNEL_SOURCE;\

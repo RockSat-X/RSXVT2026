@@ -6,15 +6,15 @@
 /* #meta
 
     IMPLEMENT_DRIVER_SUPPORT(
-        driver_name = 'SPI',
+        driver_type = 'SPI',
         cmsis_name  = 'SPI',
         common_name = 'SPIx',
         entries     = (
-            { 'name'      : '{}'                    , 'macro'       : ... },
-            { 'name'      : 'NVICInterrupt_{}'      , 'macro'       : ... },
-            { 'name'      : 'STPY_{}_KERNEL_SOURCE' , 'macro'       : ... },
-            { 'name'      : 'STPY_{}_BYPASS_DIVIDER', 'macro'       : ... },
-            { 'name'      : 'STPY_{}_DIVIDER'       , 'macro'       : ... },
+            { 'name'      : '{}'                    , 'value'       : ... },
+            { 'name'      : 'NVICInterrupt_{}'      , 'value'       : ... },
+            { 'name'      : 'STPY_{}_KERNEL_SOURCE' , 'value'       : ... },
+            { 'name'      : 'STPY_{}_BYPASS_DIVIDER', 'value'       : ... },
+            { 'name'      : 'STPY_{}_DIVIDER'       , 'value'       : ... },
             { 'name'      : '{}_RESET'              , 'cmsis_tuple' : ... },
             { 'name'      : '{}_ENABLE'             , 'cmsis_tuple' : ... },
             { 'name'      : '{}_KERNEL_SOURCE'      , 'cmsis_tuple' : ... },
@@ -502,7 +502,7 @@ _SPI_update_once(enum SPIHandle handle)
 
 
 static void
-_SPI_update_entirely(enum SPIHandle handle)
+_SPI_driver_interrupt(enum SPIHandle handle)
 {
 
     _EXPAND_HANDLE
