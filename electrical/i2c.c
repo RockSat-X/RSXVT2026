@@ -22,16 +22,37 @@ enum I2CSlaveEvent : u32
 #include "i2c_driver_support.meta"
 /* #meta
 
-
+    IMPLEMENT_DRIVER_SUPPORT(
+        driver_name = 'I2C',
+        cmsis_name  = 'I2C',
+        common_name = 'I2Cx',
+        entries     = (
+            {
+                'name'    : '{}_DRIVER_ROLE',
+                'f_value' : lambda driver: f'I2CDriverRole_{driver['role']}',
+            },
+            {
+                'name'    : '{}_SLAVE_ADDRESS',
+                'f_value' : lambda driver: f'((u16) 0x{driver.get('address', 0) :03X})',
+            },
+            { 'name'      : '{}'                   , 'macro'       : ... },
+            { 'name'      : 'NVICInterrupt_{}_EV'  , 'macro'       : ... },
+            { 'name'      : 'NVICInterrupt_{}_ER'  , 'macro'       : ... },
+            { 'name'      : 'STPY_{}_KERNEL_SOURCE', 'macro'       : ... },
+            { 'name'      : 'STPY_{}_PRESC'        , 'macro'       : ... },
+            { 'name'      : 'STPY_{}_SCLH'         , 'macro'       : ... },
+            { 'name'      : 'STPY_{}_SCLL'         , 'macro'       : ... },
+            { 'name'      : '{}_RESET'             , 'cmsis_tuple' : ... },
+            { 'name'      : '{}_ENABLE'            , 'cmsis_tuple' : ... },
+            { 'name'      : '{}_KERNEL_SOURCE'     , 'cmsis_tuple' : ... },
+            { 'interrupt' : 'INTERRUPT_{}_EV'                            },
+            { 'interrupt' : 'INTERRUPT_{}_ER'                            },
+        ),
+    )
 
     for target in PER_TARGET():
 
         for driver_settings in target.drivers.get('I2C', ()):
-
-            Meta.define(
-                f'{driver_settings['peripheral']}_DRIVER_ROLE',
-                f'I2CDriverRole_{driver_settings['role']}'
-            )
 
             address = driver_settings.get('address', None)
 
@@ -41,57 +62,6 @@ enum I2CSlaveEvent : u32
                     f'I2C peripheral {repr(driver_settings['handle'])} '
                     f'with invalid 7-bit address of {repr(address)}.'
                 )
-
-            Meta.define(
-                f'{driver_settings['peripheral']}_SLAVE_ADDRESS',
-                f'((u16) 0x{driver_settings['address'] if address is not None else 0 :03X})'
-            )
-
-
-
-    IMPLEMENT_DRIVER_ALIASES(
-        driver_name = 'I2C',
-        cmsis_name  = 'I2C',
-        common_name = 'I2Cx',
-        identifiers = (
-            'NVICInterrupt_{}_EV',
-            'NVICInterrupt_{}_ER',
-            'STPY_{}_KERNEL_SOURCE',
-            'STPY_{}_PRESC',
-            'STPY_{}_SCLH',
-            'STPY_{}_SCLL',
-            '{}_DRIVER_ROLE',
-            '{}_SLAVE_ADDRESS',
-        ),
-        cmsis_tuple_tags = (
-            '{}_RESET',
-            '{}_ENABLE',
-            '{}_KERNEL_SOURCE',
-        ),
-    )
-
-
-
-    for target in PER_TARGET():
-
-
-
-        for driver_settings in target.drivers.get('I2C', ()):
-
-            for suffix in ('EV', 'ER'):
-                Meta.line(f'''
-
-                    static void
-                    _I2C_update_entirely(enum I2CHandle handle);
-
-                    INTERRUPT_{driver_settings['peripheral']}_{suffix}
-                    {{
-                        _I2C_update_entirely(I2CHandle_{driver_settings['handle']});
-                    }}
-
-                ''')
-
-
 
         if any(driver_settings['role'] == 'slave' for driver_settings in target.drivers.get('I2C', ())):
 

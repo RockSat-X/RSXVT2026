@@ -600,15 +600,16 @@ halt_(b32 panicking) // @/`Halting`.
 
 
 
-/* #meta IMPLEMENT_DRIVER_ALIASES
+/* #meta IMPLEMENT_DRIVER_SUPPORT
 
-    def IMPLEMENT_DRIVER_ALIASES(
+    import types
+
+    def IMPLEMENT_DRIVER_SUPPORT(
         *,
         driver_name,
         cmsis_name,
         common_name,
-        identifiers,
-        cmsis_tuple_tags,
+        entries,
     ):
 
         for target in PER_TARGET():
@@ -649,32 +650,126 @@ halt_(b32 panicking) // @/`Halting`.
 
 
 
-            # Create a look-up table to map the moniker
-            # name to the actual underyling value.
+            # TODO.
 
-            Meta.lut( f'{driver_name}_TABLE', (
-                (
-                    f'{driver_name}Handle_{driver_settings['handle']}',
-                    (common_name, driver_settings['peripheral']),
-                    *(
-                        (identifier.format(common_name), identifier.format(driver_settings['peripheral']))
-                        for identifier in identifiers
-                    ),
-                    *(
-                        (
-                            cmsis_tuple_tag.format(common_name),
-                            CMSIS_TUPLE(target.mcu, cmsis_tuple_tag.format(driver_settings['peripheral']))
-                        )
-                        for cmsis_tuple_tag in cmsis_tuple_tags
-                    )
+            fields = []
+
+            for entry in entries:
+
+                field = types.SimpleNamespace(
+                    identifier = None,
+                    type       = None,
+                    values     = [],
                 )
-                for driver_settings in target.drivers[driver_name]
+
+                match entry:
+
+
+
+                    # TODO.
+
+                    case { 'name' : name, 'f_value' : f_value, **rest } if not rest:
+
+                        field.identifier = name.format(common_name)
+                        field.type       = ...
+
+                        for driver in target.drivers[driver_name]:
+
+                            field.values += [f_value(driver)]
+
+
+
+                    # TODO.
+
+                    case { 'name' : name, 'macro' : Ellipses, **rest } if not rest:
+
+                        field.identifier = name.format(common_name)
+                        field.type       = ...
+
+                        for driver in target.drivers[driver_name]:
+
+                            field.values += [name.format(driver['peripheral'])]
+
+
+
+                    # TODO.
+
+                    case { 'name' : name, 'cmsis_tuple' : Ellipses, **rest } if not rest:
+
+                        field.identifier = name.format(common_name)
+                        field.type       = ...
+
+                        for driver in target.drivers[driver_name]:
+
+                            field.values += [CMSIS_TUPLE(target.mcu, name.format(driver['peripheral']))]
+
+
+
+                    # TODO.
+
+                    case { 'interrupt' : name, **rest } if not rest:
+
+                        continue
+
+
+
+                    # TODO.
+
+                    case unknown:
+
+                        raise ValueError(f'Unknown entry format: {repr(unknown)}.')
+
+
+
+                # TODO.
+
+                if field.type is ...:
+
+                    field.type = f'typeof({field.values[0]})'
+
+
+
+                fields += [field]
+
+
+
+            # TODO.
+
+            Meta.lut(f'{driver_name}_TABLE', (
+                (
+                    f'{driver_name}Handle_{driver['handle']}',
+                    *(
+                        (field.type, field.identifier, field.values[driver_i])
+                        for field in fields
+                    ),
+                ) for driver_i, driver in enumerate(target.drivers[driver_name])
             ))
 
 
 
-        # Macro to mostly bring stuff in the
-        # look-up table into the local scope.
+            # TODO.
+
+            Meta.line(f'''
+                static void
+                _{driver_name}_update_entirely(enum {driver_name}Handle handle);
+            ''')
+
+            for driver in target.drivers[driver_name]:
+
+                for entry in entries:
+
+                    if 'interrupt' not in entry:
+                        continue
+
+                    interrupt = entry['interrupt']
+
+                    with Meta.enter(interrupt.format(driver['peripheral'])):
+
+                        Meta.line(f'_{driver_name}_update_entirely({driver_name}Handle_{driver['handle']});')
+
+
+
+        # TODO.
 
         Meta.line('#undef _EXPAND_HANDLE')
 
@@ -691,10 +786,11 @@ halt_(b32 panicking) // @/`Halting`.
 
             ''')
 
-            for alias in (common_name, *identifiers, *cmsis_tuple_tags):
-                Meta.line(f'''
-                    auto const {alias.format(common_name)} = {driver_name}_TABLE[handle].{alias.format(common_name)};
-                ''')
+            for entry in entries:
+                if 'name' in entry:
+                    Meta.line(f'''
+                        auto const {entry['name'].format(common_name)} = {driver_name}_TABLE[handle].{entry['name'].format(common_name)};
+                    ''')
 
 */
 
