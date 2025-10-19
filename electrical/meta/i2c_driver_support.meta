@@ -92,61 +92,52 @@
     auto const I2Cx_KERNEL_SOURCE = I2C_TABLE[handle].I2Cx_KERNEL_SOURCE;\
 
 #if TARGET_NAME_IS_SandboxNucleoH7S3L8
-    static void
-    INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
+    static void INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
     {
         panic;
     }
 #endif
 #if TARGET_NAME_IS_SandboxNucleoH533RE
-    static void
-    INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
+    static void INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
     {
         panic;
     }
 #endif
 #if TARGET_NAME_IS_DemoI2C
-    static void
-    INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data);
+    static void INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data);
 #endif
 #if TARGET_NAME_IS_DemoTimer
-    static void
-    INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
+    static void INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
     {
         panic;
     }
 #endif
 #if TARGET_NAME_IS_DemoSPI
-    static void
-    INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
+    static void INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
     {
         panic;
     }
 #endif
 #if TARGET_NAME_IS_DemoTimekeeping
-    static void
-    INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
+    static void INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
     {
         panic;
     }
 #endif
 #if TARGET_NAME_IS_DemoSDMMC
-    static void
-    INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
+    static void INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
     {
         panic;
     }
 #endif
 #if TARGET_NAME_IS_SensorShield
-    static void
-    INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
+    static void INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
     {
         panic;
     }
 #endif
 #if TARGET_NAME_IS_MainFlightComputer
-    static void
-    INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
+    static void INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
     {
         panic;
     }

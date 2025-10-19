@@ -50,37 +50,53 @@ enum I2CSlaveEvent : u32
         ),
     )
 
+
+
     for target in PER_TARGET():
 
-        for driver_settings in target.drivers:
+        slave_drivers = [
+            driver
+            for driver in target.drivers
+            if driver['type'] == 'I2C'
+            if driver['role'] == 'slave'
+        ]
 
-            if driver_settings['type'] != 'I2C':
+
+
+        # Make sure slave addresses are valid.
+
+        for driver in slave_drivers:
+
+            if 0b0000_1000 <= driver['address'] <= 0b0111_0111:
                 continue
 
-            address = driver_settings.get('address', None)
+            raise ValueError(
+                f'Target {repr(target.name)} has '
+                f'I2C peripheral {repr(driver['handle'])} '
+                f'with invalid 7-bit address of {repr(driver['address'])}.'
+            )
 
-            if address is not None and not (0b0000_1000 <= address <= 0b0111_0111):
-                raise ValueError(
-                    f'Target {repr(target.name)} has '
-                    f'I2C peripheral {repr(driver_settings['handle'])} '
-                    f'with invalid 7-bit address of {repr(address)}.'
-                )
 
-        if any(driver_settings['type'] == 'I2C' and driver_settings['role'] == 'slave' for driver_settings in target.drivers):
 
-            Meta.line('''
-                static void
-                INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data);
+        # If an I2C slave driver is used, the user will
+        # need to define the slave callback. Otherwise,
+        # we define a dummy callback procedure.
+
+        prototype = f'static void INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)'
+
+        if slave_drivers:
+
+            Meta.line(f'''
+                {prototype};
             ''')
 
         else:
 
-            Meta.line('''
-                static void
-                INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
-                {
+            Meta.line(f'''
+                {prototype}
+                {{
                     panic;
-                }
+                }}
             ''')
 
 */
