@@ -615,8 +615,10 @@ halt_(b32 panicking) // @/`Halting`.
         for target in PER_TARGET():
 
 
+            drivers = [driver for driver in target.drivers if driver['type'] == driver_name]
 
-            if driver_name not in target.drivers:
+
+            if not drivers:
 
                 Meta.line(
                     f'#error Target "{target.name}" cannot use the {driver_name} driver '
@@ -634,7 +636,7 @@ halt_(b32 panicking) // @/`Halting`.
                 'u32',
                 (
                     driver_settings['handle']
-                    for driver_settings in target.drivers[driver_name]
+                    for driver_settings in drivers
                 )
             )
 
@@ -673,7 +675,7 @@ halt_(b32 panicking) // @/`Halting`.
                         field.identifier = name.format(common_name)
                         field.type       = ...
 
-                        for driver in target.drivers[driver_name]:
+                        for driver in drivers:
 
                             field.values += [f_value(driver)]
 
@@ -686,7 +688,7 @@ halt_(b32 panicking) // @/`Halting`.
                         field.identifier = name.format(common_name)
                         field.type       = ...
 
-                        for driver in target.drivers[driver_name]:
+                        for driver in drivers:
 
                             field.values += [name.format(driver['peripheral'])]
 
@@ -699,7 +701,7 @@ halt_(b32 panicking) // @/`Halting`.
                         field.identifier = name.format(common_name)
                         field.type       = ...
 
-                        for driver in target.drivers[driver_name]:
+                        for driver in drivers:
 
                             field.values += [CMSIS_TUPLE(target.mcu, name.format(driver['peripheral']))]
 
@@ -742,7 +744,7 @@ halt_(b32 panicking) // @/`Halting`.
                         (field.type, field.identifier, field.values[driver_i])
                         for field in fields
                     ),
-                ) for driver_i, driver in enumerate(target.drivers[driver_name])
+                ) for driver_i, driver in enumerate(drivers)
             ))
 
 
@@ -754,7 +756,7 @@ halt_(b32 panicking) // @/`Halting`.
                 _{driver_name}_update_entirely(enum {driver_name}Handle handle);
             ''')
 
-            for driver in target.drivers[driver_name]:
+            for driver in drivers:
 
                 for entry in entries:
 

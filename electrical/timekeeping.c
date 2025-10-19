@@ -11,10 +11,13 @@
         # a hardware timer to have a counter frequency of 1MHz in order
         # to achieve microsecond granularity.
 
-        timer = target.drivers.get('TIMEKEEPING', None)
+        driver = [driver for driver in target.drivers if driver['type'] == 'TIMEKEEPING']
 
-        if timer is None:
+        if not driver:
             continue
+
+        driver, = driver
+        timer   = driver['peripheral']
 
         if target.schema.get(property := f'{timer}_COUNTER_RATE', None) != 1_000_000:
             raise ValueError(

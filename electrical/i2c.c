@@ -52,7 +52,10 @@ enum I2CSlaveEvent : u32
 
     for target in PER_TARGET():
 
-        for driver_settings in target.drivers.get('I2C', ()):
+        for driver_settings in target.drivers:
+
+            if driver_settings['type'] != 'I2C':
+                continue
 
             address = driver_settings.get('address', None)
 
@@ -63,7 +66,7 @@ enum I2CSlaveEvent : u32
                     f'with invalid 7-bit address of {repr(address)}.'
                 )
 
-        if any(driver_settings['role'] == 'slave' for driver_settings in target.drivers.get('I2C', ())):
+        if any(driver_settings['type'] == 'I2C' and driver_settings['role'] == 'slave' for driver_settings in target.drivers):
 
             Meta.line('''
                 static void
