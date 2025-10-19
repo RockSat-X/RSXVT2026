@@ -112,6 +112,206 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Connector_Generic:Conn_01x04"
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "J"
+				(at 0 5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "Conn_01x04"
+				(at 0 -7.62 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "connector"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "Connector*:*_1x??_*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "Conn_01x04_1_1"
+				(rectangle
+					(start -1.27 3.81)
+					(end 1.27 -6.35)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(rectangle
+					(start -1.27 2.667)
+					(end 0 2.413)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 0.127)
+					(end 0 -0.127)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 -2.413)
+					(end 0 -2.667)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 -4.953)
+					(end 0 -5.207)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(pin passive line
+					(at -5.08 2.54 0)
+					(length 3.81)
+					(name "Pin_1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 0 0)
+					(length 3.81)
+					(name "Pin_2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -2.54 0)
+					(length 3.81)
+					(name "Pin_3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -5.08 0)
+					(length 3.81)
+					(name "Pin_4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "Device:C_Polarized"
 			(pin_numbers
 				(hide yes)
@@ -2267,6 +2467,36 @@
 		)
 		(uuid "064d686c-7925-409e-b61b-d2eabc760751")
 	)
+	(text "TODO: Uncertain about connector."
+		(exclude_from_sim no)
+		(at 344.678 283.972 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+				(bold yes)
+				(italic yes)
+				(color 255 0 255 1)
+			)
+			(justify left)
+		)
+		(uuid "0959a173-99d6-428d-82e9-83afc5b92b66")
+	)
+	(text "TODO: Uncertain about connector."
+		(exclude_from_sim no)
+		(at 344.678 245.872 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+				(bold yes)
+				(italic yes)
+				(color 255 0 255 1)
+			)
+			(justify left)
+		)
+		(uuid "1188f1fb-374b-4f8b-83c6-61af20c39978")
+	)
 	(text "TODO: Tests should be done on what happens if the stepper motors are turned."
 		(exclude_from_sim no)
 		(at 180.594 94.742 0)
@@ -2335,6 +2565,21 @@
 			(justify left top)
 		)
 		(uuid "5df4d917-bec5-4d78-ba82-2fe0c054b3c1")
+	)
+	(text "TODO: Uncertain about connector."
+		(exclude_from_sim no)
+		(at 344.678 258.572 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+				(bold yes)
+				(italic yes)
+				(color 255 0 255 1)
+			)
+			(justify left)
+		)
+		(uuid "690ebbca-d500-4f90-9822-332be7f48001")
 	)
 	(text "TODO: Not sure what these guys do."
 		(exclude_from_sim no)
@@ -2431,6 +2676,21 @@
 		)
 		(uuid "e11e2594-f926-4aab-8b75-72afaf33a2e7")
 	)
+	(text "TODO: Uncertain about connector."
+		(exclude_from_sim no)
+		(at 344.678 271.272 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+				(bold yes)
+				(italic yes)
+				(color 255 0 255 1)
+			)
+			(justify left)
+		)
+		(uuid "fe08dc02-d8f8-4a5a-b788-20c4fbb669f6")
+	)
 	(junction
 		(at 411.48 111.76)
 		(diameter 0)
@@ -2498,8 +2758,72 @@
 		(uuid "eccf3b4b-d468-4b22-81da-f9203ca347cb")
 	)
 	(no_connect
+		(at 331.47 243.84)
+		(uuid "05e2d1dc-6920-468a-9bc2-0cfaebef7dcc")
+	)
+	(no_connect
+		(at 331.47 269.24)
+		(uuid "09f41d2a-a508-4a7f-b45e-21c1cb2ae8e7")
+	)
+	(no_connect
+		(at 331.47 251.46)
+		(uuid "12de765a-5bcb-47a6-89b2-c70cc0ea1d30")
+	)
+	(no_connect
+		(at 331.47 271.78)
+		(uuid "177dc1d2-95d1-4068-a5a6-a53fb8f2b147")
+	)
+	(no_connect
+		(at 331.47 281.94)
+		(uuid "1dd8f6aa-dace-4c1a-b4d1-adefc9cffc03")
+	)
+	(no_connect
+		(at 331.47 259.08)
+		(uuid "3218bf8c-fed2-4caa-a3c3-910803065c3e")
+	)
+	(no_connect
+		(at 331.47 261.62)
+		(uuid "36c9a791-31bd-4c8f-ac9e-23d59d642b88")
+	)
+	(no_connect
+		(at 331.47 248.92)
+		(uuid "3b30aff8-300f-4d75-84ce-ea1b96d8d13a")
+	)
+	(no_connect
+		(at 331.47 287.02)
+		(uuid "3c8d0c57-40cf-4356-adf5-7907aa841f83")
+	)
+	(no_connect
+		(at 331.47 274.32)
+		(uuid "4ffaf6c6-2ddf-47a0-b1c1-97feaec47248")
+	)
+	(no_connect
+		(at 331.47 284.48)
+		(uuid "5041d0b8-f15e-4623-9dcf-2a7f3aed477a")
+	)
+	(no_connect
+		(at 331.47 276.86)
+		(uuid "50cf736a-4ea9-4e14-8707-2b92204cc235")
+	)
+	(no_connect
 		(at 336.55 165.1)
 		(uuid "51800032-f643-4baa-aafe-bff1f7a91102")
+	)
+	(no_connect
+		(at 331.47 246.38)
+		(uuid "5a57f7ab-7bb5-470e-95e1-c14fcc82cc15")
+	)
+	(no_connect
+		(at 331.47 256.54)
+		(uuid "8d953279-68b6-4029-bcde-bdd14a003339")
+	)
+	(no_connect
+		(at 331.47 289.56)
+		(uuid "9164e6cc-9187-4004-9277-9692d97fdfff")
+	)
+	(no_connect
+		(at 331.47 264.16)
+		(uuid "f0925739-f7e4-4e30-a032-1bda6870a2fb")
 	)
 	(wire
 		(pts
@@ -3900,6 +4224,82 @@
 		)
 	)
 	(symbol
+		(lib_id "Connector_Generic:Conn_01x04")
+		(at 336.55 259.08 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "3fc650d7-c960-4f6c-b5ec-b9623c274c96")
+		(property "Reference" "J2"
+			(at 339.09 259.0799 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "JST-PH"
+			(at 339.09 261.6199 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical"
+			(at 336.55 259.08 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 336.55 259.08 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(at 336.55 259.08 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "4"
+			(uuid "0f460a13-d0c8-43d6-897d-cc8f83e45ff4")
+		)
+		(pin "1"
+			(uuid "38d6f0c3-5a57-4f58-8c32-b7ae59eaa211")
+		)
+		(pin "3"
+			(uuid "3d0543b2-1055-416f-b1f9-d9981e462c99")
+		)
+		(pin "2"
+			(uuid "83163632-0ffc-4588-95fa-90039476c734")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "J2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:R")
 		(at 212.09 139.7 0)
 		(mirror x)
@@ -4372,6 +4772,82 @@
 			(project ""
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "C3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector_Generic:Conn_01x04")
+		(at 336.55 284.48 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "7ebf836d-51e0-4ed0-bf9d-9293b9d5dce5")
+		(property "Reference" "J4"
+			(at 339.09 284.4799 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "JST-PH"
+			(at 339.09 287.0199 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical"
+			(at 336.55 284.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 336.55 284.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(at 336.55 284.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "4"
+			(uuid "ccbc584d-e2ac-44f0-b437-3ba605dbad00")
+		)
+		(pin "1"
+			(uuid "ebc8b1c6-4001-4c3b-b5a0-05d4c8abb85e")
+		)
+		(pin "3"
+			(uuid "b46eb539-ce60-4670-9ad8-34bef1a2bc99")
+		)
+		(pin "2"
+			(uuid "24c88396-a8d8-46cf-a3e1-a997d2728503")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "J4")
 					(unit 1)
 				)
 			)
@@ -5058,6 +5534,82 @@
 		)
 	)
 	(symbol
+		(lib_id "Connector_Generic:Conn_01x04")
+		(at 336.55 271.78 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "afb20f81-6b3e-40a8-b5a6-1697c5cd0fe2")
+		(property "Reference" "J3"
+			(at 339.09 271.7799 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "JST-PH"
+			(at 339.09 274.3199 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical"
+			(at 336.55 271.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 336.55 271.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(at 336.55 271.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "4"
+			(uuid "bfa8b71a-275d-4afa-b9b2-651af55447c2")
+		)
+		(pin "1"
+			(uuid "9e40c699-da6f-444f-94f1-5b2c9ce0ffff")
+		)
+		(pin "3"
+			(uuid "8805f446-05e7-4278-b0be-db6d9b7a7592")
+		)
+		(pin "2"
+			(uuid "1d387119-1b72-4b89-a00b-46bba9c050f1")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "J3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 351.79 180.34 0)
 		(unit 1)
@@ -5609,6 +6161,82 @@
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR011")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector_Generic:Conn_01x04")
+		(at 336.55 246.38 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "e9c7ec51-9211-401c-8633-cb6ae764836e")
+		(property "Reference" "J1"
+			(at 339.09 246.3799 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "JST-PH"
+			(at 339.09 248.9199 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical"
+			(at 336.55 246.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 336.55 246.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(at 336.55 246.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "4"
+			(uuid "b9747178-3c99-4c15-ad58-a71ed3b520ec")
+		)
+		(pin "1"
+			(uuid "39245d5f-93c8-495b-953b-1928afb851c1")
+		)
+		(pin "3"
+			(uuid "e10943a5-cda3-4c7d-bf94-eb63d2b8d20d")
+		)
+		(pin "2"
+			(uuid "d9a5e0e4-f6d8-4a42-8e16-d12e8093dbd9")
+		)
+		(instances
+			(project ""
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "J1")
 					(unit 1)
 				)
 			)
