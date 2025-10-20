@@ -312,6 +312,129 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "D24V7Fx:D24V7Fx"
+			(pin_numbers
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "U"
+				(at 8.382 -2.032 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "D24V7Fx"
+				(at 8.382 -4.318 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" "pcb:D24V7Fx"
+				(at -3.81 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "https://www.pololu.com/category/365/d24v7fx-step-down-voltage-regulators"
+				(at -3.81 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "D24V7Fx Step-Down Voltage Regulator"
+				(at -3.81 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "D24V7Fx_0_1"
+				(rectangle
+					(start -7.62 5.08)
+					(end 7.62 -5.08)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+			)
+			(symbol "D24V7Fx_1_1"
+				(pin passive line
+					(at -10.16 2.54 0)
+					(length 2.54)
+					(name "VIN"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "VIN"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -7.62 90)
+					(length 2.54)
+					(name "GND"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "GND"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 10.16 2.54 180)
+					(length 2.54)
+					(name "VOUT"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "VOUT"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "Device:C_Polarized"
 			(pin_numbers
 				(hide yes)
@@ -2778,6 +2901,10 @@
 		(uuid "1dd8f6aa-dace-4c1a-b4d1-adefc9cffc03")
 	)
 	(no_connect
+		(at 285.75 270.51)
+		(uuid "2eccbb5c-ff52-498a-ad37-d17f72e919a9")
+	)
+	(no_connect
 		(at 331.47 259.08)
 		(uuid "3218bf8c-fed2-4caa-a3c3-910803065c3e")
 	)
@@ -2814,12 +2941,24 @@
 		(uuid "5a57f7ab-7bb5-470e-95e1-c14fcc82cc15")
 	)
 	(no_connect
+		(at 265.43 270.51)
+		(uuid "66396288-1939-46b3-9d2b-630db6cf397b")
+	)
+	(no_connect
 		(at 331.47 256.54)
 		(uuid "8d953279-68b6-4029-bcde-bdd14a003339")
 	)
 	(no_connect
 		(at 331.47 289.56)
 		(uuid "9164e6cc-9187-4004-9277-9692d97fdfff")
+	)
+	(no_connect
+		(at 285.75 246.38)
+		(uuid "9220e1a8-0194-4995-b568-80857b171754")
+	)
+	(no_connect
+		(at 265.43 246.38)
+		(uuid "9639e5a7-bb9f-4634-ad35-591c3c80d635")
 	)
 	(no_connect
 		(at 331.47 264.16)
@@ -3809,6 +3948,140 @@
 		)
 	)
 	(symbol
+		(lib_id "power:GND")
+		(at 275.59 256.54 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "116ac3a4-bc8e-4ba7-81ec-30ee4ae976a1")
+		(property "Reference" "#PWR017"
+			(at 275.59 262.89 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 275.59 261.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 275.59 256.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 275.59 256.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 275.59 256.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "095c08ed-d627-4e7f-b089-91244bca2f52")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR017")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 275.59 280.67 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "1488315d-dfce-4763-accf-a4e40d3807bf")
+		(property "Reference" "#PWR018"
+			(at 275.59 287.02 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 275.59 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 275.59 280.67 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 275.59 280.67 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 275.59 280.67 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "67fc3963-e753-4f2f-9d57-6f2306137d0b")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR018")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:R")
 		(at 398.78 179.07 0)
 		(mirror x)
@@ -3940,6 +4213,77 @@
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR014")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "D24V7Fx:D24V7Fx")
+		(at 275.59 248.92 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "2b06db58-a408-473b-88f4-c31659e0fdb6")
+		(property "Reference" "U2"
+			(at 275.59 238.76 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "D24V7F5"
+			(at 275.59 241.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "pcb:D24V7Fx"
+			(at 271.78 248.92 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.pololu.com/category/365/d24v7fx-step-down-voltage-regulators"
+			(at 271.78 248.92 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "D24V7Fx Step-Down Voltage Regulator"
+			(at 271.78 248.92 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "VOUT"
+			(uuid "6a79b30e-3b9c-4eb4-a14e-1004bff1e5c5")
+		)
+		(pin "VIN"
+			(uuid "da5f0677-85bc-4549-a9dc-198b3cb70d50")
+		)
+		(pin "GND"
+			(uuid "bf8681ea-21ee-4336-96ae-9f1ca200e9b4")
+		)
+		(instances
+			(project ""
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "U2")
 					(unit 1)
 				)
 			)
@@ -5704,7 +6048,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "pcb:VQFN-28-1EP_5x5mm_P0.5mm_EP3.7x3.7mm_ThermalVias"
+		(property "Footprint" "Package_DFN_QFN:VQFN-28-1EP_5x5mm_P0.5mm_EP3.7x3.7mm_ThermalVias"
 			(at 351.79 182.88 0)
 			(effects
 				(font
@@ -5961,6 +6305,77 @@
 			(project ""
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "R1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "D24V7Fx:D24V7Fx")
+		(at 275.59 273.05 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "d00d4a66-3219-4eb4-8ec6-86296d9ddfe3")
+		(property "Reference" "U3"
+			(at 275.59 262.89 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "D24V7F3"
+			(at 275.59 265.43 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "pcb:D24V7Fx"
+			(at 271.78 273.05 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.pololu.com/category/365/d24v7fx-step-down-voltage-regulators"
+			(at 271.78 273.05 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "D24V7Fx Step-Down Voltage Regulator"
+			(at 271.78 273.05 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "VOUT"
+			(uuid "477c7dec-4231-44b0-9348-437372a5b37c")
+		)
+		(pin "VIN"
+			(uuid "f71871c5-a3aa-4884-a597-917c2dcfa37d")
+		)
+		(pin "GND"
+			(uuid "ff75d0ab-6d24-4ed2-8d61-696a11df5dcd")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "U3")
 					(unit 1)
 				)
 			)

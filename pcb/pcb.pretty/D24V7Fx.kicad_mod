@@ -1,0 +1,176 @@
+(footprint "D24V7Fx"
+	(version 20241229)
+	(generator "pcbnew")
+	(generator_version "9.0")
+	(layer "F.Cu")
+	(descr "D24V7Fx Step-Down Voltage Regulator")
+	(property "Reference" "REF**"
+		(at 0 -2.2 0)
+		(unlocked yes)
+		(layer "F.SilkS")
+		(uuid "7c76d87e-a2fb-4c6c-adad-5a71667bd38c")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.1)
+			)
+		)
+	)
+	(property "Value" "D24V7Fx"
+		(at 0 1 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "5363b527-647f-4d33-9c7a-078135a32a99")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" "https://www.pololu.com/product/5593"
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "3ca27578-7b39-4292-b0cf-1b757effd568")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" "D24V7Fx Step-Down Voltage Regulator"
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "a539d7d7-f8ec-4c43-b4f9-5a824ca0281c")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr smd)
+	(fp_line
+		(start -4.4 -12.4)
+		(end 4.4 -12.4)
+		(stroke
+			(width 0.1)
+			(type dot)
+		)
+		(layer "F.SilkS")
+		(uuid "a7ddf386-77e4-4429-b1eb-23305a745489")
+	)
+	(fp_line
+		(start -4.4 -1.4)
+		(end -4.4 -12.4)
+		(stroke
+			(width 0.1)
+			(type dot)
+		)
+		(layer "F.SilkS")
+		(uuid "cdc34bc6-a716-411d-bded-b6c0c4a78a2a")
+	)
+	(fp_line
+		(start -4.4 -1.4)
+		(end 4.4 -1.4)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "f73cbb4c-ae1d-465a-8934-b49af2c8a81a")
+	)
+	(fp_line
+		(start -4.4 1.4)
+		(end -4.4 -1.4)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "d69d8a43-8d24-4d7b-a8d4-a403fb59fa4f")
+	)
+	(fp_line
+		(start 4.4 -1.4)
+		(end 4.4 -12.4)
+		(stroke
+			(width 0.1)
+			(type dot)
+		)
+		(layer "F.SilkS")
+		(uuid "3afbfe7c-d11a-4070-b65d-10fe597b7d56")
+	)
+	(fp_line
+		(start 4.4 -1.4)
+		(end 4.4 1.4)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "f87273ae-77be-4c53-8ce6-c2da80fa4ac5")
+	)
+	(fp_line
+		(start 4.4 1.4)
+		(end -4.4 1.4)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "299ed29b-e67e-4cb1-b01d-262acf7cd31a")
+	)
+	(pad "GND" thru_hole circle
+		(at 0 0)
+		(size 1.7 1.7)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "2343a7a1-be21-43a5-892d-7fe280559d76")
+	)
+	(pad "VIN" thru_hole rect
+		(at -2.54 0)
+		(size 1.7 1.7)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "50f32240-d354-462a-8200-26fc52cbf10f")
+	)
+	(pad "VOUT" thru_hole circle
+		(at 2.54 0)
+		(size 1.7 1.7)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "cfdb6d3d-94b1-498b-9ddd-2514b080af66")
+	)
+	(embedded_fonts no)
+	(model "${KIPRJMOD}/models/d24v7fx-step-down-voltage-regulators.step"
+		(offset
+			(xyz -4.325 -1.27 2.54)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -0 -0 -0)
+		)
+	)
+	(model "${KICAD9_3DMODEL_DIR}/Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x03_P2.54mm_Vertical.step"
+		(offset
+			(xyz 2.54 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -0 -0 90)
+		)
+	)
+)

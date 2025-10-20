@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "D24V7Fx")(type "KiCad")(uri "${KIPRJMOD}/symbols/D24V7Fx.kicad_sym")(options "")(descr ""))
+)
