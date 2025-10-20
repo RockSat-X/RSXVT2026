@@ -2241,7 +2241,7 @@
 			(net 1 "GND")
 			(pinfunction "GND")
 			(pintype "passive")
-			(uuid "64ba10f4-be1f-4bef-8024-f1d8a7a3a36d")
+			(uuid "b312eb5a-4f4f-4522-ae01-cef68ab0627a")
 		)
 		(pad "29" thru_hole circle
 			(at -1.5 0.5)
@@ -2253,7 +2253,7 @@
 			(net 1 "GND")
 			(pinfunction "GND")
 			(pintype "passive")
-			(uuid "64ba10f4-be1f-4bef-8024-f1d8a7a3a36d")
+			(uuid "3a91096c-7f1d-47fb-89ee-21257b0e6421")
 		)
 		(pad "29" thru_hole circle
 			(at -1.5 1.5)
@@ -2265,7 +2265,7 @@
 			(net 1 "GND")
 			(pinfunction "GND")
 			(pintype "passive")
-			(uuid "64ba10f4-be1f-4bef-8024-f1d8a7a3a36d")
+			(uuid "559c283b-8af7-4aae-8a27-23f8ba7d4a79")
 		)
 		(pad "29" thru_hole circle
 			(at -0.5 -1.5)
@@ -2277,7 +2277,7 @@
 			(net 1 "GND")
 			(pinfunction "GND")
 			(pintype "passive")
-			(uuid "64ba10f4-be1f-4bef-8024-f1d8a7a3a36d")
+			(uuid "425681a7-f628-41a6-ad4f-a56ea2a55218")
 		)
 		(pad "29" thru_hole circle
 			(at -0.5 -0.5)
@@ -2289,7 +2289,7 @@
 			(net 1 "GND")
 			(pinfunction "GND")
 			(pintype "passive")
-			(uuid "64ba10f4-be1f-4bef-8024-f1d8a7a3a36d")
+			(uuid "52eda392-d010-4f43-bd21-b27a821cfde4")
 		)
 		(pad "29" thru_hole circle
 			(at -0.5 0.5)
@@ -2301,7 +2301,7 @@
 			(net 1 "GND")
 			(pinfunction "GND")
 			(pintype "passive")
-			(uuid "64ba10f4-be1f-4bef-8024-f1d8a7a3a36d")
+			(uuid "bff33702-2b13-4a94-8f6c-1efd4edb2239")
 		)
 		(pad "29" thru_hole circle
 			(at -0.5 1.5)
@@ -2313,7 +2313,7 @@
 			(net 1 "GND")
 			(pinfunction "GND")
 			(pintype "passive")
-			(uuid "64ba10f4-be1f-4bef-8024-f1d8a7a3a36d")
+			(uuid "3447f0b1-15c2-43fb-8c57-c863c9322baf")
 		)
 		(pad "29" smd rect
 			(at 0 0)
@@ -2324,7 +2324,7 @@
 			(pinfunction "GND")
 			(pintype "passive")
 			(zone_connect 2)
-			(uuid "64ba10f4-be1f-4bef-8024-f1d8a7a3a36d")
+			(uuid "66d4aa4a-f2e0-4132-a62e-d4f69ad39983")
 		)
 		(pad "29" smd rect
 			(at 0 0)
@@ -2335,7 +2335,7 @@
 			(pinfunction "GND")
 			(pintype "passive")
 			(zone_connect 2)
-			(uuid "64ba10f4-be1f-4bef-8024-f1d8a7a3a36d")
+			(uuid "29d0f26b-0546-4871-a36f-55ba1e57151f")
 		)
 		(pad "29" thru_hole circle
 			(at 0.5 -1.5)
@@ -2347,7 +2347,7 @@
 			(net 1 "GND")
 			(pinfunction "GND")
 			(pintype "passive")
-			(uuid "64ba10f4-be1f-4bef-8024-f1d8a7a3a36d")
+			(uuid "a1fbadab-4601-487d-afe6-e1a304d12aaf")
 		)
 		(pad "29" thru_hole circle
 			(at 0.5 -0.5)
@@ -2359,7 +2359,7 @@
 			(net 1 "GND")
 			(pinfunction "GND")
 			(pintype "passive")
-			(uuid "64ba10f4-be1f-4bef-8024-f1d8a7a3a36d")
+			(uuid "8c14373d-71af-42b4-97dc-a85ee1c1b42f")
 		)
 		(pad "29" thru_hole circle
 			(at 0.5 0.5)
@@ -2371,7 +2371,7 @@
 			(net 1 "GND")
 			(pinfunction "GND")
 			(pintype "passive")
-			(uuid "64ba10f4-be1f-4bef-8024-f1d8a7a3a36d")
+			(uuid "e4d9821a-013e-4b7c-9464-25615e8e4222")
 		)
 		(pad "29" thru_hole circle
 			(at 0.5 1.5)
@@ -2383,7 +2383,7 @@
 			(net 1 "GND")
 			(pinfunction "GND")
 			(pintype "passive")
-			(uuid "64ba10f4-be1f-4bef-8024-f1d8a7a3a36d")
+			(uuid "c04b2f9b-3cea-4db2-9307-d1b992b69aee")
 		)
 		(pad "29" thru_hole circle
 			(at 1.5 -1.5)
@@ -2395,7 +2395,7 @@
 			(net 1 "GND")
 			(pinfunction "GND")
 			(pintype "passive")
-			(uuid "64ba10f4-be1f-4bef-8024-f1d8a7a3a36d")
+			(uuid "9832a36c-8dbf-4462-aab1-2f44662049af")
 		)
 		(pad "29" thru_hole circle
 			(at 1.5 -0.5)
@@ -2407,7 +2407,7 @@
 			(net 1 "GND")
 			(pinfunction "GND")
 			(pintype "passive")
-			(uuid "64ba10f4-be1f-4bef-8024-f1d8a7a3a36d")
+			(uuid "f79904c9-eac0-4dd7-a3ea-7787f4bad40f")
 		)
 		(pad "29" thru_hole circle
 			(at 1.5 0.5)
@@ -2419,7 +2419,7 @@
 			(net 1 "GND")
 			(pinfunction "GND")
 			(pintype "passive")
-			(uuid "64ba10f4-be1f-4bef-8024-f1d8a7a3a36d")
+			(uuid "2a69d393-a866-4974-9b2f-2185774c385b")
 		)
 		(pad "29" thru_hole circle
 			(at 1.5 1.5)
@@ -2431,7 +2431,7 @@
 			(net 1 "GND")
 			(pinfunction "GND")
 			(pintype "passive")
-			(uuid "64ba10f4-be1f-4bef-8024-f1d8a7a3a36d")
+			(uuid "2d913c38-0f89-4e54-b44a-fcab045e1156")
 		)
 		(embedded_fonts no)
 		(model "${KICAD9_3DMODEL_DIR}/Package_DFN_QFN.3dshapes/VQFN-28-1EP_5x5mm_P0.5mm_EP3.7x3.7mm.step"
@@ -2727,7 +2727,7 @@
 			(uuid "79b6d8bc-9a20-4716-9afa-da8c3b666ade")
 		)
 		(embedded_fonts no)
-		(model "/home/phucxdoan/Documents/RSXVT2026/mechanical/CONSat_Mockup_Lightweight.step"
+		(model "${KIPRJMOD}/models/CONSat.step"
 			(opacity 0.1700)
 			(offset
 				(xyz 0 50 0)
