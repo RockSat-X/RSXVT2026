@@ -463,7 +463,10 @@
     "pinned_footprint_libs": [
       "pcb"
     ],
-    "pinned_symbol_libs": []
+    "pinned_symbol_libs": [
+      "D24V7F5",
+      "D24V7Fx"
+    ]
   },
   "meta": {
     "filename": "PowerDistributionSystem.kicad_pro",
@@ -628,6 +631,18 @@
     [
       "f4672588-55b2-48e9-8f23-132a69134eb2",
       "Root"
+    ],
+    [
+      "f79f8b8f-c09f-443c-86fe-ac16d95f4260",
+      "Stepper Motor Driver - X"
+    ],
+    [
+      "181c85b2-1e26-4d59-9305-c0e2fd25462b",
+      "Stepper Motor Driver - Y"
+    ],
+    [
+      "57e88cd3-209b-4745-8cf8-356680ecf52c",
+      "Stepper Motor Driver - Z"
     ]
   ],
   "text_variables": {}
