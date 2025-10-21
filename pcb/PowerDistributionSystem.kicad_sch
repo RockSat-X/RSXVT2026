@@ -5,6 +5,148 @@
 	(uuid "f4672588-55b2-48e9-8f23-132a69134eb2")
 	(paper "A2")
 	(lib_symbols
+		(symbol "Connector_Generic:Conn_01x02"
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "J"
+				(at 0 2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "Conn_01x02"
+				(at 0 -5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "connector"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "Connector*:*_1x??_*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "Conn_01x02_1_1"
+				(rectangle
+					(start -1.27 1.27)
+					(end 1.27 -3.81)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(rectangle
+					(start -1.27 0.127)
+					(end 0 -0.127)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 -2.413)
+					(end 0 -2.667)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(pin passive line
+					(at -5.08 0 0)
+					(length 3.81)
+					(name "Pin_1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -2.54 0)
+					(length 3.81)
+					(name "Pin_2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "Connector_Generic:Conn_01x04"
 			(pin_names
 				(offset 1.016)
@@ -2308,20 +2450,16 @@
 		(uuid "00672447-5df7-4b33-a6ee-fbf852269d6f")
 	)
 	(no_connect
-		(at 440.69 252.73)
-		(uuid "00fc9d14-06f5-441f-9d53-7392e1804600")
-	)
-	(no_connect
-		(at 342.9 316.23)
-		(uuid "03fa9905-d6f3-49a4-b495-a550f53c6dcd")
-	)
-	(no_connect
 		(at 342.9 323.85)
-		(uuid "062c5234-f0d5-45e9-85d9-a873899c2be3")
+		(uuid "034ecf35-c9d7-487e-9e58-b16067de6059")
 	)
 	(no_connect
-		(at 450.85 270.51)
-		(uuid "0a5d6527-59d2-4b62-86cc-3b94f1dfac8c")
+		(at 342.9 328.93)
+		(uuid "0c69dfe1-0b9c-4331-b0db-efdd9760aa73")
+	)
+	(no_connect
+		(at 492.76 260.35)
+		(uuid "144ea45d-ab7b-461b-a932-7f9fa0197996")
 	)
 	(no_connect
 		(at 312.42 179.07)
@@ -2336,10 +2474,6 @@
 		(uuid "25836918-4a51-4d06-adec-add68b422847")
 	)
 	(no_connect
-		(at 440.69 261.62)
-		(uuid "2c25e7e9-ec5f-4832-a1f7-9fddf57604d3")
-	)
-	(no_connect
 		(at 285.75 270.51)
 		(uuid "2eccbb5c-ff52-498a-ad37-d17f72e919a9")
 	)
@@ -2348,16 +2482,16 @@
 		(uuid "2fa9bd69-f313-4bf3-85d4-ba29189bf8b2")
 	)
 	(no_connect
+		(at 492.76 241.3)
+		(uuid "342c15b6-96cc-40f3-a7de-6cf52c77712b")
+	)
+	(no_connect
 		(at 312.42 92.71)
 		(uuid "353e1a48-415d-4398-9c61-f9fdcce37eb2")
 	)
 	(no_connect
-		(at 450.85 252.73)
-		(uuid "35721795-113f-4dcf-93f4-5a8aac77d684")
-	)
-	(no_connect
-		(at 440.69 270.51)
-		(uuid "37d75276-256a-462e-88b4-33ddbbbb654a")
+		(at 467.36 241.3)
+		(uuid "3a2d00e3-0ebb-42e7-8c36-191143d54bc5")
 	)
 	(no_connect
 		(at 312.42 118.11)
@@ -2368,16 +2502,12 @@
 		(uuid "3c5b5ad7-1f88-4549-9e31-4c1ee7c99d92")
 	)
 	(no_connect
-		(at 450.85 243.84)
-		(uuid "406ba7a4-4cdc-4ecd-9f8f-0dc194644e93")
+		(at 342.9 334.01)
+		(uuid "3f9f06eb-9883-46c6-b215-d3ad88e1da2b")
 	)
 	(no_connect
 		(at 312.42 82.55)
 		(uuid "40f038da-a896-4297-a57e-92b879225e3a")
-	)
-	(no_connect
-		(at 420.37 261.62)
-		(uuid "41ebb087-1746-43a1-938b-dccd87513d98")
 	)
 	(no_connect
 		(at 312.42 158.75)
@@ -2388,32 +2518,24 @@
 		(uuid "4917f1c5-e623-470f-98cf-ebe9226add9c")
 	)
 	(no_connect
-		(at 420.37 252.73)
-		(uuid "4b5cf254-ee28-4e17-8727-17d10c9cb4d0")
-	)
-	(no_connect
-		(at 420.37 243.84)
-		(uuid "4e7021a2-dc75-4cd5-b9d0-bb165e024191")
+		(at 467.36 247.65)
+		(uuid "4c3ddeb2-62f0-44af-ba25-afd893050552")
 	)
 	(no_connect
 		(at 312.42 133.35)
 		(uuid "512d7c4a-53b4-4d13-ae31-cb4466557b05")
 	)
 	(no_connect
-		(at 342.9 311.15)
-		(uuid "516fdb75-31de-49ca-a230-60550cb89f36")
+		(at 443.23 254)
+		(uuid "540d2a9c-c065-4b5a-8e08-36d02b0a8c2a")
 	)
 	(no_connect
 		(at 265.43 270.51)
 		(uuid "66396288-1939-46b3-9d2b-630db6cf397b")
 	)
 	(no_connect
-		(at 420.37 270.51)
-		(uuid "6e98bc48-05d9-46c5-89dd-d377c57c156d")
-	)
-	(no_connect
-		(at 440.69 243.84)
-		(uuid "7557c03f-5fa7-4c7c-a074-196a611a8dc2")
+		(at 467.36 254)
+		(uuid "7f719ef2-fae2-46e4-933f-a9df484705c4")
 	)
 	(no_connect
 		(at 358.14 138.43)
@@ -2428,20 +2550,20 @@
 		(uuid "8c07f0f1-8199-4dcf-b72c-0c48d65bf220")
 	)
 	(no_connect
+		(at 467.36 260.35)
+		(uuid "8c92546b-c642-4120-bbd3-f73e15a1e853")
+	)
+	(no_connect
+		(at 443.23 247.65)
+		(uuid "8d7052f0-1b7f-4f93-958a-007a7095b36b")
+	)
+	(no_connect
 		(at 285.75 246.38)
 		(uuid "9220e1a8-0194-4995-b568-80857b171754")
 	)
 	(no_connect
-		(at 342.9 321.31)
-		(uuid "9462fdb8-64fd-4a69-9c89-96c8a8e86f80")
-	)
-	(no_connect
 		(at 265.43 246.38)
 		(uuid "9639e5a7-bb9f-4634-ad35-591c3c80d635")
-	)
-	(no_connect
-		(at 430.53 270.51)
-		(uuid "9730ba91-63de-48e2-abca-c82bc3604ebc")
 	)
 	(no_connect
 		(at 312.42 189.23)
@@ -2450,6 +2572,22 @@
 	(no_connect
 		(at 358.14 133.35)
 		(uuid "a6a73284-aa46-4f33-9259-541f6319d66c")
+	)
+	(no_connect
+		(at 342.9 326.39)
+		(uuid "a83b1ca4-cb7e-4bb3-8900-6fcd8746f2c0")
+	)
+	(no_connect
+		(at 342.9 321.31)
+		(uuid "af600aed-a39c-456e-9dfd-09b69a2f8321")
+	)
+	(no_connect
+		(at 342.9 331.47)
+		(uuid "b29786c7-32be-4d31-9209-db82a4edbfea")
+	)
+	(no_connect
+		(at 492.76 247.65)
+		(uuid "b48e268a-5903-4b66-b392-c963e6f70779")
 	)
 	(no_connect
 		(at 312.42 67.31)
@@ -2468,24 +2606,24 @@
 		(uuid "bf9fc1cf-ca97-4285-9c73-fb10b6ecd5a1")
 	)
 	(no_connect
-		(at 342.9 318.77)
-		(uuid "c628639b-fbe8-4d1f-b255-deeb34a4fb89")
-	)
-	(no_connect
-		(at 450.85 261.62)
-		(uuid "c7eff887-ef75-47c3-9fcb-313be1685194")
+		(at 443.23 260.35)
+		(uuid "d17d59a8-8ff5-424a-9971-cfa39f890c3a")
 	)
 	(no_connect
 		(at 312.42 184.15)
 		(uuid "d3753143-7d00-46d6-861c-9496048e8637")
 	)
 	(no_connect
-		(at 430.53 261.62)
-		(uuid "d488cbb6-367c-4d70-bc7f-4ce4a3fc1b15")
-	)
-	(no_connect
 		(at 312.42 128.27)
 		(uuid "d7184fe7-0a75-499f-ba0c-2f050717f666")
+	)
+	(no_connect
+		(at 492.76 254)
+		(uuid "d740441b-aba0-4c1f-bc4b-06b8139b3070")
+	)
+	(no_connect
+		(at 443.23 241.3)
+		(uuid "d76b7053-c28a-436f-8266-0485046936b2")
 	)
 	(no_connect
 		(at 312.42 123.19)
@@ -2496,20 +2634,8 @@
 		(uuid "dc8ca9b4-f764-4ae8-b33d-41030cfd0f97")
 	)
 	(no_connect
-		(at 430.53 252.73)
-		(uuid "e24d3158-eb70-4aec-af98-28e620dbaa85")
-	)
-	(no_connect
 		(at 358.14 184.15)
 		(uuid "e634bc48-a842-4042-82c6-57cd4c31da60")
-	)
-	(no_connect
-		(at 342.9 313.69)
-		(uuid "e9a96e1c-bd86-423a-b2fc-b95582fc336f")
-	)
-	(no_connect
-		(at 430.53 243.84)
-		(uuid "eb06a0b3-1196-422a-a687-09d71b6b4f6b")
 	)
 	(no_connect
 		(at 312.42 163.83)
@@ -2577,50 +2703,6 @@
 					(size 1.27 1.27)
 				)
 				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "GPIO_C"
-		(shape bidirectional)
-		(at 342.9 331.47 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "17dcb6f8-d729-40df-8538-e0d7ccd8614b")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 353.7094 331.47 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "GPIO_A"
-		(shape bidirectional)
-		(at 342.9 326.39 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "19c5e654-a303-419e-8510-66da7761cb60")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 353.528 326.39 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
 				(hide yes)
 			)
 		)
@@ -2781,7 +2863,7 @@
 	)
 	(global_label "GPIO_D"
 		(shape bidirectional)
-		(at 342.9 334.01 0)
+		(at 342.9 318.77 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2789,14 +2871,36 @@
 			)
 			(justify left)
 		)
-		(uuid "5bc23a21-f568-42e6-8602-f0be4f1803ab")
+		(uuid "54f0c435-6520-4941-816c-f35dff1d5b0c")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 353.7094 334.01 0)
+			(at 353.7094 318.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "BURNWIRE_VOLTAGE"
+		(shape bidirectional)
+		(at 331.47 236.22 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "65a68e0d-7784-4635-918a-a17a01fea2dd")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 308.8073 236.22 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
 				(hide yes)
 			)
 		)
@@ -2845,28 +2949,6 @@
 			)
 		)
 	)
-	(global_label "GPIO_B"
-		(shape bidirectional)
-		(at 342.9 328.93 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "7974519e-81d6-4ced-8d97-97503b73888e")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 353.7094 328.93 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "MOTOR_DRIVER_B2_Z"
 		(shape bidirectional)
 		(at 358.14 173.99 0)
@@ -2911,6 +2993,28 @@
 			)
 		)
 	)
+	(global_label "GPIO_B"
+		(shape bidirectional)
+		(at 342.9 313.69 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "8b713227-405e-4422-8810-381f75d558c9")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 353.7094 313.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "MOTOR_DRIVER_A1_Y"
 		(shape bidirectional)
 		(at 358.14 113.03 0)
@@ -2924,6 +3028,28 @@
 		(uuid "9609e900-8b75-442d-9d43-e171560cd9a5")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 381.5284 113.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "GPIO_A"
+		(shape bidirectional)
+		(at 342.9 311.15 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "9cd3e1f8-4036-4bf7-ac71-bff5de84aca8")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 353.528 311.15 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2973,6 +3099,28 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "GPIO_A"
+		(shape bidirectional)
+		(at 419.1 241.3 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "b08fb1a5-eff7-47ed-b935-012adaf0c2d8")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 408.472 241.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
 				(hide yes)
 			)
 		)
@@ -3034,6 +3182,28 @@
 		(uuid "be834881-5056-44a4-bf82-9c60c55ac031")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 307.7793 274.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "GPIO_D"
+		(shape bidirectional)
+		(at 419.1 260.35 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "d18e5103-33f9-4b1f-b4da-e915cdb86d08")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 408.2906 260.35 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3109,6 +3279,50 @@
 			)
 		)
 	)
+	(global_label "GPIO_B"
+		(shape bidirectional)
+		(at 419.1 247.65 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "d98707dc-b88e-4ff8-b28d-cd2cb3517022")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 408.2906 247.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "GPIO_C"
+		(shape bidirectional)
+		(at 419.1 254 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "e1c98345-2904-47f9-a921-599690ed1058")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 408.2906 254 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "MOTOR_DRIVER_B2_Y"
 		(shape bidirectional)
 		(at 331.47 264.16 180)
@@ -3127,6 +3341,28 @@
 					(size 1.27 1.27)
 				)
 				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "GPIO_C"
+		(shape bidirectional)
+		(at 342.9 316.23 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "f27aab59-cdde-4eb4-b66a-741aa7c6e239")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 353.7094 316.23 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
 				(hide yes)
 			)
 		)
@@ -3260,6 +3496,142 @@
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR03")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole_Pad_MP")
+		(at 421.64 254 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "0e1c86dd-ea11-455a-93f3-135fbf4c5a2c")
+		(property "Reference" "H3"
+			(at 425.45 253.9999 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole_Pad_MP"
+			(at 421.6401 256.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "pcb:Matrix_Hole"
+			(at 421.64 254 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 421.64 254 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Mounting Hole with connection as pad named MP"
+			(at 421.64 254 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "MP"
+			(uuid "adfa01d4-b903-4063-aa28-da4c1cd20e89")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "H3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole_Pad_MP")
+		(at 445.77 247.65 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "0e5c457b-2639-4efe-87bf-3b848aab56c0")
+		(property "Reference" "H6"
+			(at 449.58 247.6499 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole_Pad_MP"
+			(at 445.7701 250.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "pcb:Matrix_Hole"
+			(at 445.77 247.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 445.77 247.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Mounting Hole with connection as pad named MP"
+			(at 445.77 247.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "MP"
+			(uuid "dbebd514-9615-4787-8914-9ba8d4f15a9a")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "H6")
 					(unit 1)
 				)
 			)
@@ -3400,6 +3772,74 @@
 		)
 	)
 	(symbol
+		(lib_id "Mechanical:MountingHole_Pad_MP")
+		(at 469.9 254 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "15fcc963-62b3-4572-a34f-32d427474511")
+		(property "Reference" "H11"
+			(at 473.71 253.9999 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole_Pad_MP"
+			(at 469.9001 256.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "pcb:Matrix_Hole"
+			(at 469.9 254 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 469.9 254 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Mounting Hole with connection as pad named MP"
+			(at 469.9 254 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "MP"
+			(uuid "7ff9d4e9-5102-4558-a0e9-e632217411b4")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "H11")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 330.2 334.01 270)
 		(unit 1)
@@ -3468,15 +3908,16 @@
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole_Pad_MP")
-		(at 450.85 241.3 0)
+		(at 445.77 260.35 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
 		(on_board yes)
 		(dnp no)
-		(uuid "288e5801-e15a-4918-a4f6-cda9b1352f60")
-		(property "Reference" "H13"
-			(at 453.39 240.03 0)
+		(fields_autoplaced yes)
+		(uuid "1fe9ce03-0f13-4649-b53b-a0fbfa309998")
+		(property "Reference" "H8"
+			(at 449.58 260.3499 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3485,7 +3926,7 @@
 			)
 		)
 		(property "Value" "MountingHole_Pad_MP"
-			(at 453.39 241.2999 0)
+			(at 445.7701 262.89 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3495,7 +3936,7 @@
 			)
 		)
 		(property "Footprint" "pcb:Matrix_Hole"
-			(at 450.85 241.3 0)
+			(at 445.77 260.35 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3504,7 +3945,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 450.85 241.3 0)
+			(at 445.77 260.35 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3513,7 +3954,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole with connection as pad named MP"
-			(at 450.85 241.3 0)
+			(at 445.77 260.35 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3522,12 +3963,12 @@
 			)
 		)
 		(pin "MP"
-			(uuid "02940360-1c89-42d6-a202-3ea55a923ce6")
+			(uuid "1b0c3afa-b79c-4e02-9acd-aca2913f2f2c")
 		)
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "H13")
+					(reference "H8")
 					(unit 1)
 				)
 			)
@@ -3605,6 +4046,74 @@
 		)
 	)
 	(symbol
+		(lib_id "Mechanical:MountingHole_Pad_MP")
+		(at 445.77 241.3 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "2c542b59-21a4-49c3-8435-f181ec2323c1")
+		(property "Reference" "H5"
+			(at 449.58 241.2999 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole_Pad_MP"
+			(at 445.7701 243.84 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "pcb:Matrix_Hole"
+			(at 445.77 241.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 445.77 241.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Mounting Hole with connection as pad named MP"
+			(at 445.77 241.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "MP"
+			(uuid "9a56565a-d0ec-40a2-9fe3-b95e341deb3b")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "H5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:+BATT")
 		(at 331.47 297.18 90)
 		(unit 1)
@@ -3666,6 +4175,142 @@
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR019")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole_Pad_MP")
+		(at 469.9 241.3 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "31b347bc-1809-4ea7-8d92-c8802f0f9566")
+		(property "Reference" "H9"
+			(at 473.71 241.2999 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole_Pad_MP"
+			(at 469.9001 243.84 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "pcb:Matrix_Hole"
+			(at 469.9 241.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 469.9 241.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Mounting Hole with connection as pad named MP"
+			(at 469.9 241.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "MP"
+			(uuid "415c8e96-4648-4a18-81f5-5ec7bc39e5b0")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "H9")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole_Pad_MP")
+		(at 445.77 254 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "3311bba3-d7bc-4b11-87a7-c4ba3a6086d9")
+		(property "Reference" "H7"
+			(at 449.58 253.9999 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole_Pad_MP"
+			(at 445.7701 256.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "pcb:Matrix_Hole"
+			(at 445.77 254 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 445.77 254 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Mounting Hole with connection as pad named MP"
+			(at 445.77 254 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "MP"
+			(uuid "fb0f4370-ad01-45ca-8e2b-3f0cc29bdc45")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "H7")
 					(unit 1)
 				)
 			)
@@ -3749,15 +4394,16 @@
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole_Pad_MP")
-		(at 420.37 241.3 0)
+		(at 421.64 241.3 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
 		(on_board yes)
 		(dnp no)
+		(fields_autoplaced yes)
 		(uuid "3fcd687a-7994-4275-b015-fc93615844b6")
 		(property "Reference" "H1"
-			(at 422.91 240.03 0)
+			(at 425.45 241.2999 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3766,7 +4412,7 @@
 			)
 		)
 		(property "Value" "MountingHole_Pad_MP"
-			(at 422.91 241.2999 0)
+			(at 421.6401 243.84 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3776,7 +4422,7 @@
 			)
 		)
 		(property "Footprint" "pcb:Matrix_Hole"
-			(at 420.37 241.3 0)
+			(at 421.64 241.3 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3785,7 +4431,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 420.37 241.3 0)
+			(at 421.64 241.3 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3794,7 +4440,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole with connection as pad named MP"
-			(at 420.37 241.3 0)
+			(at 421.64 241.3 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3809,6 +4455,278 @@
 			(project ""
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "H1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole_Pad_MP")
+		(at 421.64 260.35 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "43744ef8-5244-4eed-80e5-3ad33c56fe63")
+		(property "Reference" "H4"
+			(at 425.45 260.3499 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole_Pad_MP"
+			(at 421.6401 262.89 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "pcb:Matrix_Hole"
+			(at 421.64 260.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 421.64 260.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Mounting Hole with connection as pad named MP"
+			(at 421.64 260.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "MP"
+			(uuid "6955509a-d2f4-463a-b4f2-0a60a31a8a82")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "H4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole_Pad_MP")
+		(at 469.9 247.65 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "556e6804-bd36-41a1-9c4d-4bf15e8865b3")
+		(property "Reference" "H10"
+			(at 473.71 247.6499 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole_Pad_MP"
+			(at 469.9001 250.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "pcb:Matrix_Hole"
+			(at 469.9 247.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 469.9 247.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Mounting Hole with connection as pad named MP"
+			(at 469.9 247.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "MP"
+			(uuid "0ab2eb0f-02ec-429c-b689-d11c9fb3246e")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "H10")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole_Pad_MP")
+		(at 495.3 254 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "675dfce1-cdcf-4b2d-9404-13d6f028815f")
+		(property "Reference" "H15"
+			(at 499.11 253.9999 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole_Pad_MP"
+			(at 495.3001 256.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "pcb:Matrix_Hole"
+			(at 495.3 254 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 495.3 254 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Mounting Hole with connection as pad named MP"
+			(at 495.3 254 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "MP"
+			(uuid "9165c0e9-d384-4c12-87f1-179da895f558")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "H15")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole_Pad_MP")
+		(at 495.3 247.65 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "6b5fc37e-925b-4442-b0e3-f35665d0d688")
+		(property "Reference" "H14"
+			(at 499.11 247.6499 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole_Pad_MP"
+			(at 495.3001 250.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "pcb:Matrix_Hole"
+			(at 495.3 247.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 495.3 247.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Mounting Hole with connection as pad named MP"
+			(at 495.3 247.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "MP"
+			(uuid "74bc95b8-a05f-4aa0-bc9b-7b2d195bc313")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "H14")
 					(unit 1)
 				)
 			)
@@ -3876,6 +4794,72 @@
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR013")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 331.47 238.76 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "7c9785ad-c24d-4052-b74b-54529ce2f4cd")
+		(property "Reference" "#PWR072"
+			(at 325.12 238.76 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 326.39 238.76 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 331.47 238.76 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 331.47 238.76 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 331.47 238.76 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "d545943f-1168-468f-a8f5-5ee463a627e2")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR072")
 					(unit 1)
 				)
 			)
@@ -4104,73 +5088,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Mechanical:MountingHole_Pad_MP")
-		(at 450.85 259.08 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board yes)
-		(dnp no)
-		(uuid "819d484c-2167-41b3-bc34-7c04bd68a4d6")
-		(property "Reference" "H15"
-			(at 453.39 257.81 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "MountingHole_Pad_MP"
-			(at 453.39 259.0799 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "pcb:Matrix_Hole"
-			(at 450.85 259.08 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 450.85 259.08 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Mounting Hole with connection as pad named MP"
-			(at 450.85 259.08 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "MP"
-			(uuid "02b3a23d-552c-4c03-ab1e-4efb6e4788bb")
-		)
-		(instances
-			(project "PowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "H15")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Connector_Generic:Conn_02x10_Odd_Even")
 		(at 335.28 321.31 0)
 		(unit 1)
@@ -4293,207 +5210,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Mechanical:MountingHole_Pad_MP")
-		(at 430.53 259.08 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board yes)
-		(dnp no)
-		(uuid "90023dc6-bba9-44eb-acc6-6c58c946574c")
-		(property "Reference" "H7"
-			(at 433.07 257.81 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "MountingHole_Pad_MP"
-			(at 433.07 259.0799 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "pcb:Matrix_Hole"
-			(at 430.53 259.08 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 430.53 259.08 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Mounting Hole with connection as pad named MP"
-			(at 430.53 259.08 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "MP"
-			(uuid "bc55c6e3-cdcc-4693-b5cf-921bc92e88f9")
-		)
-		(instances
-			(project "PowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "H7")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Mechanical:MountingHole_Pad_MP")
-		(at 440.69 267.97 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board yes)
-		(dnp no)
-		(uuid "910ca558-df10-462a-83f4-8a87fa1099f6")
-		(property "Reference" "H12"
-			(at 443.23 266.7 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "MountingHole_Pad_MP"
-			(at 443.23 267.9699 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "pcb:Matrix_Hole"
-			(at 440.69 267.97 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 440.69 267.97 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Mounting Hole with connection as pad named MP"
-			(at 440.69 267.97 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "MP"
-			(uuid "33715591-478b-4def-843b-0be160c3844f")
-		)
-		(instances
-			(project "PowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "H12")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Mechanical:MountingHole_Pad_MP")
-		(at 430.53 241.3 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board yes)
-		(dnp no)
-		(uuid "91dd6916-7547-454f-8ae3-603eed32b6cc")
-		(property "Reference" "H5"
-			(at 433.07 240.03 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "MountingHole_Pad_MP"
-			(at 433.07 241.2999 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "pcb:Matrix_Hole"
-			(at 430.53 241.3 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 430.53 241.3 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Mounting Hole with connection as pad named MP"
-			(at 430.53 241.3 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "MP"
-			(uuid "4fe22789-81ed-472f-9592-2cd97c45b745")
-		)
-		(instances
-			(project "PowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "H5")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:+BATT")
 		(at 331.47 292.1 90)
 		(unit 1)
@@ -4555,6 +5271,74 @@
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR017")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole_Pad_MP")
+		(at 495.3 260.35 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "94661a01-1bf5-470f-b17d-14c24a99e767")
+		(property "Reference" "H16"
+			(at 499.11 260.3499 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole_Pad_MP"
+			(at 495.3001 262.89 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "pcb:Matrix_Hole"
+			(at 495.3 260.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 495.3 260.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Mounting Hole with connection as pad named MP"
+			(at 495.3 260.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "MP"
+			(uuid "7b0bc059-f519-4185-ba08-e813402cb044")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "H16")
 					(unit 1)
 				)
 			)
@@ -4629,15 +5413,16 @@
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole_Pad_MP")
-		(at 420.37 259.08 0)
+		(at 495.3 241.3 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
 		(on_board yes)
 		(dnp no)
-		(uuid "a22db7a3-8894-4f80-aa20-4880cfd93f7e")
-		(property "Reference" "H3"
-			(at 422.91 257.81 0)
+		(fields_autoplaced yes)
+		(uuid "a78b7159-9d1e-4c5b-939c-58aa835f7a9b")
+		(property "Reference" "H13"
+			(at 499.11 241.2999 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4646,7 +5431,7 @@
 			)
 		)
 		(property "Value" "MountingHole_Pad_MP"
-			(at 422.91 259.0799 0)
+			(at 495.3001 243.84 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4656,7 +5441,7 @@
 			)
 		)
 		(property "Footprint" "pcb:Matrix_Hole"
-			(at 420.37 259.08 0)
+			(at 495.3 241.3 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4665,7 +5450,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 420.37 259.08 0)
+			(at 495.3 241.3 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4674,7 +5459,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole with connection as pad named MP"
-			(at 420.37 259.08 0)
+			(at 495.3 241.3 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4683,79 +5468,12 @@
 			)
 		)
 		(pin "MP"
-			(uuid "e54b2ebc-0687-4201-a4f4-c39d34a301a4")
+			(uuid "5d1b3c9f-3044-438e-b0b9-3eb0d200104f")
 		)
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "H3")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Mechanical:MountingHole_Pad_MP")
-		(at 450.85 250.19 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board yes)
-		(dnp no)
-		(uuid "aaf774ae-1c41-4332-8f68-56cdabfd4df4")
-		(property "Reference" "H14"
-			(at 453.39 248.92 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "MountingHole_Pad_MP"
-			(at 453.39 250.1899 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "pcb:Matrix_Hole"
-			(at 450.85 250.19 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 450.85 250.19 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Mounting Hole with connection as pad named MP"
-			(at 450.85 250.19 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "MP"
-			(uuid "0a06ced8-698d-4803-91fe-1e4252ddb269")
-		)
-		(instances
-			(project "PowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "H14")
+					(reference "H13")
 					(unit 1)
 				)
 			)
@@ -4905,73 +5623,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Mechanical:MountingHole_Pad_MP")
-		(at 450.85 267.97 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board yes)
-		(dnp no)
-		(uuid "b13947d0-3e8f-4a73-963c-521e3aaeb379")
-		(property "Reference" "H16"
-			(at 453.39 266.7 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "MountingHole_Pad_MP"
-			(at 453.39 267.9699 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "pcb:Matrix_Hole"
-			(at 450.85 267.97 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 450.85 267.97 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Mounting Hole with connection as pad named MP"
-			(at 450.85 267.97 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "MP"
-			(uuid "94bb2f4d-2fdf-48fd-8df9-39e7396d11a5")
-		)
-		(instances
-			(project "PowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "H16")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:+5V")
 		(at 330.2 316.23 90)
 		(unit 1)
@@ -5040,15 +5691,16 @@
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole_Pad_MP")
-		(at 420.37 250.19 0)
+		(at 469.9 260.35 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
 		(on_board yes)
 		(dnp no)
-		(uuid "b60dad41-a7b3-41b3-bcc2-e521648f0987")
-		(property "Reference" "H2"
-			(at 422.91 248.92 0)
+		(fields_autoplaced yes)
+		(uuid "b9c85163-1801-4dd1-ba5e-d5c2a1dc39b8")
+		(property "Reference" "H12"
+			(at 473.71 260.3499 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5057,7 +5709,7 @@
 			)
 		)
 		(property "Value" "MountingHole_Pad_MP"
-			(at 422.91 250.1899 0)
+			(at 469.9001 262.89 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5067,7 +5719,7 @@
 			)
 		)
 		(property "Footprint" "pcb:Matrix_Hole"
-			(at 420.37 250.19 0)
+			(at 469.9 260.35 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5076,7 +5728,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 420.37 250.19 0)
+			(at 469.9 260.35 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5085,7 +5737,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole with connection as pad named MP"
-			(at 420.37 250.19 0)
+			(at 469.9 260.35 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5094,12 +5746,12 @@
 			)
 		)
 		(pin "MP"
-			(uuid "4e610dbf-491c-47b0-888d-15a2750a95e8")
+			(uuid "969e7c6f-d0d8-4fc6-b9da-7f205a42f035")
 		)
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "H2")
+					(reference "H12")
 					(unit 1)
 				)
 			)
@@ -5167,140 +5819,6 @@
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR09")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Mechanical:MountingHole_Pad_MP")
-		(at 440.69 259.08 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board yes)
-		(dnp no)
-		(uuid "caefc233-8830-4cf0-b1e0-8f982454d5d2")
-		(property "Reference" "H11"
-			(at 443.23 257.81 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "MountingHole_Pad_MP"
-			(at 443.23 259.0799 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "pcb:Matrix_Hole"
-			(at 440.69 259.08 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 440.69 259.08 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Mounting Hole with connection as pad named MP"
-			(at 440.69 259.08 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "MP"
-			(uuid "604ce7fc-a8e7-4ff5-87ff-b62f479593a5")
-		)
-		(instances
-			(project "PowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "H11")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Mechanical:MountingHole_Pad_MP")
-		(at 440.69 241.3 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board yes)
-		(dnp no)
-		(uuid "cc32349b-64cb-42b4-9a4e-daa76dac56f9")
-		(property "Reference" "H9"
-			(at 443.23 240.03 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "MountingHole_Pad_MP"
-			(at 443.23 241.2999 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "pcb:Matrix_Hole"
-			(at 440.69 241.3 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 440.69 241.3 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Mounting Hole with connection as pad named MP"
-			(at 440.69 241.3 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "MP"
-			(uuid "c16ef236-197d-46e0-bb62-71435a9ebe1b")
-		)
-		(instances
-			(project "PowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "H9")
 					(unit 1)
 				)
 			)
@@ -5444,6 +5962,74 @@
 		)
 	)
 	(symbol
+		(lib_id "Mechanical:MountingHole_Pad_MP")
+		(at 421.64 247.65 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "dc19fad1-7b07-4e0e-b7bb-d8538ed30dc2")
+		(property "Reference" "H2"
+			(at 425.45 247.6499 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole_Pad_MP"
+			(at 421.6401 250.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "pcb:Matrix_Hole"
+			(at 421.64 247.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 421.64 247.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Mounting Hole with connection as pad named MP"
+			(at 421.64 247.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "MP"
+			(uuid "3fdce514-1c51-4b3b-b087-e4a50b964947")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "H2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Mechanical:Housing")
 		(at 139.7 44.45 0)
 		(unit 1)
@@ -5570,207 +6156,6 @@
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR014")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Mechanical:MountingHole_Pad_MP")
-		(at 440.69 250.19 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board yes)
-		(dnp no)
-		(uuid "deac0dba-2d0d-400c-aae7-7517872d1234")
-		(property "Reference" "H10"
-			(at 443.23 248.92 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "MountingHole_Pad_MP"
-			(at 443.23 250.1899 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "pcb:Matrix_Hole"
-			(at 440.69 250.19 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 440.69 250.19 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Mounting Hole with connection as pad named MP"
-			(at 440.69 250.19 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "MP"
-			(uuid "8cbf0954-719f-438c-a126-f80cf1c7e919")
-		)
-		(instances
-			(project "PowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "H10")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Mechanical:MountingHole_Pad_MP")
-		(at 420.37 267.97 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board yes)
-		(dnp no)
-		(uuid "df2a6f3a-4852-4b51-9c9b-96b549d7d5d1")
-		(property "Reference" "H4"
-			(at 422.91 266.7 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "MountingHole_Pad_MP"
-			(at 422.91 267.9699 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "pcb:Matrix_Hole"
-			(at 420.37 267.97 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 420.37 267.97 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Mounting Hole with connection as pad named MP"
-			(at 420.37 267.97 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "MP"
-			(uuid "caf21992-6822-4a73-8e00-6cfd1cf22c2b")
-		)
-		(instances
-			(project "PowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "H4")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Mechanical:MountingHole_Pad_MP")
-		(at 430.53 250.19 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board yes)
-		(dnp no)
-		(uuid "e3fdf50e-6cc2-4018-bb39-dbc9f43d4564")
-		(property "Reference" "H6"
-			(at 433.07 248.92 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "MountingHole_Pad_MP"
-			(at 433.07 250.1899 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "pcb:Matrix_Hole"
-			(at 430.53 250.19 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 430.53 250.19 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Mounting Hole with connection as pad named MP"
-			(at 430.53 250.19 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "MP"
-			(uuid "94a8d66a-5f5a-4447-8aad-218b997d5969")
-		)
-		(instances
-			(project "PowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "H6")
 					(unit 1)
 				)
 			)
@@ -5986,16 +6371,17 @@
 		)
 	)
 	(symbol
-		(lib_id "Mechanical:MountingHole_Pad_MP")
-		(at 430.53 267.97 0)
+		(lib_id "Connector_Generic:Conn_01x02")
+		(at 336.55 236.22 0)
 		(unit 1)
 		(exclude_from_sim no)
-		(in_bom no)
+		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "f10327fb-5b8b-4989-9b16-8eb447abb80e")
-		(property "Reference" "H8"
-			(at 433.07 266.7 0)
+		(fields_autoplaced yes)
+		(uuid "f343b4a6-06cc-4513-8121-be91aadad11a")
+		(property "Reference" "J6"
+			(at 339.09 236.2199 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6003,18 +6389,17 @@
 				(justify left)
 			)
 		)
-		(property "Value" "MountingHole_Pad_MP"
-			(at 433.07 267.9699 0)
+		(property "Value" "JST-PH"
+			(at 339.09 238.7599 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
-				(hide yes)
 			)
 		)
-		(property "Footprint" "pcb:Matrix_Hole"
-			(at 430.53 267.97 0)
+		(property "Footprint" "Connector_JST:JST_PH_B2B-PH-K_1x02_P2.00mm_Vertical"
+			(at 336.55 236.22 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6023,7 +6408,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 430.53 267.97 0)
+			(at 336.55 236.22 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6031,8 +6416,8 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "Mounting Hole with connection as pad named MP"
-			(at 430.53 267.97 0)
+		(property "Description" "Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(at 336.55 236.22 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6040,13 +6425,16 @@
 				(hide yes)
 			)
 		)
-		(pin "MP"
-			(uuid "6fe40ecb-30cf-47ed-a547-de39de9fd488")
+		(pin "1"
+			(uuid "15fc08a3-f74f-4dee-8f7d-0fed12e7c2b1")
+		)
+		(pin "2"
+			(uuid "7bf0d8fa-aecc-473d-a581-88412d265b9b")
 		)
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "H8")
+					(reference "J6")
 					(unit 1)
 				)
 			)
