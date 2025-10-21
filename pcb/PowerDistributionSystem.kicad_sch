@@ -6211,7 +6211,7 @@
 				(justify left bottom)
 			)
 		)
-		(property "Sheetfile" "Stepper_Motor_Driver_TMC2209.kicad_sch"
+		(property "Sheetfile" "PowerDistributionSystem_Stepper_Motor_Driver_TMC2209.kicad_sch"
 			(at 372.11 145.3646 0)
 			(effects
 				(font
@@ -6384,7 +6384,7 @@
 				(justify left bottom)
 			)
 		)
-		(property "Sheetfile" "Stepper_Motor_Driver_TMC2209.kicad_sch"
+		(property "Sheetfile" "PowerDistributionSystem_Stepper_Motor_Driver_TMC2209.kicad_sch"
 			(at 372.11 191.0846 0)
 			(effects
 				(font
@@ -6557,7 +6557,7 @@
 				(justify left bottom)
 			)
 		)
-		(property "Sheetfile" "Stepper_Motor_Driver_TMC2209.kicad_sch"
+		(property "Sheetfile" "PowerDistributionSystem_Stepper_Motor_Driver_TMC2209.kicad_sch"
 			(at 372.11 99.6446 0)
 			(effects
 				(font
