@@ -10,7 +10,7 @@
 		(unlocked yes)
 		(layer "F.SilkS")
 		(hide yes)
-		(uuid "70c873eb-e494-404e-a2e6-9066c5f14665")
+		(uuid "724ba4da-b723-46ca-8a6d-e7c0ad78305e")
 		(effects
 			(font
 				(size 1 1)
@@ -23,7 +23,7 @@
 		(unlocked yes)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "7d61e442-be6c-4330-9bcc-2850fc4cda10")
+		(uuid "d8cf131b-6a90-46c5-a106-bafbe14acc0b")
 		(effects
 			(font
 				(size 1 1)
@@ -36,7 +36,7 @@
 		(unlocked yes)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "5c44d17b-1a17-4e0e-a232-da141cb40a6f")
+		(uuid "1bcdfbee-f614-48ff-ae0c-6d49a626b6ea")
 		(effects
 			(font
 				(size 1 1)
@@ -49,7 +49,7 @@
 		(unlocked yes)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "865b990b-4ee1-4f2a-b4dd-b37cd6d528ba")
+		(uuid "041862b2-655f-4e7b-be59-8483c89bca78")
 		(effects
 			(font
 				(size 1 1)
@@ -65,7 +65,7 @@
 			(type default)
 		)
 		(layer "User.1")
-		(uuid "5cda66f7-a7aa-4603-bb38-4b7b54fd032b")
+		(uuid "ae03222e-f7cc-4a03-b40a-7157bed5f5a6")
 	)
 	(fp_line
 		(start 0 -1)
@@ -75,7 +75,7 @@
 			(type default)
 		)
 		(layer "User.1")
-		(uuid "ce10755a-7ac2-46bb-b4ef-6b747b4a449f")
+		(uuid "84d90b26-c236-4558-8bb1-d4887ecb7882")
 	)
 	(fp_circle
 		(center 0 0)
@@ -86,7 +86,7 @@
 		)
 		(fill no)
 		(layer "User.1")
-		(uuid "0eabaad0-0c86-472e-b009-ad127e1a43cb")
+		(uuid "07a238bd-7bd5-47a2-ac88-ae8ab48f55c8")
 	)
 	(embedded_fonts no)
 	(model "/home/phucxdoan/Documents/RSXVT2026/mechanical/CONSat_Mockup_Lightweight.step"
@@ -99,6 +99,18 @@
 		)
 		(rotate
 			(xyz -90 90 -0)
+		)
+	)
+	(model "${KIPRJMOD}/models/vn100_rugged.step"
+		(opacity 0.3800)
+		(offset
+			(xyz 19 -42.5 38.5)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 90 -0 -0)
 		)
 	)
 )
