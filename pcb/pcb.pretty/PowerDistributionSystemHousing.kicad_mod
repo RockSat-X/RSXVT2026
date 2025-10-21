@@ -2,7 +2,6 @@
 	(version 20241229)
 	(generator "pcbnew")
 	(generator_version "9.0")
-	(locked yes)
 	(layer "F.Cu")
 	(descr "Housing for the Main Camera System.")
 	(property "Reference" "N1"
@@ -89,7 +88,7 @@
 		(uuid "07a238bd-7bd5-47a2-ac88-ae8ab48f55c8")
 	)
 	(embedded_fonts no)
-	(model "/home/phucxdoan/Documents/RSXVT2026/mechanical/CONSat_Mockup_Lightweight.step"
+	(model "${KIPRJMOD}/models/CONSat.step"
 		(opacity 0.1700)
 		(offset
 			(xyz 0 50 0)
