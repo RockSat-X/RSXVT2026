@@ -16353,7 +16353,7 @@
 				)
 			)
 		)
-		(property "Value" "Conn_02x13_Odd_Even"
+		(property "Value" "1528-1112-ND"
 			(at 295.91 76.2 0)
 			(effects
 				(font
@@ -18904,7 +18904,7 @@
 				)
 			)
 		)
-		(property "Value" "Conn_02x13_Odd_Even"
+		(property "Value" "1528-1112-ND"
 			(at 269.24 76.2 0)
 			(effects
 				(font
@@ -19044,7 +19044,7 @@
 				)
 			)
 		)
-		(property "Value" "Conn_02x13_Odd_Even"
+		(property "Value" "1528-1112-ND"
 			(at 295.91 34.29 0)
 			(effects
 				(font
@@ -20069,7 +20069,7 @@
 				)
 			)
 		)
-		(property "Value" "Conn_02x13_Odd_Even"
+		(property "Value" "1528-1112-ND"
 			(at 269.24 34.29 0)
 			(effects
 				(font
@@ -20501,7 +20501,7 @@
 				)
 			)
 		)
-		(property "Value" "Conn_02x13_Odd_Even"
+		(property "Value" "1528-1112-ND"
 			(at 321.31 34.29 0)
 			(effects
 				(font
@@ -21233,7 +21233,7 @@
 				)
 			)
 		)
-		(property "Value" "Conn_02x13_Odd_Even"
+		(property "Value" "1528-1112-ND"
 			(at 321.31 76.2 0)
 			(effects
 				(font
