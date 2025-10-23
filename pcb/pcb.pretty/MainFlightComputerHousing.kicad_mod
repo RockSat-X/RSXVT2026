@@ -2,7 +2,6 @@
 	(version 20241229)
 	(generator "pcbnew")
 	(generator_version "9.0")
-	(locked yes)
 	(layer "F.Cu")
 	(descr "Housing for the Main Camera System.")
 	(property "Reference" "N1"
@@ -100,6 +99,17 @@
 		)
 		(rotate
 			(xyz -90 -0 -0)
+		)
+	)
+	(model "${KIPRJMOD}/models/amphenol_socapex_22_pin.stp"
+		(offset
+			(xyz 0 48 -30.7)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -0 180 -0)
 		)
 	)
 )
