@@ -7566,6 +7566,19 @@
 		(uuid 5971b4b0-746b-4d94-87a5-87e1ec3ed8e3)
 	)
 	(rectangle
+		(start 78.74 289.56)
+		(end 243.84 379.73)
+		(stroke
+			(width 0.8128)
+			(type solid)
+			(color 255 0 0 1)
+		)
+		(fill
+			(type none)
+		)
+		(uuid 821086f3-a3ab-4f55-a014-0532e44c4b77)
+	)
+	(rectangle
 		(start 339.598 287.655)
 		(end 447.04 328.295)
 		(stroke
@@ -7824,6 +7837,21 @@
 			(justify left bottom)
 		)
 		(uuid "9ecc5094-c928-4155-bd7b-02addbabffa5")
+	)
+	(text "Main Stack Pin-Outs (V0)."
+		(exclude_from_sim no)
+		(at 78.867 287.655 0)
+		(effects
+			(font
+				(size 3.2512 3.2512)
+				(thickness 0.6502)
+				(bold yes)
+				(italic yes)
+				(color 255 0 0 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "adcd654e-8ae2-4e45-bd91-27ec24765649")
 	)
 	(text "\"In addition, each power supply pair should be decoupled with\nfiltering ceramic capacitors (100 nF) and one single\nceramic capacitor (minimum 4.7 uF) connected in parallel.\"\n\n@/pg 31/sec 7.4/`H533an`."
 		(exclude_from_sim no)
@@ -10612,16 +10640,6 @@
 		)
 		(uuid "21743eb4-4999-4e7f-88c0-d6a28819d48e")
 	)
-	(label "USB_D+"
-		(at 397.51 121.92 180)
-		(effects
-			(font
-				(size 0.635 0.635)
-			)
-			(justify right bottom)
-		)
-		(uuid "236db478-4b85-45cf-ae03-205f72eee528")
-	)
 	(label "user_button"
 		(at 127 157.48 180)
 		(effects
@@ -10631,16 +10649,6 @@
 			(justify right bottom)
 		)
 		(uuid "37cbaf3c-b78e-4593-9dc5-71b5a527d12a")
-	)
-	(label "SERIAL_TX_ACTIVITY_ANODE"
-		(at 474.98 118.11 180)
-		(effects
-			(font
-				(size 0.635 0.635)
-			)
-			(justify right bottom)
-		)
-		(uuid "5fbcd7e1-7023-4941-bb10-316840503984")
 	)
 	(label "SD_CONNECTOR_CMD"
 		(at 424.18 187.96 180)
@@ -10672,16 +10680,6 @@
 		)
 		(uuid "7525b538-271d-4501-bc9a-a83fd6e0d3bd")
 	)
-	(label "VBUS_VOUT_LED_ANODE"
-		(at 455.93 78.74 0)
-		(effects
-			(font
-				(size 0.635 0.635)
-			)
-			(justify left bottom)
-		)
-		(uuid "77e881ed-5ca2-471f-bcd8-c39ec2b5b651")
-	)
 	(label "RESET_PRESSED"
 		(at 402.59 311.15 0)
 		(effects
@@ -10711,6 +10709,36 @@
 			(justify right bottom)
 		)
 		(uuid "8cd15fd4-e00e-4f20-9d96-d8ede7599ae3")
+	)
+	(label "VBUS_VOUT_LED_ANODE"
+		(at 455.93 78.74 0)
+		(effects
+			(font
+				(size 0.635 0.635)
+			)
+			(justify left bottom)
+		)
+		(uuid "8ec2eec7-6999-4fce-af6d-67dd9a9ad049")
+	)
+	(label "SERIAL_TX_ACTIVITY_ANODE"
+		(at 474.98 118.11 180)
+		(effects
+			(font
+				(size 0.635 0.635)
+			)
+			(justify right bottom)
+		)
+		(uuid "a7106cc5-9bb6-45cf-9c67-bcd0142182b5")
+	)
+	(label "PWR_BY_USB_EN"
+		(at 410.21 72.39 180)
+		(effects
+			(font
+				(size 0.635 0.635)
+			)
+			(justify right bottom)
+		)
+		(uuid "abaa907e-c0a6-4f60-8e38-156515fe3ff9")
 	)
 	(label "VBUS"
 		(at 410.21 69.85 180)
@@ -10792,6 +10820,16 @@
 		)
 		(uuid "cf872794-e7ef-4465-8f72-edd4ab75658c")
 	)
+	(label "USB_D+"
+		(at 397.51 121.92 180)
+		(effects
+			(font
+				(size 0.635 0.635)
+			)
+			(justify right bottom)
+		)
+		(uuid "df2c8963-5f6d-4037-8955-5d6ba2926686")
+	)
 	(label "SD_CONNECTOR_DAT2"
 		(at 424.18 182.88 180)
 		(effects
@@ -10801,16 +10839,6 @@
 			(justify right bottom)
 		)
 		(uuid "e0c288d0-b947-4024-86bb-b3ab97f1954c")
-	)
-	(label "PWR_BY_USB_EN"
-		(at 410.21 72.39 180)
-		(effects
-			(font
-				(size 0.635 0.635)
-			)
-			(justify right bottom)
-		)
-		(uuid "e299e6cc-aa3b-4b1b-9db6-0bb0e97e40e0")
 	)
 	(label "DEBUG_LED_G_CATHODE"
 		(at 499.11 252.73 180)
@@ -11292,28 +11320,6 @@
 			)
 		)
 	)
-	(global_label "spi_mosi_B"
-		(shape bidirectional)
-		(at 111.76 322.58 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "3543f6ff-3d13-45ea-8c6b-96237dec3446")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 126.3188 322.58 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "spi_miso_B"
 		(shape bidirectional)
 		(at 255.27 180.34 180)
@@ -11349,6 +11355,28 @@
 		(uuid "3b95474a-54d1-41d7-a118-455de1500de2")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 201.914 175.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "spi_mosi_B"
+		(shape bidirectional)
+		(at 111.76 322.58 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "3dd5f8de-41f6-42d3-ae43-8f782bfbc1bb")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 126.3188 322.58 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14675,73 +14703,6 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 370.84 86.36 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "1c34e2da-8755-4629-8cb6-b84b0a590a0f")
-		(property "Reference" "#PWR040"
-			(at 370.84 92.71 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "GND"
-			(at 370.84 91.44 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Footprint" ""
-			(at 370.84 86.36 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 370.84 86.36 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 370.84 86.36 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "6cffd3c7-256d-4a81-a4ec-45f98a1ab920")
-		)
-		(instances
-			(project "MainFlightComputer"
-				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
-					(reference "#PWR040")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:GND")
 		(at 382.27 80.01 0)
 		(mirror y)
 		(unit 1)
@@ -17891,6 +17852,72 @@
 		)
 	)
 	(symbol
+		(lib_id "power:GND")
+		(at 111.76 320.04 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "7256505e-9bdd-4c8e-a75a-64167f7ce486")
+		(property "Reference" "#PWR062"
+			(at 118.11 320.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 116.84 320.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 111.76 320.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 111.76 320.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 111.76 320.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "2406badf-61a2-461a-ac17-6759b7484ea1")
+		)
+		(instances
+			(project "MainFlightComputer"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
+					(reference "#PWR062")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Mechanical:MountingHole")
 		(at 35.56 29.21 0)
 		(unit 1)
@@ -20691,72 +20718,6 @@
 		)
 	)
 	(symbol
-		(lib_id "power:GND")
-		(at 111.76 320.04 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "a0df39ff-8a83-45eb-908d-61e0d6e92d75")
-		(property "Reference" "#PWR062"
-			(at 118.11 320.04 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "GND"
-			(at 116.84 320.04 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Footprint" ""
-			(at 111.76 320.04 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 111.76 320.04 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 111.76 320.04 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "2406badf-61a2-461a-ac17-6759b7484ea1")
-		)
-		(instances
-			(project "MainFlightComputer"
-				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
-					(reference "#PWR062")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:+3.3V")
 		(at 167.64 317.5 270)
 		(unit 1)
@@ -23073,6 +23034,73 @@
 			(project "MainFlightComputer"
 				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
 					(reference "R22")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 370.84 86.36 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "d5571051-6829-4a7b-a546-82274db96b53")
+		(property "Reference" "#PWR040"
+			(at 370.84 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 370.84 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 370.84 86.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 370.84 86.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 370.84 86.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "6cffd3c7-256d-4a81-a4ec-45f98a1ab920")
+		)
+		(instances
+			(project "MainFlightComputer"
+				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
+					(reference "#PWR040")
 					(unit 1)
 				)
 			)
