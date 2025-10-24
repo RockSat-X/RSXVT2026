@@ -3156,7 +3156,7 @@
 			(at 5.62 -3.26 0)
 			(layer "F.SilkS")
 			(hide yes)
-			(uuid "5ff880ee-ca3a-445c-8473-bf5586bb8fee")
+			(uuid "cc873721-57c5-4210-bdad-741e33facbf0")
 			(effects
 				(font
 					(size 1 1)
@@ -3167,7 +3167,7 @@
 		(property "Value" "Debug"
 			(at 5.62 2.35 0)
 			(layer "F.Fab")
-			(uuid "0373b44c-7434-4245-a202-5acf9d155002")
+			(uuid "6632cb2d-a4fa-46c8-ac64-95d875f76092")
 			(effects
 				(font
 					(size 1 1)
@@ -3179,7 +3179,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "f7db4b94-1611-474c-aa31-ae1f805f458a")
+			(uuid "16f30412-f9c5-462b-b215-71b184bd11ac")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3191,7 +3191,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "2c4bbd49-1fea-41b3-bf9d-1edb016beb3a")
+			(uuid "91de90ee-98b5-4517-a776-a64056dbd44c")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -18009,7 +18009,7 @@
 		(model "${KIPRJMOD}/models/ElectronicsBoxCase_AN-14F-01_Body.step"
 			(opacity 0.3600)
 			(offset
-				(xyz 0 15 31)
+				(xyz 0 13 29)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -18020,7 +18020,7 @@
 		)
 		(model "${KIPRJMOD}/models/amphenol_socapex_22_pin.stp"
 			(offset
-				(xyz 0 48 -30.7)
+				(xyz 0 46 -32.7)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -18055,7 +18055,7 @@
 		(model "${KIPRJMOD}/models/ElectronicsBoxCase_AN-14F-01_Lid.step"
 			(opacity 0.5600)
 			(offset
-				(xyz 0 15 31)
+				(xyz 0 13 29)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -22752,8 +22752,8 @@
 		)
 	)
 	(gr_line
-		(start 180 135)
-		(end 120 135)
+		(start 178 135)
+		(end 122 135)
 		(stroke
 			(width 0.05)
 			(type default)
@@ -22763,8 +22763,8 @@
 		(uuid "24b0b06c-8058-46fb-a1ff-922b8d0e5e95")
 	)
 	(gr_line
-		(start 120 65)
-		(end 180 65)
+		(start 122 65)
+		(end 178 65)
 		(stroke
 			(width 0.05)
 			(type default)
@@ -22774,8 +22774,8 @@
 		(uuid "6a60c495-309c-46c9-af25-a1a89dd909dc")
 	)
 	(gr_line
-		(start 185 70)
-		(end 185 130)
+		(start 183 70)
+		(end 183 130)
 		(stroke
 			(width 0.05)
 			(type default)
@@ -22785,9 +22785,9 @@
 		(uuid "747d18a2-a045-4a8c-83d1-6b9b7de7b0b2")
 	)
 	(gr_arc
-		(start 180 65)
-		(mid 183.535534 66.464466)
-		(end 185 70)
+		(start 178 65)
+		(mid 181.535534 66.464466)
+		(end 183 70)
 		(stroke
 			(width 0.05)
 			(type default)
@@ -22797,9 +22797,9 @@
 		(uuid "96203550-8084-4d25-894d-7df734dcc4b3")
 	)
 	(gr_arc
-		(start 120 135)
-		(mid 116.464466 133.535534)
-		(end 115 130)
+		(start 122 135)
+		(mid 118.464466 133.535534)
+		(end 117 130)
 		(stroke
 			(width 0.05)
 			(type default)
@@ -22809,9 +22809,9 @@
 		(uuid "97314a4d-9580-4e7f-9a4d-f0c1510d93cc")
 	)
 	(gr_arc
-		(start 185 130)
-		(mid 183.535534 133.535534)
-		(end 180 135)
+		(start 183 130)
+		(mid 181.535534 133.535534)
+		(end 178 135)
 		(stroke
 			(width 0.05)
 			(type default)
@@ -22821,8 +22821,8 @@
 		(uuid "c39e47ca-9071-4fad-9824-68d1752371ab")
 	)
 	(gr_line
-		(start 115 130)
-		(end 115 70)
+		(start 117 130)
+		(end 117 70)
 		(stroke
 			(width 0.05)
 			(type default)
@@ -22832,9 +22832,9 @@
 		(uuid "d4915aa5-39e6-4649-b3df-d49f138a3f46")
 	)
 	(gr_arc
-		(start 115 70)
-		(mid 116.464466 66.464466)
-		(end 120 65)
+		(start 117 70)
+		(mid 118.464466 66.464466)
+		(end 122 65)
 		(stroke
 			(width 0.05)
 			(type default)
