@@ -2940,6 +2940,213 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Power_Management:TPS22810DRV"
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "U"
+				(at -6.35 6.35 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "TPS22810DRV"
+				(at 7.62 -6.35 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" "Package_SON:WSON-6-1EP_2x2mm_P0.65mm_EP1x1.6mm"
+				(at 0 -17.78 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "http://www.ti.com/lit/ds/symlink/tps22810.pdf"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "2.7..18V, 3A, 79mohms On-Resistance Load Switch With Thermal Protection, WSON-6"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "load switch thermal protection QOD quick-output-discharge"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "WSON*1EP*2x2mm*P0.65mm*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "TPS22810DRV_1_1"
+				(rectangle
+					(start -7.62 5.08)
+					(end 7.62 -5.08)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(pin power_in line
+					(at -10.16 2.54 0)
+					(length 2.54)
+					(name "VIN"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 0 0)
+					(length 2.54)
+					(name "EN/UVLO"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at 0 -7.62 90)
+					(length 2.54)
+					(name "GND"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -7.62 90)
+					(length 2.54)
+					(hide yes)
+					(name "GND"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "7"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_out line
+					(at 10.16 2.54 180)
+					(length 2.54)
+					(name "VOUT"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin open_collector line
+					(at 10.16 0 180)
+					(length 2.54)
+					(name "QOD"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 10.16 -2.54 180)
+					(length 2.54)
+					(name "CT"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "power:+3.3V"
 			(power)
 			(pin_numbers
@@ -3521,68 +3728,28 @@
 		(uuid "f7e2763f-4919-4f86-9efb-68c3cc1ed004")
 	)
 	(no_connect
-		(at 402.59 274.32)
+		(at 195.58 227.33)
+		(uuid "04185d2e-10e4-4c83-a0b3-109eb6d5d776")
+	)
+	(no_connect
+		(at 430.53 274.32)
 		(uuid "144ea45d-ab7b-461b-a932-7f9fa0197996")
 	)
 	(no_connect
-		(at 195.58 284.48)
-		(uuid "2eccbb5c-ff52-498a-ad37-d17f72e919a9")
-	)
-	(no_connect
-		(at 402.59 255.27)
+		(at 430.53 255.27)
 		(uuid "342c15b6-96cc-40f3-a7de-6cf52c77712b")
 	)
 	(no_connect
-		(at 377.19 255.27)
-		(uuid "3a2d00e3-0ebb-42e7-8c36-191143d54bc5")
-	)
-	(no_connect
-		(at 377.19 261.62)
-		(uuid "4c3ddeb2-62f0-44af-ba25-afd893050552")
-	)
-	(no_connect
-		(at 353.06 267.97)
-		(uuid "540d2a9c-c065-4b5a-8e08-36d02b0a8c2a")
-	)
-	(no_connect
-		(at 175.26 284.48)
-		(uuid "66396288-1939-46b3-9d2b-630db6cf397b")
-	)
-	(no_connect
-		(at 377.19 267.97)
-		(uuid "7f719ef2-fae2-46e4-933f-a9df484705c4")
-	)
-	(no_connect
-		(at 377.19 274.32)
-		(uuid "8c92546b-c642-4120-bbd3-f73e15a1e853")
-	)
-	(no_connect
-		(at 353.06 261.62)
-		(uuid "8d7052f0-1b7f-4f93-958a-007a7095b36b")
-	)
-	(no_connect
-		(at 195.58 260.35)
-		(uuid "9220e1a8-0194-4995-b568-80857b171754")
-	)
-	(no_connect
-		(at 175.26 260.35)
-		(uuid "9639e5a7-bb9f-4634-ad35-591c3c80d635")
-	)
-	(no_connect
-		(at 402.59 261.62)
+		(at 430.53 261.62)
 		(uuid "b48e268a-5903-4b66-b392-c963e6f70779")
 	)
 	(no_connect
-		(at 353.06 274.32)
-		(uuid "d17d59a8-8ff5-424a-9971-cfa39f890c3a")
+		(at 195.58 229.87)
+		(uuid "d631b4dd-e45b-4bd4-85fd-2b90e9a2feb6")
 	)
 	(no_connect
-		(at 402.59 267.97)
+		(at 430.53 267.97)
 		(uuid "d740441b-aba0-4c1f-bc4b-06b8139b3070")
-	)
-	(no_connect
-		(at 353.06 255.27)
-		(uuid "d76b7053-c28a-436f-8266-0485046936b2")
 	)
 	(wire
 		(pts
@@ -4410,6 +4577,28 @@
 			)
 		)
 	)
+	(global_label "BATTERY_ENABLE"
+		(shape bidirectional)
+		(at 365.76 274.32 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "46da3f59-19f9-4ea0-824f-21c0fd6ea660")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 345.8793 274.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "MOTOR_DIR_X"
 		(shape bidirectional)
 		(at 336.55 80.01 180)
@@ -4599,6 +4788,28 @@
 		(uuid "65a68e0d-7784-4635-918a-a17a01fea2dd")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 218.6373 250.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "BATTERY_ENABLE"
+		(shape bidirectional)
+		(at 175.26 227.33 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "65ff79b4-e695-4d5c-83cb-64d5000a1a73")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 155.3793 227.33 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5582,7 +5793,7 @@
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole_Pad_MP")
-		(at 355.6 261.62 270)
+		(at 368.3 261.62 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
@@ -5591,7 +5802,7 @@
 		(fields_autoplaced yes)
 		(uuid "0e5c457b-2639-4efe-87bf-3b848aab56c0")
 		(property "Reference" "H6"
-			(at 359.41 261.6199 90)
+			(at 372.11 261.6199 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5600,7 +5811,7 @@
 			)
 		)
 		(property "Value" "MountingHole_Pad_MP"
-			(at 355.6001 264.16 0)
+			(at 368.3001 264.16 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5610,7 +5821,7 @@
 			)
 		)
 		(property "Footprint" "pcb:Matrix_Hole"
-			(at 355.6 261.62 0)
+			(at 368.3 261.62 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5619,7 +5830,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 355.6 261.62 0)
+			(at 368.3 261.62 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5628,7 +5839,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole with connection as pad named MP"
-			(at 355.6 261.62 0)
+			(at 368.3 261.62 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5643,6 +5854,73 @@
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "H6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+BATT")
+		(at 175.26 284.48 90)
+		(mirror x)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "0ea4613c-fdb1-4851-9cc0-c1cea48a36f6")
+		(property "Reference" "#PWR082"
+			(at 179.07 284.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+PLUGGED_3.3V"
+			(at 171.45 284.4799 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 175.26 284.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 175.26 284.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+BATT\""
+			(at 175.26 284.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "de828840-183a-4525-8049-5a32f0d1a7f0")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR082")
 					(unit 1)
 				)
 			)
@@ -5784,7 +6062,7 @@
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole_Pad_MP")
-		(at 379.73 267.97 270)
+		(at 407.67 267.97 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
@@ -5793,7 +6071,7 @@
 		(fields_autoplaced yes)
 		(uuid "15fcc963-62b3-4572-a34f-32d427474511")
 		(property "Reference" "H11"
-			(at 383.54 267.9699 90)
+			(at 411.48 267.9699 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5802,7 +6080,7 @@
 			)
 		)
 		(property "Value" "MountingHole_Pad_MP"
-			(at 379.7301 270.51 0)
+			(at 407.6701 270.51 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5812,7 +6090,7 @@
 			)
 		)
 		(property "Footprint" "pcb:Matrix_Hole"
-			(at 379.73 267.97 0)
+			(at 407.67 267.97 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5821,7 +6099,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 379.73 267.97 0)
+			(at 407.67 267.97 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5830,7 +6108,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole with connection as pad named MP"
-			(at 379.73 267.97 0)
+			(at 407.67 267.97 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5919,7 +6197,7 @@
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole_Pad_MP")
-		(at 355.6 274.32 270)
+		(at 368.3 274.32 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
@@ -5928,7 +6206,7 @@
 		(fields_autoplaced yes)
 		(uuid "1fe9ce03-0f13-4649-b53b-a0fbfa309998")
 		(property "Reference" "H8"
-			(at 359.41 274.3199 90)
+			(at 372.11 274.3199 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5937,7 +6215,7 @@
 			)
 		)
 		(property "Value" "MountingHole_Pad_MP"
-			(at 355.6001 276.86 0)
+			(at 368.3001 276.86 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5947,7 +6225,7 @@
 			)
 		)
 		(property "Footprint" "pcb:Matrix_Hole"
-			(at 355.6 274.32 0)
+			(at 368.3 274.32 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5956,7 +6234,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 355.6 274.32 0)
+			(at 368.3 274.32 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5965,7 +6243,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole with connection as pad named MP"
-			(at 355.6 274.32 0)
+			(at 368.3 274.32 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6058,7 +6336,7 @@
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole_Pad_MP")
-		(at 355.6 255.27 270)
+		(at 368.3 255.27 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
@@ -6067,7 +6345,7 @@
 		(fields_autoplaced yes)
 		(uuid "2c542b59-21a4-49c3-8435-f181ec2323c1")
 		(property "Reference" "H5"
-			(at 359.41 255.2699 90)
+			(at 372.11 255.2699 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6076,7 +6354,7 @@
 			)
 		)
 		(property "Value" "MountingHole_Pad_MP"
-			(at 355.6001 257.81 0)
+			(at 368.3001 257.81 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6086,7 +6364,7 @@
 			)
 		)
 		(property "Footprint" "pcb:Matrix_Hole"
-			(at 355.6 255.27 0)
+			(at 368.3 255.27 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6095,7 +6373,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 355.6 255.27 0)
+			(at 368.3 255.27 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6104,7 +6382,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole with connection as pad named MP"
-			(at 355.6 255.27 0)
+			(at 368.3 255.27 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6119,6 +6397,73 @@
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "H5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+BATT")
+		(at 365.76 261.62 90)
+		(mirror x)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "2e025299-2af5-401f-88e8-fb01b1e4afcf")
+		(property "Reference" "#PWR076"
+			(at 369.57 261.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+ENABLED_BATTERY"
+			(at 361.95 261.6199 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 365.76 261.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 365.76 261.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+BATT\""
+			(at 365.76 261.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "77b5ed96-e44f-46ea-9d19-36691729048e")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR076")
 					(unit 1)
 				)
 			)
@@ -6330,7 +6675,7 @@
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole_Pad_MP")
-		(at 379.73 255.27 270)
+		(at 407.67 255.27 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
@@ -6339,7 +6684,7 @@
 		(fields_autoplaced yes)
 		(uuid "31b347bc-1809-4ea7-8d92-c8802f0f9566")
 		(property "Reference" "H9"
-			(at 383.54 255.2699 90)
+			(at 411.48 255.2699 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6348,7 +6693,7 @@
 			)
 		)
 		(property "Value" "MountingHole_Pad_MP"
-			(at 379.7301 257.81 0)
+			(at 407.6701 257.81 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6358,7 +6703,7 @@
 			)
 		)
 		(property "Footprint" "pcb:Matrix_Hole"
-			(at 379.73 255.27 0)
+			(at 407.67 255.27 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6367,7 +6712,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 379.73 255.27 0)
+			(at 407.67 255.27 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6376,7 +6721,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole with connection as pad named MP"
-			(at 379.73 255.27 0)
+			(at 407.67 255.27 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6398,7 +6743,7 @@
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole_Pad_MP")
-		(at 355.6 267.97 270)
+		(at 368.3 267.97 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
@@ -6407,7 +6752,7 @@
 		(fields_autoplaced yes)
 		(uuid "3311bba3-d7bc-4b11-87a7-c4ba3a6086d9")
 		(property "Reference" "H7"
-			(at 359.41 267.9699 90)
+			(at 372.11 267.9699 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6416,7 +6761,7 @@
 			)
 		)
 		(property "Value" "MountingHole_Pad_MP"
-			(at 355.6001 270.51 0)
+			(at 368.3001 270.51 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6426,7 +6771,7 @@
 			)
 		)
 		(property "Footprint" "pcb:Matrix_Hole"
-			(at 355.6 267.97 0)
+			(at 368.3 267.97 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6435,7 +6780,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 355.6 267.97 0)
+			(at 368.3 267.97 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6444,7 +6789,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole with connection as pad named MP"
-			(at 355.6 267.97 0)
+			(at 368.3 267.97 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6459,6 +6804,73 @@
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "H7")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+BATT")
+		(at 365.76 255.27 90)
+		(mirror x)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "352ba8d2-301a-4bb1-a89a-4e0da8bb885f")
+		(property "Reference" "#PWR077"
+			(at 369.57 255.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+PLUGGED_BATTERY"
+			(at 361.95 255.2699 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 365.76 255.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 365.76 255.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+BATT\""
+			(at 365.76 255.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "a1453cb2-f5c8-455a-a55e-44857adeaeb0")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR077")
 					(unit 1)
 				)
 			)
@@ -6677,6 +7089,72 @@
 		)
 	)
 	(symbol
+		(lib_id "power:+BATT")
+		(at 195.58 284.48 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "44b79b9f-7695-48f4-af09-3231ea0485e0")
+		(property "Reference" "#PWR080"
+			(at 191.77 284.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3.3V"
+			(at 199.39 284.4799 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 195.58 284.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 195.58 284.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+BATT\""
+			(at 195.58 284.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "33d19c1e-37b9-4a64-9cff-7d7d26b8eba4")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR080")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 252.73 363.22 90)
 		(unit 1)
@@ -6744,8 +7222,74 @@
 		)
 	)
 	(symbol
+		(lib_id "power:+BATT")
+		(at 195.58 224.79 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "51098f8b-2e81-4f36-a4ac-ea874f6bc0e3")
+		(property "Reference" "#PWR073"
+			(at 191.77 224.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+ENABLED_BATTERY"
+			(at 199.39 224.7899 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 195.58 224.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 195.58 224.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+BATT\""
+			(at 195.58 224.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "4cfc05bb-6617-460a-8334-e73d79f15f16")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR073")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Mechanical:MountingHole_Pad_MP")
-		(at 379.73 261.62 270)
+		(at 407.67 261.62 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
@@ -6754,7 +7298,7 @@
 		(fields_autoplaced yes)
 		(uuid "556e6804-bd36-41a1-9c4d-4bf15e8865b3")
 		(property "Reference" "H10"
-			(at 383.54 261.6199 90)
+			(at 411.48 261.6199 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6763,7 +7307,7 @@
 			)
 		)
 		(property "Value" "MountingHole_Pad_MP"
-			(at 379.7301 264.16 0)
+			(at 407.6701 264.16 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6773,7 +7317,7 @@
 			)
 		)
 		(property "Footprint" "pcb:Matrix_Hole"
-			(at 379.73 261.62 0)
+			(at 407.67 261.62 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6782,7 +7326,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 379.73 261.62 0)
+			(at 407.67 261.62 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6791,7 +7335,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole with connection as pad named MP"
-			(at 379.73 261.62 0)
+			(at 407.67 261.62 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6879,6 +7423,73 @@
 		)
 	)
 	(symbol
+		(lib_id "power:+BATT")
+		(at 175.26 224.79 90)
+		(mirror x)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5dfbf9ab-8eb3-4623-a038-a3ebf0a0d85d")
+		(property "Reference" "#PWR075"
+			(at 179.07 224.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+PLUGGED_BATTERY"
+			(at 171.45 224.7899 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 175.26 224.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 175.26 224.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+BATT\""
+			(at 175.26 224.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "7d66d369-2ae2-4db9-9810-122e3f4ff0bb")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR075")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:R")
 		(at 283.21 90.17 180)
 		(unit 1)
@@ -6949,7 +7560,7 @@
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole_Pad_MP")
-		(at 405.13 267.97 270)
+		(at 433.07 267.97 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
@@ -6958,7 +7569,7 @@
 		(fields_autoplaced yes)
 		(uuid "675dfce1-cdcf-4b2d-9404-13d6f028815f")
 		(property "Reference" "H15"
-			(at 408.94 267.9699 90)
+			(at 436.88 267.9699 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6967,7 +7578,7 @@
 			)
 		)
 		(property "Value" "MountingHole_Pad_MP"
-			(at 405.1301 270.51 0)
+			(at 433.0701 270.51 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6977,7 +7588,7 @@
 			)
 		)
 		(property "Footprint" "pcb:Matrix_Hole"
-			(at 405.13 267.97 0)
+			(at 433.07 267.97 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6986,7 +7597,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 405.13 267.97 0)
+			(at 433.07 267.97 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6995,7 +7606,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole with connection as pad named MP"
-			(at 405.13 267.97 0)
+			(at 433.07 267.97 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7017,7 +7628,7 @@
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole_Pad_MP")
-		(at 405.13 261.62 270)
+		(at 433.07 261.62 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
@@ -7026,7 +7637,7 @@
 		(fields_autoplaced yes)
 		(uuid "6b5fc37e-925b-4442-b0e3-f35665d0d688")
 		(property "Reference" "H14"
-			(at 408.94 261.6199 90)
+			(at 436.88 261.6199 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7035,7 +7646,7 @@
 			)
 		)
 		(property "Value" "MountingHole_Pad_MP"
-			(at 405.1301 264.16 0)
+			(at 433.0701 264.16 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7045,7 +7656,7 @@
 			)
 		)
 		(property "Footprint" "pcb:Matrix_Hole"
-			(at 405.13 261.62 0)
+			(at 433.07 261.62 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7054,7 +7665,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 405.13 261.62 0)
+			(at 433.07 261.62 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7063,7 +7674,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole with connection as pad named MP"
-			(at 405.13 261.62 0)
+			(at 433.07 261.62 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7878,7 +8489,7 @@
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole_Pad_MP")
-		(at 405.13 274.32 270)
+		(at 433.07 274.32 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
@@ -7887,7 +8498,7 @@
 		(fields_autoplaced yes)
 		(uuid "94661a01-1bf5-470f-b17d-14c24a99e767")
 		(property "Reference" "H16"
-			(at 408.94 274.3199 90)
+			(at 436.88 274.3199 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7896,7 +8507,7 @@
 			)
 		)
 		(property "Value" "MountingHole_Pad_MP"
-			(at 405.1301 276.86 0)
+			(at 433.0701 276.86 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7906,7 +8517,7 @@
 			)
 		)
 		(property "Footprint" "pcb:Matrix_Hole"
-			(at 405.13 274.32 0)
+			(at 433.07 274.32 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7915,7 +8526,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 405.13 274.32 0)
+			(at 433.07 274.32 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7924,7 +8535,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole with connection as pad named MP"
-			(at 405.13 274.32 0)
+			(at 433.07 274.32 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8215,6 +8826,73 @@
 		)
 	)
 	(symbol
+		(lib_id "power:+BATT")
+		(at 405.13 255.27 90)
+		(mirror x)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "9a96aabe-7f60-4ecb-a68e-1867195de4ed")
+		(property "Reference" "#PWR083"
+			(at 408.94 255.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+PLUGGED_5V"
+			(at 401.32 255.2699 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 405.13 255.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 405.13 255.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+BATT\""
+			(at 405.13 255.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "e3742187-903b-48f1-8484-594190e22d33")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR083")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 240.03 330.2 270)
 		(unit 1)
@@ -8282,8 +8960,142 @@
 		)
 	)
 	(symbol
+		(lib_id "power:+BATT")
+		(at 365.76 267.97 90)
+		(mirror x)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "a3fca6b8-ffd2-42b2-b787-67d73eebfeae")
+		(property "Reference" "#PWR078"
+			(at 369.57 267.97 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+MOTOR"
+			(at 361.95 267.9699 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 365.76 267.97 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 365.76 267.97 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+BATT\""
+			(at 365.76 267.97 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "cb7c6bfd-7aa7-4619-afeb-96ed73fbd34a")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR078")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+BATT")
+		(at 405.13 274.32 90)
+		(mirror x)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "a45f2223-41ad-4a65-9665-3165e0dc9bf0")
+		(property "Reference" "#PWR086"
+			(at 408.94 274.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3.3V"
+			(at 401.32 274.3199 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 405.13 274.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 405.13 274.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+BATT\""
+			(at 405.13 274.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "ebd63524-4d85-45ee-859b-c8360bb54f62")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR086")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Mechanical:MountingHole_Pad_MP")
-		(at 405.13 255.27 270)
+		(at 433.07 255.27 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
@@ -8292,7 +9104,7 @@
 		(fields_autoplaced yes)
 		(uuid "a78b7159-9d1e-4c5b-939c-58aa835f7a9b")
 		(property "Reference" "H13"
-			(at 408.94 255.2699 90)
+			(at 436.88 255.2699 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8301,7 +9113,7 @@
 			)
 		)
 		(property "Value" "MountingHole_Pad_MP"
-			(at 405.1301 257.81 0)
+			(at 433.0701 257.81 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8311,7 +9123,7 @@
 			)
 		)
 		(property "Footprint" "pcb:Matrix_Hole"
-			(at 405.13 255.27 0)
+			(at 433.07 255.27 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8320,7 +9132,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 405.13 255.27 0)
+			(at 433.07 255.27 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8329,7 +9141,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole with connection as pad named MP"
-			(at 405.13 255.27 0)
+			(at 433.07 255.27 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8697,8 +9509,91 @@
 		)
 	)
 	(symbol
+		(lib_id "Power_Management:TPS22810DRV")
+		(at 185.42 227.33 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "b85fde59-73d5-4c33-8ced-9d0592db874c")
+		(property "Reference" "U6"
+			(at 185.42 217.17 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "TPS22810DRV"
+			(at 185.42 219.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_SON:WSON-6-1EP_2x2mm_P0.65mm_EP1x1.6mm"
+			(at 185.42 245.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "http://www.ti.com/lit/ds/symlink/tps22810.pdf"
+			(at 185.42 227.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "2.7..18V, 3A, 79mohms On-Resistance Load Switch With Thermal Protection, WSON-6"
+			(at 185.42 227.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "3"
+			(uuid "e5a1e5be-1310-463a-bedd-b5793df700ca")
+		)
+		(pin "2"
+			(uuid "80bac820-1936-470a-81fb-3a1a4617d0b3")
+		)
+		(pin "1"
+			(uuid "42b4dd1b-a2cd-4f44-bf00-4816fe82238d")
+		)
+		(pin "7"
+			(uuid "32faaab3-0363-46d5-82c4-0a7334319632")
+		)
+		(pin "4"
+			(uuid "ed889709-c8b8-476f-bfb4-105cca3eeaf8")
+		)
+		(pin "5"
+			(uuid "a5b55d37-2e2a-40cc-a48e-0820c94b2980")
+		)
+		(pin "6"
+			(uuid "aeccafe9-3b31-41c2-bfb5-f6375ca77db9")
+		)
+		(instances
+			(project ""
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "U6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Mechanical:MountingHole_Pad_MP")
-		(at 379.73 274.32 270)
+		(at 407.67 274.32 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
@@ -8707,7 +9602,7 @@
 		(fields_autoplaced yes)
 		(uuid "b9c85163-1801-4dd1-ba5e-d5c2a1dc39b8")
 		(property "Reference" "H12"
-			(at 383.54 274.3199 90)
+			(at 411.48 274.3199 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8716,7 +9611,7 @@
 			)
 		)
 		(property "Value" "MountingHole_Pad_MP"
-			(at 379.7301 276.86 0)
+			(at 407.6701 276.86 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8726,7 +9621,7 @@
 			)
 		)
 		(property "Footprint" "pcb:Matrix_Hole"
-			(at 379.73 274.32 0)
+			(at 407.67 274.32 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8735,7 +9630,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 379.73 274.32 0)
+			(at 407.67 274.32 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8744,7 +9639,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole with connection as pad named MP"
-			(at 379.73 274.32 0)
+			(at 407.67 274.32 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8759,6 +9654,73 @@
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "H12")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+BATT")
+		(at 175.26 260.35 90)
+		(mirror x)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "bcde04e1-d1c9-4b96-b0ae-6015408cad5a")
+		(property "Reference" "#PWR081"
+			(at 179.07 260.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+PLUGGED_5V"
+			(at 171.45 260.3499 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 175.26 260.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 175.26 260.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+BATT\""
+			(at 175.26 260.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "a459cfc9-9cfa-4e65-8526-694ccabe6ad0")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR081")
 					(unit 1)
 				)
 			)
@@ -9372,6 +10334,73 @@
 		)
 	)
 	(symbol
+		(lib_id "power:+BATT")
+		(at 405.13 261.62 90)
+		(mirror x)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "da78b9ba-512d-4ee9-8109-cc8d79a13013")
+		(property "Reference" "#PWR084"
+			(at 408.94 261.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+PLUGGED_3.3V"
+			(at 401.32 261.6199 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 405.13 261.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 405.13 261.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+BATT\""
+			(at 405.13 261.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "92b1905f-e975-46bf-a323-c43ec08b6be5")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR084")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Connector:TestPoint")
 		(at 382.27 196.85 270)
 		(unit 1)
@@ -9634,6 +10663,73 @@
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR015")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+BATT")
+		(at 405.13 267.97 90)
+		(mirror x)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "e370b54b-49cc-42a4-8996-4c14c223e0fd")
+		(property "Reference" "#PWR085"
+			(at 408.94 267.97 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+5V"
+			(at 401.32 267.9699 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 405.13 267.97 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 405.13 267.97 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+BATT\""
+			(at 405.13 267.97 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "67246e12-cd4e-40fa-a1fa-084d205b2249")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR085")
 					(unit 1)
 				)
 			)
@@ -10058,6 +11154,72 @@
 		)
 	)
 	(symbol
+		(lib_id "power:+BATT")
+		(at 195.58 260.35 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "f3dcd8ad-1127-4f62-9d05-0ba57a354519")
+		(property "Reference" "#PWR079"
+			(at 191.77 260.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+5V"
+			(at 199.39 260.3499 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 195.58 260.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 195.58 260.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+BATT\""
+			(at 195.58 260.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "c15db0c8-ccf0-4045-9314-03ab2083c5e7")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR079")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 240.03 345.44 270)
 		(unit 1)
@@ -10253,6 +11415,72 @@
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR069")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 185.42 234.95 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "f8556e4e-fc2c-4af7-bb45-7fc7ac62bb26")
+		(property "Reference" "#PWR072"
+			(at 185.42 241.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 185.42 240.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 185.42 234.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 185.42 234.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 185.42 234.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "0cd85060-4e21-44b9-9416-29cf43b60353")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR072")
 					(unit 1)
 				)
 			)

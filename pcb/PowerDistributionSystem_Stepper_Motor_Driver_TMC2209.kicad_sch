@@ -3065,7 +3065,7 @@
 				(hide yes)
 			)
 		)
-		(property "Value" "+BATT"
+		(property "Value" "+MOTOR"
 			(at 189.23 73.66 0)
 			(effects
 				(font
