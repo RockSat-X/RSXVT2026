@@ -18006,8 +18006,8 @@
 			(uuid "ae8021c5-a0d1-4576-aa99-df88ebaddc6e")
 		)
 		(embedded_fonts no)
-		(model "${KIPRJMOD}/models/ElectronicsBoxCase_AN-14F-01.step"
-			(opacity 0.9000)
+		(model "${KIPRJMOD}/models/ElectronicsBoxCase_AN-14F-01_Body.step"
+			(opacity 0.3600)
 			(offset
 				(xyz 0 15 31)
 			)
@@ -18027,6 +18027,52 @@
 			)
 			(rotate
 				(xyz -0 180 -0)
+			)
+		)
+		(model "${KIPRJMOD}/models/Main_Stack_Dummy.step"
+			(opacity 0.5400)
+			(offset
+				(xyz 0 0 9)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -0 -0 -0)
+			)
+		)
+		(model "${KIPRJMOD}/models/Main_Stack_Dummy.step"
+			(offset
+				(xyz 0 0 20)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -0 -0 -0)
+			)
+		)
+		(model "${KIPRJMOD}/models/ElectronicsBoxCase_AN-14F-01_Lid.step"
+			(opacity 0.5600)
+			(offset
+				(xyz 0 15 31)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -90 -0 -0)
+			)
+		)
+		(model "${KIPRJMOD}/models/Main_Stack_Dummy.step"
+			(offset
+				(xyz 0 0 31)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -0 -0 -0)
 			)
 		)
 	)
