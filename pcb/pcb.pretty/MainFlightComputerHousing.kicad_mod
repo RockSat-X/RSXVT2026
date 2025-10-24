@@ -10,7 +10,7 @@
 		(unlocked yes)
 		(layer "F.SilkS")
 		(hide yes)
-		(uuid "5c3fa1b2-25b8-45e0-adbc-17e21a8e6cc1")
+		(uuid "6da78d11-ca66-42b5-beaf-0e72c32d6bca")
 		(effects
 			(font
 				(size 1 1)
@@ -23,7 +23,7 @@
 		(unlocked yes)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "daa23736-35ae-414e-b037-706a7852ed65")
+		(uuid "064bd524-5814-4e0f-883a-7f75760ae9e7")
 		(effects
 			(font
 				(size 1 1)
@@ -36,7 +36,7 @@
 		(unlocked yes)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "d6f0e5ab-35f4-4c7a-83b0-e4311ced1ca4")
+		(uuid "031dd078-2c49-4994-8453-1b868a9adb38")
 		(effects
 			(font
 				(size 1 1)
@@ -49,7 +49,7 @@
 		(unlocked yes)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "b0c51b6a-6484-46f0-81ea-8a3aacaaec17")
+		(uuid "71645700-1278-4efc-b059-dfc312775beb")
 		(effects
 			(font
 				(size 1 1)
@@ -66,7 +66,7 @@
 			(type default)
 		)
 		(layer "User.1")
-		(uuid "02838e64-9167-493b-975b-37e467db222f")
+		(uuid "b4285c40-d265-4e26-8fff-7001aa825ce9")
 	)
 	(fp_line
 		(start 0 -1)
@@ -76,7 +76,7 @@
 			(type default)
 		)
 		(layer "User.1")
-		(uuid "0829d0e2-23f0-4940-849a-71ae6d51a143")
+		(uuid "b89ce80a-c90f-477e-b7b2-6a2823f853d9")
 	)
 	(fp_circle
 		(center 0 0)
@@ -87,19 +87,76 @@
 		)
 		(fill no)
 		(layer "User.1")
-		(uuid "372de2ca-0362-4dd8-841b-d0127b4043a7")
+		(uuid "24596612-98a4-47bb-b030-c108862a7d04")
 	)
 	(embedded_fonts no)
-	(model "${KIPRJMOD}/models/ElectronicsBoxCase_AN-14F-01.step"
-		(opacity 0.9000)
+	(model "${KIPRJMOD}/models/ElectronicsBoxCase_AN-14F-01_Body.step"
+		(opacity 0.3600)
 		(offset
-			(xyz 0 15 31)
+			(xyz 0 13 29)
 		)
 		(scale
 			(xyz 1 1 1)
 		)
 		(rotate
 			(xyz -90 -0 -0)
+		)
+	)
+	(model "${KIPRJMOD}/models/amphenol_socapex_22_pin.stp"
+		(offset
+			(xyz 0 46 -32.7)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -0 180 -0)
+		)
+	)
+	(model "${KIPRJMOD}/models/Main_Stack_Dummy.step"
+		(opacity 0.5400)
+		(offset
+			(xyz 0 0 9)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -0 -0 -0)
+		)
+	)
+	(model "${KIPRJMOD}/models/Main_Stack_Dummy.step"
+		(offset
+			(xyz 0 0 20)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -0 -0 -0)
+		)
+	)
+	(model "${KIPRJMOD}/models/ElectronicsBoxCase_AN-14F-01_Lid.step"
+		(opacity 0.5600)
+		(offset
+			(xyz 0 13 29)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -90 -0 -0)
+		)
+	)
+	(model "${KIPRJMOD}/models/Main_Stack_Dummy.step"
+		(offset
+			(xyz 0 0 31)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -0 -0 -0)
 		)
 	)
 )
