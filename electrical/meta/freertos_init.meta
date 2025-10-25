@@ -50,3 +50,7 @@
     enum FreeRTOSTask : u32;
     static constexpr u32 FreeRTOSTask_COUNT = 0;
 #endif
+#if TARGET_NAME_IS_DemoA4988
+    enum FreeRTOSTask : u32;
+    static constexpr u32 FreeRTOSTask_COUNT = 0;
+#endif

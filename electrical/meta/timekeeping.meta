@@ -22,3 +22,5 @@
 #endif
 #if TARGET_NAME_IS_MainFlightComputer
 #endif
+#if TARGET_NAME_IS_DemoA4988
+#endif
