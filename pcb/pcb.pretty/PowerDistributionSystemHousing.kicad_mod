@@ -2,6 +2,7 @@
 	(version 20241229)
 	(generator "pcbnew")
 	(generator_version "9.0")
+	(locked yes)
 	(layer "F.Cu")
 	(descr "Housing for the Main Camera System.")
 	(property "Reference" "N1"
@@ -9,7 +10,7 @@
 		(unlocked yes)
 		(layer "F.SilkS")
 		(hide yes)
-		(uuid "724ba4da-b723-46ca-8a6d-e7c0ad78305e")
+		(uuid "a70414aa-9317-45bb-a896-8ca78087c6c2")
 		(effects
 			(font
 				(size 1 1)
@@ -22,7 +23,7 @@
 		(unlocked yes)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "d8cf131b-6a90-46c5-a106-bafbe14acc0b")
+		(uuid "6a504c4b-bf19-4266-95b5-841a277d895c")
 		(effects
 			(font
 				(size 1 1)
@@ -35,7 +36,7 @@
 		(unlocked yes)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "1bcdfbee-f614-48ff-ae0c-6d49a626b6ea")
+		(uuid "b2fd42af-da0a-4574-b792-1e8233bc4e5f")
 		(effects
 			(font
 				(size 1 1)
@@ -48,7 +49,7 @@
 		(unlocked yes)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "041862b2-655f-4e7b-be59-8483c89bca78")
+		(uuid "e7fb5d42-7543-4f50-9178-d9d59a6aef15")
 		(effects
 			(font
 				(size 1 1)
@@ -64,7 +65,7 @@
 			(type default)
 		)
 		(layer "User.1")
-		(uuid "ae03222e-f7cc-4a03-b40a-7157bed5f5a6")
+		(uuid "70168856-37c4-4e03-bc55-a2b60ec60691")
 	)
 	(fp_line
 		(start 0 -1)
@@ -74,7 +75,7 @@
 			(type default)
 		)
 		(layer "User.1")
-		(uuid "84d90b26-c236-4558-8bb1-d4887ecb7882")
+		(uuid "54db02a2-2ce3-4808-92e4-9dccef78a1f6")
 	)
 	(fp_circle
 		(center 0 0)
@@ -85,31 +86,31 @@
 		)
 		(fill no)
 		(layer "User.1")
-		(uuid "07a238bd-7bd5-47a2-ac88-ae8ab48f55c8")
+		(uuid "cac7eb64-8c2b-4dd4-b669-8494843d78f3")
 	)
 	(embedded_fonts no)
 	(model "${KIPRJMOD}/models/CONSat.step"
 		(opacity 0.1700)
 		(offset
-			(xyz 0 50 0)
+			(xyz 0 0 95)
 		)
 		(scale
 			(xyz 1 1 1)
 		)
 		(rotate
-			(xyz -90 90 -0)
+			(xyz -0 180 90)
 		)
 	)
 	(model "${KIPRJMOD}/models/vn100_rugged.step"
 		(opacity 0.3800)
 		(offset
-			(xyz 19 -42.5 38.5)
+			(xyz 19 0 0)
 		)
 		(scale
 			(xyz 1 1 1)
 		)
 		(rotate
-			(xyz 90 -0 -0)
+			(xyz -0 -0 -0)
 		)
 	)
 )
