@@ -18009,7 +18009,7 @@
 		(model "${KIPRJMOD}/models/ElectronicsBoxCase_AN-14F-01_Body.step"
 			(opacity 0.3600)
 			(offset
-				(xyz 0 13 29)
+				(xyz 0 13.5 29)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -18018,9 +18018,9 @@
 				(xyz -90 -0 -0)
 			)
 		)
-		(model "${KIPRJMOD}/models/amphenol_socapex_22_pin.stp"
+		(model "${KIPRJMOD}/models/amphenol_female_66_pins_TVS07RK19-35P.stp"
 			(offset
-				(xyz 0 46 -32.7)
+				(xyz 0 40.5 -32.7)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -18055,7 +18055,7 @@
 		(model "${KIPRJMOD}/models/ElectronicsBoxCase_AN-14F-01_Lid.step"
 			(opacity 0.5600)
 			(offset
-				(xyz 0 13 29)
+				(xyz 0 13.5 29)
 			)
 			(scale
 				(xyz 1 1 1)

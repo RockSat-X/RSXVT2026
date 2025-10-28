@@ -10,7 +10,7 @@
 		(unlocked yes)
 		(layer "F.SilkS")
 		(hide yes)
-		(uuid "6da78d11-ca66-42b5-beaf-0e72c32d6bca")
+		(uuid "76c4a18b-b957-4dc1-b982-2012444254c2")
 		(effects
 			(font
 				(size 1 1)
@@ -23,7 +23,7 @@
 		(unlocked yes)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "064bd524-5814-4e0f-883a-7f75760ae9e7")
+		(uuid "158f408a-9fb6-499d-a4e7-68a1c1245d37")
 		(effects
 			(font
 				(size 1 1)
@@ -36,7 +36,7 @@
 		(unlocked yes)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "031dd078-2c49-4994-8453-1b868a9adb38")
+		(uuid "3fc6ae05-a9da-4003-ac6e-f3fb97a140a8")
 		(effects
 			(font
 				(size 1 1)
@@ -49,7 +49,7 @@
 		(unlocked yes)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "71645700-1278-4efc-b059-dfc312775beb")
+		(uuid "da947345-288a-43b0-b59b-0bf13dcca880")
 		(effects
 			(font
 				(size 1 1)
@@ -66,7 +66,7 @@
 			(type default)
 		)
 		(layer "User.1")
-		(uuid "b4285c40-d265-4e26-8fff-7001aa825ce9")
+		(uuid "d5742a5d-5fce-4c44-9e08-df0c9573e486")
 	)
 	(fp_line
 		(start 0 -1)
@@ -76,7 +76,7 @@
 			(type default)
 		)
 		(layer "User.1")
-		(uuid "b89ce80a-c90f-477e-b7b2-6a2823f853d9")
+		(uuid "eb906591-fc19-479b-9b59-a69e9769310f")
 	)
 	(fp_circle
 		(center 0 0)
@@ -87,13 +87,13 @@
 		)
 		(fill no)
 		(layer "User.1")
-		(uuid "24596612-98a4-47bb-b030-c108862a7d04")
+		(uuid "2a285260-f392-4797-93f9-fe18eb4a9640")
 	)
 	(embedded_fonts no)
 	(model "${KIPRJMOD}/models/ElectronicsBoxCase_AN-14F-01_Body.step"
 		(opacity 0.3600)
 		(offset
-			(xyz 0 13 29)
+			(xyz 0 13.5 29)
 		)
 		(scale
 			(xyz 1 1 1)
@@ -102,9 +102,9 @@
 			(xyz -90 -0 -0)
 		)
 	)
-	(model "${KIPRJMOD}/models/amphenol_socapex_22_pin.stp"
+	(model "${KIPRJMOD}/models/amphenol_female_66_pins_TVS07RK19-35P.stp"
 		(offset
-			(xyz 0 46 -32.7)
+			(xyz 0 40.5 -32.7)
 		)
 		(scale
 			(xyz 1 1 1)
@@ -139,7 +139,7 @@
 	(model "${KIPRJMOD}/models/ElectronicsBoxCase_AN-14F-01_Lid.step"
 		(opacity 0.5600)
 		(offset
-			(xyz 0 13 29)
+			(xyz 0 13.5 29)
 		)
 		(scale
 			(xyz 1 1 1)
