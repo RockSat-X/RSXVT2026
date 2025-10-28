@@ -4108,7 +4108,7 @@
 					)
 				)
 				(pin passive line
-					(at 5.08 -161.29 90)
+					(at 64.77 -5.08 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4126,7 +4126,7 @@
 					)
 				)
 				(pin passive line
-					(at 7.62 -161.29 90)
+					(at 64.77 -7.62 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4144,7 +4144,7 @@
 					)
 				)
 				(pin passive line
-					(at 10.16 -161.29 90)
+					(at 64.77 -10.16 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4162,7 +4162,7 @@
 					)
 				)
 				(pin passive line
-					(at 12.7 -161.29 90)
+					(at 64.77 -12.7 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4180,7 +4180,7 @@
 					)
 				)
 				(pin passive line
-					(at 15.24 -161.29 90)
+					(at 64.77 -15.24 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4198,7 +4198,7 @@
 					)
 				)
 				(pin passive line
-					(at 17.78 -161.29 90)
+					(at 64.77 -17.78 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4216,7 +4216,7 @@
 					)
 				)
 				(pin passive line
-					(at 20.32 -161.29 90)
+					(at 64.77 -20.32 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4234,7 +4234,7 @@
 					)
 				)
 				(pin passive line
-					(at 22.86 -161.29 90)
+					(at 64.77 -22.86 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4252,7 +4252,7 @@
 					)
 				)
 				(pin passive line
-					(at 25.4 -161.29 90)
+					(at 64.77 -25.4 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4270,7 +4270,7 @@
 					)
 				)
 				(pin passive line
-					(at 27.94 -161.29 90)
+					(at 64.77 -27.94 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4288,7 +4288,7 @@
 					)
 				)
 				(pin passive line
-					(at 33.02 -161.29 90)
+					(at 64.77 -33.02 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4306,7 +4306,7 @@
 					)
 				)
 				(pin passive line
-					(at 35.56 -161.29 90)
+					(at 64.77 -35.56 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4324,7 +4324,7 @@
 					)
 				)
 				(pin passive line
-					(at 38.1 -161.29 90)
+					(at 64.77 -38.1 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4342,7 +4342,7 @@
 					)
 				)
 				(pin passive line
-					(at 40.64 -161.29 90)
+					(at 64.77 -40.64 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4360,7 +4360,7 @@
 					)
 				)
 				(pin passive line
-					(at 43.18 -161.29 90)
+					(at 64.77 -43.18 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4378,7 +4378,7 @@
 					)
 				)
 				(pin passive line
-					(at 45.72 -161.29 90)
+					(at 64.77 -45.72 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4396,7 +4396,7 @@
 					)
 				)
 				(pin passive line
-					(at 48.26 -161.29 90)
+					(at 64.77 -48.26 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4414,7 +4414,7 @@
 					)
 				)
 				(pin passive line
-					(at 50.8 -161.29 90)
+					(at 64.77 -50.8 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4432,7 +4432,7 @@
 					)
 				)
 				(pin passive line
-					(at 53.34 -161.29 90)
+					(at 64.77 -53.34 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4450,7 +4450,7 @@
 					)
 				)
 				(pin passive line
-					(at 55.88 -161.29 90)
+					(at 64.77 -55.88 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4468,7 +4468,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -5.08 180)
+					(at 64.77 -60.96 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4486,7 +4486,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -7.62 180)
+					(at 64.77 -63.5 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4504,7 +4504,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -10.16 180)
+					(at 64.77 -66.04 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4522,7 +4522,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -12.7 180)
+					(at 64.77 -68.58 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4540,7 +4540,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -15.24 180)
+					(at 64.77 -71.12 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4558,7 +4558,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -17.78 180)
+					(at 64.77 -73.66 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4576,7 +4576,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -20.32 180)
+					(at 64.77 -76.2 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4594,7 +4594,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -22.86 180)
+					(at 64.77 -78.74 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4612,7 +4612,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -25.4 180)
+					(at 64.77 -81.28 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4630,7 +4630,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -27.94 180)
+					(at 64.77 -83.82 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4648,7 +4648,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -33.02 180)
+					(at 64.77 -88.9 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4666,7 +4666,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -35.56 180)
+					(at 64.77 -91.44 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4684,7 +4684,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -38.1 180)
+					(at 64.77 -93.98 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4702,7 +4702,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -40.64 180)
+					(at 64.77 -96.52 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4720,7 +4720,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -43.18 180)
+					(at 64.77 -99.06 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4738,7 +4738,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -45.72 180)
+					(at 64.77 -101.6 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4756,7 +4756,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -48.26 180)
+					(at 64.77 -104.14 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4774,7 +4774,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -50.8 180)
+					(at 64.77 -106.68 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4792,7 +4792,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -53.34 180)
+					(at 64.77 -109.22 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4810,7 +4810,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -55.88 180)
+					(at 64.77 -111.76 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4828,7 +4828,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -60.96 180)
+					(at 64.77 -116.84 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4846,7 +4846,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -63.5 180)
+					(at 64.77 -119.38 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4864,7 +4864,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -66.04 180)
+					(at 64.77 -121.92 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4882,7 +4882,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -68.58 180)
+					(at 64.77 -124.46 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4900,7 +4900,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -71.12 180)
+					(at 64.77 -127 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4918,7 +4918,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -73.66 180)
+					(at 64.77 -129.54 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4936,7 +4936,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -76.2 180)
+					(at 64.77 -132.08 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4954,7 +4954,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -78.74 180)
+					(at 64.77 -134.62 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4972,7 +4972,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -81.28 180)
+					(at 64.77 -137.16 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -4990,7 +4990,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -83.82 180)
+					(at 64.77 -139.7 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -5008,7 +5008,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -88.9 180)
+					(at 64.77 -144.78 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -5026,7 +5026,7 @@
 					)
 				)
 				(pin passive line
-					(at 64.77 -91.44 180)
+					(at 64.77 -147.32 180)
 					(length 3.81)
 					(name "NC"
 						(effects
@@ -5036,330 +5036,6 @@
 						)
 					)
 					(number "102"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 64.77 -93.98 180)
-					(length 3.81)
-					(name "NC"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "103"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 64.77 -96.52 180)
-					(length 3.81)
-					(name "NC"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "104"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 64.77 -99.06 180)
-					(length 3.81)
-					(name "NC"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "105"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 64.77 -101.6 180)
-					(length 3.81)
-					(name "NC"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "106"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 64.77 -104.14 180)
-					(length 3.81)
-					(name "NC"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "107"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 64.77 -106.68 180)
-					(length 3.81)
-					(name "NC"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "108"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 64.77 -109.22 180)
-					(length 3.81)
-					(name "NC"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "109"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 64.77 -111.76 180)
-					(length 3.81)
-					(name "NC"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "110"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 64.77 -116.84 180)
-					(length 3.81)
-					(name "NC"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "111"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 64.77 -119.38 180)
-					(length 3.81)
-					(name "NC"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "112"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 64.77 -121.92 180)
-					(length 3.81)
-					(name "NC"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "113"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 64.77 -124.46 180)
-					(length 3.81)
-					(name "NC"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "114"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 64.77 -127 180)
-					(length 3.81)
-					(name "NC"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "115"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 64.77 -129.54 180)
-					(length 3.81)
-					(name "NC"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "116"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 64.77 -132.08 180)
-					(length 3.81)
-					(name "NC"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "117"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 64.77 -134.62 180)
-					(length 3.81)
-					(name "NC"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "118"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 64.77 -137.16 180)
-					(length 3.81)
-					(name "NC"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "119"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 64.77 -139.7 180)
-					(length 3.81)
-					(name "NC"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "120"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -6091,6 +5767,10 @@
 		(uuid "f7e2763f-4919-4f86-9efb-68c3cc1ed004")
 	)
 	(no_connect
+		(at 525.78 220.98)
+		(uuid "002d6507-7194-4b31-8894-6fda40b68616")
+	)
+	(no_connect
 		(at 457.2 203.2)
 		(uuid "00b8a9e3-c783-4dc9-b1a4-65c902478a46")
 	)
@@ -6131,16 +5811,8 @@
 		(uuid "0c95d42a-1ed3-4953-9af8-56f5b0d0ab1f")
 	)
 	(no_connect
-		(at 466.09 234.95)
-		(uuid "0fde425b-7c90-4a34-bc06-f8fd78e5a26f")
-	)
-	(no_connect
 		(at 457.2 208.28)
 		(uuid "1358eff0-b085-428a-b0e0-de69a865134b")
-	)
-	(no_connect
-		(at 501.65 234.95)
-		(uuid "13b765e0-d167-4ca3-a291-26ee970605ab")
 	)
 	(no_connect
 		(at 511.81 326.39)
@@ -6171,10 +5843,6 @@
 		(uuid "259fa663-4d7d-4528-9129-ee3e3f9af1e6")
 	)
 	(no_connect
-		(at 511.81 234.95)
-		(uuid "2b935fd3-5973-4ef6-99b6-8348bc44bfaa")
-	)
-	(no_connect
 		(at 525.78 83.82)
 		(uuid "2bfac4f3-b8d5-4cbd-aa9c-5e140506fae7")
 	)
@@ -6193,10 +5861,6 @@
 	(no_connect
 		(at 511.81 307.34)
 		(uuid "342c15b6-96cc-40f3-a7de-6cf52c77712b")
-	)
-	(no_connect
-		(at 506.73 234.95)
-		(uuid "39ab0da8-15c3-4fcf-801f-3d5e0b0cb2d1")
 	)
 	(no_connect
 		(at 525.78 78.74)
@@ -6255,20 +5919,8 @@
 		(uuid "554aaf67-69f7-4b95-bbfa-75977f28b9a8")
 	)
 	(no_connect
-		(at 473.71 234.95)
-		(uuid "57253ff9-7cbf-4bae-bdd8-31a25ccea1a6")
-	)
-	(no_connect
 		(at 457.2 144.78)
 		(uuid "584ad1ed-e08f-4bcb-8985-018547a0c758")
-	)
-	(no_connect
-		(at 509.27 234.95)
-		(uuid "5b6b21cd-0373-491c-82d5-3e9b45caf6c2")
-	)
-	(no_connect
-		(at 481.33 234.95)
-		(uuid "5d836a5a-f68f-4f6d-b999-eeffa229c337")
 	)
 	(no_connect
 		(at 457.2 129.54)
@@ -6299,16 +5951,8 @@
 		(uuid "72bc8fc0-cace-4da7-96ce-aac682176d00")
 	)
 	(no_connect
-		(at 514.35 234.95)
-		(uuid "72da13fb-b46a-4266-a100-710cc00f8a13")
-	)
-	(no_connect
 		(at 525.78 121.92)
 		(uuid "72ebc6aa-3fe6-4f4b-a3ab-c09fd7ccb792")
-	)
-	(no_connect
-		(at 471.17 234.95)
-		(uuid "74d2394e-3f98-458c-8297-7301bf3c37f8")
 	)
 	(no_connect
 		(at 457.2 195.58)
@@ -6317,10 +5961,6 @@
 	(no_connect
 		(at 457.2 88.9)
 		(uuid "7d4287c4-9819-426d-97fb-cdb015f5b6dc")
-	)
-	(no_connect
-		(at 494.03 234.95)
-		(uuid "7d9a0e20-9eed-4159-99ee-7d372705b749")
 	)
 	(no_connect
 		(at 457.2 205.74)
@@ -6375,6 +6015,10 @@
 		(uuid "9508aab9-5a22-4f60-99e3-34f032d41ca3")
 	)
 	(no_connect
+		(at 525.78 218.44)
+		(uuid "97ae69e3-956c-4d8c-865b-e09707afea21")
+	)
+	(no_connect
 		(at 525.78 109.22)
 		(uuid "9b242337-57e5-4659-ba75-38cee06eecd5")
 	)
@@ -6391,16 +6035,8 @@
 		(uuid "a578e4d9-6d66-47f9-b616-83f073fbf2ac")
 	)
 	(no_connect
-		(at 496.57 234.95)
-		(uuid "a6f579f8-0ffc-4836-9eba-922346c664da")
-	)
-	(no_connect
 		(at 457.2 99.06)
 		(uuid "ab2fdb8d-6a29-4007-a90c-02e3d819b85b")
-	)
-	(no_connect
-		(at 476.25 234.95)
-		(uuid "ab80f974-33ec-4875-ba5e-86e74e7ce11c")
 	)
 	(no_connect
 		(at 458.47 182.88)
@@ -6431,20 +6067,12 @@
 		(uuid "b3112ce8-4918-437d-b095-53efe4941c79")
 	)
 	(no_connect
-		(at 486.41 234.95)
-		(uuid "b3c1ede7-598b-4612-bcb1-7369b5297d5d")
-	)
-	(no_connect
 		(at 511.81 313.69)
 		(uuid "b48e268a-5903-4b66-b392-c963e6f70779")
 	)
 	(no_connect
 		(at 525.78 170.18)
 		(uuid "b56c413f-5e2a-489d-84d1-a67a7467552f")
-	)
-	(no_connect
-		(at 504.19 234.95)
-		(uuid "bb07e1a8-228a-4619-a768-a84e482992d6")
 	)
 	(no_connect
 		(at 457.2 111.76)
@@ -6475,10 +6103,6 @@
 		(uuid "c61546a3-84a4-40e8-a678-f203541b8e8b")
 	)
 	(no_connect
-		(at 478.79 234.95)
-		(uuid "c7730ad3-0dab-4c4e-ac63-a3722544af8b")
-	)
-	(no_connect
 		(at 458.47 170.18)
 		(uuid "c7fb3682-9df5-421a-b9df-d70ad66cb19d")
 	)
@@ -6493,10 +6117,6 @@
 	(no_connect
 		(at 525.78 116.84)
 		(uuid "d0eeadb7-5d03-444e-9a8d-643313262768")
-	)
-	(no_connect
-		(at 468.63 234.95)
-		(uuid "d0f1254a-1d66-4420-9308-32a89c2308a5")
 	)
 	(no_connect
 		(at 525.78 203.2)
@@ -6519,16 +6139,8 @@
 		(uuid "dae38a27-b836-4a0d-8f1d-6ab2217fa5b4")
 	)
 	(no_connect
-		(at 516.89 234.95)
-		(uuid "db9eaa48-0fcf-4968-979b-36d57424c22b")
-	)
-	(no_connect
 		(at 525.78 193.04)
 		(uuid "dde3d874-94ed-45d0-a387-ec6640e4aea9")
-	)
-	(no_connect
-		(at 499.11 234.95)
-		(uuid "dff68bd1-e59d-4ffd-828e-cff6410d7314")
 	)
 	(no_connect
 		(at 458.47 180.34)
@@ -6563,10 +6175,6 @@
 		(uuid "f5e4cf84-b72d-4e4a-b900-c9f104bb18b7")
 	)
 	(no_connect
-		(at 488.95 234.95)
-		(uuid "f65a08b1-5f8e-490d-9334-43c9319c7b9a")
-	)
-	(no_connect
 		(at 525.78 111.76)
 		(uuid "f68a72a0-989e-46ec-9ec8-ec84fc5a9e13")
 	)
@@ -6581,10 +6189,6 @@
 	(no_connect
 		(at 457.2 116.84)
 		(uuid "fc610a61-e96b-4adb-a14f-b88d2d279186")
-	)
-	(no_connect
-		(at 483.87 234.95)
-		(uuid "fc8c65ec-62b9-410a-820f-bbe060f451b6")
 	)
 	(no_connect
 		(at 457.2 91.44)
@@ -11198,9 +10802,6 @@
 		(pin "62"
 			(uuid "5a40f1bc-6900-4ea8-914d-888f4850d58c")
 		)
-		(pin "107"
-			(uuid "30ccd7dc-8f99-4b17-9279-ff7b8008cec8")
-		)
 		(pin "20"
 			(uuid "8cff2ace-1528-4454-a1b1-81e89180c42f")
 		)
@@ -11212,15 +10813,6 @@
 		)
 		(pin "87"
 			(uuid "91f7e09a-8b67-4038-98a8-88b5f85b7833")
-		)
-		(pin "106"
-			(uuid "25812310-2f29-43ab-99f3-e2e81f250f41")
-		)
-		(pin "120"
-			(uuid "421f4f40-fd7b-41be-8553-1a4bc4c45771")
-		)
-		(pin "116"
-			(uuid "3ad850b1-4154-4391-9d4a-fc3a8dc356cb")
 		)
 		(pin "101"
 			(uuid "6c242df1-fcef-4769-878f-1457e3905a7d")
@@ -11248,12 +10840,6 @@
 		)
 		(pin "10"
 			(uuid "6a8cf6b5-a84e-4500-b5f0-6b7ad1234ee1")
-		)
-		(pin "117"
-			(uuid "75e6c90a-a08c-4c51-adc1-d9d73504c30d")
-		)
-		(pin "118"
-			(uuid "d6bd6c94-45c6-41b1-ae3a-226892b77f42")
 		)
 		(pin "57"
 			(uuid "ea07e4f9-78ab-42cb-881d-56b0350f2b84")
@@ -11318,9 +10904,6 @@
 		(pin "40"
 			(uuid "7fb62f79-66b1-4b09-9315-d9bf3808957a")
 		)
-		(pin "110"
-			(uuid "37fec1af-9384-47fa-a0c1-da8701b9ac55")
-		)
 		(pin "15"
 			(uuid "2b430d52-720d-44d8-8f00-5db4e2f14417")
 		)
@@ -11345,17 +10928,11 @@
 		(pin "63"
 			(uuid "cb272fbe-937f-4ec8-ad0a-1a9e9e4c4f58")
 		)
-		(pin "114"
-			(uuid "fbd184d1-91f9-4782-8b88-a5d79f4cbc48")
-		)
 		(pin "27"
 			(uuid "195b4b48-ff5a-4552-b945-6a9edd7ebfa3")
 		)
 		(pin "71"
 			(uuid "fb1e4df4-3223-4dce-be0d-079ef418b4f1")
-		)
-		(pin "104"
-			(uuid "1a7988e1-7acc-456a-abd5-395a18d69b14")
 		)
 		(pin "97"
 			(uuid "c697e417-8ded-489c-be55-3ce15c9ebcd6")
@@ -11366,29 +10943,17 @@
 		(pin "33"
 			(uuid "7bbed261-589e-4823-b3a6-5e2e6d7ce7ec")
 		)
-		(pin "119"
-			(uuid "4ad492b8-6db9-425e-9cf3-827657789d7e")
-		)
 		(pin "60"
 			(uuid "9761a781-5dfd-4d18-b08a-cf60b492ce5c")
 		)
 		(pin "100"
 			(uuid "ab4ba144-3313-43e6-a890-25c57b993551")
 		)
-		(pin "113"
-			(uuid "0fdfb5c6-adc0-46c1-89ba-58305268d2e4")
-		)
 		(pin "75"
 			(uuid "f82fc50e-b120-4948-9795-2c095646cbe8")
 		)
 		(pin "64"
 			(uuid "3fa18833-25fd-4723-8a10-f24dede4a37c")
-		)
-		(pin "108"
-			(uuid "8108d4b8-f7c2-44f7-913d-847b1046c351")
-		)
-		(pin "105"
-			(uuid "1764ee82-1b95-49a0-b281-6ffea6bd856e")
 		)
 		(pin "70"
 			(uuid "2f9c6595-d661-4cf6-8dab-f65c88adcac5")
@@ -11398,9 +10963,6 @@
 		)
 		(pin "28"
 			(uuid "4a685fc9-4a92-4b75-a84a-e3e39a7aaf5d")
-		)
-		(pin "109"
-			(uuid "bb3eda8e-dd09-4a2d-9e12-a648c081cb23")
 		)
 		(pin "2"
 			(uuid "9b3c984c-3ad8-460d-86a5-78572003faf2")
@@ -11425,9 +10987,6 @@
 		)
 		(pin "58"
 			(uuid "b9262fa3-f807-43c1-af9b-f5b662bdbcc3")
-		)
-		(pin "115"
-			(uuid "ca0fb0e6-833c-4232-bfdf-dd25522f9a26")
 		)
 		(pin "12"
 			(uuid "1ef09567-60e4-44f9-9596-df0da1e2db90")
@@ -11468,9 +11027,6 @@
 		(pin "77"
 			(uuid "66dcf22f-d15e-4233-9031-9559016f1e91")
 		)
-		(pin "111"
-			(uuid "b57e1a02-2f49-43e9-b336-93c8e331cf43")
-		)
 		(pin "18"
 			(uuid "b9fbc4e2-2d72-43fd-909c-2e2f87487f52")
 		)
@@ -11485,12 +11041,6 @@
 		)
 		(pin "31"
 			(uuid "ff4061b7-f226-443a-adab-d1fd0c1447d7")
-		)
-		(pin "103"
-			(uuid "b453badd-40b2-49dd-8f89-079e9ea59ff2")
-		)
-		(pin "112"
-			(uuid "549b69b8-5455-41a2-b4ac-19cfe9a448fc")
 		)
 		(pin "99"
 			(uuid "410a786d-3056-4d16-a027-dde9e541fc4a")
