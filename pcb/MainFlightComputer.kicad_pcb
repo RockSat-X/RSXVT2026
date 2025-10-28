@@ -1804,7 +1804,6 @@
 			)
 		)
 		(model "${KIPRJMOD}/models/Main_Stack_Dummy.step"
-			(hide yes)
 			(opacity 0.5400)
 			(offset
 				(xyz 0 0 9)
@@ -1817,7 +1816,6 @@
 			)
 		)
 		(model "${KIPRJMOD}/models/Main_Stack_Dummy.step"
-			(hide yes)
 			(offset
 				(xyz 0 0 20)
 			)
@@ -1841,7 +1839,6 @@
 			)
 		)
 		(model "${KIPRJMOD}/models/Main_Stack_Dummy.step"
-			(hide yes)
 			(offset
 				(xyz 0 0 31)
 			)
