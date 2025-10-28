@@ -3831,7 +3831,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "pcb:VQFN-28-1EP_5x5mm_P0.5mm_EP3.7x3.7mm_ThermalVias"
+		(property "Footprint" "Package_DFN_QFN:VQFN-28-1EP_5x5mm_P0.5mm_EP3.7x3.7mm_ThermalVias"
 			(at 129.54 151.13 0)
 			(effects
 				(font
