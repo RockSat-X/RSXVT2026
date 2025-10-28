@@ -2,6 +2,7 @@
 	(version 20241229)
 	(generator "pcbnew")
 	(generator_version "9.0")
+	(locked yes)
 	(layer "F.Cu")
 	(descr "Housing for the Main Camera System.")
 	(property "Reference" "N1"
@@ -9,7 +10,7 @@
 		(unlocked yes)
 		(layer "F.SilkS")
 		(hide yes)
-		(uuid "724ba4da-b723-46ca-8a6d-e7c0ad78305e")
+		(uuid "b543e4c1-bdc6-443d-acda-d29ba9102a55")
 		(effects
 			(font
 				(size 1 1)
@@ -22,7 +23,7 @@
 		(unlocked yes)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "d8cf131b-6a90-46c5-a106-bafbe14acc0b")
+		(uuid "ee868891-5a80-47a1-825b-88179ecc50eb")
 		(effects
 			(font
 				(size 1 1)
@@ -35,7 +36,7 @@
 		(unlocked yes)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "1bcdfbee-f614-48ff-ae0c-6d49a626b6ea")
+		(uuid "d96e04d3-ea09-48a9-844e-369de60fcd08")
 		(effects
 			(font
 				(size 1 1)
@@ -48,7 +49,7 @@
 		(unlocked yes)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "041862b2-655f-4e7b-be59-8483c89bca78")
+		(uuid "78410508-f2cd-422b-a5a9-62c73b2825db")
 		(effects
 			(font
 				(size 1 1)
@@ -64,7 +65,7 @@
 			(type default)
 		)
 		(layer "User.1")
-		(uuid "ae03222e-f7cc-4a03-b40a-7157bed5f5a6")
+		(uuid "cbb615de-f5e6-445c-af5b-72e933a09baa")
 	)
 	(fp_line
 		(start 0 -1)
@@ -74,7 +75,7 @@
 			(type default)
 		)
 		(layer "User.1")
-		(uuid "84d90b26-c236-4558-8bb1-d4887ecb7882")
+		(uuid "b357300f-7ad2-42dd-be9e-aee41ee2d545")
 	)
 	(fp_circle
 		(center 0 0)
@@ -85,31 +86,57 @@
 		)
 		(fill no)
 		(layer "User.1")
-		(uuid "07a238bd-7bd5-47a2-ac88-ae8ab48f55c8")
+		(uuid "023f0d0c-2c59-4868-898b-e8b0d1892c5b")
 	)
 	(embedded_fonts no)
 	(model "${KIPRJMOD}/models/CONSat.step"
-		(opacity 0.1700)
+		(opacity 0.3700)
 		(offset
-			(xyz 0 50 0)
+			(xyz 0 -50 43)
 		)
 		(scale
 			(xyz 1 1 1)
 		)
 		(rotate
-			(xyz -90 90 -0)
+			(xyz -0 90 90)
 		)
 	)
 	(model "${KIPRJMOD}/models/vn100_rugged.step"
 		(opacity 0.3800)
 		(offset
-			(xyz 19 -42.5 38.5)
+			(xyz 19 0 0)
 		)
 		(scale
 			(xyz 1 1 1)
 		)
 		(rotate
-			(xyz 90 -0 -0)
+			(xyz -0 -0 -0)
+		)
+	)
+	(model "${KIPRJMOD}/models/ElectronicsBoxCase_AN-14F-01_Body.step"
+		(hide yes)
+		(opacity 0.2500)
+		(offset
+			(xyz 0 13 18.5)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -90 -0 -0)
+		)
+	)
+	(model "${KIPRJMOD}/models/Main_Stack_Dummy.step"
+		(hide yes)
+		(opacity 0.3700)
+		(offset
+			(xyz 0 0 -12.5)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -0 -0 -0)
 		)
 	)
 )
