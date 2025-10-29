@@ -3151,7 +3151,7 @@
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
-			(property "Reference" "C"
+			(property "Reference" "J"
 				(at 0.508 1.524 0)
 				(effects
 					(font
@@ -7914,7 +7914,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "01d152fd-a149-41f6-95c2-148170aaa409")
-		(property "Reference" "#PWR08"
+		(property "Reference" "#PWR30"
 			(at 316.23 312.42 0)
 			(effects
 				(font
@@ -7965,7 +7965,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR08")
+					(reference "#PWR30")
 					(unit 1)
 				)
 			)
@@ -7981,7 +7981,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "06c7b622-73f1-4381-bb7d-bdc618f24959")
-		(property "Reference" "#PWR03"
+		(property "Reference" "#PWR25"
 			(at 326.39 299.72 0)
 			(effects
 				(font
@@ -8032,7 +8032,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR03")
+					(reference "#PWR25")
 					(unit 1)
 				)
 			)
@@ -8316,7 +8316,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "0ea4613c-fdb1-4851-9cc0-c1cea48a36f6")
-		(property "Reference" "#PWR082"
+		(property "Reference" "#PWR3"
 			(at 130.81 214.63 0)
 			(effects
 				(font
@@ -8367,7 +8367,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR082")
+					(reference "#PWR3")
 					(unit 1)
 				)
 			)
@@ -8383,7 +8383,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "116ac3a4-bc8e-4ba7-81ec-30ee4ae976a1")
-		(property "Reference" "#PWR01"
+		(property "Reference" "#PWR5"
 			(at 137.16 207.01 0)
 			(effects
 				(font
@@ -8434,7 +8434,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR01")
+					(reference "#PWR5")
 					(unit 1)
 				)
 			)
@@ -8450,7 +8450,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "1488315d-dfce-4763-accf-a4e40d3807bf")
-		(property "Reference" "#PWR02"
+		(property "Reference" "#PWR6"
 			(at 137.16 231.14 0)
 			(effects
 				(font
@@ -8501,7 +8501,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR02")
+					(reference "#PWR6")
 					(unit 1)
 				)
 			)
@@ -8585,7 +8585,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "1f685b72-6ff6-4ce1-8ad5-650b45ebc1fa")
-		(property "Reference" "#PWR012"
+		(property "Reference" "#PWR34"
 			(at 316.23 322.58 0)
 			(effects
 				(font
@@ -8636,7 +8636,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR012")
+					(reference "#PWR34")
 					(unit 1)
 				)
 			)
@@ -8720,7 +8720,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "2b06db58-a408-473b-88f4-c31659e0fdb6")
-		(property "Reference" "U1"
+		(property "Reference" "U2"
 			(at 137.16 182.88 0)
 			(effects
 				(font
@@ -8775,7 +8775,7 @@
 		(instances
 			(project ""
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "U1")
+					(reference "U2")
 					(unit 1)
 				)
 			)
@@ -8859,7 +8859,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "2e025299-2af5-401f-88e8-fb01b1e4afcf")
-		(property "Reference" "#PWR076"
+		(property "Reference" "#PWR42"
 			(at 450.85 313.69 0)
 			(effects
 				(font
@@ -8910,7 +8910,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR076")
+					(reference "#PWR42")
 					(unit 1)
 				)
 			)
@@ -8926,7 +8926,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "2ed55e66-ed3d-4acb-988b-5a00fb021354")
-		(property "Reference" "#PWR020"
+		(property "Reference" "#PWR17"
 			(at 275.59 334.01 0)
 			(effects
 				(font
@@ -8977,7 +8977,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR020")
+					(reference "#PWR17")
 					(unit 1)
 				)
 			)
@@ -9266,7 +9266,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "352ba8d2-301a-4bb1-a89a-4e0da8bb885f")
-		(property "Reference" "#PWR077"
+		(property "Reference" "#PWR41"
 			(at 450.85 307.34 0)
 			(effects
 				(font
@@ -9317,7 +9317,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR077")
+					(reference "#PWR41")
 					(unit 1)
 				)
 			)
@@ -9333,7 +9333,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "3fc650d7-c960-4f6c-b5ec-b9623c274c96")
-		(property "Reference" "J4"
+		(property "Reference" "J3"
 			(at 279.4 295.9099 0)
 			(effects
 				(font
@@ -9393,7 +9393,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "J4")
+					(reference "J3")
 					(unit 1)
 				)
 			)
@@ -9544,7 +9544,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "44b79b9f-7695-48f4-af09-3231ea0485e0")
-		(property "Reference" "#PWR080"
+		(property "Reference" "#PWR9"
 			(at 143.51 214.63 0)
 			(effects
 				(font
@@ -9595,7 +9595,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR080")
+					(reference "#PWR9")
 					(unit 1)
 				)
 			)
@@ -9611,7 +9611,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "477edf6c-59fc-496d-9f43-6166569fba9e")
-		(property "Reference" "#PWR068"
+		(property "Reference" "#PWR38"
 			(at 341.63 335.28 0)
 			(effects
 				(font
@@ -9662,7 +9662,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR068")
+					(reference "#PWR38")
 					(unit 1)
 				)
 			)
@@ -9677,7 +9677,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "51098f8b-2e81-4f36-a4ac-ea874f6bc0e3")
-		(property "Reference" "#PWR073"
+		(property "Reference" "#PWR7"
 			(at 143.51 166.37 0)
 			(effects
 				(font
@@ -9728,7 +9728,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR073")
+					(reference "#PWR7")
 					(unit 1)
 				)
 			)
@@ -9812,7 +9812,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "5b0ccebf-5a39-4f70-b60b-9d3e7e2eaf69")
-		(property "Reference" "#PWR067"
+		(property "Reference" "#PWR39"
 			(at 341.63 337.82 0)
 			(effects
 				(font
@@ -9863,7 +9863,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR067")
+					(reference "#PWR39")
 					(unit 1)
 				)
 			)
@@ -9879,7 +9879,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "5dfbf9ab-8eb3-4623-a038-a3ebf0a0d85d")
-		(property "Reference" "#PWR075"
+		(property "Reference" "#PWR1"
 			(at 130.81 166.37 0)
 			(effects
 				(font
@@ -9930,7 +9930,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR075")
+					(reference "#PWR1")
 					(unit 1)
 				)
 			)
@@ -10223,7 +10223,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "7414e528-44c6-4c7d-ada7-62f82b65e7db")
-		(property "Reference" "#PWR014"
+		(property "Reference" "#PWR11"
 			(at 275.59 318.77 0)
 			(effects
 				(font
@@ -10274,7 +10274,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR014")
+					(reference "#PWR11")
 					(unit 1)
 				)
 			)
@@ -10357,7 +10357,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "7c9785ad-c24d-4052-b74b-54529ce2f4cd")
-		(property "Reference" "#PWR013"
+		(property "Reference" "#PWR10"
 			(at 265.43 275.59 0)
 			(effects
 				(font
@@ -10408,7 +10408,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR013")
+					(reference "#PWR10")
 					(unit 1)
 				)
 			)
@@ -10424,7 +10424,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "7dcc5f1b-8734-44ee-bf38-18ae2773f6ab")
-		(property "Reference" "#PWR011"
+		(property "Reference" "#PWR33"
 			(at 326.39 320.04 0)
 			(effects
 				(font
@@ -10475,7 +10475,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR011")
+					(reference "#PWR33")
 					(unit 1)
 				)
 			)
@@ -10491,7 +10491,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "7ebf836d-51e0-4ed0-bf9d-9293b9d5dce5")
-		(property "Reference" "J6"
+		(property "Reference" "J5"
 			(at 279.4 326.3899 0)
 			(effects
 				(font
@@ -10563,7 +10563,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "J6")
+					(reference "J5")
 					(unit 1)
 				)
 			)
@@ -10579,7 +10579,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "7f7b0f30-7d65-4e45-a2d1-4d42f95bee11")
-		(property "Reference" "#PWR016"
+		(property "Reference" "#PWR13"
 			(at 275.59 323.85 0)
 			(effects
 				(font
@@ -10630,7 +10630,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR016")
+					(reference "#PWR13")
 					(unit 1)
 				)
 			)
@@ -10646,7 +10646,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "809f1014-a0dc-42c9-bfda-ac0009d8b312")
-		(property "Reference" "#PWR070"
+		(property "Reference" "#PWR36"
 			(at 341.63 330.2 0)
 			(effects
 				(font
@@ -10697,7 +10697,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR070")
+					(reference "#PWR36")
 					(unit 1)
 				)
 			)
@@ -10713,7 +10713,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "8350915c-bc82-46e4-8c16-c7e28ce5444c")
-		(property "Reference" "C25"
+		(property "Reference" "J1"
 			(at 491.49 71.12 0)
 			(effects
 				(font
@@ -11066,7 +11066,7 @@
 		(instances
 			(project ""
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "C25")
+					(reference "J1")
 					(unit 1)
 				)
 			)
@@ -11082,7 +11082,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "8e9fc5be-e4a0-47e5-9810-c21a6bd5a1c0")
-		(property "Reference" "J1"
+		(property "Reference" "J6"
 			(at 328.93 293.37 0)
 			(effects
 				(font
@@ -11230,7 +11230,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "J1")
+					(reference "J6")
 					(unit 1)
 				)
 			)
@@ -11246,7 +11246,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "940b8437-d7b3-4557-8697-ac566553d4fa")
-		(property "Reference" "#PWR018"
+		(property "Reference" "#PWR15"
 			(at 275.59 328.93 0)
 			(effects
 				(font
@@ -11297,7 +11297,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR018")
+					(reference "#PWR15")
 					(unit 1)
 				)
 			)
@@ -11381,7 +11381,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "95009f10-b600-4a50-89e0-d017f4776c5e")
-		(property "Reference" "#PWR071"
+		(property "Reference" "#PWR35"
 			(at 326.39 325.12 0)
 			(effects
 				(font
@@ -11432,7 +11432,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR071")
+					(reference "#PWR35")
 					(unit 1)
 				)
 			)
@@ -11449,7 +11449,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "96e70561-4ce3-47ae-8bb8-ceb18cc1cae0")
-		(property "Reference" "#PWR023"
+		(property "Reference" "#PWR20"
 			(at 283.21 185.42 0)
 			(effects
 				(font
@@ -11500,7 +11500,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR023")
+					(reference "#PWR20")
 					(unit 1)
 				)
 			)
@@ -11517,7 +11517,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "97175b80-d18c-4209-9a1b-2c62a320abff")
-		(property "Reference" "#PWR022"
+		(property "Reference" "#PWR19"
 			(at 283.21 153.67 0)
 			(effects
 				(font
@@ -11567,7 +11567,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR022")
+					(reference "#PWR19")
 					(unit 1)
 				)
 			)
@@ -11651,7 +11651,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "9a96aabe-7f60-4ecb-a68e-1867195de4ed")
-		(property "Reference" "#PWR083"
+		(property "Reference" "#PWR44"
 			(at 490.22 307.34 0)
 			(effects
 				(font
@@ -11702,7 +11702,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR083")
+					(reference "#PWR44")
 					(unit 1)
 				)
 			)
@@ -11718,7 +11718,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "9b9427b7-3515-4932-96b5-02049054d3a0")
-		(property "Reference" "#PWR04"
+		(property "Reference" "#PWR26"
 			(at 316.23 302.26 0)
 			(effects
 				(font
@@ -11769,7 +11769,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR04")
+					(reference "#PWR26")
 					(unit 1)
 				)
 			)
@@ -11785,7 +11785,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "a3fca6b8-ffd2-42b2-b787-67d73eebfeae")
-		(property "Reference" "#PWR078"
+		(property "Reference" "#PWR43"
 			(at 450.85 320.04 0)
 			(effects
 				(font
@@ -11836,7 +11836,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR078")
+					(reference "#PWR43")
 					(unit 1)
 				)
 			)
@@ -11852,7 +11852,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "a45f2223-41ad-4a65-9665-3165e0dc9bf0")
-		(property "Reference" "#PWR086"
+		(property "Reference" "#PWR47"
 			(at 490.22 326.39 0)
 			(effects
 				(font
@@ -11903,7 +11903,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR086")
+					(reference "#PWR47")
 					(unit 1)
 				)
 			)
@@ -12124,7 +12124,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "afb20f81-6b3e-40a8-b5a6-1697c5cd0fe2")
-		(property "Reference" "J5"
+		(property "Reference" "J4"
 			(at 279.4 308.6099 0)
 			(effects
 				(font
@@ -12184,7 +12184,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "J5")
+					(reference "J4")
 					(unit 1)
 				)
 			)
@@ -12200,7 +12200,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "b007daaf-11a8-4b98-9fd2-b44f4ea29d5c")
-		(property "Reference" "#PWR07"
+		(property "Reference" "#PWR29"
 			(at 326.39 309.88 0)
 			(effects
 				(font
@@ -12251,7 +12251,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR07")
+					(reference "#PWR29")
 					(unit 1)
 				)
 			)
@@ -12267,7 +12267,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "b4a93b46-417a-4e48-a3fe-e0c3ba86d9a4")
-		(property "Reference" "#PWR05"
+		(property "Reference" "#PWR27"
 			(at 326.39 304.8 0)
 			(effects
 				(font
@@ -12318,7 +12318,7 @@
 		(instances
 			(project ""
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR05")
+					(reference "#PWR27")
 					(unit 1)
 				)
 			)
@@ -12334,7 +12334,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "b85fde59-73d5-4c33-8ced-9d0592db874c")
-		(property "Reference" "U6"
+		(property "Reference" "U1"
 			(at 137.16 158.75 0)
 			(effects
 				(font
@@ -12401,7 +12401,7 @@
 		(instances
 			(project ""
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "U6")
+					(reference "U1")
 					(unit 1)
 				)
 			)
@@ -12485,7 +12485,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "bcde04e1-d1c9-4b96-b0ae-6015408cad5a")
-		(property "Reference" "#PWR081"
+		(property "Reference" "#PWR2"
 			(at 130.81 190.5 0)
 			(effects
 				(font
@@ -12536,7 +12536,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR081")
+					(reference "#PWR2")
 					(unit 1)
 				)
 			)
@@ -12552,7 +12552,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "c35b1a63-7253-4bfd-9782-0919f34915e7")
-		(property "Reference" "#PWR09"
+		(property "Reference" "#PWR31"
 			(at 326.39 314.96 0)
 			(effects
 				(font
@@ -12603,7 +12603,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR09")
+					(reference "#PWR31")
 					(unit 1)
 				)
 			)
@@ -12619,7 +12619,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "c5d5583f-01f9-4679-b3d3-13157e2cea7b")
-		(property "Reference" "#PWR027"
+		(property "Reference" "#PWR24"
 			(at 318.77 81.28 0)
 			(effects
 				(font
@@ -12669,7 +12669,7 @@
 		(instances
 			(project ""
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR027")
+					(reference "#PWR24")
 					(unit 1)
 				)
 			)
@@ -12753,7 +12753,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "cc37fe70-c79b-4883-a9f3-7203fdeea64c")
-		(property "Reference" "#PWR074"
+		(property "Reference" "#PWR40"
 			(at 341.63 340.36 0)
 			(effects
 				(font
@@ -12804,7 +12804,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR074")
+					(reference "#PWR40")
 					(unit 1)
 				)
 			)
@@ -12888,7 +12888,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "d00d4a66-3219-4eb4-8ec6-86296d9ddfe3")
-		(property "Reference" "U2"
+		(property "Reference" "U3"
 			(at 137.16 207.01 0)
 			(effects
 				(font
@@ -12943,7 +12943,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "U2")
+					(reference "U3")
 					(unit 1)
 				)
 			)
@@ -12958,7 +12958,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "d042fddc-a39b-4533-afa9-1439de5b7e36")
-		(property "Reference" "#PWR017"
+		(property "Reference" "#PWR14"
 			(at 265.43 326.39 0)
 			(effects
 				(font
@@ -13009,7 +13009,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR017")
+					(reference "#PWR14")
 					(unit 1)
 				)
 			)
@@ -13026,7 +13026,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "d6832b61-f257-40ce-b56d-87d00719a7be")
-		(property "Reference" "#PWR025"
+		(property "Reference" "#PWR22"
 			(at 299.72 106.68 0)
 			(effects
 				(font
@@ -13076,7 +13076,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR025")
+					(reference "#PWR22")
 					(unit 1)
 				)
 			)
@@ -13092,7 +13092,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "d7e834ae-d03b-4bab-b17c-8bf5edf6a6e8")
-		(property "Reference" "#PWR026"
+		(property "Reference" "#PWR23"
 			(at 320.04 223.52 0)
 			(effects
 				(font
@@ -13143,7 +13143,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR026")
+					(reference "#PWR23")
 					(unit 1)
 				)
 			)
@@ -13159,7 +13159,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "da78b9ba-512d-4ee9-8109-cc8d79a13013")
-		(property "Reference" "#PWR084"
+		(property "Reference" "#PWR45"
 			(at 490.22 313.69 0)
 			(effects
 				(font
@@ -13210,7 +13210,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR084")
+					(reference "#PWR45")
 					(unit 1)
 				)
 			)
@@ -13427,7 +13427,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "de62e871-c7d3-4244-8034-554dc92c04aa")
-		(property "Reference" "#PWR015"
+		(property "Reference" "#PWR12"
 			(at 265.43 321.31 0)
 			(effects
 				(font
@@ -13478,7 +13478,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR015")
+					(reference "#PWR12")
 					(unit 1)
 				)
 			)
@@ -13494,7 +13494,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "e370b54b-49cc-42a4-8996-4c14c223e0fd")
-		(property "Reference" "#PWR085"
+		(property "Reference" "#PWR46"
 			(at 490.22 320.04 0)
 			(effects
 				(font
@@ -13545,7 +13545,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR085")
+					(reference "#PWR46")
 					(unit 1)
 				)
 			)
@@ -13561,7 +13561,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "e5ae1058-10d6-4622-b701-503296267033")
-		(property "Reference" "#PWR06"
+		(property "Reference" "#PWR28"
 			(at 316.23 307.34 0)
 			(effects
 				(font
@@ -13612,7 +13612,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR06")
+					(reference "#PWR28")
 					(unit 1)
 				)
 			)
@@ -13767,7 +13767,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "e9c7ec51-9211-401c-8633-cb6ae764836e")
-		(property "Reference" "J3"
+		(property "Reference" "J2"
 			(at 279.4 283.2099 0)
 			(effects
 				(font
@@ -13827,7 +13827,7 @@
 		(instances
 			(project ""
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "J3")
+					(reference "J2")
 					(unit 1)
 				)
 			)
@@ -13842,7 +13842,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "eeba57a9-ea93-499f-9a11-80eb6c192499")
-		(property "Reference" "#PWR019"
+		(property "Reference" "#PWR16"
 			(at 265.43 331.47 0)
 			(effects
 				(font
@@ -13893,7 +13893,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR019")
+					(reference "#PWR16")
 					(unit 1)
 				)
 			)
@@ -13909,7 +13909,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "f343b4a6-06cc-4513-8121-be91aadad11a")
-		(property "Reference" "J2"
+		(property "Reference" "J1"
 			(at 279.4 273.0499 0)
 			(effects
 				(font
@@ -13963,7 +13963,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "J2")
+					(reference "J1")
 					(unit 1)
 				)
 			)
@@ -13978,7 +13978,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "f3dcd8ad-1127-4f62-9d05-0ba57a354519")
-		(property "Reference" "#PWR079"
+		(property "Reference" "#PWR8"
 			(at 143.51 190.5 0)
 			(effects
 				(font
@@ -14029,7 +14029,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR079")
+					(reference "#PWR8")
 					(unit 1)
 				)
 			)
@@ -14045,7 +14045,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "f54354eb-0600-4d89-861d-cd899e6ebd48")
-		(property "Reference" "#PWR010"
+		(property "Reference" "#PWR32"
 			(at 316.23 317.5 0)
 			(effects
 				(font
@@ -14096,7 +14096,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR010")
+					(reference "#PWR32")
 					(unit 1)
 				)
 			)
@@ -14112,7 +14112,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "f5ae671b-e2bb-4bea-8ea4-88d2ddc6ebf5")
-		(property "Reference" "#PWR024"
+		(property "Reference" "#PWR21"
 			(at 293.37 175.26 0)
 			(effects
 				(font
@@ -14163,7 +14163,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR024")
+					(reference "#PWR21")
 					(unit 1)
 				)
 			)
@@ -14179,7 +14179,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "f6060d70-3190-4a86-985a-7da2b246cb87")
-		(property "Reference" "#PWR069"
+		(property "Reference" "#PWR37"
 			(at 341.63 332.74 0)
 			(effects
 				(font
@@ -14230,7 +14230,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR069")
+					(reference "#PWR37")
 					(unit 1)
 				)
 			)
@@ -14245,7 +14245,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "f8556e4e-fc2c-4af7-bb45-7fc7ac62bb26")
-		(property "Reference" "#PWR072"
+		(property "Reference" "#PWR4"
 			(at 137.16 182.88 0)
 			(effects
 				(font
@@ -14296,7 +14296,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR072")
+					(reference "#PWR4")
 					(unit 1)
 				)
 			)
@@ -14311,7 +14311,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "f8db3c6f-2597-4b4e-a3eb-291f1aeb7467")
-		(property "Reference" "#PWR021"
+		(property "Reference" "#PWR18"
 			(at 265.43 336.55 0)
 			(effects
 				(font
@@ -14362,7 +14362,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR021")
+					(reference "#PWR18")
 					(unit 1)
 				)
 			)

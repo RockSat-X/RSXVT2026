@@ -9,7 +9,7 @@
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
-			(property "Reference" "C"
+			(property "Reference" "J"
 				(at 0.508 1.524 0)
 				(effects
 					(font
@@ -2587,7 +2587,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "04dd2379-be76-4f6a-8d7d-e0355ced57a2")
-		(property "Reference" "C1"
+		(property "Reference" "J1"
 			(at 502.92 41.91 0)
 			(effects
 				(font
@@ -2940,7 +2940,7 @@
 		(instances
 			(project ""
 				(path "/98fc9565-7d66-4cd3-b0d6-fc60566bea9b"
-					(reference "C1")
+					(reference "J1")
 					(unit 1)
 				)
 			)
