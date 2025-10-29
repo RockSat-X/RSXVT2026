@@ -193,4 +193,16 @@
 			(xyz -90 -0 90)
 		)
 	)
+	(model "${KIPRJMOD}/models/JST-PAP-04V-S.step"
+		(opacity 0.7900)
+		(offset
+			(xyz 3.3 -3 4.1)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -90 -180 -90)
+		)
+	)
 )
