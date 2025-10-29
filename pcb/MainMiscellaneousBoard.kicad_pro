@@ -453,7 +453,8 @@
     "pinned_symbol_libs": [
       "ItsyBitsy_ESP32",
       "D24V7Fx",
-      "StackConnector"
+      "StackConnector",
+      "Seeed_Studio_XIAO-ESP32-S3-Sense"
     ]
   },
   "meta": {

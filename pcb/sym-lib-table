@@ -3,4 +3,5 @@
   (lib (name "D24V7Fx")(type "KiCad")(uri "${KIPRJMOD}/symbols/D24V7Fx.kicad_sym")(options "")(descr ""))
   (lib (name "StackConnector")(type "KiCad")(uri "${KIPRJMOD}/symbols/StackConnector.kicad_sym")(options "")(descr ""))
   (lib (name "ItsyBitsy_ESP32")(type "KiCad")(uri "${KIPRJMOD}/symbols/ItsyBitsy_ESP32.kicad_sym")(options "")(descr ""))
+  (lib (name "Seeed_Studio_XIAO-ESP32-S3-Sense")(type "KiCad")(uri "${KIPRJMOD}/symbols/Seeed_Studio_XIAO-ESP32-S3-Sense.kicad_sym")(options "")(descr ""))
 )
