@@ -450,7 +450,12 @@
     "pinned_footprint_libs": [
       "pcb"
     ],
-    "pinned_symbol_libs": []
+    "pinned_symbol_libs": [
+      "ItsyBitsy_ESP32",
+      "D24V7Fx",
+      "StackConnector",
+      "Seeed_Studio_XIAO-ESP32-S3-Sense"
+    ]
   },
   "meta": {
     "filename": "MainMiscellaneousBoard.kicad_pro",
@@ -615,6 +620,14 @@
     [
       "98fc9565-7d66-4cd3-b0d6-fc60566bea9b",
       "Root"
+    ],
+    [
+      "5d94b41c-643f-433f-ba9e-5a80a87c9806",
+      "uSD Connector - Main Camera Subsystem A"
+    ],
+    [
+      "4f2e1eb9-ac73-426b-a6fe-8e3837c7983e",
+      "uSD Connector - Main Camera Subsystem B"
     ]
   ],
   "text_variables": {}

@@ -6,7 +6,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(property "Reference" "C"
+		(property "Reference" "J"
 			(at 0.508 1.524 0)
 			(effects
 				(font
