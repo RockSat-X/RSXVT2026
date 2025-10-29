@@ -559,170 +559,6 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "Device:R_Potentiometer"
-			(pin_names
-				(offset 1.016)
-				(hide yes)
-			)
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(property "Reference" "RV"
-				(at -4.445 0 90)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Value" "R_Potentiometer"
-				(at -2.54 0 90)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Footprint" ""
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" "~"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Description" "Potentiometer"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_keywords" "resistor variable"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_fp_filters" "Potentiometer*"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(symbol "R_Potentiometer_0_1"
-				(rectangle
-					(start 1.016 2.54)
-					(end -1.016 -2.54)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 1.143 0) (xy 2.286 0.508) (xy 2.286 -0.508) (xy 1.143 0)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type outline)
-					)
-				)
-				(polyline
-					(pts
-						(xy 2.54 0) (xy 1.524 0)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-			)
-			(symbol "R_Potentiometer_1_1"
-				(pin passive line
-					(at 0 3.81 270)
-					(length 1.27)
-					(name "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 0 -3.81 90)
-					(length 1.27)
-					(name "3"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "3"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 3.81 0 180)
-					(length 1.27)
-					(name "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(embedded_fonts no)
-		)
 		(symbol "Jumper:SolderJumper_2_Open"
 			(pin_numbers
 				(hide yes)
@@ -3140,131 +2976,6 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "power:+5V"
-			(power)
-			(pin_numbers
-				(hide yes)
-			)
-			(pin_names
-				(offset 0)
-				(hide yes)
-			)
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(property "Reference" "#PWR"
-				(at 0 -3.81 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Value" "+5V"
-				(at 0 3.556 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Footprint" ""
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" ""
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Description" "Power symbol creates a global label with name \"+5V\""
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_keywords" "global power"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(symbol "+5V_0_1"
-				(polyline
-					(pts
-						(xy -0.762 1.27) (xy 0 2.54)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0 2.54) (xy 0.762 1.27)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0 0) (xy 0 2.54)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-			)
-			(symbol "+5V_1_1"
-				(pin power_in line
-					(at 0 0 90)
-					(length 0)
-					(name "~"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(embedded_fonts no)
-		)
 		(symbol "power:+BATT"
 			(power)
 			(pin_numbers
@@ -3587,21 +3298,6 @@
 		)
 		(uuid "1f20ce7b-e022-4213-94d4-6282b3bf1543")
 	)
-	(text "TODO: Not sure how important VREF is."
-		(exclude_from_sim no)
-		(at 260.604 164.338 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-				(thickness 0.254)
-				(bold yes)
-				(italic yes)
-				(color 255 0 255 1)
-			)
-			(justify right)
-		)
-		(uuid "338e7386-5ba1-4198-9a7c-d8d83b3c081f")
-	)
 	(text "Regulation."
 		(exclude_from_sim no)
 		(at 26.67 127.254 0)
@@ -3647,6 +3343,19 @@
 		)
 		(uuid "c6f30266-3836-4e75-ab93-dda6789c4fd8")
 	)
+	(text "VREF is used for current scaling or something,\nbut I don't think we'll need it; can be left\nfloating according to example application diagram.\n@/pg 4/fig 1.1/`TMC2209`."
+		(exclude_from_sim no)
+		(at 274.32 163.83 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.1588)
+				(color 255 0 0 1)
+			)
+			(justify right)
+		)
+		(uuid "d990edb0-941f-40de-905f-1422e61c18c7")
+	)
 	(text "@/pg 14/sec 3.4/`TMC2209`."
 		(exclude_from_sim no)
 		(at 290.322 219.964 0)
@@ -3661,12 +3370,6 @@
 		(uuid "fd8534f4-1719-4e1e-ae45-12b2b72b1c4b")
 	)
 	(junction
-		(at 278.13 163.83)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "097f1319-857e-4a01-baa6-11a4fd51c218")
-	)
-	(junction
 		(at 308.61 219.71)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -3677,12 +3380,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "319bd8f6-e351-46db-a19e-55e8c8fe2fd2")
-	)
-	(junction
-		(at 267.97 163.83)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "45178860-2255-449f-b2ea-fe32fd840e49")
 	)
 	(junction
 		(at 308.61 168.91)
@@ -4148,26 +3845,6 @@
 	)
 	(wire
 		(pts
-			(xy 267.97 152.4) (xy 267.97 146.05)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "21c5c647-44d3-486e-ac4d-030554720815")
-	)
-	(wire
-		(pts
-			(xy 267.97 163.83) (xy 267.97 160.02)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "221417f7-00c3-4001-9d59-7b0d4c1c8c30")
-	)
-	(wire
-		(pts
 			(xy 308.61 219.71) (xy 308.61 168.91)
 		)
 		(stroke
@@ -4358,26 +4035,6 @@
 	)
 	(wire
 		(pts
-			(xy 275.59 163.83) (xy 278.13 163.83)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "c842a855-164e-479a-8b37-4f85d6b7bd32")
-	)
-	(wire
-		(pts
-			(xy 267.97 163.83) (xy 267.97 167.64)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "d0aad219-f0a9-4942-81a9-11b9c2e5d1ea")
-	)
-	(wire
-		(pts
 			(xy 303.53 184.15) (xy 303.53 133.35)
 		)
 		(stroke
@@ -4445,16 +4102,6 @@
 			(type default)
 		)
 		(uuid "f386558c-82b4-4ac1-9e05-37dce563fc4c")
-	)
-	(label "VREF_VALUE"
-		(at 267.97 163.83 180)
-		(effects
-			(font
-				(size 0.635 0.635)
-			)
-			(justify right bottom)
-		)
-		(uuid "a31859ed-3534-4dc1-8157-8747bcf93151")
 	)
 	(global_label "MOTOR_MICROSTEP_2_Y"
 		(shape bidirectional)
@@ -5806,6 +5453,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
+		(fields_autoplaced yes)
 		(uuid "0cbb152f-46ec-4934-9948-3a92541e92d0")
 		(property "Reference" "TP1"
 			(at 278.13 158.496 0)
@@ -6266,75 +5914,6 @@
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "TP3")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Jumper:SolderJumper_2_Open")
-		(at 271.78 163.83 0)
-		(mirror y)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board yes)
-		(dnp no)
-		(uuid "318baf73-a478-4366-a488-b54b02d906a2")
-		(property "Reference" "JP1"
-			(at 271.78 161.544 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "SolderJumper_2_Open"
-			(at 271.78 160.02 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
-			(at 271.78 163.83 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 271.78 163.83 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Solder Jumper, 2-pole, open"
-			(at 271.78 163.83 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "a32189c4-ce78-48ba-93d5-ee39812cecae")
-		)
-		(pin "1"
-			(uuid "5d945409-7273-4fd9-99bf-c96cb11a8d1f")
-		)
-		(instances
-			(project "PowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "JP1")
 					(unit 1)
 				)
 			)
@@ -6831,78 +6410,6 @@
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "R3")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:R_Potentiometer")
-		(at 267.97 171.45 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "6efbb9d5-6dbc-42ed-a14e-1b75ba33c804")
-		(property "Reference" "RV1"
-			(at 265.43 170.1799 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Value" "10k"
-			(at 265.43 172.7199 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Footprint" "pcb:TRIM_35WR10KLFTR"
-			(at 267.97 171.45 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 267.97 171.45 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Potentiometer"
-			(at 267.97 171.45 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "6c0783ed-1c03-433f-abc5-6e35e9a34cdf")
-		)
-		(pin "3"
-			(uuid "6e70761e-1b2c-4fc1-a024-4859fb651b4c")
-		)
-		(pin "1"
-			(uuid "efb89dcd-651d-44d0-bc2e-e59b161ed0fb")
-		)
-		(instances
-			(project "PowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "RV1")
 					(unit 1)
 				)
 			)
@@ -7765,141 +7272,6 @@
 		)
 	)
 	(symbol
-		(lib_id "power:GND")
-		(at 267.97 175.26 0)
-		(mirror y)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "96e70561-4ce3-47ae-8bb8-ceb18cc1cae0")
-		(property "Reference" "#PWR020"
-			(at 267.97 181.61 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "GND"
-			(at 267.97 180.34 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Footprint" ""
-			(at 267.97 175.26 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 267.97 175.26 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 267.97 175.26 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "b86d2a9a-1705-4bab-ad5a-e92122cdf226")
-		)
-		(instances
-			(project "PowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR020")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:+5V")
-		(at 267.97 146.05 0)
-		(mirror y)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "97175b80-d18c-4209-9a1b-2c62a320abff")
-		(property "Reference" "#PWR019"
-			(at 267.97 149.86 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "+5V"
-			(at 267.97 140.97 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 267.97 146.05 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 267.97 146.05 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+5V\""
-			(at 267.97 146.05 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "c0147351-c6e4-4490-8fee-ad59929a8fe0")
-		)
-		(instances
-			(project "PowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR019")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Connector:TestPoint")
 		(at 383.54 204.47 270)
 		(unit 1)
@@ -7962,76 +7334,6 @@
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "TP7")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:R")
-		(at 267.97 156.21 0)
-		(mirror x)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "a81130c6-96f6-4229-8b68-450d625f685f")
-		(property "Reference" "R1"
-			(at 265.43 154.9399 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Value" "33k"
-			(at 265.43 157.4799 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
-			(at 266.192 156.21 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 267.97 156.21 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Resistor"
-			(at 267.97 156.21 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "af004457-9a10-489c-9934-3cf9cbb30999")
-		)
-		(pin "2"
-			(uuid "4c76d1ae-714e-4535-8907-2fb5e7f041b7")
-		)
-		(instances
-			(project "PowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "R1")
 					(unit 1)
 				)
 			)
@@ -9203,73 +8505,6 @@
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR08")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:GND")
-		(at 271.78 171.45 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "f5ae671b-e2bb-4bea-8ea4-88d2ddc6ebf5")
-		(property "Reference" "#PWR021"
-			(at 278.13 171.45 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "GND"
-			(at 276.86 171.45 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Footprint" ""
-			(at 271.78 171.45 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 271.78 171.45 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 271.78 171.45 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "e789242e-e852-48f5-ac1f-950306ebfd69")
-		)
-		(instances
-			(project "PowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR021")
 					(unit 1)
 				)
 			)
