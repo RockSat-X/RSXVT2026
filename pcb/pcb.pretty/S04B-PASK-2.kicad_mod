@@ -1,0 +1,196 @@
+(footprint "S04B-PASK-2"
+	(version 20241229)
+	(generator "pcbnew")
+	(generator_version "9.0")
+	(layer "F.Cu")
+	(descr "CONN HEADER R/A 4POS 2MM")
+	(property "Reference" "REF**"
+		(at -1.5 3 0)
+		(unlocked yes)
+		(layer "F.SilkS")
+		(uuid "365784e9-89a6-4fd9-9704-332825032f0c")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.1)
+			)
+			(justify right)
+		)
+	)
+	(property "Value" "S04B-PASK-2"
+		(at 0 1 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "6994ca27-96cb-4454-a86b-4f6676c010d4")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" "https://www.jst-mfg.com/product/pdf/eng/ePA-F.pdf"
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "ac694630-a76d-437f-acb5-0ff0595f5c3a")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" "CONN HEADER R/A 4POS 2MM"
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "4512fd26-fad3-4562-af47-f47b18522374")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(fp_line
+		(start -4 -2.5)
+		(end -4 -0.5)
+		(stroke
+			(width 0.12)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "392450e5-76dd-46b5-bd6a-971a20744294")
+	)
+	(fp_line
+		(start -4 -0.5)
+		(end -1 -0.5)
+		(stroke
+			(width 0.12)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "32213f6c-6652-4024-a8ce-9bacd4ad4f9e")
+	)
+	(fp_line
+		(start -4 6.5)
+		(end -4 8.5)
+		(stroke
+			(width 0.12)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "dec73473-fc5f-4fa6-a059-4ae58c1e3fca")
+	)
+	(fp_line
+		(start -4 8.5)
+		(end 5 8.5)
+		(stroke
+			(width 0.12)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "8c2314d4-d34e-4ed1-8c3a-00bf4c66dade")
+	)
+	(fp_line
+		(start -1 -0.5)
+		(end -1 6.5)
+		(stroke
+			(width 0.12)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "50dfd7c3-29bd-4469-8920-2a1caee90356")
+	)
+	(fp_line
+		(start -1 6.5)
+		(end -4 6.5)
+		(stroke
+			(width 0.12)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "39373a2a-71ed-414b-b92f-555a16941a37")
+	)
+	(fp_line
+		(start 5 -2.5)
+		(end -4 -2.5)
+		(stroke
+			(width 0.12)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "0aab3442-94c8-4886-9885-72eb06dbb2af")
+	)
+	(fp_circle
+		(center 2 -1.5)
+		(end 2.5 -1.5)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "Edge.Cuts")
+		(uuid "4d2da2d1-e276-4076-825e-eaa50431298c")
+	)
+	(fp_circle
+		(center 2 7.5)
+		(end 2.5 7.5)
+		(stroke
+			(width 0.04)
+			(type solid)
+		)
+		(fill no)
+		(layer "Edge.Cuts")
+		(uuid "2e54e31f-1b0d-468a-82f8-d35e3ce5627f")
+	)
+	(pad "1" thru_hole rect
+		(at 0 0 270)
+		(size 1.5 1.5)
+		(drill 0.85)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "ab1484ac-314a-48b3-9963-519c978e0a39")
+	)
+	(pad "2" thru_hole circle
+		(at 0 2 270)
+		(size 1.5 1.5)
+		(drill 0.85)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "fbb34526-be93-4f42-b4e7-a971e871719b")
+	)
+	(pad "3" thru_hole circle
+		(at 0 4 270)
+		(size 1.5 1.5)
+		(drill 0.85)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "b5d31cdf-1e05-4c60-ad7d-f6d7b69e3836")
+	)
+	(pad "4" thru_hole circle
+		(at 0 6 270)
+		(size 1.5 1.5)
+		(drill 0.85)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "59657b8c-2815-4e49-8383-930a2b6ba7ae")
+	)
+	(embedded_fonts no)
+	(model "${KIPRJMOD}/models/S04B-PASK-2.STEP"
+		(offset
+			(xyz 2.25 -3 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -90 -0 90)
+		)
+	)
+)
