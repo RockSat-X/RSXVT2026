@@ -450,7 +450,11 @@
     "pinned_footprint_libs": [
       "pcb"
     ],
-    "pinned_symbol_libs": []
+    "pinned_symbol_libs": [
+      "ItsyBitsy_ESP32",
+      "D24V7Fx",
+      "StackConnector"
+    ]
   },
   "meta": {
     "filename": "MainMiscellaneousBoard.kicad_pro",

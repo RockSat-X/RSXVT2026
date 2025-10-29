@@ -1524,7 +1524,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "1u"
+		(property "Value" "C_Small"
 			(at 52.07 81.2862 0)
 			(effects
 				(font
@@ -1598,7 +1598,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "100n"
+		(property "Value" "C_Small"
 			(at 63.5 81.2862 0)
 			(effects
 				(font
@@ -1670,7 +1670,7 @@
 				)
 			)
 		)
-		(property "Value" "0472192001"
+		(property "Value" "Micro_SD_Card"
 			(at 129.54 61.468 0)
 			(effects
 				(font
@@ -1755,7 +1755,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "9f92e1b5-6190-4408-a4f7-bf9465150b85")
-		(property "Reference" "#PWR02"
+		(property "Reference" "#PWR2"
 			(at 66.04 88.9 0)
 			(effects
 				(font
@@ -1807,11 +1807,11 @@
 		(instances
 			(project "MainMiscellaneousBoard"
 				(path "/98fc9565-7d66-4cd3-b0d6-fc60566bea9b/4f2e1eb9-ac73-426b-a6fe-8e3837c7983e"
-					(reference "#PWR05")
+					(reference "#PWR5")
 					(unit 1)
 				)
 				(path "/98fc9565-7d66-4cd3-b0d6-fc60566bea9b/5d94b41c-643f-433f-ba9e-5a80a87c9806"
-					(reference "#PWR02")
+					(reference "#PWR2")
 					(unit 1)
 				)
 			)
@@ -1827,7 +1827,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "a915b051-6d41-4de7-8493-d20d55d0d1ac")
-		(property "Reference" "#PWR01"
+		(property "Reference" "#PWR1"
 			(at 66.04 81.28 0)
 			(effects
 				(font
@@ -1877,11 +1877,11 @@
 		(instances
 			(project "MainMiscellaneousBoard"
 				(path "/98fc9565-7d66-4cd3-b0d6-fc60566bea9b/4f2e1eb9-ac73-426b-a6fe-8e3837c7983e"
-					(reference "#PWR04")
+					(reference "#PWR4")
 					(unit 1)
 				)
 				(path "/98fc9565-7d66-4cd3-b0d6-fc60566bea9b/5d94b41c-643f-433f-ba9e-5a80a87c9806"
-					(reference "#PWR01")
+					(reference "#PWR1")
 					(unit 1)
 				)
 			)
@@ -1897,7 +1897,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "eed4bcad-4845-4e2c-98a6-e742ffee0523")
-		(property "Reference" "#PWR03"
+		(property "Reference" "#PWR3"
 			(at 156.21 92.71 0)
 			(effects
 				(font
@@ -1949,11 +1949,11 @@
 		(instances
 			(project "MainMiscellaneousBoard"
 				(path "/98fc9565-7d66-4cd3-b0d6-fc60566bea9b/4f2e1eb9-ac73-426b-a6fe-8e3837c7983e"
-					(reference "#PWR06")
+					(reference "#PWR6")
 					(unit 1)
 				)
 				(path "/98fc9565-7d66-4cd3-b0d6-fc60566bea9b/5d94b41c-643f-433f-ba9e-5a80a87c9806"
-					(reference "#PWR03")
+					(reference "#PWR3")
 					(unit 1)
 				)
 			)
@@ -2050,7 +2050,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "10n"
+		(property "Value" "C_Small"
 			(at 74.93 81.2862 0)
 			(effects
 				(font
