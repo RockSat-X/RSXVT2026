@@ -3642,7 +3642,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "25TGV100M8X10.5"
+		(property "Value" "865080343009"
 			(at 223.52 87.63 0)
 			(effects
 				(font
@@ -3651,7 +3651,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:CP_Elec_8x10.5"
+		(property "Footprint" "Capacitor_SMD:CP_Elec_6.3x5.4"
 			(at 220.6752 90.17 0)
 			(effects
 				(font
@@ -4262,7 +4262,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Package_DFN_QFN:VQFN-28-1EP_5x5mm_P0.5mm_EP3.7x3.7mm_ThermalVias"
+		(property "Footprint" "pcb:VQFN-28-1EP_5x5mm_P0.5mm_EP3.7x3.7mm_ThermalVias"
 			(at 134.62 153.67 0)
 			(effects
 				(font
