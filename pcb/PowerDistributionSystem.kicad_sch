@@ -1371,6 +1371,156 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Jumper:Jumper_2_Bridged"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "JP"
+				(at 0 1.905 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "Jumper_2_Bridged"
+				(at 0 -2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Jumper, 2-pole, closed/bridged"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "Jumper SPST"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "Jumper* TestPoint*2Pads* TestPoint*Bridge*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "Jumper_2_Bridged_0_0"
+				(circle
+					(center -2.032 0)
+					(radius 0.508)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 2.032 0)
+					(radius 0.508)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "Jumper_2_Bridged_0_1"
+				(arc
+					(start -1.524 0.254)
+					(mid 0 0.762)
+					(end 1.524 0.254)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "Jumper_2_Bridged_1_1"
+				(pin passive line
+					(at -5.08 0 0)
+					(length 2.54)
+					(name "A"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 5.08 0 180)
+					(length 2.54)
+					(name "B"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "Jumper:SolderJumper_2_Open"
 			(pin_numbers
 				(hide yes)
@@ -4125,6 +4275,19 @@
 		)
 		(uuid "3e311093-ff4b-4e72-9948-9c8b9d65b3c3")
 	)
+	(text "@/pg 20/fig 4.1/`TMC2209`."
+		(exclude_from_sim no)
+		(at 281.432 103.378 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.1588)
+				(color 255 0 0 1)
+			)
+			(justify right)
+		)
+		(uuid "940815cb-2bc8-416f-a1f3-9e277842ee14")
+	)
 	(text "Logic Conversion."
 		(exclude_from_sim no)
 		(at 26.67 249.682 0)
@@ -4657,6 +4820,16 @@
 	)
 	(wire
 		(pts
+			(xy 294.64 82.55) (xy 303.53 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "256ae9ce-ed16-4c36-9ef3-b4a50d7ede4e")
+	)
+	(wire
+		(pts
 			(xy 308.61 219.71) (xy 308.61 168.91)
 		)
 		(stroke
@@ -4674,6 +4847,16 @@
 			(type default)
 		)
 		(uuid "3e6952aa-531f-42e9-8acf-bd429cc6910c")
+	)
+	(wire
+		(pts
+			(xy 284.48 99.06) (xy 284.48 97.79)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3fc6d6c5-37c6-44b6-8448-608fafeab2b2")
 	)
 	(wire
 		(pts
@@ -4707,13 +4890,23 @@
 	)
 	(wire
 		(pts
-			(xy 283.21 107.95) (xy 284.48 107.95)
+			(xy 280.67 107.95) (xy 284.48 107.95)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "5d31e79a-3466-488b-989c-26565d86b42e")
+		(uuid "59180cf8-dc23-4034-88cb-bea62615fdce")
+	)
+	(wire
+		(pts
+			(xy 284.48 97.79) (xy 280.67 97.79)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "60506814-32bc-4bb3-b3eb-c008c472636c")
 	)
 	(wire
 		(pts
@@ -4734,6 +4927,16 @@
 			(type default)
 		)
 		(uuid "640028fe-521b-455f-b53d-d5d8dbafe6c9")
+	)
+	(wire
+		(pts
+			(xy 284.48 106.68) (xy 284.48 107.95)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7889504a-bc67-4fcd-99a5-9f005f501697")
 	)
 	(wire
 		(pts
@@ -4797,6 +5000,16 @@
 	)
 	(wire
 		(pts
+			(xy 280.67 82.55) (xy 284.48 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a7396a91-48af-4c82-9e08-107b08fddd22")
+	)
+	(wire
+		(pts
 			(xy 337.82 133.35) (xy 303.53 133.35)
 		)
 		(stroke
@@ -4814,26 +5027,6 @@
 			(type default)
 		)
 		(uuid "af9b3ebe-cc82-435b-bebd-d97bfa5c4c35")
-	)
-	(wire
-		(pts
-			(xy 302.26 82.55) (xy 303.53 82.55)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "afa390af-12c3-45f4-9847-ce3706a97f60")
-	)
-	(wire
-		(pts
-			(xy 284.48 106.68) (xy 284.48 107.95)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "b713ce82-7884-4c08-9dcd-8f2129f6d2ca")
 	)
 	(wire
 		(pts
@@ -4887,16 +5080,6 @@
 	)
 	(wire
 		(pts
-			(xy 274.32 107.95) (xy 275.59 107.95)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "e908ceba-a0d0-4d8d-ba57-7d3a4e31e0d9")
-	)
-	(wire
-		(pts
 			(xy 308.61 168.91) (xy 337.82 168.91)
 		)
 		(stroke
@@ -4914,28 +5097,6 @@
 			(type default)
 		)
 		(uuid "f386558c-82b4-4ac1-9e05-37dce563fc4c")
-	)
-	(global_label "MOTOR_MICROSTEP_2_Y"
-		(shape bidirectional)
-		(at 337.82 153.67 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "02b0701b-91f1-4944-868d-ca5e641a6343")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 311.6498 153.67 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
 	)
 	(global_label "MOTOR_DRIVER_A1_X"
 		(shape bidirectional)
@@ -4981,97 +5142,9 @@
 			)
 		)
 	)
-	(global_label "MOTOR_MICROSTEP_2_Y"
+	(global_label "MOTOR_DISABLE"
 		(shape bidirectional)
-		(at 523.24 92.71 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "0fb48bf7-507b-46cc-9b0f-f3db9e188781")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 549.4102 92.71 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "MOTOR_STEP_Z"
-		(shape bidirectional)
-		(at 523.24 95.25 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "1fa9c542-a4b7-4316-84a5-88e05c67b78b")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 541.4273 95.25 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "MOTOR_UART"
-		(shape bidirectional)
-		(at 274.32 107.95 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "229ce66d-7bf9-4300-be97-42491b983357")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 258.2492 107.95 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "MOTOR_MICROSTEP_1_Y"
-		(shape bidirectional)
-		(at 337.82 148.59 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "243d1527-0d5b-4aba-9012-593ab4ba17be")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 311.6498 148.59 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "MOTOR_ENABLE"
-		(shape bidirectional)
-		(at 302.26 82.55 180)
+		(at 280.67 82.55 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -5081,34 +5154,12 @@
 		)
 		(uuid "25708832-3e8a-4139-addb-f2f5884916d1")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 283.8307 82.55 0)
+			(at 261.6359 82.55 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "MOTOR_MICROSTEP_2_Z"
-		(shape bidirectional)
-		(at 523.24 102.87 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "26088c33-c2cd-4f66-bbdf-3a3f44f9c83f")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 549.5311 102.87 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
 				(hide yes)
 			)
 		)
@@ -5148,28 +5199,6 @@
 		(uuid "2c8acb03-1d31-4d11-813a-8290e021225f")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 321.2049 143.51 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "MOTOR_MICROSTEP_1_Z"
-		(shape bidirectional)
-		(at 337.82 199.39 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "2d5f5fa7-f61a-4530-8671-2f957e54b8d7")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 311.5289 199.39 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5377,50 +5406,6 @@
 			)
 		)
 	)
-	(global_label "MOTOR_DIR_Y"
-		(shape bidirectional)
-		(at 523.24 87.63 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "54440ac2-229c-4791-8d7e-24876f626837")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 539.8551 87.63 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "MOTOR_STEP_X"
-		(shape bidirectional)
-		(at 523.24 74.93 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "59c58a0b-09c2-4b15-9d58-87b2adaac5aa")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 541.4273 74.93 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "MOTOR_DRIVER_A2_X"
 		(shape bidirectional)
 		(at 469.9 242.57 180)
@@ -5575,28 +5560,6 @@
 			)
 		)
 	)
-	(global_label "MOTOR_MICROSTEP_2_X"
-		(shape bidirectional)
-		(at 337.82 102.87 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "71357476-034c-4acd-9891-ffc50b4be3e3")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 311.5289 102.87 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "MOTOR_DRIVER_B2_X"
 		(shape bidirectional)
 		(at 482.6 242.57 0)
@@ -5610,28 +5573,6 @@
 		(uuid "727b7d25-96d3-4ccb-bf90-1a1be93b882d")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 506.2907 242.57 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "MOTOR_MICROSTEP_2_X"
-		(shape bidirectional)
-		(at 523.24 82.55 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "7d12461d-600a-49ee-871b-d738bcb667e3")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 549.5311 82.55 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5729,72 +5670,6 @@
 			)
 		)
 	)
-	(global_label "MOTOR_MICROSTEP_1_X"
-		(shape bidirectional)
-		(at 337.82 97.79 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "9992ae64-8879-49dd-b70a-820bd1f3f7ee")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 311.5289 97.79 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "MOTOR_MICROSTEP_2_Z"
-		(shape bidirectional)
-		(at 337.82 204.47 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "9cf712be-53fa-440f-a9c9-1b888bb9c508")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 311.5289 204.47 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "MOTOR_DIR_X"
-		(shape bidirectional)
-		(at 523.24 77.47 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "a4970d6e-9b6c-4c4a-a4a4-dbd3332414d6")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 539.976 77.47 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "MOTOR_DRIVER_A2_Z"
 		(shape bidirectional)
 		(at 383.54 189.23 0)
@@ -5817,24 +5692,24 @@
 			)
 		)
 	)
-	(global_label "MOTOR_ENABLE"
+	(global_label "MOTOR_UART_RX"
 		(shape bidirectional)
-		(at 523.24 105.41 0)
+		(at 280.67 107.95 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify left)
+			(justify right)
 		)
-		(uuid "b3a4c3d9-e701-4bf9-b9a2-6f70f7688d55")
+		(uuid "ad3262d7-b059-492c-ac3b-cec0f524d39b")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 541.6693 105.41 0)
+			(at 261.1521 107.95 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 				(hide yes)
 			)
 		)
@@ -5905,28 +5780,6 @@
 			)
 		)
 	)
-	(global_label "MOTOR_DIR_Z"
-		(shape bidirectional)
-		(at 523.24 97.79 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "ccddd2a8-be22-409f-8ff5-4430bb4f08b1")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 539.976 97.79 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "MOTOR_DRIVER_B1_Y"
 		(shape bidirectional)
 		(at 482.6 245.11 0)
@@ -5940,28 +5793,6 @@
 		(uuid "cd0f7e42-fc4f-42c9-b069-3c1a16d4b6bc")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 506.1698 245.11 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "MOTOR_MICROSTEP_1_X"
-		(shape bidirectional)
-		(at 523.24 80.01 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "ce87c3e5-daca-4090-8e60-d7ea5d94e495")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 549.5311 80.01 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6015,46 +5846,24 @@
 			)
 		)
 	)
-	(global_label "MOTOR_STEP_Y"
+	(global_label "MOTOR_UART_TX"
 		(shape bidirectional)
-		(at 523.24 85.09 0)
+		(at 280.67 97.79 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify left)
+			(justify right)
 		)
-		(uuid "e5314442-c258-4e52-883c-85969e095839")
+		(uuid "e7c7ee07-e475-47d6-bc69-db6e34e45b6c")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 541.3064 85.09 0)
+			(at 261.4545 97.79 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "MOTOR_MICROSTEP_1_Z"
-		(shape bidirectional)
-		(at 523.24 100.33 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "e9c2fd07-4499-4a54-b5aa-168524fe0ba0")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 549.5311 100.33 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
+				(justify right)
 				(hide yes)
 			)
 		)
@@ -6081,50 +5890,6 @@
 			)
 		)
 	)
-	(global_label "MOTOR_MICROSTEP_1_Y"
-		(shape bidirectional)
-		(at 523.24 90.17 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "f0be56ff-64aa-471a-b3b5-75da1f24fd8a")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 549.4102 90.17 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "MOTOR_UART"
-		(shape bidirectional)
-		(at 523.24 107.95 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "ffb1ee20-c1f7-4e5d-a8ec-e3cff88036a4")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 539.3108 107.95 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
 	(symbol
 		(lib_id "power:GND")
 		(at 469.9 273.05 270)
@@ -6134,7 +5899,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "0429fb0f-d7ef-4ea3-9da5-c35393284a26")
-		(property "Reference" "#PWR025"
+		(property "Reference" "#PWR018"
 			(at 463.55 273.05 0)
 			(effects
 				(font
@@ -6185,7 +5950,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR025")
+					(reference "#PWR018")
 					(unit 1)
 				)
 			)
@@ -6607,7 +6372,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "2ed55e66-ed3d-4acb-988b-5a00fb021354")
-		(property "Reference" "#PWR017"
+		(property "Reference" "#PWR021"
 			(at 478.79 260.35 0)
 			(effects
 				(font
@@ -6658,75 +6423,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR017")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Connector:TestPoint")
-		(at 383.54 102.87 270)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "2eea23c1-0a0d-41c2-abee-acefe98556d1")
-		(property "Reference" "TP3"
-			(at 388.62 102.8699 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "TestPoint"
-			(at 388.1119 100.33 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "TestPoint:TestPoint_Pad_1.0x1.0mm"
-			(at 383.54 107.95 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 383.54 107.95 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "test point"
-			(at 383.54 102.87 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "6dd1ceae-f10b-460a-890f-63204a624400")
-		)
-		(instances
-			(project "PowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "TP3")
+					(reference "#PWR021")
 					(unit 1)
 				)
 			)
@@ -6932,75 +6629,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:R")
-		(at 284.48 102.87 180)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "62386741-e068-4e05-970f-fdaedbb34f82")
-		(property "Reference" "R3"
-			(at 287.02 101.5999 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Value" "20k"
-			(at 287.02 104.1399 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
-			(at 286.258 102.87 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 284.48 102.87 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Resistor"
-			(at 284.48 102.87 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "26fb4852-490c-4ac8-9f2b-52d93cc989c2")
-		)
-		(pin "2"
-			(uuid "e8e9944d-2d17-4a1a-a336-464a10f2231d")
-		)
-		(instances
-			(project "PowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "R3")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:+BATT")
 		(at 469.9 255.27 90)
 		(unit 1)
@@ -7010,7 +6638,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "7414e528-44c6-4c7d-ada7-62f82b65e7db")
-		(property "Reference" "#PWR011"
+		(property "Reference" "#PWR013"
 			(at 473.71 255.27 0)
 			(effects
 				(font
@@ -7061,75 +6689,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR011")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Connector:TestPoint")
-		(at 383.54 107.95 270)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "7483d3b5-1e79-43b9-a1cf-03d2604fb3a9")
-		(property "Reference" "TP4"
-			(at 388.62 107.9499 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "TestPoint"
-			(at 388.1119 105.41 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "TestPoint:TestPoint_Pad_1.0x1.0mm"
-			(at 383.54 113.03 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 383.54 113.03 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "test point"
-			(at 383.54 107.95 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "c89431cc-9437-4be7-82e8-c65bf92aa075")
-		)
-		(instances
-			(project "PowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "TP4")
+					(reference "#PWR013")
 					(unit 1)
 				)
 			)
@@ -7144,7 +6704,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "7c9785ad-c24d-4052-b74b-54529ce2f4cd")
-		(property "Reference" "#PWR010"
+		(property "Reference" "#PWR017"
 			(at 463.55 267.97 0)
 			(effects
 				(font
@@ -7195,7 +6755,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR010")
+					(reference "#PWR017")
 					(unit 1)
 				)
 			)
@@ -7211,7 +6771,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "7f7b0f30-7d65-4e45-a2d1-4d42f95bee11")
-		(property "Reference" "#PWR013"
+		(property "Reference" "#PWR015"
 			(at 473.71 260.35 0)
 			(effects
 				(font
@@ -7262,7 +6822,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR013")
+					(reference "#PWR015")
 					(unit 1)
 				)
 			)
@@ -7278,7 +6838,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "8350915c-bc82-46e4-8c16-c7e28ce5444c")
-		(property "Reference" "J7"
+		(property "Reference" "J1"
 			(at 476.25 67.31 0)
 			(effects
 				(font
@@ -7631,7 +7191,7 @@
 		(instances
 			(project ""
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "J7")
+					(reference "J1")
 					(unit 1)
 				)
 			)
@@ -7647,7 +7207,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "8b524251-7063-4551-9b78-a24635d5b0a2")
-		(property "Reference" "J6"
+		(property "Reference" "J2"
 			(at 476.25 233.68 0)
 			(effects
 				(font
@@ -7789,7 +7349,7 @@
 		(instances
 			(project ""
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "J6")
+					(reference "J2")
 					(unit 1)
 				)
 			)
@@ -7806,7 +7366,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "940b8437-d7b3-4557-8697-ac566553d4fa")
-		(property "Reference" "#PWR015"
+		(property "Reference" "#PWR019"
 			(at 478.79 255.27 0)
 			(effects
 				(font
@@ -7857,75 +7417,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR015")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Connector:TestPoint")
-		(at 383.54 204.47 270)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "9768eb86-a1f9-4ed1-9fbd-ecf1e4242585")
-		(property "Reference" "TP7"
-			(at 388.62 204.4699 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "TestPoint"
-			(at 388.1119 201.93 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "TestPoint:TestPoint_Pad_1.0x1.0mm"
-			(at 383.54 209.55 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 383.54 209.55 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "test point"
-			(at 383.54 204.47 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "56600cd7-7faa-4d70-9f48-b16dad20aaeb")
-		)
-		(instances
-			(project "PowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "TP7")
+					(reference "#PWR019")
 					(unit 1)
 				)
 			)
@@ -7933,31 +7425,34 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 279.4 107.95 270)
+		(at 284.48 102.87 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
+		(fields_autoplaced yes)
 		(uuid "ab32ec27-4052-493f-930c-23826633457d")
-		(property "Reference" "R2"
-			(at 279.4 114.3 90)
+		(property "Reference" "R1"
+			(at 287.02 101.5999 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
+				(justify left)
 			)
 		)
 		(property "Value" "1k"
-			(at 279.4 111.76 90)
+			(at 287.02 104.1399 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
+				(justify left)
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
-			(at 279.4 106.172 90)
+			(at 282.702 102.87 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7966,7 +7461,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 279.4 107.95 0)
+			(at 284.48 102.87 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7975,7 +7470,7 @@
 			)
 		)
 		(property "Description" "Resistor"
-			(at 279.4 107.95 0)
+			(at 284.48 102.87 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7992,7 +7487,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "R2")
+					(reference "R1")
 					(unit 1)
 				)
 			)
@@ -8158,7 +7653,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "c5d5583f-01f9-4679-b3d3-13157e2cea7b")
-		(property "Reference" "#PWR024"
+		(property "Reference" "#PWR012"
 			(at 303.53 77.47 0)
 			(effects
 				(font
@@ -8208,75 +7703,7 @@
 		(instances
 			(project ""
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR024")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Connector:TestPoint")
-		(at 383.54 158.75 270)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "cb8dd585-de2d-4647-b49d-91de6ea2094c")
-		(property "Reference" "TP6"
-			(at 388.62 158.7499 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "TestPoint"
-			(at 388.1119 156.21 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "TestPoint:TestPoint_Pad_1.0x1.0mm"
-			(at 383.54 163.83 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 383.54 163.83 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "test point"
-			(at 383.54 158.75 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "9f921a1b-ab48-469a-9472-9828e1a2ff90")
-		)
-		(instances
-			(project "PowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "TP6")
+					(reference "#PWR012")
 					(unit 1)
 				)
 			)
@@ -8291,7 +7718,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "cf7d1d89-aeba-48dc-b5ae-422db7b767ab")
-		(property "Reference" "JP2"
+		(property "Reference" "JP1"
 			(at 304.8 223.52 0)
 			(effects
 				(font
@@ -8344,7 +7771,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "JP2")
+					(reference "JP1")
 					(unit 1)
 				)
 			)
@@ -8430,7 +7857,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "d042fddc-a39b-4533-afa9-1439de5b7e36")
-		(property "Reference" "#PWR014"
+		(property "Reference" "#PWR016"
 			(at 463.55 262.89 0)
 			(effects
 				(font
@@ -8481,74 +7908,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR014")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:+3.3V")
-		(at 284.48 99.06 0)
-		(mirror y)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "d6832b61-f257-40ce-b56d-87d00719a7be")
-		(property "Reference" "#PWR022"
-			(at 284.48 102.87 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "+3.3V"
-			(at 284.48 93.98 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 284.48 99.06 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 284.48 99.06 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-			(at 284.48 99.06 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "3fc29283-0273-4a3b-aa45-448a34876c12")
-		)
-		(instances
-			(project "PowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR022")
+					(reference "#PWR016")
 					(unit 1)
 				)
 			)
@@ -8564,7 +7924,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "d7e834ae-d03b-4bab-b17c-8bf5edf6a6e8")
-		(property "Reference" "#PWR023"
+		(property "Reference" "#PWR011"
 			(at 304.8 219.71 0)
 			(effects
 				(font
@@ -8615,75 +7975,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR023")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Connector:TestPoint")
-		(at 383.54 209.55 270)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "db95d87c-7a96-4ba7-ba5f-57ba0d3c79f9")
-		(property "Reference" "TP8"
-			(at 388.62 209.5499 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "TestPoint"
-			(at 388.1119 207.01 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "TestPoint:TestPoint_Pad_1.0x1.0mm"
-			(at 383.54 214.63 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 383.54 214.63 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "test point"
-			(at 383.54 209.55 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "5d166a01-3640-4cbf-9515-b2bc99511c50")
-		)
-		(instances
-			(project "PowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "TP8")
+					(reference "#PWR011")
 					(unit 1)
 				)
 			)
@@ -8698,7 +7990,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "de62e871-c7d3-4244-8034-554dc92c04aa")
-		(property "Reference" "#PWR012"
+		(property "Reference" "#PWR014"
 			(at 463.55 257.81 0)
 			(effects
 				(font
@@ -8749,75 +8041,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR012")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Connector:TestPoint")
-		(at 383.54 153.67 270)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "e733a293-5087-4840-9911-615ce6d86bee")
-		(property "Reference" "TP5"
-			(at 388.62 153.6699 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "TestPoint"
-			(at 388.1119 151.13 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "TestPoint:TestPoint_Pad_1.0x1.0mm"
-			(at 383.54 158.75 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 383.54 158.75 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "test point"
-			(at 383.54 153.67 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "a3735a6f-b9af-425e-a1f8-fef9d1f7b37f")
-		)
-		(instances
-			(project "PowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "TP5")
+					(reference "#PWR014")
 					(unit 1)
 				)
 			)
@@ -8834,7 +8058,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "e94cb93c-3ae9-4164-ac95-bebcec0b9893")
-		(property "Reference" "R4"
+		(property "Reference" "R3"
 			(at 306.07 76.1999 0)
 			(effects
 				(font
@@ -8888,7 +8112,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "R4")
+					(reference "R3")
 					(unit 1)
 				)
 			)
@@ -8904,7 +8128,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "eeba57a9-ea93-499f-9a11-80eb6c192499")
-		(property "Reference" "#PWR016"
+		(property "Reference" "#PWR020"
 			(at 488.95 257.81 0)
 			(effects
 				(font
@@ -8955,7 +8179,75 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR016")
+					(reference "#PWR020")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Jumper:Jumper_2_Bridged")
+		(at 289.56 82.55 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "f006feee-7083-446e-ad25-060fc1e52b11")
+		(property "Reference" "JP8"
+			(at 289.56 80.264 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "Jumper_2_Bridged"
+			(at 289.56 80.01 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
+			(at 289.56 82.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 289.56 82.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Jumper, 2-pole, closed/bridged"
+			(at 289.56 82.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "da7ac98d-c4b9-4151-a3e0-19c817cdc1dc")
+		)
+		(pin "2"
+			(uuid "878acdf4-6c93-4733-b8de-698355644b71")
+		)
+		(instances
+			(project ""
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "JP8")
 					(unit 1)
 				)
 			)
@@ -9103,7 +8395,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "f8db3c6f-2597-4b4e-a3eb-291f1aeb7467")
-		(property "Reference" "#PWR018"
+		(property "Reference" "#PWR022"
 			(at 488.95 262.89 0)
 			(effects
 				(font
@@ -9154,7 +8446,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR018")
+					(reference "#PWR022")
 					(unit 1)
 				)
 			)
@@ -9195,16 +8487,6 @@
 				(justify left top)
 			)
 		)
-		(pin "DIAGNOSTIC" bidirectional
-			(at 383.54 153.67 0)
-			(uuid "1a747d0e-c63b-4f80-843a-ea4f75e70ed6")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
 		(pin "DIR" bidirectional
 			(at 337.82 143.51 180)
 			(uuid "052eb852-355d-4cdd-93f9-31199d732189")
@@ -9218,36 +8500,6 @@
 		(pin "DISABLE" bidirectional
 			(at 337.82 133.35 180)
 			(uuid "5a7f4efb-d017-47e5-9150-478269adbe65")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(pin "INDEX" bidirectional
-			(at 383.54 158.75 0)
-			(uuid "018d4ff0-812f-4795-8301-b48630e11486")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "MICROSTEP_1" bidirectional
-			(at 337.82 148.59 180)
-			(uuid "97eb5266-5122-4a65-965f-989f1fc13247")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(pin "MICROSTEP_2" bidirectional
-			(at 337.82 153.67 180)
-			(uuid "72b38064-3a52-4de9-9755-07a5fdf9e24b")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9378,16 +8630,6 @@
 				(justify left top)
 			)
 		)
-		(pin "DIAGNOSTIC" bidirectional
-			(at 383.54 204.47 0)
-			(uuid "f985b926-95b7-458e-8813-3ed90f242f25")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
 		(pin "DIR" bidirectional
 			(at 337.82 194.31 180)
 			(uuid "0033b67f-ce43-4075-84ef-923b36b56e4e")
@@ -9401,36 +8643,6 @@
 		(pin "DISABLE" bidirectional
 			(at 337.82 184.15 180)
 			(uuid "9f510e75-36f5-480c-8029-ba07e75564f9")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(pin "INDEX" bidirectional
-			(at 383.54 209.55 0)
-			(uuid "498c9d22-61f0-4595-ac11-3267c3413b68")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "MICROSTEP_1" bidirectional
-			(at 337.82 199.39 180)
-			(uuid "b9b18eb3-044f-4d48-9f3b-aebb1c20f0ea")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(pin "MICROSTEP_2" bidirectional
-			(at 337.82 204.47 180)
-			(uuid "4011963d-81fd-4cfe-86d9-be2bdb4ea979")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9561,16 +8773,6 @@
 				(justify left top)
 			)
 		)
-		(pin "DIAGNOSTIC" bidirectional
-			(at 383.54 102.87 0)
-			(uuid "429c8226-232b-4422-b7da-aff55bb36612")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
 		(pin "DIR" bidirectional
 			(at 337.82 92.71 180)
 			(uuid "b8e3285e-0134-4be6-851a-595eaec463d8")
@@ -9584,36 +8786,6 @@
 		(pin "DISABLE" bidirectional
 			(at 337.82 82.55 180)
 			(uuid "089e01c9-16f0-47cc-90a7-de398cda08ce")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(pin "INDEX" bidirectional
-			(at 383.54 107.95 0)
-			(uuid "9a1362db-6a0f-4150-982b-5795613ff167")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "MICROSTEP_1" bidirectional
-			(at 337.82 97.79 180)
-			(uuid "b4d4bcb3-c3b0-405b-84d4-53f4a0e6743f")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(pin "MICROSTEP_2" bidirectional
-			(at 337.82 102.87 180)
-			(uuid "b49c12f2-31f5-4058-bd01-0b0bc606f6f6")
 			(effects
 				(font
 					(size 1.27 1.27)
