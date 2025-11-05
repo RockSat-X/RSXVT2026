@@ -4205,7 +4205,7 @@
 		(uuid 7e5d67a4-d420-4fb7-86ea-5e01ce3bffc9)
 	)
 	(rectangle
-		(start 26.67 60.198)
+		(start 26.67 43.18)
 		(end 213.36 119.38)
 		(stroke
 			(width 0.8128)
@@ -4230,6 +4230,19 @@
 		)
 		(uuid e029cece-5790-447e-9bb0-8d30d15bf3ef)
 	)
+	(text "Active-low inhibit.\n@/pg 2/tbl 2/`L4978`."
+		(exclude_from_sim no)
+		(at 73.406 73.66 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.1588)
+				(color 255 0 0 1)
+			)
+			(justify right)
+		)
+		(uuid "03686f5a-63b6-4f9f-879e-18311e53f4bf")
+	)
 	(text "Connections."
 		(exclude_from_sim no)
 		(at 424.18 59.436 0)
@@ -4245,9 +4258,22 @@
 		)
 		(uuid "050f6d5f-df8d-4aaf-882b-a411c6588230")
 	)
+	(text "The L4978 can handle at least 2A (typically 3A).\nIn case we need more power, having three L4978\nin parallel will allow for at least 6A (although\nwithout current limit). We can look into a chip\nthat can handle a higher current output later if\nneed be."
+		(exclude_from_sim no)
+		(at 158.496 66.802 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.1588)
+				(color 255 0 0 1)
+			)
+			(justify left)
+		)
+		(uuid "0f1d9ab5-5ffb-4fa0-9ae6-8015a3703eec")
+	)
 	(text "Burn-Wire."
 		(exclude_from_sim no)
-		(at 26.924 57.912 0)
+		(at 26.924 42.164 0)
 		(effects
 			(font
 				(size 3.2512 3.2512)
@@ -4274,6 +4300,19 @@
 			(justify left bottom)
 		)
 		(uuid "3e311093-ff4b-4e72-9948-9c8b9d65b3c3")
+	)
+	(text "We can probably omit\nthe decoupling capacitors\nfor the input voltage."
+		(exclude_from_sim no)
+		(at 82.55 52.578 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.1588)
+				(color 255 0 0 1)
+			)
+			(justify right)
+		)
+		(uuid "5af5498f-5fb1-4229-86e9-2a570c9cde25")
 	)
 	(text "@/pg 20/fig 4.1/`TMC2209`."
 		(exclude_from_sim no)
@@ -4345,16 +4384,34 @@
 		(uuid "fd8534f4-1719-4e1e-ae45-12b2b72b1c4b")
 	)
 	(junction
+		(at 81.28 66.04)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "07c263eb-d8e8-42cf-9d96-84f86c349427")
+	)
+	(junction
 		(at 308.61 219.71)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "1e906bb2-83a3-4f57-a03a-145f3d1dd302")
 	)
 	(junction
+		(at 90.17 60.96)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "267bad22-b485-42cd-b371-6d0962cb96d8")
+	)
+	(junction
 		(at 284.48 107.95)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "319bd8f6-e351-46db-a19e-55e8c8fe2fd2")
+	)
+	(junction
+		(at 90.17 82.55)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "51cf0e46-7213-466e-b298-e6140d3c7e60")
 	)
 	(junction
 		(at 308.61 168.91)
@@ -4367,6 +4424,24 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "ab880927-b795-4460-858e-4976cd34d241")
+	)
+	(junction
+		(at 156.21 82.55)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "ba440bed-8c87-4546-95ad-46af1a5982fc")
+	)
+	(junction
+		(at 86.36 87.63)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "cde84599-3c2d-40f2-a976-9f3735f7a38d")
+	)
+	(junction
+		(at 86.36 66.04)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "d7f03104-8a43-4860-9c41-5734d440a03d")
 	)
 	(junction
 		(at 303.53 133.35)
@@ -4722,6 +4797,26 @@
 	)
 	(wire
 		(pts
+			(xy 152.4 101.6) (xy 156.21 101.6)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "29443c6b-a3bd-4502-abea-2bfd4f6a762e")
+	)
+	(wire
+		(pts
+			(xy 93.98 66.04) (xy 86.36 66.04)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2db091af-9fba-4d1e-8194-c3a4fadf8ce3")
+	)
+	(wire
+		(pts
 			(xy 308.61 219.71) (xy 308.61 168.91)
 		)
 		(stroke
@@ -4729,6 +4824,16 @@
 			(type default)
 		)
 		(uuid "2ebc0617-d24c-447b-8ce7-d6fc2961375a")
+	)
+	(wire
+		(pts
+			(xy 90.17 60.96) (xy 90.17 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3d16fed8-10f6-436c-8986-966bd6c03caa")
 	)
 	(wire
 		(pts
@@ -4762,6 +4867,16 @@
 	)
 	(wire
 		(pts
+			(xy 156.21 82.55) (xy 152.4 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "40c31b02-0331-432b-8b85-3555941283c4")
+	)
+	(wire
+		(pts
 			(xy 303.53 82.55) (xy 337.82 82.55)
 		)
 		(stroke
@@ -4769,6 +4884,16 @@
 			(type default)
 		)
 		(uuid "431f772d-3eec-456f-80a3-f6ecdc87abf4")
+	)
+	(wire
+		(pts
+			(xy 156.21 60.96) (xy 156.21 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4fb46aad-46da-40ab-82d4-cfc14f6a571a")
 	)
 	(wire
 		(pts
@@ -4822,6 +4947,16 @@
 	)
 	(wire
 		(pts
+			(xy 86.36 106.68) (xy 86.36 87.63)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "77a3da5c-b1a6-44e2-9f98-6c8fdcb94a63")
+	)
+	(wire
+		(pts
 			(xy 284.48 106.68) (xy 284.48 107.95)
 		)
 		(stroke
@@ -4832,6 +4967,16 @@
 	)
 	(wire
 		(pts
+			(xy 93.98 106.68) (xy 86.36 106.68)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "78b66752-35cb-4eec-988e-7e417e61165e")
+	)
+	(wire
+		(pts
 			(xy 308.61 118.11) (xy 308.61 168.91)
 		)
 		(stroke
@@ -4839,6 +4984,16 @@
 			(type default)
 		)
 		(uuid "79620981-e610-41b4-ab77-7804cf806831")
+	)
+	(wire
+		(pts
+			(xy 86.36 87.63) (xy 93.98 87.63)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7ad32e21-3892-434d-88be-427d2c3d567e")
 	)
 	(wire
 		(pts
@@ -4862,6 +5017,36 @@
 	)
 	(wire
 		(pts
+			(xy 81.28 69.85) (xy 81.28 66.04)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7c2c737d-1d4f-42f8-950c-2451694959e1")
+	)
+	(wire
+		(pts
+			(xy 93.98 101.6) (xy 90.17 101.6)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "82bd1702-8934-4a87-a027-d70bfb0b6f01")
+	)
+	(wire
+		(pts
+			(xy 90.17 60.96) (xy 93.98 60.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9e68f4a3-24f0-4321-b1eb-22763a4a208f")
+	)
+	(wire
+		(pts
 			(xy 337.82 214.63) (xy 294.64 214.63)
 		)
 		(stroke
@@ -4869,6 +5054,16 @@
 			(type default)
 		)
 		(uuid "9ee815e3-33f4-4dab-8828-810f5c2c0876")
+	)
+	(wire
+		(pts
+			(xy 152.4 60.96) (xy 156.21 60.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a2ac4337-89df-4fb6-a460-c55735117c1a")
 	)
 	(wire
 		(pts
@@ -4922,6 +5117,16 @@
 	)
 	(wire
 		(pts
+			(xy 156.21 101.6) (xy 156.21 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b4a26331-c336-45c1-a25b-0880a21cb1ce")
+	)
+	(wire
+		(pts
 			(xy 294.64 107.95) (xy 284.48 107.95)
 		)
 		(stroke
@@ -4929,6 +5134,46 @@
 			(type default)
 		)
 		(uuid "b74fcae2-9e4b-48ff-a91a-5ab25db6ece4")
+	)
+	(wire
+		(pts
+			(xy 77.47 66.04) (xy 81.28 66.04)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "bd24c19b-7dcf-4944-9550-b1473025687c")
+	)
+	(wire
+		(pts
+			(xy 160.02 82.55) (xy 156.21 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c85eeb8b-b7f9-4589-9b85-0078f28ff824")
+	)
+	(wire
+		(pts
+			(xy 86.36 66.04) (xy 86.36 87.63)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ca2569c2-db65-483d-9a03-1e05bac5a9b9")
+	)
+	(wire
+		(pts
+			(xy 90.17 101.6) (xy 90.17 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "cb90bc7f-ec7b-48e1-bf4e-e06cd2d90ba4")
 	)
 	(wire
 		(pts
@@ -4979,6 +5224,36 @@
 			(type default)
 		)
 		(uuid "ec06062e-506c-4674-9b17-8e25a5019e7c")
+	)
+	(wire
+		(pts
+			(xy 90.17 82.55) (xy 93.98 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ec91db7c-ee8a-4cf5-8779-c846ef0947b9")
+	)
+	(wire
+		(pts
+			(xy 90.17 57.15) (xy 90.17 60.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ef611f43-36e8-4dc6-a67e-9981c47f80f0")
+	)
+	(wire
+		(pts
+			(xy 81.28 66.04) (xy 86.36 66.04)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f0f0efb5-322f-42e6-b7e1-e097a867132f")
 	)
 	(wire
 		(pts
@@ -5408,6 +5683,28 @@
 			)
 		)
 	)
+	(global_label "BURNWIRE_VOLTAGE"
+		(shape bidirectional)
+		(at 160.02 82.55 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "57279cd2-23ca-41c8-96e5-1ec22ff28b95")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 182.6827 82.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "MOTOR_DRIVER_A2_X"
 		(shape bidirectional)
 		(at 485.14 242.57 180)
@@ -5575,6 +5872,28 @@
 		(uuid "6fcedfe9-6d87-4500-96b8-b5641f0b491d")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 440.464 199.39 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "BURNWIRE_ENABLE"
+		(shape bidirectional)
+		(at 77.47 66.04 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "7013a89c-424f-44fe-8401-f224c77e53f6")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 55.7145 66.04 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5967,7 +6286,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "0429fb0f-d7ef-4ea3-9da5-c35393284a26")
-		(property "Reference" "#PWR018"
+		(property "Reference" "#PWR039"
 			(at 478.79 273.05 0)
 			(effects
 				(font
@@ -6018,7 +6337,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR018")
+					(reference "#PWR039")
 					(unit 1)
 				)
 			)
@@ -6034,7 +6353,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "083e1b25-54c5-4d2b-b9c1-a8647062c3b0")
-		(property "Reference" "#PWR072"
+		(property "Reference" "#PWR049"
 			(at 504.19 273.05 0)
 			(effects
 				(font
@@ -6085,7 +6404,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR072")
+					(reference "#PWR049")
 					(unit 1)
 				)
 			)
@@ -6167,7 +6486,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "0be93d10-0ae8-4119-9e15-5311dce86beb")
-		(property "Reference" "#PWR020"
+		(property "Reference" "#PWR048"
 			(at 494.03 270.51 0)
 			(effects
 				(font
@@ -6218,7 +6537,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR020")
+					(reference "#PWR048")
 					(unit 1)
 				)
 			)
@@ -6300,7 +6619,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "0d48af23-4a12-426e-8560-13e71d980ce8")
-		(property "Reference" "#PWR087"
+		(property "Reference" "#PWR018"
 			(at 450.85 97.79 0)
 			(effects
 				(font
@@ -6351,7 +6670,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR087")
+					(reference "#PWR018")
 					(unit 1)
 				)
 			)
@@ -6367,7 +6686,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "0ea4613c-fdb1-4851-9cc0-c1cea48a36f6")
-		(property "Reference" "#PWR03"
+		(property "Reference" "#PWR05"
 			(at 115.57 210.82 0)
 			(effects
 				(font
@@ -6418,7 +6737,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR03")
+					(reference "#PWR05")
 					(unit 1)
 				)
 			)
@@ -6434,7 +6753,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "116ac3a4-bc8e-4ba7-81ec-30ee4ae976a1")
-		(property "Reference" "#PWR05"
+		(property "Reference" "#PWR07"
 			(at 121.92 203.2 0)
 			(effects
 				(font
@@ -6485,7 +6804,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR05")
+					(reference "#PWR07")
 					(unit 1)
 				)
 			)
@@ -6501,7 +6820,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "1488315d-dfce-4763-accf-a4e40d3807bf")
-		(property "Reference" "#PWR06"
+		(property "Reference" "#PWR08"
 			(at 121.92 227.33 0)
 			(effects
 				(font
@@ -6552,7 +6871,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR06")
+					(reference "#PWR08")
 					(unit 1)
 				)
 			)
@@ -6568,7 +6887,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "203f95b5-77ad-4853-b77e-3797a88ceb28")
-		(property "Reference" "#PWR069"
+		(property "Reference" "#PWR046"
 			(at 494.03 265.43 0)
 			(effects
 				(font
@@ -6619,7 +6938,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR069")
+					(reference "#PWR046")
 					(unit 1)
 				)
 			)
@@ -6706,7 +7025,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "39cb400d-1fce-401d-8348-3d0b188d2adc")
-		(property "Reference" "#PWR067"
+		(property "Reference" "#PWR044"
 			(at 494.03 260.35 0)
 			(effects
 				(font
@@ -6757,7 +7076,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR067")
+					(reference "#PWR044")
 					(unit 1)
 				)
 			)
@@ -6772,7 +7091,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "442db5f9-b3eb-41b8-bd75-5785ac33f201")
-		(property "Reference" "#PWR086"
+		(property "Reference" "#PWR022"
 			(at 450.85 125.73 0)
 			(effects
 				(font
@@ -6823,7 +7142,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR086")
+					(reference "#PWR022")
 					(unit 1)
 				)
 			)
@@ -6838,7 +7157,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "44b79b9f-7695-48f4-af09-3231ea0485e0")
-		(property "Reference" "#PWR09"
+		(property "Reference" "#PWR011"
 			(at 128.27 210.82 0)
 			(effects
 				(font
@@ -6889,7 +7208,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR09")
+					(reference "#PWR011")
 					(unit 1)
 				)
 			)
@@ -6904,7 +7223,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "461debb4-65bd-408f-9c16-12ac7be8e29b")
-		(property "Reference" "#PWR065"
+		(property "Reference" "#PWR041"
 			(at 478.79 278.13 0)
 			(effects
 				(font
@@ -6955,7 +7274,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR065")
+					(reference "#PWR041")
 					(unit 1)
 				)
 			)
@@ -6970,7 +7289,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "51098f8b-2e81-4f36-a4ac-ea874f6bc0e3")
-		(property "Reference" "#PWR07"
+		(property "Reference" "#PWR09"
 			(at 128.27 162.56 0)
 			(effects
 				(font
@@ -7021,7 +7340,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR07")
+					(reference "#PWR09")
 					(unit 1)
 				)
 			)
@@ -7037,7 +7356,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "5abd238c-a0c6-4a07-ac84-cefb19a07ed4")
-		(property "Reference" "#PWR076"
+		(property "Reference" "#PWR021"
 			(at 461.01 118.11 0)
 			(effects
 				(font
@@ -7088,7 +7407,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR076")
+					(reference "#PWR021")
 					(unit 1)
 				)
 			)
@@ -7103,7 +7422,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "5b84756b-3912-489f-a519-6516f95d9aa0")
-		(property "Reference" "#PWR090"
+		(property "Reference" "#PWR020"
 			(at 450.85 110.49 0)
 			(effects
 				(font
@@ -7154,7 +7473,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR090")
+					(reference "#PWR020")
 					(unit 1)
 				)
 			)
@@ -7170,7 +7489,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "5d52ef78-370e-4e6a-9a0a-54256680c43c")
-		(property "Reference" "#PWR070"
+		(property "Reference" "#PWR043"
 			(at 504.19 257.81 0)
 			(effects
 				(font
@@ -7221,7 +7540,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR070")
+					(reference "#PWR043")
 					(unit 1)
 				)
 			)
@@ -7237,7 +7556,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "5dfbf9ab-8eb3-4623-a038-a3ebf0a0d85d")
-		(property "Reference" "#PWR01"
+		(property "Reference" "#PWR03"
 			(at 115.57 162.56 0)
 			(effects
 				(font
@@ -7288,7 +7607,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR01")
+					(reference "#PWR03")
 					(unit 1)
 				)
 			)
@@ -7303,7 +7622,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "63a368c6-2c1f-489b-8b7c-524fccb52dea")
-		(property "Reference" "#PWR082"
+		(property "Reference" "#PWR029"
 			(at 450.85 166.37 0)
 			(effects
 				(font
@@ -7354,7 +7673,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR082")
+					(reference "#PWR029")
 					(unit 1)
 				)
 			)
@@ -7370,7 +7689,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "6daee09c-9f6f-40cf-a135-11204c64792a")
-		(property "Reference" "#PWR079"
+		(property "Reference" "#PWR028"
 			(at 461.01 158.75 0)
 			(effects
 				(font
@@ -7421,7 +7740,73 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR079")
+					(reference "#PWR028")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3.3V")
+		(at 90.17 57.15 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "6f73aa19-f39b-4400-b616-64ed18bb2ed5")
+		(property "Reference" "#PWR02"
+			(at 90.17 60.96 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+BURNWIRE"
+			(at 90.17 52.07 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 90.17 57.15 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 90.17 57.15 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 90.17 57.15 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "41f4929f-6275-4d92-b212-105dbc8fa64c")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR02")
 					(unit 1)
 				)
 			)
@@ -7437,7 +7822,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "70c9f6d0-7a5e-43ad-a29f-5c933aa84547")
-		(property "Reference" "#PWR071"
+		(property "Reference" "#PWR047"
 			(at 504.19 267.97 0)
 			(effects
 				(font
@@ -7488,7 +7873,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR071")
+					(reference "#PWR047")
 					(unit 1)
 				)
 			)
@@ -7503,7 +7888,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "759b05f5-ab02-40aa-b244-7c0478f84eee")
-		(property "Reference" "#PWR084"
+		(property "Reference" "#PWR025"
 			(at 450.85 140.97 0)
 			(effects
 				(font
@@ -7554,7 +7939,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR084")
+					(reference "#PWR025")
 					(unit 1)
 				)
 			)
@@ -7569,7 +7954,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "7c9785ad-c24d-4052-b74b-54529ce2f4cd")
-		(property "Reference" "#PWR017"
+		(property "Reference" "#PWR037"
 			(at 478.79 267.97 0)
 			(effects
 				(font
@@ -7620,7 +8005,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR017")
+					(reference "#PWR037")
 					(unit 1)
 				)
 			)
@@ -7636,7 +8021,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "7e8f7a05-948a-45c2-96b3-d2fbca16a159")
-		(property "Reference" "#PWR015"
+		(property "Reference" "#PWR036"
 			(at 488.95 265.43 0)
 			(effects
 				(font
@@ -7687,7 +8072,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR015")
+					(reference "#PWR036")
 					(unit 1)
 				)
 			)
@@ -8072,7 +8457,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "85146bfe-32e6-4639-afa3-5c315a0322d0")
-		(property "Reference" "#PWR066"
+		(property "Reference" "#PWR042"
 			(at 494.03 255.27 0)
 			(effects
 				(font
@@ -8123,7 +8508,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR066")
+					(reference "#PWR042")
 					(unit 1)
 				)
 			)
@@ -8297,7 +8682,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "a04c7ce6-0494-4a41-b762-74add15f428f")
-		(property "Reference" "#PWR068"
+		(property "Reference" "#PWR050"
 			(at 504.19 278.13 0)
 			(effects
 				(font
@@ -8348,7 +8733,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR068")
+					(reference "#PWR050")
 					(unit 1)
 				)
 			)
@@ -8364,7 +8749,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "a8d905ee-ff91-4f0a-8a3c-cebe15784af1")
-		(property "Reference" "#PWR019"
+		(property "Reference" "#PWR038"
 			(at 488.95 270.51 0)
 			(effects
 				(font
@@ -8415,7 +8800,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR019")
+					(reference "#PWR038")
 					(unit 1)
 				)
 			)
@@ -8431,7 +8816,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "ab32ec27-4052-493f-930c-23826633457d")
-		(property "Reference" "R1"
+		(property "Reference" "R2"
 			(at 287.02 101.5999 0)
 			(effects
 				(font
@@ -8485,7 +8870,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "R1")
+					(reference "R2")
 					(unit 1)
 				)
 			)
@@ -8501,7 +8886,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "ade7be65-b675-471a-936f-29320849eed6")
-		(property "Reference" "#PWR074"
+		(property "Reference" "#PWR017"
 			(at 461.01 90.17 0)
 			(effects
 				(font
@@ -8552,7 +8937,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR074")
+					(reference "#PWR017")
 					(unit 1)
 				)
 			)
@@ -8651,7 +9036,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "bcde04e1-d1c9-4b96-b0ae-6015408cad5a")
-		(property "Reference" "#PWR02"
+		(property "Reference" "#PWR04"
 			(at 115.57 186.69 0)
 			(effects
 				(font
@@ -8702,7 +9087,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR02")
+					(reference "#PWR04")
 					(unit 1)
 				)
 			)
@@ -8717,7 +9102,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "c33840a1-8145-4b45-87db-c93dd2441ff6")
-		(property "Reference" "#PWR085"
+		(property "Reference" "#PWR024"
 			(at 450.85 135.89 0)
 			(effects
 				(font
@@ -8768,7 +9153,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR085")
+					(reference "#PWR024")
 					(unit 1)
 				)
 			)
@@ -8784,7 +9169,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "c5d5583f-01f9-4679-b3d3-13157e2cea7b")
-		(property "Reference" "#PWR012"
+		(property "Reference" "#PWR013"
 			(at 303.53 77.47 0)
 			(effects
 				(font
@@ -8834,7 +9219,7 @@
 		(instances
 			(project ""
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR012")
+					(reference "#PWR013")
 					(unit 1)
 				)
 			)
@@ -8849,7 +9234,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "c6ea74c1-1294-4e04-8a8e-f2618f2a212c")
-		(property "Reference" "#PWR081"
+		(property "Reference" "#PWR031"
 			(at 450.85 181.61 0)
 			(effects
 				(font
@@ -8900,7 +9285,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR081")
+					(reference "#PWR031")
 					(unit 1)
 				)
 			)
@@ -8916,7 +9301,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "cbd8cc51-03b8-46cf-b20f-6a7d920776b0")
-		(property "Reference" "#PWR075"
+		(property "Reference" "#PWR019"
 			(at 461.01 102.87 0)
 			(effects
 				(font
@@ -8967,7 +9352,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR075")
+					(reference "#PWR019")
 					(unit 1)
 				)
 			)
@@ -8982,7 +9367,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "cf7d1d89-aeba-48dc-b5ae-422db7b767ab")
-		(property "Reference" "JP1"
+		(property "Reference" "JP2"
 			(at 304.8 223.52 0)
 			(effects
 				(font
@@ -9035,7 +9420,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "JP1")
+					(reference "JP2")
 					(unit 1)
 				)
 			)
@@ -9121,7 +9506,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "d042fddc-a39b-4533-afa9-1439de5b7e36")
-		(property "Reference" "#PWR016"
+		(property "Reference" "#PWR035"
 			(at 478.79 262.89 0)
 			(effects
 				(font
@@ -9172,7 +9557,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR016")
+					(reference "#PWR035")
 					(unit 1)
 				)
 			)
@@ -9187,7 +9572,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "d518d270-4237-4cc8-af6f-fd72de1ca3eb")
-		(property "Reference" "#PWR088"
+		(property "Reference" "#PWR016"
 			(at 450.85 85.09 0)
 			(effects
 				(font
@@ -9238,7 +9623,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR088")
+					(reference "#PWR016")
 					(unit 1)
 				)
 			)
@@ -9254,7 +9639,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "d6dddde7-8136-4e3d-a65e-4f5d1a9c73da")
-		(property "Reference" "#PWR073"
+		(property "Reference" "#PWR014"
 			(at 461.01 74.93 0)
 			(effects
 				(font
@@ -9305,7 +9690,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR073")
+					(reference "#PWR014")
 					(unit 1)
 				)
 			)
@@ -9321,7 +9706,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "d7e834ae-d03b-4bab-b17c-8bf5edf6a6e8")
-		(property "Reference" "#PWR011"
+		(property "Reference" "#PWR012"
 			(at 304.8 219.71 0)
 			(effects
 				(font
@@ -9372,7 +9757,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR011")
+					(reference "#PWR012")
 					(unit 1)
 				)
 			)
@@ -9388,7 +9773,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "d88556c8-bcc7-453f-85b0-d06d724a564d")
-		(property "Reference" "#PWR021"
+		(property "Reference" "#PWR040"
 			(at 488.95 275.59 0)
 			(effects
 				(font
@@ -9439,7 +9824,77 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR021")
+					(reference "#PWR040")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 81.28 73.66 0)
+		(mirror y)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "d8ef2585-4f98-4208-81c8-e65628b7b7c5")
+		(property "Reference" "R1"
+			(at 78.74 72.3899 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "1k"
+			(at 78.74 74.9299 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
+			(at 83.058 73.66 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 81.28 73.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 81.28 73.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "b7f69874-a5fd-4690-9448-ca2d32467e19")
+		)
+		(pin "2"
+			(uuid "00fe6d89-95da-421c-9dc2-6053805a28b5")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "R1")
 					(unit 1)
 				)
 			)
@@ -9455,7 +9910,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "d97c1475-92a2-4880-a7d5-ade9fd4d4275")
-		(property "Reference" "#PWR010"
+		(property "Reference" "#PWR032"
 			(at 488.95 255.27 0)
 			(effects
 				(font
@@ -9506,7 +9961,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR010")
+					(reference "#PWR032")
 					(unit 1)
 				)
 			)
@@ -9522,7 +9977,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "dc109d0c-63e7-4db6-bd37-04e6e42bb87a")
-		(property "Reference" "#PWR078"
+		(property "Reference" "#PWR026"
 			(at 461.01 146.05 0)
 			(effects
 				(font
@@ -9573,7 +10028,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR078")
+					(reference "#PWR026")
 					(unit 1)
 				)
 			)
@@ -9588,7 +10043,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "de62e871-c7d3-4244-8034-554dc92c04aa")
-		(property "Reference" "#PWR014"
+		(property "Reference" "#PWR033"
 			(at 478.79 257.81 0)
 			(effects
 				(font
@@ -9639,7 +10094,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR014")
+					(reference "#PWR033")
 					(unit 1)
 				)
 			)
@@ -9654,7 +10109,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "de858527-3f19-40d7-9776-de85879178b4")
-		(property "Reference" "#PWR089"
+		(property "Reference" "#PWR015"
 			(at 450.85 80.01 0)
 			(effects
 				(font
@@ -9705,7 +10160,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR089")
+					(reference "#PWR015")
 					(unit 1)
 				)
 			)
@@ -9792,7 +10247,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "ebb663b3-42b0-4dc6-aa38-86cad86c6d5e")
-		(property "Reference" "#PWR077"
+		(property "Reference" "#PWR023"
 			(at 461.01 130.81 0)
 			(effects
 				(font
@@ -9843,7 +10298,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR077")
+					(reference "#PWR023")
 					(unit 1)
 				)
 			)
@@ -9859,7 +10314,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "edfad96b-fc64-4e4a-826f-c2a7c1df9248")
-		(property "Reference" "#PWR013"
+		(property "Reference" "#PWR034"
 			(at 488.95 260.35 0)
 			(effects
 				(font
@@ -9910,7 +10365,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR013")
+					(reference "#PWR034")
 					(unit 1)
 				)
 			)
@@ -9925,7 +10380,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "f006feee-7083-446e-ad25-060fc1e52b11")
-		(property "Reference" "JP8"
+		(property "Reference" "JP1"
 			(at 289.56 80.264 0)
 			(effects
 				(font
@@ -9978,7 +10433,7 @@
 		(instances
 			(project ""
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "JP8")
+					(reference "JP1")
 					(unit 1)
 				)
 			)
@@ -9993,7 +10448,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "f3dcd8ad-1127-4f62-9d05-0ba57a354519")
-		(property "Reference" "#PWR08"
+		(property "Reference" "#PWR010"
 			(at 128.27 186.69 0)
 			(effects
 				(font
@@ -10044,7 +10499,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR08")
+					(reference "#PWR010")
 					(unit 1)
 				)
 			)
@@ -10059,7 +10514,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "f8556e4e-fc2c-4af7-bb45-7fc7ac62bb26")
-		(property "Reference" "#PWR04"
+		(property "Reference" "#PWR06"
 			(at 121.92 179.07 0)
 			(effects
 				(font
@@ -10110,7 +10565,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR04")
+					(reference "#PWR06")
 					(unit 1)
 				)
 			)
@@ -10125,7 +10580,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "f857bc40-5956-4c01-80ec-c281e7dfb201")
-		(property "Reference" "#PWR083"
+		(property "Reference" "#PWR027"
 			(at 450.85 153.67 0)
 			(effects
 				(font
@@ -10176,7 +10631,74 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR083")
+					(reference "#PWR027")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 81.28 77.47 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "f87b01b3-70ef-4395-be6b-76d02a987cb6")
+		(property "Reference" "#PWR01"
+			(at 81.28 83.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 81.28 82.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 81.28 77.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 81.28 77.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 81.28 77.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "f8551995-9f09-4e1a-a994-b9fb894ed749")
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR01")
 					(unit 1)
 				)
 			)
@@ -10192,7 +10714,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "f8db3c6f-2597-4b4e-a3eb-291f1aeb7467")
-		(property "Reference" "#PWR022"
+		(property "Reference" "#PWR045"
 			(at 504.19 262.89 0)
 			(effects
 				(font
@@ -10243,7 +10765,7 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR022")
+					(reference "#PWR045")
 					(unit 1)
 				)
 			)
@@ -10259,7 +10781,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "fa409b1d-d4e2-4da2-a542-819c19ef8ddc")
-		(property "Reference" "#PWR080"
+		(property "Reference" "#PWR030"
 			(at 461.01 173.99 0)
 			(effects
 				(font
@@ -10310,8 +10832,81 @@
 		(instances
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR080")
+					(reference "#PWR030")
 					(unit 1)
+				)
+			)
+		)
+	)
+	(sheet
+		(at 93.98 57.15)
+		(size 58.42 12.7)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+			(color 132 0 0 1)
+		)
+		(fill
+			(color 255 255 194 1.0000)
+		)
+		(uuid "0f780159-799d-4240-a0dc-e97323accb24")
+		(property "Sheetname" "Burnwire Regulator - 1"
+			(at 93.98 56.4384 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "PowerDistributionSystem_Burnwire_Regulator.kicad_sch"
+			(at 93.98 70.4346 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "OUT" input
+			(at 152.4 60.96 0)
+			(uuid "46c59cb1-30a1-4781-ad91-bfa478afc92c")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "SS_INH" input
+			(at 93.98 66.04 180)
+			(uuid "e0a0265c-adec-4456-b622-ea8a8e169209")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "VCC" input
+			(at 93.98 60.96 180)
+			(uuid "dcf5508d-742b-4aca-ac48-7bd0d7480d84")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(page "5")
 				)
 			)
 		)
@@ -10460,6 +11055,79 @@
 		)
 	)
 	(sheet
+		(at 93.98 97.79)
+		(size 58.42 12.7)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+			(color 132 0 0 1)
+		)
+		(fill
+			(color 255 255 194 1.0000)
+		)
+		(uuid "45272102-dae0-4010-9b1b-efaa10ec706e")
+		(property "Sheetname" "Burnwire Regulator - 3"
+			(at 93.98 97.0784 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "PowerDistributionSystem_Burnwire_Regulator.kicad_sch"
+			(at 93.98 111.0746 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "OUT" input
+			(at 152.4 101.6 0)
+			(uuid "f05a65dc-6cc5-48a3-be82-7051500aebef")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "SS_INH" input
+			(at 93.98 106.68 180)
+			(uuid "9f2e3b67-81fd-45a0-a610-f9c15f609624")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "VCC" input
+			(at 93.98 101.6 180)
+			(uuid "f59585c7-087a-4645-9e05-51ffe441a40f")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(page "7")
+				)
+			)
+		)
+	)
+	(sheet
 		(at 337.82 180.34)
 		(size 45.72 43.18)
 		(exclude_from_sim no)
@@ -10598,6 +11266,79 @@
 			(project "PowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(page "4")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 93.98 78.74)
+		(size 58.42 12.7)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+			(color 132 0 0 1)
+		)
+		(fill
+			(color 255 255 194 1.0000)
+		)
+		(uuid "7ea803d7-eeec-4516-a8ae-4c33da2eb13f")
+		(property "Sheetname" "Burnwire Regulator - 2"
+			(at 93.98 78.0284 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "PowerDistributionSystem_Burnwire_Regulator.kicad_sch"
+			(at 93.98 92.0246 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "OUT" input
+			(at 152.4 82.55 0)
+			(uuid "a5d7e479-8c40-483e-9f11-7ddbd72fc543")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "SS_INH" input
+			(at 93.98 87.63 180)
+			(uuid "c01b163a-a5cf-4a8f-9fae-bf01a0063dda")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "VCC" input
+			(at 93.98 82.55 180)
+			(uuid "bb74dc39-4cd6-482a-b5a6-610c5a884664")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(instances
+			(project "PowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(page "6")
 				)
 			)
 		)

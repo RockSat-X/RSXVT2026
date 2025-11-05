@@ -465,7 +465,8 @@
     ],
     "pinned_symbol_libs": [
       "D24V7F5",
-      "D24V7Fx"
+      "D24V7Fx",
+      "L4978"
     ]
   },
   "meta": {
@@ -661,6 +662,18 @@
     [
       "57e88cd3-209b-4745-8cf8-356680ecf52c",
       "Stepper Motor Driver - Z"
+    ],
+    [
+      "0f780159-799d-4240-a0dc-e97323accb24",
+      "Burnwire Regulator - 1"
+    ],
+    [
+      "7ea803d7-eeec-4516-a8ae-4c33da2eb13f",
+      "Burnwire Regulator - 2"
+    ],
+    [
+      "45272102-dae0-4010-9b1b-efaa10ec706e",
+      "Burnwire Regulator - 3"
     ]
   ],
   "text_variables": {}
