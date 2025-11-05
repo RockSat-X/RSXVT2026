@@ -4232,7 +4232,7 @@
 	)
 	(text "Active-low inhibit.\n@/pg 2/tbl 2/`L4978`."
 		(exclude_from_sim no)
-		(at 73.406 73.66 0)
+		(at 73.406 81.28 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -4258,9 +4258,9 @@
 		)
 		(uuid "050f6d5f-df8d-4aaf-882b-a411c6588230")
 	)
-	(text "The L4978 can handle at least 2A (typically 3A).\nIn case we need more power, having three L4978\nin parallel will allow for at least 6A (although\nwithout current limit). We can look into a chip\nthat can handle a higher current output later if\nneed be."
+	(text "The L4978 can handle at least 2A (typically 3A).\nIn case we need more power, having two L4978\nin parallel will allow for at least 4-6A (although\nwithout current limit). We can look into a chip\nthat can handle a higher current output later if\nneed be."
 		(exclude_from_sim no)
-		(at 158.496 66.802 0)
+		(at 158.496 74.422 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -4286,6 +4286,20 @@
 		)
 		(uuid "1f20ce7b-e022-4213-94d4-6282b3bf1543")
 	)
+	(text "TODO: Hardware enable."
+		(exclude_from_sim no)
+		(at 73.66 70.358 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.1588)
+				(italic yes)
+				(color 255 0 255 1)
+			)
+			(justify right)
+		)
+		(uuid "23f88e33-8e35-4409-a929-fdf71f2cce25")
+	)
 	(text "Regulation."
 		(exclude_from_sim no)
 		(at 26.67 127.254 0)
@@ -4303,7 +4317,7 @@
 	)
 	(text "We can probably omit\nthe decoupling capacitors\nfor the input voltage."
 		(exclude_from_sim no)
-		(at 82.55 52.578 0)
+		(at 82.55 60.198 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -4341,6 +4355,20 @@
 			(justify left bottom)
 		)
 		(uuid "bbeeb0d9-8d45-4535-99ed-2f780a840f60")
+	)
+	(text "TODO: LEDs."
+		(exclude_from_sim no)
+		(at 166.878 101.092 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.1588)
+				(italic yes)
+				(color 255 0 255 1)
+			)
+			(justify left)
+		)
+		(uuid "c52f5707-087d-48f3-99a6-adf757d6ed27")
 	)
 	(text "Stepper Motor Drivers."
 		(exclude_from_sim no)
@@ -4384,7 +4412,7 @@
 		(uuid "fd8534f4-1719-4e1e-ae45-12b2b72b1c4b")
 	)
 	(junction
-		(at 81.28 66.04)
+		(at 81.28 73.66)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "07c263eb-d8e8-42cf-9d96-84f86c349427")
@@ -4396,7 +4424,7 @@
 		(uuid "1e906bb2-83a3-4f57-a03a-145f3d1dd302")
 	)
 	(junction
-		(at 90.17 60.96)
+		(at 90.17 68.58)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "267bad22-b485-42cd-b371-6d0962cb96d8")
@@ -4406,12 +4434,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "319bd8f6-e351-46db-a19e-55e8c8fe2fd2")
-	)
-	(junction
-		(at 90.17 82.55)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "51cf0e46-7213-466e-b298-e6140d3c7e60")
 	)
 	(junction
 		(at 308.61 168.91)
@@ -4426,19 +4448,13 @@
 		(uuid "ab880927-b795-4460-858e-4976cd34d241")
 	)
 	(junction
-		(at 156.21 82.55)
+		(at 156.21 90.17)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "ba440bed-8c87-4546-95ad-46af1a5982fc")
 	)
 	(junction
-		(at 86.36 87.63)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "cde84599-3c2d-40f2-a976-9f3735f7a38d")
-	)
-	(junction
-		(at 86.36 66.04)
+		(at 86.36 73.66)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "d7f03104-8a43-4860-9c41-5734d440a03d")
@@ -4797,17 +4813,7 @@
 	)
 	(wire
 		(pts
-			(xy 152.4 101.6) (xy 156.21 101.6)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "29443c6b-a3bd-4502-abea-2bfd4f6a762e")
-	)
-	(wire
-		(pts
-			(xy 93.98 66.04) (xy 86.36 66.04)
+			(xy 93.98 73.66) (xy 86.36 73.66)
 		)
 		(stroke
 			(width 0)
@@ -4827,7 +4833,7 @@
 	)
 	(wire
 		(pts
-			(xy 90.17 60.96) (xy 90.17 82.55)
+			(xy 90.17 68.58) (xy 90.17 90.17)
 		)
 		(stroke
 			(width 0)
@@ -4867,7 +4873,7 @@
 	)
 	(wire
 		(pts
-			(xy 156.21 82.55) (xy 152.4 82.55)
+			(xy 156.21 90.17) (xy 152.4 90.17)
 		)
 		(stroke
 			(width 0)
@@ -4887,7 +4893,7 @@
 	)
 	(wire
 		(pts
-			(xy 156.21 60.96) (xy 156.21 82.55)
+			(xy 156.21 68.58) (xy 156.21 90.17)
 		)
 		(stroke
 			(width 0)
@@ -4947,16 +4953,6 @@
 	)
 	(wire
 		(pts
-			(xy 86.36 106.68) (xy 86.36 87.63)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "77a3da5c-b1a6-44e2-9f98-6c8fdcb94a63")
-	)
-	(wire
-		(pts
 			(xy 284.48 106.68) (xy 284.48 107.95)
 		)
 		(stroke
@@ -4964,16 +4960,6 @@
 			(type default)
 		)
 		(uuid "7889504a-bc67-4fcd-99a5-9f005f501697")
-	)
-	(wire
-		(pts
-			(xy 93.98 106.68) (xy 86.36 106.68)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "78b66752-35cb-4eec-988e-7e417e61165e")
 	)
 	(wire
 		(pts
@@ -4987,7 +4973,7 @@
 	)
 	(wire
 		(pts
-			(xy 86.36 87.63) (xy 93.98 87.63)
+			(xy 86.36 95.25) (xy 93.98 95.25)
 		)
 		(stroke
 			(width 0)
@@ -5017,7 +5003,7 @@
 	)
 	(wire
 		(pts
-			(xy 81.28 69.85) (xy 81.28 66.04)
+			(xy 81.28 77.47) (xy 81.28 73.66)
 		)
 		(stroke
 			(width 0)
@@ -5027,17 +5013,7 @@
 	)
 	(wire
 		(pts
-			(xy 93.98 101.6) (xy 90.17 101.6)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "82bd1702-8934-4a87-a027-d70bfb0b6f01")
-	)
-	(wire
-		(pts
-			(xy 90.17 60.96) (xy 93.98 60.96)
+			(xy 90.17 68.58) (xy 93.98 68.58)
 		)
 		(stroke
 			(width 0)
@@ -5057,7 +5033,7 @@
 	)
 	(wire
 		(pts
-			(xy 152.4 60.96) (xy 156.21 60.96)
+			(xy 152.4 68.58) (xy 156.21 68.58)
 		)
 		(stroke
 			(width 0)
@@ -5117,16 +5093,6 @@
 	)
 	(wire
 		(pts
-			(xy 156.21 101.6) (xy 156.21 82.55)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "b4a26331-c336-45c1-a25b-0880a21cb1ce")
-	)
-	(wire
-		(pts
 			(xy 294.64 107.95) (xy 284.48 107.95)
 		)
 		(stroke
@@ -5137,7 +5103,7 @@
 	)
 	(wire
 		(pts
-			(xy 77.47 66.04) (xy 81.28 66.04)
+			(xy 77.47 73.66) (xy 81.28 73.66)
 		)
 		(stroke
 			(width 0)
@@ -5147,7 +5113,7 @@
 	)
 	(wire
 		(pts
-			(xy 160.02 82.55) (xy 156.21 82.55)
+			(xy 160.02 90.17) (xy 156.21 90.17)
 		)
 		(stroke
 			(width 0)
@@ -5157,23 +5123,13 @@
 	)
 	(wire
 		(pts
-			(xy 86.36 66.04) (xy 86.36 87.63)
+			(xy 86.36 73.66) (xy 86.36 95.25)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
 		(uuid "ca2569c2-db65-483d-9a03-1e05bac5a9b9")
-	)
-	(wire
-		(pts
-			(xy 90.17 101.6) (xy 90.17 82.55)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "cb90bc7f-ec7b-48e1-bf4e-e06cd2d90ba4")
 	)
 	(wire
 		(pts
@@ -5227,7 +5183,7 @@
 	)
 	(wire
 		(pts
-			(xy 90.17 82.55) (xy 93.98 82.55)
+			(xy 90.17 90.17) (xy 93.98 90.17)
 		)
 		(stroke
 			(width 0)
@@ -5237,7 +5193,7 @@
 	)
 	(wire
 		(pts
-			(xy 90.17 57.15) (xy 90.17 60.96)
+			(xy 90.17 64.77) (xy 90.17 68.58)
 		)
 		(stroke
 			(width 0)
@@ -5247,7 +5203,7 @@
 	)
 	(wire
 		(pts
-			(xy 81.28 66.04) (xy 86.36 66.04)
+			(xy 81.28 73.66) (xy 86.36 73.66)
 		)
 		(stroke
 			(width 0)
@@ -5685,7 +5641,7 @@
 	)
 	(global_label "BURNWIRE_VOLTAGE"
 		(shape bidirectional)
-		(at 160.02 82.55 0)
+		(at 160.02 90.17 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -5695,7 +5651,7 @@
 		)
 		(uuid "57279cd2-23ca-41c8-96e5-1ec22ff28b95")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 182.6827 82.55 0)
+			(at 182.6827 90.17 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5883,7 +5839,7 @@
 	)
 	(global_label "BURNWIRE_ENABLE"
 		(shape bidirectional)
-		(at 77.47 66.04 180)
+		(at 77.47 73.66 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -5893,7 +5849,7 @@
 		)
 		(uuid "7013a89c-424f-44fe-8401-f224c77e53f6")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 55.7145 66.04 0)
+			(at 55.7145 73.66 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7748,7 +7704,7 @@
 	)
 	(symbol
 		(lib_id "power:+3.3V")
-		(at 90.17 57.15 0)
+		(at 90.17 64.77 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -7757,7 +7713,7 @@
 		(fields_autoplaced yes)
 		(uuid "6f73aa19-f39b-4400-b616-64ed18bb2ed5")
 		(property "Reference" "#PWR02"
-			(at 90.17 60.96 0)
+			(at 90.17 68.58 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7766,7 +7722,7 @@
 			)
 		)
 		(property "Value" "+BURNWIRE"
-			(at 90.17 52.07 0)
+			(at 90.17 59.69 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7774,7 +7730,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 90.17 57.15 0)
+			(at 90.17 64.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7783,7 +7739,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 90.17 57.15 0)
+			(at 90.17 64.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7792,7 +7748,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-			(at 90.17 57.15 0)
+			(at 90.17 64.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9832,7 +9788,7 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 81.28 73.66 0)
+		(at 81.28 81.28 0)
 		(mirror y)
 		(unit 1)
 		(exclude_from_sim no)
@@ -9841,7 +9797,7 @@
 		(dnp no)
 		(uuid "d8ef2585-4f98-4208-81c8-e65628b7b7c5")
 		(property "Reference" "R1"
-			(at 78.74 72.3899 0)
+			(at 78.74 80.0099 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9850,7 +9806,7 @@
 			)
 		)
 		(property "Value" "1k"
-			(at 78.74 74.9299 0)
+			(at 78.74 82.5499 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9859,7 +9815,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
-			(at 83.058 73.66 90)
+			(at 83.058 81.28 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9868,7 +9824,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 81.28 73.66 0)
+			(at 81.28 81.28 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9877,7 +9833,7 @@
 			)
 		)
 		(property "Description" "Resistor"
-			(at 81.28 73.66 0)
+			(at 81.28 81.28 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10639,7 +10595,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 81.28 77.47 0)
+		(at 81.28 85.09 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -10648,7 +10604,7 @@
 		(fields_autoplaced yes)
 		(uuid "f87b01b3-70ef-4395-be6b-76d02a987cb6")
 		(property "Reference" "#PWR01"
-			(at 81.28 83.82 0)
+			(at 81.28 91.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10657,7 +10613,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 81.28 82.55 0)
+			(at 81.28 90.17 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10666,7 +10622,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 81.28 77.47 0)
+			(at 81.28 85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10675,7 +10631,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 81.28 77.47 0)
+			(at 81.28 85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10684,7 +10640,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 81.28 77.47 0)
+			(at 81.28 85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10839,7 +10795,7 @@
 		)
 	)
 	(sheet
-		(at 93.98 57.15)
+		(at 93.98 64.77)
 		(size 58.42 12.7)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -10856,7 +10812,7 @@
 		)
 		(uuid "0f780159-799d-4240-a0dc-e97323accb24")
 		(property "Sheetname" "Burnwire Regulator - 1"
-			(at 93.98 56.4384 0)
+			(at 93.98 64.0584 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10865,7 +10821,7 @@
 			)
 		)
 		(property "Sheetfile" "PowerDistributionSystem_Burnwire_Regulator.kicad_sch"
-			(at 93.98 70.4346 0)
+			(at 93.98 78.0546 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10874,7 +10830,7 @@
 			)
 		)
 		(pin "OUT" input
-			(at 152.4 60.96 0)
+			(at 152.4 68.58 0)
 			(uuid "46c59cb1-30a1-4781-ad91-bfa478afc92c")
 			(effects
 				(font
@@ -10884,7 +10840,7 @@
 			)
 		)
 		(pin "SS_INH" input
-			(at 93.98 66.04 180)
+			(at 93.98 73.66 180)
 			(uuid "e0a0265c-adec-4456-b622-ea8a8e169209")
 			(effects
 				(font
@@ -10894,7 +10850,7 @@
 			)
 		)
 		(pin "VCC" input
-			(at 93.98 60.96 180)
+			(at 93.98 68.58 180)
 			(uuid "dcf5508d-742b-4aca-ac48-7bd0d7480d84")
 			(effects
 				(font
@@ -11055,79 +11011,6 @@
 		)
 	)
 	(sheet
-		(at 93.98 97.79)
-		(size 58.42 12.7)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(stroke
-			(width 0.1524)
-			(type solid)
-			(color 132 0 0 1)
-		)
-		(fill
-			(color 255 255 194 1.0000)
-		)
-		(uuid "45272102-dae0-4010-9b1b-efaa10ec706e")
-		(property "Sheetname" "Burnwire Regulator - 3"
-			(at 93.98 97.0784 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left bottom)
-			)
-		)
-		(property "Sheetfile" "PowerDistributionSystem_Burnwire_Regulator.kicad_sch"
-			(at 93.98 111.0746 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-			)
-		)
-		(pin "OUT" input
-			(at 152.4 101.6 0)
-			(uuid "f05a65dc-6cc5-48a3-be82-7051500aebef")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "SS_INH" input
-			(at 93.98 106.68 180)
-			(uuid "9f2e3b67-81fd-45a0-a610-f9c15f609624")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(pin "VCC" input
-			(at 93.98 101.6 180)
-			(uuid "f59585c7-087a-4645-9e05-51ffe441a40f")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(instances
-			(project "PowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(page "7")
-				)
-			)
-		)
-	)
-	(sheet
 		(at 337.82 180.34)
 		(size 45.72 43.18)
 		(exclude_from_sim no)
@@ -11271,7 +11154,7 @@
 		)
 	)
 	(sheet
-		(at 93.98 78.74)
+		(at 93.98 86.36)
 		(size 58.42 12.7)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -11288,7 +11171,7 @@
 		)
 		(uuid "7ea803d7-eeec-4516-a8ae-4c33da2eb13f")
 		(property "Sheetname" "Burnwire Regulator - 2"
-			(at 93.98 78.0284 0)
+			(at 93.98 85.6484 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11297,7 +11180,7 @@
 			)
 		)
 		(property "Sheetfile" "PowerDistributionSystem_Burnwire_Regulator.kicad_sch"
-			(at 93.98 92.0246 0)
+			(at 93.98 99.6446 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11306,7 +11189,7 @@
 			)
 		)
 		(pin "OUT" input
-			(at 152.4 82.55 0)
+			(at 152.4 90.17 0)
 			(uuid "a5d7e479-8c40-483e-9f11-7ddbd72fc543")
 			(effects
 				(font
@@ -11316,7 +11199,7 @@
 			)
 		)
 		(pin "SS_INH" input
-			(at 93.98 87.63 180)
+			(at 93.98 95.25 180)
 			(uuid "c01b163a-a5cf-4a8f-9fae-bf01a0063dda")
 			(effects
 				(font
@@ -11326,7 +11209,7 @@
 			)
 		)
 		(pin "VCC" input
-			(at 93.98 82.55 180)
+			(at 93.98 90.17 180)
 			(uuid "bb74dc39-4cd6-482a-b5a6-610c5a884664")
 			(effects
 				(font
