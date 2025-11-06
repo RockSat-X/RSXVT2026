@@ -785,7 +785,7 @@
 			(pin passive line
 				(at -3.81 -116.84 0)
 				(length 3.81)
-				(name "NC"
+				(name "general_purpose_E"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -803,7 +803,7 @@
 			(pin passive line
 				(at -3.81 -119.38 0)
 				(length 3.81)
-				(name "NC"
+				(name "general_purpose_F"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -821,7 +821,7 @@
 			(pin passive line
 				(at -3.81 -121.92 0)
 				(length 3.81)
-				(name "NC"
+				(name "general_purpose_G"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -839,7 +839,7 @@
 			(pin passive line
 				(at -3.81 -124.46 0)
 				(length 3.81)
-				(name "NC"
+				(name "general_purpose_H"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -857,7 +857,7 @@
 			(pin passive line
 				(at -3.81 -127 0)
 				(length 3.81)
-				(name "NC"
+				(name "general_purpose_I"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -875,7 +875,7 @@
 			(pin passive line
 				(at -3.81 -129.54 0)
 				(length 3.81)
-				(name "NC"
+				(name "general_purpose_J"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -893,7 +893,7 @@
 			(pin passive line
 				(at -3.81 -132.08 0)
 				(length 3.81)
-				(name "NC"
+				(name "general_purpose_K"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -911,7 +911,7 @@
 			(pin passive line
 				(at -3.81 -134.62 0)
 				(length 3.81)
-				(name "NC"
+				(name "general_purpose_L"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -929,7 +929,7 @@
 			(pin passive line
 				(at -3.81 -137.16 0)
 				(length 3.81)
-				(name "NC"
+				(name "general_purpose_M"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -947,7 +947,7 @@
 			(pin passive line
 				(at -3.81 -139.7 0)
 				(length 3.81)
-				(name "NC"
+				(name "general_purpose_N"
 					(effects
 						(font
 							(size 1.27 1.27)

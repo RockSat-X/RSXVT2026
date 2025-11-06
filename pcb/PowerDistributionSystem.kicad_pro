@@ -465,7 +465,8 @@
     ],
     "pinned_symbol_libs": [
       "D24V7F5",
-      "D24V7Fx"
+      "D24V7Fx",
+      "L4978"
     ]
   },
   "meta": {
@@ -578,12 +579,30 @@
           "label": "Datasheet",
           "name": "Datasheet",
           "show": true
+        },
+        {
+          "group_by": false,
+          "label": "Sim.Pins",
+          "name": "Sim.Pins",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Description",
+          "name": "Description",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "#",
+          "name": "${ITEM_NUMBER}",
+          "show": false
         }
       ],
       "filter_string": "",
       "group_symbols": true,
       "include_excluded_from_bom": true,
-      "name": "Default Editing",
+      "name": "",
       "sort_asc": true,
       "sort_field": "Reference"
     },
@@ -643,6 +662,14 @@
     [
       "57e88cd3-209b-4745-8cf8-356680ecf52c",
       "Stepper Motor Driver - Z"
+    ],
+    [
+      "0f780159-799d-4240-a0dc-e97323accb24",
+      "Burnwire Regulator - 1"
+    ],
+    [
+      "7ea803d7-eeec-4516-a8ae-4c33da2eb13f",
+      "Burnwire Regulator - 2"
     ]
   ],
   "text_variables": {}
