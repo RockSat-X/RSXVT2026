@@ -4734,18 +4734,17 @@
 			)
 		)
 	)
-	(footprint "pcb:MainMiscellaneousBoardHousing"
+	(footprint "pcb:Dummy"
 		(locked yes)
 		(layer "F.Cu")
-		(uuid "99c1a273-07b4-49e2-bf8b-372626a97c85")
+		(uuid "95afbce6-7155-40e9-84a8-ec47975b11ba")
 		(at 150 100)
-		(descr "Housing for the Main Camera System.")
 		(property "Reference" "N1"
 			(at 0 -0.5 0)
 			(unlocked yes)
 			(layer "F.SilkS")
 			(hide yes)
-			(uuid "d6cb36b1-0e3c-43a9-89f2-cb436926f0e2")
+			(uuid "e7aab467-01a8-4765-9b81-7101c2f78569")
 			(effects
 				(font
 					(size 1 1)
@@ -4758,7 +4757,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "72de9c06-10b8-4efa-bd93-a2d188a03726")
+			(uuid "8cd0ec5d-5668-4be3-b079-f90558020f3d")
 			(effects
 				(font
 					(size 1 1)
@@ -4766,12 +4765,12 @@
 				)
 			)
 		)
-		(property "Datasheet" "~"
+		(property "Datasheet" ""
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "d3f3c874-f069-4590-b676-28a92d6b420f")
+			(uuid "c78b25b9-dc4b-48b4-95d6-15b8479a0c03")
 			(effects
 				(font
 					(size 1 1)
@@ -4779,12 +4778,12 @@
 				)
 			)
 		)
-		(property "Description" "Housing"
+		(property "Description" ""
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "c039b48e-72e8-4c4c-93f7-b00c40d55fa1")
+			(uuid "b8cd6b3c-a66e-4350-9818-bcf525269780")
 			(effects
 				(font
 					(size 1 1)
@@ -4792,9 +4791,7 @@
 				)
 			)
 		)
-		(property ki_fp_filters "Enclosure* Housing*")
-		(sheetname "/")
-		(sheetfile "MainMiscellaneousBoard.kicad_sch")
+		(attr exclude_from_bom)
 		(fp_line
 			(start -1 0)
 			(end 1 0)
@@ -4803,7 +4800,7 @@
 				(type default)
 			)
 			(layer "User.1")
-			(uuid "cfc89d4d-a4b1-4796-a2a2-d673d7845d8a")
+			(uuid "b681a0ea-3064-4707-bde1-59460c432349")
 		)
 		(fp_line
 			(start 0 -1)
@@ -4813,7 +4810,7 @@
 				(type default)
 			)
 			(layer "User.1")
-			(uuid "e12b64d2-6425-4c36-aab7-dd3751dd46c2")
+			(uuid "d34aec2d-9e66-49e7-aebb-feab75014ec0")
 		)
 		(fp_circle
 			(center 0 0)
@@ -4824,9 +4821,78 @@
 			)
 			(fill no)
 			(layer "User.1")
-			(uuid "c8932f99-e26a-47d5-b091-b86dc286d96e")
+			(uuid "b668bf9c-4eb6-4273-87d3-3b5646fdf74f")
 		)
 		(embedded_fonts no)
+		(model "${KIPRJMOD}/models/ElectronicsBoxCase_AN-14F-01_Body.step"
+			(opacity 0.3600)
+			(offset
+				(xyz 0 17.5 -2)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -90 -0 -0)
+			)
+		)
+		(model "${KIPRJMOD}/models/amphenol_female_66_pins_TVS07RK19-35P.stp"
+			(offset
+				(xyz 0 44.5 -64.2)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -0 180 -0)
+			)
+		)
+		(model "${KIPRJMOD}/models/Main_Stack_Dummy.step"
+			(opacity 0.5400)
+			(offset
+				(xyz 0 0 -35.1)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -0 -0 -0)
+			)
+		)
+		(model "${KIPRJMOD}/models/Main_Stack_Dummy.step"
+			(offset
+				(xyz 0 0 -12.5)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -0 -0 -0)
+			)
+		)
+		(model "${KIPRJMOD}/models/ElectronicsBoxCase_AN-14F-01_Lid.step"
+			(opacity 0.5600)
+			(offset
+				(xyz 0 17.5 -2)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -90 -0 -0)
+			)
+		)
+		(model "${KIPRJMOD}/models/Main_Stack_Dummy.step"
+			(offset
+				(xyz 0 0 -23.6)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -0 -0 -0)
+			)
+		)
 	)
 	(footprint "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
 		(layer "F.Cu")
@@ -6165,7 +6231,7 @@
 			(net 104 "GND")
 			(pinfunction "SHIELD")
 			(pintype "passive")
-			(uuid "6ff69be3-7f5a-491c-a1c5-06e03f04e4d2")
+			(uuid "5717b676-c641-4f6b-ae4d-b01d22100308")
 		)
 		(pad "9" smd roundrect
 			(at 6.875 -4.7)
@@ -6175,7 +6241,7 @@
 			(net 104 "GND")
 			(pinfunction "SHIELD")
 			(pintype "passive")
-			(uuid "6ff69be3-7f5a-491c-a1c5-06e03f04e4d2")
+			(uuid "ca5e63b8-f88e-4274-901e-61c523e18bbe")
 		)
 		(pad "9" smd roundrect
 			(at 6.875 3.6)
@@ -6185,7 +6251,7 @@
 			(net 104 "GND")
 			(pinfunction "SHIELD")
 			(pintype "passive")
-			(uuid "6ff69be3-7f5a-491c-a1c5-06e03f04e4d2")
+			(uuid "7a5aa5c4-d0f6-420d-bb02-f166e88bedad")
 		)
 		(embedded_fonts no)
 		(model "${KIPRJMOD}/models/uSD_Connector_Molex.step"
@@ -7343,7 +7409,7 @@
 			(net 104 "GND")
 			(pinfunction "SHIELD")
 			(pintype "passive")
-			(uuid "ba8a7d11-64fb-4be1-8a3c-9aa180c91feb")
+			(uuid "982a7aa3-adaf-4a45-bcff-819d7940797b")
 		)
 		(pad "9" smd roundrect
 			(at 6.875 -4.7)
@@ -7353,7 +7419,7 @@
 			(net 104 "GND")
 			(pinfunction "SHIELD")
 			(pintype "passive")
-			(uuid "ba8a7d11-64fb-4be1-8a3c-9aa180c91feb")
+			(uuid "e584b220-7597-41a0-8a00-2d4e4f7aae5b")
 		)
 		(pad "9" smd roundrect
 			(at 6.875 3.6)
@@ -7363,7 +7429,7 @@
 			(net 104 "GND")
 			(pinfunction "SHIELD")
 			(pintype "passive")
-			(uuid "ba8a7d11-64fb-4be1-8a3c-9aa180c91feb")
+			(uuid "7a5059de-4283-48a6-b221-fc84d753e198")
 		)
 		(embedded_fonts no)
 		(model "${KIPRJMOD}/models/uSD_Connector_Molex.step"
