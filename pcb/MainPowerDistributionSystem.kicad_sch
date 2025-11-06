@@ -6291,7 +6291,7 @@
 			(uuid "b33575dd-5458-4dce-b945-e30f821bb8a4")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR039")
 					(unit 1)
@@ -6358,7 +6358,7 @@
 			(uuid "ac2e0e53-c81d-4cbd-a10d-257b082b3946")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR049")
 					(unit 1)
@@ -6424,7 +6424,7 @@
 			(uuid "a6a96e67-a7e6-47e4-9e84-c2b86cb88d0a")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "TP2")
 					(unit 1)
@@ -6491,7 +6491,7 @@
 			(uuid "d02e846d-a147-47d2-a8ab-3d986b5e6aee")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR048")
 					(unit 1)
@@ -6558,7 +6558,7 @@
 			(uuid "e1d7f872-1be5-4882-b4a5-86724f49ec3b")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "TP1")
 					(unit 1)
@@ -6624,7 +6624,7 @@
 			(uuid "744ba0dc-1bae-4481-b226-0f6b9a6cc993")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR018")
 					(unit 1)
@@ -6691,7 +6691,7 @@
 			(uuid "de828840-183a-4525-8049-5a32f0d1a7f0")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR05")
 					(unit 1)
@@ -6758,7 +6758,7 @@
 			(uuid "095c08ed-d627-4e7f-b089-91244bca2f52")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR07")
 					(unit 1)
@@ -6825,7 +6825,7 @@
 			(uuid "67fc3963-e753-4f2f-9d57-6f2306137d0b")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR08")
 					(unit 1)
@@ -6892,7 +6892,7 @@
 			(uuid "026242e3-bd12-4af5-9938-773deab49843")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR046")
 					(unit 1)
@@ -7030,7 +7030,7 @@
 			(uuid "19bcec0d-84f5-4db6-a8a1-a2f869f09c76")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR044")
 					(unit 1)
@@ -7096,7 +7096,7 @@
 			(uuid "748ef7ad-a9e6-4fde-8716-590bb2d12c0c")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR022")
 					(unit 1)
@@ -7162,7 +7162,7 @@
 			(uuid "33d19c1e-37b9-4a64-9cff-7d7d26b8eba4")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR011")
 					(unit 1)
@@ -7228,7 +7228,7 @@
 			(uuid "feb19c2a-f5a5-4d87-bd8c-e6de5f17d6ab")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR041")
 					(unit 1)
@@ -7294,7 +7294,7 @@
 			(uuid "4cfc05bb-6617-460a-8334-e73d79f15f16")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR09")
 					(unit 1)
@@ -7361,7 +7361,7 @@
 			(uuid "7373ea78-8887-463f-8a8b-1611ce717406")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR021")
 					(unit 1)
@@ -7427,7 +7427,7 @@
 			(uuid "a7f2005d-ca05-4cf0-8fa5-e28d2df10ab3")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR020")
 					(unit 1)
@@ -7494,7 +7494,7 @@
 			(uuid "bcf90da9-ee3a-4354-944f-3dac70f9867f")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR043")
 					(unit 1)
@@ -7561,7 +7561,7 @@
 			(uuid "7d66d369-2ae2-4db9-9810-122e3f4ff0bb")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR03")
 					(unit 1)
@@ -7627,7 +7627,7 @@
 			(uuid "29fd81fe-7be6-42d4-ae50-2a79dc35e251")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR029")
 					(unit 1)
@@ -7694,7 +7694,7 @@
 			(uuid "f86f24a9-9587-4dfb-92ce-b029390479ef")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR028")
 					(unit 1)
@@ -7760,7 +7760,7 @@
 			(uuid "41f4929f-6275-4d92-b212-105dbc8fa64c")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR02")
 					(unit 1)
@@ -7827,7 +7827,7 @@
 			(uuid "9842ae1d-6531-409b-af47-ccf44b17e2a1")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR047")
 					(unit 1)
@@ -7893,7 +7893,7 @@
 			(uuid "3f9168ff-6886-43e7-9017-97c7f22a3cc6")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR025")
 					(unit 1)
@@ -7959,7 +7959,7 @@
 			(uuid "d545943f-1168-468f-a8f5-5ee463a627e2")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR037")
 					(unit 1)
@@ -8026,7 +8026,7 @@
 			(uuid "051d7a97-853c-448a-9abe-dbd4fb72aa07")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR036")
 					(unit 1)
@@ -8462,7 +8462,7 @@
 			(uuid "efc57214-1eb5-42f3-a6a1-c155dd2f9b79")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR042")
 					(unit 1)
@@ -8687,7 +8687,7 @@
 			(uuid "0c6e7a45-fb3b-4b63-bd77-14697f7e5aaa")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR050")
 					(unit 1)
@@ -8754,7 +8754,7 @@
 			(uuid "b5658fd6-cf84-4ebd-a7b8-24b2e7830003")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR038")
 					(unit 1)
@@ -8824,7 +8824,7 @@
 			(uuid "8cce1915-d968-4e24-9707-d43d8cf51d0d")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "R2")
 					(unit 1)
@@ -8891,7 +8891,7 @@
 			(uuid "bd597c5b-682f-4d22-9203-6ef8d39b96e9")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR017")
 					(unit 1)
@@ -9041,7 +9041,7 @@
 			(uuid "a459cfc9-9cfa-4e65-8526-694ccabe6ad0")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR04")
 					(unit 1)
@@ -9107,7 +9107,7 @@
 			(uuid "07ce2f38-92e1-4450-aeb7-3a1ca5af744a")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR024")
 					(unit 1)
@@ -9239,7 +9239,7 @@
 			(uuid "ecd65e8a-10f4-426c-bac1-84c8d76158f5")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR031")
 					(unit 1)
@@ -9306,7 +9306,7 @@
 			(uuid "2e93368b-6752-442e-a101-76b5fce749cf")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR019")
 					(unit 1)
@@ -9374,7 +9374,7 @@
 			(uuid "b53ddf6d-8324-45ef-a75d-8537036287b3")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "JP2")
 					(unit 1)
@@ -9445,7 +9445,7 @@
 			(uuid "ff75d0ab-6d24-4ed2-8d61-696a11df5dcd")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "U3")
 					(unit 1)
@@ -9511,7 +9511,7 @@
 			(uuid "452b2f1b-4c80-499f-bfb8-a5e63f4cd726")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR035")
 					(unit 1)
@@ -9577,7 +9577,7 @@
 			(uuid "a55e7da0-6e6f-4558-ad31-c4819aec764e")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR016")
 					(unit 1)
@@ -9644,7 +9644,7 @@
 			(uuid "e363061c-c6c8-4d5b-b751-da1a6e3c71ed")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR014")
 					(unit 1)
@@ -9711,7 +9711,7 @@
 			(uuid "54f7c6d2-2698-4855-9a67-12ccfdfb987a")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR012")
 					(unit 1)
@@ -9778,7 +9778,7 @@
 			(uuid "144e954a-f4b1-4cdb-9896-678456bebb47")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR040")
 					(unit 1)
@@ -9848,7 +9848,7 @@
 			(uuid "00fe6d89-95da-421c-9dc2-6053805a28b5")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "R1")
 					(unit 1)
@@ -9915,7 +9915,7 @@
 			(uuid "a587e5e8-bb63-47c7-8a8b-b86b360b5921")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR032")
 					(unit 1)
@@ -9982,7 +9982,7 @@
 			(uuid "d8509c67-bcd2-44ad-b052-3aa6a90d5c79")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR026")
 					(unit 1)
@@ -10048,7 +10048,7 @@
 			(uuid "e0c2426e-41de-471e-88bf-2b92dec63697")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR033")
 					(unit 1)
@@ -10114,7 +10114,7 @@
 			(uuid "b27bad69-4a54-4a08-a056-4ebb8fb749f1")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR015")
 					(unit 1)
@@ -10185,7 +10185,7 @@
 			(uuid "62dbfa09-111e-42d4-9b14-bfc3c3e94926")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "R3")
 					(unit 1)
@@ -10252,7 +10252,7 @@
 			(uuid "84ff532b-7eae-44f3-a29b-62e83431dd97")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR023")
 					(unit 1)
@@ -10319,7 +10319,7 @@
 			(uuid "9b44e87e-cf60-48fb-9873-46c2beab065a")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR034")
 					(unit 1)
@@ -10453,7 +10453,7 @@
 			(uuid "c15db0c8-ccf0-4045-9314-03ab2083c5e7")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR010")
 					(unit 1)
@@ -10519,7 +10519,7 @@
 			(uuid "0cd85060-4e21-44b9-9416-29cf43b60353")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR06")
 					(unit 1)
@@ -10585,7 +10585,7 @@
 			(uuid "a5e31758-f038-4736-9d6a-e87a1f696ff1")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR027")
 					(unit 1)
@@ -10652,7 +10652,7 @@
 			(uuid "f8551995-9f09-4e1a-a994-b9fb894ed749")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR01")
 					(unit 1)
@@ -10719,7 +10719,7 @@
 			(uuid "b5e5ed95-1948-4666-a6e5-b64cd5b34bf6")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR045")
 					(unit 1)
@@ -10786,7 +10786,7 @@
 			(uuid "5bd5f829-335b-4d1d-a001-be42e976bfea")
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR030")
 					(unit 1)
@@ -10820,7 +10820,7 @@
 				(justify left bottom)
 			)
 		)
-		(property "Sheetfile" "PowerDistributionSystem_Burnwire_Regulator.kicad_sch"
+		(property "Sheetfile" "MainPowerDistributionSystem_Burnwire_Regulator.kicad_sch"
 			(at 93.98 78.0546 0)
 			(effects
 				(font
@@ -10860,7 +10860,7 @@
 			)
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(page "5")
 				)
@@ -10893,7 +10893,7 @@
 				(justify left bottom)
 			)
 		)
-		(property "Sheetfile" "PowerDistributionSystem_Stepper_Motor_Driver_TMC2209.kicad_sch"
+		(property "Sheetfile" "MainPowerDistributionSystem_Stepper_Motor_Driver_TMC2209.kicad_sch"
 			(at 337.82 173.3046 0)
 			(effects
 				(font
@@ -11003,7 +11003,7 @@
 			)
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(page "3")
 				)
@@ -11036,7 +11036,7 @@
 				(justify left bottom)
 			)
 		)
-		(property "Sheetfile" "PowerDistributionSystem_Stepper_Motor_Driver_TMC2209.kicad_sch"
+		(property "Sheetfile" "MainPowerDistributionSystem_Stepper_Motor_Driver_TMC2209.kicad_sch"
 			(at 337.82 224.1046 0)
 			(effects
 				(font
@@ -11146,7 +11146,7 @@
 			)
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(page "4")
 				)
@@ -11179,7 +11179,7 @@
 				(justify left bottom)
 			)
 		)
-		(property "Sheetfile" "PowerDistributionSystem_Burnwire_Regulator.kicad_sch"
+		(property "Sheetfile" "MainPowerDistributionSystem_Burnwire_Regulator.kicad_sch"
 			(at 93.98 99.6446 0)
 			(effects
 				(font
@@ -11219,7 +11219,7 @@
 			)
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(page "6")
 				)
@@ -11252,7 +11252,7 @@
 				(justify left bottom)
 			)
 		)
-		(property "Sheetfile" "PowerDistributionSystem_Stepper_Motor_Driver_TMC2209.kicad_sch"
+		(property "Sheetfile" "MainPowerDistributionSystem_Stepper_Motor_Driver_TMC2209.kicad_sch"
 			(at 337.82 122.5046 0)
 			(effects
 				(font
@@ -11362,7 +11362,7 @@
 			)
 		)
 		(instances
-			(project "PowerDistributionSystem"
+			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(page "2")
 				)
