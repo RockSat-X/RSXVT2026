@@ -6,4 +6,5 @@
   (lib (name "Seeed_Studio_XIAO-ESP32-S3-Sense")(type "KiCad")(uri "${KIPRJMOD}/symbols/Seeed_Studio_XIAO-ESP32-S3-Sense.kicad_sym")(options "")(descr ""))
   (lib (name "L4978")(type "KiCad")(uri "${KIPRJMOD}/symbols/L4978.kicad_sym")(options "")(descr ""))
   (lib (name "OpenMV_H7_Plus")(type "KiCad")(uri "${KIPRJMOD}/symbols/OpenMV_H7_Plus.kicad_sym")(options "")(descr ""))
+  (lib (name "LSM6DSV32X")(type "KiCad")(uri "${KIPRJMOD}/symbols/LSM6DSV32X.kicad_sym")(options "")(descr ""))
 )

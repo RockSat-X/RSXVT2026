@@ -461,7 +461,9 @@
   },
   "libraries": {
     "pinned_footprint_libs": [],
-    "pinned_symbol_libs": []
+    "pinned_symbol_libs": [
+      "LSM6DSV32X"
+    ]
   },
   "meta": {
     "filename": "VehicleFlightComputer.kicad_pro",
