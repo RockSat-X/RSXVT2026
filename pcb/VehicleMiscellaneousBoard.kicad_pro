@@ -462,7 +462,8 @@
   "libraries": {
     "pinned_footprint_libs": [],
     "pinned_symbol_libs": [
-      "OpenMV_H7_Plus"
+      "OpenMV_H7_Plus",
+      "Seeed_Studio_XIAO-ESP32-S3-Sense"
     ]
   },
   "meta": {
