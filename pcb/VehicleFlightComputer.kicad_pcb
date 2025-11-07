@@ -1008,14 +1008,14 @@
 			)
 		)
 	)
-	(footprint "Connector_USB:USB_C_Receptacle_Amphenol_12401548E4-2A"
+	(footprint "pcb:USB_C_Receptacle_Amphenol_12401548E4-2A"
 		(layer "F.Cu")
 		(uuid "1479ff2e-9b3c-4692-b492-f16b8f85bcf8")
 		(at 136.4 79.99 180)
 		(descr "USB TYPE C, RA RCPT PCB, Hybrid, https://www.amphenolcanada.com/StockAvailabilityPrice.aspx?From=&PartNum=12401548E4%7e2A")
 		(tags "USB C Type-C Receptacle Hybrid")
 		(property "Reference" "J3"
-			(at 0 -6.36 0)
+			(at 0 -6.36 180)
 			(layer "F.SilkS")
 			(uuid "f92acb14-31c6-4600-a477-d4d84e4f17e3")
 			(effects
@@ -1026,7 +1026,7 @@
 			)
 		)
 		(property "Value" "USB_C_Receptacle"
-			(at 0 6.140001 0)
+			(at 0 6.14 180)
 			(layer "F.Fab")
 			(uuid "689b4484-b1da-442e-aa47-b02b12c2f08e")
 			(effects
@@ -1075,27 +1075,27 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "21578013-75f5-49e3-90c9-b72c4cc288c5")
+			(uuid "dc7b8e26-28a8-479a-a5c5-8e4a67ab5248")
 		)
 		(fp_line
-			(start 3.25 -5.369999)
+			(start 3.25 -5.37)
 			(end 4.75 -5.37)
 			(stroke
 				(width 0.12)
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "1eb08e3b-342f-464b-b220-9c6ae7026998")
+			(uuid "1541b5b2-e572-4b59-bfbb-83a9051075a2")
 		)
 		(fp_line
 			(start -4.75 -5.37)
-			(end -3.25 -5.369999)
+			(end -3.25 -5.37)
 			(stroke
 				(width 0.12)
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "85dc6cc6-88a4-4214-8b45-59cb81a1101c")
+			(uuid "296d2970-a708-416c-9afc-d7ffdd1cda71")
 		)
 		(fp_line
 			(start -4.75 -5.37)
@@ -1105,37 +1105,37 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "880ac8dc-eb6e-4bc2-a6b1-636b2e11c3f7")
+			(uuid "5e4a3ad7-37a5-4412-809e-5e4c7404afb1")
 		)
 		(fp_line
-			(start 5.39 5.729999)
-			(end -5.39 5.729999)
+			(start 5.39 5.73)
+			(end -5.39 5.73)
 			(stroke
 				(width 0.05)
 				(type solid)
 			)
 			(layer "F.CrtYd")
-			(uuid "6632dcbf-d079-4954-b4d4-89183210e702")
+			(uuid "376641fc-ea6b-4099-a5f3-ac1aa08f69a7")
 		)
 		(fp_line
 			(start 5.39 -5.87)
-			(end 5.39 5.729999)
+			(end 5.39 5.73)
 			(stroke
 				(width 0.05)
 				(type solid)
 			)
 			(layer "F.CrtYd")
-			(uuid "89c12fc0-06ba-4ed7-a7a2-efae95109976")
+			(uuid "3ec8c17b-aa77-4683-ac03-32633dcda3a5")
 		)
 		(fp_line
-			(start -5.39 5.729999)
+			(start -5.39 5.73)
 			(end -5.39 -5.87)
 			(stroke
 				(width 0.05)
 				(type solid)
 			)
 			(layer "F.CrtYd")
-			(uuid "e6f3edb9-a66b-47e6-a86f-47712a5510d6")
+			(uuid "95dad617-7fd8-4fea-bb6b-4578f94e6262")
 		)
 		(fp_line
 			(start -5.39 -5.87)
@@ -1145,7 +1145,7 @@
 				(type solid)
 			)
 			(layer "F.CrtYd")
-			(uuid "2563a9de-d4d0-4d75-8fa0-534d0409e58a")
+			(uuid "aa047d75-c061-4416-89e1-bc5979c8be08")
 		)
 		(fp_line
 			(start 4.6 5.23)
@@ -1155,7 +1155,7 @@
 				(type solid)
 			)
 			(layer "F.Fab")
-			(uuid "a2b32db8-b6ca-4ffd-9aa5-12a0faa4c329")
+			(uuid "84c81c9e-03ab-47f4-96d6-0ff37926316c")
 		)
 		(fp_line
 			(start -4.6 5.23)
@@ -1165,7 +1165,7 @@
 				(type solid)
 			)
 			(layer "F.Fab")
-			(uuid "49d4ce8f-d5df-49cb-876a-d32f331f4953")
+			(uuid "b16a2e06-62a7-4ed8-8b63-f07998422411")
 		)
 		(fp_line
 			(start -4.6 5.23)
@@ -1175,7 +1175,7 @@
 				(type solid)
 			)
 			(layer "F.Fab")
-			(uuid "e1b16b00-143a-4978-b1cb-1f9d842a54c9")
+			(uuid "b38b8a48-2f32-4a25-91d8-2b4684c0d1e2")
 		)
 		(fp_line
 			(start -4.6 -5.22)
@@ -1185,10 +1185,10 @@
 				(type solid)
 			)
 			(layer "F.Fab")
-			(uuid "2488b885-3d99-4995-a4b5-db36991704ef")
+			(uuid "68e2ad2e-1a1b-4efa-a5a7-85572e2e48e8")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 0 0 0)
+			(at 0 0 180)
 			(layer "F.Fab")
 			(uuid "d4acbd13-1981-4fa9-bf99-ce0f77826714")
 			(effects
@@ -1203,14 +1203,14 @@
 			(size 0.65 0.65)
 			(drill 0.65)
 			(layers "*.Cu" "*.Mask")
-			(uuid "2a56f541-7779-4ec3-87a7-c6b5beacc2f2")
+			(uuid "693e86f4-b2f6-4f07-aff2-e5dfa1454754")
 		)
 		(pad "" np_thru_hole oval
 			(at 3.6 -4.36 180)
 			(size 0.95 0.65)
 			(drill oval 0.95 0.65)
 			(layers "*.Cu" "*.Mask")
-			(uuid "26885378-fd1e-496d-92fc-7635803b4683")
+			(uuid "e7f4f801-bdf9-4237-a9be-545b55bd2491")
 		)
 		(pad "A1" smd rect
 			(at -2.75 -5.02 180)
@@ -1240,7 +1240,7 @@
 			(uuid "97a161a2-d6ac-44b1-ab61-d36e9ca3e5d5")
 		)
 		(pad "A4" smd rect
-			(at -1.25 -5.020001 180)
+			(at -1.25 -5.02 180)
 			(size 0.3 0.7)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 63 "Net-(JP1-A)")
@@ -1285,7 +1285,7 @@
 			(uuid "e8bb9b44-d944-4f1e-99a9-e4a2a68e9865")
 		)
 		(pad "A9" smd rect
-			(at 1.25 -5.020001 180)
+			(at 1.25 -5.02 180)
 			(size 0.3 0.7)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 63 "Net-(JP1-A)")
@@ -1486,7 +1486,7 @@
 			(net 62 "GND")
 			(pinfunction "SHIELD")
 			(pintype "passive")
-			(uuid "c8f248f0-d17a-4409-b71b-3cffb31a447d")
+			(uuid "b705786a-02d4-409b-8bce-6fb5ed210f17")
 		)
 		(pad "S1" thru_hole oval
 			(at 4.13 -3.11 180)
@@ -1498,7 +1498,7 @@
 			(net 62 "GND")
 			(pinfunction "SHIELD")
 			(pintype "passive")
-			(uuid "efb92b43-1164-42f2-b0e5-5741b4878446")
+			(uuid "b705786a-02d4-409b-8bce-6fb5ed210f17")
 		)
 		(pad "S1" thru_hole oval
 			(at 4.49 2.84 180)
@@ -1510,18 +1510,18 @@
 			(net 62 "GND")
 			(pinfunction "SHIELD")
 			(pintype "passive")
-			(uuid "6e345334-f04e-4813-b1b4-30777d65cb69")
+			(uuid "b705786a-02d4-409b-8bce-6fb5ed210f17")
 		)
 		(embedded_fonts no)
-		(model "${KICAD9_3DMODEL_DIR}/Connector_USB.3dshapes/USB_C_Receptacle_Amphenol_12401548E4-2A.step"
+		(model "${KIPRJMOD}/models/USB_C_Receptacle_Amphenol_12401548E4-2A.STEP"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 -5.25 1.6)
 			)
 			(scale
 				(xyz 1 1 1)
 			)
 			(rotate
-				(xyz 0 0 0)
+				(xyz -90 -0 -0)
 			)
 		)
 	)
