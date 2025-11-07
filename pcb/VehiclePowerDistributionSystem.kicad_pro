@@ -503,7 +503,7 @@
       "plot": "",
       "pos_files": "",
       "specctra_dsn": "",
-      "step": "VehiclePowerDistributionSystem.step",
+      "step": "models/VehiclePowerDistributionSystem.step",
       "svg": "",
       "vrml": ""
     },
