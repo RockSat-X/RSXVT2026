@@ -1091,19 +1091,6 @@
 				(xyz 90 -0 -0)
 			)
 		)
-		(model "${KIPRJMOD}/models/Main_Stack_Dummy.step"
-			(hide yes)
-			(opacity 0.2800)
-			(offset
-				(xyz 0 0 -12)
-			)
-			(scale
-				(xyz 1 1 1)
-			)
-			(rotate
-				(xyz -0 -0 -0)
-			)
-		)
 	)
 	(footprint "Connector_JST:JST_XH_B4B-XH-A_1x04_P2.50mm_Vertical"
 		(layer "F.Cu")
