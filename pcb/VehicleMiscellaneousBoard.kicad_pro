@@ -461,7 +461,9 @@
   },
   "libraries": {
     "pinned_footprint_libs": [],
-    "pinned_symbol_libs": []
+    "pinned_symbol_libs": [
+      "OpenMV_H7_Plus"
+    ]
   },
   "meta": {
     "filename": "VehicleMiscellaneousBoard.kicad_pro",
