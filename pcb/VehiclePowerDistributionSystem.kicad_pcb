@@ -216,6 +216,10 @@
 	(net 73 "unconnected-(U6-STDBY-Pad20)")
 	(net 74 "unconnected-(U6-NC-Pad25)")
 	(net 75 "unconnected-(U6-INDEX-Pad12)")
+	(net 76 "unconnected-(JP9-B-Pad2)")
+	(net 77 "unconnected-(JP9-A-Pad1)")
+	(net 78 "unconnected-(JP10-A-Pad1)")
+	(net 79 "unconnected-(JP10-B-Pad2)")
 	(footprint "LED_SMD:LED_1206_3216Metric_Pad1.42x1.75mm_HandSolder"
 		(layer "F.Cu")
 		(uuid "0ca09a24-f4c3-4bf9-9841-400896442765")
@@ -15777,6 +15781,213 @@
 			)
 		)
 	)
+	(footprint "pcb:NPC02SXON-RC"
+		(layer "B.Cu")
+		(uuid "a058c117-bb72-46d1-83d6-3030d3249b76")
+		(at 179 90 -90)
+		(descr "CONN JUMPER SHORTING .100\" GOLD")
+		(property "Reference" "JP1"
+			(at 0 3 90)
+			(unlocked yes)
+			(layer "B.SilkS")
+			(uuid "df297d7b-0d24-4928-bf84-6f17e4a88b7c")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.1)
+				)
+				(justify mirror)
+			)
+		)
+		(property "Value" "Jumper_2_Bridged"
+			(at 0 -1 90)
+			(unlocked yes)
+			(layer "B.Fab")
+			(uuid "5c8bbf82-a9ba-4d22-8143-a369509305b4")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+				(justify mirror)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 0 0 90)
+			(unlocked yes)
+			(layer "B.Fab")
+			(hide yes)
+			(uuid "f7dc306e-fd2a-4954-bf1c-bfffef29e05c")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+				(justify mirror)
+			)
+		)
+		(property "Description" "Jumper, 2-pole, closed/bridged"
+			(at 0 0 90)
+			(unlocked yes)
+			(layer "B.Fab")
+			(hide yes)
+			(uuid "ef7c22d2-fd24-4997-bccc-67f6eed7c9ca")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+				(justify mirror)
+			)
+		)
+		(property ki_fp_filters "Jumper* TestPoint*2Pads* TestPoint*Bridge*")
+		(path "/f006feee-7083-446e-ad25-060fc1e52b11")
+		(sheetname "/")
+		(sheetfile "VehiclePowerDistributionSystem.kicad_sch")
+		(attr through_hole)
+		(fp_line
+			(start -0.905 1.905)
+			(end 0.905 1.905)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(layer "B.SilkS")
+			(uuid "19f04ded-7d02-43ba-bd8b-fbce88e484f1")
+		)
+		(fp_line
+			(start 1.905 0.905)
+			(end 1.905 -3.444999)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(layer "B.SilkS")
+			(uuid "406c6157-5a18-4db5-af26-23f02f9f5e48")
+		)
+		(fp_line
+			(start -1.905 -3.444999)
+			(end -1.905 0.905)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(layer "B.SilkS")
+			(uuid "01d0d9a6-1fa4-4596-be0b-1bdf0ab49d5f")
+		)
+		(fp_line
+			(start 0.905 -4.445)
+			(end -0.905 -4.445)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(layer "B.SilkS")
+			(uuid "8f08b33f-31be-4d08-82be-b84b77acb5c6")
+		)
+		(fp_arc
+			(start -0.905 1.905)
+			(mid -1.612107 1.612107)
+			(end -1.905 0.905)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(layer "B.SilkS")
+			(uuid "22bef1a3-a401-4b41-a07d-debe36031eac")
+		)
+		(fp_arc
+			(start 1.905 0.905)
+			(mid 1.612107 1.612107)
+			(end 0.905 1.905)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(layer "B.SilkS")
+			(uuid "0ab96376-b7d7-47e5-90ea-83be7e811ef5")
+		)
+		(fp_arc
+			(start -1.905 -3.444999)
+			(mid -1.612107 -4.152107)
+			(end -0.905 -4.445)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(layer "B.SilkS")
+			(uuid "15f3b74c-413c-4f97-988b-b4483cdbe315")
+		)
+		(fp_arc
+			(start 0.905 -4.445)
+			(mid 1.612107 -4.152106)
+			(end 1.905 -3.444999)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(layer "B.SilkS")
+			(uuid "955e27d7-1c5b-4be9-9d94-d439c65a6da7")
+		)
+		(fp_text user "${REFERENCE}"
+			(at 0 -2.5 90)
+			(unlocked yes)
+			(layer "B.Fab")
+			(uuid "51719e28-3c2e-4036-8df1-818134cb3b66")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+				(justify mirror)
+			)
+		)
+		(pad "1" thru_hole rect
+			(at 0 0 270)
+			(size 1.7 1.7)
+			(drill 1)
+			(layers "*.Cu" "*.Mask")
+			(remove_unused_layers no)
+			(net 6 "MOTOR_DISABLE")
+			(pinfunction "A")
+			(pintype "passive")
+			(uuid "e1e5d88c-8a86-47b8-9813-206cf95bb45c")
+		)
+		(pad "2" thru_hole circle
+			(at 0 -2.54 270)
+			(size 1.7 1.7)
+			(drill 1)
+			(layers "*.Cu" "*.Mask")
+			(remove_unused_layers no)
+			(net 5 "/Stepper Motor Driver - X/DISABLE")
+			(pinfunction "B")
+			(pintype "passive")
+			(uuid "2c0bdd48-d3bd-44c5-8619-b7e4f4fbb11c")
+		)
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/models/NPC02SXON-RC.step"
+			(offset
+				(xyz 0 -1.275 2.6)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -0 -0 -90)
+			)
+		)
+		(model "${KICAD9_3DMODEL_DIR}/Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x02_P2.54mm_Vertical.step"
+			(offset
+				(xyz 0 0 0)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz 0 0 0)
+			)
+		)
+	)
 	(footprint "Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder"
 		(layer "B.Cu")
 		(uuid "a379e649-25c5-4b19-a95b-3f818e633ed2")
@@ -15970,6 +16181,213 @@
 		)
 		(embedded_fonts no)
 		(model "${KICAD9_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_1206_3216Metric.step"
+			(offset
+				(xyz 0 0 0)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz 0 0 0)
+			)
+		)
+	)
+	(footprint "pcb:NPC02SXON-RC"
+		(layer "B.Cu")
+		(uuid "a8804675-c261-4807-a017-1cc5986689cb")
+		(at 179 100 -90)
+		(descr "CONN JUMPER SHORTING .100\" GOLD")
+		(property "Reference" "JP9"
+			(at 0 3 90)
+			(unlocked yes)
+			(layer "B.SilkS")
+			(uuid "5aabe708-833c-4e6f-90bc-9508b8b6380d")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.1)
+				)
+				(justify mirror)
+			)
+		)
+		(property "Value" "Jumper_2_Bridged"
+			(at 0 -1 90)
+			(unlocked yes)
+			(layer "B.Fab")
+			(uuid "4bc6578b-2d3f-4f8b-8cd3-21f55e7aa021")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+				(justify mirror)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 0 0 90)
+			(unlocked yes)
+			(layer "B.Fab")
+			(hide yes)
+			(uuid "73577e8d-aa04-4448-ad7f-eef88ee31ca1")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+				(justify mirror)
+			)
+		)
+		(property "Description" "Jumper, 2-pole, closed/bridged"
+			(at 0 0 90)
+			(unlocked yes)
+			(layer "B.Fab")
+			(hide yes)
+			(uuid "e142427a-1aa2-4f94-b90e-4f177104a193")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+				(justify mirror)
+			)
+		)
+		(property ki_fp_filters "Jumper* TestPoint*2Pads* TestPoint*Bridge*")
+		(path "/5e27e98d-cc75-4b27-beaf-6e458634b2bc")
+		(sheetname "/")
+		(sheetfile "VehiclePowerDistributionSystem.kicad_sch")
+		(attr through_hole)
+		(fp_line
+			(start -0.905 1.905)
+			(end 0.905 1.905)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(layer "B.SilkS")
+			(uuid "31e4d1c2-218d-4b9b-9efa-7924fb7c0cd4")
+		)
+		(fp_line
+			(start 1.905 0.905)
+			(end 1.905 -3.444999)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(layer "B.SilkS")
+			(uuid "02db4ebf-076c-4b67-8c60-15b1bc589494")
+		)
+		(fp_line
+			(start -1.905 -3.444999)
+			(end -1.905 0.905)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(layer "B.SilkS")
+			(uuid "7514d836-288a-48aa-8fab-a9e6338cfaa1")
+		)
+		(fp_line
+			(start 0.905 -4.445)
+			(end -0.905 -4.445)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(layer "B.SilkS")
+			(uuid "3e5841b2-3314-4fa9-881c-2006820e9b1a")
+		)
+		(fp_arc
+			(start -0.905 1.905)
+			(mid -1.612107 1.612107)
+			(end -1.905 0.905)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(layer "B.SilkS")
+			(uuid "cc42159d-8227-469d-aae0-244547e0302a")
+		)
+		(fp_arc
+			(start 1.905 0.905)
+			(mid 1.612107 1.612107)
+			(end 0.905 1.905)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(layer "B.SilkS")
+			(uuid "aeb654da-e23d-43f8-8203-73026a906840")
+		)
+		(fp_arc
+			(start -1.905 -3.444999)
+			(mid -1.612107 -4.152107)
+			(end -0.905 -4.445)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(layer "B.SilkS")
+			(uuid "d259a8a4-63af-4735-bee5-338fc355599c")
+		)
+		(fp_arc
+			(start 0.905 -4.445)
+			(mid 1.612107 -4.152106)
+			(end 1.905 -3.444999)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(layer "B.SilkS")
+			(uuid "9d253de6-05ed-4576-8a32-7919555708e6")
+		)
+		(fp_text user "${REFERENCE}"
+			(at 0 -2.5 90)
+			(unlocked yes)
+			(layer "B.Fab")
+			(uuid "2d529497-e825-4ebc-9ddc-66d2427c2075")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+				(justify mirror)
+			)
+		)
+		(pad "1" thru_hole rect
+			(at 0 0 270)
+			(size 1.7 1.7)
+			(drill 1)
+			(layers "*.Cu" "*.Mask")
+			(remove_unused_layers no)
+			(net 77 "unconnected-(JP9-A-Pad1)")
+			(pinfunction "A")
+			(pintype "passive+no_connect")
+			(uuid "906b05ea-b3b9-49e5-98df-4611ac3d8d36")
+		)
+		(pad "2" thru_hole circle
+			(at 0 -2.54 270)
+			(size 1.7 1.7)
+			(drill 1)
+			(layers "*.Cu" "*.Mask")
+			(remove_unused_layers no)
+			(net 76 "unconnected-(JP9-B-Pad2)")
+			(pinfunction "B")
+			(pintype "passive+no_connect")
+			(uuid "3d7c6dac-06df-4c4a-b421-832e6530ea1c")
+		)
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/models/NPC02SXON-RC.step"
+			(offset
+				(xyz 0 -1.275 2.6)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -0 -0 -90)
+			)
+		)
+		(model "${KICAD9_3DMODEL_DIR}/Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x02_P2.54mm_Vertical.step"
 			(offset
 				(xyz 0 0 0)
 			)
@@ -17888,6 +18306,213 @@
 		)
 		(embedded_fonts no)
 		(model "${KICAD9_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_1206_3216Metric.step"
+			(offset
+				(xyz 0 0 0)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz 0 0 0)
+			)
+		)
+	)
+	(footprint "pcb:NPC02SXON-RC"
+		(layer "B.Cu")
+		(uuid "edf7737d-be21-4300-83b5-ce34ccb5a58f")
+		(at 179 110 -90)
+		(descr "CONN JUMPER SHORTING .100\" GOLD")
+		(property "Reference" "JP10"
+			(at 0 3 90)
+			(unlocked yes)
+			(layer "B.SilkS")
+			(uuid "ac7bc759-aa82-4cda-b919-33b37dcd026b")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.1)
+				)
+				(justify mirror)
+			)
+		)
+		(property "Value" "Jumper_2_Bridged"
+			(at 0 -1 90)
+			(unlocked yes)
+			(layer "B.Fab")
+			(uuid "49c7c7a2-d53d-45ee-a074-62b8e066ce02")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+				(justify mirror)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 0 0 90)
+			(unlocked yes)
+			(layer "B.Fab")
+			(hide yes)
+			(uuid "3042265f-aa6d-4075-a9ff-d22ea922bcf3")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+				(justify mirror)
+			)
+		)
+		(property "Description" "Jumper, 2-pole, closed/bridged"
+			(at 0 0 90)
+			(unlocked yes)
+			(layer "B.Fab")
+			(hide yes)
+			(uuid "8974a4e1-c24c-4944-a03b-2758fd24da1b")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+				(justify mirror)
+			)
+		)
+		(property ki_fp_filters "Jumper* TestPoint*2Pads* TestPoint*Bridge*")
+		(path "/773f0bed-cf15-4b93-9c59-0f2f2fd4030f")
+		(sheetname "/")
+		(sheetfile "VehiclePowerDistributionSystem.kicad_sch")
+		(attr through_hole)
+		(fp_line
+			(start -0.905 1.905)
+			(end 0.905 1.905)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(layer "B.SilkS")
+			(uuid "63b7c6cf-13eb-4b74-99f2-84c62d8ea574")
+		)
+		(fp_line
+			(start 1.905 0.905)
+			(end 1.905 -3.444999)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(layer "B.SilkS")
+			(uuid "69bd377d-3842-43cf-b019-a5e638c6c8cd")
+		)
+		(fp_line
+			(start -1.905 -3.444999)
+			(end -1.905 0.905)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(layer "B.SilkS")
+			(uuid "b33e2213-ff35-4484-9fd5-1316011f1136")
+		)
+		(fp_line
+			(start 0.905 -4.445)
+			(end -0.905 -4.445)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(layer "B.SilkS")
+			(uuid "bc912a60-1ec3-4996-a2ac-ffb6478fd8b8")
+		)
+		(fp_arc
+			(start -0.905 1.905)
+			(mid -1.612107 1.612107)
+			(end -1.905 0.905)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(layer "B.SilkS")
+			(uuid "cb785480-48a1-4fd5-8bab-1c131221ac33")
+		)
+		(fp_arc
+			(start 1.905 0.905)
+			(mid 1.612107 1.612107)
+			(end 0.905 1.905)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(layer "B.SilkS")
+			(uuid "0286f8a9-11c0-411d-a202-32fc40b67160")
+		)
+		(fp_arc
+			(start -1.905 -3.444999)
+			(mid -1.612107 -4.152107)
+			(end -0.905 -4.445)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(layer "B.SilkS")
+			(uuid "88044fd7-dbe3-423a-b81c-35751724d6e4")
+		)
+		(fp_arc
+			(start 0.905 -4.445)
+			(mid 1.612107 -4.152106)
+			(end 1.905 -3.444999)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(layer "B.SilkS")
+			(uuid "85cd6ad9-c392-4ce5-be40-bc9f35001e58")
+		)
+		(fp_text user "${REFERENCE}"
+			(at 0 -2.5 90)
+			(unlocked yes)
+			(layer "B.Fab")
+			(uuid "d2538fd8-d56d-49a0-98d1-b62b05f62317")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+				(justify mirror)
+			)
+		)
+		(pad "1" thru_hole rect
+			(at 0 0 270)
+			(size 1.7 1.7)
+			(drill 1)
+			(layers "*.Cu" "*.Mask")
+			(remove_unused_layers no)
+			(net 78 "unconnected-(JP10-A-Pad1)")
+			(pinfunction "A")
+			(pintype "passive+no_connect")
+			(uuid "146286ec-1d1a-403f-9044-3181b8b71c04")
+		)
+		(pad "2" thru_hole circle
+			(at 0 -2.54 270)
+			(size 1.7 1.7)
+			(drill 1)
+			(layers "*.Cu" "*.Mask")
+			(remove_unused_layers no)
+			(net 79 "unconnected-(JP10-B-Pad2)")
+			(pinfunction "B")
+			(pintype "passive+no_connect")
+			(uuid "52d29220-d5e9-4f18-93f5-e9fa89f47df4")
+		)
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/models/NPC02SXON-RC.step"
+			(offset
+				(xyz 0 -1.275 2.6)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -0 -0 -90)
+			)
+		)
+		(model "${KICAD9_3DMODEL_DIR}/Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x02_P2.54mm_Vertical.step"
 			(offset
 				(xyz 0 0 0)
 			)

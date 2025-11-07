@@ -2111,12 +2111,28 @@
 		(uuid "dcb256bc-04ab-459f-b600-8a90c788dd09")
 	)
 	(no_connect
+		(at 297.18 262.89)
+		(uuid "36ec8af1-9c01-4870-93d3-de8a2c428c8c")
+	)
+	(no_connect
 		(at 217.17 201.93)
 		(uuid "c7539589-45ba-4fc7-98b5-81101fcf57e8")
 	)
 	(no_connect
+		(at 297.18 271.78)
+		(uuid "d4d91242-365f-49ee-8431-c38a85ff889e")
+	)
+	(no_connect
 		(at 217.17 199.39)
 		(uuid "d89ec8c8-68a2-4dfc-80d9-7b17c1a29b71")
+	)
+	(no_connect
+		(at 287.02 262.89)
+		(uuid "e856d0b8-c5a4-4790-a060-e8906c292b7a")
+	)
+	(no_connect
+		(at 287.02 271.78)
+		(uuid "f1dcb3ce-aecf-4e6f-8a6c-38d0e11af98e")
 	)
 	(wire
 		(pts
@@ -4582,6 +4598,74 @@
 		)
 	)
 	(symbol
+		(lib_id "Jumper:Jumper_2_Bridged")
+		(at 292.1 262.89 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5e27e98d-cc75-4b27-beaf-6e458634b2bc")
+		(property "Reference" "JP9"
+			(at 292.1 260.604 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "Jumper_2_Bridged"
+			(at 292.1 260.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "pcb:NPC02SXON-RC"
+			(at 292.1 262.89 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 292.1 262.89 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Jumper, 2-pole, closed/bridged"
+			(at 292.1 262.89 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "3f8ec8ee-e881-4c83-99bf-518173a5a95e")
+		)
+		(pin "2"
+			(uuid "45f8e770-c7f9-4762-82f4-814134a01a6c")
+		)
+		(instances
+			(project "VehiclePowerDistributionSystem"
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085"
+					(reference "JP9")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:+3.3V")
 		(at 410.21 309.88 90)
 		(unit 1)
@@ -4921,6 +5005,74 @@
 			(project "VehiclePowerDistributionSystem"
 				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085"
 					(reference "#PWR028")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Jumper:Jumper_2_Bridged")
+		(at 292.1 271.78 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "773f0bed-cf15-4b93-9c59-0f2f2fd4030f")
+		(property "Reference" "JP10"
+			(at 292.1 269.494 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "Jumper_2_Bridged"
+			(at 292.1 269.24 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "pcb:NPC02SXON-RC"
+			(at 292.1 271.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 292.1 271.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Jumper, 2-pole, closed/bridged"
+			(at 292.1 271.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "d9d740af-7dd6-4e12-957f-6431b33a6b42")
+		)
+		(pin "2"
+			(uuid "1155290e-a3df-4c0b-878f-f236ea877e08")
+		)
+		(instances
+			(project "VehiclePowerDistributionSystem"
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085"
+					(reference "JP10")
 					(unit 1)
 				)
 			)
@@ -6622,7 +6774,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
+		(property "Footprint" "pcb:NPC02SXON-RC"
 			(at 340.36 68.58 0)
 			(effects
 				(font
