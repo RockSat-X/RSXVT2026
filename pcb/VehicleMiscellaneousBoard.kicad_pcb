@@ -144,14 +144,14 @@
 	(footprint "pcb:Dummy"
 		(locked yes)
 		(layer "F.Cu")
-		(uuid "1af7cb18-2402-42ce-90af-bdbbee8bd24f")
+		(uuid "88498503-2fc9-4d33-b87b-23d1748ddaf1")
 		(at 150 100)
 		(property "Reference" "N1"
 			(at 0 -0.5 0)
 			(unlocked yes)
 			(layer "F.SilkS")
 			(hide yes)
-			(uuid "ebf9337d-f1b2-41a4-bd07-b5fc172d465f")
+			(uuid "8dbb0af6-4a98-4053-8545-a3199857ede1")
 			(effects
 				(font
 					(size 1 1)
@@ -164,7 +164,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "a2232976-9084-4acb-8b09-d5ac61c97259")
+			(uuid "4b4bbaa5-723f-46dc-8cdb-64105836a50f")
 			(effects
 				(font
 					(size 1 1)
@@ -177,7 +177,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "77a010e8-d75d-4dce-b0c5-83a78a868587")
+			(uuid "3e02be95-ee7d-4d7f-ad25-38f24bb04640")
 			(effects
 				(font
 					(size 1 1)
@@ -190,7 +190,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "8ad5fe2e-1e82-41b5-b4d0-dd03884959da")
+			(uuid "7cc9f1d3-9203-493e-8727-b718911c5a10")
 			(effects
 				(font
 					(size 1 1)
@@ -206,7 +206,7 @@
 				(type default)
 			)
 			(layer "User.1")
-			(uuid "22768c6c-2964-4095-b93c-dca4ed65b54e")
+			(uuid "ebd536c8-1710-4e2e-bec8-c8c6fbf39275")
 		)
 		(fp_line
 			(start 0 -1)
@@ -216,7 +216,7 @@
 				(type default)
 			)
 			(layer "User.1")
-			(uuid "3710b1f6-35b1-442a-85d2-94fac45f1454")
+			(uuid "758400c8-bb28-4765-941d-603dd60e4449")
 		)
 		(fp_circle
 			(center 0 0)
@@ -227,13 +227,13 @@
 			)
 			(fill no)
 			(layer "User.1")
-			(uuid "fc684024-6158-4a1c-a816-0d93047b495e")
+			(uuid "985b4cd6-b624-4796-95d5-d62e6f433e3e")
 		)
 		(embedded_fonts no)
 		(model "${KIPRJMOD}/models/CONSat.step"
-			(opacity 0.3700)
+			(opacity 0.3300)
 			(offset
-				(xyz 0 -50 28)
+				(xyz 0 0 28.7)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -242,16 +242,15 @@
 				(xyz -0 90 90)
 			)
 		)
-		(model "${KIPRJMOD}/models/Main_Stack_Dummy.step"
-			(opacity 0.3700)
+		(model "${KIPRJMOD}/models/VehiclePowerDistributionSystem.step"
 			(offset
-				(xyz 0 0 -12)
+				(xyz 28 0 28.5)
 			)
 			(scale
 				(xyz 1 1 1)
 			)
 			(rotate
-				(xyz -0 -0 -0)
+				(xyz -0 90 -0)
 			)
 		)
 	)
