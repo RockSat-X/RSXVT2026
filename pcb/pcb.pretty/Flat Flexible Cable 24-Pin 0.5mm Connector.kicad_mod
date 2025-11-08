@@ -27,7 +27,7 @@
 			)
 		)
 	)
-	(property "Datasheet" "https://gct.co/connector/ffc2b28"
+	(property "Datasheet" "https://gct.co/files/specs/0.5mm-ffc-spec.pdf"
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)
