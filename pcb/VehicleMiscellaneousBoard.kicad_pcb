@@ -305,7 +305,7 @@
 		(model "${KIPRJMOD}/models/CONSat.step"
 			(opacity 0.3300)
 			(offset
-				(xyz 0 0 28.7)
+				(xyz 0 0 23.2)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -316,13 +316,35 @@
 		)
 		(model "${KIPRJMOD}/models/VehiclePowerDistributionSystem.step"
 			(offset
-				(xyz 28 0 28.5)
+				(xyz 28 0 23)
 			)
 			(scale
 				(xyz 1 1 1)
 			)
 			(rotate
 				(xyz -0 90 -0)
+			)
+		)
+		(model "${KIPRJMOD}/models/Vehicle_Stack_Dummy.step"
+			(offset
+				(xyz 0 0 -12)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -0 -0 -0)
+			)
+		)
+		(model "${KIPRJMOD}/models/VehicleFlightComputer.step"
+			(offset
+				(xyz 0 0 -22.5)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -0 -0 -0)
 			)
 		)
 	)

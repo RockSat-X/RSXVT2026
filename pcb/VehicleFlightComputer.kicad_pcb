@@ -8170,6 +8170,28 @@
 				(xyz -0 90 -0)
 			)
 		)
+		(model "${KIPRJMOD}/models/Vehicle_Stack_Dummy.step"
+			(offset
+				(xyz 0 0 21)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -0 -0 -0)
+			)
+		)
+		(model "${KIPRJMOD}/models/Vehicle_Stack_Dummy.step"
+			(offset
+				(xyz 0 0 10)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -0 -0 -0)
+			)
+		)
 	)
 	(footprint "Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder"
 		(layer "F.Cu")
