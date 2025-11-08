@@ -462,7 +462,9 @@
   "libraries": {
     "pinned_footprint_libs": [],
     "pinned_symbol_libs": [
-      "LSM6DSV32X"
+      "LSM6DSV32X",
+      "MainStackConnector",
+      "VehicleStackConnector"
     ]
   },
   "meta": {
