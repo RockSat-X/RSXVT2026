@@ -1436,6 +1436,113 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Mechanical:MountingHole_Pad"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom no)
+			(on_board yes)
+			(property "Reference" "H"
+				(at 0 6.35 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "MountingHole_Pad"
+				(at 0 4.445 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Mounting Hole with connection"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "mounting hole"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "MountingHole*Pad*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "MountingHole_Pad_0_1"
+				(circle
+					(center 0 1.27)
+					(radius 1.27)
+					(stroke
+						(width 1.27)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "MountingHole_Pad_1_1"
+				(pin input line
+					(at 0 -2.54 90)
+					(length 2.54)
+					(name "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "Power_Management:TPS22810DRV"
 			(exclude_from_sim no)
 			(in_bom yes)
@@ -2007,6 +2114,19 @@
 			(type none)
 		)
 		(uuid 3de57a25-d0e6-4a2b-8e15-bfb5599ced63)
+	)
+	(text "Allow the vehicle chassis to be\ngrounded through a single connection."
+		(exclude_from_sim no)
+		(at 328.93 257.81 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.1588)
+				(color 255 0 0 1)
+			)
+			(justify left top)
+		)
+		(uuid "4bf28ab5-3338-4cfa-bdc6-df1ee9e77e0c")
 	)
 	(text "@/pg 20/fig 4.1/`TMC2209`."
 		(exclude_from_sim no)
@@ -3617,70 +3737,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Mechanical:MountingHole")
-		(at 334.01 252.73 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board yes)
-		(dnp no)
-		(uuid "0a87c41d-4edb-48ad-82ae-80c88f8982d7")
-		(property "Reference" "H1"
-			(at 336.55 252.73 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "MountingHole"
-			(at 336.55 253.9999 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3"
-			(at 334.01 252.73 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 334.01 252.73 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Mounting Hole without connection"
-			(at 334.01 252.73 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(instances
-			(project ""
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085"
-					(reference "H1")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:GND")
 		(at 207.01 231.14 0)
 		(unit 1)
@@ -4394,6 +4450,74 @@
 		)
 	)
 	(symbol
+		(lib_id "Mechanical:MountingHole_Pad")
+		(at 320.04 254 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "4c2315bb-bddd-4a47-b5e7-b8c33df4e20b")
+		(property "Reference" "H1"
+			(at 322.58 252.7299 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole_Pad"
+			(at 322.58 253.9999 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3_DIN965_Pad"
+			(at 320.04 254 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 320.04 254 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Mounting Hole with connection"
+			(at 320.04 254 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5e3be18d-a1bb-40f8-8d30-9e4b82a9afeb")
+		)
+		(instances
+			(project "VehiclePowerDistributionSystem"
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085"
+					(reference "H1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 410.21 317.5 270)
 		(unit 1)
@@ -4524,6 +4648,77 @@
 			(project "VehiclePowerDistributionSystem"
 				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085"
 					(reference "#PWR013")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Jumper:SolderJumper_2_Open")
+		(at 320.04 260.35 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "588f2584-2e6e-490a-a322-cf33c1b642a8")
+		(property "Reference" "JP11"
+			(at 322.58 260.3499 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "SolderJumper_2_Open"
+			(at 322.58 261.6199 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
+			(at 320.04 260.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 320.04 260.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Solder Jumper, 2-pole, open"
+			(at 320.04 260.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "4d12e632-c01a-41e2-a584-e88dbb3b258c")
+		)
+		(pin "2"
+			(uuid "cf543080-8f09-474b-980b-daa605850982")
+		)
+		(instances
+			(project "VehiclePowerDistributionSystem"
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085"
+					(reference "JP11")
 					(unit 1)
 				)
 			)
@@ -4880,7 +5075,7 @@
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole")
-		(at 334.01 267.97 0)
+		(at 351.79 252.73 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
@@ -4888,7 +5083,7 @@
 		(dnp no)
 		(uuid "68e701cd-33d1-4899-a7d6-68179e9972fd")
 		(property "Reference" "H4"
-			(at 336.55 267.97 0)
+			(at 354.33 252.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4897,7 +5092,7 @@
 			)
 		)
 		(property "Value" "MountingHole"
-			(at 336.55 269.2399 0)
+			(at 354.33 253.9999 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4907,7 +5102,7 @@
 			)
 		)
 		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3"
-			(at 334.01 267.97 0)
+			(at 351.79 252.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4916,7 +5111,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 334.01 267.97 0)
+			(at 351.79 252.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4925,7 +5120,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole without connection"
-			(at 334.01 267.97 0)
+			(at 351.79 252.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5575,7 +5770,7 @@
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole")
-		(at 334.01 262.89 0)
+		(at 341.63 252.73 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
@@ -5583,7 +5778,7 @@
 		(dnp no)
 		(uuid "a87dfd29-83c9-477b-81ea-27c596d7845a")
 		(property "Reference" "H3"
-			(at 336.55 262.89 0)
+			(at 344.17 252.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5592,7 +5787,7 @@
 			)
 		)
 		(property "Value" "MountingHole"
-			(at 336.55 264.1599 0)
+			(at 344.17 253.9999 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5602,7 +5797,7 @@
 			)
 		)
 		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3"
-			(at 334.01 262.89 0)
+			(at 341.63 252.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5611,7 +5806,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 334.01 262.89 0)
+			(at 341.63 252.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5620,7 +5815,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole without connection"
-			(at 334.01 262.89 0)
+			(at 341.63 252.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6270,7 +6465,7 @@
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole")
-		(at 334.01 257.81 0)
+		(at 331.47 252.73 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
@@ -6278,7 +6473,7 @@
 		(dnp no)
 		(uuid "d63c0bf0-9946-4b87-921e-fb942add2356")
 		(property "Reference" "H2"
-			(at 336.55 257.81 0)
+			(at 334.01 252.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6287,7 +6482,7 @@
 			)
 		)
 		(property "Value" "MountingHole"
-			(at 336.55 259.0799 0)
+			(at 334.01 253.9999 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6297,7 +6492,7 @@
 			)
 		)
 		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3"
-			(at 334.01 257.81 0)
+			(at 331.47 252.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6306,7 +6501,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 334.01 257.81 0)
+			(at 331.47 252.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6315,7 +6510,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole without connection"
-			(at 334.01 257.81 0)
+			(at 331.47 252.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6743,6 +6938,73 @@
 			(project "VehiclePowerDistributionSystem"
 				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085"
 					(reference "R2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 320.04 264.16 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "eda7dcc1-1a44-4665-9878-7c9fc8b6d27f")
+		(property "Reference" "#PWR073"
+			(at 320.04 270.51 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 320.04 269.24 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 320.04 264.16 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 320.04 264.16 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 320.04 264.16 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "2e9f6bc0-fb9c-4bff-8626-cd8015fcf559")
+		)
+		(instances
+			(project "VehiclePowerDistributionSystem"
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085"
+					(reference "#PWR073")
 					(unit 1)
 				)
 			)
