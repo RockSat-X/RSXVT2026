@@ -5851,7 +5851,7 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "StackConnector:StackConnector"
+		(symbol "MainStackConnector:MainStackConnector"
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
@@ -5872,7 +5872,7 @@
 					(hide yes)
 				)
 			)
-			(property "Footprint" "pcb:StackConnector"
+			(property "Footprint" "pcb:MainStackConnector"
 				(at -1.27 0 0)
 				(effects
 					(font
@@ -5899,7 +5899,7 @@
 					(hide yes)
 				)
 			)
-			(symbol "StackConnector_1_1"
+			(symbol "MainStackConnector_1_1"
 				(rectangle
 					(start 0 0)
 					(end 60.96 -157.48)
@@ -13175,7 +13175,7 @@
 		)
 	)
 	(symbol
-		(lib_id "StackConnector:StackConnector")
+		(lib_id "MainStackConnector:MainStackConnector")
 		(at 129.54 245.11 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -13201,7 +13201,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" "pcb:StackConnector"
+		(property "Footprint" "pcb:MainStackConnector"
 			(at 128.27 245.11 0)
 			(effects
 				(font

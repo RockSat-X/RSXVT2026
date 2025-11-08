@@ -464,7 +464,7 @@
       "pcb"
     ],
     "pinned_symbol_libs": [
-      "StackConnector"
+      "MainStackConnector"
     ]
   },
   "meta": {

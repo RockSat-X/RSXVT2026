@@ -2031,7 +2031,7 @@
 			)
 		)
 	)
-	(footprint "pcb:StackConnector"
+	(footprint "pcb:MainStackConnector"
 		(locked yes)
 		(layer "F.Cu")
 		(uuid "6507c529-72d7-40bd-bb8c-e68344733b87")

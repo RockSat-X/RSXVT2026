@@ -312,7 +312,7 @@
 	(net 169 "Net-(U8-COMP)")
 	(net 170 "Net-(U8-FB)")
 	(net 171 "Net-(JP8-B)")
-	(footprint "pcb:StackConnector"
+	(footprint "pcb:MainStackConnector"
 		(locked yes)
 		(layer "F.Cu")
 		(uuid "03f74b08-f305-46b6-8935-cd9c88ec9967")
