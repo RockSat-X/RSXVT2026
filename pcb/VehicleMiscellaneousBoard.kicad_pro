@@ -506,7 +506,7 @@
       "plot": "",
       "pos_files": "",
       "specctra_dsn": "",
-      "step": "",
+      "step": "models/VehicleMiscellaneousBoard.step",
       "svg": "",
       "vrml": ""
     },
