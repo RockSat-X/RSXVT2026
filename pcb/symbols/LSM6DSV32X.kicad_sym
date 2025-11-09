@@ -138,6 +138,24 @@
 			(pin passive line
 				(at -3.81 -21.59 0)
 				(length 3.81)
+				(name "OCS_Aux"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "10"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at -3.81 -25.4 0)
+				(length 3.81)
 				(name "SDO_Aux"
 					(effects
 						(font
@@ -154,7 +172,7 @@
 				)
 			)
 			(pin passive line
-				(at -3.81 -25.4 0)
+				(at -3.81 -29.21 0)
 				(length 3.81)
 				(name "SDO/SA0"
 					(effects
@@ -172,7 +190,7 @@
 				)
 			)
 			(pin passive line
-				(at -3.81 -29.21 0)
+				(at -3.81 -33.02 0)
 				(length 3.81)
 				(name "SDx/AH1/Qvar1"
 					(effects
@@ -190,7 +208,7 @@
 				)
 			)
 			(pin passive line
-				(at -3.81 -33.02 0)
+				(at -3.81 -36.83 0)
 				(length 3.81)
 				(name "SCx/AH2/Qvar2"
 					(effects
@@ -200,24 +218,6 @@
 					)
 				)
 				(number "3"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-			)
-			(pin passive line
-				(at -3.81 -36.83 0)
-				(length 3.81)
-				(name "OCS_Aux"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-				(number "10"
 					(effects
 						(font
 							(size 1.27 1.27)
