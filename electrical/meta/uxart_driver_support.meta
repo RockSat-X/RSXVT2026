@@ -145,7 +145,7 @@
 #if TARGET_NAME_IS_MainFlightComputer
     #error Target 'MainFlightComputer' defines no handle for the 'UXART' driver.
 #endif
-#if TARGET_NAME_IS_DemoA4988
+#if TARGET_NAME_IS_DemoTMC2209
     enum UXARTHandle : u32
     {
         UXARTHandle_stlink,

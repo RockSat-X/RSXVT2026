@@ -3138,7 +3138,7 @@
 #endif
 #if TARGET_NAME_IS_MainFlightComputer
 #endif
-#if TARGET_NAME_IS_DemoA4988
+#if TARGET_NAME_IS_DemoTMC2209
     #if STPY_IMPLEMENTATION
         enum NVICInterrupt : u32
         {
@@ -3338,13 +3338,19 @@
             #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_LOW__driver_step GPIO_BSRR_BR
             #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__driver_step C
             #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__driver_step 2
+            #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_HIGH__driver_enable GPIO_BSRR_BS
+            #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_LOW__driver_enable GPIO_BSRR_BR
+            #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__driver_enable B
+            #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__driver_enable 0
             CMSIS_SET
             (
                 RCC    , AHB2ENR,
                 GPIOAEN, true   ,
+                GPIOBEN, true   ,
                 GPIOCEN, true   ,
             );
             CMSIS_SET(GPIOA, ODR, OD5, false);
+            CMSIS_SET(GPIOB, ODR, OD0, true);
             CMSIS_SET
             (
                 GPIOC, ODR ,
@@ -3364,6 +3370,7 @@
                 MODE3, 0b10 ,
                 MODE5, 0b01 ,
             );
+            CMSIS_SET(GPIOB, MODER, MODE0, 0b01);
             CMSIS_SET
             (
                 GPIOC , MODER,
@@ -3485,6 +3492,15 @@
 
             #define STPY_USART2_KERNEL_SOURCE 0b000
             #define STPY_USART2_BAUD_DIVIDER 250
+
+
+
+            /////////////////////////////////// Timers ///////////////////////////////////
+
+
+
+            #define STPY_GLOBAL_TIMER_PRESCALER false
+            #define STPY_TIM1_DIVIDER (250 - 1)
 
         }
     #endif
