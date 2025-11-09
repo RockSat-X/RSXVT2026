@@ -8783,7 +8783,7 @@
 	)
 	(rectangle
 		(start 461.137 241.681)
-		(end 541.02 284.48)
+		(end 551.18 284.48)
 		(stroke
 			(width 0.8128)
 			(type solid)
@@ -9101,7 +9101,7 @@
 		)
 		(uuid "d38e6984-fe5a-4fa3-afd8-e387175956c7")
 	)
-	(text "Debug Buzzer (V5 : AST only)."
+	(text "Debug Buzzer (V6 : SMD Footprint)."
 		(exclude_from_sim no)
 		(at 461.01 240.03 0)
 		(effects
@@ -9399,7 +9399,7 @@
 		(uuid "c47ac2d2-8acf-4350-be89-bd94e89d3bbc")
 	)
 	(junction
-		(at 501.65 266.7)
+		(at 506.73 266.7)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "cbd70987-7158-4e65-a6ad-91706cc42ca0")
@@ -9794,7 +9794,7 @@
 	)
 	(wire
 		(pts
-			(xy 501.65 260.35) (xy 499.11 260.35)
+			(xy 506.73 260.35) (xy 504.19 260.35)
 		)
 		(stroke
 			(width 0)
@@ -9814,7 +9814,7 @@
 	)
 	(wire
 		(pts
-			(xy 509.27 254) (xy 509.27 251.46)
+			(xy 514.35 254) (xy 514.35 251.46)
 		)
 		(stroke
 			(width 0)
@@ -10104,7 +10104,7 @@
 	)
 	(wire
 		(pts
-			(xy 491.49 260.35) (xy 488.95 260.35)
+			(xy 496.57 260.35) (xy 494.03 260.35)
 		)
 		(stroke
 			(width 0)
@@ -10674,7 +10674,7 @@
 	)
 	(wire
 		(pts
-			(xy 501.65 260.35) (xy 501.65 266.7)
+			(xy 506.73 260.35) (xy 506.73 266.7)
 		)
 		(stroke
 			(width 0)
@@ -10754,7 +10754,7 @@
 	)
 	(wire
 		(pts
-			(xy 491.49 273.05) (xy 488.95 273.05)
+			(xy 496.57 273.05) (xy 494.03 273.05)
 		)
 		(stroke
 			(width 0)
@@ -10944,7 +10944,7 @@
 	)
 	(wire
 		(pts
-			(xy 501.65 273.05) (xy 499.11 273.05)
+			(xy 506.73 273.05) (xy 504.19 273.05)
 		)
 		(stroke
 			(width 0)
@@ -10964,7 +10964,7 @@
 	)
 	(wire
 		(pts
-			(xy 509.27 259.08) (xy 509.27 261.62)
+			(xy 514.35 259.08) (xy 514.35 261.62)
 		)
 		(stroke
 			(width 0)
@@ -11034,7 +11034,7 @@
 	)
 	(wire
 		(pts
-			(xy 501.65 266.7) (xy 501.65 273.05)
+			(xy 506.73 266.7) (xy 506.73 273.05)
 		)
 		(stroke
 			(width 0)
@@ -12374,7 +12374,7 @@
 	)
 	(global_label "buzzer"
 		(shape bidirectional)
-		(at 485.14 266.7 180)
+		(at 490.22 266.7 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -12384,7 +12384,7 @@
 		)
 		(uuid "7dff12cd-2c4c-4b71-b10f-020c947ac05d")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 474.8145 266.7 0)
+			(at 479.8945 266.7 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13878,7 +13878,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 509.27 271.78 0)
+		(at 514.35 271.78 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -13887,7 +13887,7 @@
 		(fields_autoplaced yes)
 		(uuid "0de52c73-ccc2-4ab0-8daf-c309bd15386c")
 		(property "Reference" "#PWR016"
-			(at 509.27 278.13 0)
+			(at 514.35 278.13 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13896,7 +13896,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 509.2701 275.59 90)
+			(at 514.3501 275.59 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13906,7 +13906,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 509.27 271.78 0)
+			(at 514.35 271.78 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13915,7 +13915,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 509.27 271.78 0)
+			(at 514.35 271.78 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13924,7 +13924,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 509.27 271.78 0)
+			(at 514.35 271.78 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -18779,7 +18779,7 @@
 	)
 	(symbol
 		(lib_id "Jumper:Jumper_3_Bridged12")
-		(at 488.95 266.7 270)
+		(at 494.03 266.7 270)
 		(mirror x)
 		(unit 1)
 		(exclude_from_sim no)
@@ -18789,7 +18789,7 @@
 		(fields_autoplaced yes)
 		(uuid "80afd286-b202-4d51-b3d5-6cc4c4f020a6")
 		(property "Reference" "JP2"
-			(at 491.49 266.6999 90)
+			(at 496.57 266.6999 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -18798,7 +18798,7 @@
 			)
 		)
 		(property "Value" "Jumper_3_Bridged12"
-			(at 491.49 267.9699 90)
+			(at 496.57 267.9699 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -18808,7 +18808,7 @@
 			)
 		)
 		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
-			(at 488.95 266.7 0)
+			(at 494.03 266.7 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -18817,7 +18817,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 488.95 266.7 0)
+			(at 494.03 266.7 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -18826,7 +18826,7 @@
 			)
 		)
 		(property "Description" "Jumper, 3-pole, pins 1+2 closed/bridged"
-			(at 488.95 266.7 0)
+			(at 494.03 266.7 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20433,7 +20433,7 @@
 	)
 	(symbol
 		(lib_id "power:+3.3V")
-		(at 509.27 251.46 0)
+		(at 514.35 251.46 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -20442,7 +20442,7 @@
 		(fields_autoplaced yes)
 		(uuid "a76d97a5-6e22-4895-8b65-6bc24cddb9f3")
 		(property "Reference" "#PWR015"
-			(at 509.27 255.27 0)
+			(at 514.35 255.27 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20451,7 +20451,7 @@
 			)
 		)
 		(property "Value" "+3.3V"
-			(at 509.27 246.38 0)
+			(at 514.35 246.38 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20459,7 +20459,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 509.27 251.46 0)
+			(at 514.35 251.46 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20468,7 +20468,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 509.27 251.46 0)
+			(at 514.35 251.46 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20477,7 +20477,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-			(at 509.27 251.46 0)
+			(at 514.35 251.46 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -21881,7 +21881,7 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 495.3 260.35 90)
+		(at 500.38 260.35 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -21890,7 +21890,7 @@
 		(fields_autoplaced yes)
 		(uuid "d3a94a81-6e98-48b0-8207-26685fc02a13")
 		(property "Reference" "R4"
-			(at 495.3 254 90)
+			(at 500.38 254 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -21898,7 +21898,7 @@
 			)
 		)
 		(property "Value" "50k"
-			(at 495.3 256.54 90)
+			(at 500.38 256.54 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -21906,7 +21906,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
-			(at 495.3 262.128 90)
+			(at 500.38 262.128 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -21915,7 +21915,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 495.3 260.35 0)
+			(at 500.38 260.35 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -21924,7 +21924,7 @@
 			)
 		)
 		(property "Description" "Resistor"
-			(at 495.3 260.35 0)
+			(at 500.38 260.35 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -22101,7 +22101,7 @@
 	)
 	(symbol
 		(lib_id "Transistor_BJT:S8050")
-		(at 506.73 266.7 0)
+		(at 511.81 266.7 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -22110,7 +22110,7 @@
 		(fields_autoplaced yes)
 		(uuid "dc31122c-efa2-4d4e-b9b2-271c8320c7eb")
 		(property "Reference" "Q1"
-			(at 511.81 265.4299 0)
+			(at 516.89 265.4299 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -22119,7 +22119,7 @@
 			)
 		)
 		(property "Value" "S8050"
-			(at 511.81 267.9699 0)
+			(at 516.89 267.9699 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -22127,8 +22127,8 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Package_TO_SOT_THT:TO-92_Inline"
-			(at 511.81 268.605 0)
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23_Handsoldering"
+			(at 516.89 268.605 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -22139,7 +22139,7 @@
 			)
 		)
 		(property "Datasheet" "http://www.unisonic.com.tw/datasheet/S8050.pdf"
-			(at 506.73 266.7 0)
+			(at 511.81 266.7 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -22149,7 +22149,7 @@
 			)
 		)
 		(property "Description" "0.7A Ic, 20V Vce, Low Voltage High Current NPN Transistor, TO-92"
-			(at 506.73 266.7 0)
+			(at 511.81 266.7 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -22983,7 +22983,7 @@
 	)
 	(symbol
 		(lib_id "Device:Buzzer")
-		(at 511.81 256.54 0)
+		(at 516.89 256.54 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -22991,7 +22991,7 @@
 		(dnp no)
 		(uuid "ed9430c6-e21b-46d4-b8d9-6e32e945b389")
 		(property "Reference" "BZ1"
-			(at 515.62 255.2699 0)
+			(at 520.7 255.2699 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -23000,7 +23000,7 @@
 			)
 		)
 		(property "Value" "AST1109MLTRQ"
-			(at 515.62 257.8099 0)
+			(at 520.7 257.8099 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -23009,7 +23009,7 @@
 			)
 		)
 		(property "Footprint" "Buzzer_Beeper:Buzzer_Mallory_AST1109MLTRQ"
-			(at 511.175 254 90)
+			(at 516.255 254 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -23018,7 +23018,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 511.175 254 90)
+			(at 516.255 254 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -23027,7 +23027,7 @@
 			)
 		)
 		(property "Description" "Buzzer, polarized"
-			(at 511.81 256.54 0)
+			(at 516.89 256.54 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -23264,7 +23264,7 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 495.3 273.05 90)
+		(at 500.38 273.05 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -23272,7 +23272,7 @@
 		(dnp no)
 		(uuid "f075f643-c677-405c-addf-e4c38a3a8419")
 		(property "Reference" "R5"
-			(at 495.3 279.4 90)
+			(at 500.38 279.4 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -23280,7 +23280,7 @@
 			)
 		)
 		(property "Value" "10k"
-			(at 495.3 276.86 90)
+			(at 500.38 276.86 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -23288,7 +23288,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
-			(at 495.3 274.828 90)
+			(at 500.38 274.828 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -23297,7 +23297,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 495.3 273.05 0)
+			(at 500.38 273.05 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -23306,7 +23306,7 @@
 			)
 		)
 		(property "Description" "Resistor"
-			(at 495.3 273.05 0)
+			(at 500.38 273.05 0)
 			(effects
 				(font
 					(size 1.27 1.27)
