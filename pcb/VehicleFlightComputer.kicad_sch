@@ -8885,7 +8885,7 @@
 		)
 		(uuid "09835246-4738-4a4f-9634-f334e74eab5b")
 	)
-	(text "STM32 MCU Support (V0)."
+	(text "STM32 MCU Support (V1 : Smaller BOOT0 setting)."
 		(exclude_from_sim no)
 		(at 336.677 296.545 0)
 		(effects
@@ -8981,6 +8981,19 @@
 			(justify left bottom)
 		)
 		(uuid "42352523-44cb-4549-a9d0-bffcef3f3145")
+	)
+	(text "BOOT0 to GND has MCU boot from flash.\n@/pg 163/tbl 15/`H533rm`."
+		(exclude_from_sim no)
+		(at 364.49 322.326 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.1588)
+				(color 255 0 0 1)
+			)
+			(justify left top)
+		)
+		(uuid "4ae8b05b-bccd-49b0-9149-6e073e8f50eb")
 	)
 	(text "\"Capacitor connection (C1 = 220 nF)\".\n@/pg 3/tbl 1/`LIS2MDL`.\n@/pg 13/fig 5/`LIS2MDL`."
 		(exclude_from_sim no)
@@ -9144,19 +9157,6 @@
 		)
 		(uuid "dd8eafd5-7995-42a0-a00b-709bfc858d7c")
 	)
-	(text "@/pg 34/fig 14/`H533an`."
-		(exclude_from_sim no)
-		(at 352.044 305.054 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-				(thickness 0.1588)
-				(color 255 0 0 1)
-			)
-			(justify left top)
-		)
-		(uuid "e074b456-6f8f-44c4-858b-9e3be44fde18")
-	)
 	(text "VDD and VUSB will be tied together.\n@/pg 18/fig 1-5/`MCP2221A`."
 		(exclude_from_sim no)
 		(at 433.578 89.662 0)
@@ -9301,6 +9301,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "4a8367d3-09cb-4268-839e-71ce516f70cf")
+	)
+	(junction
+		(at 361.95 318.77)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "4c30e6b3-8482-4be4-9dc7-4745f68702b1")
 	)
 	(junction
 		(at 406.4 59.69)
@@ -10684,6 +10690,16 @@
 	)
 	(wire
 		(pts
+			(xy 361.95 318.77) (xy 365.76 318.77)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a102c62a-a8be-4b44-8252-180d4bed6c4f")
+	)
+	(wire
+		(pts
 			(xy 424.18 339.09) (xy 403.86 339.09)
 		)
 		(stroke
@@ -11307,6 +11323,28 @@
 		(uuid "0bc2b0ca-5ba7-42a9-ba8d-ae568173eea2")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 127.9516 190.5 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "BOOT0"
+		(shape bidirectional)
+		(at 365.76 318.77 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "0c238586-d78b-49b6-b966-4d1950189174")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 375.9646 318.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12856,28 +12894,6 @@
 			)
 		)
 	)
-	(global_label "BOOT0"
-		(shape bidirectional)
-		(at 356.87 316.23 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "b5ae8061-b9cc-42f2-8b01-1f9088523de4")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 367.0746 316.23 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "swo"
 		(shape bidirectional)
 		(at 102.87 119.38 0)
@@ -13429,6 +13445,77 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:R")
+		(at 361.95 322.58 0)
+		(mirror x)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "0291b913-1482-4405-9ff5-277844d932d6")
+		(property "Reference" "R21"
+			(at 359.41 321.3099 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "47k"
+			(at 359.41 323.8499 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
+			(at 360.172 322.58 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 361.95 322.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 361.95 322.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "8ec66f15-2be5-4c4a-b63d-7daf7fa8faf1")
+		)
+		(pin "2"
+			(uuid "6f3de223-82ff-4623-a69c-722443851826")
+		)
+		(instances
+			(project "VehicleFlightComputer"
+				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073"
+					(reference "R21")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:C_Small")
 		(at 240.03 53.34 0)
 		(mirror y)
@@ -13493,6 +13580,73 @@
 			(project "VehicleFlightComputer"
 				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073"
 					(reference "C18")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3.3V")
+		(at 351.79 318.77 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "0411253c-deec-41ad-8cf3-c827fc278495")
+		(property "Reference" "#PWR063"
+			(at 355.6 318.77 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3.3V"
+			(at 347.98 318.7699 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 351.79 318.77 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 351.79 318.77 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 351.79 318.77 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "613f2d57-f390-4aa7-b294-7783a605576e")
+		)
+		(instances
+			(project "VehicleFlightComputer"
+				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073"
+					(reference "#PWR063")
 					(unit 1)
 				)
 			)
@@ -14019,6 +14173,74 @@
 		)
 	)
 	(symbol
+		(lib_id "Switch:SW_Push")
+		(at 356.87 318.77 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "100e0467-9689-48fc-8c09-1382d6aa5b05")
+		(property "Reference" "SW2"
+			(at 356.87 311.15 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "B3U-1000P"
+			(at 356.87 313.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Button_Switch_SMD:SW_SPST_B3U-1000P"
+			(at 356.87 313.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 356.87 313.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Push button switch, generic, two pins"
+			(at 356.87 318.77 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "08a8670c-e568-4c3f-8011-a9731f74fd9d")
+		)
+		(pin "2"
+			(uuid "6f8c0db7-3e54-4e05-b74c-0f90d5c22b69")
+		)
+		(instances
+			(project "VehicleFlightComputer"
+				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073"
+					(reference "SW2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:C_Small")
 		(at 369.57 342.9 0)
 		(mirror y)
@@ -14305,79 +14527,6 @@
 			(project "VehicleFlightComputer"
 				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073"
 					(reference "C14")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:GND")
-		(at 345.44 322.58 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "16709cb7-52cc-45a4-851f-537aa06b3aec")
-		(property "Reference" "#PWR05"
-			(at 345.44 328.93 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "GND"
-			(at 345.44 327.66 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Footprint" ""
-			(at 345.44 322.58 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 345.44 322.58 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 345.44 322.58 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "92e569d8-9f1a-45ca-80e2-d37dbddcf8fb")
-		)
-		(instances
-			(project "MainFlightComputer"
-				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
-					(reference "#PWR04")
-					(unit 1)
-				)
-			)
-			(project ""
-				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073"
-					(reference "#PWR05")
 					(unit 1)
 				)
 			)
@@ -15855,81 +16004,6 @@
 			(project "VehicleFlightComputer"
 				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073"
 					(reference "#PWR056")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:R")
-		(at 353.06 316.23 90)
-		(mirror x)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "382b0ff0-262e-40a9-94dd-fd936264da07")
-		(property "Reference" "R1"
-			(at 353.06 309.88 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "10K"
-			(at 353.06 312.42 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
-			(at 353.06 314.452 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 353.06 316.23 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Resistor"
-			(at 353.06 316.23 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "8a7aeb6c-ffbf-4eab-9dca-d35461ef8ff5")
-		)
-		(pin "2"
-			(uuid "ee97fd1b-2fac-457a-a3a5-74a571ee9273")
-		)
-		(instances
-			(project "MainFlightComputer"
-				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
-					(reference "R2")
-					(unit 1)
-				)
-			)
-			(project ""
-				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073"
-					(reference "R1")
 					(unit 1)
 				)
 			)
@@ -18276,78 +18350,6 @@
 	)
 	(symbol
 		(lib_id "power:+3.3V")
-		(at 345.44 309.88 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "782317b9-69fa-49d2-b102-5117e550d37d")
-		(property "Reference" "#PWR04"
-			(at 345.44 313.69 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "+3.3V"
-			(at 345.44 304.8 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 345.44 309.88 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 345.44 309.88 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-			(at 345.44 309.88 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "a0822973-4cd2-4f21-9ea3-cec9aa016f3e")
-		)
-		(instances
-			(project "MainFlightComputer"
-				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
-					(reference "#PWR03")
-					(unit 1)
-				)
-			)
-			(project ""
-				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073"
-					(reference "#PWR04")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:+3.3V")
 		(at 497.84 92.71 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -20569,36 +20571,17 @@
 		)
 	)
 	(symbol
-		(lib_id "Jumper:Jumper_3_Bridged12")
-		(at 345.44 316.23 90)
-		(mirror x)
+		(lib_id "power:GND")
+		(at 361.95 326.39 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "a98bcc19-4d0b-4a0b-a5f0-5de7a6ac6624")
-		(property "Reference" "JP1"
-			(at 342.9 316.23 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "Jumper_3_Bridged12"
-			(at 342.9 314.9601 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
-			(at 345.44 316.23 0)
+		(fields_autoplaced yes)
+		(uuid "a82249ff-d478-4211-a38c-07786b0d306c")
+		(property "Reference" "#PWR062"
+			(at 361.95 332.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20606,8 +20589,8 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "~"
-			(at 345.44 316.23 0)
+		(property "Value" "GND"
+			(at 361.95 331.47 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20615,8 +20598,8 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "Jumper, 3-pole, pins 1+2 closed/bridged"
-			(at 345.44 316.23 0)
+		(property "Footprint" ""
+			(at 361.95 326.39 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20624,25 +20607,31 @@
 				(hide yes)
 			)
 		)
-		(pin "2"
-			(uuid "b1a13cc0-8732-4570-83a2-4acb792dd891")
+		(property "Datasheet" ""
+			(at 361.95 326.39 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
 		)
-		(pin "3"
-			(uuid "c696cd82-61dd-4584-8a1a-85c8519c7504")
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 361.95 326.39 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
 		)
 		(pin "1"
-			(uuid "c58fafc0-02c8-48b9-a487-d0e492a407d9")
+			(uuid "a2f42bac-2df0-43a4-8d5f-369a7d6a47b9")
 		)
 		(instances
-			(project ""
-				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
-					(reference "JP1")
-					(unit 1)
-				)
-			)
-			(project ""
+			(project "VehicleFlightComputer"
 				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073"
-					(reference "JP1")
+					(reference "#PWR062")
 					(unit 1)
 				)
 			)
