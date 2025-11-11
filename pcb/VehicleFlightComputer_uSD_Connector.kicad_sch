@@ -1154,7 +1154,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "111d1952-a559-42dd-8e4e-d91b8bbefb11")
-		(property "Reference" "R10"
+		(property "Reference" "R21"
 			(at 92.71 68.326 90)
 			(effects
 				(font
@@ -1206,8 +1206,8 @@
 		)
 		(instances
 			(project "VehicleFlightComputer"
-				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073/6e13037a-c249-4898-9fed-e095c84fcb99"
-					(reference "R10")
+				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073/759d802d-72f0-4543-9abd-1bdb6f3a2344"
+					(reference "R21")
 					(unit 1)
 				)
 			)
@@ -1222,7 +1222,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "188d5dae-76a8-4275-a9f6-9b5bcb934a4c")
-		(property "Reference" "R11"
+		(property "Reference" "R22"
 			(at 92.71 78.486 90)
 			(effects
 				(font
@@ -1274,8 +1274,8 @@
 		)
 		(instances
 			(project "VehicleFlightComputer"
-				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073/6e13037a-c249-4898-9fed-e095c84fcb99"
-					(reference "R11")
+				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073/759d802d-72f0-4543-9abd-1bdb6f3a2344"
+					(reference "R22")
 					(unit 1)
 				)
 			)
@@ -1290,7 +1290,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "1a8102a4-d3c1-44d0-b108-db525952ba17")
-		(property "Reference" "R12"
+		(property "Reference" "R23"
 			(at 97.79 70.866 90)
 			(effects
 				(font
@@ -1342,8 +1342,8 @@
 		)
 		(instances
 			(project "VehicleFlightComputer"
-				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073/6e13037a-c249-4898-9fed-e095c84fcb99"
-					(reference "R12")
+				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073/759d802d-72f0-4543-9abd-1bdb6f3a2344"
+					(reference "R23")
 					(unit 1)
 				)
 			)
@@ -1358,7 +1358,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "3b49be11-1227-476c-b3d7-db75677d6149")
-		(property "Reference" "R13"
+		(property "Reference" "R24"
 			(at 97.79 83.566 90)
 			(effects
 				(font
@@ -1410,8 +1410,8 @@
 		)
 		(instances
 			(project "VehicleFlightComputer"
-				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073/6e13037a-c249-4898-9fed-e095c84fcb99"
-					(reference "R13")
+				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073/759d802d-72f0-4543-9abd-1bdb6f3a2344"
+					(reference "R24")
 					(unit 1)
 				)
 			)
@@ -1426,7 +1426,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "4fb855b8-0e98-4f5c-8957-324468962ec7")
-		(property "Reference" "R16"
+		(property "Reference" "R25"
 			(at 102.87 73.406 90)
 			(effects
 				(font
@@ -1478,8 +1478,8 @@
 		)
 		(instances
 			(project "VehicleFlightComputer"
-				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073/6e13037a-c249-4898-9fed-e095c84fcb99"
-					(reference "R16")
+				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073/759d802d-72f0-4543-9abd-1bdb6f3a2344"
+					(reference "R25")
 					(unit 1)
 				)
 			)
@@ -1495,7 +1495,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "741be1c4-8290-4f49-a792-4fe99d4ee95c")
-		(property "Reference" "C14"
+		(property "Reference" "C21"
 			(at 52.07 78.7462 0)
 			(effects
 				(font
@@ -1548,8 +1548,8 @@
 		)
 		(instances
 			(project "VehicleFlightComputer"
-				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073/6e13037a-c249-4898-9fed-e095c84fcb99"
-					(reference "C14")
+				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073/759d802d-72f0-4543-9abd-1bdb6f3a2344"
+					(reference "C21")
 					(unit 1)
 				)
 			)
@@ -1565,7 +1565,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "90b0adea-1d96-4634-86f6-f9a4a18ac2a0")
-		(property "Reference" "C16"
+		(property "Reference" "C22"
 			(at 63.5 78.7462 0)
 			(effects
 				(font
@@ -1618,8 +1618,8 @@
 		)
 		(instances
 			(project "VehicleFlightComputer"
-				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073/6e13037a-c249-4898-9fed-e095c84fcb99"
-					(reference "C16")
+				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073/759d802d-72f0-4543-9abd-1bdb6f3a2344"
+					(reference "C22")
 					(unit 1)
 				)
 			)
@@ -1706,7 +1706,7 @@
 		)
 		(instances
 			(project "VehicleFlightComputer"
-				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073/6e13037a-c249-4898-9fed-e095c84fcb99"
+				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073/759d802d-72f0-4543-9abd-1bdb6f3a2344"
 					(reference "J5")
 					(unit 1)
 				)
@@ -1723,7 +1723,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "9f92e1b5-6190-4408-a4f7-bf9465150b85")
-		(property "Reference" "#PWR033"
+		(property "Reference" "#PWR076"
 			(at 66.04 88.9 0)
 			(effects
 				(font
@@ -1774,8 +1774,8 @@
 		)
 		(instances
 			(project "VehicleFlightComputer"
-				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073/6e13037a-c249-4898-9fed-e095c84fcb99"
-					(reference "#PWR033")
+				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073/759d802d-72f0-4543-9abd-1bdb6f3a2344"
+					(reference "#PWR076")
 					(unit 1)
 				)
 			)
@@ -1791,7 +1791,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "a915b051-6d41-4de7-8493-d20d55d0d1ac")
-		(property "Reference" "#PWR032"
+		(property "Reference" "#PWR075"
 			(at 66.04 81.28 0)
 			(effects
 				(font
@@ -1840,8 +1840,8 @@
 		)
 		(instances
 			(project "VehicleFlightComputer"
-				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073/6e13037a-c249-4898-9fed-e095c84fcb99"
-					(reference "#PWR032")
+				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073/759d802d-72f0-4543-9abd-1bdb6f3a2344"
+					(reference "#PWR075")
 					(unit 1)
 				)
 			)
@@ -1857,7 +1857,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "eed4bcad-4845-4e2c-98a6-e742ffee0523")
-		(property "Reference" "#PWR037"
+		(property "Reference" "#PWR077"
 			(at 156.21 92.71 0)
 			(effects
 				(font
@@ -1908,8 +1908,8 @@
 		)
 		(instances
 			(project "VehicleFlightComputer"
-				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073/6e13037a-c249-4898-9fed-e095c84fcb99"
-					(reference "#PWR037")
+				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073/759d802d-72f0-4543-9abd-1bdb6f3a2344"
+					(reference "#PWR077")
 					(unit 1)
 				)
 			)
@@ -1924,7 +1924,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "fa6f3aa4-138a-42e3-a7b3-299cd67e3eec")
-		(property "Reference" "R17"
+		(property "Reference" "R26"
 			(at 102.87 86.106 90)
 			(effects
 				(font
@@ -1976,8 +1976,8 @@
 		)
 		(instances
 			(project "VehicleFlightComputer"
-				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073/6e13037a-c249-4898-9fed-e095c84fcb99"
-					(reference "R17")
+				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073/759d802d-72f0-4543-9abd-1bdb6f3a2344"
+					(reference "R26")
 					(unit 1)
 				)
 			)
@@ -1993,7 +1993,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "fe2fcf4f-f837-4d19-8156-bba9b71418ed")
-		(property "Reference" "C17"
+		(property "Reference" "C23"
 			(at 74.93 78.7462 0)
 			(effects
 				(font
@@ -2046,8 +2046,8 @@
 		)
 		(instances
 			(project "VehicleFlightComputer"
-				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073/6e13037a-c249-4898-9fed-e095c84fcb99"
-					(reference "C17")
+				(path "/378ff2fd-4011-4cd9-8b06-ddd39885e073/759d802d-72f0-4543-9abd-1bdb6f3a2344"
+					(reference "C23")
 					(unit 1)
 				)
 			)
