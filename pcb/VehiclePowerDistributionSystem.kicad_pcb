@@ -1096,6 +1096,28 @@
 				(xyz 90 -0 -0)
 			)
 		)
+		(model "${KIPRJMOD}/models/VehicleFlightComputer.step"
+			(offset
+				(xyz -44.5 0 27.8)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -0 -90 -0)
+			)
+		)
+		(model "${KIPRJMOD}/models/VehicleMiscellaneousBoard.step"
+			(offset
+				(xyz -23 0 27.8)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -0 -90 -0)
+			)
+		)
 	)
 	(footprint "Connector_JST:JST_XH_B4B-XH-A_1x04_P2.50mm_Vertical"
 		(layer "F.Cu")
