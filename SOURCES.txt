@@ -17,3 +17,4 @@
 @/`UM1724`     : STM32 Nucleo-64 Board User Guide (UM1724) (September 2025) (Rev 17).
 @/`TMC2209`    : TMC2209 Datasheet (Rev. 1.09) (2023-FEB-16) (analog.com/media/en/technical-documentation/data-sheets/TMC2209_datasheet_rev1.09.pdf).
 @/`L4978`      : L4978 Datasheet (Rev. 9) (May 2005).
+@/`TPS22810`   : TPS22810 Datasheet (JANUARY 2018) (ti.com/lit/ds/symlink/tps22810.pdf).
