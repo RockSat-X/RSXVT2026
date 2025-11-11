@@ -461,7 +461,11 @@
   },
   "libraries": {
     "pinned_footprint_libs": [],
-    "pinned_symbol_libs": []
+    "pinned_symbol_libs": [
+      "LSM6DSV32X",
+      "MainStackConnector",
+      "VehicleStackConnector"
+    ]
   },
   "meta": {
     "filename": "VehicleFlightComputer.kicad_pro",
@@ -503,7 +507,7 @@
       "plot": "",
       "pos_files": "",
       "specctra_dsn": "",
-      "step": "",
+      "step": "models/VehicleFlightComputer.step",
       "svg": "",
       "vrml": ""
     },
@@ -626,6 +630,10 @@
     [
       "378ff2fd-4011-4cd9-8b06-ddd39885e073",
       "Root"
+    ],
+    [
+      "759d802d-72f0-4543-9abd-1bdb6f3a2344",
+      "uSD Connector"
     ]
   ],
   "text_variables": {}
