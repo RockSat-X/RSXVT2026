@@ -4109,19 +4109,6 @@
 		)
 		(uuid 1872fd18-f222-40aa-9c7f-bcb39040d529)
 	)
-	(arc
-		(start 208.28 346.71)
-		(mid 208.28 346.71)
-		(end 208.28 346.71)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(fill
-			(type none)
-		)
-		(uuid 3fd25d01-deb4-42d8-b7ee-4ccdf2e700d9)
-	)
 	(rectangle
 		(start 42.037 133.35)
 		(end 228.6 243.84)
@@ -4160,19 +4147,6 @@
 			(type none)
 		)
 		(uuid 88d5e17b-cbb1-466c-98c7-b94118c392be)
-	)
-	(arc
-		(start 208.28 346.71)
-		(mid 209.0691 348.615)
-		(end 208.28 350.52)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(fill
-			(type none)
-		)
-		(uuid cf713d37-5cfa-4a8b-9f78-af6ee3972429)
 	)
 	(rectangle
 		(start 233.807 64.008)
@@ -4232,6 +4206,19 @@
 		)
 		(uuid "1f20ce7b-e022-4213-94d4-6282b3bf1543")
 	)
+	(text "Expected to draw 6.3mA - 9mA at 24V - 32V.\nPower disipated: 120mW - 241mW.\n\nResistor that allows for the highest current to\nthe zener without exceding its power rating.\n\nNote: Testing shows that zener can run at \nlower currents than specified on data sheet."
+		(exclude_from_sim no)
+		(at 129.54 311.658 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.1588)
+				(color 255 0 0 1)
+			)
+			(justify right)
+		)
+		(uuid "2aa18dbf-e88c-42f5-a6d8-f182f9f35037")
+	)
 	(text "TODO: Not sure how important VREF is."
 		(exclude_from_sim no)
 		(at 275.844 168.148 0)
@@ -4262,36 +4249,6 @@
 		)
 		(uuid "3e311093-ff4b-4e72-9948-9c8b9d65b3c3")
 	)
-	(text "Testing shows that zener can run at \nlower currents than specified on data sheet.\n"
-		(exclude_from_sim no)
-		(at 96.012 319.278 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-				(thickness 0.254)
-				(bold yes)
-				(italic yes)
-				(color 255 0 255 1)
-			)
-			(justify right)
-		)
-		(uuid "5c4f0e85-3b51-4d3d-ac43-8176ad0ae35b")
-	)
-	(text "Expected to draw 6.3mA - 9mA \nat 24V - 32V"
-		(exclude_from_sim no)
-		(at 95.504 280.162 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-				(thickness 0.254)
-				(bold yes)
-				(italic yes)
-				(color 255 0 255 1)
-			)
-			(justify right)
-		)
-		(uuid "89dfd601-bf71-4afa-bd1a-72ccad64e3d1")
-	)
 	(text "Logic Conversion."
 		(exclude_from_sim no)
 		(at 41.91 253.492 0)
@@ -4307,21 +4264,6 @@
 		)
 		(uuid "bbeeb0d9-8d45-4535-99ed-2f780a840f60")
 	)
-	(text "Capacitor for decoupling "
-		(exclude_from_sim no)
-		(at 154.94 319.786 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-				(thickness 0.254)
-				(bold yes)
-				(italic yes)
-				(color 255 0 255 1)
-			)
-			(justify right)
-		)
-		(uuid "c65d429c-871f-4966-b25a-0ee4eeb50437")
-	)
 	(text "Stepper Motor Drivers."
 		(exclude_from_sim no)
 		(at 233.68 62.23 0)
@@ -4336,21 +4278,6 @@
 			(justify left bottom)
 		)
 		(uuid "c6f30266-3836-4e75-ab93-dda6789c4fd8")
-	)
-	(text "Resistor that allows for the highest current to\nthe zener without exceding its power rating.\nPower disipated: 120mW - 241mW"
-		(exclude_from_sim no)
-		(at 152.4 301.752 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-				(thickness 0.254)
-				(bold yes)
-				(italic yes)
-				(color 255 0 255 1)
-			)
-			(justify right)
-		)
-		(uuid "f7dc674d-2b78-4343-a2d1-c75b546c3d1c")
 	)
 	(text "@/pg 14/sec 3.4/`TMC2209`."
 		(exclude_from_sim no)
@@ -4378,7 +4305,7 @@
 		(uuid "1e906bb2-83a3-4f57-a03a-145f3d1dd302")
 	)
 	(junction
-		(at 119.38 311.15)
+		(at 153.67 317.5)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "2c93293d-3739-4f4a-a019-d539b88469e8")
@@ -4402,7 +4329,7 @@
 		(uuid "72b7197b-77e1-431b-a6e1-72f4ba1e399a")
 	)
 	(junction
-		(at 99.06 311.15)
+		(at 133.35 317.5)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "85fede1d-dd5c-465d-90cf-015c4a0a8552")
@@ -4493,7 +4420,7 @@
 	)
 	(wire
 		(pts
-			(xy 119.38 322.58) (xy 119.38 326.39)
+			(xy 153.67 328.93) (xy 153.67 332.74)
 		)
 		(stroke
 			(width 0)
@@ -4523,7 +4450,7 @@
 	)
 	(wire
 		(pts
-			(xy 99.06 307.34) (xy 99.06 311.15)
+			(xy 133.35 313.69) (xy 133.35 317.5)
 		)
 		(stroke
 			(width 0)
@@ -4703,7 +4630,7 @@
 	)
 	(wire
 		(pts
-			(xy 99.06 287.02) (xy 99.06 281.94)
+			(xy 133.35 293.37) (xy 133.35 288.29)
 		)
 		(stroke
 			(width 0)
@@ -4713,7 +4640,7 @@
 	)
 	(wire
 		(pts
-			(xy 99.06 311.15) (xy 99.06 314.96)
+			(xy 133.35 317.5) (xy 133.35 321.31)
 		)
 		(stroke
 			(width 0)
@@ -4723,7 +4650,7 @@
 	)
 	(wire
 		(pts
-			(xy 119.38 311.15) (xy 119.38 314.96)
+			(xy 153.67 317.5) (xy 153.67 321.31)
 		)
 		(stroke
 			(width 0)
@@ -4733,7 +4660,7 @@
 	)
 	(wire
 		(pts
-			(xy 99.06 311.15) (xy 119.38 311.15)
+			(xy 133.35 317.5) (xy 153.67 317.5)
 		)
 		(stroke
 			(width 0)
@@ -4813,7 +4740,7 @@
 	)
 	(wire
 		(pts
-			(xy 99.06 294.64) (xy 99.06 299.72)
+			(xy 133.35 300.99) (xy 133.35 306.07)
 		)
 		(stroke
 			(width 0)
@@ -4823,7 +4750,7 @@
 	)
 	(wire
 		(pts
-			(xy 99.06 322.58) (xy 99.06 326.39)
+			(xy 133.35 328.93) (xy 133.35 332.74)
 		)
 		(stroke
 			(width 0)
@@ -4853,7 +4780,7 @@
 	)
 	(wire
 		(pts
-			(xy 119.38 311.15) (xy 130.81 311.15)
+			(xy 153.67 317.5) (xy 165.1 317.5)
 		)
 		(stroke
 			(width 0)
@@ -6083,7 +6010,7 @@
 	)
 	(global_label "timer_1"
 		(shape bidirectional)
-		(at 130.81 311.15 0)
+		(at 165.1 317.5 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -6093,7 +6020,7 @@
 		)
 		(uuid "d728895c-d4e2-4b1a-bd66-d1dc2bd48493")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 141.9822 311.15 0)
+			(at 176.2722 317.5 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6952,7 +6879,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 99.06 326.39 0)
+		(at 133.35 332.74 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -6961,7 +6888,7 @@
 		(fields_autoplaced yes)
 		(uuid "1ce204b0-632a-4b87-a634-19f2f6e12561")
 		(property "Reference" "#PWR088"
-			(at 99.06 332.74 0)
+			(at 133.35 339.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6970,15 +6897,16 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 99.06 331.47 0)
+			(at 133.35 337.82 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
+				(hide yes)
 			)
 		)
 		(property "Footprint" ""
-			(at 99.06 326.39 0)
+			(at 133.35 332.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6987,7 +6915,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 99.06 326.39 0)
+			(at 133.35 332.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6996,7 +6924,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 99.06 326.39 0)
+			(at 133.35 332.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8111,7 +8039,7 @@
 	)
 	(symbol
 		(lib_id "Device:LED")
-		(at 99.06 290.83 90)
+		(at 133.35 297.18 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -8120,7 +8048,7 @@
 		(fields_autoplaced yes)
 		(uuid "47ca0805-3ef8-46f9-9226-a167b5d979c8")
 		(property "Reference" "D4"
-			(at 102.87 291.1474 90)
+			(at 137.16 297.4974 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8128,8 +8056,8 @@
 				(justify right)
 			)
 		)
-		(property "Value" "RED LED"
-			(at 102.87 293.6874 90)
+		(property "Value" "RED"
+			(at 137.16 300.0374 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8138,7 +8066,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_1206_3216Metric_Pad1.42x1.75mm_HandSolder"
-			(at 99.06 290.83 0)
+			(at 133.35 297.18 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8147,7 +8075,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 99.06 290.83 0)
+			(at 133.35 297.18 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8156,7 +8084,7 @@
 			)
 		)
 		(property "Description" "Light emitting diode"
-			(at 99.06 290.83 0)
+			(at 133.35 297.18 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8165,7 +8093,7 @@
 			)
 		)
 		(property "Sim.Pins" "1=K 2=A"
-			(at 99.06 290.83 0)
+			(at 133.35 297.18 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9225,7 +9153,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 119.38 326.39 0)
+		(at 153.67 332.74 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -9234,7 +9162,7 @@
 		(fields_autoplaced yes)
 		(uuid "8a84e190-8619-43e2-9cbf-5aec959f50e3")
 		(property "Reference" "#PWR089"
-			(at 119.38 332.74 0)
+			(at 153.67 339.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9243,15 +9171,16 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 119.38 331.47 0)
+			(at 153.67 337.82 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
+				(hide yes)
 			)
 		)
 		(property "Footprint" ""
-			(at 119.38 326.39 0)
+			(at 153.67 332.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9260,7 +9189,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 119.38 326.39 0)
+			(at 153.67 332.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9269,7 +9198,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 119.38 326.39 0)
+			(at 153.67 332.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9455,7 +9384,7 @@
 	)
 	(symbol
 		(lib_id "Device:C")
-		(at 119.38 318.77 0)
+		(at 153.67 325.12 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -9464,7 +9393,7 @@
 		(fields_autoplaced yes)
 		(uuid "917abc8d-6a14-46d9-991a-f74fc8cab4d8")
 		(property "Reference" "C25"
-			(at 123.19 317.4999 0)
+			(at 157.48 323.8499 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9473,7 +9402,7 @@
 			)
 		)
 		(property "Value" "1u"
-			(at 123.19 320.0399 0)
+			(at 157.48 326.3899 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9482,7 +9411,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder"
-			(at 120.3452 322.58 0)
+			(at 154.6352 328.93 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9491,7 +9420,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 119.38 318.77 0)
+			(at 153.67 325.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9500,7 +9429,7 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
-			(at 119.38 318.77 0)
+			(at 153.67 325.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9525,7 +9454,7 @@
 	)
 	(symbol
 		(lib_id "power:+3.3V")
-		(at 99.06 281.94 0)
+		(at 133.35 288.29 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -9534,7 +9463,7 @@
 		(fields_autoplaced yes)
 		(uuid "93264c9e-8671-4753-a62e-96e372ba1e47")
 		(property "Reference" "#PWR087"
-			(at 99.06 285.75 0)
+			(at 133.35 292.1 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9543,7 +9472,7 @@
 			)
 		)
 		(property "Value" "TE-1"
-			(at 99.06 276.86 0)
+			(at 133.35 283.21 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9551,7 +9480,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 99.06 281.94 0)
+			(at 133.35 288.29 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9560,7 +9489,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 99.06 281.94 0)
+			(at 133.35 288.29 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9569,7 +9498,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-			(at 99.06 281.94 0)
+			(at 133.35 288.29 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11030,7 +10959,7 @@
 	)
 	(symbol
 		(lib_id "Device:D_Zener")
-		(at 99.06 318.77 270)
+		(at 133.35 325.12 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -11039,7 +10968,7 @@
 		(fields_autoplaced yes)
 		(uuid "c958f26c-2686-4647-bb5e-33bc02477f12")
 		(property "Reference" "D5"
-			(at 101.6 317.4999 90)
+			(at 135.89 323.8499 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11048,7 +10977,7 @@
 			)
 		)
 		(property "Value" "1N4727A"
-			(at 101.6 320.0399 90)
+			(at 135.89 326.3899 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11057,7 +10986,7 @@
 			)
 		)
 		(property "Footprint" "Diode_THT:D_A-405_P7.62mm_Horizontal"
-			(at 99.06 318.77 0)
+			(at 133.35 325.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11066,7 +10995,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 99.06 318.77 0)
+			(at 133.35 325.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11075,7 +11004,7 @@
 			)
 		)
 		(property "Description" "Zener diode"
-			(at 99.06 318.77 0)
+			(at 133.35 325.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12324,7 +12253,7 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 99.06 303.53 0)
+		(at 133.35 309.88 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -12333,7 +12262,7 @@
 		(fields_autoplaced yes)
 		(uuid "f1c4f20f-a1f2-42b6-b8c0-63c563844b75")
 		(property "Reference" "R14"
-			(at 101.6 302.2599 0)
+			(at 135.89 308.6099 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12342,7 +12271,7 @@
 			)
 		)
 		(property "Value" "3k"
-			(at 101.6 304.7999 0)
+			(at 135.89 311.1499 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12351,7 +12280,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
-			(at 97.282 303.53 90)
+			(at 131.572 309.88 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12360,7 +12289,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 99.06 303.53 0)
+			(at 133.35 309.88 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12369,7 +12298,7 @@
 			)
 		)
 		(property "Description" "Resistor"
-			(at 99.06 303.53 0)
+			(at 133.35 309.88 0)
 			(effects
 				(font
 					(size 1.27 1.27)
