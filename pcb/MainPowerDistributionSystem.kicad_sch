@@ -1140,478 +1140,6 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "Device:C"
-			(pin_numbers
-				(hide yes)
-			)
-			(pin_names
-				(offset 0.254)
-			)
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(property "Reference" "C"
-				(at 0.635 2.54 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left)
-				)
-			)
-			(property "Value" "C"
-				(at 0.635 -2.54 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left)
-				)
-			)
-			(property "Footprint" ""
-				(at 0.9652 -3.81 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" "~"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Description" "Unpolarized capacitor"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_keywords" "cap capacitor"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_fp_filters" "C_*"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(symbol "C_0_1"
-				(polyline
-					(pts
-						(xy -2.032 0.762) (xy 2.032 0.762)
-					)
-					(stroke
-						(width 0.508)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy -2.032 -0.762) (xy 2.032 -0.762)
-					)
-					(stroke
-						(width 0.508)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-			)
-			(symbol "C_1_1"
-				(pin passive line
-					(at 0 3.81 270)
-					(length 2.794)
-					(name "~"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 0 -3.81 90)
-					(length 2.794)
-					(name "~"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(embedded_fonts no)
-		)
-		(symbol "Device:D_Zener"
-			(pin_numbers
-				(hide yes)
-			)
-			(pin_names
-				(offset 1.016)
-				(hide yes)
-			)
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(property "Reference" "D"
-				(at 0 2.54 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Value" "D_Zener"
-				(at 0 -2.54 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Footprint" ""
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" "~"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Description" "Zener diode"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_keywords" "diode"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_fp_filters" "TO-???* *_Diode_* *SingleDiode* D_*"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(symbol "D_Zener_0_1"
-				(polyline
-					(pts
-						(xy -1.27 -1.27) (xy -1.27 1.27) (xy -0.762 1.27)
-					)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 1.27 0) (xy -1.27 0)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 1.27 -1.27) (xy 1.27 1.27) (xy -1.27 0) (xy 1.27 -1.27)
-					)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-			)
-			(symbol "D_Zener_1_1"
-				(pin passive line
-					(at -3.81 0 0)
-					(length 2.54)
-					(name "K"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 3.81 0 180)
-					(length 2.54)
-					(name "A"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(embedded_fonts no)
-		)
-		(symbol "Device:LED"
-			(pin_numbers
-				(hide yes)
-			)
-			(pin_names
-				(offset 1.016)
-				(hide yes)
-			)
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(property "Reference" "D"
-				(at 0 2.54 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Value" "LED"
-				(at 0 -2.54 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Footprint" ""
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" "~"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Description" "Light emitting diode"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Sim.Pins" "1=K 2=A"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_keywords" "LED diode"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_fp_filters" "LED* LED_SMD:* LED_THT:*"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(symbol "LED_0_1"
-				(polyline
-					(pts
-						(xy -3.048 -0.762) (xy -4.572 -2.286) (xy -3.81 -2.286) (xy -4.572 -2.286) (xy -4.572 -1.524)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy -1.778 -0.762) (xy -3.302 -2.286) (xy -2.54 -2.286) (xy -3.302 -2.286) (xy -3.302 -1.524)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy -1.27 0) (xy 1.27 0)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy -1.27 -1.27) (xy -1.27 1.27)
-					)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 1.27 -1.27) (xy 1.27 1.27) (xy -1.27 0) (xy 1.27 -1.27)
-					)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-			)
-			(symbol "LED_1_1"
-				(pin passive line
-					(at -3.81 0 0)
-					(length 2.54)
-					(name "K"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 3.81 0 180)
-					(length 2.54)
-					(name "A"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(embedded_fonts no)
-		)
 		(symbol "Device:R"
 			(pin_numbers
 				(hide yes)
@@ -4344,19 +3872,6 @@
 		)
 		(uuid "5af5498f-5fb1-4229-86e9-2a570c9cde25")
 	)
-	(text "Expected to draw 6.3mA - 9mA at 24V - 32V.\nPower disipated: 120mW - 241mW.\n\nResistor that allows for the highest current to\nthe zener without exceding its power rating.\n\nNote: Testing shows that zener can run at \nlower currents than specified on data sheet."
-		(exclude_from_sim no)
-		(at 213.36 320.548 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-				(thickness 0.1588)
-				(color 255 0 0 1)
-			)
-			(justify right)
-		)
-		(uuid "5e8d7462-12f7-41b4-99c7-997046a0f370")
-	)
 	(text "Logic Conversion."
 		(exclude_from_sim no)
 		(at 130.81 262.382 0)
@@ -4399,12 +3914,6 @@
 		(uuid "267bad22-b485-42cd-b371-6d0962cb96d8")
 	)
 	(junction
-		(at 217.17 326.39)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "815cbfa7-a19d-4e3b-b7d8-20bcc64d52d9")
-	)
-	(junction
 		(at 260.35 102.87)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -4415,12 +3924,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "d7f03104-8a43-4860-9c41-5734d440a03d")
-	)
-	(junction
-		(at 237.49 326.39)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "e9623cf2-9835-4257-8a16-ab45ecd7779a")
 	)
 	(no_connect
 		(at 424.18 212.09)
@@ -4732,26 +4235,6 @@
 	)
 	(wire
 		(pts
-			(xy 217.17 337.82) (xy 217.17 341.63)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "17eb36bd-76ac-4622-baac-db919761a17e")
-	)
-	(wire
-		(pts
-			(xy 217.17 302.26) (xy 217.17 297.18)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "1b31662b-32c2-422a-a03c-11fe3d0b5cd4")
-	)
-	(wire
-		(pts
 			(xy 198.12 86.36) (xy 190.5 86.36)
 		)
 		(stroke
@@ -4782,16 +4265,6 @@
 	)
 	(wire
 		(pts
-			(xy 237.49 326.39) (xy 237.49 330.2)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "4d7f9bd9-b85d-452d-8aef-ac5dd9bf377a")
-	)
-	(wire
-		(pts
 			(xy 260.35 81.28) (xy 260.35 102.87)
 		)
 		(stroke
@@ -4799,26 +4272,6 @@
 			(type default)
 		)
 		(uuid "4fb46aad-46da-40ab-82d4-cfc14f6a571a")
-	)
-	(wire
-		(pts
-			(xy 217.17 309.88) (xy 217.17 314.96)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "552fd5c1-5861-475c-9297-a2ad9476104a")
-	)
-	(wire
-		(pts
-			(xy 217.17 326.39) (xy 217.17 330.2)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "68ad0987-906c-4784-86c7-667e4a3bad40")
 	)
 	(wire
 		(pts
@@ -4862,26 +4315,6 @@
 	)
 	(wire
 		(pts
-			(xy 237.49 337.82) (xy 237.49 341.63)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "b00991f8-fef5-4485-907a-c5349e4acffb")
-	)
-	(wire
-		(pts
-			(xy 237.49 326.39) (xy 248.92 326.39)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "b88b5802-7570-438c-a437-f9aa318f1e2c")
-	)
-	(wire
-		(pts
 			(xy 181.61 86.36) (xy 185.42 86.36)
 		)
 		(stroke
@@ -4889,16 +4322,6 @@
 			(type default)
 		)
 		(uuid "bd24c19b-7dcf-4944-9550-b1473025687c")
-	)
-	(wire
-		(pts
-			(xy 217.17 326.39) (xy 237.49 326.39)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "c036689c-3109-463a-a320-c107d751e5c9")
 	)
 	(wire
 		(pts
@@ -4949,16 +4372,6 @@
 			(type default)
 		)
 		(uuid "f0f0efb5-322f-42e6-b7e1-e097a867132f")
-	)
-	(wire
-		(pts
-			(xy 217.17 322.58) (xy 217.17 326.39)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "f2f223d4-ffc0-49f7-9e01-afc29dcda59a")
 	)
 	(global_label "MOTOR_DIR_X"
 		(shape bidirectional)
@@ -5048,6 +4461,28 @@
 			)
 		)
 	)
+	(global_label "LOGIC_TIMER_EVENT_B"
+		(shape bidirectional)
+		(at 275.59 354.33 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "1de71317-031b-4abc-90de-5b40ccfe58de")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 300.4902 354.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "MOTOR_DRIVER_B1_X"
 		(shape bidirectional)
 		(at 396.24 234.95 0)
@@ -5061,6 +4496,28 @@
 		(uuid "2ff8dd8b-fe45-432d-a7fd-77ea54d064aa")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 419.9307 234.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "LOGIC_TIMER_EVENT_2"
+		(shape bidirectional)
+		(at 275.59 303.53 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "34994aa1-f128-4777-96ad-1c0613f3dea1")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 300.4297 303.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5290,6 +4747,28 @@
 			)
 		)
 	)
+	(global_label "LOGIC_TIMER_EVENT_3"
+		(shape bidirectional)
+		(at 275.59 321.31 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "6b53585e-dc28-4360-848a-77ea709809e7")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 300.4297 321.31 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "MOTOR_DIR_Z"
 		(shape bidirectional)
 		(at 355.6 194.31 180)
@@ -5378,6 +4857,28 @@
 			)
 		)
 	)
+	(global_label "LOGIC_TIMER_EVENT_1"
+		(shape bidirectional)
+		(at 275.59 284.48 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "794dfe06-9bc9-4bba-a05d-21077d1ae50a")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 300.4297 284.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "MOTOR_DRIVER_B1_Z"
 		(shape bidirectional)
 		(at 396.24 245.11 0)
@@ -5391,6 +4892,28 @@
 		(uuid "861eb196-53b3-4896-9485-dd541a1156ce")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 419.9307 245.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "LOGIC_GSE_1"
+		(shape bidirectional)
+		(at 190.5 284.48 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "9aa518f1-6e20-4d23-b339-93274698171e")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 206.8731 284.48 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5466,9 +4989,9 @@
 			)
 		)
 	)
-	(global_label "LOGIC_TIMER_EVENT_1"
+	(global_label "LOGIC_TIMER_EVENT_A"
 		(shape bidirectional)
-		(at 248.92 326.39 0)
+		(at 275.59 337.82 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -5476,9 +4999,9 @@
 			)
 			(justify left)
 		)
-		(uuid "e391ec91-e50d-477d-83bc-1698d26e88da")
+		(uuid "e4347e01-b4bf-4d96-93b1-eb455a47fd33")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 273.7597 326.39 0)
+			(at 300.3088 337.82 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5510,6 +5033,28 @@
 			)
 		)
 	)
+	(global_label "LOGIC_GSE_2"
+		(shape bidirectional)
+		(at 190.5 303.53 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "e9090035-80af-4cde-b1b5-794b6d6e2d2d")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 206.8731 303.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "MOTOR_UART_RX"
 		(shape bidirectional)
 		(at 355.6 102.87 180)
@@ -5529,6 +5074,73 @@
 				)
 				(justify right)
 				(hide yes)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3.3V")
+		(at 151.13 284.48 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "02af7699-0ed3-4b1e-9d27-a9657686c768")
+		(property "Reference" "#PWR062"
+			(at 154.94 284.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+GSE-1"
+			(at 147.32 284.4799 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 151.13 284.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 151.13 284.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 151.13 284.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "f3fca5f6-63be-4b93-964a-4dcd2024db73")
+		)
+		(instances
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR062")
+					(unit 1)
+				)
 			)
 		)
 	)
@@ -5593,76 +5205,6 @@
 			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR039")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:C")
-		(at 237.49 334.01 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "0486685a-1100-4a71-9d86-d3952ae92015")
-		(property "Reference" "C1"
-			(at 241.3 332.7399 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "1u"
-			(at 241.3 335.2799 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder"
-			(at 238.4552 337.82 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 237.49 334.01 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Unpolarized capacitor"
-			(at 237.49 334.01 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "d192d4a4-3044-4fd5-87f3-ee7edbafd346")
-		)
-		(pin "2"
-			(uuid "c976d881-feed-4bd4-8a25-d805595521c3")
-		)
-		(instances
-			(project "MainPowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "C1")
 					(unit 1)
 				)
 			)
@@ -6070,17 +5612,17 @@
 		)
 	)
 	(symbol
-		(lib_id "power:GND")
-		(at 217.17 341.63 0)
+		(lib_id "power:+3.3V")
+		(at 236.22 354.33 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
 		(fields_autoplaced yes)
-		(uuid "1ce204b0-632a-4b87-a634-19f2f6e12561")
-		(property "Reference" "#PWR088"
-			(at 217.17 347.98 0)
+		(uuid "1d648cc5-3bbe-475b-8aca-fce2fc206364")
+		(property "Reference" "#PWR059"
+			(at 240.03 354.33 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6088,17 +5630,17 @@
 				(hide yes)
 			)
 		)
-		(property "Value" "GND"
-			(at 217.17 346.71 0)
+		(property "Value" "+TE-RB"
+			(at 232.41 354.3299 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(hide yes)
+				(justify left)
 			)
 		)
 		(property "Footprint" ""
-			(at 217.17 341.63 0)
+			(at 236.22 354.33 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6107,7 +5649,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 217.17 341.63 0)
+			(at 236.22 354.33 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6115,8 +5657,8 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 217.17 341.63 0)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 236.22 354.33 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6125,12 +5667,12 @@
 			)
 		)
 		(pin "1"
-			(uuid "f366beef-6cf6-4c56-8a2d-4aaa90064eab")
+			(uuid "5eb136b3-7a89-418f-9333-91f96a50179c")
 		)
 		(instances
 			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR088")
+					(reference "#PWR059")
 					(unit 1)
 				)
 			)
@@ -6342,6 +5884,73 @@
 		)
 	)
 	(symbol
+		(lib_id "power:+3.3V")
+		(at 236.22 303.53 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "3beff736-c4fa-43f6-a595-a71cad9c89c6")
+		(property "Reference" "#PWR013"
+			(at 240.03 303.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+TE-2"
+			(at 232.41 303.5299 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 236.22 303.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 236.22 303.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 236.22 303.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "60d21b44-ca64-45cb-bbe9-7d62b92f1fae")
+		)
+		(instances
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR013")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 355.6 120.65 270)
 		(unit 1)
@@ -6534,85 +6143,6 @@
 			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR041")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:LED")
-		(at 217.17 306.07 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "47ca0805-3ef8-46f9-9226-a167b5d979c8")
-		(property "Reference" "D4"
-			(at 220.98 306.3874 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Value" "RED"
-			(at 220.98 308.9274 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Footprint" "LED_SMD:LED_1206_3216Metric_Pad1.42x1.75mm_HandSolder"
-			(at 217.17 306.07 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 217.17 306.07 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Light emitting diode"
-			(at 217.17 306.07 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Sim.Pins" "1=K 2=A"
-			(at 217.17 306.07 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "b7f17907-6906-459d-a8a1-2ffc0116bec1")
-		)
-		(pin "2"
-			(uuid "a68837f9-a459-4cd0-9cbd-651b00a4e943")
-		)
-		(instances
-			(project "MainPowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "D4")
 					(unit 1)
 				)
 			)
@@ -7786,76 +7316,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:R")
-		(at 217.17 318.77 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "8404fa5e-050c-4960-a21c-653c303e3e11")
-		(property "Reference" "R2"
-			(at 219.71 317.4999 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "3k"
-			(at 219.71 320.0399 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
-			(at 215.392 318.77 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 217.17 318.77 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Resistor"
-			(at 217.17 318.77 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "ec951712-447f-4018-a259-faf87a64d19f")
-		)
-		(pin "1"
-			(uuid "8f996855-7144-4e3c-8061-105535a26c9b")
-		)
-		(instances
-			(project "MainPowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "R2")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:+3.3V")
 		(at 396.24 250.19 270)
 		(mirror x)
@@ -7923,17 +7383,17 @@
 		)
 	)
 	(symbol
-		(lib_id "power:GND")
-		(at 237.49 341.63 0)
+		(lib_id "power:+3.3V")
+		(at 236.22 337.82 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
 		(fields_autoplaced yes)
-		(uuid "8a84e190-8619-43e2-9cbf-5aec959f50e3")
-		(property "Reference" "#PWR089"
-			(at 237.49 347.98 0)
+		(uuid "867e62b7-6a51-4cd5-9437-7242b2365bd6")
+		(property "Reference" "#PWR056"
+			(at 240.03 337.82 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7941,17 +7401,17 @@
 				(hide yes)
 			)
 		)
-		(property "Value" "GND"
-			(at 237.49 346.71 0)
+		(property "Value" "+TE-RA"
+			(at 232.41 337.8199 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(hide yes)
+				(justify left)
 			)
 		)
 		(property "Footprint" ""
-			(at 237.49 341.63 0)
+			(at 236.22 337.82 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7960,7 +7420,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 237.49 341.63 0)
+			(at 236.22 337.82 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7968,8 +7428,8 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 237.49 341.63 0)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 236.22 337.82 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7978,12 +7438,12 @@
 			)
 		)
 		(pin "1"
-			(uuid "b2adfc2d-3ada-40db-8f14-b56745a09d04")
+			(uuid "5047287f-0eab-4e6e-8f68-183718c26dd4")
 		)
 		(instances
 			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR089")
+					(reference "#PWR056")
 					(unit 1)
 				)
 			)
@@ -8349,6 +7809,73 @@
 		)
 	)
 	(symbol
+		(lib_id "power:+3.3V")
+		(at 151.13 303.53 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "ae5ea2ba-5374-47e3-90bf-d2063aba5c24")
+		(property "Reference" "#PWR065"
+			(at 154.94 303.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+GSE-2"
+			(at 147.32 303.5299 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 151.13 303.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 151.13 303.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 151.13 303.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "565c823e-7ce4-4b31-93bc-42d04e9b1ce8")
+		)
+		(instances
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR065")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Power_Management:TPS22810DRV")
 		(at 226.06 177.8 0)
 		(unit 1)
@@ -8499,6 +8026,73 @@
 		)
 	)
 	(symbol
+		(lib_id "power:+3.3V")
+		(at 236.22 284.48 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "c24212eb-3a76-423e-a616-680538fa4d29")
+		(property "Reference" "#PWR012"
+			(at 240.03 284.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+TE-1"
+			(at 232.41 284.4799 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 236.22 284.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 236.22 284.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 236.22 284.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "4c564c2e-a8e0-454f-85c5-e5ea3877072a")
+		)
+		(instances
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR012")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 355.6 130.81 270)
 		(unit 1)
@@ -8625,76 +8219,6 @@
 			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR031")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:D_Zener")
-		(at 217.17 334.01 270)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "c958f26c-2686-4647-bb5e-33bc02477f12")
-		(property "Reference" "D5"
-			(at 219.71 332.7399 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "1N4727A"
-			(at 219.71 335.2799 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Diode_THT:D_A-405_P7.62mm_Horizontal"
-			(at 217.17 334.01 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 217.17 334.01 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Zener diode"
-			(at 217.17 334.01 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "952e679b-a765-47a3-9263-591697a3f340")
-		)
-		(pin "2"
-			(uuid "580122c4-48d7-4377-8e52-2afee2d08eda")
-		)
-		(instances
-			(project "MainPowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "D5")
 					(unit 1)
 				)
 			)
@@ -9442,6 +8966,73 @@
 	)
 	(symbol
 		(lib_id "power:+3.3V")
+		(at 236.22 321.31 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "e873578e-784d-4c88-8a92-73472400ee9e")
+		(property "Reference" "#PWR053"
+			(at 240.03 321.31 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+TE-3"
+			(at 232.41 321.3099 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 236.22 321.31 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 236.22 321.31 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 236.22 321.31 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "98e1e5ba-ce6c-43f6-85ee-8fc5b48cca3b")
+		)
+		(instances
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR053")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3.3V")
 		(at 355.6 125.73 90)
 		(unit 1)
 		(exclude_from_sim no)
@@ -9973,72 +9564,6 @@
 			)
 		)
 	)
-	(symbol
-		(lib_id "power:+3.3V")
-		(at 217.17 297.18 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "fd950cf0-cd64-44bb-a95e-a93f03ff55c6")
-		(property "Reference" "#PWR012"
-			(at 217.17 300.99 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "+TE-1"
-			(at 217.17 292.1 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 217.17 297.18 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 217.17 297.18 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-			(at 217.17 297.18 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "5818da78-7a06-47ba-8af7-cf0856dfdcce")
-		)
-		(instances
-			(project "MainPowerDistributionSystem"
-				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
-					(reference "#PWR012")
-					(unit 1)
-				)
-			)
-		)
-	)
 	(sheet
 		(at 198.12 77.47)
 		(size 58.42 12.7)
@@ -10113,6 +9638,384 @@
 		)
 	)
 	(sheet
+		(at 236.22 280.67)
+		(size 39.37 7.62)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+			(color 132 0 0 1)
+		)
+		(fill
+			(color 255 255 194 1.0000)
+		)
+		(uuid "261c9762-dbc6-4b8c-91f7-76f368e53a64")
+		(property "Sheetname" "Timer Event Logic Conversion - TE-1"
+			(at 236.22 279.9584 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "MainPowerDistributionSystem_Timer_Event_Logic_Conversion.kicad_sch"
+			(at 236.22 288.8746 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "INPUT" bidirectional
+			(at 236.22 284.48 180)
+			(uuid "80374764-5646-45d5-b3f2-7c0e44f40e41")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "OUTPUT" bidirectional
+			(at 275.59 284.48 0)
+			(uuid "c7146915-a9d5-4eab-8135-9b53e0e767b9")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(instances
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 236.22 317.5)
+		(size 39.37 7.62)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+			(color 132 0 0 1)
+		)
+		(fill
+			(color 255 255 194 1.0000)
+		)
+		(uuid "3f92f74e-3cca-4282-aab2-357fe1c1118f")
+		(property "Sheetname" "Timer Event Logic Conversion - TE-3"
+			(at 236.22 316.7884 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "MainPowerDistributionSystem_Timer_Event_Logic_Conversion.kicad_sch"
+			(at 236.22 325.7046 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "INPUT" bidirectional
+			(at 236.22 321.31 180)
+			(uuid "10932002-430d-45e5-be38-7aa0291be58c")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "OUTPUT" bidirectional
+			(at 275.59 321.31 0)
+			(uuid "3e065a97-b895-4588-ba4d-79590025cd13")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(instances
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(page "4")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 151.13 280.67)
+		(size 39.37 7.62)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+			(color 132 0 0 1)
+		)
+		(fill
+			(color 255 255 194 1.0000)
+		)
+		(uuid "41b9944a-f63d-4ce0-843f-6c1f8b109fe2")
+		(property "Sheetname" "Timer Event Logic Conversion - GSE-1"
+			(at 151.13 279.9584 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "MainPowerDistributionSystem_Timer_Event_Logic_Conversion.kicad_sch"
+			(at 151.13 288.8746 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "INPUT" bidirectional
+			(at 151.13 284.48 180)
+			(uuid "487ea477-b46b-46a1-84a2-97ec64f87d5f")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "OUTPUT" bidirectional
+			(at 190.5 284.48 0)
+			(uuid "43f83eca-6dc0-482e-ae40-666fd0b8e46a")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(instances
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(page "9")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 236.22 299.72)
+		(size 39.37 7.62)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+			(color 132 0 0 1)
+		)
+		(fill
+			(color 255 255 194 1.0000)
+		)
+		(uuid "5794667a-7b17-4495-a615-6983a1fee026")
+		(property "Sheetname" "Timer Event Logic Conversion - TE-2"
+			(at 236.22 299.0084 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "MainPowerDistributionSystem_Timer_Event_Logic_Conversion.kicad_sch"
+			(at 236.22 307.9246 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "INPUT" bidirectional
+			(at 236.22 303.53 180)
+			(uuid "30b1e0a9-8338-4e10-8239-4cdfe1e88f77")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "OUTPUT" bidirectional
+			(at 275.59 303.53 0)
+			(uuid "ca634090-41e5-4904-8a97-ce7d9109c1cd")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(instances
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(page "3")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 151.13 299.72)
+		(size 39.37 7.62)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+			(color 132 0 0 1)
+		)
+		(fill
+			(color 255 255 194 1.0000)
+		)
+		(uuid "5cd708ab-f243-4c3d-b9a6-6ef81c5046b4")
+		(property "Sheetname" "Timer Event Logic Conversion - GSE-2"
+			(at 151.13 299.0084 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "MainPowerDistributionSystem_Timer_Event_Logic_Conversion.kicad_sch"
+			(at 151.13 307.9246 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "INPUT" bidirectional
+			(at 151.13 303.53 180)
+			(uuid "57ff6840-1c2f-4e61-ad0a-ff0639ed29b4")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "OUTPUT" bidirectional
+			(at 190.5 303.53 0)
+			(uuid "117e17cc-f139-40d1-aeb7-72f5b567c679")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(instances
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(page "10")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 236.22 350.52)
+		(size 39.37 7.62)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+			(color 132 0 0 1)
+		)
+		(fill
+			(color 255 255 194 1.0000)
+		)
+		(uuid "7bfeb19b-cfbf-4688-9fe2-f6b9e19ab4b8")
+		(property "Sheetname" "Timer Event Logic Conversion - TE-RB"
+			(at 236.22 349.8084 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "MainPowerDistributionSystem_Timer_Event_Logic_Conversion.kicad_sch"
+			(at 236.22 358.7246 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "INPUT" bidirectional
+			(at 236.22 354.33 180)
+			(uuid "14d254c5-f85a-4ccf-8f36-b94f987063aa")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "OUTPUT" bidirectional
+			(at 275.59 354.33 0)
+			(uuid "558ec2ae-08e3-45ae-921a-a71adc14fb64")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(instances
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(page "8")
+				)
+			)
+		)
+	)
+	(sheet
 		(at 198.12 99.06)
 		(size 58.42 12.7)
 		(exclude_from_sim no)
@@ -10181,6 +10084,69 @@
 			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(page "6")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 236.22 334.01)
+		(size 39.37 7.62)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+			(color 132 0 0 1)
+		)
+		(fill
+			(color 255 255 194 1.0000)
+		)
+		(uuid "808cc913-2635-4e01-9a87-a42fd91b330a")
+		(property "Sheetname" "Timer Event Logic Conversion - TE-RA"
+			(at 236.22 333.2984 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "MainPowerDistributionSystem_Timer_Event_Logic_Conversion.kicad_sch"
+			(at 236.22 342.2146 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "INPUT" bidirectional
+			(at 236.22 337.82 180)
+			(uuid "4f784b2b-7f8f-4fc1-a9ae-f833243dec20")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "OUTPUT" bidirectional
+			(at 275.59 337.82 0)
+			(uuid "9575db67-f4bd-4663-8091-a511879c940e")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(instances
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(page "7")
 				)
 			)
 		)

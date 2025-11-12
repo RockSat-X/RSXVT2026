@@ -3978,6 +3978,28 @@
 			)
 		)
 	)
+	(global_label "EXTERNAL_DETECTED"
+		(shape bidirectional)
+		(at 353.06 64.77 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "171c9322-f248-4418-ac5a-6ebe6dc382f5")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 376.5086 64.77 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "MOTOR_DRIVER_A2_X"
 		(shape bidirectional)
 		(at 170.18 43.18 0)
@@ -9101,6 +9123,73 @@
 		)
 	)
 	(symbol
+		(lib_id "power:+BATT")
+		(at 313.69 64.77 90)
+		(mirror x)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "fd64afd0-21f2-4def-b152-b1861c532a01")
+		(property "Reference" "#PWR013"
+			(at 317.5 64.77 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+EXTERNAL"
+			(at 309.88 64.7699 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 313.69 64.77 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 313.69 64.77 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+BATT\""
+			(at 313.69 64.77 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "ad004f8a-717a-464c-8a2a-9fed5615b052")
+		)
+		(instances
+			(project "VehiclePowerDistributionSystem"
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085"
+					(reference "#PWR013")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Power_Management:TPS22810DRV")
 		(at 293.37 167.64 0)
 		(unit 1)
@@ -9322,6 +9411,69 @@
 			(project "VehiclePowerDistributionSystem"
 				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085"
 					(page "3")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 313.69 60.96)
+		(size 39.37 7.62)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+			(color 132 0 0 1)
+		)
+		(fill
+			(color 255 255 194 1.0000)
+		)
+		(uuid "54620fe3-2093-4758-a776-838cd07d45c6")
+		(property "Sheetname" "Timer Event Logic Conversion - External Power"
+			(at 313.69 60.2484 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "VehiclePowerDistributionSystem_Timer_Event_Logic_Conversion.kicad_sch"
+			(at 313.69 69.1646 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "INPUT" bidirectional
+			(at 313.69 64.77 180)
+			(uuid "6e5a8a50-59e2-43f8-ac7d-c250e326691b")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "OUTPUT" bidirectional
+			(at 353.06 64.77 0)
+			(uuid "cd32f218-892d-4900-8f80-7409270241cf")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(instances
+			(project "VehiclePowerDistributionSystem"
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085"
+					(page "5")
 				)
 			)
 		)

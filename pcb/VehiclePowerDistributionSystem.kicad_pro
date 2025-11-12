@@ -638,6 +638,10 @@
     [
       "885661a3-3ca5-4fb2-bf11-643a7d019368",
       "Stepper Motor Driver - Z"
+    ],
+    [
+      "54620fe3-2093-4758-a776-838cd07d45c6",
+      "Timer Event Logic Conversion - External Power"
     ]
   ],
   "text_variables": {}
