@@ -4461,6 +4461,28 @@
 			)
 		)
 	)
+	(global_label "LOGIC_TIMER_EVENT_B"
+		(shape bidirectional)
+		(at 275.59 354.33 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "1de71317-031b-4abc-90de-5b40ccfe58de")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 300.4902 354.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "MOTOR_DRIVER_B1_X"
 		(shape bidirectional)
 		(at 396.24 234.95 0)
@@ -4474,6 +4496,28 @@
 		(uuid "2ff8dd8b-fe45-432d-a7fd-77ea54d064aa")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 419.9307 234.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "LOGIC_TIMER_EVENT_2"
+		(shape bidirectional)
+		(at 275.59 303.53 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "34994aa1-f128-4777-96ad-1c0613f3dea1")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 300.4297 303.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4703,6 +4747,28 @@
 			)
 		)
 	)
+	(global_label "LOGIC_TIMER_EVENT_3"
+		(shape bidirectional)
+		(at 275.59 321.31 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "6b53585e-dc28-4360-848a-77ea709809e7")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 300.4297 321.31 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "MOTOR_DIR_Z"
 		(shape bidirectional)
 		(at 355.6 194.31 180)
@@ -4791,6 +4857,28 @@
 			)
 		)
 	)
+	(global_label "LOGIC_TIMER_EVENT_1"
+		(shape bidirectional)
+		(at 275.59 284.48 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "794dfe06-9bc9-4bba-a05d-21077d1ae50a")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 300.4297 284.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "MOTOR_DRIVER_B1_Z"
 		(shape bidirectional)
 		(at 396.24 245.11 0)
@@ -4804,6 +4892,28 @@
 		(uuid "861eb196-53b3-4896-9485-dd541a1156ce")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 419.9307 245.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "LOGIC_GSE_1"
+		(shape bidirectional)
+		(at 190.5 284.48 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "9aa518f1-6e20-4d23-b339-93274698171e")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 206.8731 284.48 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4879,6 +4989,28 @@
 			)
 		)
 	)
+	(global_label "LOGIC_TIMER_EVENT_A"
+		(shape bidirectional)
+		(at 275.59 337.82 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "e4347e01-b4bf-4d96-93b1-eb455a47fd33")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 300.3088 337.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "MOTOR_DISABLE"
 		(shape bidirectional)
 		(at 355.6 196.85 180)
@@ -4897,6 +5029,28 @@
 					(size 1.27 1.27)
 				)
 				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "LOGIC_GSE_2"
+		(shape bidirectional)
+		(at 190.5 303.53 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "e9090035-80af-4cde-b1b5-794b6d6e2d2d")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 206.8731 303.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
 				(hide yes)
 			)
 		)
@@ -4920,6 +5074,73 @@
 				)
 				(justify right)
 				(hide yes)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3.3V")
+		(at 151.13 284.48 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "02af7699-0ed3-4b1e-9d27-a9657686c768")
+		(property "Reference" "#PWR062"
+			(at 154.94 284.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+GSE-1"
+			(at 147.32 284.4799 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 151.13 284.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 151.13 284.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 151.13 284.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "f3fca5f6-63be-4b93-964a-4dcd2024db73")
+		)
+		(instances
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR062")
+					(unit 1)
+				)
 			)
 		)
 	)
@@ -5392,6 +5613,73 @@
 	)
 	(symbol
 		(lib_id "power:+3.3V")
+		(at 236.22 354.33 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "1d648cc5-3bbe-475b-8aca-fce2fc206364")
+		(property "Reference" "#PWR059"
+			(at 240.03 354.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+TE-RB"
+			(at 232.41 354.3299 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 236.22 354.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 236.22 354.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 236.22 354.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5eb136b3-7a89-418f-9333-91f96a50179c")
+		)
+		(instances
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR059")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3.3V")
 		(at 396.24 260.35 270)
 		(mirror x)
 		(unit 1)
@@ -5590,6 +5878,73 @@
 			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR044")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3.3V")
+		(at 236.22 303.53 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "3beff736-c4fa-43f6-a595-a71cad9c89c6")
+		(property "Reference" "#PWR013"
+			(at 240.03 303.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+TE-2"
+			(at 232.41 303.5299 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 236.22 303.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 236.22 303.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 236.22 303.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "60d21b44-ca64-45cb-bbe9-7d62b92f1fae")
+		)
+		(instances
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR013")
 					(unit 1)
 				)
 			)
@@ -7028,6 +7383,73 @@
 		)
 	)
 	(symbol
+		(lib_id "power:+3.3V")
+		(at 236.22 337.82 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "867e62b7-6a51-4cd5-9437-7242b2365bd6")
+		(property "Reference" "#PWR056"
+			(at 240.03 337.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+TE-RA"
+			(at 232.41 337.8199 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 236.22 337.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 236.22 337.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 236.22 337.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5047287f-0eab-4e6e-8f68-183718c26dd4")
+		)
+		(instances
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR056")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Connector_Generic:Conn_02x16_Odd_Even")
 		(at 388.62 252.73 0)
 		(unit 1)
@@ -7387,6 +7809,73 @@
 		)
 	)
 	(symbol
+		(lib_id "power:+3.3V")
+		(at 151.13 303.53 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "ae5ea2ba-5374-47e3-90bf-d2063aba5c24")
+		(property "Reference" "#PWR065"
+			(at 154.94 303.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+GSE-2"
+			(at 147.32 303.5299 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 151.13 303.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 151.13 303.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 151.13 303.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "565c823e-7ce4-4b31-93bc-42d04e9b1ce8")
+		)
+		(instances
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR065")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Power_Management:TPS22810DRV")
 		(at 226.06 177.8 0)
 		(unit 1)
@@ -7531,6 +8020,73 @@
 			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(reference "#PWR04")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3.3V")
+		(at 236.22 284.48 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "c24212eb-3a76-423e-a616-680538fa4d29")
+		(property "Reference" "#PWR012"
+			(at 240.03 284.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+TE-1"
+			(at 232.41 284.4799 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 236.22 284.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 236.22 284.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 236.22 284.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "4c564c2e-a8e0-454f-85c5-e5ea3877072a")
+		)
+		(instances
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR012")
 					(unit 1)
 				)
 			)
@@ -8410,6 +8966,73 @@
 	)
 	(symbol
 		(lib_id "power:+3.3V")
+		(at 236.22 321.31 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "e873578e-784d-4c88-8a92-73472400ee9e")
+		(property "Reference" "#PWR053"
+			(at 240.03 321.31 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+TE-3"
+			(at 232.41 321.3099 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 236.22 321.31 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 236.22 321.31 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 236.22 321.31 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "98e1e5ba-ce6c-43f6-85ee-8fc5b48cca3b")
+		)
+		(instances
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(reference "#PWR053")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3.3V")
 		(at 355.6 125.73 90)
 		(unit 1)
 		(exclude_from_sim no)
@@ -9015,6 +9638,384 @@
 		)
 	)
 	(sheet
+		(at 236.22 280.67)
+		(size 39.37 7.62)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+			(color 132 0 0 1)
+		)
+		(fill
+			(color 255 255 194 1.0000)
+		)
+		(uuid "261c9762-dbc6-4b8c-91f7-76f368e53a64")
+		(property "Sheetname" "Timer Event Logic Conversion - TE-1"
+			(at 236.22 279.9584 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "MainPowerDistributionSystem_Timer_Event_Logic_Conversion.kicad_sch"
+			(at 236.22 288.8746 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "INPUT" bidirectional
+			(at 236.22 284.48 180)
+			(uuid "80374764-5646-45d5-b3f2-7c0e44f40e41")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "OUTPUT" bidirectional
+			(at 275.59 284.48 0)
+			(uuid "c7146915-a9d5-4eab-8135-9b53e0e767b9")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(instances
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 236.22 317.5)
+		(size 39.37 7.62)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+			(color 132 0 0 1)
+		)
+		(fill
+			(color 255 255 194 1.0000)
+		)
+		(uuid "3f92f74e-3cca-4282-aab2-357fe1c1118f")
+		(property "Sheetname" "Timer Event Logic Conversion - TE-3"
+			(at 236.22 316.7884 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "MainPowerDistributionSystem_Timer_Event_Logic_Conversion.kicad_sch"
+			(at 236.22 325.7046 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "INPUT" bidirectional
+			(at 236.22 321.31 180)
+			(uuid "10932002-430d-45e5-be38-7aa0291be58c")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "OUTPUT" bidirectional
+			(at 275.59 321.31 0)
+			(uuid "3e065a97-b895-4588-ba4d-79590025cd13")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(instances
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(page "4")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 151.13 280.67)
+		(size 39.37 7.62)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+			(color 132 0 0 1)
+		)
+		(fill
+			(color 255 255 194 1.0000)
+		)
+		(uuid "41b9944a-f63d-4ce0-843f-6c1f8b109fe2")
+		(property "Sheetname" "Timer Event Logic Conversion - GSE-1"
+			(at 151.13 279.9584 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "MainPowerDistributionSystem_Timer_Event_Logic_Conversion.kicad_sch"
+			(at 151.13 288.8746 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "INPUT" bidirectional
+			(at 151.13 284.48 180)
+			(uuid "487ea477-b46b-46a1-84a2-97ec64f87d5f")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "OUTPUT" bidirectional
+			(at 190.5 284.48 0)
+			(uuid "43f83eca-6dc0-482e-ae40-666fd0b8e46a")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(instances
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(page "9")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 236.22 299.72)
+		(size 39.37 7.62)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+			(color 132 0 0 1)
+		)
+		(fill
+			(color 255 255 194 1.0000)
+		)
+		(uuid "5794667a-7b17-4495-a615-6983a1fee026")
+		(property "Sheetname" "Timer Event Logic Conversion - TE-2"
+			(at 236.22 299.0084 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "MainPowerDistributionSystem_Timer_Event_Logic_Conversion.kicad_sch"
+			(at 236.22 307.9246 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "INPUT" bidirectional
+			(at 236.22 303.53 180)
+			(uuid "30b1e0a9-8338-4e10-8239-4cdfe1e88f77")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "OUTPUT" bidirectional
+			(at 275.59 303.53 0)
+			(uuid "ca634090-41e5-4904-8a97-ce7d9109c1cd")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(instances
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(page "3")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 151.13 299.72)
+		(size 39.37 7.62)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+			(color 132 0 0 1)
+		)
+		(fill
+			(color 255 255 194 1.0000)
+		)
+		(uuid "5cd708ab-f243-4c3d-b9a6-6ef81c5046b4")
+		(property "Sheetname" "Timer Event Logic Conversion - GSE-2"
+			(at 151.13 299.0084 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "MainPowerDistributionSystem_Timer_Event_Logic_Conversion.kicad_sch"
+			(at 151.13 307.9246 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "INPUT" bidirectional
+			(at 151.13 303.53 180)
+			(uuid "57ff6840-1c2f-4e61-ad0a-ff0639ed29b4")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "OUTPUT" bidirectional
+			(at 190.5 303.53 0)
+			(uuid "117e17cc-f139-40d1-aeb7-72f5b567c679")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(instances
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(page "10")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 236.22 350.52)
+		(size 39.37 7.62)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+			(color 132 0 0 1)
+		)
+		(fill
+			(color 255 255 194 1.0000)
+		)
+		(uuid "7bfeb19b-cfbf-4688-9fe2-f6b9e19ab4b8")
+		(property "Sheetname" "Timer Event Logic Conversion - TE-RB"
+			(at 236.22 349.8084 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "MainPowerDistributionSystem_Timer_Event_Logic_Conversion.kicad_sch"
+			(at 236.22 358.7246 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "INPUT" bidirectional
+			(at 236.22 354.33 180)
+			(uuid "14d254c5-f85a-4ccf-8f36-b94f987063aa")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "OUTPUT" bidirectional
+			(at 275.59 354.33 0)
+			(uuid "558ec2ae-08e3-45ae-921a-a71adc14fb64")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(instances
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(page "8")
+				)
+			)
+		)
+	)
+	(sheet
 		(at 198.12 99.06)
 		(size 58.42 12.7)
 		(exclude_from_sim no)
@@ -9083,6 +10084,69 @@
 			(project "MainPowerDistributionSystem"
 				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
 					(page "6")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 236.22 334.01)
+		(size 39.37 7.62)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+			(color 132 0 0 1)
+		)
+		(fill
+			(color 255 255 194 1.0000)
+		)
+		(uuid "808cc913-2635-4e01-9a87-a42fd91b330a")
+		(property "Sheetname" "Timer Event Logic Conversion - TE-RA"
+			(at 236.22 333.2984 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "MainPowerDistributionSystem_Timer_Event_Logic_Conversion.kicad_sch"
+			(at 236.22 342.2146 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "INPUT" bidirectional
+			(at 236.22 337.82 180)
+			(uuid "4f784b2b-7f8f-4fc1-a9ae-f833243dec20")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "OUTPUT" bidirectional
+			(at 275.59 337.82 0)
+			(uuid "9575db67-f4bd-4663-8091-a511879c940e")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(instances
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2"
+					(page "7")
 				)
 			)
 		)
