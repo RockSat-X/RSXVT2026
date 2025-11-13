@@ -1,17 +1,31 @@
-# Current most effective version: 
+#! /usr/bin/env python3
+
+import pathlib, sys
+
+# Current most effective version:
 import cv2 as cv
-video_path = "C:\\Users\\RyanS\\moonYOLO\\assets\\Videos\\wvu24_launch.mov"
+
+if len(sys.argv) != 2:
+    print(f'Please provide a single argument that is the file path to the video; got {sys.argv[1:]}.')
+    sys.exit(1)
+
+video_path = pathlib.Path(sys.argv[1])
+
+if not video_path.is_file():
+    print(f'{video_path} is not a file.')
+    sys.exit(1)
 
 # Open the video file
-cap = cv.VideoCapture(video_path)  
+cap = cv.VideoCapture(video_path)
 
 while True:
+
     # Open/close frames
     ret, frame = cap.read()
     if not ret:
-        break   
+        break
 
-    # Change brightness (I added this but didn't really do anything.
+    # Change brightness (I added this but didn't really do anything).
     # Its adjustable if anyone wants to play with it
     alpha = 1  # Contrast control (1.0-3.0)
     beta = 50    # Brightness control (0-100)
@@ -20,7 +34,7 @@ while True:
     # Initial images processing. Makes it easier to find edges
     blur = cv.GaussianBlur(adjusted, (5, 5), 0)
 
-    #Those last two values are also adjustable. Lower gets more edges
+    # Those last two values are also adjustable. Lower gets more edges
     # Higher gets less edges
     edges = cv.Canny(blur, 150, 250)
     edges = cv.dilate(edges, None)
@@ -32,7 +46,7 @@ while True:
     curves, _ = cv.findContours(edges, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
     if curves:
         longest_curve = max(curves, key=lambda c: cv.arcLength(c, False))
-    else: 
+    else:
         longest_curve = None
 
     # Draw longest curve on original frame
@@ -45,5 +59,6 @@ while True:
 
     if cv.waitKey(20) & 0xFF == ord('q'):  # Exit on 'q' key
         break
+
 cap.release()
 cv.destroyAllWindows()
