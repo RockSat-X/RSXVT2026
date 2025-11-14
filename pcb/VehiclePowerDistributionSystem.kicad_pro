@@ -58,7 +58,32 @@
           "width": 0.0
         }
       ],
-      "drc_exclusions": [],
+      "drc_exclusions": [
+        [
+          "silk_over_copper|147800000|102716295|f52196d5-3148-4162-a31a-a820968ed481|00000000-0000-0000-0000-000000000000",
+          ""
+        ],
+        [
+          "silk_over_copper|147800000|85616294|552f494e-2013-40d3-a2d9-b8645c701c22|00000000-0000-0000-0000-000000000000",
+          ""
+        ],
+        [
+          "silk_overlap|147800000|103791097|c2611b5d-54aa-4d2d-8273-5646953f9a9b|f52196d5-3148-4162-a31a-a820968ed481",
+          ""
+        ],
+        [
+          "silk_overlap|147800000|79708902|3ff90b72-b13d-4124-a576-6d74fa68457f|552f494e-2013-40d3-a2d9-b8645c701c22",
+          ""
+        ],
+        [
+          "silk_overlap|147800000|86691096|552f494e-2013-40d3-a2d9-b8645c701c22|82400b32-1d60-49a6-a867-a410a953212f",
+          ""
+        ],
+        [
+          "silk_overlap|147800000|96808903|c1b21d48-6328-419e-a7d3-b70b73134e1b|f52196d5-3148-4162-a31a-a820968ed481",
+          ""
+        ]
+      ],
       "meta": {
         "version": 2
       },
@@ -135,7 +160,7 @@
         "min_silk_clearance": 0.0,
         "min_text_height": 0.8,
         "min_text_thickness": 0.08,
-        "min_through_hole_diameter": 0.3,
+        "min_through_hole_diameter": 0.2,
         "min_track_width": 0.0,
         "min_via_annular_width": 0.1,
         "min_via_diameter": 0.5,
@@ -628,16 +653,16 @@
       "Root"
     ],
     [
-      "9d165e7c-b852-47cb-a687-1c18641c5391",
-      "Stepper Motor Driver - X"
+      "e3887760-b415-45a6-83ed-86ed50deccbe",
+      "Stepper Motor Driver - Z"
     ],
     [
       "07cc60fc-23b1-4935-b497-92b89b45ef72",
       "Stepper Motor Driver - Y"
     ],
     [
-      "885661a3-3ca5-4fb2-bf11-643a7d019368",
-      "Stepper Motor Driver - Z"
+      "b6b69580-f614-4db3-b126-960badb9d498",
+      "Stepper Motor Driver - X"
     ],
     [
       "54620fe3-2093-4758-a776-838cd07d45c6",

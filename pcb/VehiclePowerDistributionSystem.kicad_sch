@@ -4838,8 +4838,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 241.3 107.95 90)
-		(mirror x)
+		(at 241.3 120.65 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -4848,7 +4847,7 @@
 		(fields_autoplaced yes)
 		(uuid "08b5a3d8-5035-411d-b77e-5e5c7f8622fb")
 		(property "Reference" "#PWR019"
-			(at 247.65 107.95 0)
+			(at 247.65 120.65 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4857,7 +4856,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 245.11 107.9499 90)
+			(at 245.11 120.6501 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4867,7 +4866,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 241.3 107.95 0)
+			(at 241.3 120.65 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4876,7 +4875,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 241.3 107.95 0)
+			(at 241.3 120.65 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4885,7 +4884,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 241.3 107.95 0)
+			(at 241.3 120.65 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5403,7 +5402,6 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "2a05157b-adf6-42a6-b841-9a598e2cea6f")
 		(property "Reference" "J7"
 			(at 233.68 113.0299 0)
@@ -6405,8 +6403,7 @@
 	)
 	(symbol
 		(lib_id "power:+3.3V")
-		(at 241.3 115.57 270)
-		(mirror x)
+		(at 241.3 113.03 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -6415,7 +6412,7 @@
 		(fields_autoplaced yes)
 		(uuid "5e91843d-f21d-47fe-8bae-6e0f1d6941d9")
 		(property "Reference" "#PWR022"
-			(at 237.49 115.57 0)
+			(at 237.49 113.03 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6424,7 +6421,7 @@
 			)
 		)
 		(property "Value" "+5V"
-			(at 245.11 115.5699 90)
+			(at 245.11 113.0301 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6433,7 +6430,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 241.3 115.57 0)
+			(at 241.3 113.03 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6442,7 +6439,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 241.3 115.57 0)
+			(at 241.3 113.03 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6451,7 +6448,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-			(at 241.3 115.57 0)
+			(at 241.3 113.03 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8154,7 +8151,8 @@
 	)
 	(symbol
 		(lib_id "power:+BATT")
-		(at 241.3 105.41 270)
+		(at 241.3 123.19 270)
+		(mirror x)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -8163,7 +8161,7 @@
 		(fields_autoplaced yes)
 		(uuid "df1c6ba5-569f-4142-9956-95bf4696dbc6")
 		(property "Reference" "#PWR03"
-			(at 237.49 105.41 0)
+			(at 237.49 123.19 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8172,7 +8170,7 @@
 			)
 		)
 		(property "Value" "+EXTERNAL"
-			(at 245.11 105.4099 90)
+			(at 245.11 123.1901 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8181,7 +8179,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 241.3 105.41 0)
+			(at 241.3 123.19 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8190,7 +8188,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 241.3 105.41 0)
+			(at 241.3 123.19 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8199,7 +8197,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+BATT\""
-			(at 241.3 105.41 0)
+			(at 241.3 123.19 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8221,7 +8219,7 @@
 	)
 	(symbol
 		(lib_id "Connector_Generic:Conn_01x04")
-		(at 254 91.44 0)
+		(at 254 78.74 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -8230,7 +8228,7 @@
 		(fields_autoplaced yes)
 		(uuid "e1349ed4-15b9-4a21-8b69-b61879728a5e")
 		(property "Reference" "J6"
-			(at 256.54 91.4399 0)
+			(at 256.54 78.7399 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8239,7 +8237,7 @@
 			)
 		)
 		(property "Value" "B4B-XH-A"
-			(at 256.54 93.9799 0)
+			(at 256.54 81.2799 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8248,7 +8246,7 @@
 			)
 		)
 		(property "Footprint" "Connector_JST:JST_XH_B4B-XH-A_1x04_P2.50mm_Vertical"
-			(at 254 91.44 0)
+			(at 254 78.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8257,7 +8255,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 254 91.44 0)
+			(at 254 78.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8266,7 +8264,7 @@
 			)
 		)
 		(property "Description" "Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"
-			(at 254 91.44 0)
+			(at 254 78.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8297,8 +8295,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 241.3 113.03 90)
-		(mirror x)
+		(at 241.3 115.57 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -8307,7 +8304,7 @@
 		(fields_autoplaced yes)
 		(uuid "e295b8af-da10-4177-abb1-27fe824e8da2")
 		(property "Reference" "#PWR021"
-			(at 247.65 113.03 0)
+			(at 247.65 115.57 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8316,7 +8313,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 245.11 113.0299 90)
+			(at 245.11 115.5701 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8326,7 +8323,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 241.3 113.03 0)
+			(at 241.3 115.57 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8335,7 +8332,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 241.3 113.03 0)
+			(at 241.3 115.57 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8344,7 +8341,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 241.3 113.03 0)
+			(at 241.3 115.57 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8366,8 +8363,7 @@
 	)
 	(symbol
 		(lib_id "power:+3.3V")
-		(at 241.3 120.65 270)
-		(mirror x)
+		(at 241.3 107.95 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -8376,7 +8372,7 @@
 		(fields_autoplaced yes)
 		(uuid "e353fc8f-4d0e-422d-8315-5f52bfa552a1")
 		(property "Reference" "#PWR024"
-			(at 237.49 120.65 0)
+			(at 237.49 107.95 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8385,7 +8381,7 @@
 			)
 		)
 		(property "Value" "+3.3V"
-			(at 245.11 120.6499 90)
+			(at 245.11 107.9501 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8394,7 +8390,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 241.3 120.65 0)
+			(at 241.3 107.95 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8403,7 +8399,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 241.3 120.65 0)
+			(at 241.3 107.95 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8412,7 +8408,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-			(at 241.3 120.65 0)
+			(at 241.3 107.95 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8434,8 +8430,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 241.3 123.19 90)
-		(mirror x)
+		(at 241.3 105.41 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -8444,7 +8439,7 @@
 		(fields_autoplaced yes)
 		(uuid "e803774b-0a9e-4f94-96ed-1cb5e69389fe")
 		(property "Reference" "#PWR02"
-			(at 247.65 123.19 0)
+			(at 247.65 105.41 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8453,7 +8448,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 245.11 123.1899 90)
+			(at 245.11 105.4101 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8463,7 +8458,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 241.3 123.19 0)
+			(at 241.3 105.41 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8472,7 +8467,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 241.3 123.19 0)
+			(at 241.3 105.41 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8481,7 +8476,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 241.3 123.19 0)
+			(at 241.3 105.41 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8776,7 +8771,7 @@
 	)
 	(symbol
 		(lib_id "Connector_Generic:Conn_01x04")
-		(at 254 78.74 0)
+		(at 254 91.44 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -8785,7 +8780,7 @@
 		(fields_autoplaced yes)
 		(uuid "f15d02c5-0261-4346-8626-ab4b196413f0")
 		(property "Reference" "J5"
-			(at 256.54 78.7399 0)
+			(at 256.54 91.4399 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8794,7 +8789,7 @@
 			)
 		)
 		(property "Value" "B4B-XH-A"
-			(at 256.54 81.2799 0)
+			(at 256.54 93.9799 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8803,7 +8798,7 @@
 			)
 		)
 		(property "Footprint" "Connector_JST:JST_XH_B4B-XH-A_1x04_P2.50mm_Vertical"
-			(at 254 78.74 0)
+			(at 254 91.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8812,7 +8807,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 254 78.74 0)
+			(at 254 91.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8821,7 +8816,7 @@
 			)
 		)
 		(property "Description" "Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"
-			(at 254 78.74 0)
+			(at 254 91.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8852,8 +8847,7 @@
 	)
 	(symbol
 		(lib_id "power:+3.3V")
-		(at 241.3 110.49 270)
-		(mirror x)
+		(at 241.3 118.11 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -8862,7 +8856,7 @@
 		(fields_autoplaced yes)
 		(uuid "f3879314-1bc7-466d-8822-0342ffa53920")
 		(property "Reference" "#PWR020"
-			(at 237.49 110.49 0)
+			(at 237.49 118.11 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8871,7 +8865,7 @@
 			)
 		)
 		(property "Value" "+3.3V"
-			(at 245.11 110.4899 90)
+			(at 245.11 118.1101 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8880,7 +8874,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 241.3 110.49 0)
+			(at 241.3 118.11 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8889,7 +8883,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 241.3 110.49 0)
+			(at 241.3 118.11 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8898,7 +8892,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-			(at 241.3 110.49 0)
+			(at 241.3 118.11 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8986,8 +8980,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 241.3 118.11 90)
-		(mirror x)
+		(at 241.3 110.49 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -8996,7 +8989,7 @@
 		(fields_autoplaced yes)
 		(uuid "fb8c558d-6b3d-4317-9704-fc80aad61fd0")
 		(property "Reference" "#PWR023"
-			(at 247.65 118.11 0)
+			(at 247.65 110.49 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9005,7 +8998,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 245.11 118.1099 90)
+			(at 245.11 110.4901 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9015,7 +9008,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 241.3 118.11 0)
+			(at 241.3 110.49 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9024,7 +9017,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 241.3 118.11 0)
+			(at 241.3 110.49 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9033,7 +9026,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 241.3 118.11 0)
+			(at 241.3 110.49 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9479,149 +9472,6 @@
 		)
 	)
 	(sheet
-		(at 124.46 135.89)
-		(size 45.72 43.18)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(stroke
-			(width 0.1524)
-			(type solid)
-			(color 132 0 0 1)
-		)
-		(fill
-			(color 255 255 194 1.0000)
-		)
-		(uuid "885661a3-3ca5-4fb2-bf11-643a7d019368")
-		(property "Sheetname" "Stepper Motor Driver - Z"
-			(at 124.46 135.1784 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left bottom)
-			)
-		)
-		(property "Sheetfile" "VehiclePowerDistributionSystem_Stepper_Motor_Driver_TMC2209.kicad_sch"
-			(at 124.46 179.6546 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-			)
-		)
-		(pin "DIR" bidirectional
-			(at 124.46 149.86 180)
-			(uuid "753156df-2d81-451f-a222-3254ccd8fd81")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(pin "DISABLE" bidirectional
-			(at 124.46 139.7 180)
-			(uuid "49725da6-d3d6-49fb-91e3-fb37cbd12473")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(pin "OUTPUT_A1" bidirectional
-			(at 170.18 139.7 0)
-			(uuid "c72e0510-bf78-4f2c-855f-cb0c3a512f9f")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "OUTPUT_A2" bidirectional
-			(at 170.18 144.78 0)
-			(uuid "557b871f-8fcf-440e-a56b-937dcc32f5cd")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "OUTPUT_B1" bidirectional
-			(at 170.18 149.86 0)
-			(uuid "96cc3742-849a-4ad1-908b-f62c216b3711")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "OUTPUT_B2" bidirectional
-			(at 170.18 154.94 0)
-			(uuid "b6f56c4e-8b77-4a7e-a8fc-82a77ca3ffe4")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "STEP" bidirectional
-			(at 124.46 144.78 180)
-			(uuid "71f17ccb-cedb-4964-90d1-80df11a1a53c")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(pin "UART" bidirectional
-			(at 124.46 165.1 180)
-			(uuid "5ef3db80-9df6-4d43-8ef4-e4158e9586a2")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(pin "VREF" bidirectional
-			(at 124.46 170.18 180)
-			(uuid "8c898216-3de3-43bf-b15a-650c7006ab75")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(pin "SPREAD" bidirectional
-			(at 124.46 175.26 180)
-			(uuid "e3e87a5b-7be8-45b1-a471-2f52ed7b8bac")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(instances
-			(project "VehiclePowerDistributionSystem"
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085"
-					(page "4")
-				)
-			)
-		)
-	)
-	(sheet
 		(at 124.46 34.29)
 		(size 45.72 43.18)
 		(exclude_from_sim no)
@@ -9637,7 +9487,7 @@
 		(fill
 			(color 255 255 194 1.0000)
 		)
-		(uuid "9d165e7c-b852-47cb-a687-1c18641c5391")
+		(uuid "b6b69580-f614-4db3-b126-960badb9d498")
 		(property "Sheetname" "Stepper Motor Driver - X"
 			(at 124.46 33.5784 0)
 			(effects
@@ -9658,7 +9508,7 @@
 		)
 		(pin "DIR" bidirectional
 			(at 124.46 48.26 180)
-			(uuid "5cbb6a87-4f4b-44a6-928e-ccd3f2f0e8f9")
+			(uuid "c374a157-9bd6-490d-9c97-e733d5e2198d")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9668,7 +9518,7 @@
 		)
 		(pin "DISABLE" bidirectional
 			(at 124.46 38.1 180)
-			(uuid "24458612-2497-4fd1-a061-3667a034e25b")
+			(uuid "add3a616-20df-427f-91d6-aaba06ae7fe6")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9678,7 +9528,7 @@
 		)
 		(pin "OUTPUT_A1" bidirectional
 			(at 170.18 38.1 0)
-			(uuid "2b94b955-24e7-420f-9e69-61bf931bf44f")
+			(uuid "a67b6169-ed77-45ca-b28d-ae1bd806e9e8")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9688,7 +9538,7 @@
 		)
 		(pin "OUTPUT_A2" bidirectional
 			(at 170.18 43.18 0)
-			(uuid "53baa176-589a-40c9-9c1a-a695722ed218")
+			(uuid "12c3c8cc-9292-4403-88ed-1dfd7ac6f75b")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9698,7 +9548,7 @@
 		)
 		(pin "OUTPUT_B1" bidirectional
 			(at 170.18 48.26 0)
-			(uuid "dac3d952-534b-4b1a-b5e4-ce18d5dfbd4c")
+			(uuid "e2bec9d9-bac0-4a9e-b12e-d5bc30776288")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9708,7 +9558,7 @@
 		)
 		(pin "OUTPUT_B2" bidirectional
 			(at 170.18 53.34 0)
-			(uuid "e13ab00e-f042-4bda-b1a1-db8722883ca2")
+			(uuid "76b78442-8ec7-45ca-9dd1-165072085f90")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9718,7 +9568,7 @@
 		)
 		(pin "STEP" bidirectional
 			(at 124.46 43.18 180)
-			(uuid "2a0dd3dd-bcd5-4b6e-b928-a4689702ccbb")
+			(uuid "dfb5b378-db32-4cf2-bfd5-04e92650148d")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9728,7 +9578,7 @@
 		)
 		(pin "UART" bidirectional
 			(at 124.46 63.5 180)
-			(uuid "1eb0bf59-9db4-4ff9-be7b-b9039d629476")
+			(uuid "ded65bae-4aeb-4f78-b79f-0a3262b74609")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9738,7 +9588,7 @@
 		)
 		(pin "VREF" bidirectional
 			(at 124.46 68.58 180)
-			(uuid "714eff8b-2136-48b7-8502-9811ab7a56d3")
+			(uuid "20492bd5-a90a-433e-98b6-366637a8ad64")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9748,7 +9598,150 @@
 		)
 		(pin "SPREAD" bidirectional
 			(at 124.46 73.66 180)
-			(uuid "a1be2339-a99e-4b74-88ad-762c9e262755")
+			(uuid "4fb016d1-aa02-4022-ac82-6f28a000e1e4")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(instances
+			(project "VehiclePowerDistributionSystem"
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085"
+					(page "4")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 124.46 135.89)
+		(size 45.72 43.18)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+			(color 132 0 0 1)
+		)
+		(fill
+			(color 255 255 194 1.0000)
+		)
+		(uuid "e3887760-b415-45a6-83ed-86ed50deccbe")
+		(property "Sheetname" "Stepper Motor Driver - Z"
+			(at 124.46 135.1784 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "VehiclePowerDistributionSystem_Stepper_Motor_Driver_TMC2209.kicad_sch"
+			(at 124.46 179.6546 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "DIR" bidirectional
+			(at 124.46 149.86 180)
+			(uuid "0997deae-a6c1-4ab0-8e11-b2423765edd5")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "DISABLE" bidirectional
+			(at 124.46 139.7 180)
+			(uuid "9186c46d-b1dd-4079-9416-9f53185b1011")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "OUTPUT_A1" bidirectional
+			(at 170.18 139.7 0)
+			(uuid "6d7bc103-366b-4e81-a83c-f9f406fdd74c")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "OUTPUT_A2" bidirectional
+			(at 170.18 144.78 0)
+			(uuid "d25af0db-1304-4e46-b7f7-6f6c7a0bbc64")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "OUTPUT_B1" bidirectional
+			(at 170.18 149.86 0)
+			(uuid "8c3cbab4-ad8a-4744-9ef3-7668c9f84b1d")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "OUTPUT_B2" bidirectional
+			(at 170.18 154.94 0)
+			(uuid "d62f91ab-0a99-4245-b1e0-5bc09af155dc")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "STEP" bidirectional
+			(at 124.46 144.78 180)
+			(uuid "79772ece-5b62-4377-907c-78e0a49f0455")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "UART" bidirectional
+			(at 124.46 165.1 180)
+			(uuid "0bf159af-4e58-4f3f-bf90-b6cdd81fde74")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "VREF" bidirectional
+			(at 124.46 170.18 180)
+			(uuid "f98abd8f-44ef-4748-887c-b1e96d6d18ac")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "SPREAD" bidirectional
+			(at 124.46 175.26 180)
+			(uuid "6a4236f2-ee0c-4eee-913c-9824326f2fcf")
 			(effects
 				(font
 					(size 1.27 1.27)
