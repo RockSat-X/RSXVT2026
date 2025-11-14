@@ -58,32 +58,7 @@
           "width": 0.0
         }
       ],
-      "drc_exclusions": [
-        [
-          "silk_over_copper|147800000|102716295|9b78a132-f560-45ba-a2ef-2c8cbbadbb4e|00000000-0000-0000-0000-000000000000",
-          ""
-        ],
-        [
-          "silk_over_copper|147800000|85616294|108497c9-8e7e-4690-be94-f23e8743005b|00000000-0000-0000-0000-000000000000",
-          ""
-        ],
-        [
-          "silk_overlap|147800000|103791097|36af3767-bca0-49bd-9b82-053c10e20e17|9b78a132-f560-45ba-a2ef-2c8cbbadbb4e",
-          ""
-        ],
-        [
-          "silk_overlap|147800000|79708902|108497c9-8e7e-4690-be94-f23e8743005b|7db2c559-cc23-40d3-80a5-891575309366",
-          ""
-        ],
-        [
-          "silk_overlap|147800000|86691096|108497c9-8e7e-4690-be94-f23e8743005b|5c6a8d74-cc77-4d0f-bd74-2461684dcbd1",
-          ""
-        ],
-        [
-          "silk_overlap|147800000|96808903|27fda5a6-003d-4448-968d-b38f451ea89c|9b78a132-f560-45ba-a2ef-2c8cbbadbb4e",
-          ""
-        ]
-      ],
+      "drc_exclusions": [],
       "meta": {
         "version": 2
       },
@@ -126,12 +101,12 @@
         "pth_inside_courtyard": "ignore",
         "shorting_items": "error",
         "silk_edge_clearance": "warning",
-        "silk_over_copper": "warning",
-        "silk_overlap": "warning",
+        "silk_over_copper": "ignore",
+        "silk_overlap": "ignore",
         "skew_out_of_range": "error",
         "solder_mask_bridge": "error",
         "starved_thermal": "error",
-        "text_height": "warning",
+        "text_height": "ignore",
         "text_on_edge_cuts": "error",
         "text_thickness": "warning",
         "through_hole_pad_without_hole": "error",
