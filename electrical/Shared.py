@@ -71,6 +71,11 @@ MCU_SUPPORT = {
 
 }
 
+COUPLED_CONNECTORS = (
+    'MainStackConnector',
+    'VehicleStackConnector',
+)
+
 TARGETS = (
 
 
