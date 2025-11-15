@@ -22,6 +22,8 @@
 #endif
 #if TARGET_NAME_IS_MainFlightComputer
 #endif
+#if TARGET_NAME_IS_VehicleFlightComputer
+#endif
 #if TARGET_NAME_IS_DemoTMC2209
     static constexpr auto TIMEKEEPING_TIMER_ENABLE = (struct CMSISTuple) { &RCC->APB2ENR, CONCAT(RCC_, APB2ENR_TIM1EN_Pos), CONCAT(RCC_, APB2ENR_TIM1EN_Msk) };
     static constexpr auto TIMEKEEPING_DIVIDER      = STPY_TIM1_DIVIDER;

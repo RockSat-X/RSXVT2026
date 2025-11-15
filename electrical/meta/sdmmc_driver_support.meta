@@ -40,6 +40,9 @@
 #if TARGET_NAME_IS_MainFlightComputer
     #error Target 'MainFlightComputer' defines no handle for the 'SD' driver.
 #endif
+#if TARGET_NAME_IS_VehicleFlightComputer
+    #error Target 'VehicleFlightComputer' defines no handle for the 'SD' driver.
+#endif
 #if TARGET_NAME_IS_DemoTMC2209
     #error Target 'DemoTMC2209' defines no handle for the 'SD' driver.
 #endif
