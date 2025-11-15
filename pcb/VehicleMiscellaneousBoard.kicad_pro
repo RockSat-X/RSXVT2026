@@ -58,7 +58,12 @@
           "width": 0.0
         }
       ],
-      "drc_exclusions": [],
+      "drc_exclusions": [
+        [
+          "lib_footprint_issues|150000000|100000000|88498503-2fc9-4d33-b87b-23d1748ddaf1|00000000-0000-0000-0000-000000000000",
+          ""
+        ]
+      ],
       "meta": {
         "version": 2
       },
@@ -101,8 +106,8 @@
         "pth_inside_courtyard": "ignore",
         "shorting_items": "error",
         "silk_edge_clearance": "warning",
-        "silk_over_copper": "warning",
-        "silk_overlap": "warning",
+        "silk_over_copper": "ignore",
+        "silk_overlap": "ignore",
         "skew_out_of_range": "error",
         "solder_mask_bridge": "error",
         "starved_thermal": "error",
@@ -463,7 +468,8 @@
     "pinned_footprint_libs": [],
     "pinned_symbol_libs": [
       "OpenMV_H7_Plus",
-      "Seeed_Studio_XIAO-ESP32-S3-Sense"
+      "Seeed_Studio_XIAO-ESP32-S3-Sense",
+      "VehicleStackConnector"
     ]
   },
   "meta": {
