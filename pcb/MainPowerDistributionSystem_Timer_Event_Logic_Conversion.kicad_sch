@@ -878,7 +878,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "0486685a-1100-4a71-9d86-d3952ae92015")
-		(property "Reference" "C25"
+		(property "Reference" "C1"
 			(at 138.43 91.4399 0)
 			(effects
 				(font
@@ -936,6 +936,36 @@
 					(unit 1)
 				)
 			)
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/261c9762-dbc6-4b8c-91f7-76f368e53a64"
+					(reference "C1")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/3f92f74e-3cca-4282-aab2-357fe1c1118f"
+					(reference "C3")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/41b9944a-f63d-4ce0-843f-6c1f8b109fe2"
+					(reference "C20")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/5794667a-7b17-4495-a615-6983a1fee026"
+					(reference "C2")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/5cd708ab-f243-4c3d-b9a6-6ef81c5046b4"
+					(reference "C21")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/7bfeb19b-cfbf-4688-9fe2-f6b9e19ab4b8"
+					(reference "C19")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/808cc913-2635-4e01-9a87-a42fd91b330a"
+					(reference "C18")
+					(unit 1)
+				)
+			)
 		)
 	)
 	(symbol
@@ -948,7 +978,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "1ce204b0-632a-4b87-a634-19f2f6e12561")
-		(property "Reference" "#PWR014"
+		(property "Reference" "#PWR056"
 			(at 114.3 106.68 0)
 			(effects
 				(font
@@ -1003,6 +1033,36 @@
 					(unit 1)
 				)
 			)
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/261c9762-dbc6-4b8c-91f7-76f368e53a64"
+					(reference "#PWR056")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/3f92f74e-3cca-4282-aab2-357fe1c1118f"
+					(reference "#PWR060")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/41b9944a-f63d-4ce0-843f-6c1f8b109fe2"
+					(reference "#PWR078")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/5794667a-7b17-4495-a615-6983a1fee026"
+					(reference "#PWR058")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/5cd708ab-f243-4c3d-b9a6-6ef81c5046b4"
+					(reference "#PWR080")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/7bfeb19b-cfbf-4688-9fe2-f6b9e19ab4b8"
+					(reference "#PWR076")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/808cc913-2635-4e01-9a87-a42fd91b330a"
+					(reference "#PWR074")
+					(unit 1)
+				)
+			)
 		)
 	)
 	(symbol
@@ -1015,7 +1075,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "47ca0805-3ef8-46f9-9226-a167b5d979c8")
-		(property "Reference" "D6"
+		(property "Reference" "D1"
 			(at 118.11 65.0874 90)
 			(effects
 				(font
@@ -1082,6 +1142,36 @@
 					(unit 1)
 				)
 			)
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/261c9762-dbc6-4b8c-91f7-76f368e53a64"
+					(reference "D1")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/3f92f74e-3cca-4282-aab2-357fe1c1118f"
+					(reference "D5")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/41b9944a-f63d-4ce0-843f-6c1f8b109fe2"
+					(reference "D11")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/5794667a-7b17-4495-a615-6983a1fee026"
+					(reference "D3")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/5cd708ab-f243-4c3d-b9a6-6ef81c5046b4"
+					(reference "D13")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/7bfeb19b-cfbf-4688-9fe2-f6b9e19ab4b8"
+					(reference "D9")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/808cc913-2635-4e01-9a87-a42fd91b330a"
+					(reference "D7")
+					(unit 1)
+				)
+			)
 		)
 	)
 	(symbol
@@ -1094,7 +1184,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "8404fa5e-050c-4960-a21c-653c303e3e11")
-		(property "Reference" "R13"
+		(property "Reference" "R2"
 			(at 116.84 76.1999 0)
 			(effects
 				(font
@@ -1152,6 +1242,36 @@
 					(unit 1)
 				)
 			)
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/261c9762-dbc6-4b8c-91f7-76f368e53a64"
+					(reference "R2")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/3f92f74e-3cca-4282-aab2-357fe1c1118f"
+					(reference "R4")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/41b9944a-f63d-4ce0-843f-6c1f8b109fe2"
+					(reference "R15")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/5794667a-7b17-4495-a615-6983a1fee026"
+					(reference "R3")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/5cd708ab-f243-4c3d-b9a6-6ef81c5046b4"
+					(reference "R16")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/7bfeb19b-cfbf-4688-9fe2-f6b9e19ab4b8"
+					(reference "R14")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/808cc913-2635-4e01-9a87-a42fd91b330a"
+					(reference "R13")
+					(unit 1)
+				)
+			)
 		)
 	)
 	(symbol
@@ -1164,7 +1284,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "8a84e190-8619-43e2-9cbf-5aec959f50e3")
-		(property "Reference" "#PWR015"
+		(property "Reference" "#PWR057"
 			(at 134.62 106.68 0)
 			(effects
 				(font
@@ -1219,6 +1339,36 @@
 					(unit 1)
 				)
 			)
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/261c9762-dbc6-4b8c-91f7-76f368e53a64"
+					(reference "#PWR057")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/3f92f74e-3cca-4282-aab2-357fe1c1118f"
+					(reference "#PWR061")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/41b9944a-f63d-4ce0-843f-6c1f8b109fe2"
+					(reference "#PWR079")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/5794667a-7b17-4495-a615-6983a1fee026"
+					(reference "#PWR059")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/5cd708ab-f243-4c3d-b9a6-6ef81c5046b4"
+					(reference "#PWR081")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/7bfeb19b-cfbf-4688-9fe2-f6b9e19ab4b8"
+					(reference "#PWR077")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/808cc913-2635-4e01-9a87-a42fd91b330a"
+					(reference "#PWR075")
+					(unit 1)
+				)
+			)
 		)
 	)
 	(symbol
@@ -1231,7 +1381,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "c958f26c-2686-4647-bb5e-33bc02477f12")
-		(property "Reference" "D7"
+		(property "Reference" "D2"
 			(at 116.84 91.4399 90)
 			(effects
 				(font
@@ -1286,6 +1436,36 @@
 			(project "VehiclePowerDistributionSystem"
 				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/54620fe3-2093-4758-a776-838cd07d45c6"
 					(reference "D7")
+					(unit 1)
+				)
+			)
+			(project "MainPowerDistributionSystem"
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/261c9762-dbc6-4b8c-91f7-76f368e53a64"
+					(reference "D2")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/3f92f74e-3cca-4282-aab2-357fe1c1118f"
+					(reference "D6")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/41b9944a-f63d-4ce0-843f-6c1f8b109fe2"
+					(reference "D12")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/5794667a-7b17-4495-a615-6983a1fee026"
+					(reference "D4")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/5cd708ab-f243-4c3d-b9a6-6ef81c5046b4"
+					(reference "D14")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/7bfeb19b-cfbf-4688-9fe2-f6b9e19ab4b8"
+					(reference "D10")
+					(unit 1)
+				)
+				(path "/f4672588-55b2-48e9-8f23-132a69134eb2/808cc913-2635-4e01-9a87-a42fd91b330a"
+					(reference "D8")
 					(unit 1)
 				)
 			)
