@@ -679,7 +679,7 @@
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 48 "vn100_uart_rx")
-			(pinfunction "uart_tx_B")
+			(pinfunction "uart_rx_A")
 			(pintype "passive")
 			(uuid "cc634794-ea2b-4ed0-b6d8-b4a70861fc91")
 		)
@@ -1096,7 +1096,7 @@
 			(net 19 "+3.3V")
 			(pinfunction "+3.3V")
 			(pintype "passive")
-			(uuid "2b86ba92-e4e1-42b5-9886-3da31da6cfe5")
+			(uuid "7c615c3e-29e2-4bb0-bfba-0127c54a524f")
 		)
 		(pad "BOOT" thru_hole circle
 			(at 32.258 2.54)
@@ -1140,7 +1140,7 @@
 			(net 18 "GND")
 			(pinfunction "GND")
 			(pintype "passive")
-			(uuid "26b7925c-4da8-4cdb-b425-d007f86da18c")
+			(uuid "97a0bf8c-eed2-4564-abb6-4c2ebd5d2ec7")
 		)
 		(pad "NRST" thru_hole circle
 			(at 28.448 7.62)
@@ -1163,7 +1163,7 @@
 			(pinfunction "NRST")
 			(pintype "passive")
 			(thermal_bridge_angle 90)
-			(uuid "cee57191-5d39-45db-ac61-050553769782")
+			(uuid "1bf3feb1-dd52-4737-9c42-e1cc634df251")
 		)
 		(pad "PA5" thru_hole circle
 			(at 0 15.24)
@@ -3721,7 +3721,7 @@
 			(net 18 "GND")
 			(pinfunction "GND")
 			(pintype "passive")
-			(uuid "05fc15fd-b8b5-478f-9a95-eab4dd663f0a")
+			(uuid "8e10f3fe-a672-419c-8398-9721ce3b6fb4")
 		)
 		(pad "MTCK" thru_hole rect
 			(at 1.27 3.556)

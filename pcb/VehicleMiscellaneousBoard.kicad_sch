@@ -1853,7 +1853,7 @@
 				(pin passive line
 					(at 48.26 -25.4 180)
 					(length 3.81)
-					(name "uart_tx_B"
+					(name "uart_rx_A"
 						(effects
 							(font
 								(size 1.27 1.27)
