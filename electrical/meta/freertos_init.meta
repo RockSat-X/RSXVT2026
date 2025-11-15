@@ -50,6 +50,10 @@
     enum FreeRTOSTask : u32;
     static constexpr u32 FreeRTOSTask_COUNT = 0;
 #endif
+#if TARGET_NAME_IS_VehicleFlightComputer
+    enum FreeRTOSTask : u32;
+    static constexpr u32 FreeRTOSTask_COUNT = 0;
+#endif
 #if TARGET_NAME_IS_DemoTMC2209
     enum FreeRTOSTask : u32;
     static constexpr u32 FreeRTOSTask_COUNT = 0;

@@ -71,6 +71,11 @@ MCU_SUPPORT = {
 
 }
 
+COUPLED_CONNECTORS = (
+    'MainStackConnector',
+    'VehicleStackConnector',
+)
+
 TARGETS = (
 
 
@@ -627,6 +632,83 @@ TARGETS = (
             ('i2c_clock_A'      , 'B6' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL'              }),
             ('i2c_data_B'       , 'D7' , 'ALTERNATE' , { 'altfunc' : 'I2C3_SDA'              }),
             ('i2c_clock_B'      , 'D6' , 'ALTERNATE' , { 'altfunc' : 'I2C3_SCL'              }),
+        ),
+
+        interrupts = None,
+
+        drivers = (),
+
+        use_freertos    = False,
+        main_stack_size = 8192,
+        schema          = None,
+
+    ),
+
+
+
+    ########################################
+
+
+
+    types.SimpleNamespace(
+
+        name              = 'VehicleFlightComputer',
+        mcu               = 'STM32H533VET6',
+        source_file_paths = (),
+
+        schematic_file_path = root('./pcb/VehicleFlightComputer.kicad_sch'),
+
+        gpios = (
+            ('led_channel_red'       , 'E2' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False }),
+            ('led_channel_green'     , 'E3' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False }),
+            ('led_channel_blue'      , 'E4' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False }),
+            ('stlink_tx'             , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'             }),
+            ('stlink_rx'             , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'             }),
+            ('swdio'                 , 'A13', None        , {                                     }),
+            ('swclk'                 , 'A14', None        , {                                     }),
+            ('swo'                   , 'B3' , None        , {                                     }),
+            ('serial_reset'          , 'D10', 'OUTPUT'    , { 'initlvl' : True                    }),
+            ('serial_rx'             , 'D11', 'ALTERNATE' , { 'altfunc' : 'UART4_RX'              }),
+            ('serial_tx'             , 'D12', 'ALTERNATE' , { 'altfunc' : 'UART4_TX'              }),
+            ('buzzer'                , 'C6' , 'ALTERNATE' , { 'altfunc' : 'TIM8_CH1'              }),
+            ('sd_cmd'                , 'D2' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CMD'            }),
+            ('sd_data_0'             , 'C8' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D0'             }),
+            ('sd_data_1'             , 'C9' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D1'             }),
+            ('sd_data_2'             , 'C10', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D2'             }),
+            ('sd_data_3'             , 'C11', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D3'             }),
+            ('sd_clock'              , 'C12', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CK'             }),
+            ('battery_allowed'       , 'D0' , 'OUTPUT'    , { 'initlvl' : False                   }),
+            ('external_detected'     , 'D1' , None        , {                                     }),
+            ('openmv_spi_nss'        , 'B12', 'ALTERNATE' , { 'altfunc' : 'SPI2_NSS'              }),
+            ('openmv_spi_clock'      , 'B10', 'ALTERNATE' , { 'altfunc' : 'SPI2_SCK'              }),
+            ('openmv_spi_mosi'       , 'C3' , 'ALTERNATE' , { 'altfunc' : 'SPI2_MOSI'             }),
+            ('openmv_spi_miso'       , 'C2' , 'ALTERNATE' , { 'altfunc' : 'SPI2_MISO'             }),
+            ('openmv_spi_ready'      , 'D5' , 'ALTERNATE' , { 'altfunc' : 'SPI2_RDY'              }),
+            ('openmv_reset'          , 'D14', 'OUTPUT'    , { 'initlvl' : False                   }),
+            ('esp32_spi_nss'         , 'B8' , 'ALTERNATE' , { 'altfunc' : 'SPI3_NSS'              }),
+            ('esp32_spi_clock'       , 'B1' , 'ALTERNATE' , { 'altfunc' : 'SPI3_SCK'              }),
+            ('esp32_spi_mosi'        , 'B5' , 'ALTERNATE' , { 'altfunc' : 'SPI3_MOSI'             }),
+            ('esp32_spi_miso'        , 'B0' , 'ALTERNATE' , { 'altfunc' : 'SPI3_MISO'             }),
+            ('esp32_spi_ready'       , 'E0' , 'ALTERNATE' , { 'altfunc' : 'SPI3_RDY'              }),
+            ('esp32_reset'           , 'D15', 'OUTPUT'    , { 'initlvl' : False                   }),
+            ('motor_uart_tx'         , 'B14', 'ALTERNATE' , { 'altfunc' : 'USART1_TX'             }),
+            ('motor_uart_rx'         , 'B15', 'ALTERNATE' , { 'altfunc' : 'USART1_RX'             }),
+            ('lsm6dsv32x_i2c_data'   , 'B7' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA'              }),
+            ('lsm6dsv32x_i2c_clock'  , 'B6' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL'              }),
+            ('lis2mdl_i2c_data'      , 'D7' , 'ALTERNATE' , { 'altfunc' : 'I2C3_SDA'              }),
+            ('lis2mdl_i2c_clock'     , 'D6' , 'ALTERNATE' , { 'altfunc' : 'I2C3_SCL'              }),
+            ('motor_disable'         , 'E14', 'OUTPUT'    , { 'initlvl' : True                    }),
+            ('motor_step_x'          , 'E11', 'OUTPUT'    , { 'initlvl' : False                   }),
+            ('motor_step_y'          , 'E12', 'OUTPUT'    , { 'initlvl' : False                   }),
+            ('motor_step_z'          , 'E13', 'OUTPUT'    , { 'initlvl' : False                   }),
+            ('motor_direction_x'     , 'E15', 'OUTPUT'    , { 'initlvl' : False                   }),
+            ('motor_direction_y'     , 'D4' , 'OUTPUT'    , { 'initlvl' : False                   }),
+            ('motor_direction_z'     , 'D3' , 'OUTPUT'    , { 'initlvl' : False                   }),
+            ('lsm6dsv32x_interrupt_1', 'A8' , None        , {                                     }),
+            ('lsm6dsv32x_interrupt_2', 'A9' , None        , {                                     }),
+            ('lsm6dsv32x_chip_select', 'A10', 'OUTPUT'    , { 'initlvl': True                     }),
+            ('lis2mdl_data_ready'    , 'C14', None        , {                                     }),
+            ('lis2mdl_chip_select'   , 'C15', None        , {                                     }),
         ),
 
         interrupts = None,

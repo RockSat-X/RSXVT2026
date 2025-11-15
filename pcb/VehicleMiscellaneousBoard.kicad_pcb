@@ -320,7 +320,7 @@
 				(xyz 1 1 1)
 			)
 			(rotate
-				(xyz -0 90 -0)
+				(xyz -90 -0 90)
 			)
 		)
 		(model "${KIPRJMOD}/models/VehicleFlightComputer.step"
@@ -466,7 +466,7 @@
 			(net 19 "+3.3V")
 			(pinfunction "+3.3V")
 			(pintype "passive")
-			(uuid "9ebc5a68-80a2-48f7-864b-6fa948783529")
+			(uuid "2b86ba92-e4e1-42b5-9886-3da31da6cfe5")
 		)
 		(pad "BOOT" thru_hole circle
 			(at 32.258 2.54)
@@ -510,7 +510,7 @@
 			(net 18 "GND")
 			(pinfunction "GND")
 			(pintype "passive")
-			(uuid "23d7a2d0-8fc7-49fe-8191-7c1704feaa1f")
+			(uuid "26b7925c-4da8-4cdb-b425-d007f86da18c")
 		)
 		(pad "NRST" thru_hole circle
 			(at 28.448 7.62)
@@ -533,7 +533,7 @@
 			(pinfunction "NRST")
 			(pintype "passive")
 			(thermal_bridge_angle 90)
-			(uuid "6834e12b-7474-4f50-bb9d-30193a063791")
+			(uuid "cee57191-5d39-45db-ac61-050553769782")
 		)
 		(pad "PA5" thru_hole circle
 			(at 0 15.24)
@@ -2852,7 +2852,7 @@
 			(net 18 "GND")
 			(pinfunction "GND")
 			(pintype "passive")
-			(uuid "05fc15fd-b8b5-478f-9a95-eab4dd663f0a")
+			(uuid "f68dd338-94b7-48a8-8bac-039e2e6d5bf1")
 		)
 		(pad "MTCK" thru_hole rect
 			(at 1.27 3.556)

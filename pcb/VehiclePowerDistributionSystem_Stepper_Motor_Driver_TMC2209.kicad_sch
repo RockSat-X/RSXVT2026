@@ -2561,7 +2561,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "0a28816c-0f45-4c47-a462-d2d65f7f3f88")
-		(property "Reference" "#PWR033"
+		(property "Reference" "#PWR026"
 			(at 105.41 121.92 0)
 			(effects
 				(font
@@ -2607,7 +2607,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "0237ff51-097a-4423-8a91-d4eeb6fcce77")
+			(uuid "7dba1b21-3c83-49e4-98d4-e655186daad8")
 		)
 		(instances
 			(project "VehiclePowerDistributionSystem"
@@ -2615,12 +2615,12 @@
 					(reference "#PWR047")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/885661a3-3ca5-4fb2-bf11-643a7d019368"
-					(reference "#PWR061")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/b6b69580-f614-4db3-b126-960badb9d498"
+					(reference "#PWR040")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/9d165e7c-b852-47cb-a687-1c18641c5391"
-					(reference "#PWR033")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/e3887760-b415-45a6-83ed-86ed50deccbe"
+					(reference "#PWR026")
 					(unit 1)
 				)
 			)
@@ -2636,7 +2636,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "0acab4d4-6281-4fc7-b7b2-3d79666b4ab7")
-		(property "Reference" "C3"
+		(property "Reference" "C20"
 			(at 162.56 113.0362 0)
 			(effects
 				(font
@@ -2682,23 +2682,23 @@
 			)
 		)
 		(pin "1"
-			(uuid "16a92db1-1cb0-4683-8228-d368daec20e2")
+			(uuid "ca056fa3-5193-4569-b47d-9ba2156d66d8")
 		)
 		(pin "2"
-			(uuid "0ffdb71d-ca76-4425-b01e-776d88fe4591")
+			(uuid "a846352d-d02c-48a3-8db7-b288a22422cc")
 		)
 		(instances
 			(project "VehiclePowerDistributionSystem"
 				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/07cc60fc-23b1-4935-b497-92b89b45ef72"
-					(reference "C11")
+					(reference "C23")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/885661a3-3ca5-4fb2-bf11-643a7d019368"
-					(reference "C19")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/b6b69580-f614-4db3-b126-960badb9d498"
+					(reference "C24")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/9d165e7c-b852-47cb-a687-1c18641c5391"
-					(reference "C3")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/e3887760-b415-45a6-83ed-86ed50deccbe"
+					(reference "C20")
 					(unit 1)
 				)
 			)
@@ -2713,7 +2713,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "0bab999b-0ed4-4b7b-afb1-6d06e0e0c5ff")
-		(property "Reference" "C1"
+		(property "Reference" "C8"
 			(at 127 81.2862 0)
 			(effects
 				(font
@@ -2759,23 +2759,23 @@
 			)
 		)
 		(pin "1"
-			(uuid "373fe27c-e160-433c-a10e-2b2b8560ce48")
+			(uuid "d11e32e5-90b1-495c-95b0-f012c4fb6349")
 		)
 		(pin "2"
-			(uuid "6d880e45-465b-4283-ac27-8019ea5d1a64")
+			(uuid "eb62837f-ff0d-4bd0-8581-495ef4ba4dd1")
 		)
 		(instances
 			(project "VehiclePowerDistributionSystem"
 				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/07cc60fc-23b1-4935-b497-92b89b45ef72"
-					(reference "C9")
+					(reference "C10")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/885661a3-3ca5-4fb2-bf11-643a7d019368"
-					(reference "C17")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/b6b69580-f614-4db3-b126-960badb9d498"
+					(reference "C12")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/9d165e7c-b852-47cb-a687-1c18641c5391"
-					(reference "C1")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/e3887760-b415-45a6-83ed-86ed50deccbe"
+					(reference "C8")
 					(unit 1)
 				)
 			)
@@ -2791,7 +2791,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "0e11c2a5-a02d-4def-aeb0-2f435191f3c2")
-		(property "Reference" "C5"
+		(property "Reference" "C21"
 			(at 172.72 113.0362 0)
 			(effects
 				(font
@@ -2837,23 +2837,23 @@
 			)
 		)
 		(pin "1"
-			(uuid "77386682-3947-4b86-8b34-3ffc5a50df12")
+			(uuid "e1e16347-3b8d-450a-86f0-a80865f3678d")
 		)
 		(pin "2"
-			(uuid "c8570442-bdfc-4684-9f7c-93821da380af")
+			(uuid "e3c0da25-6696-4b18-aeb3-2a669cee540b")
 		)
 		(instances
 			(project "VehiclePowerDistributionSystem"
 				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/07cc60fc-23b1-4935-b497-92b89b45ef72"
-					(reference "C13")
+					(reference "C22")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/885661a3-3ca5-4fb2-bf11-643a7d019368"
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/b6b69580-f614-4db3-b126-960badb9d498"
+					(reference "C25")
+					(unit 1)
+				)
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/e3887760-b415-45a6-83ed-86ed50deccbe"
 					(reference "C21")
-					(unit 1)
-				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/9d165e7c-b852-47cb-a687-1c18641c5391"
-					(reference "C5")
 					(unit 1)
 				)
 			)
@@ -2869,7 +2869,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "25b6b15d-2d5e-4788-8992-5ec218746742")
-		(property "Reference" "R4"
+		(property "Reference" "R11"
 			(at 181.61 144.7799 0)
 			(effects
 				(font
@@ -2915,23 +2915,23 @@
 			)
 		)
 		(pin "1"
-			(uuid "6a85d26d-bdc1-48c6-84ad-c84d4a251175")
+			(uuid "7e5b76d1-baf3-4dcb-add1-dfa1520bc48a")
 		)
 		(pin "2"
-			(uuid "cc2956cc-7cac-425d-b94a-d04c42e4f1d9")
+			(uuid "60fca723-222a-42f3-a4d6-e144492cae35")
 		)
 		(instances
 			(project "VehiclePowerDistributionSystem"
 				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/07cc60fc-23b1-4935-b497-92b89b45ef72"
-					(reference "R7")
+					(reference "R12")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/885661a3-3ca5-4fb2-bf11-643a7d019368"
-					(reference "R10")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/b6b69580-f614-4db3-b126-960badb9d498"
+					(reference "R13")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/9d165e7c-b852-47cb-a687-1c18641c5391"
-					(reference "R4")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/e3887760-b415-45a6-83ed-86ed50deccbe"
+					(reference "R11")
 					(unit 1)
 				)
 			)
@@ -2947,7 +2947,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "270459e0-fa40-4ef6-884c-f8db51dc79a7")
-		(property "Reference" "#PWR044"
+		(property "Reference" "#PWR037"
 			(at 222.25 92.71 0)
 			(effects
 				(font
@@ -2993,7 +2993,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "259bf832-52d8-41ea-8ea1-97118970a70e")
+			(uuid "5ec64541-055c-4905-923a-c30b5b38604b")
 		)
 		(instances
 			(project "VehiclePowerDistributionSystem"
@@ -3001,12 +3001,12 @@
 					(reference "#PWR058")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/885661a3-3ca5-4fb2-bf11-643a7d019368"
-					(reference "#PWR072")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/b6b69580-f614-4db3-b126-960badb9d498"
+					(reference "#PWR065")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/9d165e7c-b852-47cb-a687-1c18641c5391"
-					(reference "#PWR044")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/e3887760-b415-45a6-83ed-86ed50deccbe"
+					(reference "#PWR037")
 					(unit 1)
 				)
 			)
@@ -3022,7 +3022,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "2bb54958-84f3-4f6f-851d-2153aadca01b")
-		(property "Reference" "D1"
+		(property "Reference" "D5"
 			(at 77.47 89.2174 90)
 			(effects
 				(font
@@ -3077,23 +3077,23 @@
 			)
 		)
 		(pin "2"
-			(uuid "b9cdac74-d4ec-45ac-84c9-2363096697dc")
+			(uuid "b1ae33b2-c6db-4131-92ff-a48b6515fa93")
 		)
 		(pin "1"
-			(uuid "c7e26aec-ab1d-4844-9716-5d58d648408f")
+			(uuid "174e87d2-8c65-494b-a146-e66ce647df0b")
 		)
 		(instances
 			(project "VehiclePowerDistributionSystem"
 				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/07cc60fc-23b1-4935-b497-92b89b45ef72"
-					(reference "D2")
+					(reference "D4")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/885661a3-3ca5-4fb2-bf11-643a7d019368"
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/b6b69580-f614-4db3-b126-960badb9d498"
 					(reference "D3")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/9d165e7c-b852-47cb-a687-1c18641c5391"
-					(reference "D1")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/e3887760-b415-45a6-83ed-86ed50deccbe"
+					(reference "D5")
 					(unit 1)
 				)
 			)
@@ -3109,7 +3109,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "3e86a92e-7d7c-4d1a-8031-6c16aa8e5dfb")
-		(property "Reference" "#PWR043"
+		(property "Reference" "#PWR036"
 			(at 209.55 92.71 0)
 			(effects
 				(font
@@ -3155,7 +3155,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "e55ba0ad-666b-4291-bd12-776736c2449a")
+			(uuid "818d9ce3-6cc7-481e-9ec0-b9e1f75a101a")
 		)
 		(instances
 			(project "VehiclePowerDistributionSystem"
@@ -3163,12 +3163,12 @@
 					(reference "#PWR057")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/885661a3-3ca5-4fb2-bf11-643a7d019368"
-					(reference "#PWR071")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/b6b69580-f614-4db3-b126-960badb9d498"
+					(reference "#PWR064")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/9d165e7c-b852-47cb-a687-1c18641c5391"
-					(reference "#PWR043")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/e3887760-b415-45a6-83ed-86ed50deccbe"
+					(reference "#PWR036")
 					(unit 1)
 				)
 			)
@@ -3184,7 +3184,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "41c5a8da-e5ed-4f3c-b8e8-6584371cea37")
-		(property "Reference" "R3"
+		(property "Reference" "R5"
 			(at 78.74 80.0099 0)
 			(effects
 				(font
@@ -3230,10 +3230,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "0d259056-1146-4882-a553-525d1ccbc343")
+			(uuid "77ae7e04-9f59-4555-afeb-e8f8785006c4")
 		)
 		(pin "2"
-			(uuid "393882bc-e771-468c-9068-dfcede85bc55")
+			(uuid "a9dab8db-b1d0-4f60-9f45-a7bbeec12b7f")
 		)
 		(instances
 			(project "VehiclePowerDistributionSystem"
@@ -3241,12 +3241,12 @@
 					(reference "R6")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/885661a3-3ca5-4fb2-bf11-643a7d019368"
-					(reference "R9")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/b6b69580-f614-4db3-b126-960badb9d498"
+					(reference "R7")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/9d165e7c-b852-47cb-a687-1c18641c5391"
-					(reference "R3")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/e3887760-b415-45a6-83ed-86ed50deccbe"
+					(reference "R5")
 					(unit 1)
 				)
 			)
@@ -3261,7 +3261,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "46cfc3b5-18cb-4bdb-bb97-2bf4959368b6")
-		(property "Reference" "TP2"
+		(property "Reference" "TP4"
 			(at 115.316 137.16 90)
 			(effects
 				(font
@@ -3307,7 +3307,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "03190e8c-ba09-4742-b337-cbfe11b4fcd1")
+			(uuid "cec3f55b-9d1e-451c-af8b-baf0c49445e2")
 		)
 		(instances
 			(project "VehiclePowerDistributionSystem"
@@ -3315,12 +3315,12 @@
 					(reference "TP3")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/885661a3-3ca5-4fb2-bf11-643a7d019368"
-					(reference "TP4")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/b6b69580-f614-4db3-b126-960badb9d498"
+					(reference "TP2")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/9d165e7c-b852-47cb-a687-1c18641c5391"
-					(reference "TP2")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/e3887760-b415-45a6-83ed-86ed50deccbe"
+					(reference "TP4")
 					(unit 1)
 				)
 			)
@@ -3336,7 +3336,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "53a732e9-b1e4-4541-a54d-82f1e5721955")
-		(property "Reference" "#PWR036"
+		(property "Reference" "#PWR029"
 			(at 134.62 81.28 0)
 			(effects
 				(font
@@ -3381,7 +3381,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "63d7a117-d3af-4844-aecd-f158736368b8")
+			(uuid "2bb30b23-1969-4a41-bfd6-1ca29e3ece62")
 		)
 		(instances
 			(project "VehiclePowerDistributionSystem"
@@ -3389,12 +3389,12 @@
 					(reference "#PWR050")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/885661a3-3ca5-4fb2-bf11-643a7d019368"
-					(reference "#PWR064")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/b6b69580-f614-4db3-b126-960badb9d498"
+					(reference "#PWR043")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/9d165e7c-b852-47cb-a687-1c18641c5391"
-					(reference "#PWR036")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/e3887760-b415-45a6-83ed-86ed50deccbe"
+					(reference "#PWR029")
 					(unit 1)
 				)
 			)
@@ -3410,7 +3410,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "5b30e0f2-f86f-4221-9cf7-20f5429f5060")
-		(property "Reference" "#PWR041"
+		(property "Reference" "#PWR034"
 			(at 196.85 81.28 0)
 			(effects
 				(font
@@ -3455,7 +3455,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "58a055f9-4164-4e06-992d-3c852fbd42f4")
+			(uuid "f629e762-8825-43ec-b6f2-bb2284c0e6eb")
 		)
 		(instances
 			(project "VehiclePowerDistributionSystem"
@@ -3463,12 +3463,12 @@
 					(reference "#PWR055")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/885661a3-3ca5-4fb2-bf11-643a7d019368"
-					(reference "#PWR069")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/b6b69580-f614-4db3-b126-960badb9d498"
+					(reference "#PWR062")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/9d165e7c-b852-47cb-a687-1c18641c5391"
-					(reference "#PWR041")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/e3887760-b415-45a6-83ed-86ed50deccbe"
+					(reference "#PWR034")
 					(unit 1)
 				)
 			)
@@ -3484,7 +3484,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "6582e9df-0fc4-4a86-8551-ab11f53d4ed7")
-		(property "Reference" "#PWR040"
+		(property "Reference" "#PWR033"
 			(at 187.96 156.21 0)
 			(effects
 				(font
@@ -3530,7 +3530,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "42e9a5a4-3746-472e-b6f6-7f9ba4d1dec9")
+			(uuid "ab758639-46ca-4f01-8382-c6e254975cd6")
 		)
 		(instances
 			(project "VehiclePowerDistributionSystem"
@@ -3538,12 +3538,12 @@
 					(reference "#PWR054")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/885661a3-3ca5-4fb2-bf11-643a7d019368"
-					(reference "#PWR068")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/b6b69580-f614-4db3-b126-960badb9d498"
+					(reference "#PWR061")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/9d165e7c-b852-47cb-a687-1c18641c5391"
-					(reference "#PWR040")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/e3887760-b415-45a6-83ed-86ed50deccbe"
+					(reference "#PWR033")
 					(unit 1)
 				)
 			)
@@ -3559,7 +3559,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "672f25e9-2ec9-4521-a056-b2d31cd212a4")
-		(property "Reference" "#PWR042"
+		(property "Reference" "#PWR035"
 			(at 196.85 92.71 0)
 			(effects
 				(font
@@ -3605,7 +3605,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "b133c7d8-a665-4f3e-bf37-618f434bb4dc")
+			(uuid "2232a52c-e929-498a-a077-8001b90dd639")
 		)
 		(instances
 			(project "VehiclePowerDistributionSystem"
@@ -3613,12 +3613,12 @@
 					(reference "#PWR056")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/885661a3-3ca5-4fb2-bf11-643a7d019368"
-					(reference "#PWR070")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/b6b69580-f614-4db3-b126-960badb9d498"
+					(reference "#PWR063")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/9d165e7c-b852-47cb-a687-1c18641c5391"
-					(reference "#PWR042")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/e3887760-b415-45a6-83ed-86ed50deccbe"
+					(reference "#PWR035")
 					(unit 1)
 				)
 			)
@@ -3633,7 +3633,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "7310c3a4-d461-4f51-ad8c-b3d855a901fb")
-		(property "Reference" "C8"
+		(property "Reference" "C4"
 			(at 226.06 81.28 0)
 			(effects
 				(font
@@ -3679,23 +3679,23 @@
 			)
 		)
 		(pin "1"
-			(uuid "d97988c3-54c9-410b-a145-080b0a29fc3b")
+			(uuid "f38b881f-6ce3-4e0b-8351-36d28f855ceb")
 		)
 		(pin "2"
-			(uuid "32d02cff-c498-49ff-b56a-077455aa16c3")
+			(uuid "1e481fb0-1ecd-4643-ad2c-35bb74457cfc")
 		)
 		(instances
 			(project "VehiclePowerDistributionSystem"
 				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/07cc60fc-23b1-4935-b497-92b89b45ef72"
-					(reference "C16")
+					(reference "C3")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/885661a3-3ca5-4fb2-bf11-643a7d019368"
-					(reference "C24")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/b6b69580-f614-4db3-b126-960badb9d498"
+					(reference "C2")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/9d165e7c-b852-47cb-a687-1c18641c5391"
-					(reference "C8")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/e3887760-b415-45a6-83ed-86ed50deccbe"
+					(reference "C4")
 					(unit 1)
 				)
 			)
@@ -3711,7 +3711,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "744ae33b-fe7e-4ca7-ace2-93214099d48d")
-		(property "Reference" "#PWR032"
+		(property "Reference" "#PWR025"
 			(at 105.41 119.38 0)
 			(effects
 				(font
@@ -3757,7 +3757,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "445cf552-3e60-4a41-ba07-920ee2544032")
+			(uuid "10f46299-881e-4020-9712-77796d44a9a2")
 		)
 		(instances
 			(project "VehiclePowerDistributionSystem"
@@ -3765,12 +3765,12 @@
 					(reference "#PWR046")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/885661a3-3ca5-4fb2-bf11-643a7d019368"
-					(reference "#PWR060")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/b6b69580-f614-4db3-b126-960badb9d498"
+					(reference "#PWR039")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/9d165e7c-b852-47cb-a687-1c18641c5391"
-					(reference "#PWR032")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/e3887760-b415-45a6-83ed-86ed50deccbe"
+					(reference "#PWR025")
 					(unit 1)
 				)
 			)
@@ -3786,7 +3786,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "83f006d3-6a85-4727-8285-74d0c6c15d3e")
-		(property "Reference" "#PWR038"
+		(property "Reference" "#PWR031"
 			(at 170.18 113.03 0)
 			(effects
 				(font
@@ -3832,7 +3832,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "72154a33-4be7-4c18-8b56-9aa511a04e53")
+			(uuid "7bfa7b32-4910-433d-ba76-1436b24dc63d")
 		)
 		(instances
 			(project "VehiclePowerDistributionSystem"
@@ -3840,12 +3840,12 @@
 					(reference "#PWR052")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/885661a3-3ca5-4fb2-bf11-643a7d019368"
-					(reference "#PWR066")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/b6b69580-f614-4db3-b126-960badb9d498"
+					(reference "#PWR059")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/9d165e7c-b852-47cb-a687-1c18641c5391"
-					(reference "#PWR038")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/e3887760-b415-45a6-83ed-86ed50deccbe"
+					(reference "#PWR031")
 					(unit 1)
 				)
 			)
@@ -3861,7 +3861,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "90306fa8-03a9-4950-b0f9-bf5b6e3327fa")
-		(property "Reference" "C7"
+		(property "Reference" "C5"
 			(at 212.09 81.2862 0)
 			(effects
 				(font
@@ -3907,23 +3907,23 @@
 			)
 		)
 		(pin "1"
-			(uuid "eb780686-e8de-4fa2-83bb-c79c426d1d74")
+			(uuid "a155d103-96ab-432f-953a-60e290dd9360")
 		)
 		(pin "2"
-			(uuid "d40a814e-9b72-4280-9a37-f23630720079")
+			(uuid "0342279d-36b6-4186-9a2a-461f81bcb389")
 		)
 		(instances
 			(project "VehiclePowerDistributionSystem"
 				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/07cc60fc-23b1-4935-b497-92b89b45ef72"
-					(reference "C15")
+					(reference "C6")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/885661a3-3ca5-4fb2-bf11-643a7d019368"
-					(reference "C23")
-					(unit 1)
-				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/9d165e7c-b852-47cb-a687-1c18641c5391"
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/b6b69580-f614-4db3-b126-960badb9d498"
 					(reference "C7")
+					(unit 1)
+				)
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/e3887760-b415-45a6-83ed-86ed50deccbe"
+					(reference "C5")
 					(unit 1)
 				)
 			)
@@ -3939,7 +3939,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "99e7a3ec-6f59-41ad-843c-2f3e714638d5")
-		(property "Reference" "C6"
+		(property "Reference" "C9"
 			(at 199.39 81.2862 0)
 			(effects
 				(font
@@ -3985,23 +3985,23 @@
 			)
 		)
 		(pin "1"
-			(uuid "73dacf63-7dde-4c45-8935-2f69b5036b22")
+			(uuid "6a127abe-d0f5-4e6b-8668-b14ef2366c8f")
 		)
 		(pin "2"
-			(uuid "d10fb598-9a2e-484f-bc2c-ee7d120e3d62")
+			(uuid "8af55602-f85d-426d-a7e5-646816fa6822")
 		)
 		(instances
 			(project "VehiclePowerDistributionSystem"
 				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/07cc60fc-23b1-4935-b497-92b89b45ef72"
-					(reference "C14")
+					(reference "C11")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/885661a3-3ca5-4fb2-bf11-643a7d019368"
-					(reference "C22")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/b6b69580-f614-4db3-b126-960badb9d498"
+					(reference "C13")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/9d165e7c-b852-47cb-a687-1c18641c5391"
-					(reference "C6")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/e3887760-b415-45a6-83ed-86ed50deccbe"
+					(reference "C9")
 					(unit 1)
 				)
 			)
@@ -4017,7 +4017,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "a27263ea-7123-4ff2-b863-8b1c74b9dcf3")
-		(property "Reference" "#PWR031"
+		(property "Reference" "#PWR018"
 			(at 81.28 99.06 0)
 			(effects
 				(font
@@ -4063,7 +4063,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "11a25f62-c0d2-48e6-a710-8e48f18e26ee")
+			(uuid "11c61ba2-6e91-4ec9-adb2-47777fbc4ac0")
 		)
 		(instances
 			(project "VehiclePowerDistributionSystem"
@@ -4071,12 +4071,12 @@
 					(reference "#PWR045")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/885661a3-3ca5-4fb2-bf11-643a7d019368"
-					(reference "#PWR059")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/b6b69580-f614-4db3-b126-960badb9d498"
+					(reference "#PWR038")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/9d165e7c-b852-47cb-a687-1c18641c5391"
-					(reference "#PWR031")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/e3887760-b415-45a6-83ed-86ed50deccbe"
+					(reference "#PWR018")
 					(unit 1)
 				)
 			)
@@ -4092,7 +4092,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "a5d90a11-8570-468c-8858-aee3a4074f02")
-		(property "Reference" "JP3"
+		(property "Reference" "JP6"
 			(at 105.41 115.57 0)
 			(effects
 				(font
@@ -4137,23 +4137,23 @@
 			)
 		)
 		(pin "1"
-			(uuid "2bcae2dc-2996-422d-883d-a0c07132aeef")
+			(uuid "f4f4750d-612f-4fe1-bf39-9fc748ddf312")
 		)
 		(pin "2"
-			(uuid "22452d7e-0f99-4565-a827-b038966f1de6")
+			(uuid "7e2de7f7-e2a8-4b99-80e8-1b5c99633c37")
 		)
 		(instances
 			(project "VehiclePowerDistributionSystem"
 				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/07cc60fc-23b1-4935-b497-92b89b45ef72"
-					(reference "JP5")
+					(reference "JP4")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/885661a3-3ca5-4fb2-bf11-643a7d019368"
-					(reference "JP7")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/b6b69580-f614-4db3-b126-960badb9d498"
+					(reference "JP1")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/9d165e7c-b852-47cb-a687-1c18641c5391"
-					(reference "JP3")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/e3887760-b415-45a6-83ed-86ed50deccbe"
+					(reference "JP6")
 					(unit 1)
 				)
 			)
@@ -4169,7 +4169,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "b1deee8d-6d3a-4f39-a469-c395ae7fd1d2")
-		(property "Reference" "#PWR037"
+		(property "Reference" "#PWR030"
 			(at 137.16 153.67 0)
 			(effects
 				(font
@@ -4215,7 +4215,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "c9caf784-8a57-4ab4-aca2-9c09bc2019b7")
+			(uuid "8063a627-08c0-419d-87c9-a9477210c2ae")
 		)
 		(instances
 			(project "VehiclePowerDistributionSystem"
@@ -4223,12 +4223,12 @@
 					(reference "#PWR051")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/885661a3-3ca5-4fb2-bf11-643a7d019368"
-					(reference "#PWR065")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/b6b69580-f614-4db3-b126-960badb9d498"
+					(reference "#PWR044")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/9d165e7c-b852-47cb-a687-1c18641c5391"
-					(reference "#PWR037")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/e3887760-b415-45a6-83ed-86ed50deccbe"
+					(reference "#PWR030")
 					(unit 1)
 				)
 			)
@@ -4244,7 +4244,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "b250ceda-5eb4-4009-af3a-96686211636f")
-		(property "Reference" "U4"
+		(property "Reference" "U3"
 			(at 141.8433 147.32 0)
 			(effects
 				(font
@@ -4290,104 +4290,104 @@
 			)
 		)
 		(pin "25"
-			(uuid "fdd92191-88b4-4591-ac15-3704129ecea4")
+			(uuid "7e9cfd92-bde6-43e5-892b-8b1d23fc6f4f")
 		)
 		(pin "15"
-			(uuid "84566bbc-8d04-4ac3-9741-2613360bfaa9")
+			(uuid "9396484d-50b6-46df-8efd-3b42f9cce0d6")
 		)
 		(pin "8"
-			(uuid "40256aa9-68b9-462f-ae71-227b50cc0da7")
+			(uuid "0a040545-a64b-4d35-81ba-1856a701c3a6")
 		)
 		(pin "13"
-			(uuid "ff13b48d-8822-48d9-93bf-5b2417d639f6")
+			(uuid "5f83662c-57df-41f7-ae07-3b0c9f88a7a5")
 		)
 		(pin "24"
-			(uuid "0e436568-00dd-4926-8e75-f6ae1441ad77")
+			(uuid "72bb2ca5-17e9-4798-8b50-ccd84e0ab392")
 		)
 		(pin "18"
-			(uuid "23684a23-bae7-40f7-93d4-4ab20c7d4f71")
+			(uuid "448c226e-c743-44b5-b69b-7ef5a8a0415d")
 		)
 		(pin "2"
-			(uuid "9beb1cc4-58e6-40c5-8e99-398d54e0ec9f")
+			(uuid "177ac447-93e3-4362-a020-70d4c29444d3")
 		)
 		(pin "9"
-			(uuid "9fd65f18-fb00-452a-a46e-5fb7703551ed")
+			(uuid "58840a6d-92ec-49f4-a2a7-b9455dfdad7a")
 		)
 		(pin "21"
-			(uuid "def9aaa9-7454-47a0-b8c8-7a5f3eaaab81")
+			(uuid "6a39b8a7-2683-44b9-bff2-b043e59e659d")
 		)
 		(pin "27"
-			(uuid "c8240fe4-4952-4e69-823e-403e4d7e8e7b")
+			(uuid "33d13ab5-e47d-4356-9e81-65f5e674e4ea")
 		)
 		(pin "1"
-			(uuid "b6308c86-f6dd-42f4-af28-3d3447b2d64d")
+			(uuid "fc072a31-ee5d-4f87-a861-c8e2ac190036")
 		)
 		(pin "26"
-			(uuid "77ad8827-6e38-4dc3-9428-7a419184f556")
+			(uuid "6e44e92f-04c7-4f24-9acc-4a0c7e7b392c")
 		)
 		(pin "23"
-			(uuid "4d03ccbf-3d02-482c-a402-402eea42838e")
+			(uuid "c98339a6-241c-4224-a808-40c4cd8ed47f")
 		)
 		(pin "12"
-			(uuid "49fdf4d1-0879-4667-8351-b3768f6e8494")
+			(uuid "19ede2ff-75fc-40fe-8fc1-ae9b9796a9d5")
 		)
 		(pin "28"
-			(uuid "300515b4-1f82-4447-8beb-43ca4c8cee05")
+			(uuid "5f39db75-6e01-486d-b3ed-b5f7d479788c")
 		)
 		(pin "14"
-			(uuid "caef48fe-4c29-4fcd-8fd7-18e61dfa8c28")
+			(uuid "57cfa172-2735-4aca-b684-4b26524ca5a6")
 		)
 		(pin "19"
-			(uuid "fe38c4c8-ee8c-4471-8dae-4bfb03016372")
+			(uuid "6c439f9a-0021-4479-bbc1-5b164b0bf4e8")
 		)
 		(pin "16"
-			(uuid "f5c0b8c9-5ec2-4277-b360-3dd075a9e7b9")
+			(uuid "23d3fe58-2d04-4e15-a9d9-6959d6ff6332")
 		)
 		(pin "6"
-			(uuid "d22c6acf-ff49-45e8-95b9-fd5768757cae")
+			(uuid "955f2f52-1ab5-40eb-9503-e225a9f70fd2")
 		)
 		(pin "10"
-			(uuid "5b4d9e5f-41a3-4af0-bdc1-d93775e2a974")
+			(uuid "f76fe2e2-850e-461d-ac18-4860af6f393c")
 		)
 		(pin "7"
-			(uuid "24bf2ecf-b00d-4c90-aba0-14dee20aebd9")
+			(uuid "5591d426-4544-4329-a54e-dffb107384f3")
 		)
 		(pin "3"
-			(uuid "c125db9f-f591-4b19-ae09-96aed40fb6de")
+			(uuid "ef024251-1c8d-43ca-b602-9399832eebf3")
 		)
 		(pin "17"
-			(uuid "7c468baf-f467-414e-b6a7-de59f52047c3")
+			(uuid "02156638-bb1f-4e97-af2d-684c1919e3f0")
 		)
 		(pin "20"
-			(uuid "a9397032-d017-4a85-a5eb-698160c58a63")
+			(uuid "15fc9368-9e38-42c8-a1c7-5575d3437945")
 		)
 		(pin "11"
-			(uuid "f2a469ca-1438-416a-9b3b-6a99481bc5dd")
+			(uuid "cfe7478e-eb4e-4f75-af70-8efbd5d3f2a9")
 		)
 		(pin "22"
-			(uuid "fdd09587-1139-49a1-8f95-6b2e18fd71ba")
+			(uuid "cd747281-9a51-42f3-a18e-61e85729f480")
 		)
 		(pin "4"
-			(uuid "297dd994-aa89-497b-b6bb-29112dc6abf9")
+			(uuid "4abbfaf6-9e33-4a06-9954-834d0ffb45b2")
 		)
 		(pin "5"
-			(uuid "f141d045-193b-43db-a61f-0d6b975431d9")
+			(uuid "913d204c-2347-413a-9815-9edd452a5789")
 		)
 		(pin "29"
-			(uuid "67bc538a-9749-4d3f-b3c1-299be2db5709")
+			(uuid "9c46d2df-5886-4341-b758-1e69e3d3cc51")
 		)
 		(instances
 			(project "VehiclePowerDistributionSystem"
 				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/07cc60fc-23b1-4935-b497-92b89b45ef72"
-					(reference "U5")
+					(reference "U2")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/885661a3-3ca5-4fb2-bf11-643a7d019368"
-					(reference "U6")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/b6b69580-f614-4db3-b126-960badb9d498"
+					(reference "U1")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/9d165e7c-b852-47cb-a687-1c18641c5391"
-					(reference "U4")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/e3887760-b415-45a6-83ed-86ed50deccbe"
+					(reference "U3")
 					(unit 1)
 				)
 			)
@@ -4403,7 +4403,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "b590a2a4-2ad5-48c3-bbac-afff31fe6b14")
-		(property "Reference" "C4"
+		(property "Reference" "C14"
 			(at 172.72 102.8762 0)
 			(effects
 				(font
@@ -4449,23 +4449,23 @@
 			)
 		)
 		(pin "1"
-			(uuid "0fed2ccd-2cb2-4d4c-bf3d-94d96524bd4a")
+			(uuid "a703abf2-4dfc-411f-bbd9-463666e24331")
 		)
 		(pin "2"
-			(uuid "168c9bce-e778-4e1a-8558-50ac9071659a")
+			(uuid "504060b4-50f6-4d4a-9eee-39e043f44208")
 		)
 		(instances
 			(project "VehiclePowerDistributionSystem"
 				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/07cc60fc-23b1-4935-b497-92b89b45ef72"
-					(reference "C12")
+					(reference "C15")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/885661a3-3ca5-4fb2-bf11-643a7d019368"
-					(reference "C20")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/b6b69580-f614-4db3-b126-960badb9d498"
+					(reference "C16")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/9d165e7c-b852-47cb-a687-1c18641c5391"
-					(reference "C4")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/e3887760-b415-45a6-83ed-86ed50deccbe"
+					(reference "C14")
 					(unit 1)
 				)
 			)
@@ -4480,7 +4480,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "cccec39f-52dc-4622-9451-f4a66ebb292c")
-		(property "Reference" "R5"
+		(property "Reference" "R8"
 			(at 190.5 144.7799 0)
 			(effects
 				(font
@@ -4526,23 +4526,23 @@
 			)
 		)
 		(pin "1"
-			(uuid "6b59b806-8e79-4936-b222-9261122b1f30")
+			(uuid "50515a21-ce99-4df2-99b4-6f2f6e53edbf")
 		)
 		(pin "2"
-			(uuid "7364e200-cca1-4cf0-9b8b-dc9506259586")
+			(uuid "3d6e19b4-4147-41f7-aa46-933e60a2933f")
 		)
 		(instances
 			(project "VehiclePowerDistributionSystem"
 				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/07cc60fc-23b1-4935-b497-92b89b45ef72"
+					(reference "R9")
+					(unit 1)
+				)
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/b6b69580-f614-4db3-b126-960badb9d498"
+					(reference "R10")
+					(unit 1)
+				)
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/e3887760-b415-45a6-83ed-86ed50deccbe"
 					(reference "R8")
-					(unit 1)
-				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/885661a3-3ca5-4fb2-bf11-643a7d019368"
-					(reference "R11")
-					(unit 1)
-				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/9d165e7c-b852-47cb-a687-1c18641c5391"
-					(reference "R5")
 					(unit 1)
 				)
 			)
@@ -4559,7 +4559,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "d1f24519-981e-406c-8b80-1cc785354495")
-		(property "Reference" "JP4"
+		(property "Reference" "JP5"
 			(at 105.41 125.73 0)
 			(effects
 				(font
@@ -4604,23 +4604,23 @@
 			)
 		)
 		(pin "1"
-			(uuid "7d34ac88-22da-4f4a-b7dd-ed9b3db6da81")
+			(uuid "533d8a9f-54bd-43e9-a575-5abc4c036384")
 		)
 		(pin "2"
-			(uuid "8a287233-9324-4680-af08-c95d76feaba8")
+			(uuid "781ebe9d-d03d-4cb4-a15c-6cd9b653830e")
 		)
 		(instances
 			(project "VehiclePowerDistributionSystem"
 				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/07cc60fc-23b1-4935-b497-92b89b45ef72"
-					(reference "JP6")
+					(reference "JP3")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/885661a3-3ca5-4fb2-bf11-643a7d019368"
-					(reference "JP8")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/b6b69580-f614-4db3-b126-960badb9d498"
+					(reference "JP2")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/9d165e7c-b852-47cb-a687-1c18641c5391"
-					(reference "JP4")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/e3887760-b415-45a6-83ed-86ed50deccbe"
+					(reference "JP5")
 					(unit 1)
 				)
 			)
@@ -4636,7 +4636,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "e047a770-2cad-48e9-99f1-741ff8a8831c")
-		(property "Reference" "#PWR034"
+		(property "Reference" "#PWR027"
 			(at 97.79 109.22 0)
 			(effects
 				(font
@@ -4682,7 +4682,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "b663a50f-3888-4d9c-a568-7c2885089ae1")
+			(uuid "42197ebb-9fb4-448f-8896-5bb3715dae43")
 		)
 		(instances
 			(project "VehiclePowerDistributionSystem"
@@ -4690,12 +4690,12 @@
 					(reference "#PWR048")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/885661a3-3ca5-4fb2-bf11-643a7d019368"
-					(reference "#PWR062")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/b6b69580-f614-4db3-b126-960badb9d498"
+					(reference "#PWR041")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/9d165e7c-b852-47cb-a687-1c18641c5391"
-					(reference "#PWR034")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/e3887760-b415-45a6-83ed-86ed50deccbe"
+					(reference "#PWR027")
 					(unit 1)
 				)
 			)
@@ -4711,7 +4711,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "e5b92014-e447-42d5-a4da-fa37a69e2e2a")
-		(property "Reference" "#PWR035"
+		(property "Reference" "#PWR028"
 			(at 124.46 92.71 0)
 			(effects
 				(font
@@ -4757,7 +4757,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "2cb0586c-5cdd-49c2-a1d4-b4331d1017f4")
+			(uuid "27fde4fa-5db1-4d86-a1bb-bd99fedbbc8b")
 		)
 		(instances
 			(project "VehiclePowerDistributionSystem"
@@ -4765,12 +4765,12 @@
 					(reference "#PWR049")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/885661a3-3ca5-4fb2-bf11-643a7d019368"
-					(reference "#PWR063")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/b6b69580-f614-4db3-b126-960badb9d498"
+					(reference "#PWR042")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/9d165e7c-b852-47cb-a687-1c18641c5391"
-					(reference "#PWR035")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/e3887760-b415-45a6-83ed-86ed50deccbe"
+					(reference "#PWR028")
 					(unit 1)
 				)
 			)
@@ -4786,7 +4786,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "ef142b5d-2501-4291-b915-cd42fe5dd1a4")
-		(property "Reference" "#PWR039"
+		(property "Reference" "#PWR032"
 			(at 184.15 156.21 0)
 			(effects
 				(font
@@ -4832,7 +4832,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "968b0db6-ca67-408f-93a6-6d1c26e40547")
+			(uuid "7968b845-f4b0-40b3-8366-b7b8c41c91c2")
 		)
 		(instances
 			(project "VehiclePowerDistributionSystem"
@@ -4840,12 +4840,12 @@
 					(reference "#PWR053")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/885661a3-3ca5-4fb2-bf11-643a7d019368"
-					(reference "#PWR067")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/b6b69580-f614-4db3-b126-960badb9d498"
+					(reference "#PWR060")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/9d165e7c-b852-47cb-a687-1c18641c5391"
-					(reference "#PWR039")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/e3887760-b415-45a6-83ed-86ed50deccbe"
+					(reference "#PWR032")
 					(unit 1)
 				)
 			)
@@ -4861,7 +4861,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "f20eec71-bf72-4b5b-b92c-9c41ebfb9602")
-		(property "Reference" "C2"
+		(property "Reference" "C17"
 			(at 144.78 81.2862 0)
 			(effects
 				(font
@@ -4907,23 +4907,23 @@
 			)
 		)
 		(pin "1"
-			(uuid "c19943f3-d0e3-4660-ae31-515b82d59353")
+			(uuid "4cd83266-01e8-44a9-bb02-9be5f84b4863")
 		)
 		(pin "2"
-			(uuid "447871d8-a40b-4268-9b01-d99268eb76f8")
+			(uuid "a7b1efb2-5a62-4b06-be18-9be6f461ad91")
 		)
 		(instances
 			(project "VehiclePowerDistributionSystem"
 				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/07cc60fc-23b1-4935-b497-92b89b45ef72"
-					(reference "C10")
-					(unit 1)
-				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/885661a3-3ca5-4fb2-bf11-643a7d019368"
 					(reference "C18")
 					(unit 1)
 				)
-				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/9d165e7c-b852-47cb-a687-1c18641c5391"
-					(reference "C2")
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/b6b69580-f614-4db3-b126-960badb9d498"
+					(reference "C19")
+					(unit 1)
+				)
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/e3887760-b415-45a6-83ed-86ed50deccbe"
+					(reference "C17")
 					(unit 1)
 				)
 			)

@@ -2200,10 +2200,6 @@
 		(uuid "c4ae91ae-1e31-4e94-a1ba-d17d5e15c6b0")
 	)
 	(no_connect
-		(at 224.79 143.51)
-		(uuid "dc005723-22b6-4957-a3a3-3d989752fc2c")
-	)
-	(no_connect
 		(at 224.79 181.61)
 		(uuid "dd67e2fb-d2b1-4439-9d6e-334774778a9c")
 	)
@@ -2219,7 +2215,7 @@
 		(at 171.45 80.01)
 		(uuid "fdace7cd-f18b-4402-82e3-3e0d7126c33f")
 	)
-	(global_label "ESP32_SPI_MOSI"
+	(global_label "esp32_spi_mosi"
 		(shape bidirectional)
 		(at 172.72 173.99 180)
 		(fields_autoplaced yes)
@@ -2231,7 +2227,7 @@
 		)
 		(uuid "031e9dbd-1cf9-4524-953c-924d8611db51")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 152.9603 173.99 0)
+			(at 153.7465 173.99 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2241,7 +2237,7 @@
 			)
 		)
 	)
-	(global_label "OPENMV_SPI_NSS"
+	(global_label "openmv_spi_nss"
 		(shape bidirectional)
 		(at 172.72 158.75 180)
 		(fields_autoplaced yes)
@@ -2253,7 +2249,7 @@
 		)
 		(uuid "0fc34ec3-06bf-47ca-a25d-c9828d84daf1")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 152.2345 158.75 0)
+			(at 153.5047 158.75 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2263,7 +2259,7 @@
 			)
 		)
 	)
-	(global_label "OPENMV_RESET"
+	(global_label "openmv_reset"
 		(shape bidirectional)
 		(at 224.79 166.37 0)
 		(fields_autoplaced yes)
@@ -2275,7 +2271,7 @@
 		)
 		(uuid "130e35a4-149c-4311-9971-4d9d1b043b0f")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 243.2192 166.37 0)
+			(at 241.7678 166.37 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2285,7 +2281,7 @@
 			)
 		)
 	)
-	(global_label "OPENMV_SPI_MOSI"
+	(global_label "openmv_spi_mosi"
 		(shape bidirectional)
 		(at 172.72 148.59 180)
 		(fields_autoplaced yes)
@@ -2297,7 +2293,7 @@
 		)
 		(uuid "1fe003ca-19a6-4540-8669-3722cee74c9c")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 151.3878 148.59 0)
+			(at 152.2347 148.59 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2307,7 +2303,7 @@
 			)
 		)
 	)
-	(global_label "ESP32_SPI_CLOCK"
+	(global_label "esp32_spi_clock"
 		(shape bidirectional)
 		(at 172.72 168.91 180)
 		(fields_autoplaced yes)
@@ -2319,7 +2315,7 @@
 		)
 		(uuid "208f4170-9fde-4c9b-99af-eaafc768c923")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 151.3879 168.91 0)
+			(at 153.2022 168.91 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2329,7 +2325,29 @@
 			)
 		)
 	)
-	(global_label "OPENMV_SPI_READY"
+	(global_label "esp32_spi_nss"
+		(shape bidirectional)
+		(at 224.79 140.97 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "36980bed-16b8-450d-8824-bff01bfc0d6a")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 242.4935 140.97 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "openmv_spi_ready"
 		(shape bidirectional)
 		(at 172.72 161.29 180)
 		(fields_autoplaced yes)
@@ -2341,7 +2359,7 @@
 		)
 		(uuid "4f423455-f716-422c-a5b9-6b0f7bd5cab0")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 150.1178 161.29 0)
+			(at 151.5695 161.29 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2351,7 +2369,7 @@
 			)
 		)
 	)
-	(global_label "ESP32_RESET"
+	(global_label "esp32_reset"
 		(shape bidirectional)
 		(at 224.79 168.91 0)
 		(fields_autoplaced yes)
@@ -2363,7 +2381,7 @@
 		)
 		(uuid "4fac06b1-695c-44f3-a733-0c304b06e901")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 241.6467 168.91 0)
+			(at 240.256 168.91 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2373,7 +2391,7 @@
 			)
 		)
 	)
-	(global_label "ESP32_SPI_MISO"
+	(global_label "esp32_spi_miso"
 		(shape bidirectional)
 		(at 172.72 179.07 180)
 		(fields_autoplaced yes)
@@ -2385,7 +2403,7 @@
 		)
 		(uuid "70284acd-2948-4d26-8de9-56b174d28e41")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 152.9603 179.07 0)
+			(at 153.7465 179.07 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2395,9 +2413,9 @@
 			)
 		)
 	)
-	(global_label "ESP32_SPI_NSS"
+	(global_label "esp32_spi_ready"
 		(shape bidirectional)
-		(at 224.79 140.97 0)
+		(at 224.79 143.51 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2405,9 +2423,9 @@
 			)
 			(justify left)
 		)
-		(uuid "c85111f5-fb35-4ef7-ae63-b447536facc2")
+		(uuid "83094a88-39b1-4de8-ada1-eb7cde1c6f9b")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 243.703 140.97 0)
+			(at 244.4287 143.51 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2417,7 +2435,7 @@
 			)
 		)
 	)
-	(global_label "OPENMV_SPI_CLOCK"
+	(global_label "openmv_spi_clock"
 		(shape bidirectional)
 		(at 172.72 143.51 180)
 		(fields_autoplaced yes)
@@ -2429,7 +2447,7 @@
 		)
 		(uuid "c99809fb-2e37-4224-ba71-d4fa8fa385dc")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 149.8154 143.51 0)
+			(at 151.6904 143.51 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2439,7 +2457,7 @@
 			)
 		)
 	)
-	(global_label "OPENMV_SPI_MISO"
+	(global_label "openmv_spi_miso"
 		(shape bidirectional)
 		(at 172.72 153.67 180)
 		(fields_autoplaced yes)
@@ -2451,7 +2469,7 @@
 		)
 		(uuid "f2e769ff-5778-4a8b-a3bd-79ca2b34d2ee")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 151.3878 153.67 0)
+			(at 152.2347 153.67 0)
 			(effects
 				(font
 					(size 1.27 1.27)

@@ -5673,184 +5673,6 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "Regulator_Linear:AP2112K-3.3"
-			(pin_names
-				(offset 0.254)
-			)
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(property "Reference" "U"
-				(at -5.08 5.715 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left)
-				)
-			)
-			(property "Value" "AP2112K-3.3"
-				(at 0 5.715 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left)
-				)
-			)
-			(property "Footprint" "Package_TO_SOT_SMD:SOT-23-5"
-				(at 0 8.255 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" "https://www.diodes.com/assets/Datasheets/AP2112.pdf"
-				(at 0 2.54 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Description" "600mA low dropout linear regulator, with enable pin, 3.8V-6V input voltage range, 3.3V fixed positive output, SOT-23-5"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_keywords" "linear regulator ldo fixed positive"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_fp_filters" "SOT?23?5*"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(symbol "AP2112K-3.3_0_1"
-				(rectangle
-					(start -5.08 4.445)
-					(end 5.08 -5.08)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type background)
-					)
-				)
-			)
-			(symbol "AP2112K-3.3_1_1"
-				(pin power_in line
-					(at -7.62 2.54 0)
-					(length 2.54)
-					(name "VIN"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin input line
-					(at -7.62 0 0)
-					(length 2.54)
-					(name "EN"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "3"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin power_in line
-					(at 0 -7.62 90)
-					(length 2.54)
-					(name "GND"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin no_connect line
-					(at 5.08 0 180)
-					(length 2.54)
-					(hide yes)
-					(name "NC"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "4"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin power_out line
-					(at 7.62 2.54 180)
-					(length 2.54)
-					(name "VOUT"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "5"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(embedded_fonts no)
-		)
 		(symbol "MainStackConnector:MainStackConnector"
 			(exclude_from_sim no)
 			(in_bom yes)
@@ -7750,6 +7572,184 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Regulator_Linear:AP2112K-3.3"
+			(pin_names
+				(offset 0.254)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "U"
+				(at -5.08 5.715 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "AP2112K-3.3"
+				(at 0 5.715 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" "Package_TO_SOT_SMD:SOT-23-5"
+				(at 0 8.255 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "https://www.diodes.com/assets/Datasheets/AP2112.pdf"
+				(at 0 2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "600mA low dropout linear regulator, with enable pin, 3.8V-6V input voltage range, 3.3V fixed positive output, SOT-23-5"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "linear regulator ldo fixed positive"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "SOT?23?5*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "AP2112K-3.3_0_1"
+				(rectangle
+					(start -5.08 4.445)
+					(end 5.08 -5.08)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+			)
+			(symbol "AP2112K-3.3_1_1"
+				(pin power_in line
+					(at -7.62 2.54 0)
+					(length 2.54)
+					(name "VIN"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -7.62 0 0)
+					(length 2.54)
+					(name "EN"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at 0 -7.62 90)
+					(length 2.54)
+					(name "GND"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin no_connect line
+					(at 5.08 0 180)
+					(length 2.54)
+					(hide yes)
+					(name "NC"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_out line
+					(at 7.62 2.54 180)
+					(length 2.54)
+					(name "VOUT"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "Switch:SW_Push"
 			(pin_numbers
 				(hide yes)
@@ -8467,6 +8467,20 @@
 			(justify left bottom)
 		)
 		(uuid "3726e879-10b1-4a9c-89a9-6484728406f4")
+	)
+	(text "TODO: To be used."
+		(exclude_from_sim no)
+		(at 102.616 247.65 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+				(bold yes)
+				(italic yes)
+				(color 255 0 255 1)
+			)
+		)
+		(uuid "6fa25341-74b2-42ac-887a-a0af60787646")
 	)
 	(text "TODO: The AST1109MLTRQ and WT-1205 buzzers\nhave similar footprint area, but the former\nhas a much smaller height. As precaution,\nwe'll have a footprint for both buzzers in\ncase we design for the AST1109MLTRQ wrong."
 		(exclude_from_sim no)
@@ -10858,50 +10872,6 @@
 			)
 		)
 	)
-	(global_label "uart_rx_B"
-		(shape bidirectional)
-		(at 125.73 339.09 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "0361e7a6-bc96-4669-8585-6b35ecdc6175")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 112.8041 339.09 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "i2c_clock_A"
-		(shape bidirectional)
-		(at 125.73 295.91 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "056fdff1-bfa4-4f33-bc64-f0ede5d334a8")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 110.6873 295.91 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "serial_tx"
 		(shape bidirectional)
 		(at 443.23 90.17 0)
@@ -10990,9 +10960,9 @@
 			)
 		)
 	)
-	(global_label "spi_ready_A"
+	(global_label "i2c_clock_B"
 		(shape bidirectional)
-		(at 125.73 270.51 180)
+		(at 110.49 351.79 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -11000,31 +10970,9 @@
 			)
 			(justify right)
 		)
-		(uuid "0a8802f1-1b6b-44e2-bcd9-d98cd3260200")
+		(uuid "0c90a1aa-bac1-47b2-a9bc-6d02f8c53fe6")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 110.6874 270.51 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "general_purpose_B"
-		(shape bidirectional)
-		(at 125.73 290.83 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "0d54725f-ef17-40b1-91f2-85460515aa41")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 103.8538 290.83 0)
+			(at 95.2659 351.79 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11069,6 +11017,28 @@
 		(uuid "161a6bce-c9af-4a7b-90be-436568684968")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 240.8926 154.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "spi_clock_B"
+		(shape bidirectional)
+		(at 110.49 308.61 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "185abe52-f710-4ede-bfd7-0c74f2a9ef55")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 95.3869 308.61 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11188,28 +11158,6 @@
 			)
 		)
 	)
-	(global_label "spi_mosi_B"
-		(shape bidirectional)
-		(at 125.73 313.69 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "1fa27c20-f6ef-43c3-bfc6-be4245a28786")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 111.1712 313.69 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "spi_ready_A"
 		(shape bidirectional)
 		(at 293.37 142.24 180)
@@ -11298,9 +11246,9 @@
 			)
 		)
 	)
-	(global_label "general_purpose_C"
+	(global_label "uart_tx_A"
 		(shape bidirectional)
-		(at 125.73 344.17 180)
+		(at 110.49 280.67 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -11308,9 +11256,31 @@
 			)
 			(justify right)
 		)
-		(uuid "293d2b66-6e03-415a-b0c8-e4106fa2ffd0")
+		(uuid "2a3fdc4b-a626-4309-a8a5-f00b78689636")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 103.8538 344.17 0)
+			(at 97.806 280.67 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "spi_miso_B"
+		(shape bidirectional)
+		(at 110.49 318.77 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "30df5a8d-bfaa-4644-81d2-e5e6d4fbbc54")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 95.9312 318.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11360,28 +11330,6 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "i2c_data_B"
-		(shape bidirectional)
-		(at 125.73 354.33 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "3e158af2-8f07-43ab-999e-abf56a9cf5cb")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 111.3527 354.33 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
 				(hide yes)
 			)
 		)
@@ -11474,6 +11422,50 @@
 			)
 		)
 	)
+	(global_label "i2c_clock_A"
+		(shape bidirectional)
+		(at 110.49 295.91 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "4a7ce42e-000b-4f13-97ec-6b57da8cef47")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 95.4473 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "uart_rx_B"
+		(shape bidirectional)
+		(at 110.49 339.09 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "4aa70f95-90a0-452f-bf6c-f826d92ff416")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 97.5641 339.09 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "spi_mosi_B"
 		(shape bidirectional)
 		(at 189.23 154.94 0)
@@ -11553,28 +11545,6 @@
 		(uuid "5451336c-377e-4e47-a2cd-fd5d18a86b75")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 388.0312 233.68 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "spi_miso_B"
-		(shape bidirectional)
-		(at 125.73 318.77 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "546f223f-3b31-4442-bc87-1c77eb1c06bc")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 111.1712 318.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11690,28 +11660,6 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "general_purpose_A"
-		(shape bidirectional)
-		(at 125.73 288.29 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "5d295445-bba6-43ff-a27f-57c60ac9f1c0")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 104.0352 288.29 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
 				(hide yes)
 			)
 		)
@@ -11870,9 +11818,9 @@
 			)
 		)
 	)
-	(global_label "general_purpose_D"
+	(global_label "general_purpose_A"
 		(shape bidirectional)
-		(at 125.73 346.71 180)
+		(at 110.49 288.29 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -11880,9 +11828,9 @@
 			)
 			(justify right)
 		)
-		(uuid "69bc1beb-866a-4e76-85fe-3ceed93bf3f1")
+		(uuid "6f9842fd-eab7-4927-81c9-0c34742b8f24")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 103.8538 346.71 0)
+			(at 88.7952 288.29 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11980,6 +11928,28 @@
 			)
 		)
 	)
+	(global_label "uart_tx_B"
+		(shape bidirectional)
+		(at 110.49 336.55 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "7954aa9a-8600-430c-a7e8-4b337d4967e9")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 97.6246 336.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "i2c_clock_B"
 		(shape bidirectional)
 		(at 128.27 180.34 180)
@@ -11993,6 +11963,28 @@
 		(uuid "79c121d9-be1a-463c-b766-38a09ce015bd")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 113.0459 180.34 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "general_purpose_D"
+		(shape bidirectional)
+		(at 110.49 346.71 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "79ff92db-9b4f-4264-aec1-d7534e808761")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 88.6138 346.71 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12134,50 +12126,6 @@
 			)
 		)
 	)
-	(global_label "spi_mosi_A"
-		(shape bidirectional)
-		(at 125.73 257.81 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "8d5a2e80-a022-4dc2-85aa-5279fd3d3196")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 111.3526 257.81 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "i2c_clock_B"
-		(shape bidirectional)
-		(at 125.73 351.79 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "914cae4a-53d9-4ddf-bb05-2a2f67c4aeea")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 110.5059 351.79 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "spi_ready_B"
 		(shape bidirectional)
 		(at 128.27 124.46 180)
@@ -12200,9 +12148,9 @@
 			)
 		)
 	)
-	(global_label "spi_nss_B"
+	(global_label "i2c_data_A"
 		(shape bidirectional)
-		(at 125.73 323.85 180)
+		(at 110.49 298.45 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -12210,9 +12158,53 @@
 			)
 			(justify right)
 		)
-		(uuid "a0ef2f6c-af3e-4dbf-92b8-cc92748d9a11")
+		(uuid "9472fcd2-6010-4ff9-a972-8a99429c23c8")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 112.4412 323.85 0)
+			(at 96.2941 298.45 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "general_purpose_B"
+		(shape bidirectional)
+		(at 110.49 290.83 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "94f3dc82-629f-4026-a08f-a89c24641ef6")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 88.6138 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "spi_miso_A"
+		(shape bidirectional)
+		(at 110.49 262.89 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "9775b121-0b6a-4209-b79d-ebb1ddfa9691")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 96.1126 262.89 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12376,6 +12368,28 @@
 			)
 		)
 	)
+	(global_label "spi_mosi_B"
+		(shape bidirectional)
+		(at 110.49 313.69 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "b31b5a9f-a770-4f06-81b4-18776f125abd")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 95.9312 313.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "BOOT0"
 		(shape bidirectional)
 		(at 363.22 312.42 0)
@@ -12420,50 +12434,6 @@
 			)
 		)
 	)
-	(global_label "spi_nss_A"
-		(shape bidirectional)
-		(at 125.73 267.97 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "c13facc1-140e-4bfe-a8ac-ba6bf755c3d0")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 112.6226 267.97 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "uart_tx_A"
-		(shape bidirectional)
-		(at 125.73 280.67 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "c3dfddd9-43e6-4a0c-9a90-c88c3155bda9")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 113.046 280.67 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "stlink_tx"
 		(shape bidirectional)
 		(at 189.23 104.14 0)
@@ -12482,6 +12452,28 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "uart_rx_A"
+		(shape bidirectional)
+		(at 110.49 283.21 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "ca1466d0-70bf-4d70-ab0e-104cefbc5629")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 97.7455 283.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
 				(hide yes)
 			)
 		)
@@ -12521,28 +12513,6 @@
 		(uuid "ced984a5-36fd-4d0b-9640-11abe6fa70b2")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 391.2968 82.55 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "uart_rx_A"
-		(shape bidirectional)
-		(at 125.73 283.21 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "cf96f1ee-4759-4d71-86aa-0515afa2d96a")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 112.9855 283.21 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12596,6 +12566,28 @@
 			)
 		)
 	)
+	(global_label "spi_ready_A"
+		(shape bidirectional)
+		(at 110.49 270.51 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "d2fcc19d-dc3b-4aaa-ba40-ee01e8ea54bb")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 95.4474 270.51 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "RESET"
 		(shape bidirectional)
 		(at 381 190.5 180)
@@ -12609,6 +12601,28 @@
 		(uuid "d435dea4-63ce-4ca3-a065-39466df005de")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 371.1584 190.5 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "i2c_data_B"
+		(shape bidirectional)
+		(at 110.49 354.33 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "d6ca392c-c731-47d9-b1a3-c7de17985e85")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 96.1127 354.33 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12662,6 +12676,28 @@
 			)
 		)
 	)
+	(global_label "spi_ready_B"
+		(shape bidirectional)
+		(at 110.49 326.39 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "d8e211bc-e472-4fb1-88dd-bf98b2d8a6d7")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 95.266 326.39 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "uart_rx_B"
 		(shape bidirectional)
 		(at 255.27 256.54 180)
@@ -12675,28 +12711,6 @@
 		(uuid "d9b057c6-25a1-47e2-bc11-4cc8854cf4cd")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 242.3441 256.54 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "spi_miso_A"
-		(shape bidirectional)
-		(at 125.73 262.89 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "da0330d3-32c0-4375-8a4c-a9cd4ec15480")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 111.3526 262.89 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12750,6 +12764,28 @@
 			)
 		)
 	)
+	(global_label "spi_clock_A"
+		(shape bidirectional)
+		(at 110.49 252.73 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "de1143f5-2dc3-4f59-9d4a-1ffb659dcdd8")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 95.5683 252.73 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "VCAP"
 		(shape bidirectional)
 		(at 128.27 210.82 180)
@@ -12763,6 +12799,28 @@
 		(uuid "de4c9cb7-defe-4eca-b2de-fbfd14c58980")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 119.4563 210.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "spi_nss_B"
+		(shape bidirectional)
+		(at 110.49 323.85 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "df028d62-b194-433f-a0a3-16018b97377b")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 97.2012 323.85 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12816,6 +12874,28 @@
 			)
 		)
 	)
+	(global_label "spi_mosi_A"
+		(shape bidirectional)
+		(at 110.49 257.81 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "eca4672d-e9f3-420e-8b1d-f2741c0ac4dd")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 96.1126 257.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "spi_miso_B"
 		(shape bidirectional)
 		(at 189.23 142.24 0)
@@ -12834,28 +12914,6 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "i2c_data_A"
-		(shape bidirectional)
-		(at 125.73 298.45 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "f01e4471-8b10-42f8-9c46-5620f4c95db7")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 111.5341 298.45 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
 				(hide yes)
 			)
 		)
@@ -12904,9 +12962,9 @@
 			)
 		)
 	)
-	(global_label "spi_clock_A"
+	(global_label "general_purpose_C"
 		(shape bidirectional)
-		(at 125.73 252.73 180)
+		(at 110.49 344.17 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -12914,53 +12972,9 @@
 			)
 			(justify right)
 		)
-		(uuid "f3886555-ecde-4d11-9bfc-36f208a26d1c")
+		(uuid "f398f7e6-f3a0-4294-a0e8-bd1fca6c143b")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 110.8083 252.73 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "spi_ready_B"
-		(shape bidirectional)
-		(at 125.73 326.39 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "f4093d61-d6d0-44be-b6cb-736c609b631a")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 110.506 326.39 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "spi_clock_B"
-		(shape bidirectional)
-		(at 125.73 308.61 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "f55336f5-a009-4a95-82b8-81ecad6de74a")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 110.6269 308.61 0)
+			(at 88.6138 344.17 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12992,9 +13006,9 @@
 			)
 		)
 	)
-	(global_label "uart_tx_B"
+	(global_label "spi_nss_A"
 		(shape bidirectional)
-		(at 125.73 336.55 180)
+		(at 110.49 267.97 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -13002,9 +13016,9 @@
 			)
 			(justify right)
 		)
-		(uuid "f77e09e2-1a36-45b9-bea0-8271e2d0805a")
+		(uuid "f5b63cc8-a5f2-47d2-8b1c-224500fc9755")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 112.8646 336.55 0)
+			(at 97.3826 267.97 0)
 			(effects
 				(font
 					(size 1.27 1.27)
