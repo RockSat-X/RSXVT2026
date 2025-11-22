@@ -32,22 +32,17 @@ import types, shlex, pathlib, shutil, subprocess, time
 
 try:
 
-    import deps.stpy.pxd.metapreprocessor
-    import deps.stpy.pxd.cite
-    from   deps.stpy.pxd.ui    import ExitCode
-    from   deps.stpy.pxd.log   import log, ANSI, Indent
-    from   deps.stpy.pxd.utils import root, justify
+    import deps.pxd.metapreprocessor
+    import deps.pxd.cite
+    from   deps.pxd.ui    import ExitCode
+    from   deps.pxd.log   import log, ANSI, Indent
+    from   deps.pxd.utils import root, justify
 
 except ModuleNotFoundError as error:
 
     if 'pxd' not in error.name:
         raise # Likely a bug in the PXD module.
 
-    import traceback
-
-    traceback.print_exc()
-
-    print()
     print(f'[ERROR] Could not import "{error.name}"; maybe the Git submodules need to be initialized/updated? Try doing:')
     print(f'        > git submodule update --init --recursive')
     print(f'        If this still doesn\'t work, please raise an issue.')
@@ -169,21 +164,6 @@ def require(*needed_programs):
                 Python couldn't find "{missing_program}" in your PATH; have you installed it yet?
                 If you're on a Windows system, run the following command and restart your shell:
                 {ANSI(f'> winget install ezwinports.make', 'bold')}
-            ''')
-
-
-
-        # Kicad-CLI.
-
-        elif missing_program in (roster := [
-            'kicad-cli'
-        ]):
-
-            log(f'''
-                Python couldn't find "{missing_program}" in your PATH.
-                This program comes along with KiCad, so on Windows,
-                you might find it at "C:\\Program Files\\KiCad\\9.0\\bin\\{missing_program}.exe".
-                Thus, add something like "C:\\Program Files\\KiCad\\9.0\\bin" to your PATH.
             ''')
 
 
@@ -342,10 +322,7 @@ def execute(
     nonzero_exit_code_ok  = False
 ):
 
-
-
-    # Determine the shell commands we'll be
-    # executing based on the operating system.
+    # Determine the shell command we'll be executing based on the operating system.
 
     if cmd is not None and powershell is not None:
         raise RuntimeError(
@@ -357,112 +334,58 @@ def execute(
 
         case 'win32':
             use_powershell = cmd is None and powershell is not None
-            commands       = powershell if use_powershell else cmd
+            command        = powershell if use_powershell else cmd
 
         case _:
-            commands       = bash
+            command        = bash
             use_powershell = False
 
-    if commands is None:
-        commands = default
+    if command is None:
+        command = default
 
-    if commands is None:
+    if command is None:
         raise RuntimeError(
             f'Missing shell command for platform "{sys.platform}"; '
             f'please raise an issue or patch the script yourself.'
         )
 
-    if isinstance(commands, str):
-        commands = [commands]
+    if use_powershell:
+        require('pwsh')
 
 
 
-    # Process each command to have it be split into shell tokens.
-    # The lexing that's done here is to do a lot of the funny
-    # business involving escaping quotes and what not. To be honest,
-    # it's a little out my depth, mainly because I frankly do not
-    # care enough to get it 100% correct; it working most of the time
-    # is good enough for me.
+    # Carry out the shell command.
 
-    for command_i in range(len(commands)):
+    lexer                  = shlex.shlex(command)
+    lexer.quotes           = '"'
+    lexer.whitespace_split = True
+    lexer.commenters       = ''
+    lexer_parts            = list(lexer)
+    command                = ' '.join(lexer_parts)
 
-        lexer                  = shlex.shlex(commands[command_i])
-        lexer.quotes           = '"'
-        lexer.whitespace_split = True
-        lexer.commenters       = ''
-        commands[command_i]    = list(lexer)
+    log(
+        '{} {}',
+        ANSI(f'$ {lexer_parts[0]}', 'fg_bright_green'),
+        ' '.join(lexer_parts[1:]),
+    )
 
+    if use_powershell:
+        command = ['pwsh', '-Command', command]
 
-
-    # Execute each shell command.
-
-    processes = []
-
-    for command_i, command in enumerate(commands):
-
-        if command_i:
-            log()
-
-        log(
-            '{} {}',
-            ANSI(f'$ {command[0]}', 'fg_bright_green'),
-            ' '.join(command[1:]),
-        )
-
-        command = ' '.join(command)
-
-        if use_powershell:
-
-            # On Windows, Python will call CMD.exe
-            # to run the shell command, so we'll
-            # have to invoke PowerShell to run the
-            # command if PowerShell is needed.
-            processes += [subprocess.Popen(['pwsh', '-Command', command], shell = False)]
-
+    try:
+        subprocess_exit_code = subprocess.call(command, shell = True)
+    except KeyboardInterrupt:
+        if keyboard_interrupt_ok:
+            subprocess_exit_code = None
         else:
+            raise
 
-            processes += [subprocess.Popen(command, shell = True)]
+    if subprocess_exit_code and not nonzero_exit_code_ok:
+        log()
+        log(ANSI(f'[ERROR] Shell command exited with a non-zero code of {subprocess_exit_code}.', 'fg_red'))
+        raise ExitCode(subprocess_exit_code)
 
-
-
-    # Wait on each subprocess to be done.
-
-    for process in processes:
-
-
-
-        # Sometimes commands might stall, so the user
-        # might CTRL-C to kill the subprocess.
-
-        try:
-            subprocess_exit_code = process.wait()
-
-        except KeyboardInterrupt:
-
-            if keyboard_interrupt_ok:
-                subprocess_exit_code = None
-            else:
-                raise
-
-
-
-        # Check results.
-
-        if subprocess_exit_code and not nonzero_exit_code_ok:
-            log()
-            log(ANSI(f'[ERROR] Shell command exited with a non-zero code of {subprocess_exit_code}.', 'fg_red'))
-            raise ExitCode(subprocess_exit_code)
-
-
-
-    # TODO:
-    # For right now, we'll return the exit code for
-    # when there's only one shell command to be executed.
-    # I'd like for this to be more consistent in the future,
-    # however.
-
-    if len(processes) == 1:
-        return subprocess_exit_code
+    return subprocess_exit_code
 
 
 
@@ -482,7 +405,7 @@ def ui_verb_hook(verb, parameters):
 
 
 
-ui = deps.stpy.pxd.ui.UI(
+ui = deps.pxd.ui.UI(
     f'{root(pathlib.Path(__file__).name)}',
     f'The command line program (pronounced "clippy").',
     ui_verb_hook,
@@ -503,7 +426,6 @@ def clean(parameters):
 
     directories = [
         BUILD,
-        './electrical/meta',
     ]
 
     for directory in directories:
@@ -629,18 +551,15 @@ def build(parameters):
 
     # Begin meta-preprocessing!
 
-    if not parameters.metapreprocess_only:
-        log_header('Meta-preprocessing')
-    else:
-        log()
+    log_header('Meta-preprocessing')
 
     try:
-        deps.stpy.pxd.metapreprocessor.do(
-            output_directory_path = root('./electrical/meta'),
+        deps.pxd.metapreprocessor.do(
+            output_directory_path = root(BUILD, 'meta'),
             source_file_paths     = metapreprocessor_file_paths,
             callback              = metadirective_callback,
         )
-    except deps.stpy.pxd.metapreprocessor.MetaError as error:
+    except deps.pxd.metapreprocessor.MetaError as error:
         error.dump()
         raise ExitCode(1)
 
@@ -652,84 +571,84 @@ def build(parameters):
 
 
 
-    # Build the targets in parallel.
+    # Compile each source.
 
     require(
         'arm-none-eabi-gcc',
+    )
+
+    for target in targets:
+
+        log_header(f'Compiling "{target.name}"')
+
+        for source_i, source in enumerate(target.source_file_paths):
+
+            object = root(BUILD, target.name, source.stem + '.o')
+
+            object.parent.mkdir(parents = True, exist_ok = True)
+
+            if source_i:
+                log()
+
+            execute(f'''
+                arm-none-eabi-gcc
+                    -o "{object.as_posix()}"
+                    -c "{source.as_posix()}"
+                    {target.compiler_flags}
+            ''')
+
+
+
+    # Link the firmware.
+
+    require(
         'arm-none-eabi-cpp',
         'arm-none-eabi-objcopy',
         'arm-none-eabi-gdb',
     )
 
+    for target in targets:
 
+        log_header(f'Linking "{target.name}"')
 
-    log_header(f'Build Artifact Folder')
-
-    execute(
-        bash = [
-            f'mkdir -p {root(BUILD, target.name)}'
-            for target in targets
-            if target.source_file_paths
-        ],
-        cmd = [
-            f'''
-                if not exist "{root(BUILD, target.name)}" (
-                    mkdir {root(BUILD, target.name)}
-                )
-            '''
-            for target in targets
-            if target.source_file_paths
-        ],
-    )
-
-
-
-    log_header(f'Linker File Preprocessing')
-    execute([
-        f'''
+        # Preprocess the linker file.
+        execute(f'''
             arm-none-eabi-cpp
                 {target.compiler_flags}
                 -E
                 -x c
                 -o "{root(BUILD, target.name, 'link.ld').as_posix()}"
-                "{root('./electrical/link.ld').as_posix()}"
-        '''
-        for target in targets
-        if target.source_file_paths
-    ])
+                "{root('./electrical/system/link.ld').as_posix()}"
+        ''')
 
+        log()
 
-
-    log_header(f'Building')
-    execute([
-        f'''
+        # Link object files.
+        execute(f'''
             arm-none-eabi-gcc
-                {' '.join(f'"{source}"' for source in target.source_file_paths)}
-                -o "{root('./build', target.name, target.name + '.elf')}"
+                -o "{root(BUILD, target.name, target.name + '.elf').as_posix()}"
                 -T "{root(BUILD, target.name, 'link.ld').as_posix()}"
-                {target.compiler_flags}
+                {' '.join(
+                    f'"{root(BUILD, target.name, source.stem + '.o').as_posix()}"'
+                    for source in target.source_file_paths
+                )}
                 {target.linker_flags}
-        '''
-        for target in targets
-        if target.source_file_paths
-    ])
+        ''')
 
+        log()
 
-
-    log_header(f'Binary Conversion')
-    execute([
-        f'''
+        # Turn ELF into raw binary.
+        execute(f'''
             arm-none-eabi-objcopy
                 -S
                 -O binary
                 "{root(BUILD, target.name, target.name + '.elf').as_posix()}"
                 "{root(BUILD, target.name, target.name + '.bin').as_posix()}"
-        '''
-        for target in targets
-        if target.source_file_paths
-    ])
+        ''')
 
 
+
+    # Done!
 
     log_header(f'Hip-hip hooray! Built {', '.join(f'"{target.name}"' for target in targets)}!')
 
@@ -745,7 +664,7 @@ def build(parameters):
     },
     {
         'name'        : 'target',
-        'description' : 'Name of the program to flash the target MCU with.',
+        'description' : 'Name of the target MCU to program.',
         'type'        : { target.name : target for target in TARGETS },
         'default'     : TARGETS[0] if len(TARGETS) == 1 else ...,
     },
@@ -769,7 +688,7 @@ def flash(parameters):
 
         if attempts == 3:
             with ANSI('fg_red'):
-                log(f'''
+                log('''
 
                     [ERROR] Failed to flash; this might be because...
                             - the binary file haven\'t been built yet.
@@ -784,7 +703,7 @@ def flash(parameters):
         # Not the first try?
 
         elif attempts:
-            log(f'''
+            log('''
 
                 {ANSI('[WARNING] Failed to flash (maybe due to verification error); trying again...', 'fg_yellow')}
 
@@ -985,238 +904,7 @@ def _(parameters):
 
 
 
-ui(deps.stpy.pxd.cite.ui)
-
-
-
-################################################################################################################################
-
-
-
-@ui(
-    {
-        'description' : 'Check the correctness of PCBs; note, this is very experimental!',
-    },
-)
-def checkPCBs(parameters):
-
-
-
-    import deps.stpy.pxd.sexp
-    import deps.stpy.mcus
-
-    require('kicad-cli')
-
-
-
-    # We must run the meta-preprocessor first to
-    # verify every target's GPIO parameterization.
-
-    try: # TODO Bum hack with the UI module...
-
-        exit_code = build(types.SimpleNamespace(
-            target              = None,
-            metapreprocess_only = True,
-        ))
-
-        if exit_code:
-            raise ExitCode(exit_code)
-
-    except ExitCode as exit_code:
-        if exit_code.args[0]:
-            raise
-
-    log()
-
-
-
-    # We can now move onto ensuring every target's
-    # GPIO matches up with what's in the schematic.
-
-    for target in TARGETS:
-
-
-
-        if target.schematic_file_path is None:
-            log(
-                f'{ANSI('[SKIPPING]', 'bg_white', 'fg_black')} '
-                f'{repr(target.name)}'
-            )
-            log()
-            continue
-
-        netlist_file_path = pathlib.Path(f'{root('./build', target.schematic_file_path.stem).as_posix()}.net')
-        pinouts           = deps.stpy.mcus.MCUS[target.mcu].pinouts
-
-
-
-        # Get the netlist.
-
-        execute(f'''
-            kicad-cli
-                sch export netlist "{target.schematic_file_path.as_posix()}"
-                --output "{netlist_file_path.as_posix()}"
-                --format orcadpcb2
-        ''')
-
-        sexp = netlist_file_path.read_text()
-        sexp = sexp.removesuffix('*\n') # Not sure why there's a trailing asterisk.
-        sexp = deps.stpy.pxd.sexp.parse_sexp(sexp)
-
-
-
-        # Find the MCU's netlist.
-
-        matches = []
-
-        for entry in sexp:
-            match entry:
-                case uid, footprint_name, reference, value, *nets:
-                    if value == target.mcu:
-                        matches += [nets]
-
-        if not matches:
-            log(ANSI(
-                f'[ERROR] No symbol with value of {repr(target.mcu)} '
-                f'was found in {repr(target.schematic_file_path.as_posix())}!',
-                'fg_red'
-            ))
-            raise ExitCode(1)
-
-        if len(matches) >= 2:
-            log(ANSI(
-                f'Multiple symbols with value of {repr(target.mcu)} '
-                f'were found in {repr(target.schematic_file_path.as_posix())}!',
-                'fg_red'
-            ))
-            raise ExitCode(1)
-
-
-        # The pin position is sometimes just a number,
-        # but for some packages like BGA, it might be a 2D
-        # coordinate (letter-number pair like 'J7').
-        # The s-exp parser will parse the 1D coordinate as
-        # an actual integer but the 2D coordinate as a string.
-        # Thus, to keep things consistent, we always convert
-        # the position back into a string.
-
-        netlist, = matches
-        netlist  = {
-            str(position) : net
-            for position, net in netlist
-        }
-
-
-
-        # We look for discrepancies between the
-        # netlist and the target's GPIO list.
-
-        issues = []
-
-        for pin_position, pin_net in netlist.items():
-
-
-
-            # Skip unused pins.
-
-            if pin_net.startswith('unconnected-('):
-                continue
-
-
-
-            # Skip things like power pins.
-
-            if pinouts[pin_position].type != 'I/O':
-                continue
-
-
-
-            # Try to find the corresponding GPIO used by the target.
-
-            gpio_name = [
-                gpio_name
-                for gpio_name, gpio_pin, gpio_type, gpio_settings in target.gpios
-                if f'P{gpio_pin}' == pinouts[pin_position].name
-            ]
-
-            if gpio_name:
-
-                gpio_name, = gpio_name
-
-
-
-                # The schematic and target disagree on GPIO.
-                # Note that KiCad prepends a '/' if the net
-                # is defined by a local net label.
-
-                if gpio_name != pin_net.removeprefix('/'):
-                    issues += [
-                        f'Pin {repr(pinouts[pin_position].name)} ({repr(gpio_name)}) '
-                        f'has net {repr(pin_net)}.'
-                    ]
-
-
-
-            # Extraneous GPIO in the schematic.
-
-            else:
-
-                issues += [
-                    f'Pin {repr(pinouts[pin_position].name)} ({repr(pin_net)}) '
-                    f'is not defined for the target.'
-                ]
-
-
-
-        # We check to see if the target has any GPIOs that
-        # are not in the schematic. We don't have to check
-        # if the GPIO name and net match up because we did
-        # that already.
-
-        for gpio_name, gpio_pin, gpio_type, gpio_settings in target.gpios:
-
-            if gpio_pin is None:
-                continue
-
-            pin_position, = [
-                pin_position
-                for pin_position, pin in pinouts.items()
-                if pin.name == f'P{gpio_pin}'
-            ]
-
-            pin_net = netlist[pin_position]
-
-            if pin_net.startswith('unconnected-('):
-
-                issues += [
-                    f'Pin {repr(pinouts[pin_position].name)} ({repr(gpio_name)}) '
-                    f'is unconnected in the schematic.'
-                ]
-
-
-
-        # Report all the issues we found.
-
-        if issues:
-
-            with ANSI('fg_yellow'), Indent('[WARNING] ', hanging = True):
-
-                log(
-                    f'For target {repr(target.name)} and '
-                    f'schematic {repr(target.schematic_file_path.as_posix())}:'
-                )
-
-                for issue in issues:
-                    log(f'    - {issue}')
-
-        else:
-
-            log(
-                f'{ANSI('[PASSED]', 'bg_bright_green', 'fg_black')} '
-                f'{repr(target.name)}'
-            )
-
-        log()
+ui(deps.pxd.cite.ui)
 
 
 
