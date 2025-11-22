@@ -58,7 +58,7 @@
 	(solder_mask_margin 0)
 	(solder_paste_margin 0)
 	(clearance 0)
-	(attr smd)
+	(attr through_hole)
 	(fp_circle
 		(center -29 -26)
 		(end -26 -26)
