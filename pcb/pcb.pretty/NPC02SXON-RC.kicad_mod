@@ -1,0 +1,193 @@
+(footprint "NPC02SXON-RC"
+	(version 20241229)
+	(generator "pcbnew")
+	(generator_version "9.0")
+	(layer "F.Cu")
+	(descr "CONN JUMPER SHORTING .100\" GOLD")
+	(property "Reference" "REF**"
+		(at 0 -3 0)
+		(unlocked yes)
+		(layer "F.SilkS")
+		(uuid "e9887903-a506-4203-aae1-6f3f1d0e1b91")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "Untitled"
+		(at 0 1 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(uuid "a40bdbef-017e-4518-a08a-66fe89788894")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" "https://s3.amazonaws.com/catalogspreads-pdf/PAGE128-129%20.100%20JUMPER.pdf"
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "e5ad0139-e4b8-4c21-968b-e2974526f853")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" "CONN JUMPER SHORTING .100\" GOLD"
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "88975e2b-8441-443c-ba58-65619a44cee8")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(fp_line
+		(start -1.905 3.445)
+		(end -1.905 -0.905)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "47f1ca35-b981-43c0-b816-2f74786bdf97")
+	)
+	(fp_line
+		(start -0.905 -1.905)
+		(end 0.905 -1.905)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "c072b637-e1d0-4b6d-9e73-bbca8c858497")
+	)
+	(fp_line
+		(start 0.905 4.445)
+		(end -0.905 4.445)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "750b30ac-9b50-4a28-a3e2-23a281d50858")
+	)
+	(fp_line
+		(start 1.905 -0.905)
+		(end 1.905 3.445)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "9d78cba8-c5ee-4fb9-b747-21e9cd74ef78")
+	)
+	(fp_arc
+		(start -1.905 -0.905)
+		(mid -1.612107 -1.612107)
+		(end -0.905 -1.905)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "996a4f9c-0f27-4b62-ab88-3634dd4766ff")
+	)
+	(fp_arc
+		(start -0.905 4.445)
+		(mid -1.612107 4.152107)
+		(end -1.905 3.445)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "16138803-e631-4107-bd31-1ef359162733")
+	)
+	(fp_arc
+		(start 0.905 -1.905)
+		(mid 1.612107 -1.612107)
+		(end 1.905 -0.905)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "d6b26923-0818-4952-9bfe-ad24cdc446b6")
+	)
+	(fp_arc
+		(start 1.905 3.445)
+		(mid 1.612107 4.152107)
+		(end 0.905 4.445)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "0f8d22b2-161f-4c72-ac4a-526723cd3ad0")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0 2.5 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(uuid "43aa0926-e1b2-46f0-ac1f-295f645d42e1")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "1" thru_hole rect
+		(at 0 0)
+		(size 1.7 1.7)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "5e41230d-ba9b-4423-909b-de834b9e8ad0")
+	)
+	(pad "2" thru_hole circle
+		(at 0 2.54)
+		(size 1.7 1.7)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "b6f5a000-f185-42b0-9f74-a9b32f8648a4")
+	)
+	(embedded_fonts no)
+	(model "${KIPRJMOD}/models/NPC02SXON-RC.step"
+		(offset
+			(xyz 0 -1.275 2.6)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -0 -0 -90)
+		)
+	)
+	(model "${KICAD9_3DMODEL_DIR}/Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x02_P2.54mm_Vertical.step"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+)

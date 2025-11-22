@@ -1,192 +1,863 @@
-#meta STLINK_BAUD, TARGETS, MCUS :
+#meta STLINK_BAUD, TARGETS, PER_MCU, PER_TARGET :
 
-from deps.pxd.utils import root
-import types
+import types, collections
+from deps.stpy.pxd.utils import root, c_repr
+from deps.stpy.mcus      import MCUS
 
 
 
 ################################################################################
-#
-# Communication speed with the ST-Link.
-#
+
+
 
 STLINK_BAUD = 1_000_000
 
-
-
-################################################################################
-#
-# Build directory where all build artifacts will be dumped to.
-#
-
 BUILD = root('./build')
 
+MCU_SUPPORT = {
 
-
-################################################################################
-#
-# Supported microcontrollers.
-#
-
-MCUS = {
-    'STM32H7S3L8H6' : types.SimpleNamespace(
-        cmsis_file_path        = root('./deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h'),
-        freertos_port_dir_path = root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1'),
-        freertos_interrupts    = {
-            'SysTick' : 'xPortSysTickHandler',
-            'SVCall'  : 'vPortSVCHandler'    ,
-            'PendSV'  : 'xPortPendSVHandler' ,
-        },
-        freertos_source_files = (
-            'deps/FreeRTOS_Kernel/tasks.c',
-            'deps/FreeRTOS_Kernel/queue.c',
-            'deps/FreeRTOS_Kernel/list.c',
-            'port.c',
+    'STM32H7S3L8H6' : {
+        'include_paths' : (
+            root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1'),
         ),
-    ),
-    'STM32H533RET6' : types.SimpleNamespace(
-        cmsis_file_path        = root('./deps/cmsis-device-h5/Include/stm32h533xx.h'),
-        freertos_port_dir_path = root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
-        freertos_interrupts    = {
-            'SysTick' : 'SysTick_Handler',
-            'SVCall'  : 'SVC_Handler'    ,
-            'PendSV'  : 'PendSV_Handler' ,
-        },
-        freertos_source_files = (
-            'deps/FreeRTOS_Kernel/tasks.c',
-            'deps/FreeRTOS_Kernel/queue.c',
-            'deps/FreeRTOS_Kernel/list.c',
-            'port.c',
-            'portasm.c',
+        'freertos_source_file_paths' : root('''
+            ./deps/FreeRTOS_Kernel/tasks.c
+            ./deps/FreeRTOS_Kernel/queue.c
+            ./deps/FreeRTOS_Kernel/list.c
+            ./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1/port.c
+        '''),
+        'freertos_interrupts' : (
+            ('SysTick', None, { 'symbol' : 'xPortSysTickHandler' }),
+            ('SVCall' , None, { 'symbol' : 'vPortSVCHandler'     }),
+            ('PendSV' , None, { 'symbol' : 'xPortPendSVHandler'  }),
         ),
-    ),
+    },
+
+    'STM32H533RET6' : {
+        'include_paths' : (
+            root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
+        ),
+        'freertos_source_file_paths' : root('''
+            ./deps/FreeRTOS_Kernel/tasks.c
+            ./deps/FreeRTOS_Kernel/queue.c
+            ./deps/FreeRTOS_Kernel/list.c
+            ./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure/port.c
+            ./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure/portasm.c
+        '''),
+        'freertos_interrupts' : (
+            ('SysTick', None, { 'symbol' : 'SysTick_Handler' }),
+            ('SVCall' , None, { 'symbol' : 'SVC_Handler'     }),
+            ('PendSV' , None, { 'symbol' : 'PendSV_Handler'  }),
+        ),
+    },
+
+    'STM32H533VET6' : {
+        'include_paths' : (
+            root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
+        ),
+        'freertos_source_file_paths' : root('''
+            ./deps/FreeRTOS_Kernel/tasks.c
+            ./deps/FreeRTOS_Kernel/queue.c
+            ./deps/FreeRTOS_Kernel/list.c
+            ./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure/port.c
+            ./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure/portasm.c
+        '''),
+        'freertos_interrupts' : (
+            ('SysTick', None, { 'symbol' : 'SysTick_Handler' }),
+            ('SVCall' , None, { 'symbol' : 'SVC_Handler'     }),
+            ('PendSV' , None, { 'symbol' : 'PendSV_Handler'  }),
+        ),
+    },
+
 }
 
+COUPLED_CONNECTORS = (
+    'MainStackConnector',
+    'VehicleStackConnector',
+)
+
+TARGETS = (
 
 
-################################################################################
-#
-# Basic description of each of our firmware targets.
-#
 
-TARGETS = ( # @/`Defining a TARGET`.
+    ########################################
+
+
 
     types.SimpleNamespace(
 
-        name               = 'SandboxNucleoH7S3L8',
-        mcu                = 'STM32H7S3L8H6',
-        source_file_paths  = root('''
+        name              = 'SandboxNucleoH7S3L8',
+        mcu               = 'STM32H7S3L8H6',
+        source_file_paths = root('''
             ./electrical/SandboxNucleoBoard.c
-            ./electrical/system/Startup.S
         '''),
 
-        use_freertos = False,
-
-        main_stack_size = 8192,
-
-        aliases = (
-            types.SimpleNamespace(
-                moniker    = 'UxART_STLINK',
-                actual     = 'USART3',
-                terms      = ['{}_BRR_BRR_init'],
-                interrupts = ['{}'],
-                puts       = [('{}_EN', 'uxart_3_enable')]
-            ),
-        ),
-
-        clock_tree = {
-            'hsi_enable'    : True,
-            'hsi48_enable'  : True,
-            'csi_enable'    : True,
-            'per_ck_source' : 'hsi_ck',
-            'pll1_p_ck'     : 600_000_000,
-            'pll2_s_ck'     : 200_000_000,
-            'cpu_ck'        : 600_000_000,
-            'axi_ahb_ck'    : 300_000_000,
-            'apb1_ck'       : 150_000_000,
-            'apb2_ck'       : 150_000_000,
-            'apb4_ck'       : 150_000_000,
-            'apb5_ck'       : 150_000_000,
-            'usart3_baud'   : STLINK_BAUD,
-        },
+        schematic_file_path = None,
 
         gpios = (
-            ('led_red'   , 'B7' , 'output'    , { 'initlvl' : False       }),
-            ('led_yellow', 'D13', 'output'    , { 'initlvl' : False       }),
-            ('led_green' , 'D10', 'output'    , { 'initlvl' : False       }),
-            ('jig_tx'    , 'D8' , 'alternate' , { 'altfunc' : 'USART3_TX' }),
-            ('jig_rx'    , 'D9' , 'alternate' , { 'altfunc' : 'USART3_RX' }),
-            ('swdio'     , 'A13', 'reserved'  , {                         }),
-            ('swclk'     , 'A14', 'reserved'  , {                         }),
-            ('button'    , 'C13', 'input'     , { 'pull'    : 'up'        }),
+            ('led_red'   , 'B7' , 'OUTPUT'    , { 'initlvl' : False               }),
+            ('led_yellow', 'D13', 'OUTPUT'    , { 'initlvl' : False               }),
+            ('led_green' , 'D10', 'OUTPUT'    , { 'initlvl' : False               }),
+            ('stlink_tx' , 'D8' , 'ALTERNATE' , { 'altfunc' : 'USART3_TX'         }),
+            ('stlink_rx' , 'D9' , 'ALTERNATE' , { 'altfunc' : 'USART3_RX'         }),
+            ('swdio'     , 'A13', None        , {                                 }),
+            ('swclk'     , 'A14', None        , {                                 }),
+            ('button'    , 'C13', 'INPUT'     , { 'pull' : 'UP', 'active' : False }),
         ),
 
-        interrupt_priorities = (
+        interrupts = (
             ('USART3', 0),
         ),
 
+        drivers = (
+            {
+                'type'       : 'UXART',
+                'peripheral' : 'USART3',
+                'handle'     : 'stlink',
+            },
+        ),
+
+        use_freertos    = False,
+        main_stack_size = 8192,
+        schema          = {
+            'HSI_ENABLE'              : True,
+            'HSI48_ENABLE'            : True,
+            'CSI_ENABLE'              : True,
+            'PERIPHERAL_CLOCK_OPTION' : 'HSI_CK',
+            'PLL1P_CK'                : 600_000_000,
+            'PLL2S_CK'                : 200_000_000,
+            'CPU_CK'                  : 600_000_000,
+            'AXI_AHB_CK'              : 300_000_000,
+            'APB1_CK'                 : 150_000_000,
+            'APB2_CK'                 : 150_000_000,
+            'APB4_CK'                 : 150_000_000,
+            'APB5_CK'                 : 150_000_000,
+            'USART3_BAUD'             : STLINK_BAUD,
+        },
+
     ),
+
+
+
+    ########################################
+
+
 
     types.SimpleNamespace(
 
-        name               = 'SandboxNucleoH533RE',
-        mcu                = 'STM32H533RET6',
-        source_file_paths  = root('''
+        name              = 'SandboxNucleoH533RE',
+        mcu               = 'STM32H533RET6',
+        source_file_paths = root('''
             ./electrical/SandboxNucleoBoard.c
-            ./electrical/system/Startup.S
         '''),
 
-        use_freertos = True,
-
-        main_stack_size = 8192,
-
-        aliases = (
-            types.SimpleNamespace(
-                moniker    = 'UxART_STLINK',
-                actual     = 'USART2',
-                terms      = ['{}_BRR_BRR_init'],
-                interrupts = ['{}'],
-                puts       = [('{}_EN', 'uxart_2_enable')]
-            ),
-        ),
-
-        clock_tree = {
-            'hsi_enable'   : True,
-            'hsi48_enable' : True,
-            'csi_enable'   : True,
-            'pll1_p_ck'    : 250_000_000,
-            'cpu_ck'       : 250_000_000,
-            'apb1_ck'      : 250_000_000,
-            'apb2_ck'      : 250_000_000,
-            'apb3_ck'      : 250_000_000,
-            'usart2_baud'  : STLINK_BAUD,
-        },
+        schematic_file_path = None,
 
         gpios = (
-            ('led_green' , 'A5' , 'output'    , { 'initlvl' : False       }),
-            ('jig_tx'    , 'A2' , 'alternate' , { 'altfunc' : 'USART2_TX' }),
-            ('jig_rx'    , 'A3' , 'alternate' , { 'altfunc' : 'USART2_RX' }),
-            ('swdio'     , 'A13', 'reserved'  , {                         }),
-            ('swclk'     , 'A14', 'reserved'  , {                         }),
-            ('button'    , 'C13', 'input'     , { 'pull'    : 'up'        }),
+            ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False              }),
+            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'        }),
+            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'        }),
+            ('swdio'     , 'A13', None        , {                                }),
+            ('swclk'     , 'A14', None        , {                                }),
+            ('button'    , 'C13', 'INPUT'     , { 'pull' : None, 'active' : True }),
         ),
 
-        interrupt_priorities = (
+        interrupts = (
             ('USART2', 0),
         ),
 
+        drivers = (
+            {
+                'type'       : 'UXART',
+                'peripheral' : 'USART2',
+                'handle'     : 'stlink',
+            },
+        ),
+
+        use_freertos    = False,
+        main_stack_size = 8192,
+        schema          = {
+            'HSI_ENABLE'   : True,
+            'HSI48_ENABLE' : True,
+            'CSI_ENABLE'   : True,
+            'PLL1P_CK'     : 250_000_000,
+            'CPU_CK'       : 250_000_000,
+            'APB1_CK'      : 250_000_000,
+            'APB2_CK'      : 250_000_000,
+            'APB3_CK'      : 250_000_000,
+            'USART2_BAUD'  : STLINK_BAUD,
+        },
+
     ),
+
+
+
+    ########################################
+
+
+
+    types.SimpleNamespace(
+
+        name              = 'DemoI2C',
+        mcu               = 'STM32H533RET6',
+        source_file_paths = root('''
+            ./electrical/DemoI2C.c
+        '''),
+
+        schematic_file_path = None,
+
+        gpios = (
+            ('led_green'  , 'A5' , 'OUTPUT'   , { 'initlvl' : False                                          }),
+            ('stlink_tx'  , 'A2' , 'ALTERNATE', { 'altfunc' : 'USART2_TX'                                    }),
+            ('stlink_rx'  , 'A3' , 'ALTERNATE', { 'altfunc' : 'USART2_RX'                                    }),
+            ('swdio'      , 'A13', None       , {                                                            }),
+            ('swclk'      , 'A14', None       , {                                                            }),
+            ('button'     , 'C13', 'INPUT'    , { 'pull'    : None, 'active' : True                          }),
+            ('queen_clock', 'B6' , 'ALTERNATE', { 'altfunc' : 'I2C1_SCL', 'open_drain' : True, 'pull' : 'UP' }),
+            ('queen_data' , 'B7' , 'ALTERNATE', { 'altfunc' : 'I2C1_SDA', 'open_drain' : True, 'pull' : 'UP' }),
+            ('bee_clock'  , 'B10', 'ALTERNATE', { 'altfunc' : 'I2C2_SCL', 'open_drain' : True, 'pull' : 'UP' }),
+            ('bee_data'   , 'B12', 'ALTERNATE', { 'altfunc' : 'I2C2_SDA', 'open_drain' : True, 'pull' : 'UP' }),
+        ),
+
+        interrupts = (
+            ('USART2' , 0),
+            ('I2C1_EV', 1),
+            ('I2C1_ER', 1),
+            ('I2C2_EV', 2),
+            ('I2C2_ER', 2),
+        ),
+
+        drivers = (
+            {
+                'type'       : 'UXART',
+                'peripheral' : 'USART2',
+                'handle'     : 'stlink',
+            },
+            {
+                'type'       : 'I2C',
+                'peripheral' : 'I2C1',
+                'handle'     : 'queen',
+                'role'       : 'master',
+            },
+            {
+                'type'       : 'I2C',
+                'peripheral' : 'I2C2',
+                'handle'     : 'bee',
+                'role'       : 'slave',
+                'address'    : 0b_001_1110,
+            },
+        ),
+
+        use_freertos    = False,
+        main_stack_size = 8192,
+        schema          = {
+            'HSI_ENABLE'   : True,
+            'HSI48_ENABLE' : True,
+            'CSI_ENABLE'   : True,
+            'PLL1P_CK'     : 250_000_000,
+            'CPU_CK'       : 250_000_000,
+            'APB1_CK'      : 250_000_000,
+            'APB2_CK'      : 250_000_000,
+            'APB3_CK'      : 250_000_000,
+            'USART2_BAUD'  : STLINK_BAUD,
+            'I2C1_BAUD'    : 1_000,
+            'I2C2_BAUD'    : 1_000,
+        },
+
+    ),
+
+
+
+    ########################################
+
+
+
+    types.SimpleNamespace(
+
+        name              = 'DemoTimer',
+        mcu               = 'STM32H533RET6',
+        source_file_paths = root('''
+            ./electrical/DemoTimer.c
+        '''),
+
+        schematic_file_path = None,
+
+        gpios = (
+            ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                 }),
+            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'           }),
+            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'           }),
+            ('swdio'     , 'A13', None        , {                                   }),
+            ('swclk'     , 'A14', None        , {                                   }),
+            ('button'    , 'C13', 'INPUT'     , { 'pull'    : None, 'active' : True }),
+            ('OC1'       , 'A8' , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH1'            }),
+            ('OC1N'      , 'A7' , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH1N'           }),
+        ),
+
+        interrupts = (
+            ('USART2' , 0),
+            ('TIM1_UP', 1),
+        ),
+
+        drivers = (
+            {
+                'type'       : 'UXART',
+                'peripheral' : 'USART2',
+                'handle'     : 'stlink',
+            },
+        ),
+
+        use_freertos    = False,
+        main_stack_size = 8192,
+        schema          = {
+            'HSI_ENABLE'       : True,
+            'HSI48_ENABLE'     : True,
+            'CSI_ENABLE'       : True,
+            'PLL1P_CK'         : 250_000_000,
+            'CPU_CK'           : 250_000_000,
+            'APB1_CK'          : 250_000_000,
+            'APB2_CK'          : 250_000_000,
+            'APB3_CK'          : 250_000_000,
+            'USART2_BAUD'      : STLINK_BAUD,
+            'TIM1_UPDATE_RATE' : 16,
+        },
+
+    ),
+
+
+
+    ########################################
+
+
+
+    types.SimpleNamespace(
+
+        name              = 'DemoSPI',
+        mcu               = 'STM32H533RET6',
+        source_file_paths = root('''
+            ./electrical/DemoSPI.c
+        '''),
+
+        schematic_file_path = None,
+
+        gpios = (
+            ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                 }),
+            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'           }),
+            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'           }),
+            ('swdio'     , 'A13', None        , {                                   }),
+            ('swclk'     , 'A14', None        , {                                   }),
+            ('button'    , 'C13', 'INPUT'     , { 'pull'    : None, 'active' : True }),
+            ('nss'       , 'B1' , 'ALTERNATE' , { 'altfunc' : 'SPI2_NSS'            }),
+            ('sck'       , 'B2' , 'ALTERNATE' , { 'altfunc' : 'SPI2_SCK'            }),
+            ('mosi'      , 'B15', 'ALTERNATE' , { 'altfunc' : 'SPI2_MOSI'           }),
+            ('miso'      , 'C2' , 'ALTERNATE' , { 'altfunc' : 'SPI2_MISO'           }),
+        ),
+
+        interrupts = (
+            ('USART2', 0),
+            ('SPI2'  , 2),
+        ),
+
+        drivers = (
+            {
+                'type'       : 'UXART',
+                'peripheral' : 'USART2',
+                'handle'     : 'stlink',
+            },
+            {
+                'type'       : 'SPI',
+                'peripheral' : 'SPI2',
+                'handle'     : 'primary',
+            },
+        ),
+
+        use_freertos    = False,
+        main_stack_size = 8192,
+        schema          = {
+            'HSI_ENABLE'   : True,
+            'HSI48_ENABLE' : True,
+            'CSI_ENABLE'   : True,
+            'PLL1P_CK'     : 250_000_000,
+            'PLL2P_CK'     :   1_000_000,
+            'CPU_CK'       : 250_000_000,
+            'APB1_CK'      : 250_000_000,
+            'APB2_CK'      : 250_000_000,
+            'APB3_CK'      : 250_000_000,
+            'USART2_BAUD'  : STLINK_BAUD,
+            'SPI2_BAUD'    : 3_900,
+        },
+
+    ),
+
+
+
+    ########################################
+
+
+
+    types.SimpleNamespace(
+
+        name              = 'DemoTimekeeping',
+        mcu               = 'STM32H533RET6',
+        source_file_paths = root('''
+            ./electrical/DemoTimekeeping.c
+        '''),
+
+        schematic_file_path = None,
+
+        gpios = (
+            ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False              }),
+            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'        }),
+            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'        }),
+            ('swdio'     , 'A13', None        , {                                }),
+            ('swclk'     , 'A14', None        , {                                }),
+            ('button'    , 'C13', 'INPUT'     , { 'pull' : None, 'active' : True }),
+        ),
+
+        interrupts = (
+            ('USART2', 0),
+        ),
+
+        drivers = (
+            {
+                'type'       : 'UXART',
+                'peripheral' : 'USART2',
+                'handle'     : 'stlink',
+            },
+            {
+                'type'       : 'TIMEKEEPING',
+                'peripheral' : 'TIM1',
+            },
+        ),
+
+        use_freertos    = False,
+        main_stack_size = 8192,
+        schema          = {
+            'HSI_ENABLE'        : True,
+            'HSI48_ENABLE'      : True,
+            'CSI_ENABLE'        : True,
+            'PLL1P_CK'          : 250_000_000,
+            'CPU_CK'            : 250_000_000,
+            'APB1_CK'           : 250_000_000,
+            'APB2_CK'           : 250_000_000,
+            'APB3_CK'           : 250_000_000,
+            'USART2_BAUD'       : STLINK_BAUD,
+            'TIM1_COUNTER_RATE' : 1_000_000,
+        },
+
+    ),
+
+
+
+    ########################################
+
+
+
+    types.SimpleNamespace(
+
+        name              = 'DemoSDMMC',
+        mcu               = 'STM32H533RET6',
+        source_file_paths = root('''
+            ./electrical/DemoSDMMC.c
+        '''),
+
+        schematic_file_path = None,
+
+        gpios = (
+            ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                 }),
+            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'           }),
+            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'           }),
+            ('swdio'     , 'A13', None        , {                                   }),
+            ('swclk'     , 'A14', None        , {                                   }),
+            ('button'    , 'C13', 'INPUT'     , { 'pull'    : None, 'active' : True }),
+            ('sd_cmd'    , 'B2' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CMD'          }),
+            ('sd_d0'     , 'B13', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D0'           }),
+            ('sd_d1'     , 'C9' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D1'           }),
+            ('sd_d2'     , 'C10', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D2'           }),
+            ('sd_d3'     , 'C11', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D3'           }),
+            ('sd_ck'     , 'C12', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CK'           }),
+        ),
+
+        interrupts = (
+            ('USART2', 0),
+            ('SDMMC1', 1),
+        ),
+
+        drivers = (
+            {
+                'type'       : 'UXART',
+                'peripheral' : 'USART2',
+                'handle'     : 'stlink',
+            },
+            {
+                'type'       : 'SD',
+                'peripheral' : 'SDMMC1',
+                'handle'     : 'primary',
+            },
+        ),
+
+        use_freertos    = False,
+        main_stack_size = 8192,
+        schema          = {
+            'HSI_ENABLE'          : True,
+            'HSI48_ENABLE'        : True,
+            'CSI_ENABLE'          : True,
+            'PLL1P_CK'            : 250_000_000,
+            'PLL1Q_CK'            :  10_000_000,
+            'CPU_CK'              : 250_000_000,
+            'APB1_CK'             : 250_000_000,
+            'APB2_CK'             : 250_000_000,
+            'APB3_CK'             : 250_000_000,
+            'USART2_BAUD'         : STLINK_BAUD,
+            'SDMMC1_TIMEOUT'      : 0.010,
+            'SDMMC1_INITIAL_BAUD' :   100_000,
+            'SDMMC1_FULL_BAUD'    : 1_000_000,
+        },
+
+    ),
+
+
+
+    ########################################
+
+
+
+    types.SimpleNamespace(
+
+        name              = 'SensorShield',
+        mcu               = 'STM32H533RET6',
+        source_file_paths = root('''
+            ./electrical/SensorShield.c
+        '''),
+        schematic_file_path = None,
+
+        gpios = (
+            ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                                          }),
+            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'                                    }),
+            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'                                    }),
+            ('swdio'     , 'A13', None        , {                                                            }),
+            ('swclk'     , 'A14', None        , {                                                            }),
+            ('button'    , 'C13', 'INPUT'     , { 'pull'    : None, 'active' : True                          }),
+            ('i2c1_scl'  , 'B6' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL', 'open_drain' : True, 'pull' : 'UP' }),
+            ('i2c1_sda'  , 'B7' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA', 'open_drain' : True, 'pull' : 'UP' }),
+        ),
+
+        interrupts = (
+            ('USART2' , 0),
+            ('I2C1_EV', 1),
+            ('I2C1_ER', 1),
+        ),
+
+        drivers = (
+            {
+                'type'       : 'UXART',
+                'peripheral' : 'USART2',
+                'handle'     : 'stlink',
+            },
+            {
+                'type'       : 'I2C',
+                'peripheral' : 'I2C1',
+                'handle'     : 'primary',
+                'role'       : 'master',
+            },
+        ),
+
+        use_freertos    = False,
+        main_stack_size = 8192,
+        schema          = {
+            'HSI_ENABLE'   : True,
+            'HSI48_ENABLE' : True,
+            'CSI_ENABLE'   : True,
+            'PLL1P_CK'     : 250_000_000,
+            'CPU_CK'       : 250_000_000,
+            'APB1_CK'      : 250_000_000,
+            'APB2_CK'      : 250_000_000,
+            'APB3_CK'      : 250_000_000,
+            'USART2_BAUD'  : STLINK_BAUD,
+            'I2C1_BAUD'    : 1_000,
+        },
+
+    ),
+
+
+
+    ########################################
+
+
+
+    types.SimpleNamespace(
+
+        name              = 'MainFlightComputer',
+        mcu               = 'STM32H533VET6',
+        source_file_paths = (),
+
+        schematic_file_path = root('./pcb/MainFlightComputer.kicad_sch'),
+
+        gpios = (
+            ('led_channel_red'  , 'E2' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False }),
+            ('led_channel_green', 'E3' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False }),
+            ('led_channel_blue' , 'E4' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False }),
+            ('stlink_tx'        , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'             }),
+            ('stlink_rx'        , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'             }),
+            ('swdio'            , 'A13', None        , {                                     }),
+            ('swclk'            , 'A14', None        , {                                     }),
+            ('swo'              , 'B3' , None        , {                                     }),
+            ('serial_reset'     , 'D10', 'OUTPUT'    , { 'initlvl' : True                    }),
+            ('serial_rx'        , 'D11', 'ALTERNATE' , { 'altfunc' : 'UART4_RX'              }),
+            ('serial_tx'        , 'D12', 'ALTERNATE' , { 'altfunc' : 'UART4_TX'              }),
+            ('user_button'      , 'E14', 'INPUT'     , { 'pull'    : None, 'active' : True   }),
+            ('buzzer'           , 'C6' , 'ALTERNATE' , { 'altfunc' : 'TIM8_CH1'              }),
+            ('sd_cmd'           , 'D2' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CMD'            }),
+            ('sd_data_0'        , 'C8' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D0'             }),
+            ('sd_data_1'        , 'C9' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D1'             }),
+            ('sd_data_2'        , 'C10', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D2'             }),
+            ('sd_data_3'        , 'C11', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D3'             }),
+            ('sd_clock'         , 'C12', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CK'             }),
+            ('general_purpose_A', 'D0' , None        , {                                     }),
+            ('general_purpose_B', 'D1' , None        , {                                     }),
+            ('spi_nss_A'        , 'B12', 'ALTERNATE' , { 'altfunc' : 'SPI2_NSS'              }),
+            ('spi_clock_A'      , 'B10', 'ALTERNATE' , { 'altfunc' : 'SPI2_SCK'              }),
+            ('spi_mosi_A'       , 'C3' , 'ALTERNATE' , { 'altfunc' : 'SPI2_MOSI'             }),
+            ('spi_miso_A'       , 'C2' , 'ALTERNATE' , { 'altfunc' : 'SPI2_MISO'             }),
+            ('spi_ready_A'      , 'D5' , 'ALTERNATE' , { 'altfunc' : 'SPI2_RDY'              }),
+            ('spi_nss_B'        , 'B8' , 'ALTERNATE' , { 'altfunc' : 'SPI3_NSS'              }),
+            ('spi_clock_B'      , 'B1' , 'ALTERNATE' , { 'altfunc' : 'SPI3_SCK'              }),
+            ('spi_mosi_B'       , 'B5' , 'ALTERNATE' , { 'altfunc' : 'SPI3_MOSI'             }),
+            ('spi_miso_B'       , 'B0' , 'ALTERNATE' , { 'altfunc' : 'SPI3_MISO'             }),
+            ('spi_ready_B'      , 'E0' , 'ALTERNATE' , { 'altfunc' : 'SPI3_RDY'              }),
+            ('uart_tx_A'        , 'B14', 'ALTERNATE' , { 'altfunc' : 'USART1_TX'             }),
+            ('uart_rx_A'        , 'B15', 'ALTERNATE' , { 'altfunc' : 'USART1_RX'             }),
+            ('uart_tx_B'        , 'D8' , 'ALTERNATE' , { 'altfunc' : 'USART3_TX'             }),
+            ('uart_rx_B'        , 'D9' , 'ALTERNATE' , { 'altfunc' : 'USART3_RX'             }),
+            ('i2c_data_A'       , 'B7' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA'              }),
+            ('i2c_clock_A'      , 'B6' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL'              }),
+            ('i2c_data_B'       , 'D7' , 'ALTERNATE' , { 'altfunc' : 'I2C3_SDA'              }),
+            ('i2c_clock_B'      , 'D6' , 'ALTERNATE' , { 'altfunc' : 'I2C3_SCL'              }),
+        ),
+
+        interrupts = None,
+
+        drivers = (),
+
+        use_freertos    = False,
+        main_stack_size = 8192,
+        schema          = None,
+
+    ),
+
+
+
+    ########################################
+
+
+
+    types.SimpleNamespace(
+
+        name              = 'VehicleFlightComputer',
+        mcu               = 'STM32H533VET6',
+        source_file_paths = (),
+
+        schematic_file_path = root('./pcb/VehicleFlightComputer.kicad_sch'),
+
+        gpios = (
+            ('led_channel_red'       , 'E2' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False }),
+            ('led_channel_green'     , 'E3' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False }),
+            ('led_channel_blue'      , 'E4' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False }),
+            ('stlink_tx'             , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'             }),
+            ('stlink_rx'             , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'             }),
+            ('swdio'                 , 'A13', None        , {                                     }),
+            ('swclk'                 , 'A14', None        , {                                     }),
+            ('swo'                   , 'B3' , None        , {                                     }),
+            ('serial_reset'          , 'D10', 'OUTPUT'    , { 'initlvl' : True                    }),
+            ('serial_rx'             , 'D11', 'ALTERNATE' , { 'altfunc' : 'UART4_RX'              }),
+            ('serial_tx'             , 'D12', 'ALTERNATE' , { 'altfunc' : 'UART4_TX'              }),
+            ('buzzer'                , 'C6' , 'ALTERNATE' , { 'altfunc' : 'TIM8_CH1'              }),
+            ('sd_cmd'                , 'D2' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CMD'            }),
+            ('sd_data_0'             , 'C8' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D0'             }),
+            ('sd_data_1'             , 'C9' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D1'             }),
+            ('sd_data_2'             , 'C10', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D2'             }),
+            ('sd_data_3'             , 'C11', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D3'             }),
+            ('sd_clock'              , 'C12', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CK'             }),
+            ('battery_allowed'       , 'D0' , 'OUTPUT'    , { 'initlvl' : False                   }),
+            ('external_detected'     , 'D1' , None        , {                                     }),
+            ('openmv_spi_nss'        , 'B12', 'ALTERNATE' , { 'altfunc' : 'SPI2_NSS'              }),
+            ('openmv_spi_clock'      , 'B10', 'ALTERNATE' , { 'altfunc' : 'SPI2_SCK'              }),
+            ('openmv_spi_mosi'       , 'C3' , 'ALTERNATE' , { 'altfunc' : 'SPI2_MOSI'             }),
+            ('openmv_spi_miso'       , 'C2' , 'ALTERNATE' , { 'altfunc' : 'SPI2_MISO'             }),
+            ('openmv_spi_ready'      , 'D5' , 'ALTERNATE' , { 'altfunc' : 'SPI2_RDY'              }),
+            ('openmv_reset'          , 'D14', 'OUTPUT'    , { 'initlvl' : False                   }),
+            ('esp32_spi_nss'         , 'B8' , 'ALTERNATE' , { 'altfunc' : 'SPI3_NSS'              }),
+            ('esp32_spi_clock'       , 'B1' , 'ALTERNATE' , { 'altfunc' : 'SPI3_SCK'              }),
+            ('esp32_spi_mosi'        , 'B5' , 'ALTERNATE' , { 'altfunc' : 'SPI3_MOSI'             }),
+            ('esp32_spi_miso'        , 'B0' , 'ALTERNATE' , { 'altfunc' : 'SPI3_MISO'             }),
+            ('esp32_spi_ready'       , 'E0' , 'ALTERNATE' , { 'altfunc' : 'SPI3_RDY'              }),
+            ('esp32_reset'           , 'D15', 'OUTPUT'    , { 'initlvl' : False                   }),
+            ('motor_uart_tx'         , 'B14', 'ALTERNATE' , { 'altfunc' : 'USART1_TX'             }),
+            ('motor_uart_rx'         , 'B15', 'ALTERNATE' , { 'altfunc' : 'USART1_RX'             }),
+            ('lsm6dsv32x_i2c_data'   , 'B7' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA'              }),
+            ('lsm6dsv32x_i2c_clock'  , 'B6' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL'              }),
+            ('lis2mdl_i2c_data'      , 'D7' , 'ALTERNATE' , { 'altfunc' : 'I2C3_SDA'              }),
+            ('lis2mdl_i2c_clock'     , 'D6' , 'ALTERNATE' , { 'altfunc' : 'I2C3_SCL'              }),
+            ('motor_disable'         , 'E14', 'OUTPUT'    , { 'initlvl' : True                    }),
+            ('motor_step_x'          , 'E11', 'OUTPUT'    , { 'initlvl' : False                   }),
+            ('motor_step_y'          , 'E12', 'OUTPUT'    , { 'initlvl' : False                   }),
+            ('motor_step_z'          , 'E13', 'OUTPUT'    , { 'initlvl' : False                   }),
+            ('motor_direction_x'     , 'E15', 'OUTPUT'    , { 'initlvl' : False                   }),
+            ('motor_direction_y'     , 'D4' , 'OUTPUT'    , { 'initlvl' : False                   }),
+            ('motor_direction_z'     , 'D3' , 'OUTPUT'    , { 'initlvl' : False                   }),
+            ('lsm6dsv32x_interrupt_1', 'A8' , None        , {                                     }),
+            ('lsm6dsv32x_interrupt_2', 'A9' , None        , {                                     }),
+            ('lsm6dsv32x_chip_select', 'A10', 'OUTPUT'    , { 'initlvl': True                     }),
+            ('lis2mdl_data_ready'    , 'C14', None        , {                                     }),
+            ('lis2mdl_chip_select'   , 'C15', None        , {                                     }),
+        ),
+
+        interrupts = None,
+
+        drivers = (),
+
+        use_freertos    = False,
+        main_stack_size = 8192,
+        schema          = None,
+
+    ),
+
+
+
+    ########################################
+
+
+
+    types.SimpleNamespace(
+
+        name              = 'DemoTMC2209',
+        mcu               = 'STM32H533RET6',
+        source_file_paths = root('''
+            ./electrical/DemoTMC2209.c
+        '''),
+        schematic_file_path = None,
+
+        gpios = (
+            ('led_green'       , 'A5' , 'OUTPUT'    , { 'initlvl' : False                 }),
+            ('stlink_tx'       , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'           }),
+            ('stlink_rx'       , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'           }),
+            ('swdio'           , 'A13', None        , {                                   }),
+            ('swclk'           , 'A14', None        , {                                   }),
+            ('button'          , 'C13', 'INPUT'     , { 'pull'    : None, 'active' : True }),
+            ('driver_direction', 'C3' , 'OUTPUT'    , { 'initlvl' : True                  }),
+            ('driver_step'     , 'C2' , 'OUTPUT'    , { 'initlvl' : True                  }),
+            ('driver_enable'   , 'B0' , 'OUTPUT'    , { 'initlvl' : True                  }),
+        ),
+
+        interrupts = (
+            ('USART2' , 0),
+        ),
+
+        drivers = (
+            {
+                'type'       : 'UXART',
+                'peripheral' : 'USART2',
+                'handle'     : 'stlink',
+            },
+            {
+                'type'       : 'TIMEKEEPING',
+                'peripheral' : 'TIM1',
+            },
+        ),
+
+        use_freertos    = False,
+        main_stack_size = 8192,
+        schema          = {
+            'HSI_ENABLE'        : True,
+            'HSI48_ENABLE'      : True,
+            'CSI_ENABLE'        : True,
+            'PLL1P_CK'          : 250_000_000,
+            'CPU_CK'            : 250_000_000,
+            'APB1_CK'           : 250_000_000,
+            'APB2_CK'           : 250_000_000,
+            'APB3_CK'           : 250_000_000,
+            'USART2_BAUD'       : STLINK_BAUD,
+            'TIM1_COUNTER_RATE' : 1_000_000,
+        },
+
+    ),
+
+
+
+    ########################################
+
+
 
 )
 
 
 
 ################################################################################
-#
-# Figure out the compiler and linker flags for each firmware target.
-#
+
+
+
+if duplicate_names := [
+    name
+    for name, count in collections.Counter(
+        target.name
+        for target in TARGETS
+    ).items()
+    if count >= 2
+]:
+
+    duplicate_name = duplicate_names[0]
+
+    raise RuntimeError(
+        'There are multiple targets by the '
+        f'name of {repr(duplicate_name)}!'
+    )
+
+
 
 for target in TARGETS:
+
+
+
+
+    if target.interrupts is None:
+
+        # Absolutely no interrupts!
+
+        target.interrupts = ()
+
+    else:
+
+        # Some additional interrupts.
+
+        target.interrupts = (
+            ('Reset'     , None),
+            ('BusFault'  , None),
+            ('UsageFault', None),
+            *(MCU_SUPPORT[target.mcu]['freertos_interrupts'] if target.use_freertos else ()),
+            *target.interrupts
+        )
+
+
+
+    # Some additional source files.
+
+    target.source_file_paths = (
+        *(MCU_SUPPORT[target.mcu]['freertos_source_file_paths'] if target.use_freertos else ()),
+        *target.source_file_paths
+    )
+
+
+
+    # Some include-directive search paths.
+
+    include_paths = (
+        root('./electrical/meta'),
+        root('./deps/CMSIS_6/CMSIS/Core/Include'),
+        root('./deps/FreeRTOS_Kernel/include'),
+        root('./deps/printf/src'),
+        root('.'),
+        root('./electrical'),
+        *MCU_SUPPORT[target.mcu]['include_paths'],
+    )
 
 
 
@@ -227,32 +898,30 @@ for target in TARGETS:
     '''
 
 
-    # Additional search paths for the compiler to search through for #includes.
-
-    include_file_paths = (
-        root(BUILD, 'meta'),
-        root('./deps/CMSIS_6/CMSIS/Core/Include'),
-        root('./deps/FreeRTOS_Kernel/include'),
-        root('./deps/printf/src'),
-        root('.'),                               # For <deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h> and such.
-        root('./electrical/system'),             # For <FreeRTOSConfig.h>.
-        MCUS[target.mcu].freertos_port_dir_path, # For <portmacro.h> and such.
-    )
-
-
 
     # Additional macro defines.
 
     defines = [
-        ('TARGET_NAME'    , target.name           ),
-        ('TARGET_MCU'     , target.mcu            ),
-        ('MAIN_STACK_SIZE', target.main_stack_size),
+        ('TARGET_NAME'         , target.name           ),
+        ('TARGET_MCU'          , target.mcu            ),
+        ('TARGET_USES_FREERTOS', target.use_freertos   ),
+        ('MAIN_STACK_SIZE'     , target.main_stack_size),
     ]
 
-    for other in TARGETS:
+    for other_target in TARGETS:
         defines += [
-            (f'TARGET_NAME_IS_{other.name}', int(other.name == target.name)),
-            (f'TARGET_MCU_IS_{other.mcu}'  , int(other.mcu  == target.mcu )),
+            (
+                f'TARGET_NAME_IS_{other_target.name}',
+                int(other_target.name == target.name)
+            ),
+        ]
+
+    for other_mcu in MCU_SUPPORT:
+        defines += [
+            (
+                f'TARGET_MCU_IS_{other_mcu}',
+                int(other_mcu == target.mcu)
+            ),
         ]
 
 
@@ -265,15 +934,16 @@ for target in TARGETS:
             -O0
             -ggdb3
             -std=gnu2x
+            -pipe
             -fmax-errors=1
             -fno-strict-aliasing
             -fno-eliminate-unused-debug-types
             -ffunction-sections
             -fcompare-debug-second
-            {'\n'.join(f'-D {name}="{value}"'    for name, value in defines                  )}
-            {'\n'.join(f'-W{name}'               for name        in enabled_warnings .split())}
-            {'\n'.join(f'-Wno-{name}'            for name        in disabled_warnings.split())}
-            {'\n'.join(f'-I "{path.as_posix()}"' for path        in include_file_paths       )}
+            {'\n'.join(f'-D {name}="{c_repr(value)}"' for name, value in defines                  )}
+            {'\n'.join(f'-W{name}'                    for name        in enabled_warnings .split())}
+            {'\n'.join(f'-Wno-{name}'                 for name        in disabled_warnings.split())}
+            {'\n'.join(f'-I "{path.as_posix()}"'      for path        in include_paths            )}
         '''
     )
 
@@ -296,120 +966,29 @@ for target in TARGETS:
 
 
 
-# This meta-directive typically contains definitions for things that'll be
-# used both in other meta-directives and also in `cli.py`. Stuff like the
-# ST-Link baud rate is defined here because the clock-tree is automated by
-# a meta-directive in order to configure the UART for the right clock speed
-# and also so that `cli.py talk` can open the serial port to the right baud.
+def PER_TARGET():
+
+    for target in TARGETS:
+
+        with Meta.enter(f'#if TARGET_NAME_IS_{target.name}'):
+
+            yield target
 
 
 
-# @/`Defining a TARGET`:
-#
-# A target is essentially a program for a specific microcontroller in mind.
-# For this project, we'll have a target for the flight computer, camera
-# subsystems, and maybe some other stuff. As of writing, this is what defines
-# a target:
-#
-#     - name                 = Self-explanatory; the unique name of the target.
-#
-#     - mcu                  = The full commerical part number of an STM32
-#                              microcontroller as seen in `MCUS`. Technically,
-#                              the last few suffixes are not necessary because
-#                              they just indicate the flash size and operating
-#                              temperature and stuff, but I think it's a hassle
-#                              to deal with different variations of MCU "names",
-#                              so just might as well use the whole thing even
-#                              if it ends up being redundant later on.
-#
-#     - source_file_paths    = Source files that the build system will compile each
-#                              of and then link all together.
-#
-#     - use_freertos         = Whether or not to compile with FreeRTOS and set up
-#                              the task-scheduler. Typically, we'd disable FreeRTOS
-#                              when we want to start off programming in a simpler
-#                              environment where we don't have to worry about concurrency
-#                              and reentrance of code. Eventually, as the firmware
-#                              matures, we'd want to start using a task-scheduler
-#                              so we can have multiple systems in the firmware
-#                              work together and not have one big state machine
-#                              to handle it all.
-#
-#     - main_stack_size      = The amount of bytes to reserve for the stack of `main`.
-#                              This option is more useful when not using FreeRTOS.
-#                              If FreeRTOS is enabled, then each task will have their
-#                              own stack, the size of which can be individually specified.
-#                              Before the task-scheduler can starts, we still go into
-#                              `main`, so this option is still used, albeit less
-#                              critically.
-#                              TODO Look more into how FreeRTOS organizes its memory.
-#
-#     - aliases              = The purpose of this field is to make it easy to refer to
-#                              a peripheral "generically" by using a custom name like
-#                              "UxART_STLINK" instead of "USART3". While this makes it
-#                              more clear what a particular peripheral is meant to be,
-#                              used for its true purpose is to make code that uses this
-#                              peripheral more applicable to different targets. In the
-#                              example of "UxART_STLINK", some targets might have it be
-#                              "USART3" while others be "UART2". Rather than reimplement
-#                              code to use slightly different peripheral names and numberings,
-#                              all code can just refer to "UxART_STLINK", and a bunch of
-#                              macros and global constants will do the mapping magically.
-#                              This is a very experimental feature right now, however, so
-#                              you can just completely ignore this. I'm planning to make
-#                              it much simpler to use and less contrived.
-#
-#     - clock_tree           = Options relating to configuring the MCU's clock-tree.
-#                              The available options right now is pretty undocumented since
-#                              it heavily depends upon the implementation of `SYSTEM_PARAMETERIZE`;
-#                              things there are still non-comprehensive and quite experimental.
-#                              Nonetheless, some of the stuff should be self-explanatory, like
-#                              if you want to change the baud rate of a UART peripheral or
-#                              something, then it's pretty easy to do right here; but if you
-#                              have a lot of questions, then you should probably see
-#                              `SYSTEM_PARAMETERIZE` anyways.
-#
-#     - gpios                = This is where we define the GPIOs of our target; what
-#                              input/outputs it has, which pins are being used for what
-#                              particular peripherals, and maybe other stuff too like the
-#                              slew rate or pull up/down configuration. This table of GPIOs
-#                              is very useful, because later on when we make our PCBs, we can
-#                              write a meta-directive to verify that the PCB matches our
-#                              GPIO table (TODO).
-#
-#     - interrupt_priorities = This table defines the interrupts that'll need to be configured
-#                              in the NVIC. Any time you're writing a driver for a peripheral,
-#                              and that peripheral uses interrupts, you should add an entry to
-#                              this table. Once you do so, macros will be created to allow the
-#                              interrupt to be enabled in the NVIC. It should be noted that
-#                              the priority value of interrupts work on a niceless level, so
-#                              the lower the number is, the higher priority it actually is.
-#
-# It's also useful to have a "sandbox" target where it's pretty much
-# just a demo program for a Nucleo board; some LEDS blinking, maybe
-# reacting to button presses, and printing out to serial port. This
-# is just so we can easily test things out whenever we're writing
-# some new drivers or something.
-#
-# As of writing, these are the steps to making a new target:
-#
-#     1. Jump start by copy-pasting an existing target in `TARGETS`,
-#        maybe "SandboxNucleoH533RE". Rename the target to something
-#        unique, which for our example, let's say "FooBar".
-#
-#     2. Change the MCU (if needed) and modify `source_file_paths`
-#        to have the main C file you wish to compile with.
-#        If your new target name is "FooBar", you should probably
-#        make a new C file called "FooBar.c". In this C file,
-#        you can copy from <SandboxNucleoBoard.c> but remove all
-#        the FreeRTOS task stuff; you should have at least `main`.
-#
-#     3. Recompile; things should work, but this process I described
-#        here might've changed because I added a new feature or
-#        something to the build process. In the event that I forgot
-#        to update this, read the error message and figure out what
-#        is missing.
+def PER_MCU():
 
+    for mcu in MCUS:
+
+        if mcu in MCU_SUPPORT:
+
+            with Meta.enter(f'#if TARGET_MCU_IS_{mcu}'):
+
+                yield mcu
+
+
+
+################################################################################
 
 
 

@@ -10,6 +10,9 @@ data/
 *.lck
 *.bak
 *.kicad_prl
-_autosave-*.kicad_pcb
+_autosave-*
 fp-info-cache
 \#auto_saved_files\#
+
+# SolidWorks.
+~$*
