@@ -55,6 +55,68 @@ main(void)
 
 
 
+    // Enable the peripheral.
+
+    CMSIS_SET(RCC, APB2ENR, TIM15EN, true);
+
+
+
+    // Channel output in PWM mode so we can generate a pulse.
+
+    CMSIS_SET(TIM15, CCMR1, OC1M, 0b0110);
+
+
+
+    // The comparison channel output is active
+    // when the counter is below this value.
+
+    CMSIS_SET(TIM15, CCR1, CCR1, 1);
+
+
+
+    // Enable the comparison channel output.
+
+    CMSIS_SET(TIM15, CCER, CC1E, true);
+
+
+
+    // Master enable for the timer's outputs.
+
+    CMSIS_SET(TIM15, BDTR, MOE, true);
+
+
+
+    // Configure the divider to set the rate at
+    // which the timer's counter will increment.
+
+    CMSIS_SET(TIM15, PSC, PSC, STPY_TIM15_DIVIDER);
+
+
+
+    // Trigger an update event so that the shadow registers
+    // ARR, PSC, and CCRx are what we initialize them to be.
+    // The hardware uses shadow registers in order for updates
+    // to these registers not result in a corrupt timer output.
+
+    CMSIS_SET(TIM15, EGR, UG, true);
+
+
+
+    CMSIS_SET
+    (
+        TIM15, CR1 ,
+        URS  , 0b1 , // So that the UG bit doesn't set the update event interrupt.
+        OPM  , true, // Timer's counter stops incrementing after an update event.
+    );
+
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+
+
+
+    GPIO_LOW(driver_enable);
+
     #include "DemoTMC2209_POSITIONS.meta"
     /* #meta
 
@@ -63,47 +125,38 @@ main(void)
         with Meta.enter(f'static const i32 POSITIONS[] ='):
             for i in range(4000):
                 Meta.line(f'''
-                    {round(math.sin(i / 4000 * 2 * math.pi * 2) * 1500)},
+                    {round(math.sin(i / 4000 * 2 * math.pi * 16) * 1500)},
                 ''')
 
     */
 
     i32 index = 0;
 
-    GPIO_LOW(driver_enable);
-
-    i32 desired_position = 0;
-    i32 current_position = 0;
-
     for (;;)
     {
-        desired_position  = POSITIONS[index];
-        index            += 1;
-        index            %= countof(POSITIONS);
 
-        i32 delta       = desired_position - current_position;
-        i32 duration_us = 1000;
+        GPIO_HIGH(debug);
+        while (!CMSIS_GET(TIM15, SR, UIF));
+        GPIO_LOW(debug);
+        CMSIS_SET(TIM15, SR, UIF, false);
 
-        if (delta)
-        {
-            GPIO_SET(driver_direction, delta < 0);
+        i32 now = POSITIONS[index];
 
-            i32 abs_delta = delta < 0 ? -delta : delta;
+        index += 1;
+        index %= countof(POSITIONS);
 
-            for (i32 i = 0; i < abs_delta; i += 1)
-            {
-                GPIO_HIGH(driver_step);
-                spinlock_us(1);
-                GPIO_LOW(driver_step);
-                spinlock_us(duration_us / abs_delta - 1);
-            }
+        i32 next = POSITIONS[index];
 
-            current_position = desired_position;
-        }
-        else
-        {
-            spinlock_us(duration_us);
-        }
+        i32 delta = next - now;
+
+        delta = delta < 0 ? -delta : delta;
+
+        GPIO_SET(driver_direction, next > now                );
+        CMSIS_SET(TIM15, RCR, REP, delta                     ); // TODO Off-by-one.
+        CMSIS_SET(TIM15, ARR, ARR, (10'000 - 1) / (delta + 1)); // TODO Off-by-one.
+        CMSIS_SET(TIM15, EGR, UG , true                      );
+        CMSIS_SET(TIM15, CR1, CEN, true                      );
+
     }
 
 }
