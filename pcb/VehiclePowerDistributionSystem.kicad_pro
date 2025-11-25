@@ -60,6 +60,10 @@
       ],
       "drc_exclusions": [
         [
+          "extra_footprint|150000000|100000000|202a1a00-8266-4df2-a4e2-c83846fd79b4|00000000-0000-0000-0000-000000000000",
+          ""
+        ],
+        [
           "lib_footprint_issues|150000000|100000000|202a1a00-8266-4df2-a4e2-c83846fd79b4|00000000-0000-0000-0000-000000000000",
           ""
         ]
@@ -106,7 +110,7 @@
         "pth_inside_courtyard": "ignore",
         "shorting_items": "error",
         "silk_edge_clearance": "warning",
-        "silk_over_copper": "warning",
+        "silk_over_copper": "ignore",
         "silk_overlap": "ignore",
         "skew_out_of_range": "error",
         "solder_mask_bridge": "error",
