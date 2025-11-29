@@ -63,11 +63,11 @@ main(void)
 
     // Channel output in PWM mode so we can generate a pulse.
 
-    CMSIS_SET(TIM15, CCMR1, OC1M, 0b0110);
+    CMSIS_SET(TIM15, CCMR1, OC1M, 0b0111);
 
 
 
-    // The comparison channel output is active
+    // The comparison channel output is inactive
     // when the counter is below this value.
 
     CMSIS_SET(TIM15, CCR1, CCR1, 1);
@@ -135,9 +135,7 @@ main(void)
     for (;;)
     {
 
-        GPIO_HIGH(debug);
         while (!CMSIS_GET(TIM15, SR, UIF));
-        GPIO_LOW(debug);
         CMSIS_SET(TIM15, SR, UIF, false);
 
         i32 now = POSITIONS[index];
@@ -151,11 +149,12 @@ main(void)
 
         delta = delta < 0 ? -delta : delta;
 
-        GPIO_SET(driver_direction, next > now                );
-        CMSIS_SET(TIM15, RCR, REP, delta                     ); // TODO Off-by-one.
-        CMSIS_SET(TIM15, ARR, ARR, (10'000 - 1) / (delta + 1)); // TODO Off-by-one.
-        CMSIS_SET(TIM15, EGR, UG , true                      );
-        CMSIS_SET(TIM15, CR1, CEN, true                      );
+        GPIO_SET(driver_direction, next > now);
+        CMSIS_SET(TIM15, CCR1, CCR1, delta ?         1   : -1  );
+        CMSIS_SET(TIM15, RCR , REP , delta ? delta - 1 : 0     );
+        CMSIS_SET(TIM15, ARR , ARR , (10'000 - 1) / (delta + 1));
+        CMSIS_SET(TIM15, EGR , UG  , true                      );
+        CMSIS_SET(TIM15, CR1 , CEN , true                      );
 
     }
 

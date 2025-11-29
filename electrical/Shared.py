@@ -746,7 +746,6 @@ TARGETS = (
             ('driver_direction', 'C3' , 'OUTPUT'    , { 'initlvl' : True                  }),
             ('driver_step'     , 'C12', 'ALTERNATE' , { 'altfunc' : 'TIM15_CH1'           }),
             ('driver_enable'   , 'B0' , 'OUTPUT'    , { 'initlvl' : True                  }),
-            ('debug'           , 'C10', 'OUTPUT'    , { 'initlvl' : False                 }),
         ),
 
         interrupts = (
