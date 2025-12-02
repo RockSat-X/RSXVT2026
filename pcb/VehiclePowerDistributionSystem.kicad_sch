@@ -3301,6 +3301,12 @@
 		(uuid "054657b8-0cc0-4f92-93a7-b0884c0aa05e")
 	)
 	(junction
+		(at 101.6 38.1)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "20e1ff07-92cf-464c-b41b-b7ca7d14c09b")
+	)
+	(junction
 		(at 281.94 147.32)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -3386,6 +3392,16 @@
 	)
 	(wire
 		(pts
+			(xy 101.6 27.94) (xy 101.6 29.21)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0730dff1-8b01-4ac6-a130-01b8a8081a42")
+	)
+	(wire
+		(pts
 			(xy 90.17 38.1) (xy 90.17 88.9)
 		)
 		(stroke
@@ -3456,7 +3472,7 @@
 	)
 	(wire
 		(pts
-			(xy 90.17 38.1) (xy 124.46 38.1)
+			(xy 90.17 38.1) (xy 101.6 38.1)
 		)
 		(stroke
 			(width 0)
@@ -3626,6 +3642,16 @@
 	)
 	(wire
 		(pts
+			(xy 101.6 36.83) (xy 101.6 38.1)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "983e8019-5253-4036-83b4-23bbcd846b62")
+	)
+	(wire
+		(pts
 			(xy 339.09 158.75) (xy 339.09 147.32)
 		)
 		(stroke
@@ -3633,6 +3659,16 @@
 			(type default)
 		)
 		(uuid "9b07e917-14bb-487f-93ff-ba895156f0eb")
+	)
+	(wire
+		(pts
+			(xy 101.6 38.1) (xy 124.46 38.1)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a3570c9d-036e-4af3-903e-199f72e538a5")
 	)
 	(wire
 		(pts
@@ -6816,6 +6852,72 @@
 		)
 	)
 	(symbol
+		(lib_id "power:+3.3V")
+		(at 101.6 27.94 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "68fe1e77-126f-46db-b510-b681e21dac8a")
+		(property "Reference" "#PWR067"
+			(at 101.6 31.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3.3V"
+			(at 101.6 22.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 101.6 27.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 101.6 27.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 101.6 27.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "e61d4dfe-b43b-4c86-9cb6-fc181133785c")
+		)
+		(instances
+			(project "VehiclePowerDistributionSystem"
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085"
+					(reference "#PWR067")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 227.33 218.44 270)
 		(unit 1)
@@ -7159,6 +7261,77 @@
 			(project "VehiclePowerDistributionSystem"
 				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085"
 					(reference "#PWR012")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 101.6 33.02 0)
+		(mirror y)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "8ad08a7e-4c51-44e3-98f7-cde8cd4c8473")
+		(property "Reference" "R16"
+			(at 104.14 31.7499 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "47k"
+			(at 104.14 34.2899 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
+			(at 103.378 33.02 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 101.6 33.02 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 101.6 33.02 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "75627a57-1b57-4745-8b09-b27da502e1e8")
+		)
+		(pin "2"
+			(uuid "b770aef7-e2cb-4a01-a594-a6315e2a372b")
+		)
+		(instances
+			(project "VehiclePowerDistributionSystem"
+				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085"
+					(reference "R16")
 					(unit 1)
 				)
 			)
