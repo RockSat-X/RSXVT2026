@@ -971,7 +971,7 @@
 		(at 134 103)
 		(descr "OpenMV Cam H7 Plus")
 		(property "Reference" "U1"
-			(at 5 0 0)
+			(at 3.2 0 0)
 			(unlocked yes)
 			(layer "F.SilkS")
 			(uuid "f549355e-c027-4ab3-bafe-a7e9068fd6eb")
@@ -4117,6 +4117,18 @@
 			(uuid "486dd283-2d5b-4937-9c02-ff370119a369")
 		)
 		(embedded_fonts no)
+	)
+	(gr_text "VMISC-R1"
+		(at 150 76.5 0)
+		(layer "F.SilkS" knockout)
+		(uuid "1052071d-e3f8-4963-8d83-89b053aa1b66")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.2)
+				(bold yes)
+			)
+		)
 	)
 	(segment
 		(start 134 103)
