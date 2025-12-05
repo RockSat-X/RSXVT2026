@@ -507,7 +507,7 @@
       "plot": "",
       "pos_files": "",
       "specctra_dsn": "",
-      "step": "models/Main_Stack_Dummy.step",
+      "step": "models/MainFlightComputer.step",
       "svg": "",
       "vrml": ""
     },
