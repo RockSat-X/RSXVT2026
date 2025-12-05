@@ -8324,7 +8324,7 @@
 				(pin passive line
 					(at -3.81 -45.72 0)
 					(length 3.81)
-					(name "NC"
+					(name "i2c_clock_A"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -8630,7 +8630,7 @@
 				(pin passive line
 					(at 48.26 -45.72 180)
 					(length 3.81)
-					(name "NC"
+					(name "i2c_clock_B"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -9659,20 +9659,12 @@
 		(uuid "68809e3b-e0a9-4234-b1e1-0576b657afc6")
 	)
 	(no_connect
-		(at 96.52 269.24)
-		(uuid "6bd2afd7-7004-4c5b-bbdf-0cd2b384e4fd")
-	)
-	(no_connect
 		(at 102.87 162.56)
 		(uuid "767f9477-5ea7-4165-914d-2c43a868cb62")
 	)
 	(no_connect
 		(at 41.91 129.54)
 		(uuid "7bba8863-679f-43f4-a10e-1019e3e6239f")
-	)
-	(no_connect
-		(at 44.45 269.24)
-		(uuid "7e67d798-fcd6-4e0f-a003-3344e47d1321")
 	)
 	(no_connect
 		(at 102.87 96.52)
@@ -12082,7 +12074,7 @@
 			)
 		)
 	)
-	(global_label "lsm6dsv32x_i2c_data"
+	(global_label "sensor_i2c_data"
 		(shape bidirectional)
 		(at 220.98 270.51 180)
 		(fields_autoplaced yes)
@@ -12094,7 +12086,7 @@
 		)
 		(uuid "4ec96ed1-508d-439d-af7f-5caec6246f82")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 196.6848 270.51 0)
+			(at 201.6437 270.51 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12368,6 +12360,28 @@
 			)
 		)
 	)
+	(global_label "vehicle_interface_i2c_clock"
+		(shape bidirectional)
+		(at 44.45 269.24 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "66011821-834e-412f-86e9-afe82c74edd6")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 14.4697 269.24 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "openmv_spi_ready"
 		(shape bidirectional)
 		(at 44.45 238.76 180)
@@ -12456,7 +12470,7 @@
 			)
 		)
 	)
-	(global_label "lsm6dsv32x_i2c_data"
+	(global_label "sensor_i2c_data"
 		(shape bidirectional)
 		(at 237.49 147.32 0)
 		(fields_autoplaced yes)
@@ -12468,7 +12482,7 @@
 		)
 		(uuid "6be294f7-1d33-4da3-9c1e-5419429daf87")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 261.7852 147.32 0)
+			(at 256.8263 147.32 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12500,7 +12514,7 @@
 			)
 		)
 	)
-	(global_label "lsm6dsv32x_i2c_clock"
+	(global_label "sensor_i2c_clock"
 		(shape bidirectional)
 		(at 102.87 127 0)
 		(fields_autoplaced yes)
@@ -12512,7 +12526,7 @@
 		)
 		(uuid "73ea374e-002b-45ec-ba99-572d89802072")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 128.012 127 0)
+			(at 123.0531 127 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12544,7 +12558,7 @@
 			)
 		)
 	)
-	(global_label "lis2mdl_i2c_clock"
+	(global_label "vehicle_interface_i2c_clock"
 		(shape bidirectional)
 		(at 220.98 229.87 180)
 		(fields_autoplaced yes)
@@ -12556,7 +12570,7 @@
 		)
 		(uuid "76a3a982-89c2-4e9f-bddb-86bc5fa53736")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 200.0108 229.87 0)
+			(at 190.9997 229.87 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12742,6 +12756,28 @@
 			)
 		)
 	)
+	(global_label "vehicle_interface_i2c_data"
+		(shape bidirectional)
+		(at 96.52 269.24 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "8d0e4046-098d-481d-8999-46eb53d46334")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 125.6535 269.24 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "motor_direction_x"
 		(shape bidirectional)
 		(at 102.87 91.44 0)
@@ -12786,7 +12822,7 @@
 			)
 		)
 	)
-	(global_label "lis2mdl_i2c_clock"
+	(global_label "vehicle_interface_i2c_clock"
 		(shape bidirectional)
 		(at 41.91 149.86 180)
 		(fields_autoplaced yes)
@@ -12798,7 +12834,7 @@
 		)
 		(uuid "91c59af9-0ab8-4855-84a7-6b2310cca34b")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 20.9408 149.86 0)
+			(at 11.9297 149.86 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12874,7 +12910,7 @@
 			)
 		)
 	)
-	(global_label "lis2mdl_i2c_data"
+	(global_label "vehicle_interface_i2c_data"
 		(shape bidirectional)
 		(at 41.91 152.4 180)
 		(fields_autoplaced yes)
@@ -12886,7 +12922,7 @@
 		)
 		(uuid "9b479c23-ccd9-4fd3-9caa-4a078d3bdb12")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 21.7876 152.4 0)
+			(at 12.7765 152.4 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13072,7 +13108,7 @@
 			)
 		)
 	)
-	(global_label "lsm6dsv32x_i2c_clock"
+	(global_label "sensor_i2c_clock"
 		(shape bidirectional)
 		(at 237.49 143.51 0)
 		(fields_autoplaced yes)
@@ -13084,7 +13120,7 @@
 		)
 		(uuid "ae301307-7867-4956-ab9b-8eb9a96a2881")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 262.632 143.51 0)
+			(at 257.6731 143.51 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13226,7 +13262,7 @@
 			)
 		)
 	)
-	(global_label "lis2mdl_i2c_data"
+	(global_label "sensor_i2c_data"
 		(shape bidirectional)
 		(at 212.09 73.66 180)
 		(fields_autoplaced yes)
@@ -13238,7 +13274,7 @@
 		)
 		(uuid "be6a210f-def7-4f3e-a986-c3afad996594")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 191.9676 73.66 0)
+			(at 192.7537 73.66 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13468,7 +13504,7 @@
 			)
 		)
 	)
-	(global_label "lsm6dsv32x_i2c_clock"
+	(global_label "sensor_i2c_clock"
 		(shape bidirectional)
 		(at 220.98 256.54 180)
 		(fields_autoplaced yes)
@@ -13480,7 +13516,7 @@
 		)
 		(uuid "d8979b21-16f4-4102-b010-ce3d8fe1be53")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 195.838 256.54 0)
+			(at 200.7969 256.54 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13600,7 +13636,7 @@
 			)
 		)
 	)
-	(global_label "lsm6dsv32x_i2c_data"
+	(global_label "sensor_i2c_data"
 		(shape bidirectional)
 		(at 102.87 129.54 0)
 		(fields_autoplaced yes)
@@ -13612,7 +13648,7 @@
 		)
 		(uuid "e5e3a1a4-4855-418d-881b-fa92925969df")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 127.1652 129.54 0)
+			(at 122.2063 129.54 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13710,7 +13746,7 @@
 			)
 		)
 	)
-	(global_label "lis2mdl_i2c_clock"
+	(global_label "sensor_i2c_clock"
 		(shape bidirectional)
 		(at 212.09 71.12 180)
 		(fields_autoplaced yes)
@@ -13722,7 +13758,7 @@
 		)
 		(uuid "f48cdf2b-8ca9-48c2-b634-ff4ec24d9ee1")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 191.1208 71.12 0)
+			(at 191.9069 71.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13776,7 +13812,7 @@
 			)
 		)
 	)
-	(global_label "lis2mdl_i2c_data"
+	(global_label "vehicle_interface_i2c_data"
 		(shape bidirectional)
 		(at 220.98 243.84 180)
 		(fields_autoplaced yes)
@@ -13788,7 +13824,7 @@
 		)
 		(uuid "fb490dca-1117-497c-80e4-885e7f1cd33f")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 200.8576 243.84 0)
+			(at 191.8465 243.84 0)
 			(effects
 				(font
 					(size 1.27 1.27)
