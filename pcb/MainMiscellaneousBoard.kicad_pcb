@@ -7626,7 +7626,7 @@
 			(net 70 "GND")
 			(pinfunction "SHIELD")
 			(pintype "passive")
-			(uuid "6ff69be3-7f5a-491c-a1c5-06e03f04e4d2")
+			(uuid "cda794f1-4041-4857-be7e-872e6689885f")
 		)
 		(pad "9" smd roundrect
 			(at 6.875 -4.7)
@@ -7636,7 +7636,7 @@
 			(net 70 "GND")
 			(pinfunction "SHIELD")
 			(pintype "passive")
-			(uuid "6ff69be3-7f5a-491c-a1c5-06e03f04e4d2")
+			(uuid "9409400e-1e32-4567-9a67-ba4742e8505c")
 		)
 		(pad "9" smd roundrect
 			(at 6.875 3.6)
@@ -7646,7 +7646,7 @@
 			(net 70 "GND")
 			(pinfunction "SHIELD")
 			(pintype "passive")
-			(uuid "6ff69be3-7f5a-491c-a1c5-06e03f04e4d2")
+			(uuid "191ececf-62b3-4807-8f47-30f39879beec")
 		)
 		(embedded_fonts no)
 		(model "${KIPRJMOD}/models/uSD_Connector_Molex.step"
@@ -8127,7 +8127,7 @@
 				(type dot)
 			)
 			(layer "F.SilkS")
-			(uuid "9577a9bf-6d43-4783-bf05-6aa2ace77cf1")
+			(uuid "2f82c59d-d113-47bd-b233-8ea7094f9305")
 		)
 		(fp_line
 			(start -9 9)
@@ -8137,7 +8137,7 @@
 				(type dot)
 			)
 			(layer "F.SilkS")
-			(uuid "fb23b7f7-6466-49aa-bd2b-8507f2734cb7")
+			(uuid "a1d5e4c8-bf89-4e1d-a7db-fe69f6fa127e")
 		)
 		(fp_line
 			(start -9 10.75)
@@ -8147,7 +8147,7 @@
 				(type dot)
 			)
 			(layer "F.SilkS")
-			(uuid "07443317-a727-4811-9dee-ae169eb7880a")
+			(uuid "61df3285-bb7d-4d97-81ae-d3d3df277833")
 		)
 		(fp_line
 			(start -8.95 -8.95)
@@ -8157,7 +8157,7 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "ca373aaa-0b7f-4730-bfb8-4e0f30f4df74")
+			(uuid "961f8a40-646e-468c-892f-e2dc8d88eb6b")
 		)
 		(fp_line
 			(start -8.95 -7.62)
@@ -8167,7 +8167,7 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "e76217b5-a2ac-4746-a86f-cc47c7d8fee6")
+			(uuid "f409052c-0cb8-441f-a805-75470d2ea3bf")
 		)
 		(fp_line
 			(start -8.95 -6.35)
@@ -8177,7 +8177,7 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "31134e29-e415-4ed7-a9f5-d5a39ba45715")
+			(uuid "2d23a6d9-d103-4e9c-bf71-e6f085ddf1fa")
 		)
 		(fp_line
 			(start -8.95 -6.35)
@@ -8187,7 +8187,7 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "b9c64a58-01a2-40e8-a598-d81bbdba11a6")
+			(uuid "5fc92c01-0039-4e10-b934-179fa6af102e")
 		)
 		(fp_line
 			(start -8.95 8.95)
@@ -8197,7 +8197,7 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "08315873-1e6e-4076-82c3-19e90182a785")
+			(uuid "2989b634-3109-43da-ab8b-88b395243924")
 		)
 		(fp_line
 			(start -6.29 -6.35)
@@ -8207,7 +8207,7 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "78c6ed91-2beb-425b-8954-8244bcd83ccf")
+			(uuid "a23fce40-02f3-41e0-bbdd-303b354a1ec6")
 		)
 		(fp_line
 			(start 6.29 -8.95)
@@ -8217,7 +8217,7 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "1812c116-34f8-4a10-9cd4-0d2f7df577da")
+			(uuid "d154ebc0-6f0f-493b-9b4d-185e04dc08da")
 		)
 		(fp_line
 			(start 6.29 -8.95)
@@ -8227,7 +8227,7 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "93524c52-c4d5-42b3-b381-d1c1a385eb0f")
+			(uuid "06d9e9e4-bff5-40e2-945f-cb3e47cd71d9")
 		)
 		(fp_line
 			(start 6.29 8.95)
@@ -8237,7 +8237,7 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "29cff37e-03af-4f12-b857-c09535aa759c")
+			(uuid "95894343-385c-432c-9e32-d633e7c9efc1")
 		)
 		(fp_line
 			(start 8.95 -8.95)
@@ -8247,7 +8247,7 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "543ccb6f-35b1-4563-9d46-28a225a554a9")
+			(uuid "35c53801-5c7e-4efd-88d5-9315dba8e649")
 		)
 		(fp_line
 			(start 9 -10.75)
@@ -8257,7 +8257,7 @@
 				(type dot)
 			)
 			(layer "F.SilkS")
-			(uuid "6746cdeb-c953-48ef-942a-9c2532d15b6b")
+			(uuid "3abb5b52-a46b-4348-9936-102af7db08d6")
 		)
 		(fp_line
 			(start 9 -9)
@@ -8267,7 +8267,7 @@
 				(type dot)
 			)
 			(layer "F.SilkS")
-			(uuid "a22eaa87-a214-4711-afb0-d801ac10ecfc")
+			(uuid "b2388111-b3cb-4402-8dbf-2f9ce6bae9e1")
 		)
 		(fp_line
 			(start 9 9)
@@ -8277,7 +8277,7 @@
 				(type dot)
 			)
 			(layer "F.SilkS")
-			(uuid "39e3aa5b-cf05-4b22-aca1-8f38bbb206dc")
+			(uuid "a324314c-98e1-49e8-8949-bcca0a1fa54e")
 		)
 		(pad "+3.3V" thru_hole roundrect
 			(at 7.62 -2.54 180)
@@ -8581,6 +8581,18 @@
 			)
 			(rotate
 				(xyz -90 -0 -90)
+			)
+		)
+		(model "${KIPRJMOD}/models/Wio-SX1262_for_XIAO_3D_file.step"
+			(opacity 0.6200)
+			(offset
+				(xyz -114.5 121.1 4.7)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -0 -0 -0)
 			)
 		)
 	)
@@ -9106,7 +9118,7 @@
 			(net 70 "GND")
 			(pinfunction "SHIELD")
 			(pintype "passive")
-			(uuid "ba8a7d11-64fb-4be1-8a3c-9aa180c91feb")
+			(uuid "974a45e5-ebb5-4104-a1bd-972c3102f620")
 		)
 		(pad "9" smd roundrect
 			(at 6.875 -4.7)
@@ -9116,7 +9128,7 @@
 			(net 70 "GND")
 			(pinfunction "SHIELD")
 			(pintype "passive")
-			(uuid "ba8a7d11-64fb-4be1-8a3c-9aa180c91feb")
+			(uuid "5adc96b1-373b-4c25-93d9-a2539e7db9a8")
 		)
 		(pad "9" smd roundrect
 			(at 6.875 3.6)
@@ -9126,7 +9138,7 @@
 			(net 70 "GND")
 			(pinfunction "SHIELD")
 			(pintype "passive")
-			(uuid "ba8a7d11-64fb-4be1-8a3c-9aa180c91feb")
+			(uuid "a31291cf-e57b-4ee8-b773-fb2e2732d576")
 		)
 		(embedded_fonts no)
 		(model "${KIPRJMOD}/models/uSD_Connector_Molex.step"
