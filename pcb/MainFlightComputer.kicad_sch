@@ -8257,10 +8257,6 @@
 		(uuid "0b1c5f5a-6b73-4769-b17c-0ecc3d9b97e0")
 	)
 	(no_connect
-		(at 128.27 180.34)
-		(uuid "0ebaa746-cd7a-4414-ae05-0900b72f7dd2")
-	)
-	(no_connect
 		(at 125.73 287.02)
 		(uuid "0ebc04bd-ebc9-45ee-a467-3db6e87ccca0")
 	)
@@ -8289,10 +8285,6 @@
 		(uuid "1f6fbba5-6815-4c5b-b265-6b1bbfe85fa4")
 	)
 	(no_connect
-		(at 189.23 157.48)
-		(uuid "203c20ef-d22f-4372-b9a8-7e4d79f5d302")
-	)
-	(no_connect
 		(at 128.27 134.62)
 		(uuid "21587356-533b-4c1a-a581-4cbf661ca8be")
 	)
@@ -8307,10 +8299,6 @@
 	(no_connect
 		(at 194.31 307.34)
 		(uuid "24899cbc-5175-41f7-a5c3-f85cffe29a9e")
-	)
-	(no_connect
-		(at 128.27 203.2)
-		(uuid "2496e413-23ff-48ab-8104-8baaad42ed82")
 	)
 	(no_connect
 		(at 443.23 105.41)
@@ -8333,8 +8321,8 @@
 		(uuid "2df17ccc-c2e8-40fd-8ede-b71c82fcfe6a")
 	)
 	(no_connect
-		(at 125.73 304.8)
-		(uuid "2f4d8036-330d-41a0-9fe1-21f28c7ff137")
+		(at 189.23 162.56)
+		(uuid "300b0223-a20a-43c5-a549-2ff47dec17e8")
 	)
 	(no_connect
 		(at 189.23 147.32)
@@ -8381,10 +8369,6 @@
 		(uuid "50d4c91f-6fd8-40a2-a79c-44937d63af52")
 	)
 	(no_connect
-		(at 194.31 264.16)
-		(uuid "53131d86-4a65-4784-89af-4c28d6b3fcb2")
-	)
-	(no_connect
 		(at 189.23 99.06)
 		(uuid "57be9b5f-1b16-43be-b4bf-a015956400de")
 	)
@@ -8405,10 +8389,6 @@
 		(uuid "659a7ed1-b477-4e31-b95f-0c9edf3669e0")
 	)
 	(no_connect
-		(at 128.27 200.66)
-		(uuid "6649efee-593a-4471-b9a2-ee1c530d55ce")
-	)
-	(no_connect
 		(at 128.27 167.64)
 		(uuid "6651bb6e-a6ef-40f5-9a62-e92e0a0eaa8f")
 	)
@@ -8425,10 +8405,6 @@
 		(uuid "7192dd0c-4a5d-47af-ae32-1428069bada2")
 	)
 	(no_connect
-		(at 194.31 271.78)
-		(uuid "7367d07c-682c-488d-a1da-697bb71298b5")
-	)
-	(no_connect
 		(at 194.31 317.5)
 		(uuid "73dc516c-1ad6-4c00-aa0f-2ff40913b8ca")
 	)
@@ -8437,20 +8413,12 @@
 		(uuid "7417bc55-eaff-49c6-b025-8b393367aa5d")
 	)
 	(no_connect
-		(at 189.23 119.38)
-		(uuid "762013dd-f3e4-4c94-b630-b0d5c94c51b8")
-	)
-	(no_connect
 		(at 194.31 325.12)
 		(uuid "77d0e700-7385-49b6-83d9-6a78dad9431f")
 	)
 	(no_connect
 		(at 189.23 152.4)
 		(uuid "7e78b0ad-706f-457c-8180-f9275411817d")
-	)
-	(no_connect
-		(at 189.23 185.42)
-		(uuid "81d07e52-3ba6-4339-a0e6-7f1e430a98f1")
 	)
 	(no_connect
 		(at 194.31 284.48)
@@ -8513,10 +8481,6 @@
 		(uuid "a0d575f6-724c-4b3f-8d6c-185493acb34b")
 	)
 	(no_connect
-		(at 125.73 302.26)
-		(uuid "a864db9f-8bc8-40b2-bf30-c065a4d1c1b6")
-	)
-	(no_connect
 		(at 125.73 330.2)
 		(uuid "ab8228d9-7c5a-4956-b7c7-2e7fb07af374")
 	)
@@ -8541,16 +8505,8 @@
 		(uuid "af653b26-bb8f-4170-8cf4-03108ef3257d")
 	)
 	(no_connect
-		(at 189.23 116.84)
-		(uuid "b74f2a97-5ef1-4077-8af0-4640e1b55837")
-	)
-	(no_connect
 		(at 443.23 85.09)
 		(uuid "bbc3febd-05f5-49bc-a066-4795ab62497e")
-	)
-	(no_connect
-		(at 194.31 274.32)
-		(uuid "bde887f4-95a0-4f29-a153-1d8d0189a2a6")
 	)
 	(no_connect
 		(at 125.73 327.66)
@@ -8589,10 +8545,6 @@
 		(uuid "ca002fc8-aeba-4fa7-b14f-7cabfedf2fe8")
 	)
 	(no_connect
-		(at 189.23 160.02)
-		(uuid "cb8b4e1b-38a3-4005-9601-d5df0f34b465")
-	)
-	(no_connect
 		(at 372.11 133.35)
 		(uuid "cc23c6b8-4bf6-456d-b514-ad881f0162b9")
 	)
@@ -8625,20 +8577,12 @@
 		(uuid "d9d3ac16-a7de-4673-aec8-ee455639b58c")
 	)
 	(no_connect
-		(at 194.31 266.7)
-		(uuid "df71a661-30a7-4d8c-8c08-3058ce322413")
-	)
-	(no_connect
 		(at 128.27 185.42)
 		(uuid "e0a4924b-1085-43ad-aa77-219353a9defb")
 	)
 	(no_connect
 		(at 194.31 320.04)
 		(uuid "e262231a-e4f3-428f-b9dc-14f281b415ba")
-	)
-	(no_connect
-		(at 189.23 121.92)
-		(uuid "e389e4b0-d169-42f2-896c-93c6704fcefe")
 	)
 	(no_connect
 		(at 125.73 317.5)
@@ -8649,16 +8593,12 @@
 		(uuid "eae46f87-6cbf-4f94-810f-8a7df8739c48")
 	)
 	(no_connect
-		(at 128.27 182.88)
-		(uuid "eaeec427-b2ff-4c66-9a45-61e326f5bc20")
-	)
-	(no_connect
 		(at 189.23 127)
 		(uuid "ebd50ff4-6223-4234-b879-24358229cd5d")
 	)
 	(no_connect
-		(at 189.23 162.56)
-		(uuid "ee51c974-7521-43f4-b61e-6629d8a6e46f")
+		(at 189.23 185.42)
+		(uuid "ec414f31-433e-4eba-9668-3c298a67dc39")
 	)
 	(no_connect
 		(at 128.27 144.78)
@@ -10224,6 +10164,28 @@
 			)
 		)
 	)
+	(global_label "solarboard_analog_A"
+		(shape bidirectional)
+		(at 194.31 271.78 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "3daf30e9-6b47-437f-a55d-ad9127cb02b1")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 218.0002 271.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "swclk"
 		(shape bidirectional)
 		(at 400.05 243.84 180)
@@ -10268,6 +10230,28 @@
 			)
 		)
 	)
+	(global_label "logic_timer_event_1"
+		(shape bidirectional)
+		(at 189.23 119.38 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "4527cc83-6822-42d2-807f-d88b5f6fffec")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 212.0135 119.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "sd_data_1"
 		(shape bidirectional)
 		(at 265.43 62.23 180)
@@ -10308,6 +10292,28 @@
 					(size 1.27 1.27)
 				)
 				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "flight_computer_debug_i2c_data"
+		(shape bidirectional)
+		(at 194.31 266.7 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "47724149-985f-411f-bcc1-6b8ab943b46a")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 228.8859 266.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
 				(hide yes)
 			)
 		)
@@ -10642,6 +10648,50 @@
 			)
 		)
 	)
+	(global_label "vehicle_interface_i2c_data"
+		(shape bidirectional)
+		(at 125.73 304.8 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "6b2df015-87f3-49e6-a622-3561c5fecfd1")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 96.5965 304.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "flight_computer_debug_i2c_clock"
+		(shape bidirectional)
+		(at 128.27 180.34 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "706771b7-5e73-4c4d-a6f8-936b30dacd7a")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 92.8473 180.34 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "sd_data_2"
 		(shape bidirectional)
 		(at 189.23 208.28 0)
@@ -10686,6 +10736,50 @@
 			)
 		)
 	)
+	(global_label "solarboard_analog_B"
+		(shape bidirectional)
+		(at 128.27 203.2 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "712fa235-6be9-4f2d-82c5-2e12d51ac9be")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 104.3984 203.2 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "logic_gse_1"
+		(shape bidirectional)
+		(at 189.23 116.84 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "722c8811-b70a-4cb5-9dba-27ee442da5dd")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 204.3935 116.84 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "sd_clock"
 		(shape bidirectional)
 		(at 265.43 46.99 180)
@@ -10704,6 +10798,28 @@
 					(size 1.27 1.27)
 				)
 				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "flight_computer_debug_i2c_clock"
+		(shape bidirectional)
+		(at 194.31 264.16 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "75d88a0e-05ef-410c-bbd3-17ee335710cd")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 229.7327 264.16 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
 				(hide yes)
 			)
 		)
@@ -10730,6 +10846,28 @@
 			)
 		)
 	)
+	(global_label "solarboard_analog_B"
+		(shape bidirectional)
+		(at 194.31 274.32 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "7aa09b5d-c957-4a8f-a228-8c6225acd812")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 218.1816 274.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "buzzer"
 		(shape bidirectional)
 		(at 474.98 262.89 180)
@@ -10752,7 +10890,7 @@
 			)
 		)
 	)
-	(global_label "LOGIC_TIMER_EVENT_X"
+	(global_label "logic_timer_event_x"
 		(shape bidirectional)
 		(at 194.31 294.64 0)
 		(fields_autoplaced yes)
@@ -10764,7 +10902,7 @@
 		)
 		(uuid "828edca5-ec69-4e7f-b780-41a54c15c7a1")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 219.1497 294.64 0)
+			(at 216.9121 294.64 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10796,7 +10934,7 @@
 			)
 		)
 	)
-	(global_label "LOGIC_TIMER_EVENT_1"
+	(global_label "logic_timer_event_1"
 		(shape bidirectional)
 		(at 194.31 292.1 0)
 		(fields_autoplaced yes)
@@ -10808,7 +10946,29 @@
 		)
 		(uuid "8ca86e7f-cbc3-4a9f-8705-6fb626e184fc")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 219.1497 292.1 0)
+			(at 217.0935 292.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "vehicle_interface_i2c_data"
+		(shape bidirectional)
+		(at 189.23 160.02 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "95cae39b-55cd-44b3-ba91-812962a052db")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 218.3635 160.02 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10884,7 +11044,7 @@
 			)
 		)
 	)
-	(global_label "LOGIC_GSE_1"
+	(global_label "logic_gse_1"
 		(shape bidirectional)
 		(at 194.31 289.56 0)
 		(fields_autoplaced yes)
@@ -10896,7 +11056,7 @@
 		)
 		(uuid "aaee19be-fbd5-4946-b076-436bdd315ad7")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 210.6831 289.56 0)
+			(at 209.4735 289.56 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10928,6 +11088,28 @@
 			)
 		)
 	)
+	(global_label "flight_computer_debug_i2c_data"
+		(shape bidirectional)
+		(at 128.27 182.88 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "b641f860-fc39-4fae-9e14-a39603667c81")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 93.6941 182.88 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "serial_tx"
 		(shape bidirectional)
 		(at 128.27 195.58 180)
@@ -10941,6 +11123,50 @@
 		(uuid "ba2b73ad-5746-4e12-b42d-6241ff5651d3")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 116.1302 195.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "solarboard_analog_A"
+		(shape bidirectional)
+		(at 128.27 200.66 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "c2cea7df-7d1f-44f9-8d94-c48c499a0421")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 104.5798 200.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "vehicle_interface_i2c_clock"
+		(shape bidirectional)
+		(at 125.73 302.26 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "c5dd5766-e6ad-4ba1-b220-285584ca5d5a")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 95.7497 302.26 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11060,6 +11286,28 @@
 			)
 		)
 	)
+	(global_label "logic_timer_event_x"
+		(shape bidirectional)
+		(at 189.23 121.92 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "d85e9d50-e39b-439d-88e2-b64606b51c32")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 211.8321 121.92 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "sd_cmd"
 		(shape bidirectional)
 		(at 128.27 170.18 180)
@@ -11144,6 +11392,28 @@
 					(size 1.27 1.27)
 				)
 				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "vehicle_interface_i2c_clock"
+		(shape bidirectional)
+		(at 189.23 157.48 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "e3f6aeaf-c319-451d-b3fc-284f8c48f326")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 219.2103 157.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
 				(hide yes)
 			)
 		)
