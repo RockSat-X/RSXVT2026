@@ -8,4 +8,5 @@
   (lib (name "OpenMV_H7_Plus")(type "KiCad")(uri "${KIPRJMOD}/symbols/OpenMV_H7_Plus.kicad_sym")(options "")(descr ""))
   (lib (name "LSM6DSV32X")(type "KiCad")(uri "${KIPRJMOD}/symbols/LSM6DSV32X.kicad_sym")(options "")(descr ""))
   (lib (name "VehicleStackConnector")(type "KiCad")(uri "${KIPRJMOD}/symbols/VehicleStackConnector.kicad_sym")(options "")(descr ""))
+  (lib (name "12401598E4_2A")(type "KiCad")(uri "${KIPRJMOD}/symbols/12401598E4_2A.kicad_sym")(options "")(descr ""))
 )
