@@ -3232,10 +3232,10 @@
 	(footprint "pcb:Flat Flexible Cable 24-Pin 0.5mm Connector"
 		(layer "F.Cu")
 		(uuid "f3fc1071-54a8-476b-b926-5b6df544dc3d")
-		(at 149.25 117)
+		(at 166 100 90)
 		(descr "FFC/FPC connector, 24 top-side contacts, 0.5mm pitch, SMT")
 		(property "Reference" "J6"
-			(at 0 -3.11 0)
+			(at 0 -3.11 90)
 			(layer "F.SilkS")
 			(uuid "3fc70530-db3c-4651-9fbb-c7d189d2d7b8")
 			(effects
@@ -3246,7 +3246,7 @@
 			)
 		)
 		(property "Value" "FFC2B28-24-G"
-			(at 0 4.950001 0)
+			(at 0 4.950001 90)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "bed8e087-9ca2-4953-a123-042b65b0eb74")
@@ -3258,7 +3258,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 0 0 0)
+			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "ca672bc8-3b2d-4d79-a83b-537139803087")
@@ -3270,7 +3270,7 @@
 			)
 		)
 		(property "Description" "Generic connector, single row, 01x24, script generated (kicad-library-utils/schlib/autogen/connector/)"
-			(at 0 0 0)
+			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "d1f39789-21bb-46de-98a7-290eafd5da4f")
@@ -3282,7 +3282,7 @@
 			)
 		)
 		(property "DigiKey" "https://www.digikey.com/en/products/detail/gct/FFC2B28-24-G/10656928"
-			(at 0 0 0)
+			(at 0 0 90)
 			(layer "F.SilkS")
 			(hide yes)
 			(uuid "1744ba03-697a-4a77-8b8a-25c0a78a565d")
@@ -3299,14 +3299,14 @@
 		(sheetfile "MainCameraSystem.kicad_sch")
 		(attr smd)
 		(fp_line
-			(start -6 2)
-			(end 6 2)
+			(start -5.55 -2.7)
+			(end -5.95 -2.7)
 			(stroke
 				(width 0.12)
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "763d5d3e-3746-4f85-8b7e-6f0fd67722a6")
+			(uuid "b17fc449-2120-48c6-9dd9-89c0e33741c3")
 		)
 		(fp_line
 			(start -5.95 -2.7)
@@ -3329,29 +3329,29 @@
 			(uuid "0b7244bf-5ee0-4298-907c-426d6633af7f")
 		)
 		(fp_line
-			(start -5.55 -2.7)
-			(end -5.95 -2.7)
+			(start -6 2)
+			(end 6 2)
 			(stroke
 				(width 0.12)
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "b17fc449-2120-48c6-9dd9-89c0e33741c3")
+			(uuid "763d5d3e-3746-4f85-8b7e-6f0fd67722a6")
 		)
 		(pad "" smd rect
-			(at -6.875 0.349999)
+			(at -6.875 0.349999 90)
 			(size 1.25 3.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(uuid "11f293df-3d2c-442e-a591-eddeac8de73e")
 		)
 		(pad "" smd rect
-			(at 6.875 0.349999)
+			(at 6.875 0.349999 90)
 			(size 1.25 3.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(uuid "76ccaad0-527d-462a-9ed8-4b4f79d3fdcb")
 		)
 		(pad "1" smd rect
-			(at -5.75 -1.35)
+			(at -5.75 -1.35 90)
 			(size 0.3 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 104 "unconnected-(J6-Pin_1-Pad1)")
@@ -3360,7 +3360,7 @@
 			(uuid "4f010e64-fbb3-45a0-a7d8-8cd7cffa7bc9")
 		)
 		(pad "2" smd rect
-			(at -5.25 -1.35)
+			(at -5.25 -1.35 90)
 			(size 0.3 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 114 "unconnected-(J6-Pin_2-Pad2)")
@@ -3369,7 +3369,7 @@
 			(uuid "9e0a4065-feaa-4cec-ba3b-46db1238bae6")
 		)
 		(pad "3" smd rect
-			(at -4.75 -1.35)
+			(at -4.75 -1.35 90)
 			(size 0.3 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 103 "unconnected-(J6-Pin_3-Pad3)")
@@ -3378,7 +3378,7 @@
 			(uuid "3e2fd3d8-958e-45d7-9052-6021109876a4")
 		)
 		(pad "4" smd rect
-			(at -4.25 -1.35)
+			(at -4.25 -1.35 90)
 			(size 0.3 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 106 "unconnected-(J6-Pin_4-Pad4)")
@@ -3387,7 +3387,7 @@
 			(uuid "5cd05fee-f691-4813-8886-f996dd619029")
 		)
 		(pad "5" smd rect
-			(at -3.75 -1.35)
+			(at -3.75 -1.35 90)
 			(size 0.3 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 97 "unconnected-(J6-Pin_5-Pad5)")
@@ -3396,7 +3396,7 @@
 			(uuid "054470e4-1419-4ebd-9060-1835247eb2ae")
 		)
 		(pad "6" smd rect
-			(at -3.25 -1.35)
+			(at -3.25 -1.35 90)
 			(size 0.3 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 120 "unconnected-(J6-Pin_6-Pad6)")
@@ -3405,7 +3405,7 @@
 			(uuid "dea58c83-3fa8-43e4-99bd-f09c9545102c")
 		)
 		(pad "7" smd rect
-			(at -2.75 -1.35)
+			(at -2.75 -1.35 90)
 			(size 0.3 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 109 "unconnected-(J6-Pin_7-Pad7)")
@@ -3414,7 +3414,7 @@
 			(uuid "7fe5e709-5fc8-4c43-bd5f-776997aa7d03")
 		)
 		(pad "8" smd rect
-			(at -2.25 -1.35)
+			(at -2.25 -1.35 90)
 			(size 0.3 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 98 "unconnected-(J6-Pin_8-Pad8)")
@@ -3423,7 +3423,7 @@
 			(uuid "0925b278-2013-422b-941f-d31e3a768214")
 		)
 		(pad "9" smd rect
-			(at -1.75 -1.35)
+			(at -1.75 -1.35 90)
 			(size 0.3 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 100 "unconnected-(J6-Pin_9-Pad9)")
@@ -3432,7 +3432,7 @@
 			(uuid "241f6339-7387-410b-a134-c8b3612dbaae")
 		)
 		(pad "10" smd rect
-			(at -1.25 -1.35)
+			(at -1.25 -1.35 90)
 			(size 0.3 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 107 "unconnected-(J6-Pin_10-Pad10)")
@@ -3441,7 +3441,7 @@
 			(uuid "6610e98b-fbfc-4010-979c-d1e152bca5a2")
 		)
 		(pad "11" smd rect
-			(at -0.75 -1.35)
+			(at -0.75 -1.35 90)
 			(size 0.3 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 115 "unconnected-(J6-Pin_11-Pad11)")
@@ -3450,7 +3450,7 @@
 			(uuid "9f94334a-8b77-4382-8bf6-1e05443e2f54")
 		)
 		(pad "12" smd rect
-			(at -0.25 -1.35)
+			(at -0.25 -1.35 90)
 			(size 0.3 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 105 "unconnected-(J6-Pin_12-Pad12)")
@@ -3459,7 +3459,7 @@
 			(uuid "58599891-374d-4df8-9ae7-85011deb7d09")
 		)
 		(pad "13" smd rect
-			(at 0.25 -1.35)
+			(at 0.25 -1.35 90)
 			(size 0.3 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 113 "unconnected-(J6-Pin_13-Pad13)")
@@ -3468,7 +3468,7 @@
 			(uuid "93804a2b-f7c3-44cc-895e-09cfc450ce6a")
 		)
 		(pad "14" smd rect
-			(at 0.75 -1.35)
+			(at 0.75 -1.35 90)
 			(size 0.3 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 117 "unconnected-(J6-Pin_14-Pad14)")
@@ -3477,7 +3477,7 @@
 			(uuid "a8755cd3-dab4-4bb1-accc-572216540ab3")
 		)
 		(pad "15" smd rect
-			(at 1.25 -1.35)
+			(at 1.25 -1.35 90)
 			(size 0.3 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 102 "unconnected-(J6-Pin_15-Pad15)")
@@ -3486,7 +3486,7 @@
 			(uuid "3ce086a9-f1a1-41f5-a3d3-84fc0b616e3d")
 		)
 		(pad "16" smd rect
-			(at 1.75 -1.35)
+			(at 1.75 -1.35 90)
 			(size 0.3 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 119 "unconnected-(J6-Pin_16-Pad16)")
@@ -3495,7 +3495,7 @@
 			(uuid "c71ac32a-d2a6-431c-943e-3532cfcbbc7a")
 		)
 		(pad "17" smd rect
-			(at 2.25 -1.35)
+			(at 2.25 -1.35 90)
 			(size 0.3 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 110 "unconnected-(J6-Pin_17-Pad17)")
@@ -3504,7 +3504,7 @@
 			(uuid "8487c340-6e89-4cc8-a37f-c3ad5349f23a")
 		)
 		(pad "18" smd rect
-			(at 2.75 -1.35)
+			(at 2.75 -1.35 90)
 			(size 0.3 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 99 "unconnected-(J6-Pin_18-Pad18)")
@@ -3513,7 +3513,7 @@
 			(uuid "09d8fff5-026a-405e-9264-53dce8e6e5b8")
 		)
 		(pad "19" smd rect
-			(at 3.25 -1.35)
+			(at 3.25 -1.35 90)
 			(size 0.3 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 108 "unconnected-(J6-Pin_19-Pad19)")
@@ -3522,7 +3522,7 @@
 			(uuid "68871d48-6a09-4496-9510-2c7f09a2c12f")
 		)
 		(pad "20" smd rect
-			(at 3.75 -1.35)
+			(at 3.75 -1.35 90)
 			(size 0.3 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 118 "unconnected-(J6-Pin_20-Pad20)")
@@ -3531,7 +3531,7 @@
 			(uuid "adf91355-611f-45a4-b80d-fc0b3f51368b")
 		)
 		(pad "21" smd rect
-			(at 4.25 -1.35)
+			(at 4.25 -1.35 90)
 			(size 0.3 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 101 "unconnected-(J6-Pin_21-Pad21)")
@@ -3540,7 +3540,7 @@
 			(uuid "3cb4196b-3e94-42d8-8786-d4df496b6a66")
 		)
 		(pad "22" smd rect
-			(at 4.75 -1.35)
+			(at 4.75 -1.35 90)
 			(size 0.3 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 112 "unconnected-(J6-Pin_22-Pad22)")
@@ -3549,7 +3549,7 @@
 			(uuid "8f3721bf-bfcc-4a71-bca7-3fbf6476a0ec")
 		)
 		(pad "23" smd rect
-			(at 5.25 -1.35)
+			(at 5.25 -1.35 90)
 			(size 0.3 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 116 "unconnected-(J6-Pin_23-Pad23)")
@@ -3558,7 +3558,7 @@
 			(uuid "9fb703a9-b58b-414d-8de4-31eec9bf2caa")
 		)
 		(pad "24" smd rect
-			(at 5.75 -1.35)
+			(at 5.75 -1.35 90)
 			(size 0.3 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 111 "unconnected-(J6-Pin_24-Pad24)")
