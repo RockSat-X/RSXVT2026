@@ -464,7 +464,8 @@
       "pcb"
     ],
     "pinned_symbol_libs": [
-      "MainStackConnector"
+      "MainStackConnector",
+      "12401598E4_2A"
     ]
   },
   "meta": {
