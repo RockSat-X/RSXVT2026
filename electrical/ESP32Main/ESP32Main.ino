@@ -3,15 +3,16 @@
 #include <Arduino.h> 
 
 // --- Configurable Parameters ---
-// Must match the transmitter's currentPayloadSize to calculate CRC correctly!
+// Must match the Vehicle's currentPayloadSize to calculate CRC correctly!
 const uint8_t currentPayloadSize = 64;
 
-// Size of the payload buffer (must match transmitter's MAX_PAYLOAD_SIZE)
+// Size of the payload buffer (must match Vehicle's MAX_PAYLOAD_SIZE)
 //It is also something you can change for testing purposes
+//do not go above 240 as that is best for ESPNOW protocol
 #define MAX_PAYLOAD_SIZE 240
 // -----------------------------
 
-// 1. Data Structure Definition (must match transmitter)
+// 1. Data Structure Definition (must match Vehicle)
 typedef struct struct_message {
     uint32_t sequenceNum;
     uint8_t payload[MAX_PAYLOAD_SIZE];
@@ -21,7 +22,7 @@ typedef struct struct_message {
 // Create a variable to store received data
 struct_message receivedData;
 
-// 2. CRC8 Calculation Function (must match transmitter)
+// 2. CRC8 Calculation Function (must match Vehicle)
 uint8_t calculateCRC8(const uint8_t *data, size_t length) {
     uint8_t crc = 0xFF; // Initial value
     for (size_t i = 0; i < length; i++) {
@@ -63,8 +64,7 @@ void OnDataRecv(const esp_now_recv_info * info, const uint8_t *incomingData, int
     // Copy data into our structure
     memcpy(&receivedData, incomingData, sizeof(receivedData));
 
-    // --- Critical Section Start (Minimize processing time here) ---
-
+   
     bool isFirst = firstPacket; // Local copy
     uint32_t lastSeq = lastSequenceNum; // Local copy
 
@@ -111,16 +111,16 @@ void OnDataRecv(const esp_now_recv_info * info, const uint8_t *incomingData, int
         lastSequenceNum = receivedData.sequenceNum;
         totalBytesReceived += currentPayloadSize;
     }
-     // Optional: Handle sequence number rollover (e.g., if transmitter restarts at 0)
+     // Optional: Handle sequence number rollover (e.g., if Vehicle restarts at 0)
+     //last sequence check is 1000 to ensure that it wasn't simplly a jitter and was in fact a system reset from Vehicle transmission
     else if (crcOk && receivedData.sequenceNum == 0 && lastSeq > 1000) { // Simple rollover check
         lastSequenceNum = 0;
         totalBytesReceived += currentPayloadSize;
     }
 
 
-    // --- Critical Section End ---
-
     // Keep serial printing outside the most critical part if possible
+    //uncomment if wanted to debug and see each time a data packet is sent
     // Serial.printf("Recv: Seq=%u, CRC=%s, Drops=%u\n", receivedData.sequenceNum, crcOk ? "OK" : "FAIL", dropsDetected);
 
 } 

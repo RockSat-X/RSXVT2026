@@ -15,6 +15,7 @@ uint8_t receiverAddress[] = {0xD8, 0x3B, 0xDA, 0x74, 0x81, 0xFC};//input MAC add
 const uint8_t currentPayloadSize = 64;
 
 // Define maximum payload buffer size (should be >= currentPayloadSize)
+//do not go above 240 as that as what is best for ESPNOW protocol
 #define MAX_PAYLOAD_SIZE 240
 
 // 1. Data Structure Definition
