@@ -1,129 +1,207 @@
-/*
-    ESP-NOW Broadcast Slave
-    Lucas Saavedra Vaz - 2024
+#include <esp_now.h>
+#include <WiFi.h>
+#include <Arduino.h> 
 
-    This sketch demonstrates how to receive broadcast messages from a master device using the ESP-NOW protocol.
+// --- Configurable Parameters ---
+// Must match the transmitter's currentPayloadSize to calculate CRC correctly!
+const uint8_t currentPayloadSize = 64;
 
-    The master device will broadcast a message every 5 seconds to all devices within the network.
+// Size of the payload buffer (must match transmitter's MAX_PAYLOAD_SIZE)
+//It is also something you can change for testing purposes
+#define MAX_PAYLOAD_SIZE 240
+// -----------------------------
 
-    The slave devices will receive the broadcasted messages. If they are not from a known master, they will be registered as a new master
-    using a callback function.
-*/
+// 1. Data Structure Definition (must match transmitter)
+typedef struct struct_message {
+    uint32_t sequenceNum;
+    uint8_t payload[MAX_PAYLOAD_SIZE];
+    uint8_t crc8;
+} struct_message;
 
-#include "ESP32_NOW.h"
-#include "WiFi.h"
+// Create a variable to store received data
+struct_message receivedData;
 
-#include <esp_mac.h>  // For the MAC2STR and MACSTR macros
-
-#include <vector>
-
-/* Definitions */
-
-#define ESPNOW_WIFI_CHANNEL 6
-
-/* Classes */
-
-// Creating a new class that inherits from the ESP_NOW_Peer class is required.
-
-class ESP_NOW_Peer_Class : public ESP_NOW_Peer {
-public:
-  // Constructor of the class
-  ESP_NOW_Peer_Class(const uint8_t *mac_addr, uint8_t channel, wifi_interface_t iface, const uint8_t *lmk) : ESP_NOW_Peer(mac_addr, channel, iface, lmk) {}
-
-  // Destructor of the class
-  ~ESP_NOW_Peer_Class() {}
-
-  // Function to register the master peer
-  bool add_peer() {
-    if (!add()) {
-      log_e("Failed to register the broadcast peer");
-      return false;
+// 2. CRC8 Calculation Function (must match transmitter)
+uint8_t calculateCRC8(const uint8_t *data, size_t length) {
+    uint8_t crc = 0xFF; // Initial value
+    for (size_t i = 0; i < length; i++) {
+        crc ^= data[i];
+        for (uint8_t j = 0; j < 8; j++) {
+            if (crc & 0x80) {
+                crc = (crc << 1) ^ 0x07; // Polynomial 0x07
+            } else {
+                crc <<= 1;
+            }
+        }
     }
-    return true;
-  }
-
-  // Function to print the received messages from the master
-  void onReceive(const uint8_t *data, size_t len, bool broadcast) {
-    Serial.printf("Received a message from master " MACSTR " (%s)\n", MAC2STR(addr()), broadcast ? "broadcast" : "unicast");
-    Serial.printf("  Message: %s\n", (char *)data);
-  }
-};
-
-/* Global Variables */
-
-// List of all the masters. It will be populated when a new master is registered
-// Note: Using pointers instead of objects to prevent dangling pointers when the vector reallocates
-std::vector<ESP_NOW_Peer_Class *> masters;
-
-/* Callbacks */
-
-// Callback called when an unknown peer sends a message
-void register_new_master(const esp_now_recv_info_t *info, const uint8_t *data, int len, void *arg) {
-  if (memcmp(info->des_addr, ESP_NOW.BROADCAST_ADDR, 6) == 0) {
-    Serial.printf("Unknown peer " MACSTR " sent a broadcast message\n", MAC2STR(info->src_addr));
-    Serial.println("Registering the peer as a master");
-
-    ESP_NOW_Peer_Class *new_master = new ESP_NOW_Peer_Class(info->src_addr, ESPNOW_WIFI_CHANNEL, WIFI_IF_STA, nullptr);
-    if (!new_master->add_peer()) {
-      Serial.println("Failed to register the new master");
-      delete new_master;
-      return;
-    }
-    masters.push_back(new_master);
-    Serial.printf("Successfully registered master " MACSTR " (total masters: %zu)\n", MAC2STR(new_master->addr()), masters.size());
-  } else {
-    // The slave will only receive broadcast messages
-    log_v("Received a unicast message from " MACSTR, MAC2STR(info->src_addr));
-    log_v("Igorning the message");
-  }
+    return crc;
 }
 
-/* Main */
+// 3. Statistics Variables
+volatile uint32_t packetsReceived = 0;
+volatile uint32_t packetsDropped = 0;
+volatile uint32_t packetsCorrupted = 0;
+volatile uint32_t lastSequenceNum = 0; // Use volatile as it's modified in ISR (callback)
+volatile bool firstPacket = true;     // Use volatile
+unsigned long startTime = 0;
+unsigned long totalBytesReceived = 0; // For throughput calculation
+const unsigned long statInterval = 2000; // Print stats every 2000 ms (2 seconds)
+unsigned long lastStatTime = 0;
 
+
+// 4. Callback function when data is received
+void OnDataRecv(const esp_now_recv_info * info, const uint8_t *incomingData, int len) { 
+
+    // Check if received data size matches our expected structure size
+    if (len != sizeof(struct_message)) {
+        // This is unlikely if sender sends fixed size, but good to check
+        // Handle this case - maybe count as corrupted or just log an error
+        packetsCorrupted++; // Example handling
+        return; 
+    }
+
+    // Copy data into our structure
+    memcpy(&receivedData, incomingData, sizeof(receivedData));
+
+    // --- Critical Section Start (Minimize processing time here) ---
+
+    bool isFirst = firstPacket; // Local copy
+    uint32_t lastSeq = lastSequenceNum; // Local copy
+
+    // 1. Check for Dropped Packets using Sequence Number
+    uint32_t dropsDetected = 0;
+    if (!isFirst) {
+        if (receivedData.sequenceNum > lastSeq + 1) {
+            dropsDetected = (receivedData.sequenceNum - (lastSeq + 1));
+        } else if (receivedData.sequenceNum <= lastSeq && lastSeq != 0) {
+            // Ignore duplicate or out-of-order packets for drop count,
+            // but might indicate other issues.
+            // A simple way is to just not update lastSequenceNum later for these.
+            // If sequenceNum is 0, it might be a rollover/restart.
+        }
+    }
+
+    // 2. Verify Checksum (CRC8)
+    uint8_t bufferForCrc[sizeof(receivedData.sequenceNum) + currentPayloadSize];
+    memcpy(bufferForCrc, &receivedData.sequenceNum, sizeof(receivedData.sequenceNum));
+    memcpy(bufferForCrc + sizeof(receivedData.sequenceNum), receivedData.payload, currentPayloadSize);
+    uint8_t calculated_crc = calculateCRC8(bufferForCrc, sizeof(receivedData.sequenceNum) + currentPayloadSize);
+
+    bool crcOk = (calculated_crc == receivedData.crc8);
+
+    // 3. Update Statistics (atomically or carefully if using interrupts)
+    // Using simple increments here, assuming callback runs sequentially
+    packetsReceived++;
+    packetsDropped += dropsDetected;
+    if (!crcOk) {
+        packetsCorrupted++;
+    }
+
+    // Update state variables
+    if (isFirst) {
+        firstPacket = false; // Mark that we've received the first packet
+        lastSequenceNum = receivedData.sequenceNum; // Initialize sequence
+        startTime = millis(); // Start timer on the *first successfully processed* packet
+        if (crcOk) totalBytesReceived += currentPayloadSize; // Only count valid bytes
+    }
+    // Only update lastSequenceNum if CRC is OK AND it's a newer packet
+    // This prevents corrupted sequence numbers messing up drop counts
+    // and prevents duplicates from being counted as progress.
+    else if (crcOk && receivedData.sequenceNum > lastSeq) {
+        lastSequenceNum = receivedData.sequenceNum;
+        totalBytesReceived += currentPayloadSize;
+    }
+     // Optional: Handle sequence number rollover (e.g., if transmitter restarts at 0)
+    else if (crcOk && receivedData.sequenceNum == 0 && lastSeq > 1000) { // Simple rollover check
+        lastSequenceNum = 0;
+        totalBytesReceived += currentPayloadSize;
+    }
+
+
+    // --- Critical Section End ---
+
+    // Keep serial printing outside the most critical part if possible
+    // Serial.printf("Recv: Seq=%u, CRC=%s, Drops=%u\n", receivedData.sequenceNum, crcOk ? "OK" : "FAIL", dropsDetected);
+
+} 
+
+// 5. Setup Function
 void setup() {
-  Serial.begin(115200);
+    Serial.begin(115200);
+    Serial.println("ESP-NOW Receiver Profiler");
 
-  // Initialize the Wi-Fi module
-  WiFi.mode(WIFI_STA);
-  WiFi.setChannel(ESPNOW_WIFI_CHANNEL);
-  while (!WiFi.STA.started()) {
-    delay(100);
-  }
+    // Set device as a Wi-Fi Station
+    WiFi.mode(WIFI_STA);
+    delay(500);
+    Serial.print("Receiver MAC Address: ");
+    Serial.println(WiFi.macAddress());
 
-  Serial.println("ESP-NOW Example - Broadcast Slave");
-  Serial.println("Wi-Fi parameters:");
-  Serial.println("  Mode: STA");
-  Serial.println("  MAC Address: " + WiFi.macAddress());
-  Serial.printf("  Channel: %d\n", ESPNOW_WIFI_CHANNEL);
+    // Init ESP-NOW
+    if (esp_now_init() != ESP_OK) {
+        Serial.println("Error initializing ESP-NOW");
+        ESP.restart();
+        return;
+    }
 
-  // Initialize the ESP-NOW protocol
-  if (!ESP_NOW.begin()) {
-    Serial.println("Failed to initialize ESP-NOW");
-    Serial.println("Reeboting in 5 seconds...");
-    delay(5000);
-    ESP.restart();
-  }
+    // Register receive callback
+    esp_now_register_recv_cb(OnDataRecv);
 
-  Serial.printf("ESP-NOW version: %d, max data length: %d\n", ESP_NOW.getVersion(), ESP_NOW.getMaxDataLen());
-
-  // Register the new peer callback
-  ESP_NOW.onNewPeer(register_new_master, nullptr);
-
-  Serial.println("Setup complete. Waiting for a master to broadcast a message...");
+    Serial.println("Setup complete. Waiting for data...");
+    lastStatTime = millis(); // Initialize stat timer
 }
 
+// 6. Main Loop
 void loop() {
-  // Print debug information every 10 seconds
-  static unsigned long last_debug = 0;
-  if (millis() - last_debug > 10000) {
-    last_debug = millis();
-    Serial.printf("Registered masters: %zu\n", masters.size());
-    for (size_t i = 0; i < masters.size(); i++) {
-      if (masters[i]) {
-        Serial.printf("  Master %zu: " MACSTR "\n", i, MAC2STR(masters[i]->addr()));
-      }
-    }
-  }
+    // Print statistics periodically
+    unsigned long now = millis();
+    if (startTime > 0 && now - lastStatTime >= statInterval) { // Don't print stats until first packet arrives
+        lastStatTime = now;
 
-  delay(100);
+        // --- Read volatile variables carefully for statistics calculation ---
+        noInterrupts(); // Briefly disable interrupts to get consistent snapshot
+        uint32_t rxCount = packetsReceived;
+        uint32_t dropCount = packetsDropped;
+        uint32_t corruptCount = packetsCorrupted;
+        uint32_t lastSeq = lastSequenceNum;
+        bool first = firstPacket;
+        interrupts(); // Re-enable interrupts quickly
+        // --- End snapshot ---
+
+        unsigned long elapsedTimeMs = now - startTime;
+        float elapsedTimeSec = elapsedTimeMs / 1000.0f;
+
+        // Calculate total expected packets based on the last *valid* sequence number received
+        uint32_t totalExpected = 0;
+        if (!first) {
+             totalExpected = lastSeq + 1; // Assuming sequence starts at 0
+        }
+
+
+        float lossRate = (totalExpected > 0) ? (float)(dropCount + corruptCount) / totalExpected * 100.0f : 0.0f;
+        // Cap loss rate at 100%
+        if (lossRate > 100.0f) lossRate = 100.0f;
+        if (lossRate < 0.0f) lossRate = 0.0f; // Sanity check
+
+        float successRate = (totalExpected > 0) ? (float)(rxCount - corruptCount) / totalExpected * 100.0f : 0.0f;
+         if (successRate > 100.0f) successRate = 100.0f; // Sanity check
+         if (successRate < 0.0f) successRate = 0.0f;
+
+        // Throughput based on bytes in *successfully received, non-corrupted* packets' payloads
+        float throughput_kbps = (elapsedTimeSec > 0.1) ? (float)(totalBytesReceived * 8.0f) / elapsedTimeSec / 1000.0f : 0.0f; // kbps
+
+        Serial.println("-------------------------");
+        Serial.printf("Time Elapsed: %.2f s\n", elapsedTimeSec);
+        Serial.printf("Packets Received (Total): %u\n", rxCount);
+        Serial.printf("Packets Dropped (Estimated): %u\n", dropCount);
+        Serial.printf("Packets Corrupted (CRC Fail): %u\n", corruptCount);
+        Serial.printf("Last Good Sequence #: %u\n", lastSeq);
+        Serial.printf("Total Expected (Based on Last Seq): %u\n", totalExpected);
+        Serial.printf("Success Rate (Good CRC / Expected): %.2f %%\n", successRate);
+        Serial.printf("Packet Loss Rate (Drops+Corrupt / Expected): %.2f %%\n", lossRate);
+        Serial.printf("Avg Throughput (Good Payloads): %.2f kbps\n", throughput_kbps);
+        Serial.println("-------------------------");
+    }
+
+    // Add a small delay or yield to be nice to the system
+    delay(10);
 }
