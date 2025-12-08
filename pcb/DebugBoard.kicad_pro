@@ -646,6 +646,14 @@
     [
       "40dfd0ae-dff4-4807-8e3f-21ef36050fce",
       "RGB LED - D"
+    ],
+    [
+      "9f8da623-da6a-4a3e-905a-06dca0b6f272",
+      "Button - A"
+    ],
+    [
+      "9b25b03f-30dc-49f9-97ea-7f1a5be5a1ae",
+      "Button - B"
     ]
   ],
   "text_variables": {}

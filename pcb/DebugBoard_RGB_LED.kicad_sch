@@ -822,7 +822,7 @@
 		(uuid "fbed80d4-9f40-408e-bf0e-f143f497484a")
 	)
 	(hierarchical_label "blue_cathode"
-		(shape input)
+		(shape bidirectional)
 		(at 82.55 95.25 180)
 		(effects
 			(font
@@ -833,7 +833,7 @@
 		(uuid "05129d6a-fdd8-4106-9c91-78684c30773e")
 	)
 	(hierarchical_label "red_cathode"
-		(shape input)
+		(shape bidirectional)
 		(at 82.55 77.47 180)
 		(effects
 			(font
@@ -844,7 +844,7 @@
 		(uuid "59585f00-f6a7-45ca-9ea2-ddcbc8defd6c")
 	)
 	(hierarchical_label "green_cathode"
-		(shape input)
+		(shape bidirectional)
 		(at 82.55 86.36 180)
 		(effects
 			(font
@@ -909,7 +909,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "1ad8fe17-f741-462c-9184-2c0c983dcad9")
+			(uuid "7ae2318f-62bc-419a-8159-65613b1fce66")
 		)
 		(instances
 			(project "DebugBoard"
@@ -989,10 +989,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "872ccf16-fe86-4047-bc26-57d5cc09d664")
+			(uuid "91fe75b3-e3df-4cf7-ae42-4d67863217b2")
 		)
 		(pin "2"
-			(uuid "71f29d1f-ab0f-4243-a7c8-67806ce97ab8")
+			(uuid "b0563560-d8ac-4af3-9ed9-33c145edd70e")
 		)
 		(instances
 			(project "DebugBoard"
@@ -1071,16 +1071,16 @@
 			)
 		)
 		(pin "3"
-			(uuid "2b0878f3-e290-4a3d-a5e0-a51bed7888a5")
+			(uuid "8ba1cf03-2f4e-41e5-8e34-b6b0f649aa27")
 		)
 		(pin "4"
-			(uuid "ce188841-88ec-43cc-8787-30884a42ec05")
+			(uuid "2fb18cd8-8bea-49a7-a274-a560fef1adcc")
 		)
 		(pin "2"
-			(uuid "6cdb8701-6559-4d46-aa25-56f49d2811fb")
+			(uuid "6066b878-03c9-4939-8d0c-7ba7e85c29cc")
 		)
 		(pin "1"
-			(uuid "0950ea3e-8c0d-435a-8eee-2ee971648e75")
+			(uuid "ffa08ba7-9f5d-4096-84e0-8ece736137ba")
 		)
 		(instances
 			(project "DebugBoard"
@@ -1160,10 +1160,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "8aa06e4d-d13c-45e3-a3e0-f797a2aa8bd7")
+			(uuid "c7b70d94-cda2-44fa-9385-2a98ca029460")
 		)
 		(pin "2"
-			(uuid "5fff9aed-5ddf-4d6a-844c-2a355d1ac060")
+			(uuid "da513212-0f62-4cda-b31c-cc62d898948c")
 		)
 		(instances
 			(project "DebugBoard"
@@ -1242,10 +1242,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "d4b994e6-d7c6-47ff-abcc-049901f94482")
+			(uuid "2886d138-cb6e-4704-b62e-d7b18e99287a")
 		)
 		(pin "2"
-			(uuid "9b777f62-eec9-4439-99b2-84c38cba428a")
+			(uuid "d09a93df-ed04-4885-a9ba-cd852485c7d3")
 		)
 		(instances
 			(project "DebugBoard"
