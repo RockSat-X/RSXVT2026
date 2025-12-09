@@ -1003,7 +1003,7 @@ class RootFormatter(logging.Formatter):
 
         coloring = {
             'DEBUG'    : '\x1B[0;35m',
-            'INFO'     : '',
+            'INFO'     : '\x1B[0;36m',
             'WARNING'  : '\x1B[0;33m',
             'ERROR'    : '\x1B[0;31m',
             'CRITICAL' : '\x1B[1;31m',
@@ -1031,7 +1031,7 @@ class CustomFilter(logging.Filter):
             ]):
                 record.msg += f'\n{' ' * len(f'[{record.levelname}]')} {just_key} : {just_value}'
 
-            record.msg += '\n'
+        record.msg += '\n'
 
         return super(CustomFilter, self).filter(record)
 
@@ -1041,11 +1041,118 @@ logging.basicConfig(level = logging.DEBUG)
 logging.getLogger().handlers[0].setFormatter(RootFormatter())
 logging.getLogger().handlers[0].addFilter(CustomFilter())
 
-
-
 logger = logging.getLogger(__name__)
 
+class ExecuteShellCommandError(Exception):
+    pass
 
+def execute_shell_command(
+    default               = None,
+    *,
+    bash                  = None,
+    cmd                   = None,
+    powershell            = None,
+    keyboard_interrupt_ok = False,
+    nonzero_exit_code_ok  = False
+):
+
+
+
+    # PowerShell is slow to invoke, so cmd.exe
+    # would be used if its good enough.
+
+    if cmd is not None and powershell is not None:
+        raise ValueError('CMD and PowerShell commands cannot be both provided.')
+
+    match sys.platform:
+
+        case 'win32':
+            use_powershell = cmd is None and powershell is not None
+            commands       = powershell if use_powershell else cmd
+
+        case _:
+            commands       = bash
+            use_powershell = False
+
+    if commands is None:
+        commands = default
+
+    if commands is None:
+        raise ValueError(f'Missing shell command for platform {repr(sys.platform)}.')
+
+    if isinstance(commands, str):
+        commands = [commands]
+
+
+
+    # Process each command to have it be split into shell tokens.
+    # The lexing that's done here is to do a lot of the funny
+    # business involving escaping quotes and what not. To be honest,
+    # it's a little out my depth, mainly because I frankly do not
+    # care enough to get it 100% correct; it working most of the time
+    # is good enough for me.
+
+    for command_i in range(len(commands)):
+
+        lexer                  = shlex.shlex(commands[command_i])
+        lexer.quotes           = '"'
+        lexer.whitespace_split = True
+        lexer.commenters       = ''
+        commands[command_i]    = list(lexer)
+
+
+
+    # Execute each shell command.
+
+    processes = []
+
+    for command_i, command in enumerate(commands):
+
+        command = ' '.join(command)
+
+        logger.info(f'$ {command}')
+
+        if use_powershell:
+
+            # On Windows, Python will call CMD.exe
+            # to run the shell command, so we'll
+            # have to invoke PowerShell to run the
+            # command if PowerShell is needed.
+
+            processes += [subprocess.Popen(['pwsh', '-Command', command], shell = False)]
+
+        else:
+
+            processes += [subprocess.Popen(command, shell = True)]
+
+
+
+    # Wait on each subprocess to be done.
+
+    for process in processes:
+
+
+
+        # Sometimes commands might stall, so the user
+        # might CTRL-C to kill the subprocess.
+
+        try:
+
+            subprocess_exit_code = process.wait()
+
+        except KeyboardInterrupt:
+
+            if keyboard_interrupt_ok:
+                subprocess_exit_code = None
+            else:
+                raise
+
+
+
+        # Check results.
+
+        if subprocess_exit_code and not nonzero_exit_code_ok:
+            raise ExecuteShellCommandError
 
 @ui(
     {
@@ -1080,7 +1187,7 @@ def checkPCBs(parameters):
     checkPCBs(
         make_sure_shell_command_exists = require,
         make_main_relative_path        = root,
-        execute_shell_command          = execute,
+        execute_shell_command          = execute_shell_command,
         run_metapreprocessor           = run_metapreprocessor,
         mcu_pinouts                    = { mcu : deps.stpy.mcus.MCUS[mcu].pinouts for mcu in deps.stpy.mcus.MCUS },
         TARGETS                        = TARGETS,

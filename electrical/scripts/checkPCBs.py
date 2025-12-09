@@ -4,8 +4,6 @@ import types, pathlib, collections, logging
 
 logger = logging.getLogger(__name__)
 
-
-
 def checkPCBs(
     *,
     make_sure_shell_command_exists,
