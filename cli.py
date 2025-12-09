@@ -24,7 +24,7 @@ if not (sys.version_info.major == MAJOR and sys.version_info.minor >= MINOR):
 
 # Built-in modules.
 
-import types, shlex, pathlib, shutil, subprocess, time
+import types, shlex, pathlib, shutil, subprocess, time, logging
 
 
 
@@ -82,6 +82,59 @@ def import_pyserial():
         raise ExitCode(1)
 
     return serial, serial.tools.list_ports
+
+
+
+################################################################################################################################
+#
+# Root logger configuration.
+#
+
+class RootFormatter(logging.Formatter):
+
+    def format(self, record):
+
+        coloring = {
+            'DEBUG'    : '\x1B[0;35m',
+            'INFO'     : '\x1B[0;36m',
+            'WARNING'  : '\x1B[0;33m',
+            'ERROR'    : '\x1B[0;31m',
+            'CRITICAL' : '\x1B[1;31m',
+        }[record.levelname]
+
+        reset = '\x1B[0m'
+
+        message = super().format(record)
+
+        return f'{coloring}[{record.levelname}]{reset} {message}'
+
+
+class CustomFilter(logging.Filter):
+
+    def filter(self, record):
+
+        if hasattr(record, 'table'):
+
+            for just_key, just_value in justify( [
+                (
+                    ('<' , str(key  )),
+                    (None, str(value)),
+                )
+                for key, value in record.table
+            ]):
+                record.msg += f'\n{' ' * len(f'[{record.levelname}]')} {just_key} : {just_value}'
+
+        record.msg += '\n'
+
+        return super(CustomFilter, self).filter(record)
+
+
+
+logging.basicConfig(level = logging.DEBUG)
+logging.getLogger().handlers[0].setFormatter(RootFormatter())
+logging.getLogger().handlers[0].addFilter(CustomFilter())
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -467,6 +520,125 @@ def execute(
 
 
 ################################################################################################################################
+#
+# TODO Replace `execute` with `execute_shell_command`.
+#
+
+
+class ExecuteShellCommandError(Exception):
+    pass
+
+def execute_shell_command(
+    default               = None,
+    *,
+    bash                  = None,
+    cmd                   = None,
+    powershell            = None,
+    keyboard_interrupt_ok = False,
+    nonzero_exit_code_ok  = False
+):
+
+
+
+    # PowerShell is slow to invoke, so cmd.exe
+    # would be used if its good enough.
+
+    if cmd is not None and powershell is not None:
+        raise ValueError('CMD and PowerShell commands cannot be both provided.')
+
+    match sys.platform:
+
+        case 'win32':
+            use_powershell = cmd is None and powershell is not None
+            commands       = powershell if use_powershell else cmd
+
+        case _:
+            commands       = bash
+            use_powershell = False
+
+    if commands is None:
+        commands = default
+
+    if commands is None:
+        raise ValueError(f'Missing shell command for platform {repr(sys.platform)}.')
+
+    if isinstance(commands, str):
+        commands = [commands]
+
+
+
+    # Process each command to have it be split into shell tokens.
+    # The lexing that's done here is to do a lot of the funny
+    # business involving escaping quotes and what not. To be honest,
+    # it's a little out my depth, mainly because I frankly do not
+    # care enough to get it 100% correct; it working most of the time
+    # is good enough for me.
+
+    for command_i in range(len(commands)):
+
+        lexer                  = shlex.shlex(commands[command_i])
+        lexer.quotes           = '"'
+        lexer.whitespace_split = True
+        lexer.commenters       = ''
+        commands[command_i]    = list(lexer)
+
+
+
+    # Execute each shell command.
+
+    processes = []
+
+    for command_i, command in enumerate(commands):
+
+        command = ' '.join(command)
+
+        logger.info(f'$ {command}')
+
+        if use_powershell:
+
+            # On Windows, Python will call CMD.exe
+            # to run the shell command, so we'll
+            # have to invoke PowerShell to run the
+            # command if PowerShell is needed.
+
+            processes += [subprocess.Popen(['pwsh', '-Command', command], shell = False)]
+
+        else:
+
+            processes += [subprocess.Popen(command, shell = True)]
+
+
+
+    # Wait on each subprocess to be done.
+
+    for process in processes:
+
+
+
+        # Sometimes commands might stall, so the user
+        # might CTRL-C to kill the subprocess.
+
+        try:
+
+            subprocess_exit_code = process.wait()
+
+        except KeyboardInterrupt:
+
+            if keyboard_interrupt_ok:
+                subprocess_exit_code = None
+            else:
+                raise
+
+
+
+        # Check results.
+
+        if subprocess_exit_code and not nonzero_exit_code_ok:
+            raise ExecuteShellCommandError
+
+
+
+################################################################################################################################
 
 
 
@@ -667,14 +839,14 @@ def build(parameters):
 
     execute(
         bash = [
-            f'mkdir -p {root(BUILD, target.name)}'
+            f'mkdir -p {BUILD / target.name}'
             for target in targets
             if target.source_file_paths
         ],
         cmd = [
             f'''
-                if not exist "{root(BUILD, target.name)}" (
-                    mkdir {root(BUILD, target.name)}
+                if not exist "{BUILD / target.name}" (
+                    mkdir {BUILD / target.name}
                 )
             '''
             for target in targets
@@ -691,7 +863,7 @@ def build(parameters):
                 {target.compiler_flags}
                 -E
                 -x c
-                -o "{root(BUILD, target.name, 'link.ld').as_posix()}"
+                -o "{(BUILD / target.name / 'link.ld').as_posix()}"
                 "{root('./electrical/link.ld').as_posix()}"
         '''
         for target in targets
@@ -706,7 +878,7 @@ def build(parameters):
             arm-none-eabi-gcc
                 {' '.join(f'"{source}"' for source in target.source_file_paths)}
                 -o "{root('./build', target.name, target.name + '.elf')}"
-                -T "{root(BUILD, target.name, 'link.ld').as_posix()}"
+                -T "{(BUILD / target.name / 'link.ld').as_posix()}"
                 {target.compiler_flags}
                 {target.linker_flags}
         '''
@@ -722,8 +894,8 @@ def build(parameters):
             arm-none-eabi-objcopy
                 -S
                 -O binary
-                "{root(BUILD, target.name, target.name + '.elf').as_posix()}"
-                "{root(BUILD, target.name, target.name + '.bin').as_posix()}"
+                "{(BUILD / target.name / f'{target.name}.elf').as_posix()}"
+                "{(BUILD / target.name / f'{target.name}.bin').as_posix()}"
         '''
         for target in targets
         if target.source_file_paths
@@ -797,7 +969,7 @@ def flash(parameters):
         exit_code = execute(f'''
             STM32_Programmer_CLI
                 --connect port=SWD index={stlink.probe_index}
-                --download "{root(BUILD, parameters.target.name, parameters.target.name + '.bin').as_posix()}" 0x08000000
+                --download "{(BUILD / parameters.target.name / f'{parameters.target.name}.bin').as_posix()}" 0x08000000
                 --verify
                 --start
         ''', nonzero_exit_code_ok = True)
@@ -869,7 +1041,7 @@ def debug(parameters):
     require('arm-none-eabi-gdb')
 
     gdb_init = f'''
-        file {repr(str(root(BUILD, parameters.target.name, parameters.target.name + '.elf').as_posix()))}
+        file {repr((BUILD / parameters.target.name / (f'{parameters.target.name}.elf')).as_posix())}
         target extended-remote localhost:61234
         with pagination off -- focus cmd
     '''
@@ -995,269 +1167,377 @@ ui(deps.stpy.pxd.cite.ui)
 
 @ui(
     {
-        'description' : 'Check the correctness of PCBs; note, this is very experimental!',
+        'description' : 'Check the correctness of PCBs.',
     },
 )
-def checkPCBs(parameters): # TODO Cat-shit code below lol.
+def checkPCBs(parameters):
+
+    make_sure_shell_command_exists = require # TODO Rename.
+    make_main_relative_path        = root    # TODO Rename.
 
 
 
-    import deps.stpy.pxd.sexp
-    import deps.stpy.mcus
-
-    require('kicad-cli')
-
+    DIRECTORY_PATH_OF_KICAD_PROJECTS   = make_main_relative_path('./pcb')
+    DIRECTORY_PATH_OF_OUTPUTS          = make_main_relative_path('./build')
+    DIRECTORY_PATH_OF_SYMBOL_LIBRARIES = make_main_relative_path('./pcb/symbols')
 
 
-    # We must run the meta-preprocessor first to
-    # verify every target's GPIO parameterization.
+
+    # We'll be relying on KiCad's CLI program to generate the netlist of schematics.
+
+    make_sure_shell_command_exists('kicad-cli')
+
+
+
+    # Some of the targets' GPIOs configuration will be verified
+    # when we run the meta-preprocessor; things like invalid GPIO
+    # pin port-number settings will be caught first.
 
     try: # TODO Bum hack with the UI module...
-
-        exit_code = build(types.SimpleNamespace(
-            target              = None,
-            metapreprocess_only = True,
-        ))
-
-        if exit_code:
+        if exit_code := build(types.SimpleNamespace(target = None, metapreprocess_only = True)):
             raise ExitCode(exit_code)
-
     except ExitCode as exit_code:
         if exit_code.args[0]:
             raise
 
-    log()
+
+
+    # Get all of the KiCad symbol libraries.
+
+    symbol_library_file_names = [
+        file_name
+        for _, _, file_names in DIRECTORY_PATH_OF_SYMBOL_LIBRARIES.walk()
+        for       file_name  in file_names
+        if file_name.endswith(suffix := '.kicad_sym')
+    ]
 
 
 
-    connectors = {
-        connector_name : []
-        for connector_name in COUPLED_CONNECTORS
-    }
+    # Find any symbols with the 'CoupledConnector' keyword
+    # associated with it and get the pin-outs for them.
+
+    import deps.stpy.pxd.sexp
+
+    coupled_connectors = {}
+
+    for symbol_library_file_name in symbol_library_file_names:
+
+        symbol_library_sexp = deps.stpy.pxd.sexp.parse_sexp(
+            (DIRECTORY_PATH_OF_SYMBOL_LIBRARIES / symbol_library_file_name).read_text()
+        )
+
+        for entry in symbol_library_sexp:
+
+            match entry:
+
+                case ('symbol', symbol_name, *symbol_properties):
 
 
 
+                    # Make sure the symbol has the 'CoupledConnector' keyword.
+
+                    for symbol_property in symbol_properties:
+                        match symbol_property:
+                            case ('property', 'ki_keywords', 'CoupledConnector', *_):
+                                break
+                    else:
+                        continue
+
+
+
+                    # The details for the symbol's pin-outs is
+                    # buried within another symbol S-expression.
+
+                    subsymbol_properties = None
+
+                    for symbol_property in symbol_properties:
+                        match symbol_property:
+                            case ('symbol', subsymbol_name, *subsymbol_properties): pass
+
+
+
+                    # Get all of the symbol's pin names and coordinates.
+
+                    coupled_connectors[symbol_name] = {}
+
+                    for subsymbol_property in subsymbol_properties:
+
+                        match subsymbol_property:
+
+                            case ('pin', pin_type, pin_style, *pin_properties):
+
+                                pin_coordinate = None
+                                pin_name       = None
+
+                                for pin_property in pin_properties:
+                                    match pin_property:
+                                        case ('number', pin_coordinate, *_): pass
+                                        case ('name'  , pin_name      , *_): pass
+
+                                if pin_coordinate in coupled_connectors[symbol_name]:
+                                    raise NotImplementedError
+
+                                coupled_connectors[symbol_name][pin_coordinate] = types.SimpleNamespace(
+                                    name = pin_name,
+                                    nets = [],
+                                )
+
+
+
+    # Get the names of all KiCad projects.
 
     kicad_projects = [
-        pathlib.Path(file_name).stem
-        for root, directories, file_names in root('./pcb').walk()
-        for file_name in file_names
-        if file_name.endswith('.kicad_pro')
+        file_name.removesuffix(suffix)
+        for _, _, file_names in DIRECTORY_PATH_OF_KICAD_PROJECTS.walk()
+        for       file_name  in file_names
+        if file_name.endswith(suffix := '.kicad_pro')
     ]
+
+
+
+    # Process all KiCad projects.
 
     for kicad_project in kicad_projects:
 
-        netlist_file_path = pathlib.Path(f'{root('./build', kicad_project).as_posix()}.net')
 
-        execute(f'''
+
+         # Get the netlist of the KiCad project.
+         #
+         # Note that `kicad-cli` can't be invoked
+         # in parallel because of some lock file
+         # for some reason.
+
+        schematic_file_path = DIRECTORY_PATH_OF_KICAD_PROJECTS / f'{kicad_project}.kicad_sch'
+        netlist_file_path   = DIRECTORY_PATH_OF_OUTPUTS        / f'{kicad_project}.net'
+
+        execute_shell_command(f'''
             kicad-cli
-                sch export netlist "{root('./pcb', f'{kicad_project}.kicad_sch').as_posix()}"
+                sch export netlist "{schematic_file_path.as_posix()}"
                 --output "{netlist_file_path.as_posix()}"
                 --format orcadpcb2
-        ''') # `kicad-cli` can't be invoked in parallel because of some lock file for some reason.
-
-        log()
-
-        sexp = netlist_file_path.read_text()
-        sexp = sexp.removesuffix('*\n') # Not sure why there's a trailing asterisk.
-        sexp = deps.stpy.pxd.sexp.parse_sexp(sexp)
-
-        for entry in sexp:
-            match entry:
-                case uid, footprint_name, reference, value, *netlist:
-                    if footprint_name in (f'pcb:{connector}' for connector in connectors):
-                        connectors[footprint_name.removeprefix('pcb:')] += [(kicad_project, netlist)]
-
-        for target in TARGETS:
-
-            pinouts = deps.stpy.mcus.MCUS[target.mcu].pinouts
-
-            if target.schematic_file_path != root('./pcb', f'{kicad_project}.kicad_sch'):
-                continue
+        ''')
 
 
-            # Find the MCU's netlist.
 
-            matches = []
+        # Parse the outputted netlist file.
 
-            for entry in sexp:
-                match entry:
-                    case uid, footprint_name, reference, value, *nets:
-                        if value == target.mcu:
-                            matches += [nets]
+        netlist_sexp = netlist_file_path.read_text()
+        netlist_sexp = netlist_sexp.removesuffix('*\n') # Trailing asterisk for some reason.
+        netlist_sexp = deps.stpy.pxd.sexp.parse_sexp(netlist_sexp)
 
-            if not matches:
-                log(ANSI(
-                    f'[ERROR] No symbol with value of {repr(target.mcu)} '
-                    f'was found in {repr(target.schematic_file_path.as_posix())}!',
-                    'fg_red'
-                ))
-                raise ExitCode(1)
-
-            if len(matches) >= 2:
-                log(ANSI(
-                    f'Multiple symbols with value of {repr(target.mcu)} '
-                    f'were found in {repr(target.schematic_file_path.as_posix())}!',
-                    'fg_red'
-                ))
-                raise ExitCode(1)
+        match netlist_sexp:
+            case ('{', 'EESchema', 'Netlist', 'Version', _, 'created', _, '}', *rest):
+                netlist_sexp = rest
 
 
-            # The pin position is sometimes just a number,
-            # but for some packages like BGA, it might be a 2D
-            # coordinate (letter-number pair like 'J7').
-            # The s-exp parser will parse the 1D coordinate as
-            # an actual integer but the 2D coordinate as a string.
-            # Thus, to keep things consistent, we always convert
-            # the position back into a string.
 
-            netlist, = matches
-            netlist  = {
-                str(position) : net
-                for position, net in netlist
-            }
+        # Find targets that are associated with the KiCad project.
+
+        applicable_targets = [
+            target
+            for target in TARGETS
+            if target.kicad_project == kicad_project
+        ]
+
+
+
+        # Find any discrepancies between the target's GPIOs and the schematic.
+
+        for target in applicable_targets:
+
+
+
+            # Find the one MCU in the schematic and get its nets.
+
+            match [
+                nets
+                for uid, footprint, reference, value, *nets in netlist_sexp
+                if value == target.mcu
+            ]:
+
+
+
+                # The MCU is missing from the schematic.
+
+                case []:
+                    logger.warning(
+                        f'For target {repr(target.name)} '
+                        f'and schematic {repr(schematic_file_path.as_posix())}, '
+                        f'symbol {repr(target.mcu)} is missing.'
+                    )
+                    continue
+
+
+
+                # The MCU was found.
+
+                case [mcu_nets]:
+                    pass
+
+
+
+                # There are multiple MCUs.
+
+                case _:
+                    logger.warning(
+                        f'For target {repr(target.name)} '
+                        f'and schematic {repr(schematic_file_path.as_posix())}, '
+                        f'multiple {repr(target.mcu)} are found.'
+                    )
+                    continue
 
 
 
             # We look for discrepancies between the
             # netlist and the target's GPIO list.
 
-            issues = []
-
-            for pin_position, pin_net in netlist.items():
+            for mcu_pin_coordinate, mcu_pin_net_name in mcu_nets:
 
 
 
-                # Skip unused pins.
+                # The pin coordinate is sometimes just a number,
+                # but for some packages like BGA, it might be a 2D
+                # coordinate (letter-number pair like 'J7').
+                # The s-exp parser will parse the 1D coordinate as
+                # an actual integer but the 2D coordinate as a string.
+                # Thus, to keep things consistent, we always convert
+                # the coordinate back into a string.
 
-                if pin_net.startswith('unconnected-('):
-                    continue
+                mcu_pin_coordinate = str(mcu_pin_coordinate)
 
 
 
                 # Skip things like power pins.
 
-                if pinouts[pin_position].type != 'I/O':
+                import deps.stpy.mcus
+
+                mcu_pin = deps.stpy.mcus.MCUS[target.mcu].pinouts[mcu_pin_coordinate]
+
+                if mcu_pin.type != 'I/O':
                     continue
 
 
 
-                # Try to find the corresponding GPIO used by the target.
+                # Get the port-number name (e.g. `A3`).
 
-                gpio_name = [
+                mcu_pin_port_number = mcu_pin.name.removeprefix('P')
+
+
+
+                # Find the corresponding GPIO for the target, if any.
+
+                match [
                     gpio_name
                     for gpio_name, gpio_pin, gpio_type, gpio_settings in target.gpios
-                    if f'P{gpio_pin}' == pinouts[pin_position].name
-                ]
-
-                if gpio_name:
-
-                    gpio_name, = gpio_name
+                    if gpio_pin == mcu_pin_port_number
+                ]:
 
 
 
-                    # The schematic and target disagree on GPIO.
-                    # Note that KiCad prepends a '/' if the net
-                    # is defined by a local net label.
+                    # No GPIO found, so this MCU pin should be unconnected.
 
-                    if gpio_name != pin_net.removeprefix('/'):
-                        issues += [
-                            f'Pin {repr(pinouts[pin_position].name)} ({repr(gpio_name)}) '
-                            f'has net {repr(pin_net)}.'
+                    case []:
+                        if not mcu_pin_net_name.startswith('unconnected-('):
+                            logger.warning(
+                                f'For target {repr(target.name)} '
+                                f'and schematic {repr(schematic_file_path.as_posix())}, '
+                                f'pin {repr(mcu_pin_port_number)} should be '
+                                f'unconnected in the schematic, '
+                                f'but instead has net {repr(mcu_pin_net_name)}.',
+                            )
+
+
+
+                    # GPIO found, so this MCU pin's net name should match
+                    # the GPIO name. The net name sometimes starts with a
+                    # `/` to indicate it's a local net.
+
+                    case [gpio_name]:
+
+                        if mcu_pin_net_name.startswith('unconnected-('):
+                            logger.warning(
+                                f'For target {repr(target.name)} '
+                                f'and schematic {repr(schematic_file_path.as_posix())}, '
+                                f'pin {repr(mcu_pin_port_number)} should have '
+                                f'net {repr(gpio_name)} in the schematic, '
+                                f'but instead is unconnected.'
+                            )
+
+                        elif gpio_name != mcu_pin_net_name.removeprefix('/'):
+                            logger.warning(
+                                f'For target {repr(target.name)} '
+                                f'and schematic {repr(schematic_file_path.as_posix())}, '
+                                f'pin {repr(mcu_pin_port_number)} should have '
+                                f'net {repr(gpio_name)} in the schematic, '
+                                f'but instead has net {repr(mcu_pin_net_name)}.'
+                            )
+
+
+
+                    case _: raise RuntimeError
+
+
+
+        # Find any coupled connectors in the schematic.
+
+        for uid, footprint, reference, value, *nets in netlist_sexp:
+
+            if (key := footprint.removeprefix('pcb:')) in coupled_connectors:
+
+                for coordinate, net_name in nets:
+
+                    coupled_connectors[key][str(coordinate)].nets += [(schematic_file_path, net_name)]
+
+
+
+    # Check for any discrepancies between coupled connectors.
+
+    for coupled_connector_name, coupled_pins in coupled_connectors.items():
+
+        for coupled_pin_coordinate, coupled_pin in coupled_pins.items():
+
+
+
+            # This pin only has one net tied to it and
+            # it does not match with the coupled pin's name.
+
+            if len(net_names := [
+                net_name
+                for schematic_file_path, net_name in coupled_pin.nets
+                if not net_name.startswith('unconnected-')
+            ]) == 1 and coupled_pin.name != net_names[0]:
+
+                logger.warning(
+                    f'Coupled connector {repr(coupled_connector_name)} '
+                    f'on pin {repr(coupled_pin_coordinate)} only has one net associated with it.',
+                    extra = {
+                        'table' : [
+                            (repr(schematic_file_path.name), repr(net_name))
+                            for schematic_file_path, net_name in coupled_pin.nets
                         ]
+                    }
+                )
 
 
 
-                # Extraneous GPIO in the schematic.
+            # This pin has conflicting nets tied to it.
 
-                else:
+            if len(set(
+                net_name
+                for schematic_file_path, net_name in coupled_pin.nets
+                if not net_name.startswith('unconnected-')
+            )) >= 2:
 
-                    issues += [
-                        f'Pin {repr(pinouts[pin_position].name)} ({repr(pin_net)}) '
-                        f'is not defined for the target.'
-                    ]
-
-
-
-            # We check to see if the target has any GPIOs that
-            # are not in the schematic. We don't have to check
-            # if the GPIO name and net match up because we did
-            # that already.
-
-            for gpio_name, gpio_pin, gpio_type, gpio_settings in target.gpios:
-
-                if gpio_pin is None:
-                    continue
-
-                pin_position, = [
-                    pin_position
-                    for pin_position, pin in pinouts.items()
-                    if pin.name == f'P{gpio_pin}'
-                ]
-
-                pin_net = netlist[pin_position]
-
-                if pin_net.startswith('unconnected-('):
-
-                    issues += [
-                        f'Pin {repr(pinouts[pin_position].name)} ({repr(gpio_name)}) '
-                        f'is unconnected in the schematic.'
-                    ]
-
-
-
-            # Report all the issues we found.
-
-            if issues:
-
-                with ANSI('fg_yellow'), Indent('[WARNING] ', hanging = True):
-
-                    log(
-                        f'For target {repr(target.name)} and '
-                        f'schematic {repr(target.schematic_file_path.as_posix())}:'
-                    )
-
-                    for issue in issues:
-                        log(f'    - {issue}')
-
-                log()
-
-
-
-    for connector_name, kicad_projects_netlist in connectors.items():
-
-        pins = collections.defaultdict(lambda: {})
-
-        for kicad_project, netlist in kicad_projects_netlist:
-
-            for position, net_name in netlist:
-
-                pins[position][kicad_project] = net_name
-
-
-        for position, usages in pins.items():
-
-            assert set(kicad_project for kicad_project, netlist in kicad_projects_netlist) == set(usages.keys())
-
-            connected_net_names = [net_name for net_name in usages.values() if not net_name.startswith('unconnected-')]
-
-            if (len(set(connected_net_names)) <= 1 and len(connected_net_names) != 1):
-                continue
-
-            with ANSI('fg_yellow'), Indent('[WARNING] ', hanging = True):
-
-                log(f'Pin {position} of coupled connector {repr(connector_name)} has issues:')
-
-                for just_kicad_project, just_net_name in justify(
-                    (
-                        ('<', repr(kicad_project)),
-                        ('<', repr(net_name     )),
-                    )
-                    for kicad_project, net_name in usages.items()
-                ):
-                    log(f'- {just_kicad_project} : {just_net_name}')
-
-                log()
+                logger.warning(
+                    f'Coupled connector {repr(coupled_connector_name)} '
+                    f'on pin {repr(coupled_pin_coordinate)} has conflicting nets associated with it.',
+                    extra = {
+                        'table' : [
+                            (repr(schematic_file_path.name), repr(net_name))
+                            for schematic_file_path, net_name in coupled_pin.nets
+                        ]
+                    }
+                )
 
 
 

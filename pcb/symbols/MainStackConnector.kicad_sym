@@ -50,6 +50,15 @@
 				(hide yes)
 			)
 		)
+		(property "ki_keywords" "CoupledConnector"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(symbol "MainStackConnector_1_1"
 			(rectangle
 				(start 0 0)

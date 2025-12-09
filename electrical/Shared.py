@@ -71,11 +71,6 @@ MCU_SUPPORT = {
 
 }
 
-COUPLED_CONNECTORS = (
-    'MainStackConnector',
-    'VehicleStackConnector',
-)
-
 TARGETS = (
 
 
@@ -92,7 +87,7 @@ TARGETS = (
             ./electrical/SandboxNucleoBoard.c
         '''),
 
-        schematic_file_path = None,
+        kicad_project = None,
 
         gpios = (
             ('led_red'   , 'B7' , 'OUTPUT'    , { 'initlvl' : False               }),
@@ -151,7 +146,7 @@ TARGETS = (
             ./electrical/SandboxNucleoBoard.c
         '''),
 
-        schematic_file_path = None,
+        kicad_project = None,
 
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False              }),
@@ -204,7 +199,7 @@ TARGETS = (
             ./electrical/DemoI2C.c
         '''),
 
-        schematic_file_path = None,
+        kicad_project = None,
 
         gpios = (
             ('led_green'  , 'A5' , 'OUTPUT'   , { 'initlvl' : False                                          }),
@@ -280,7 +275,7 @@ TARGETS = (
             ./electrical/DemoTimer.c
         '''),
 
-        schematic_file_path = None,
+        kicad_project = None,
 
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                 }),
@@ -337,7 +332,7 @@ TARGETS = (
             ./electrical/DemoSPI.c
         '''),
 
-        schematic_file_path = None,
+        kicad_project = None,
 
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                 }),
@@ -402,7 +397,7 @@ TARGETS = (
             ./electrical/DemoTimekeeping.c
         '''),
 
-        schematic_file_path = None,
+        kicad_project = None,
 
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False              }),
@@ -460,7 +455,7 @@ TARGETS = (
             ./electrical/DemoSDMMC.c
         '''),
 
-        schematic_file_path = None,
+        kicad_project = None,
 
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                 }),
@@ -528,7 +523,8 @@ TARGETS = (
         source_file_paths = root('''
             ./electrical/SensorShield.c
         '''),
-        schematic_file_path = None,
+
+        kicad_project = None,
 
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                                          }),
@@ -590,7 +586,7 @@ TARGETS = (
         mcu               = 'STM32H533VET6',
         source_file_paths = (),
 
-        schematic_file_path = root('./pcb/MainFlightComputer.kicad_sch'),
+        kicad_project = 'MainFlightComputer',
 
         gpios = (
             ('led_channel_red'                , 'E2' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False }),
@@ -670,7 +666,7 @@ TARGETS = (
         mcu               = 'STM32H533VET6',
         source_file_paths = (),
 
-        schematic_file_path = root('./pcb/VehicleFlightComputer.kicad_sch'),
+        kicad_project = 'VehicleFlightComputer',
 
 
         gpios = (
@@ -754,7 +750,8 @@ TARGETS = (
         source_file_paths = root('''
             ./electrical/DemoTMC2209.c
         '''),
-        schematic_file_path = None,
+
+        kicad_project = None,
 
         gpios = (
             ('led_green'       , 'A5' , 'OUTPUT'    , { 'initlvl' : False                 }),
