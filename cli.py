@@ -1016,9 +1016,30 @@ class RootFormatter(logging.Formatter):
         return f'{coloring}[{record.levelname}]{reset} {message}'
 
 
+class CustomFilter(logging.Filter):
+
+    def filter(self, record):
+
+        if hasattr(record, 'table'):
+
+            for just_key, just_value in justify( [
+                (
+                    ('<' , str(key  )),
+                    (None, str(value)),
+                )
+                for key, value in record.table
+            ]):
+                record.msg += f'\n{' ' * len(f'[{record.levelname}]')} {just_key} : {just_value}'
+
+            record.msg += '\n'
+
+        return super(CustomFilter, self).filter(record)
+
+
 
 logging.basicConfig(level = logging.DEBUG)
 logging.getLogger().handlers[0].setFormatter(RootFormatter())
+logging.getLogger().handlers[0].addFilter(CustomFilter())
 
 
 
@@ -1035,7 +1056,7 @@ def checkPCBs(parameters):
 
     from electrical.scripts.checkPCBs import checkPCBs
 
-    def preverify_gpios():
+    def run_metapreprocessor():
 
         # We must run the meta-preprocessor first to
         # verify every target's GPIO parameterization.
@@ -1060,7 +1081,7 @@ def checkPCBs(parameters):
         make_sure_shell_command_exists = require,
         make_main_relative_path        = root,
         execute_shell_command          = execute,
-        preverify_gpios                = preverify_gpios,
+        run_metapreprocessor           = run_metapreprocessor,
         mcu_pinouts                    = { mcu : deps.stpy.mcus.MCUS[mcu].pinouts for mcu in deps.stpy.mcus.MCUS },
         TARGETS                        = TARGETS,
     )
