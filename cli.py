@@ -24,7 +24,7 @@ if not (sys.version_info.major == MAJOR and sys.version_info.minor >= MINOR):
 
 # Built-in modules.
 
-import types, shlex, pathlib, shutil, subprocess, time
+import types, shlex, pathlib, shutil, subprocess, time, logging
 
 
 
@@ -82,6 +82,59 @@ def import_pyserial():
         raise ExitCode(1)
 
     return serial, serial.tools.list_ports
+
+
+
+################################################################################################################################
+#
+# Root logger configuration.
+#
+
+class RootFormatter(logging.Formatter):
+
+    def format(self, record):
+
+        coloring = {
+            'DEBUG'    : '\x1B[0;35m',
+            'INFO'     : '\x1B[0;36m',
+            'WARNING'  : '\x1B[0;33m',
+            'ERROR'    : '\x1B[0;31m',
+            'CRITICAL' : '\x1B[1;31m',
+        }[record.levelname]
+
+        reset = '\x1B[0m'
+
+        message = super().format(record)
+
+        return f'{coloring}[{record.levelname}]{reset} {message}'
+
+
+class CustomFilter(logging.Filter):
+
+    def filter(self, record):
+
+        if hasattr(record, 'table'):
+
+            for just_key, just_value in justify( [
+                (
+                    ('<' , str(key  )),
+                    (None, str(value)),
+                )
+                for key, value in record.table
+            ]):
+                record.msg += f'\n{' ' * len(f'[{record.levelname}]')} {just_key} : {just_value}'
+
+        record.msg += '\n'
+
+        return super(CustomFilter, self).filter(record)
+
+
+
+logging.basicConfig(level = logging.DEBUG)
+logging.getLogger().handlers[0].setFormatter(RootFormatter())
+logging.getLogger().handlers[0].addFilter(CustomFilter())
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -463,6 +516,125 @@ def execute(
 
     if len(processes) == 1:
         return subprocess_exit_code
+
+
+
+################################################################################################################################
+#
+# TODO Replace `execute` with `execute_shell_command`.
+#
+
+
+class ExecuteShellCommandError(Exception):
+    pass
+
+def execute_shell_command(
+    default               = None,
+    *,
+    bash                  = None,
+    cmd                   = None,
+    powershell            = None,
+    keyboard_interrupt_ok = False,
+    nonzero_exit_code_ok  = False
+):
+
+
+
+    # PowerShell is slow to invoke, so cmd.exe
+    # would be used if its good enough.
+
+    if cmd is not None and powershell is not None:
+        raise ValueError('CMD and PowerShell commands cannot be both provided.')
+
+    match sys.platform:
+
+        case 'win32':
+            use_powershell = cmd is None and powershell is not None
+            commands       = powershell if use_powershell else cmd
+
+        case _:
+            commands       = bash
+            use_powershell = False
+
+    if commands is None:
+        commands = default
+
+    if commands is None:
+        raise ValueError(f'Missing shell command for platform {repr(sys.platform)}.')
+
+    if isinstance(commands, str):
+        commands = [commands]
+
+
+
+    # Process each command to have it be split into shell tokens.
+    # The lexing that's done here is to do a lot of the funny
+    # business involving escaping quotes and what not. To be honest,
+    # it's a little out my depth, mainly because I frankly do not
+    # care enough to get it 100% correct; it working most of the time
+    # is good enough for me.
+
+    for command_i in range(len(commands)):
+
+        lexer                  = shlex.shlex(commands[command_i])
+        lexer.quotes           = '"'
+        lexer.whitespace_split = True
+        lexer.commenters       = ''
+        commands[command_i]    = list(lexer)
+
+
+
+    # Execute each shell command.
+
+    processes = []
+
+    for command_i, command in enumerate(commands):
+
+        command = ' '.join(command)
+
+        logger.info(f'$ {command}')
+
+        if use_powershell:
+
+            # On Windows, Python will call CMD.exe
+            # to run the shell command, so we'll
+            # have to invoke PowerShell to run the
+            # command if PowerShell is needed.
+
+            processes += [subprocess.Popen(['pwsh', '-Command', command], shell = False)]
+
+        else:
+
+            processes += [subprocess.Popen(command, shell = True)]
+
+
+
+    # Wait on each subprocess to be done.
+
+    for process in processes:
+
+
+
+        # Sometimes commands might stall, so the user
+        # might CTRL-C to kill the subprocess.
+
+        try:
+
+            subprocess_exit_code = process.wait()
+
+        except KeyboardInterrupt:
+
+            if keyboard_interrupt_ok:
+                subprocess_exit_code = None
+            else:
+                raise
+
+
+
+        # Check results.
+
+        if subprocess_exit_code and not nonzero_exit_code_ok:
+            raise ExecuteShellCommandError
 
 
 
@@ -993,167 +1165,6 @@ ui(deps.stpy.pxd.cite.ui)
 
 
 
-import logging
-
-
-
-class RootFormatter(logging.Formatter):
-
-    def format(self, record):
-
-        coloring = {
-            'DEBUG'    : '\x1B[0;35m',
-            'INFO'     : '\x1B[0;36m',
-            'WARNING'  : '\x1B[0;33m',
-            'ERROR'    : '\x1B[0;31m',
-            'CRITICAL' : '\x1B[1;31m',
-        }[record.levelname]
-
-        reset = '\x1B[0m'
-
-        message = super().format(record)
-
-        return f'{coloring}[{record.levelname}]{reset} {message}'
-
-
-class CustomFilter(logging.Filter):
-
-    def filter(self, record):
-
-        if hasattr(record, 'table'):
-
-            for just_key, just_value in justify( [
-                (
-                    ('<' , str(key  )),
-                    (None, str(value)),
-                )
-                for key, value in record.table
-            ]):
-                record.msg += f'\n{' ' * len(f'[{record.levelname}]')} {just_key} : {just_value}'
-
-        record.msg += '\n'
-
-        return super(CustomFilter, self).filter(record)
-
-
-
-logging.basicConfig(level = logging.DEBUG)
-logging.getLogger().handlers[0].setFormatter(RootFormatter())
-logging.getLogger().handlers[0].addFilter(CustomFilter())
-
-logger = logging.getLogger(__name__)
-
-class ExecuteShellCommandError(Exception):
-    pass
-
-def execute_shell_command(
-    default               = None,
-    *,
-    bash                  = None,
-    cmd                   = None,
-    powershell            = None,
-    keyboard_interrupt_ok = False,
-    nonzero_exit_code_ok  = False
-):
-
-
-
-    # PowerShell is slow to invoke, so cmd.exe
-    # would be used if its good enough.
-
-    if cmd is not None and powershell is not None:
-        raise ValueError('CMD and PowerShell commands cannot be both provided.')
-
-    match sys.platform:
-
-        case 'win32':
-            use_powershell = cmd is None and powershell is not None
-            commands       = powershell if use_powershell else cmd
-
-        case _:
-            commands       = bash
-            use_powershell = False
-
-    if commands is None:
-        commands = default
-
-    if commands is None:
-        raise ValueError(f'Missing shell command for platform {repr(sys.platform)}.')
-
-    if isinstance(commands, str):
-        commands = [commands]
-
-
-
-    # Process each command to have it be split into shell tokens.
-    # The lexing that's done here is to do a lot of the funny
-    # business involving escaping quotes and what not. To be honest,
-    # it's a little out my depth, mainly because I frankly do not
-    # care enough to get it 100% correct; it working most of the time
-    # is good enough for me.
-
-    for command_i in range(len(commands)):
-
-        lexer                  = shlex.shlex(commands[command_i])
-        lexer.quotes           = '"'
-        lexer.whitespace_split = True
-        lexer.commenters       = ''
-        commands[command_i]    = list(lexer)
-
-
-
-    # Execute each shell command.
-
-    processes = []
-
-    for command_i, command in enumerate(commands):
-
-        command = ' '.join(command)
-
-        logger.info(f'$ {command}')
-
-        if use_powershell:
-
-            # On Windows, Python will call CMD.exe
-            # to run the shell command, so we'll
-            # have to invoke PowerShell to run the
-            # command if PowerShell is needed.
-
-            processes += [subprocess.Popen(['pwsh', '-Command', command], shell = False)]
-
-        else:
-
-            processes += [subprocess.Popen(command, shell = True)]
-
-
-
-    # Wait on each subprocess to be done.
-
-    for process in processes:
-
-
-
-        # Sometimes commands might stall, so the user
-        # might CTRL-C to kill the subprocess.
-
-        try:
-
-            subprocess_exit_code = process.wait()
-
-        except KeyboardInterrupt:
-
-            if keyboard_interrupt_ok:
-                subprocess_exit_code = None
-            else:
-                raise
-
-
-
-        # Check results.
-
-        if subprocess_exit_code and not nonzero_exit_code_ok:
-            raise ExecuteShellCommandError
-
 @ui(
     {
         'description' : 'Check the correctness of PCBs; note, this is very experimental!',
@@ -1161,37 +1172,305 @@ def execute_shell_command(
 )
 def checkPCBs(parameters):
 
-    from electrical.scripts.checkPCBs import checkPCBs
+    make_sure_shell_command_exists = require # TODO Rename.
+    make_main_relative_path        = root    # TODO Rename.
 
-    def run_metapreprocessor():
 
-        # We must run the meta-preprocessor first to
-        # verify every target's GPIO parameterization.
 
-        try: # TODO Bum hack with the UI module...
+    DIRECTORY_PATH_OF_KICAD_PROJECTS = make_main_relative_path('./pcb')
+    DIRECTORY_PATH_OF_OUTPUTS        = make_main_relative_path('./build')
 
-            exit_code = build(types.SimpleNamespace(
-                target              = None,
-                metapreprocess_only = True,
-            ))
 
-            if exit_code:
-                raise ExitCode(exit_code)
 
-        except ExitCode as exit_code:
-            if exit_code.args[0]:
-                raise
+    # We'll be relying on KiCad's CLI program to generate the netlist of schematics.
 
-        log()
+    make_sure_shell_command_exists('kicad-cli')
 
-    checkPCBs(
-        make_sure_shell_command_exists = require,
-        make_main_relative_path        = root,
-        execute_shell_command          = execute_shell_command,
-        run_metapreprocessor           = run_metapreprocessor,
-        mcu_pinouts                    = { mcu : deps.stpy.mcus.MCUS[mcu].pinouts for mcu in deps.stpy.mcus.MCUS },
-        TARGETS                        = TARGETS,
-    )
+
+
+    # Some of the targets' GPIOs configuration will be verified
+    # when we run the meta-preprocessor; things like invalid GPIO
+    # pin port-number settings will be caught first.
+
+    try: # TODO Bum hack with the UI module...
+        if exit_code := build(types.SimpleNamespace(target = None, metapreprocess_only = True)):
+            raise ExitCode(exit_code)
+    except ExitCode as exit_code:
+        if exit_code.args[0]:
+            raise
+
+
+
+    # TODO Automatically find coupled connectors.
+
+    coupled_connectors = {
+        name : collections.defaultdict(lambda: [])
+        for name in (
+            'MainStackConnector',
+            'VehicleStackConnector',
+        )
+    }
+
+
+
+    # Get the names of all KiCad projects.
+
+    kicad_projects = [
+        file_name.removesuffix(suffix)
+        for _, _, file_names in DIRECTORY_PATH_OF_KICAD_PROJECTS.walk()
+        for       file_name  in file_names
+        if file_name.endswith(suffix := '.kicad_pro')
+    ]
+
+
+
+    # Process all KiCad projects.
+
+    for kicad_project in kicad_projects:
+
+
+
+         # Get the netlist of the KiCad project.
+         #
+         # Note that `kicad-cli` can't be invoked
+         # in parallel because of some lock file
+         # for some reason.
+
+        schematic_file_path = DIRECTORY_PATH_OF_KICAD_PROJECTS / f'{kicad_project}.kicad_sch'
+        netlist_file_path   = DIRECTORY_PATH_OF_OUTPUTS        / f'{kicad_project}.net'
+
+        execute_shell_command(f'''
+            kicad-cli
+                sch export netlist "{schematic_file_path.as_posix()}"
+                --output "{netlist_file_path.as_posix()}"
+                --format orcadpcb2
+        ''')
+
+
+
+        # Parse the outputted netlist file.
+
+        import deps.stpy.pxd.sexp
+
+        netlist_sexp = netlist_file_path.read_text()
+        netlist_sexp = netlist_sexp.removesuffix('*\n') # Trailing asterisk for some reason.
+        netlist_sexp = deps.stpy.pxd.sexp.parse_sexp(netlist_sexp)
+
+        match netlist_sexp:
+            case ('{', 'EESchema', 'Netlist', 'Version', _, 'created', _, '}', *rest):
+                netlist_sexp = rest
+
+
+
+        # Find targets that are associated with the KiCad project.
+
+        applicable_targets = [
+            target
+            for target in TARGETS
+            if target.kicad_project == kicad_project
+        ]
+
+
+
+        # Find any discrepancies between the target's GPIOs and the schematic.
+
+        for target in applicable_targets:
+
+
+
+            # Find the one MCU in the schematic and get its nets.
+
+            match [
+                nets
+                for uid, footprint, reference, value, *nets in netlist_sexp
+                if value == target.mcu
+            ]:
+
+
+
+                # The MCU is missing from the schematic.
+
+                case []:
+                    logger.warning(
+                        f'For target {repr(target.name)} '
+                        f'and schematic {repr(schematic_file_path.as_posix())}, '
+                        f'symbol {repr(target.mcu)} is missing.'
+                    )
+                    continue
+
+
+
+                # The MCU was found.
+
+                case [mcu_nets]:
+                    pass
+
+
+
+                # There are multiple MCUs.
+
+                case _:
+                    logger.warning(
+                        f'For target {repr(target.name)} '
+                        f'and schematic {repr(schematic_file_path.as_posix())}, '
+                        f'multiple {repr(target.mcu)} are found.'
+                    )
+                    continue
+
+
+
+            # The pin coordinate is sometimes just a number,
+            # but for some packages like BGA, it might be a 2D
+            # coordinate (letter-number pair like 'J7').
+            # The s-exp parser will parse the 1D coordinate as
+            # an actual integer but the 2D coordinate as a string.
+            # Thus, to keep things consistent, we always convert
+            # the coordinate back into a string.
+
+            mcu_nets = {
+                str(coordinate) : net_name
+                for coordinate, net_name in mcu_nets
+            }
+
+
+
+            # We look for discrepancies between the
+            # netlist and the target's GPIO list.
+
+            for mcu_pin_coordinate, mcu_pin_net_name in mcu_nets.items():
+
+
+
+                # Skip things like power pins.
+
+                import deps.stpy.mcus
+
+                mcu_pin = deps.stpy.mcus.MCUS[target.mcu].pinouts[mcu_pin_coordinate]
+
+                if mcu_pin.type != 'I/O':
+                    continue
+
+
+
+                # Get the port-number name (e.g. `A3`).
+
+                mcu_pin_port_number = mcu_pin.name.removeprefix('P')
+
+
+
+                # Find the corresponding GPIO for the target, if any.
+
+                match [
+                    gpio_name
+                    for gpio_name, gpio_pin, gpio_type, gpio_settings in target.gpios
+                    if gpio_pin == mcu_pin_port_number
+                ]:
+
+
+
+                    # No GPIO found, so this MCU pin should be unconnected.
+
+                    case []:
+                        if not mcu_pin_net_name.startswith('unconnected-('):
+                            logger.warning(
+                                f'For target {repr(target.name)} '
+                                f'and schematic {repr(schematic_file_path.as_posix())}, '
+                                f'pin {repr(mcu_pin_port_number)} should be '
+                                f'unconnected in the schematic, '
+                                f'but instead has net {repr(mcu_pin_net_name)}.',
+                            )
+
+
+
+                    # GPIO found, so this MCU pin's net name should match
+                    # the GPIO name. The net name sometimes starts with a
+                    # `/` to indicate it's a local net.
+
+                    case [gpio_name]:
+
+                        if mcu_pin_net_name.startswith('unconnected-('):
+                            logger.warning(
+                                f'For target {repr(target.name)} '
+                                f'and schematic {repr(schematic_file_path.as_posix())}, '
+                                f'pin {repr(mcu_pin_port_number)} should have '
+                                f'net {repr(gpio_name)} in the schematic, '
+                                f'but instead is unconnected.'
+                            )
+
+                        elif gpio_name != mcu_pin_net_name.removeprefix('/'):
+                            logger.warning(
+                                f'For target {repr(target.name)} '
+                                f'and schematic {repr(schematic_file_path.as_posix())}, '
+                                f'pin {repr(mcu_pin_port_number)} should have '
+                                f'net {repr(gpio_name)} in the schematic, '
+                                f'but instead has net {repr(mcu_pin_net_name)}.'
+                            )
+
+
+
+                    case _: raise RuntimeError
+
+
+
+        # Find any coupled connectors in the schematic.
+
+        for uid, footprint, reference, value, *nets in netlist_sexp:
+
+            if (key := footprint.removeprefix('pcb:')) in coupled_connectors:
+
+                for coordinate, net_name in nets:
+
+                    coupled_connectors[key][coordinate] += [(schematic_file_path, net_name)]
+
+
+
+    # Check for any discrepancies between coupled connectors.
+
+    for coupled_connector_name, coupled_pins in coupled_connectors.items():
+
+        for coordinate, schematic_net_name_pairs in coupled_pins.items():
+
+
+
+            # This pin only has one net tied to it.
+
+            if len([
+                net_name
+                for schematic_file_path, net_name in schematic_net_name_pairs
+                if not net_name.startswith('unconnected-')
+            ]) == 1:
+
+                logger.warning(
+                    f'Coupled connector {repr(coupled_connector_name)} '
+                    f'on pin {repr(coordinate)} only has one net associated with it.',
+                    extra = {
+                        'table' : [
+                            (repr(schematic_file_path.name), repr(net_name))
+                            for schematic_file_path, net_name in schematic_net_name_pairs
+                        ]
+                    }
+                )
+
+
+
+            # This pin has conflicting nets tied to it.
+
+            if len(set(
+                net_name
+                for schematic_file_path, net_name in schematic_net_name_pairs
+                if not net_name.startswith('unconnected-')
+            )) >= 2:
+
+                logger.warning(
+                    f'Coupled connector {repr(coupled_connector_name)} '
+                    f'on pin {repr(coordinate)} has conflicting nets associated with it.',
+                    extra = {
+                        'table' : [
+                            (repr(schematic_file_path.name), repr(net_name))
+                            for schematic_file_path, net_name in schematic_net_name_pairs
+                        ]
+                    }
+                )
 
 
 
