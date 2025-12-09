@@ -1,8 +1,8 @@
 #! /usr/bin/env python3
 
+import types, pathlib, collections, logging
 
-
-import types, pathlib, collections
+logger = logging.getLogger(__name__)
 
 
 
@@ -12,25 +12,14 @@ def checkPCBs(
     make_main_relative_path,
     execute_shell_command,
     preverify_gpios,
-
     mcu_pinouts,
-
-    ExitCode,
-    log,
     TARGETS,
-    ANSI,
-    Indent,
-    justify
 ):
 
     DIRECTORY_PATH_OF_KICAD_PROJECTS = make_main_relative_path('./pcb')
     DIRECTORY_PATH_OF_OUTPUTS        = make_main_relative_path('./build')
 
     make_sure_shell_command_exists('kicad-cli')
-
-
-
-    # TODO.
 
     preverify_gpios()
 
@@ -69,8 +58,6 @@ def checkPCBs(
                 --format orcadpcb2
         ''')
 
-        log() # TODO.
-
 
 
         # Parse the outputted netlist file.
@@ -87,7 +74,7 @@ def checkPCBs(
 
 
 
-        # 
+        # Find targets that are associated with the KiCad project.
 
         applicable_targets = [
             target
@@ -97,50 +84,64 @@ def checkPCBs(
 
 
 
-        # 
+        # Find any discrepancies between the target's GPIOs and the schematic.
 
         for target in applicable_targets:
 
 
 
-            # There should be a unique MCU in the schematic.
+            # Find the one MCU in the schematic and get its nets.
 
-            matches = [
+            match [
                 nets
                 for uid, footprint, reference, value, *nets in netlist_sexp
                 if value == target.mcu
-            ]
-
-            if not matches:
-                log(ANSI(
-                    f'[ERROR] No symbol with value of {repr(target.mcu)} '
-                    f'was found in {repr(schematic_file_path.as_posix())}!',
-                    'fg_red'
-                ))
-                raise ExitCode(1)
-
-            if len(matches) >= 2:
-                log(ANSI(
-                    f'Multiple symbols with value of {repr(target.mcu)} '
-                    f'were found in {repr(schematic_file_path.as_posix())}!',
-                    'fg_red'
-                ))
-                raise ExitCode(1)
+            ]:
 
 
 
-            # The pin position is sometimes just a number,
+                # The MCU is missing from the schematic.
+
+                case []:
+                    logger.warning(
+                        f'For target {repr(target.name)} '
+                        f'and schematic {repr(schematic_file_path.as_posix())}, '
+                        f'symbol {repr(target.mcu)} is missing.'
+                    )
+                    continue
+
+
+
+                # The MCU was found.
+
+                case [mcu_nets]:
+                    pass
+
+
+
+                # There are multiple MCUs.
+
+                case _:
+                    logger.warning(
+                        f'For target {repr(target.name)} '
+                        f'and schematic {repr(schematic_file_path.as_posix())}, '
+                        f'multiple {repr(target.mcu)} are found.'
+                    )
+                    continue
+
+
+
+            # The pin coordinate is sometimes just a number,
             # but for some packages like BGA, it might be a 2D
             # coordinate (letter-number pair like 'J7').
             # The s-exp parser will parse the 1D coordinate as
             # an actual integer but the 2D coordinate as a string.
             # Thus, to keep things consistent, we always convert
-            # the position back into a string.
+            # the coordinate back into a string.
 
-            netlist, = matches
-            netlist  = {
-                str(position) : net
-                for position, net in netlist
+            mcu_nets = {
+                str(coordinate) : net
+                for coordinate, net in mcu_nets
             }
 
 
@@ -148,162 +149,129 @@ def checkPCBs(
             # We look for discrepancies between the
             # netlist and the target's GPIO list.
 
-            issues = []
-
-            for pin_position, pin_net in netlist.items():
-
-
-
-                # Skip unused pins.
-
-                if pin_net.startswith('unconnected-('):
-                    continue
+            for mcu_pin_coordinate, mcu_pin_net in mcu_nets.items():
 
 
 
                 # Skip things like power pins.
 
-                if mcu_pinouts[target.mcu][pin_position].type != 'I/O':
+                if mcu_pinouts[target.mcu][mcu_pin_coordinate].type != 'I/O':
                     continue
 
 
 
-                # Try to find the corresponding GPIO used by the target.
+                # Get the port-number name (e.g. `A3`).
 
-                gpio_name = [
+                mcu_pin_port_number = mcu_pinouts[target.mcu][mcu_pin_coordinate].name.removeprefix('P')
+
+
+
+                # Find the corresponding GPIO for the target, if any.
+
+                match [
                     gpio_name
                     for gpio_name, gpio_pin, gpio_type, gpio_settings in target.gpios
-                    if f'P{gpio_pin}' == mcu_pinouts[target.mcu][pin_position].name
-                ]
-
-                if gpio_name:
-
-                    gpio_name, = gpio_name
+                    if gpio_pin == mcu_pin_port_number
+                ]:
 
 
 
-                    # The schematic and target disagree on GPIO.
-                    # Note that KiCad prepends a '/' if the net
-                    # is defined by a local net label.
+                    # No GPIO found, so this MCU pin should be unconnected.
 
-                    if gpio_name != pin_net.removeprefix('/'):
-                        issues += [
-                            f'Pin {repr(mcu_pinouts[target.mcu][pin_position].name)} ({repr(gpio_name)}) '
-                            f'has net {repr(pin_net)}.'
-                        ]
-
-
-
-                # Extraneous GPIO in the schematic.
-
-                else:
-
-                    issues += [
-                        f'Pin {repr(mcu_pinouts[target.mcu][pin_position].name)} ({repr(pin_net)}) '
-                        f'is not defined for the target.'
-                    ]
+                    case []:
+                        if not mcu_pin_net.startswith('unconnected-('):
+                            logger.warning(
+                                f'For target {repr(target.name)} '
+                                f'and schematic {repr(schematic_file_path.as_posix())}, '
+                                f'pin {repr(mcu_pin_port_number)} should be '
+                                f'unconnected in the schematic, '
+                                f'but instead has net {repr(mcu_pin_net)}.',
+                            )
 
 
 
-            # We check to see if the target has any GPIOs that
-            # are not in the schematic. We don't have to check
-            # if the GPIO name and net match up because we did
-            # that already.
+                    # GPIO found, so this MCU pin's net name should match
+                    # the GPIO name. The net name sometimes starts with a
+                    # `/` to indicate it's a local net.
 
-            for gpio_name, gpio_pin, gpio_type, gpio_settings in target.gpios:
+                    case [gpio_name]:
 
-                if gpio_pin is None:
-                    continue
+                        if mcu_pin_net.startswith('unconnected-('):
+                            logger.warning(
+                                f'For target {repr(target.name)} '
+                                f'and schematic {repr(schematic_file_path.as_posix())}, '
+                                f'pin {repr(mcu_pin_port_number)} should have '
+                                f'net {repr(gpio_name)} in the schematic, '
+                                f'but instead is unconnected.'
+                            )
 
-                pin_position, = [
-                    pin_position
-                    for pin_position, pin in mcu_pinouts[target.mcu].items()
-                    if pin.name == f'P{gpio_pin}'
-                ]
-
-                pin_net = netlist[pin_position]
-
-                if pin_net.startswith('unconnected-('):
-
-                    issues += [
-                        f'Pin {repr(mcu_pinouts[target.mcu][pin_position].name)} ({repr(gpio_name)}) '
-                        f'is unconnected in the schematic.'
-                    ]
-
-
-
-            # Report all the issues we found.
-
-            if issues:
-
-                with ANSI('fg_yellow'), Indent('[WARNING] ', hanging = True):
-
-                    log(
-                        f'For target {repr(target.name)} and '
-                        f'schematic {repr(schematic_file_path.as_posix())}:'
-                    )
-
-                    for issue in issues:
-                        log(f'    - {issue}')
-
-                log()
+                        elif gpio_name != mcu_pin_net.removeprefix('/'):
+                            logger.warning(
+                                f'For target {repr(target.name)} '
+                                f'and schematic {repr(schematic_file_path.as_posix())}, '
+                                f'pin {repr(mcu_pin_port_number)} should have '
+                                f'net {repr(gpio_name)} in the schematic, '
+                                f'but instead has net {repr(mcu_pin_net)}.'
+                            )
 
 
 
-
-
-        connectors = {
-            connector_name : []
-            for connector_name in (
-                'MainStackConnector',
-                'VehicleStackConnector',
-            )
-        }
-
-        for entry in netlist_sexp:
-
-            match entry:
-
-                case (uid, footprint, reference, value, *net_mapping):
-
-                    if any(footprint == f'pcb:{connector}' for connector in connectors):
-
-                        connectors[footprint.removeprefix('pcb:')] += [(kicad_project, net_mapping)]
+                    case _: raise RuntimeError
 
 
 
-
-    for connector_name, kicad_projects_netlist in connectors.items():
-
-        pins = collections.defaultdict(lambda: {})
-
-        for kicad_project, netlist in kicad_projects_netlist:
-
-            for position, net_name in netlist:
-
-                pins[position][kicad_project] = net_name
-
-
-        for position, usages in pins.items():
-
-            assert set(kicad_project for kicad_project, netlist in kicad_projects_netlist) == set(usages.keys())
-
-            connected_net_names = [net_name for net_name in usages.values() if not net_name.startswith('unconnected-')]
-
-            if (len(set(connected_net_names)) <= 1 and len(connected_net_names) != 1):
-                continue
-
-            with ANSI('fg_yellow'), Indent('[WARNING] ', hanging = True):
-
-                log(f'Pin {position} of coupled connector {repr(connector_name)} has issues:')
-
-                for just_kicad_project, just_net_name in justify(
-                    (
-                        ('<', repr(kicad_project)),
-                        ('<', repr(net_name     )),
-                    )
-                    for kicad_project, net_name in usages.items()
-                ):
-                    log(f'- {just_kicad_project} : {just_net_name}')
-
-                log()
+#        connectors = {
+#            connector_name : []
+#            for connector_name in (
+#                'MainStackConnector',
+#                'VehicleStackConnector',
+#            )
+#        }
+#
+#        for entry in netlist_sexp:
+#
+#            match entry:
+#
+#                case (uid, footprint, reference, value, *net_mapping):
+#
+#                    if any(footprint == f'pcb:{connector}' for connector in connectors):
+#
+#                        connectors[footprint.removeprefix('pcb:')] += [(kicad_project, net_mapping)]
+#
+#
+#
+#
+#    for connector_name, kicad_projects_netlist in connectors.items():
+#
+#        pins = collections.defaultdict(lambda: {})
+#
+#        for kicad_project, netlist in kicad_projects_netlist:
+#
+#            for coordinate, net_name in netlist:
+#
+#                pins[coordinate][kicad_project] = net_name
+#
+#
+#        for coordinate, usages in pins.items():
+#
+#            assert set(kicad_project for kicad_project, netlist in kicad_projects_netlist) == set(usages.keys())
+#
+#            connected_net_names = [net_name for net_name in usages.values() if not net_name.startswith('unconnected-')]
+#
+#            if (len(set(connected_net_names)) <= 1 and len(connected_net_names) != 1):
+#                continue
+#
+#            with ANSI('fg_yellow'), Indent('[WARNING] ', hanging = True):
+#
+#                log(f'Pin {coordinate} of coupled connector {repr(connector_name)} has issues:')
+#
+#                for just_kicad_project, just_net_name in justify(
+#                    (
+#                        ('<', repr(kicad_project)),
+#                        ('<', repr(net_name     )),
+#                    )
+#                    for kicad_project, net_name in usages.items()
+#                ):
+#                    log(f'- {just_kicad_project} : {just_net_name}')
+#
+#                log()

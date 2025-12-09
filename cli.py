@@ -993,6 +993,39 @@ ui(deps.stpy.pxd.cite.ui)
 
 
 
+import logging
+
+
+
+class RootFormatter(logging.Formatter):
+
+    def format(self, record):
+
+        coloring = {
+            'DEBUG'    : '\x1B[0;35m',
+            'INFO'     : '',
+            'WARNING'  : '\x1B[0;33m',
+            'ERROR'    : '\x1B[0;31m',
+            'CRITICAL' : '\x1B[1;31m',
+        }[record.levelname]
+
+        reset = '\x1B[0m'
+
+        message = super().format(record)
+
+        return f'{coloring}[{record.levelname}]{reset} {message}'
+
+
+
+logging.basicConfig(level = logging.DEBUG)
+logging.getLogger().handlers[0].setFormatter(RootFormatter())
+
+
+
+logger = logging.getLogger(__name__)
+
+
+
 @ui(
     {
         'description' : 'Check the correctness of PCBs; note, this is very experimental!',
@@ -1001,7 +1034,6 @@ ui(deps.stpy.pxd.cite.ui)
 def checkPCBs(parameters):
 
     from electrical.scripts.checkPCBs import checkPCBs
-
 
     def preverify_gpios():
 
@@ -1024,22 +1056,13 @@ def checkPCBs(parameters):
 
         log()
 
-
-
     checkPCBs(
         make_sure_shell_command_exists = require,
         make_main_relative_path        = root,
         execute_shell_command          = execute,
         preverify_gpios                = preverify_gpios,
-
         mcu_pinouts                    = { mcu : deps.stpy.mcus.MCUS[mcu].pinouts for mcu in deps.stpy.mcus.MCUS },
-
-        ExitCode                       = ExitCode,
-        log                            = log,
         TARGETS                        = TARGETS,
-        ANSI                           = ANSI,
-        Indent                         = Indent,
-        justify                        = justify,
     )
 
 
