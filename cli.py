@@ -1167,7 +1167,7 @@ ui(deps.stpy.pxd.cite.ui)
 
 @ui(
     {
-        'description' : 'Check the correctness of PCBs; note, this is very experimental!',
+        'description' : 'Check the correctness of PCBs.',
     },
 )
 def checkPCBs(parameters):
@@ -1194,8 +1194,8 @@ def checkPCBs(parameters):
 
 
 
-    # Find any symbols with the 'CoupledConnector'
-    # keyword associated with it.
+    # Find any symbols with the 'CoupledConnector' keyword
+    # associated with it and get the pin-outs for them.
 
     import deps.stpy.pxd.sexp
 
@@ -1211,15 +1211,57 @@ def checkPCBs(parameters):
 
             match entry:
 
-                case ('symbol', symbol_name, *properties):
+                case ('symbol', symbol_name, *symbol_properties):
 
-                    for property in properties:
 
-                        match property:
 
+                    # Make sure the symbol has the 'CoupledConnector' keyword.
+
+                    for symbol_property in symbol_properties:
+                        match symbol_property:
                             case ('property', 'ki_keywords', 'CoupledConnector', *_):
+                                break
+                    else:
+                        continue
 
-                                coupled_connectors[symbol_name] = collections.defaultdict(lambda: [])
+
+
+                    # The details for the symbol's pin-outs is
+                    # buried within another symbol S-expression.
+
+                    subsymbol_properties = None
+
+                    for symbol_property in symbol_properties:
+                        match symbol_property:
+                            case ('symbol', subsymbol_name, *subsymbol_properties): pass
+
+
+
+                    # Get all of the symbol's pin names and coordinates.
+
+                    coupled_connectors[symbol_name] = {}
+
+                    for subsymbol_property in subsymbol_properties:
+
+                        match subsymbol_property:
+
+                            case ('pin', pin_type, pin_style, *pin_properties):
+
+                                pin_coordinate = None
+                                pin_name       = None
+
+                                for pin_property in pin_properties:
+                                    match pin_property:
+                                        case ('number', pin_coordinate, *_): pass
+                                        case ('name'  , pin_name      , *_): pass
+
+                                if pin_coordinate in coupled_connectors[symbol_name]:
+                                    raise NotImplementedError
+
+                                coupled_connectors[symbol_name][pin_coordinate] = types.SimpleNamespace(
+                                    name = pin_name,
+                                    nets = [],
+                                )
 
 
 
@@ -1346,25 +1388,22 @@ def checkPCBs(parameters):
 
 
 
-            # The pin coordinate is sometimes just a number,
-            # but for some packages like BGA, it might be a 2D
-            # coordinate (letter-number pair like 'J7').
-            # The s-exp parser will parse the 1D coordinate as
-            # an actual integer but the 2D coordinate as a string.
-            # Thus, to keep things consistent, we always convert
-            # the coordinate back into a string.
-
-            mcu_nets = {
-                str(coordinate) : net_name
-                for coordinate, net_name in mcu_nets
-            }
-
-
-
             # We look for discrepancies between the
             # netlist and the target's GPIO list.
 
-            for mcu_pin_coordinate, mcu_pin_net_name in mcu_nets.items():
+            for mcu_pin_coordinate, mcu_pin_net_name in mcu_nets:
+
+
+
+                # The pin coordinate is sometimes just a number,
+                # but for some packages like BGA, it might be a 2D
+                # coordinate (letter-number pair like 'J7').
+                # The s-exp parser will parse the 1D coordinate as
+                # an actual integer but the 2D coordinate as a string.
+                # Thus, to keep things consistent, we always convert
+                # the coordinate back into a string.
+
+                mcu_pin_coordinate = str(mcu_pin_coordinate)
 
 
 
@@ -1447,7 +1486,7 @@ def checkPCBs(parameters):
 
                 for coordinate, net_name in nets:
 
-                    coupled_connectors[key][coordinate] += [(schematic_file_path, net_name)]
+                    coupled_connectors[key][str(coordinate)].nets += [(schematic_file_path, net_name)]
 
 
 
@@ -1455,25 +1494,26 @@ def checkPCBs(parameters):
 
     for coupled_connector_name, coupled_pins in coupled_connectors.items():
 
-        for coordinate, schematic_net_name_pairs in coupled_pins.items():
+        for coupled_pin_coordinate, coupled_pin in coupled_pins.items():
 
 
 
-            # This pin only has one net tied to it.
+            # This pin only has one net tied to it and
+            # it does not match with the coupled pin's name.
 
-            if len([
+            if len(net_names := [
                 net_name
-                for schematic_file_path, net_name in schematic_net_name_pairs
+                for schematic_file_path, net_name in coupled_pin.nets
                 if not net_name.startswith('unconnected-')
-            ]) == 1:
+            ]) == 1 and coupled_pin.name != net_names[0]:
 
                 logger.warning(
                     f'Coupled connector {repr(coupled_connector_name)} '
-                    f'on pin {repr(coordinate)} only has one net associated with it.',
+                    f'on pin {repr(coupled_pin_coordinate)} only has one net associated with it.',
                     extra = {
                         'table' : [
                             (repr(schematic_file_path.name), repr(net_name))
-                            for schematic_file_path, net_name in schematic_net_name_pairs
+                            for schematic_file_path, net_name in coupled_pin.nets
                         ]
                     }
                 )
@@ -1484,17 +1524,17 @@ def checkPCBs(parameters):
 
             if len(set(
                 net_name
-                for schematic_file_path, net_name in schematic_net_name_pairs
+                for schematic_file_path, net_name in coupled_pin.nets
                 if not net_name.startswith('unconnected-')
             )) >= 2:
 
                 logger.warning(
                     f'Coupled connector {repr(coupled_connector_name)} '
-                    f'on pin {repr(coordinate)} has conflicting nets associated with it.',
+                    f'on pin {repr(coupled_pin_coordinate)} has conflicting nets associated with it.',
                     extra = {
                         'table' : [
                             (repr(schematic_file_path.name), repr(net_name))
-                            for schematic_file_path, net_name in schematic_net_name_pairs
+                            for schematic_file_path, net_name in coupled_pin.nets
                         ]
                     }
                 )
