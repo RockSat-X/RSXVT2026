@@ -1177,8 +1177,49 @@ def checkPCBs(parameters):
 
 
 
-    DIRECTORY_PATH_OF_KICAD_PROJECTS = make_main_relative_path('./pcb')
-    DIRECTORY_PATH_OF_OUTPUTS        = make_main_relative_path('./build')
+    DIRECTORY_PATH_OF_KICAD_PROJECTS   = make_main_relative_path('./pcb')
+    DIRECTORY_PATH_OF_OUTPUTS          = make_main_relative_path('./build')
+    DIRECTORY_PATH_OF_SYMBOL_LIBRARIES = make_main_relative_path('./pcb/symbols')
+
+
+
+    # Get all of the KiCad symbol libraries.
+
+    symbol_library_file_names = [
+        file_name
+        for _, _, file_names in DIRECTORY_PATH_OF_SYMBOL_LIBRARIES.walk()
+        for       file_name  in file_names
+        if file_name.endswith(suffix := '.kicad_sym')
+    ]
+
+
+
+    # Find any symbols with the 'CoupledConnector'
+    # keyword associated with it.
+
+    import deps.stpy.pxd.sexp
+
+    coupled_connectors = {}
+
+    for symbol_library_file_name in symbol_library_file_names:
+
+        symbol_library_sexp = deps.stpy.pxd.sexp.parse_sexp(
+            (DIRECTORY_PATH_OF_SYMBOL_LIBRARIES / symbol_library_file_name).read_text()
+        )
+
+        for entry in symbol_library_sexp:
+
+            match entry:
+
+                case ('symbol', symbol_name, *properties):
+
+                    for property in properties:
+
+                        match property:
+
+                            case ('property', 'ki_keywords', 'CoupledConnector', *_):
+
+                                coupled_connectors[symbol_name] = collections.defaultdict(lambda: [])
 
 
 
@@ -1198,18 +1239,6 @@ def checkPCBs(parameters):
     except ExitCode as exit_code:
         if exit_code.args[0]:
             raise
-
-
-
-    # TODO Automatically find coupled connectors.
-
-    coupled_connectors = {
-        name : collections.defaultdict(lambda: [])
-        for name in (
-            'MainStackConnector',
-            'VehicleStackConnector',
-        )
-    }
 
 
 
@@ -1249,8 +1278,6 @@ def checkPCBs(parameters):
 
 
         # Parse the outputted netlist file.
-
-        import deps.stpy.pxd.sexp
 
         netlist_sexp = netlist_file_path.read_text()
         netlist_sexp = netlist_sexp.removesuffix('*\n') # Trailing asterisk for some reason.
