@@ -1,110 +1,120 @@
 #! /usr/bin/env python3
 
+
+
 import types, pathlib, collections
+
+
 
 def checkPCBs(
     *,
-    require,
+    make_sure_shell_command_exists,
+    make_main_relative_path,
+    execute_shell_command,
+    preverify_gpios,
+
+    mcu_pinouts,
+
     ExitCode,
-    build,
     log,
-    COUPLED_CONNECTORS,
-    root,
-    execute,
     TARGETS,
     ANSI,
     Indent,
     justify
 ):
 
-    import deps.stpy.pxd.sexp
-    import deps.stpy.mcus
+    DIRECTORY_PATH_OF_KICAD_PROJECTS = make_main_relative_path('./pcb')
+    DIRECTORY_PATH_OF_OUTPUTS        = make_main_relative_path('./build')
 
-    require('kicad-cli')
-
-
-
-    # We must run the meta-preprocessor first to
-    # verify every target's GPIO parameterization.
-
-    try: # TODO Bum hack with the UI module...
-
-        exit_code = build(types.SimpleNamespace(
-            target              = None,
-            metapreprocess_only = True,
-        ))
-
-        if exit_code:
-            raise ExitCode(exit_code)
-
-    except ExitCode as exit_code:
-        if exit_code.args[0]:
-            raise
-
-    log()
+    make_sure_shell_command_exists('kicad-cli')
 
 
 
-    connectors = {
-        connector_name : []
-        for connector_name in COUPLED_CONNECTORS
-    }
+    # TODO.
+
+    preverify_gpios()
 
 
 
+    # Get the names of all KiCad projects.
 
     kicad_projects = [
-        pathlib.Path(file_name).stem
-        for root, directories, file_names in root('./pcb').walk()
-        for file_name in file_names
-        if file_name.endswith('.kicad_pro')
+        file_name.removesuffix(suffix)
+        for _, _, file_names in DIRECTORY_PATH_OF_KICAD_PROJECTS.walk()
+        for       file_name  in file_names
+        if file_name.endswith(suffix := '.kicad_pro')
     ]
+
+
+
+    # Process all KiCad projects.
 
     for kicad_project in kicad_projects:
 
-        netlist_file_path = pathlib.Path(f'{root('./build', kicad_project).as_posix()}.net')
 
-        execute(f'''
+
+         # Get the netlist of the KiCad project.
+         #
+         # Note that `kicad-cli` can't be invoked
+         # in parallel because of some lock file
+         # for some reason.
+
+        schematic_file_path = DIRECTORY_PATH_OF_KICAD_PROJECTS / f'{kicad_project}.kicad_sch'
+        netlist_file_path   = DIRECTORY_PATH_OF_OUTPUTS        / f'{kicad_project}.net'
+
+        execute_shell_command(f'''
             kicad-cli
-                sch export netlist "{root('./pcb', f'{kicad_project}.kicad_sch').as_posix()}"
+                sch export netlist "{schematic_file_path.as_posix()}"
                 --output "{netlist_file_path.as_posix()}"
                 --format orcadpcb2
-        ''') # `kicad-cli` can't be invoked in parallel because of some lock file for some reason.
+        ''')
 
-        log()
-
-        sexp = netlist_file_path.read_text()
-        sexp = sexp.removesuffix('*\n') # Not sure why there's a trailing asterisk.
-        sexp = deps.stpy.pxd.sexp.parse_sexp(sexp)
-
-        for entry in sexp:
-            match entry:
-                case uid, footprint_name, reference, value, *netlist:
-                    if footprint_name in (f'pcb:{connector}' for connector in connectors):
-                        connectors[footprint_name.removeprefix('pcb:')] += [(kicad_project, netlist)]
-
-        for target in TARGETS:
-
-            pinouts = deps.stpy.mcus.MCUS[target.mcu].pinouts
-
-            if target.schematic_file_path != root('./pcb', f'{kicad_project}.kicad_sch'):
-                continue
+        log() # TODO.
 
 
-            # Find the MCU's netlist.
 
-            matches = []
+        # Parse the outputted netlist file.
 
-            for entry in sexp:
-                match entry:
-                    case uid, footprint_name, reference, value, *nets:
-                        if value == target.mcu:
-                            matches += [nets]
+        import deps.stpy.pxd.sexp
+
+        netlist_sexp = netlist_file_path.read_text()
+        netlist_sexp = netlist_sexp.removesuffix('*\n') # Trailing asterisk for some reason.
+        netlist_sexp = deps.stpy.pxd.sexp.parse_sexp(netlist_sexp)
+
+        match netlist_sexp:
+            case ('{', 'EESchema', 'Netlist', 'Version', _, 'created', _, '}', *rest):
+                netlist_sexp = rest
+
+
+
+        # 
+
+        applicable_targets = [
+            target
+            for target in TARGETS
+            if target.kicad_project == kicad_project
+        ]
+
+
+
+        # 
+
+        for target in applicable_targets:
+
+
+
+            # There should be a unique MCU in the schematic.
+
+            matches = [
+                nets
+                for uid, footprint, reference, value, *nets in netlist_sexp
+                if value == target.mcu
+            ]
 
             if not matches:
                 log(ANSI(
                     f'[ERROR] No symbol with value of {repr(target.mcu)} '
-                    f'was found in {repr(target.schematic_file_path.as_posix())}!',
+                    f'was found in {repr(schematic_file_path.as_posix())}!',
                     'fg_red'
                 ))
                 raise ExitCode(1)
@@ -112,10 +122,11 @@ def checkPCBs(
             if len(matches) >= 2:
                 log(ANSI(
                     f'Multiple symbols with value of {repr(target.mcu)} '
-                    f'were found in {repr(target.schematic_file_path.as_posix())}!',
+                    f'were found in {repr(schematic_file_path.as_posix())}!',
                     'fg_red'
                 ))
                 raise ExitCode(1)
+
 
 
             # The pin position is sometimes just a number,
@@ -152,7 +163,7 @@ def checkPCBs(
 
                 # Skip things like power pins.
 
-                if pinouts[pin_position].type != 'I/O':
+                if mcu_pinouts[target.mcu][pin_position].type != 'I/O':
                     continue
 
 
@@ -162,7 +173,7 @@ def checkPCBs(
                 gpio_name = [
                     gpio_name
                     for gpio_name, gpio_pin, gpio_type, gpio_settings in target.gpios
-                    if f'P{gpio_pin}' == pinouts[pin_position].name
+                    if f'P{gpio_pin}' == mcu_pinouts[target.mcu][pin_position].name
                 ]
 
                 if gpio_name:
@@ -177,7 +188,7 @@ def checkPCBs(
 
                     if gpio_name != pin_net.removeprefix('/'):
                         issues += [
-                            f'Pin {repr(pinouts[pin_position].name)} ({repr(gpio_name)}) '
+                            f'Pin {repr(mcu_pinouts[target.mcu][pin_position].name)} ({repr(gpio_name)}) '
                             f'has net {repr(pin_net)}.'
                         ]
 
@@ -188,7 +199,7 @@ def checkPCBs(
                 else:
 
                     issues += [
-                        f'Pin {repr(pinouts[pin_position].name)} ({repr(pin_net)}) '
+                        f'Pin {repr(mcu_pinouts[target.mcu][pin_position].name)} ({repr(pin_net)}) '
                         f'is not defined for the target.'
                     ]
 
@@ -206,7 +217,7 @@ def checkPCBs(
 
                 pin_position, = [
                     pin_position
-                    for pin_position, pin in pinouts.items()
+                    for pin_position, pin in mcu_pinouts[target.mcu].items()
                     if pin.name == f'P{gpio_pin}'
                 ]
 
@@ -215,7 +226,7 @@ def checkPCBs(
                 if pin_net.startswith('unconnected-('):
 
                     issues += [
-                        f'Pin {repr(pinouts[pin_position].name)} ({repr(gpio_name)}) '
+                        f'Pin {repr(mcu_pinouts[target.mcu][pin_position].name)} ({repr(gpio_name)}) '
                         f'is unconnected in the schematic.'
                     ]
 
@@ -229,13 +240,36 @@ def checkPCBs(
 
                     log(
                         f'For target {repr(target.name)} and '
-                        f'schematic {repr(target.schematic_file_path.as_posix())}:'
+                        f'schematic {repr(schematic_file_path.as_posix())}:'
                     )
 
                     for issue in issues:
                         log(f'    - {issue}')
 
                 log()
+
+
+
+
+
+        connectors = {
+            connector_name : []
+            for connector_name in (
+                'MainStackConnector',
+                'VehicleStackConnector',
+            )
+        }
+
+        for entry in netlist_sexp:
+
+            match entry:
+
+                case (uid, footprint, reference, value, *net_mapping):
+
+                    if any(footprint == f'pcb:{connector}' for connector in connectors):
+
+                        connectors[footprint.removeprefix('pcb:')] += [(kicad_project, net_mapping)]
+
 
 
 

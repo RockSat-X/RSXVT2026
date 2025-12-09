@@ -1002,18 +1002,44 @@ def checkPCBs(parameters):
 
     from electrical.scripts.checkPCBs import checkPCBs
 
+
+    def preverify_gpios():
+
+        # We must run the meta-preprocessor first to
+        # verify every target's GPIO parameterization.
+
+        try: # TODO Bum hack with the UI module...
+
+            exit_code = build(types.SimpleNamespace(
+                target              = None,
+                metapreprocess_only = True,
+            ))
+
+            if exit_code:
+                raise ExitCode(exit_code)
+
+        except ExitCode as exit_code:
+            if exit_code.args[0]:
+                raise
+
+        log()
+
+
+
     checkPCBs(
-        require            = require,
-        ExitCode           = ExitCode,
-        build              = build,
-        log                = log,
-        COUPLED_CONNECTORS = COUPLED_CONNECTORS,
-        root               = root,
-        execute            = execute,
-        TARGETS            = TARGETS,
-        ANSI               = ANSI,
-        Indent             = Indent,
-        justify            = justify,
+        make_sure_shell_command_exists = require,
+        make_main_relative_path        = root,
+        execute_shell_command          = execute,
+        preverify_gpios                = preverify_gpios,
+
+        mcu_pinouts                    = { mcu : deps.stpy.mcus.MCUS[mcu].pinouts for mcu in deps.stpy.mcus.MCUS },
+
+        ExitCode                       = ExitCode,
+        log                            = log,
+        TARGETS                        = TARGETS,
+        ANSI                           = ANSI,
+        Indent                         = Indent,
+        justify                        = justify,
     )
 
 
