@@ -1183,6 +1183,25 @@ def checkPCBs(parameters):
 
 
 
+    # We'll be relying on KiCad's CLI program to generate the netlist of schematics.
+
+    make_sure_shell_command_exists('kicad-cli')
+
+
+
+    # Some of the targets' GPIOs configuration will be verified
+    # when we run the meta-preprocessor; things like invalid GPIO
+    # pin port-number settings will be caught first.
+
+    try: # TODO Bum hack with the UI module...
+        if exit_code := build(types.SimpleNamespace(target = None, metapreprocess_only = True)):
+            raise ExitCode(exit_code)
+    except ExitCode as exit_code:
+        if exit_code.args[0]:
+            raise
+
+
+
     # Get all of the KiCad symbol libraries.
 
     symbol_library_file_names = [
@@ -1262,25 +1281,6 @@ def checkPCBs(parameters):
                                     name = pin_name,
                                     nets = [],
                                 )
-
-
-
-    # We'll be relying on KiCad's CLI program to generate the netlist of schematics.
-
-    make_sure_shell_command_exists('kicad-cli')
-
-
-
-    # Some of the targets' GPIOs configuration will be verified
-    # when we run the meta-preprocessor; things like invalid GPIO
-    # pin port-number settings will be caught first.
-
-    try: # TODO Bum hack with the UI module...
-        if exit_code := build(types.SimpleNamespace(target = None, metapreprocess_only = True)):
-            raise ExitCode(exit_code)
-    except ExitCode as exit_code:
-        if exit_code.args[0]:
-            raise
 
 
 
