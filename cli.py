@@ -667,14 +667,14 @@ def build(parameters):
 
     execute(
         bash = [
-            f'mkdir -p {root(BUILD, target.name)}'
+            f'mkdir -p {BUILD / target.name}'
             for target in targets
             if target.source_file_paths
         ],
         cmd = [
             f'''
-                if not exist "{root(BUILD, target.name)}" (
-                    mkdir {root(BUILD, target.name)}
+                if not exist "{BUILD / target.name}" (
+                    mkdir {BUILD / target.name}
                 )
             '''
             for target in targets
@@ -691,7 +691,7 @@ def build(parameters):
                 {target.compiler_flags}
                 -E
                 -x c
-                -o "{root(BUILD, target.name, 'link.ld').as_posix()}"
+                -o "{(BUILD / target.name / 'link.ld').as_posix()}"
                 "{root('./electrical/link.ld').as_posix()}"
         '''
         for target in targets
@@ -706,7 +706,7 @@ def build(parameters):
             arm-none-eabi-gcc
                 {' '.join(f'"{source}"' for source in target.source_file_paths)}
                 -o "{root('./build', target.name, target.name + '.elf')}"
-                -T "{root(BUILD, target.name, 'link.ld').as_posix()}"
+                -T "{(BUILD / target.name / 'link.ld').as_posix()}"
                 {target.compiler_flags}
                 {target.linker_flags}
         '''
@@ -722,8 +722,8 @@ def build(parameters):
             arm-none-eabi-objcopy
                 -S
                 -O binary
-                "{root(BUILD, target.name, target.name + '.elf').as_posix()}"
-                "{root(BUILD, target.name, target.name + '.bin').as_posix()}"
+                "{(BUILD / target.name / f'{target.name}.elf').as_posix()}"
+                "{(BUILD / target.name / f'{target.name}.bin').as_posix()}"
         '''
         for target in targets
         if target.source_file_paths
@@ -797,7 +797,7 @@ def flash(parameters):
         exit_code = execute(f'''
             STM32_Programmer_CLI
                 --connect port=SWD index={stlink.probe_index}
-                --download "{root(BUILD, parameters.target.name, parameters.target.name + '.bin').as_posix()}" 0x08000000
+                --download "{(BUILD / parameters.target.name / f'{parameters.target.name}.bin').as_posix()}" 0x08000000
                 --verify
                 --start
         ''', nonzero_exit_code_ok = True)
@@ -869,7 +869,7 @@ def debug(parameters):
     require('arm-none-eabi-gdb')
 
     gdb_init = f'''
-        file {repr(str(root(BUILD, parameters.target.name, parameters.target.name + '.elf').as_posix()))}
+        file {repr((BUILD / parameters.target.name / (f'{parameters.target.name}.elf')).as_posix())}
         target extended-remote localhost:61234
         with pagination off -- focus cmd
     '''
