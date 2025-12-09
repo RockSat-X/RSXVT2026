@@ -626,6 +626,34 @@
     [
       "5ece3d0a-e9bb-4e6a-946b-805aaca75ace",
       "Root"
+    ],
+    [
+      "2e1c1ed4-1bb2-4fa0-a9e0-4cf82a925b94",
+      "uSD Connector"
+    ],
+    [
+      "d47d76fd-7437-48e9-9697-c69b7824d8d5",
+      "RGB LED - A"
+    ],
+    [
+      "cbacf443-23bd-449b-a54c-c7360b92e055",
+      "RGB LED - C"
+    ],
+    [
+      "d153028f-6298-40d2-97f3-372782c46755",
+      "RGB LED - B"
+    ],
+    [
+      "40dfd0ae-dff4-4807-8e3f-21ef36050fce",
+      "RGB LED - D"
+    ],
+    [
+      "9f8da623-da6a-4a3e-905a-06dca0b6f272",
+      "Button - A"
+    ],
+    [
+      "9b25b03f-30dc-49f9-97ea-7f1a5be5a1ae",
+      "Button - B"
     ]
   ],
   "text_variables": {}
