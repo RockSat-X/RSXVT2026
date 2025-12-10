@@ -307,6 +307,30 @@ def request_stlinks(
 
 
 
+    # Use STM32_Programmer_CLI to find any connected ST-Links.
+
+    make_sure_shell_command_exists('STM32_Programmer_CLI')
+
+    listing_lines = subprocess.check_output(f'''
+        STM32_Programmer_CLI --list st-link
+    '''.split()).decode('utf-8').splitlines()
+
+
+
+    # Sometimes ST-Links can lock-up.
+
+    if any('ST-LINK error' in line for line in listing_lines):
+
+        logger.error(
+            f'There seems to be an error with an ST-Link; see the output of STM32_Programmer_CLI below:\n'
+            f'\n'
+            f'{'\n'.join(listing_lines)}'
+        )
+
+        exit(1)
+
+
+
     # Parse output of STM32_Programmer_CLI's findings.
     # e.g:
     # >
@@ -317,10 +341,7 @@ def request_stlinks(
     # >       Board Name  : NUCLEO-H7S3L8
     # >
 
-    make_sure_shell_command_exists('STM32_Programmer_CLI')
-
-    listing_lines = subprocess.check_output(['STM32_Programmer_CLI', '--list', 'st-link']).decode('utf-8').splitlines()
-    stlinks       = [
+    stlinks = [
         types.SimpleNamespace(
             probe_index        = int(listing_lines[i + 0].removeprefix(prefix).removesuffix(':')),
             serial_number      =     listing_lines[i + 1].split(':')[1].strip(),
