@@ -2,97 +2,87 @@
 
 
 
-################################################################################################################################
+#
+# Enforce Python version.
+#
 
 
-
-# Ensure Python version.
 
 import sys
 
-MAJOR = 3
-MINOR = 12
-if not (sys.version_info.major == MAJOR and sys.version_info.minor >= MINOR):
+if not (
+    sys.version_info.major == 3 and
+    sys.version_info.minor >= 13
+):
     raise RuntimeError(
         'Unsupported Python version: ' + repr(sys.version) + '; ' +
-        'please upgrade to at least ' + str(MAJOR) + '.' + str(MINOR) + '; '
+        'please upgrade to at least ' + str(MINIMUM_MAJOR) + '.' + str(MINIMIM_MINOR) + '; '
         'note that it is possible that you have multiple instances of Python installed; '
         'in this case, please set your PATH accordingly or use a Python virtual environment.'
     )
 
 
 
+#
 # Built-in modules.
+#
+
+
 
 import types, shlex, pathlib, shutil, subprocess, time, logging
 
 
 
-# The PXD module.
-
-try:
-
-    import deps.stpy.pxd.metapreprocessor
-    import deps.stpy.pxd.cite
-    from   deps.stpy.pxd.ui    import ExitCode
-    from   deps.stpy.pxd.log   import log, ANSI, Indent
-    from   deps.stpy.pxd.utils import root, justify
-
-except ModuleNotFoundError as error:
-
-    if 'pxd' not in error.name:
-        raise # Likely a bug in the PXD module.
-
-    import traceback
-
-    traceback.print_exc()
-
-    print()
-    print(f'[ERROR] Could not import "{error.name}"; maybe the Git submodules need to be initialized/updated? Try doing:')
-    print(f'        > git submodule update --init --recursive')
-    print(f'        If this still doesn\'t work, please raise an issue.')
-
-    sys.exit(1)
-
-
-
-# Common definitions with the meta-preprocessor.
-
-from electrical.Shared import *
-
-
-
-# Import handler for PySerial.
-
-def import_pyserial():
-
-    try:
-
-        import serial
-        import serial.tools.list_ports
-
-    except ModuleNotFoundError as error:
-
-        with ANSI('fg_red'), Indent('[ERROR] ', hanging = True):
-            log(f'''
-                Python got {type(error).__name__} ({error}); try doing:
-                {ANSI('> pip install pyserial', 'bold')}
-            ''')
-
-        raise ExitCode(1)
-
-    return serial, serial.tools.list_ports
-
-
-
-################################################################################################################################
 #
 # Root logger configuration.
 #
 
+
+
 class RootFormatter(logging.Formatter):
 
     def format(self, record):
+
+
+
+        message = super().format(record)
+
+
+
+        # The `table` property allows for a
+        # simple, justified table to be outputted.
+
+        if hasattr(record, 'table'):
+
+            for just_key, just_value in justify([
+                (
+                    ('<' , str(key  )),
+                    (None, str(value)),
+                )
+                for key, value in record.table
+            ]):
+                message += f'\n{just_key} : {just_value}'
+
+
+
+        # Any newlines will be indented so it'll look nice.
+
+        indent = ' ' * len(f'[{record.levelname}] ')
+
+        message = '\n'.join([
+            message.splitlines()[0],
+            *[f'{indent}{line}' for line in message.splitlines()[1:]]
+        ])
+
+
+
+        # Give each log a bit of breathing room.
+
+        message += '\n'
+
+
+
+        # Prepend the log level name and color based on severity.
 
         coloring = {
             'DEBUG'    : '\x1B[0;35m',
@@ -104,195 +94,284 @@ class RootFormatter(logging.Formatter):
 
         reset = '\x1B[0m'
 
-        message = super().format(record)
-
-        return f'{coloring}[{record.levelname}]{reset} {message}'
+        message = f'{coloring}[{record.levelname}]{reset} {message}'
 
 
-class CustomFilter(logging.Filter):
 
-    def filter(self, record):
-
-        if hasattr(record, 'table'):
-
-            for just_key, just_value in justify( [
-                (
-                    ('<' , str(key  )),
-                    (None, str(value)),
-                )
-                for key, value in record.table
-            ]):
-                record.msg += f'\n{' ' * len(f'[{record.levelname}]')} {just_key} : {just_value}'
-
-        record.msg += '\n'
-
-        return super(CustomFilter, self).filter(record)
+        return message
 
 
 
 logging.basicConfig(level = logging.DEBUG)
 logging.getLogger().handlers[0].setFormatter(RootFormatter())
-logging.getLogger().handlers[0].addFilter(CustomFilter())
-
 logger = logging.getLogger(__name__)
 
 
 
-################################################################################################################################
 #
-# Routine for ensuring the user has the required programs on their machine (and provide good error messages if not).
+# The PXD module.
 #
 
-def require(*needed_programs):
-
-    missing_program = next((program for program in needed_programs if shutil.which(program) is None), None)
-
-    if not missing_program:
-        return # The required programs were found on the machine.
 
 
+try:
 
-    with ANSI('fg_red'), Indent('[ERROR] ', hanging = True):
+    import deps.stpy.pxd.metapreprocessor
+    import deps.stpy.pxd.cite
+    from   deps.stpy.pxd.ui    import ExitCode
+    from   deps.stpy.pxd.utils import make_main_relative_path, justify
 
+except ModuleNotFoundError as error:
 
+    if 'pxd' not in error.name:
+        raise # Likely a bug in the PXD module.
 
-        # PowerShell.
+    import traceback
 
-        if missing_program in (roster := [
-            'pwsh',
-        ]):
+    print()
+    traceback.print_exc()
+    print()
 
-            log(f'''
-                Python couldn\'t find "{missing_program}" in your PATH; have you installed PowerShell yet?
-                {ANSI(f'> https://apps.microsoft.com/detail/9MZ1SNWT0N5D', 'bold')}
-                Installing PowerShell via Windows Store is the most convenient way.
-            ''')
+    logger.error(
+        f'Could not import "{error.name}"; maybe the Git '
+        f'submodules need to be initialized/updated? Try doing:' '\n'
+        f'> git submodule update --init --recursive'
+        f'If this still doesn\'t work, please raise an issue.'
+    )
 
-
-
-        # STM32CubeCLT.
-
-        elif missing_program in (roster := [
-            'STM32_Programmer_CLI',
-            'ST-LINK_gdbserver',
-            'arm-none-eabi-gcc',
-            'arm-none-eabi-cpp',
-            'arm-none-eabi-objcopy',
-            'arm-none-eabi-gdb',
-        ]):
-
-            log(f'''
-                Python couldn't find "{missing_program}" in your PATH; have you installed STM32CubeCLT 1.19.0 yet?
-                {ANSI(f'> https://www.st.com/en/development-tools/stm32cubeclt.html', 'bold')}
-                Note that the installation is behind a login-wall.
-                Install and then make sure all of these commands are available in your PATH:
-            ''')
-
-            for program in roster:
-                if shutil.which(program) is not None:
-                    log(ANSI(f'    - [located] {program}', 'fg_green'))
-                else:
-                    log(f'    - [missing] {program}')
+    sys.exit(1)
 
 
 
-        # Picocom.
-
-        elif missing_program in (roster := [
-            'picocom'
-        ]):
-
-            log(f'''
-                Python couldn't find "{missing_program}" in your PATH; have you installed it yet?
-                If you're on a Debian-based distro, this is just simply:
-                {ANSI(f'> sudo apt install picocom', 'bold')}
-                Otherwise, you should only be getting this message on some other Linux distribution
-                to which I have faith in you to figure this out on your own.
-            ''')
+#
+# Import declarations that's
+# shared with the meta-preprocessor.
+#
 
 
 
-        # Make.
-
-        elif missing_program in (roster := [
-            'make'
-        ]):
-
-            log(f'''
-                Python couldn't find "{missing_program}" in your PATH; have you installed it yet?
-                If you're on a Windows system, run the following command and restart your shell:
-                {ANSI(f'> winget install ezwinports.make', 'bold')}
-            ''')
+from electrical.Shared import *
 
 
 
-        # Kicad-CLI.
-
-        elif missing_program in (roster := [
-            'kicad-cli'
-        ]):
-
-            log(f'''
-                Python couldn't find "{missing_program}" in your PATH.
-                This program comes along with KiCad, so on Windows,
-                you might find it at "C:\\Program Files\\KiCad\\9.0\\bin\\{missing_program}.exe".
-                Thus, add something like "C:\\Program Files\\KiCad\\9.0\\bin" to your PATH.
-            ''')
+#
+# Import handler for PySerial.
+#
 
 
 
-        # Not implemented.
+def import_pyserial():
 
-        else:
-            log(f'Python couldn\'t find "{missing_program}" in your PATH; have you installed it yet?')
+    try:
+
+        import serial
+        import serial.tools.list_ports
+
+    except ModuleNotFoundError as error:
+
+        logger.error(
+            f'Python got {type(error).__name__} ({error}); try doing:' '\n'
+            f'> pip install pyserial'
+        )
+
+        sys.exit(1)
+
+    return serial, serial.tools.list_ports
 
 
 
-    raise ExitCode(1)
+#
+# Routine for ensuring the user has the required programs
+# on their machine (and provide good error messages if not).
+#
 
 
 
-################################################################################################################################
+def make_sure_shell_command_exists(*needed_programs):
+
+
+
+    # Search for a missing required program.
+
+    for missing_program in needed_programs:
+        if shutil.which(missing_program) is None:
+            break
+    else:
+        return
+
+
+
+    # PowerShell.
+
+    if missing_program in (roster := [
+        'pwsh',
+    ]):
+
+        logger.error(
+            f'Python couldn\'t find "{missing_program}" in your PATH; have you installed PowerShell yet?' '\n'
+            f'> https://apps.microsoft.com/detail/9MZ1SNWT0N5D'                                           '\n'
+            f'Installing PowerShell via Windows Store is the most convenient way.'                        '\n'
+        )
+
+
+
+    # STM32CubeCLT.
+
+    elif missing_program in (roster := [
+        'STM32_Programmer_CLI',
+        'ST-LINK_gdbserver',
+        'arm-none-eabi-gcc',
+        'arm-none-eabi-cpp',
+        'arm-none-eabi-objcopy',
+        'arm-none-eabi-gdb',
+    ]):
+
+        logger.error(
+            f'Python couldn\'t find "{missing_program}" in your PATH; have you installed STM32CubeCLT 1.19.0 yet?' '\n'
+            f'> https://www.st.com/en/development-tools/stm32cubeclt.html'                                         '\n'
+            f'Note that the installation is behind a login-wall.'                                                  '\n'
+            f'Install and then make sure all of these commands are available in your PATH:'                        '\n',
+            extra = {
+                'table' : [
+                    (f'> {program}', ('missing' if shutil.which(program) is None else 'located'))
+                    for program in roster
+                ]
+            }
+        )
+
+
+
+    # Picocom.
+
+    elif missing_program in (roster := [
+        'picocom',
+    ]):
+
+        logger.error(
+            f'Python couldn\'t find "{missing_program}" in your PATH; have you installed it yet?'  '\n'
+            f'If you\'re on a Debian-based distro, this is just simply:'                           '\n'
+            f'> sudo apt install picocom'                                                          '\n'
+            f'Otherwise, you should only be getting this message on some other Linux distribution' '\n'
+            f'to which I have faith in you to figure this out on your own.'                        '\n'
+        )
+
+
+
+    # Make.
+
+    elif missing_program in (roster := [
+        'make',
+    ]):
+
+        logger.error(
+            f'Python couldn\'t find "{missing_program}" in your PATH; have you installed it yet?' '\n'
+            f'If you\'re on a Windows system, run the following command and restart your shell:'  '\n'
+            f'> winget install ezwinports.make'                                                   '\n'
+        )
+
+
+
+    # KiCad-CLI.
+
+    elif missing_program in (roster := [
+        'kicad-cli',
+    ]):
+
+        logger.error(
+            f'Python couldn\'t find "{missing_program}" in your PATH.'                           '\n'
+            f'This program comes along with KiCad, so on Windows,'                               '\n'
+            f'you might find it at "C:\\Program Files\\KiCad\\9.0\\bin\\{missing_program}.exe".' '\n'
+            f'Thus, add something like "C:\\Program Files\\KiCad\\9.0\\bin" to your PATH.'       '\n'
+        )
+
+
+
+    # Explanation not implemented.
+
+    else:
+
+        logger.error(
+            f'Python couldn\'t find "{missing_program}" in your PATH; have you installed it yet?'
+        )
+
+
+
+    sys.exit(1)
+
+
+
 #
 # Routine for logging out ST-Links as a table.
 #
 
-def log_stlinks(stlinks):
 
-    for justs in justify(
-        [
-            (
-                ('<', 'Probe Index'  ),
-                ('<', 'Board Name'   ),
-                ('<', 'Device'       ),
-                ('<', 'Description'  ),
-                ('<', 'Serial Number'),
-            ),
-        ] + [
-            (
-                ('<', stlink.probe_index        ),
-                ('<', stlink.board_name         ),
-                ('<', stlink.comport.device     ),
-                ('<', stlink.comport.description),
-                ('<', stlink.serial_number      ),
+
+def logger_stlinks(stlinks):
+
+    logger.info(
+        '\n'.join(
+            f'| {' | '.join(justs)} |'
+            for justs in justify(
+                [
+                    (
+                        ('<', 'Probe Index'  ),
+                        ('<', 'Board Name'   ),
+                        ('<', 'Device'       ),
+                        ('<', 'Description'  ),
+                        ('<', 'Serial Number'),
+                    ),
+                ] + [
+                    (
+                        ('<', stlink.probe_index        ),
+                        ('<', stlink.board_name         ),
+                        ('<', stlink.comport.device     ),
+                        ('<', stlink.comport.description),
+                        ('<', stlink.serial_number      ),
+                    )
+                    for stlink in stlinks
+                ]
             )
-            for stlink in stlinks
-        ]
-    ):
-        log(f'| {' | '.join(justs)} |')
+        )
+    )
 
 
 
-################################################################################################################################
 #
 # Routine for finding ST-Links.
 #
+
+
 
 def request_stlinks(
     *,
     specific_one         = False,
     specific_probe_index = None,
 ):
+
+
+
+    # Use STM32_Programmer_CLI to find any connected ST-Links.
+
+    make_sure_shell_command_exists('STM32_Programmer_CLI')
+
+    listing_lines = subprocess.check_output(f'''
+        STM32_Programmer_CLI --list st-link
+    '''.split()).decode('utf-8').splitlines()
+
+
+
+    # Sometimes ST-Links can lock-up.
+
+    if any('ST-LINK error' in line for line in listing_lines):
+
+        logger.error(
+            f'There seems to be an error with an ST-Link; '
+            f'see the output of STM32_Programmer_CLI below:' '\n'
+            f'\n'
+            f'{'\n'.join(listing_lines)}'
+        )
+
+        sys.exit(1)
 
 
 
@@ -306,10 +385,7 @@ def request_stlinks(
     # >       Board Name  : NUCLEO-H7S3L8
     # >
 
-    require('STM32_Programmer_CLI')
-
-    listing_lines = subprocess.check_output(['STM32_Programmer_CLI', '--list', 'st-link']).decode('utf-8').splitlines()
-    stlinks       = [
+    stlinks = [
         types.SimpleNamespace(
             probe_index        = int(listing_lines[i + 0].removeprefix(prefix).removesuffix(':')),
             serial_number      =     listing_lines[i + 1].split(':')[1].strip(),
@@ -330,23 +406,38 @@ def request_stlinks(
     comports = list_ports.comports()
 
     for stlink in stlinks:
-        stlink.comport, = [comport for comport in comports if comport.serial_number == stlink.serial_number]
+        stlink.comport, = [
+            comport
+            for comport in comports
+            if comport.serial_number == stlink.serial_number
+        ]
 
 
 
-    # If a specific probe index was given, give back that specific ST-Link.
+    # The caller expects a specific ST-Link.
 
     if specific_probe_index is not None:
 
+
+
+        # There's no ST-Links!
+
         if not stlinks:
-            log(ANSI(f'[ERROR] No ST-Links found.', 'fg_red'))
-            raise ExitCode(1)
+            logger.error(f'No ST-Links found.')
+            sys.exit(1)
+
+
+
+        # There's no matching ST-Links!
 
         if not (matches := [stlink for stlink in stlinks if stlink.probe_index == specific_probe_index]):
-            log_stlinks(stlinks)
-            log()
-            log(ANSI(f'[ERROR] No ST-Links found with probe index of "{specific_probe_index}".', 'fg_red'))
-            raise ExitCode(1)
+            logger_stlinks(stlinks)
+            logger.error(f'No ST-Links found with probe index of "{specific_probe_index}".')
+            sys.exit(1)
+
+
+
+        # Give back the desired ST-Link.
 
         stlink, = matches
 
@@ -354,19 +445,31 @@ def request_stlinks(
 
 
 
-    # If the caller is assuming there's only one ST-Link, then give back the only one.
+    # If the caller is assuming there's only one
+    # ST-Link, then give back the only one.
 
     if specific_one:
 
+
+
+        # There's no ST-Links!
+
         if not stlinks:
-            log(ANSI(f'[ERROR] No ST-Links found.', 'fg_red'))
-            raise ExitCode(1)
+            logger.error(f'No ST-Links found.')
+            sys.exit(1)
+
+
+
+        # There's too many ST-Links!
 
         if len(stlinks) >= 2:
-            log_stlinks(stlinks)
-            log()
-            log(ANSI(f'[ERROR] Multiple ST-Links found; I don\'t know which one to use.', 'fg_red'))
-            raise ExitCode(1)
+            logger_stlinks(stlinks)
+            logger.error(f'Multiple ST-Links found; I don\'t know which one to use.')
+            sys.exit(1)
+
+
+
+        # Give back the only ST-Link.
 
         stlink, = stlinks
 
@@ -374,168 +477,30 @@ def request_stlinks(
 
 
 
-    # Otherwise, give back the list of the ST-Links we found (if any).
+    # Otherwise, give back the list of
+    # the ST-Links we found (if any).
 
     return stlinks
 
 
 
-################################################################################################################################
 #
-# Routine for executing shell commands.
-#
-
-def execute(
-    default               = None,  # Typically for when the command for cmd.exe and bash are the same (e.g. "echo hello!").
-    *,
-    bash                  = None,
-    cmd                   = None,  # PowerShell is slow to invoke, so cmd.exe would be used if its good enough.
-    powershell            = None,  # "
-    keyboard_interrupt_ok = False,
-    nonzero_exit_code_ok  = False
-):
-
-
-
-    # Determine the shell commands we'll be
-    # executing based on the operating system.
-
-    if cmd is not None and powershell is not None:
-        raise RuntimeError(
-            f'CMD and PowerShell commands cannot be both provided; '
-            f'please raise an issue or patch the script yourself.'
-        )
-
-    match sys.platform:
-
-        case 'win32':
-            use_powershell = cmd is None and powershell is not None
-            commands       = powershell if use_powershell else cmd
-
-        case _:
-            commands       = bash
-            use_powershell = False
-
-    if commands is None:
-        commands = default
-
-    if commands is None:
-        raise RuntimeError(
-            f'Missing shell command for platform "{sys.platform}"; '
-            f'please raise an issue or patch the script yourself.'
-        )
-
-    if isinstance(commands, str):
-        commands = [commands]
-
-
-
-    # Process each command to have it be split into shell tokens.
-    # The lexing that's done here is to do a lot of the funny
-    # business involving escaping quotes and what not. To be honest,
-    # it's a little out my depth, mainly because I frankly do not
-    # care enough to get it 100% correct; it working most of the time
-    # is good enough for me.
-
-    for command_i in range(len(commands)):
-
-        lexer                  = shlex.shlex(commands[command_i])
-        lexer.quotes           = '"'
-        lexer.whitespace_split = True
-        lexer.commenters       = ''
-        commands[command_i]    = list(lexer)
-
-
-
-    # Execute each shell command.
-
-    processes = []
-
-    for command_i, command in enumerate(commands):
-
-        if command_i:
-            log()
-
-        log(
-            '{} {}',
-            ANSI(f'$ {command[0]}', 'fg_bright_green'),
-            ' '.join(command[1:]),
-        )
-
-        command = ' '.join(command)
-
-        if use_powershell:
-
-            # On Windows, Python will call CMD.exe
-            # to run the shell command, so we'll
-            # have to invoke PowerShell to run the
-            # command if PowerShell is needed.
-            processes += [subprocess.Popen(['pwsh', '-Command', command], shell = False)]
-
-        else:
-
-            processes += [subprocess.Popen(command, shell = True)]
-
-
-
-    # Wait on each subprocess to be done.
-
-    for process in processes:
-
-
-
-        # Sometimes commands might stall, so the user
-        # might CTRL-C to kill the subprocess.
-
-        try:
-            subprocess_exit_code = process.wait()
-
-        except KeyboardInterrupt:
-
-            if keyboard_interrupt_ok:
-                subprocess_exit_code = None
-            else:
-                raise
-
-
-
-        # Check results.
-
-        if subprocess_exit_code and not nonzero_exit_code_ok:
-            log()
-            log(ANSI(f'[ERROR] Shell command exited with a non-zero code of {subprocess_exit_code}.', 'fg_red'))
-            raise ExitCode(subprocess_exit_code)
-
-
-
-    # TODO:
-    # For right now, we'll return the exit code for
-    # when there's only one shell command to be executed.
-    # I'd like for this to be more consistent in the future,
-    # however.
-
-    if len(processes) == 1:
-        return subprocess_exit_code
-
-
-
-################################################################################################################################
-#
-# TODO Replace `execute` with `execute_shell_command`.
+# Routine to carry out shell commands.
 #
 
 
-class ExecuteShellCommandError(Exception):
+
+class ExecuteShellCommandNonZeroExitCode(Exception):
     pass
 
+
+
 def execute_shell_command(
-    default               = None,
+    default    = None,
     *,
-    bash                  = None,
-    cmd                   = None,
-    powershell            = None,
-    keyboard_interrupt_ok = False,
-    nonzero_exit_code_ok  = False
+    bash       = None,
+    cmd        = None,
+    powershell = None,
 ):
 
 
@@ -612,33 +577,14 @@ def execute_shell_command(
     # Wait on each subprocess to be done.
 
     for process in processes:
+        if process.wait():
+            raise ExecuteShellCommandNonZeroExitCode
 
 
 
-        # Sometimes commands might stall, so the user
-        # might CTRL-C to kill the subprocess.
-
-        try:
-
-            subprocess_exit_code = process.wait()
-
-        except KeyboardInterrupt:
-
-            if keyboard_interrupt_ok:
-                subprocess_exit_code = None
-            else:
-                raise
-
-
-
-        # Check results.
-
-        if subprocess_exit_code and not nonzero_exit_code_ok:
-            raise ExecuteShellCommandError
-
-
-
-################################################################################################################################
+#
+# Set up the command-line-interface of the Python script.
+#
 
 
 
@@ -649,20 +595,19 @@ def ui_verb_hook(verb, parameters):
     end = time.time()
 
     if (elapsed := end - start) >= 0.5:
-        log()
-        log(f'> "{verb.name}" took: {elapsed :.3f}s')
+        logger.debug(f'"{verb.name}" took {elapsed :.3f}s.')
 
 
 
 ui = deps.stpy.pxd.ui.UI(
-    f'{root(pathlib.Path(__file__).name)}',
+    f'{make_main_relative_path(pathlib.Path(__file__).name)}',
     f'The command line program (pronounced "clippy").',
     ui_verb_hook,
 )
 
 
 
-################################################################################################################################
+################################################################################
 
 
 
@@ -673,15 +618,16 @@ ui = deps.stpy.pxd.ui.UI(
 )
 def clean(parameters):
 
-    directories = [
-        BUILD,
-        './electrical/meta',
-    ]
+    DIRECTORIES = (
+        make_main_relative_path('./build'),
+        make_main_relative_path('./electrical/meta'),
+    )
 
-    for directory in directories:
-        execute(
+    for directory in DIRECTORIES:
+
+        execute_shell_command(
             bash = f'''
-                rm -rf {repr(str(directory))}
+                rm -rf {repr(directory.as_posix())}
             ''',
             cmd = f'''
                 if exist "{directory}" rmdir /S /Q "{directory}"
@@ -690,7 +636,7 @@ def clean(parameters):
 
 
 
-################################################################################################################################
+################################################################################
 
 
 
@@ -718,21 +664,9 @@ def build(parameters):
     # Determine the targets we're building for.
 
     if parameters.target is None:
-        targets = TARGETS
+        targets_to_build = TARGETS
     else:
-        targets = [parameters.target]
-
-
-
-    # Logging routine for outputting nice dividers in stdout.
-
-    def log_header(message):
-
-        log(f'''
-
-            {ANSI(f'{'>' * 32} {message} {'<' * 32}', 'bold', 'fg_bright_black')}
-
-        ''')
+        targets_to_build = [parameters.target]
 
 
 
@@ -740,8 +674,8 @@ def build(parameters):
 
     metapreprocessor_file_paths = [
         pathlib.Path(root, file_name)
-        for root, dirs, file_names in root('./electrical').walk()
-        for file_name in file_names
+        for root, directories, file_names in make_main_relative_path('./electrical').walk()
+        for                    file_name  in file_names
         if file_name.endswith(('.c', '.h', '.py', '.ld', '.S'))
     ]
 
@@ -749,84 +683,70 @@ def build(parameters):
 
     # Callback of things to do before and after the execution of a meta-directive.
 
-    elapsed = 0
+    elapsed               = 0
+    meta_directive_deltas = []
 
     def metadirective_callback(index, meta_directives):
 
-        nonlocal elapsed
-
-
-
-        # Show some of the symbols that this meta-directive will export.
-
-        export_preview = ', '.join(meta_directives[index].exports)
-
-        if export_preview:
-
-            if len(export_preview) > (cutoff := 64): # This meta-directive is exporting a lot of stuff, so we trim the list.
-                export_preview = ', '.join(export_preview[:cutoff].rsplit(',')[:-1] + ['...'])
-
-            export_preview = ' ' + export_preview
-
-
+        nonlocal elapsed, meta_directive_deltas
 
         # Log the evaluation of the meta-directive.
 
-        just_nth, just_src, just_line = justify(
-            (
-                ('<', meta_directive_i + 1                  ),
-                ('<', meta_directive.source_file_path       ),
-                ('<', meta_directive.meta_header_line_number),
-            )
-            for meta_directive_i, meta_directive in enumerate(meta_directives)
-        )[index]
+        location = f'{meta_directives[index].source_file_path.as_posix()}:{meta_directives[index].meta_header_line_number}'
 
-        log(f'| {just_nth}/{len(meta_directives)} | {just_src} : {just_line} |{export_preview}')
+        logger.info(f'Meta-preprocessing {location}')
 
 
 
         # Record how long it takes to run this meta-directive.
 
-        start  = time.time()
-        output = yield
-        end    = time.time()
-        delta  = end - start
-
-        if delta > 0.050:
-            log(ANSI(f'^ {delta :.3}s', 'fg_yellow')) # Warn that this meta-directive took quite a while to execute.
-
-        elapsed += delta
+        start                  = time.time()
+        output                 = yield
+        end                    = time.time()
+        delta                  = end - start
+        meta_directive_deltas += [(location, delta)]
+        elapsed               += delta
 
 
 
     # Begin meta-preprocessing!
 
-    if not parameters.metapreprocess_only:
-        log_header('Meta-preprocessing')
-    else:
-        log()
-
     try:
         deps.stpy.pxd.metapreprocessor.do(
-            output_directory_path = root('./electrical/meta'),
+            output_directory_path = make_main_relative_path('./electrical/meta'),
             source_file_paths     = metapreprocessor_file_paths,
             callback              = metadirective_callback,
         )
     except deps.stpy.pxd.metapreprocessor.MetaError as error:
         error.dump()
-        raise ExitCode(1)
+        sys.exit(1)
 
-    log()
-    log(ANSI(f'# Meta-preprocessor : {elapsed :.3f}s.', 'fg_magenta'))
+
+
+    # Log the performance of the meta-preprocessor.
+
+    logger.debug(
+        f'Meta-processing {len(meta_directive_deltas)} meta-directives took {elapsed :.3f}s.',
+        extra = {
+            'table' : [
+                (location, f'{delta :.3f}s | {delta / elapsed * 100 : 5.1f}%')
+                for location, delta in sorted(meta_directive_deltas, key = lambda x: -x[1])
+            ]
+        }
+    )
+
+
+
+    # Sometimes we only just need to run the meta-preprocessor without compiling.
 
     if parameters.metapreprocess_only:
-        raise ExitCode(0)
+        return
 
 
 
-    # Build the targets in parallel.
+    # We now move onto actually building the firmware.
 
-    require(
+    make_sure_shell_command_exists(
         'arm-none-eabi-gcc',
         'arm-none-eabi-cpp',
         'arm-none-eabi-objcopy',
@@ -835,79 +755,78 @@ def build(parameters):
 
 
 
-    log_header(f'Build Artifact Folder')
+    # Creating build artifact folders.
 
-    execute(
+    execute_shell_command(
         bash = [
-            f'mkdir -p {BUILD / target.name}'
-            for target in targets
+            f'mkdir -p {make_main_relative_path('./build', target.name)}'
+            for target in targets_to_build
             if target.source_file_paths
         ],
         cmd = [
             f'''
-                if not exist "{BUILD / target.name}" (
-                    mkdir {BUILD / target.name}
+                if not exist "{make_main_relative_path('./build', target.name)}" (
+                    mkdir {make_main_relative_path('./build', target.name)}
                 )
             '''
-            for target in targets
+            for target in targets_to_build
             if target.source_file_paths
         ],
     )
 
 
 
-    log_header(f'Linker File Preprocessing')
-    execute([
+    # Preprocessing the linker files.
+
+    execute_shell_command([
         f'''
             arm-none-eabi-cpp
                 {target.compiler_flags}
                 -E
                 -x c
-                -o "{(BUILD / target.name / 'link.ld').as_posix()}"
-                "{root('./electrical/link.ld').as_posix()}"
+                -o "{make_main_relative_path('./build', target.name, 'link.ld').as_posix()}"
+                "{make_main_relative_path('./electrical/link.ld').as_posix()}"
         '''
-        for target in targets
+        for target in targets_to_build
         if target.source_file_paths
     ])
 
 
 
-    log_header(f'Building')
-    execute([
+    # Compiling and linking the source code.
+
+    execute_shell_command([
         f'''
             arm-none-eabi-gcc
                 {' '.join(f'"{source}"' for source in target.source_file_paths)}
-                -o "{root('./build', target.name, target.name + '.elf')}"
-                -T "{(BUILD / target.name / 'link.ld').as_posix()}"
+                -o "{make_main_relative_path('./build', target.name, f'{target.name}.elf').as_posix()}"
+                -T "{make_main_relative_path('./build', target.name, 'link.ld'           ).as_posix()}"
                 {target.compiler_flags}
                 {target.linker_flags}
         '''
-        for target in targets
+        for target in targets_to_build
         if target.source_file_paths
     ])
 
 
 
-    log_header(f'Binary Conversion')
-    execute([
+    # Converting the ELF file to a binary file.
+
+    execute_shell_command([
         f'''
             arm-none-eabi-objcopy
                 -S
                 -O binary
-                "{(BUILD / target.name / f'{target.name}.elf').as_posix()}"
-                "{(BUILD / target.name / f'{target.name}.bin').as_posix()}"
+                "{make_main_relative_path('./build', target.name, f'{target.name}.elf').as_posix()}"
+                "{make_main_relative_path('./build', target.name, f'{target.name}.bin').as_posix()}"
         '''
-        for target in targets
+        for target in targets_to_build
         if target.source_file_paths
     ])
 
 
 
-    log_header(f'Hip-hip hooray! Built {', '.join(f'"{target.name}"' for target in targets)}!')
-
-
-
-################################################################################################################################
+################################################################################
 
 
 
@@ -926,9 +845,26 @@ def flash(parameters):
 
 
 
-    # Begin flashing the MCU, which might take multiple tries.
+    make_sure_shell_command_exists('STM32_Programmer_CLI')
 
-    require('STM32_Programmer_CLI')
+
+
+    # Ensure binary file exists.
+
+    binary_file_path = make_main_relative_path('./build', parameters.target.name, f'{parameters.target.name}.bin')
+
+    if not binary_file_path.is_file():
+
+        logger.error(
+            f'Binary file {repr(binary_file_path.as_posix())} '
+            f'is needed for flashing; try building first.'
+        )
+
+        sys.exit(1)
+
+
+
+    # Begin flashing the MCU, which might take multiple tries.
 
     stlink   = request_stlinks(specific_one = True)
     attempts = 0
@@ -940,52 +876,50 @@ def flash(parameters):
         # Maxed out attempts?
 
         if attempts == 3:
-            with ANSI('fg_red'):
-                log(f'''
 
-                    [ERROR] Failed to flash; this might be because...
-                            - the binary file haven\'t been built yet.
-                            - the ST-Link is being used by a another program.
-                            - the ST-Link has disconnected.
-                            - ... or something else entirely!
-                ''')
-            raise ExitCode(1)
+            logger.error(
+                f'Failed to flash; this might be because '
+                f'the ST-Link is being used by another '
+                f'program or that the ST-Link is disconnected.'
+            )
+
+            sys.exit(1)
 
 
 
         # Not the first try?
 
         elif attempts:
-            log(f'''
 
-                {ANSI('[WARNING] Failed to flash (maybe due to verification error); trying again...', 'fg_yellow')}
-
-            ''')
+            logger.warning(
+                f'Failed to flash '
+                f'(maybe due to verification error); '
+                f'trying again...'
+            )
 
 
 
         # Try flashing.
 
-        exit_code = execute(f'''
-            STM32_Programmer_CLI
-                --connect port=SWD index={stlink.probe_index}
-                --download "{(BUILD / parameters.target.name / f'{parameters.target.name}.bin').as_posix()}" 0x08000000
-                --verify
-                --start
-        ''', nonzero_exit_code_ok = True)
+        try:
 
+            execute_shell_command(f'''
+                STM32_Programmer_CLI
+                    --connect port=SWD index={stlink.probe_index}
+                    --download "{binary_file_path.as_posix()}" 0x08000000
+                    --verify
+                    --start
+            ''')
 
-
-        # Try again if needed.
-
-        if exit_code:
-            attempts += 1
-        else:
             break
 
+        except ExecuteShellCommandNonZeroExitCode:
+
+            attempts += 1
 
 
-################################################################################################################################
+
+################################################################################
 
 
 
@@ -1010,59 +944,89 @@ def debug(parameters):
 
 
 
-    # Set up the GDB-server.
+    # Ensure ELF file exists.
 
-    stlink = request_stlinks(specific_one = True)
+    elf_file_path = make_main_relative_path('./build', parameters.target.name, f'{parameters.target.name}.elf')
 
-    require(
+    if not elf_file_path.is_file():
+
+        logger.error(
+            f'ELF file {repr(elf_file_path.as_posix())} '
+            f'is needed for debugging; try building first.'
+        )
+
+        sys.exit(1)
+
+
+
+    # Set up the shell command that'd initialize the GDB-server.
+
+    make_sure_shell_command_exists(
         'ST-LINK_gdbserver',
         'STM32_Programmer_CLI',
     )
 
-    apid      = 1 # TODO This is the core ID, which varies board to board... Maybe we just hardcode it?
+    stlink = request_stlinks(specific_one = True)
+
     gdbserver = f'''
         ST-LINK_gdbserver
             --stm32cubeprogrammer-path {repr(str(pathlib.Path(shutil.which('STM32_Programmer_CLI')).parent))}
             --serial-number {stlink.serial_number}
             --swd
-            --apid {apid}
+            --apid 1
             --verify
             --attach
     '''
 
+
+
+    # Just set up the GDB-server now if that's all that's needed of us.
+
     if parameters.just_gdbserver:
-        execute(gdbserver, keyboard_interrupt_ok = True)
+        execute_shell_command(gdbserver)
         return
 
 
 
-    # Set up GDB.
+    # Set up the shell command that'd initialize GDB itself.
 
-    require('arm-none-eabi-gdb')
+    make_sure_shell_command_exists('arm-none-eabi-gdb')
 
-    gdb_init = f'''
-        file {repr((BUILD / parameters.target.name / (f'{parameters.target.name}.elf')).as_posix())}
+    gdb_init_instructions = f'''
+        file {repr(elf_file_path.as_posix())}
         target extended-remote localhost:61234
         with pagination off -- focus cmd
     '''
 
     gdb = f'''
-        arm-none-eabi-gdb -q {' '.join(f'-ex "{inst.strip()}"' for inst in gdb_init.strip().splitlines())}
+        arm-none-eabi-gdb -q {' '.join(
+            f'-ex "{instructions.strip()}"'
+            for instructions in gdb_init_instructions.strip().splitlines()
+        )}
     '''
 
 
 
     # Launch the debugging session.
 
-    execute(
-        bash                  = f'set -m; {gdbserver} 1> /dev/null 2> /dev/null & {gdb}',
-        powershell            = f'{gdbserver} & {gdb}',
-        keyboard_interrupt_ok = True, # Happens whenever we halt execution in GDB using CTRL-C.
-    )
+    try:
+
+        execute_shell_command(
+            bash       = f'set -m; {gdbserver} 1> /dev/null 2> /dev/null & {gdb}',
+            powershell = f'{gdbserver} & {gdb}',
+        )
+
+    except KeyboardInterrupt:
+
+        # If the user presses CTRL-C during a GDB
+        # session, Python will register this as an
+        # exception once the command ends.
+
+        pass
 
 
 
-################################################################################################################################
+################################################################################
 
 
 
@@ -1078,64 +1042,66 @@ def talk(parameters):
 
     if parameters.help:
 
+        from deps.stpy.pxd.log import log # TODO Deprecate.
+
         match sys.platform:
             case 'linux' : log('<ctrl-a ctrl-q> Exit.')
             case 'win32' : log('<ctrl-c> Exit.')
-            case 'win32' : log('<ctrl-c> Exit (maybe?).')
+            case _       : log('<ctrl-c> Exit (maybe?).')
 
         return
 
 
 
     if sys.platform == 'linux':
-        require('picocom')
+        make_sure_shell_command_exists('picocom')
 
     stlink = request_stlinks(specific_one = True)
 
-    execute(
+    try:
+
+        execute_shell_command(
+
+            # Picocom's pretty good!
+
+            bash = f'''
+                picocom --baud={STLINK_BAUD} --quiet --imap=lfcrlf {stlink.comport.device}
+            ''',
 
 
 
-        # Picocom's pretty good!
+            # The only reason why PowerShell is used here is
+            # because there's no convenient way in Python to
+            # read a single character from STDIN with no blocking
+            # and buffering. Furthermore, the serial port on
+            # Windows seem to be buffered up, so data before the
+            # port is opened for reading is available to fetch;
+            # PySerial only returns data sent after the port is opened.
 
-        bash = f'''
-            picocom --baud={STLINK_BAUD} --quiet --imap=lfcrlf {stlink.comport.device}
-        ''',
-
-
-
-        # The only reason why PowerShell is used here is because there's no convenient way
-        # in Python to read a single character from STDIN with no blocking and buffering.
-        # Furthermore, the serial port on Windows seem to be buffered up, so data before the
-        # port is opened for reading is available to fetch; PySerial only returns data sent after
-        # the port is opened.
-
-        powershell = f'''
-            $port = new-Object System.IO.Ports.SerialPort {stlink.comport.device},{STLINK_BAUD},None,8,one;
-            $port.Open();
-            try {{
-                while ($true) {{
-                    Write-Host -NoNewline $port.ReadExisting();
-                    if ([System.Console]::KeyAvailable) {{
-                        $port.Write([System.Console]::ReadKey($true).KeyChar);
+            powershell = f'''
+                $port = new-Object System.IO.Ports.SerialPort {stlink.comport.device},{STLINK_BAUD},None,8,one;
+                $port.Open();
+                try {{
+                    while ($true) {{
+                        Write-Host -NoNewline $port.ReadExisting();
+                        if ([System.Console]::KeyAvailable) {{
+                            $port.Write([System.Console]::ReadKey($true).KeyChar);
+                        }}
+                        Start-Sleep -Milliseconds 1;
                     }}
-                    Start-Sleep -Milliseconds 1;
+                }} finally {{
+                    $port.Close();
                 }}
-            }} finally {{
-                $port.Close();
-            }}
-        ''',
+            '''
+
+        )
+
+    except KeyboardInterrupt:
+        pass
 
 
 
-        # Whenever we close the port using CTRL-C, a KeyboardInterrupt exception is raised as a false-positive.
-
-        keyboard_interrupt_ok = True,
-    )
-
-
-
-################################################################################################################################
+################################################################################
 
 
 
@@ -1146,14 +1112,18 @@ def talk(parameters):
     },
 )
 def _(parameters):
+
     if stlinks := request_stlinks():
-        log_stlinks(stlinks)
+
+        logger_stlinks(stlinks)
+
     else:
-        log('No ST-Link detected by STM32_Programmer_CLI.')
+
+        logger.info('No ST-Link detected by STM32_Programmer_CLI.')
 
 
 
-################################################################################################################################
+################################################################################
 
 
 
@@ -1161,7 +1131,7 @@ ui(deps.stpy.pxd.cite.ui)
 
 
 
-################################################################################################################################
+################################################################################
 
 
 
@@ -1172,18 +1142,10 @@ ui(deps.stpy.pxd.cite.ui)
 )
 def checkPCBs(parameters):
 
-    make_sure_shell_command_exists = require # TODO Rename.
-    make_main_relative_path        = root    # TODO Rename.
 
 
-
-    DIRECTORY_PATH_OF_KICAD_PROJECTS   = make_main_relative_path('./pcb')
-    DIRECTORY_PATH_OF_OUTPUTS          = make_main_relative_path('./build')
-    DIRECTORY_PATH_OF_SYMBOL_LIBRARIES = make_main_relative_path('./pcb/symbols')
-
-
-
-    # We'll be relying on KiCad's CLI program to generate the netlist of schematics.
+    # We'll be relying on KiCad's CLI program
+    # to generate the netlist of schematics.
 
     make_sure_shell_command_exists('kicad-cli')
 
@@ -1206,7 +1168,7 @@ def checkPCBs(parameters):
 
     symbol_library_file_names = [
         file_name
-        for _, _, file_names in DIRECTORY_PATH_OF_SYMBOL_LIBRARIES.walk()
+        for _, _, file_names in make_main_relative_path('./pcb/symbols').walk()
         for       file_name  in file_names
         if file_name.endswith(suffix := '.kicad_sym')
     ]
@@ -1223,7 +1185,7 @@ def checkPCBs(parameters):
     for symbol_library_file_name in symbol_library_file_names:
 
         symbol_library_sexp = deps.stpy.pxd.sexp.parse_sexp(
-            (DIRECTORY_PATH_OF_SYMBOL_LIBRARIES / symbol_library_file_name).read_text()
+            make_main_relative_path('./pcb/symbols', symbol_library_file_name).read_text()
         )
 
         for entry in symbol_library_sexp:
@@ -1288,7 +1250,7 @@ def checkPCBs(parameters):
 
     kicad_projects = [
         file_name.removesuffix(suffix)
-        for _, _, file_names in DIRECTORY_PATH_OF_KICAD_PROJECTS.walk()
+        for _, _, file_names in make_main_relative_path('./pcb').walk()
         for       file_name  in file_names
         if file_name.endswith(suffix := '.kicad_pro')
     ]
@@ -1307,8 +1269,8 @@ def checkPCBs(parameters):
          # in parallel because of some lock file
          # for some reason.
 
-        schematic_file_path = DIRECTORY_PATH_OF_KICAD_PROJECTS / f'{kicad_project}.kicad_sch'
-        netlist_file_path   = DIRECTORY_PATH_OF_OUTPUTS        / f'{kicad_project}.net'
+        schematic_file_path = make_main_relative_path('./pcb'  , f'{kicad_project}.kicad_sch')
+        netlist_file_path   = make_main_relative_path('./build', f'{kicad_project}.net'      )
 
         execute_shell_command(f'''
             kicad-cli
@@ -1486,7 +1448,9 @@ def checkPCBs(parameters):
 
                 for coordinate, net_name in nets:
 
-                    coupled_connectors[key][str(coordinate)].nets += [(schematic_file_path, net_name)]
+                    coupled_connectors[key][str(coordinate)].nets += [
+                        (schematic_file_path, net_name)
+                    ]
 
 
 
@@ -1509,7 +1473,8 @@ def checkPCBs(parameters):
 
                 logger.warning(
                     f'Coupled connector {repr(coupled_connector_name)} '
-                    f'on pin {repr(coupled_pin_coordinate)} only has one net associated with it.',
+                    f'on pin {repr(coupled_pin_coordinate)} only has '
+                    f'one net associated with it.',
                     extra = {
                         'table' : [
                             (repr(schematic_file_path.name), repr(net_name))
@@ -1530,7 +1495,8 @@ def checkPCBs(parameters):
 
                 logger.warning(
                     f'Coupled connector {repr(coupled_connector_name)} '
-                    f'on pin {repr(coupled_pin_coordinate)} has conflicting nets associated with it.',
+                    f'on pin {repr(coupled_pin_coordinate)} has '
+                    f'conflicting nets associated with it.',
                     extra = {
                         'table' : [
                             (repr(schematic_file_path.name), repr(net_name))
@@ -1541,19 +1507,14 @@ def checkPCBs(parameters):
 
 
 
-################################################################################################################################
+################################################################################
 
 
 
-exit(ui.invoke(sys.argv[1:]))
+try:
 
+    sys.exit(ui.invoke(sys.argv[1:]))
 
+except KeyboardInterrupt:
 
-################################################################################################################################
-
-
-
-# This is the main Python script that we will be using to pretty much do everything on this project.
-# This includes building, flashing, debugging, opening serial ports, and much more in the future.
-# A lot of this is magic made by the PXD library, so if you'd like to extend this script with more verbs,
-# then please checkout the PXD library and/or read the existing code here as reference.
+    logger.error('Interrupted by keyboard.')
