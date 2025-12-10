@@ -36,9 +36,7 @@ try:
     import deps.stpy.pxd.cite
     from   deps.stpy.pxd.ui    import ExitCode
     from   deps.stpy.pxd.log   import log, ANSI, Indent
-    from   deps.stpy.pxd.utils import root, justify
-
-    make_main_relative_path = root # TODO Rename.
+    from   deps.stpy.pxd.utils import make_main_relative_path, justify
 
 except ModuleNotFoundError as error:
 
@@ -493,7 +491,7 @@ def ui_verb_hook(verb, parameters):
 
 
 ui = deps.stpy.pxd.ui.UI(
-    f'{root(pathlib.Path(__file__).name)}',
+    f'{make_main_relative_path(pathlib.Path(__file__).name)}',
     f'The command line program (pronounced "clippy").',
     ui_verb_hook,
 )
@@ -578,8 +576,8 @@ def build(parameters):
     # Determine the files for the meta-preprocessor to scan through.
 
     metapreprocessor_file_paths = [
-        pathlib.Path(root, file_name)
-        for root, dirs, file_names in root('./electrical').walk()
+        pathlib.Path(make_main_relative_path, file_name)
+        for make_main_relative_path, dirs, file_names in make_main_relative_path('./electrical').walk()
         for file_name in file_names
         if file_name.endswith(('.c', '.h', '.py', '.ld', '.S'))
     ]
@@ -647,7 +645,7 @@ def build(parameters):
 
     try:
         deps.stpy.pxd.metapreprocessor.do(
-            output_directory_path = root('./electrical/meta'),
+            output_directory_path = make_main_relative_path('./electrical/meta'),
             source_file_paths     = metapreprocessor_file_paths,
             callback              = metadirective_callback,
         )
@@ -703,7 +701,7 @@ def build(parameters):
                 -E
                 -x c
                 -o "{(BUILD / target.name / 'link.ld').as_posix()}"
-                "{root('./electrical/link.ld').as_posix()}"
+                "{make_main_relative_path('./electrical/link.ld').as_posix()}"
         '''
         for target in targets
         if target.source_file_paths
@@ -716,7 +714,7 @@ def build(parameters):
         f'''
             arm-none-eabi-gcc
                 {' '.join(f'"{source}"' for source in target.source_file_paths)}
-                -o "{root('./build', target.name, target.name + '.elf')}"
+                -o "{make_main_relative_path('./build', target.name, target.name + '.elf')}"
                 -T "{(BUILD / target.name / 'link.ld').as_posix()}"
                 {target.compiler_flags}
                 {target.linker_flags}

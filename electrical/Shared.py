@@ -1,7 +1,7 @@
 #meta STLINK_BAUD, TARGETS, PER_MCU, PER_TARGET :
 
 import types, collections
-from deps.stpy.pxd.utils import root, c_repr
+from deps.stpy.pxd.utils import make_main_relative_path, c_repr
 from deps.stpy.mcus      import MCUS
 
 
@@ -12,15 +12,15 @@ from deps.stpy.mcus      import MCUS
 
 STLINK_BAUD = 1_000_000
 
-BUILD = root('./build')
+BUILD = make_main_relative_path('./build')
 
 MCU_SUPPORT = {
 
     'STM32H7S3L8H6' : {
         'include_paths' : (
-            root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1'),
+            make_main_relative_path('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1'),
         ),
-        'freertos_source_file_paths' : root('''
+        'freertos_source_file_paths' : make_main_relative_path('''
             ./deps/FreeRTOS_Kernel/tasks.c
             ./deps/FreeRTOS_Kernel/queue.c
             ./deps/FreeRTOS_Kernel/list.c
@@ -35,9 +35,9 @@ MCU_SUPPORT = {
 
     'STM32H533RET6' : {
         'include_paths' : (
-            root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
+            make_main_relative_path('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
         ),
-        'freertos_source_file_paths' : root('''
+        'freertos_source_file_paths' : make_main_relative_path('''
             ./deps/FreeRTOS_Kernel/tasks.c
             ./deps/FreeRTOS_Kernel/queue.c
             ./deps/FreeRTOS_Kernel/list.c
@@ -53,9 +53,9 @@ MCU_SUPPORT = {
 
     'STM32H533VET6' : {
         'include_paths' : (
-            root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
+            make_main_relative_path('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
         ),
-        'freertos_source_file_paths' : root('''
+        'freertos_source_file_paths' : make_main_relative_path('''
             ./deps/FreeRTOS_Kernel/tasks.c
             ./deps/FreeRTOS_Kernel/queue.c
             ./deps/FreeRTOS_Kernel/list.c
@@ -83,7 +83,7 @@ TARGETS = (
 
         name              = 'SandboxNucleoH7S3L8',
         mcu               = 'STM32H7S3L8H6',
-        source_file_paths = root('''
+        source_file_paths = make_main_relative_path('''
             ./electrical/SandboxNucleoBoard.c
         '''),
 
@@ -142,7 +142,7 @@ TARGETS = (
 
         name              = 'SandboxNucleoH533RE',
         mcu               = 'STM32H533RET6',
-        source_file_paths = root('''
+        source_file_paths = make_main_relative_path('''
             ./electrical/SandboxNucleoBoard.c
         '''),
 
@@ -195,7 +195,7 @@ TARGETS = (
 
         name              = 'DemoI2C',
         mcu               = 'STM32H533RET6',
-        source_file_paths = root('''
+        source_file_paths = make_main_relative_path('''
             ./electrical/DemoI2C.c
         '''),
 
@@ -271,7 +271,7 @@ TARGETS = (
 
         name              = 'DemoTimer',
         mcu               = 'STM32H533RET6',
-        source_file_paths = root('''
+        source_file_paths = make_main_relative_path('''
             ./electrical/DemoTimer.c
         '''),
 
@@ -328,7 +328,7 @@ TARGETS = (
 
         name              = 'DemoSPI',
         mcu               = 'STM32H533RET6',
-        source_file_paths = root('''
+        source_file_paths = make_main_relative_path('''
             ./electrical/DemoSPI.c
         '''),
 
@@ -393,7 +393,7 @@ TARGETS = (
 
         name              = 'DemoTimekeeping',
         mcu               = 'STM32H533RET6',
-        source_file_paths = root('''
+        source_file_paths = make_main_relative_path('''
             ./electrical/DemoTimekeeping.c
         '''),
 
@@ -451,7 +451,7 @@ TARGETS = (
 
         name              = 'DemoSDMMC',
         mcu               = 'STM32H533RET6',
-        source_file_paths = root('''
+        source_file_paths = make_main_relative_path('''
             ./electrical/DemoSDMMC.c
         '''),
 
@@ -520,7 +520,7 @@ TARGETS = (
 
         name              = 'SensorShield',
         mcu               = 'STM32H533RET6',
-        source_file_paths = root('''
+        source_file_paths = make_main_relative_path('''
             ./electrical/SensorShield.c
         '''),
 
@@ -747,7 +747,7 @@ TARGETS = (
 
         name              = 'DemoTMC2209',
         mcu               = 'STM32H533RET6',
-        source_file_paths = root('''
+        source_file_paths = make_main_relative_path('''
             ./electrical/DemoTMC2209.c
         '''),
 
@@ -867,12 +867,12 @@ for target in TARGETS:
     # Some include-directive search paths.
 
     include_paths = (
-        root('./electrical/meta'),
-        root('./deps/CMSIS_6/CMSIS/Core/Include'),
-        root('./deps/FreeRTOS_Kernel/include'),
-        root('./deps/printf/src'),
-        root('.'),
-        root('./electrical'),
+        make_main_relative_path('./electrical/meta'),
+        make_main_relative_path('./deps/CMSIS_6/CMSIS/Core/Include'),
+        make_main_relative_path('./deps/FreeRTOS_Kernel/include'),
+        make_main_relative_path('./deps/printf/src'),
+        make_main_relative_path('.'),
+        make_main_relative_path('./electrical'),
         *MCU_SUPPORT[target.mcu]['include_paths'],
     )
 
