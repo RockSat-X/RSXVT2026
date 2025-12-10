@@ -894,6 +894,21 @@ def debug(parameters):
 
 
 
+    # Ensure ELF file exists.
+
+    elf_file_path = BUILD / parameters.target.name / f'{parameters.target.name}.elf'
+
+    if not elf_file_path.is_file():
+
+        logger.error(
+            f'ELF file {repr(elf_file_path.as_posix())} '
+            f'is needed for debugging; try building first.'
+        )
+
+        exit(1)
+
+
+
     # Set up the shell command that'd initialize the GDB-server.
 
     make_sure_shell_command_exists(
@@ -928,7 +943,7 @@ def debug(parameters):
     make_sure_shell_command_exists('arm-none-eabi-gdb')
 
     gdb_init_instructions = f'''
-        file {repr((BUILD / parameters.target.name / (f'{parameters.target.name}.elf')).as_posix())}
+        file {repr(elf_file_path.as_posix())}
         target extended-remote localhost:61234
         with pagination off -- focus cmd
     '''
