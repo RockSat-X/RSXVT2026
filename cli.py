@@ -2,7 +2,7 @@
 
 
 
-################################################################################################################################
+################################################################################
 
 
 
@@ -85,7 +85,7 @@ def import_pyserial():
 
 
 
-################################################################################################################################
+################################################################################
 #
 # Root logger configuration.
 #
@@ -122,9 +122,16 @@ class CustomFilter(logging.Filter):
                 )
                 for key, value in record.table
             ]):
-                record.msg += f'\n{' ' * len(f'[{record.levelname}]')} {just_key} : {just_value}'
+                record.msg += f'\n{just_key} : {just_value}'
 
-        record.msg += '\n'
+        record.msg = '\n'.join((
+            record.msg.splitlines()[0],
+            *(
+                f'{' ' * len(f'[{record.levelname}] ')}{line}'
+                for line in record.msg.splitlines()[1:]
+            ),
+            ''
+        ))
 
         return super(CustomFilter, self).filter(record)
 
@@ -138,7 +145,7 @@ logger = logging.getLogger(__name__)
 
 
 
-################################################################################################################################
+################################################################################
 #
 # Routine for ensuring the user has the required programs on their machine (and provide good error messages if not).
 #
@@ -252,38 +259,42 @@ def make_sure_shell_command_exists(*needed_programs):
 
 
 
-################################################################################################################################
+################################################################################
 #
 # Routine for logging out ST-Links as a table.
 #
 
-def log_stlinks(stlinks):
+def logger_stlinks(stlinks):
 
-    for justs in justify(
-        [
-            (
-                ('<', 'Probe Index'  ),
-                ('<', 'Board Name'   ),
-                ('<', 'Device'       ),
-                ('<', 'Description'  ),
-                ('<', 'Serial Number'),
-            ),
-        ] + [
-            (
-                ('<', stlink.probe_index        ),
-                ('<', stlink.board_name         ),
-                ('<', stlink.comport.device     ),
-                ('<', stlink.comport.description),
-                ('<', stlink.serial_number      ),
+    logger.info(
+        '\n'.join(
+            f'| {' | '.join(justs)} |'
+            for justs in justify(
+                [
+                    (
+                        ('<', 'Probe Index'  ),
+                        ('<', 'Board Name'   ),
+                        ('<', 'Device'       ),
+                        ('<', 'Description'  ),
+                        ('<', 'Serial Number'),
+                    ),
+                ] + [
+                    (
+                        ('<', stlink.probe_index        ),
+                        ('<', stlink.board_name         ),
+                        ('<', stlink.comport.device     ),
+                        ('<', stlink.comport.description),
+                        ('<', stlink.serial_number      ),
+                    )
+                    for stlink in stlinks
+                ]
             )
-            for stlink in stlinks
-        ]
-    ):
-        log(f'| {' | '.join(justs)} |')
+        )
+    )
 
 
 
-################################################################################################################################
+################################################################################
 #
 # Routine for finding ST-Links.
 #
@@ -343,7 +354,7 @@ def request_stlinks(
             raise ExitCode(1)
 
         if not (matches := [stlink for stlink in stlinks if stlink.probe_index == specific_probe_index]):
-            log_stlinks(stlinks)
+            logger_stlinks(stlinks)
             log()
             log(ANSI(f'[ERROR] No ST-Links found with probe index of "{specific_probe_index}".', 'fg_red'))
             raise ExitCode(1)
@@ -363,7 +374,7 @@ def request_stlinks(
             raise ExitCode(1)
 
         if len(stlinks) >= 2:
-            log_stlinks(stlinks)
+            logger_stlinks(stlinks)
             log()
             log(ANSI(f'[ERROR] Multiple ST-Links found; I don\'t know which one to use.', 'fg_red'))
             raise ExitCode(1)
@@ -380,7 +391,7 @@ def request_stlinks(
 
 
 
-################################################################################################################################
+################################################################################
 
 
 
@@ -474,7 +485,7 @@ def execute_shell_command(
 
 
 
-################################################################################################################################
+################################################################################
 
 
 
@@ -498,7 +509,7 @@ ui = deps.stpy.pxd.ui.UI(
 
 
 
-################################################################################################################################
+################################################################################
 
 
 
@@ -527,7 +538,7 @@ def clean(parameters):
 
 
 
-################################################################################################################################
+################################################################################
 
 
 
@@ -744,7 +755,7 @@ def build(parameters):
 
 
 
-################################################################################################################################
+################################################################################
 
 
 
@@ -763,9 +774,26 @@ def flash(parameters):
 
 
 
-    # Begin flashing the MCU, which might take multiple tries.
-
     make_sure_shell_command_exists('STM32_Programmer_CLI')
+
+
+
+    # Ensure binary file exists.
+
+    binary_file_path = BUILD / parameters.target.name / f'{parameters.target.name}.bin'
+
+    if not binary_file_path.is_file():
+
+        logger.error(
+            f'Binary file {repr(binary_file_path.as_posix())} '
+            f'is needed for flashing; try building first.'
+        )
+
+        exit(1)
+
+
+
+    # Begin flashing the MCU, which might take multiple tries.
 
     stlink   = request_stlinks(specific_one = True)
     attempts = 0
@@ -777,27 +805,26 @@ def flash(parameters):
         # Maxed out attempts?
 
         if attempts == 3:
-            with ANSI('fg_red'):
-                log(f'''
 
-                    [ERROR] Failed to flash; this might be because...
-                            - the binary file haven\'t been built yet.
-                            - the ST-Link is being used by a another program.
-                            - the ST-Link has disconnected.
-                            - ... or something else entirely!
-                ''')
-            raise ExitCode(1)
+            logger.error(
+                f'Failed to flash; this might be because '
+                f'the ST-Link is being used by another '
+                f'program or that the ST-Link is disconnected.'
+            )
+
+            exit(1)
 
 
 
         # Not the first try?
 
         elif attempts:
-            log(f'''
 
-                {ANSI('[WARNING] Failed to flash (maybe due to verification error); trying again...', 'fg_yellow')}
-
-            ''')
+            logger.warning(
+                f'Failed to flash '
+                f'(maybe due to verification error); '
+                f'trying again...'
+            )
 
 
 
@@ -808,7 +835,7 @@ def flash(parameters):
             execute_shell_command(f'''
                 STM32_Programmer_CLI
                     --connect port=SWD index={stlink.probe_index}
-                    --download "{(BUILD / parameters.target.name / f'{parameters.target.name}.bin').as_posix()}" 0x08000000
+                    --download "{binary_file_path.as_posix()}" 0x08000000
                     --verify
                     --start
             ''')
@@ -816,11 +843,12 @@ def flash(parameters):
             break
 
         except ExecuteShellCommandError:
+
             attempts += 1
 
 
 
-################################################################################################################################
+################################################################################
 
 
 
@@ -845,46 +873,50 @@ def debug(parameters):
 
 
 
-    # Set up the GDB-server.
-
-    stlink = request_stlinks(specific_one = True)
+    # Set up the shell command that'd initialize the GDB-server.
 
     make_sure_shell_command_exists(
         'ST-LINK_gdbserver',
         'STM32_Programmer_CLI',
     )
 
-    apid      = 1 # TODO This is the core ID, which varies board to board... Maybe we just hardcode it?
+    stlink = request_stlinks(specific_one = True)
+
     gdbserver = f'''
         ST-LINK_gdbserver
             --stm32cubeprogrammer-path {repr(str(pathlib.Path(shutil.which('STM32_Programmer_CLI')).parent))}
             --serial-number {stlink.serial_number}
             --swd
-            --apid {apid}
+            --apid 1
             --verify
             --attach
     '''
 
+
+
+    # Just set up the GDB-server now if that's all that's needed of us.
+
     if parameters.just_gdbserver:
-        try:
-            execute_shell_command(gdbserver)
-        except KeyboardInterruptError:
-            pass
+        execute_shell_command(gdbserver)
+        return
 
 
 
-    # Set up GDB.
+    # Set up the shell command that'd initialize GDB itself.
 
     make_sure_shell_command_exists('arm-none-eabi-gdb')
 
-    gdb_init = f'''
+    gdb_init_instructions = f'''
         file {repr((BUILD / parameters.target.name / (f'{parameters.target.name}.elf')).as_posix())}
         target extended-remote localhost:61234
         with pagination off -- focus cmd
     '''
 
     gdb = f'''
-        arm-none-eabi-gdb -q {' '.join(f'-ex "{inst.strip()}"' for inst in gdb_init.strip().splitlines())}
+        arm-none-eabi-gdb -q {' '.join(
+            f'-ex "{instructions.strip()}"'
+            for instructions in gdb_init_instructions.strip().splitlines()
+        )}
     '''
 
 
@@ -892,16 +924,23 @@ def debug(parameters):
     # Launch the debugging session.
 
     try:
+
         execute_shell_command(
             bash       = f'set -m; {gdbserver} 1> /dev/null 2> /dev/null & {gdb}',
             powershell = f'{gdbserver} & {gdb}',
         )
-    except KeyboardInterruptError:
+
+    except KeyboardInterrupt:
+
+        # If the user presses CTRL-C during a GDB
+        # session, Python will register this as an
+        # exception once the command ends.
+
         pass
 
 
 
-################################################################################################################################
+################################################################################
 
 
 
@@ -967,12 +1006,12 @@ def talk(parameters):
 
         )
 
-    except KeyboardInterruptError:
+    except KeyboardInterrupt:
         pass
 
 
 
-################################################################################################################################
+################################################################################
 
 
 
@@ -983,14 +1022,18 @@ def talk(parameters):
     },
 )
 def _(parameters):
+
     if stlinks := request_stlinks():
-        log_stlinks(stlinks)
+
+        logger_stlinks(stlinks)
+
     else:
-        log('No ST-Link detected by STM32_Programmer_CLI.')
+
+        logger.info('No ST-Link detected by STM32_Programmer_CLI.')
 
 
 
-################################################################################################################################
+################################################################################
 
 
 
@@ -998,7 +1041,7 @@ ui(deps.stpy.pxd.cite.ui)
 
 
 
-################################################################################################################################
+################################################################################
 
 
 
@@ -1015,7 +1058,8 @@ def checkPCBs(parameters):
 
 
 
-    # We'll be relying on KiCad's CLI program to generate the netlist of schematics.
+    # We'll be relying on KiCad's CLI program
+    # to generate the netlist of schematics.
 
     make_sure_shell_command_exists('kicad-cli')
 
@@ -1318,7 +1362,9 @@ def checkPCBs(parameters):
 
                 for coordinate, net_name in nets:
 
-                    coupled_connectors[key][str(coordinate)].nets += [(schematic_file_path, net_name)]
+                    coupled_connectors[key][str(coordinate)].nets += [
+                        (schematic_file_path, net_name)
+                    ]
 
 
 
@@ -1341,7 +1387,8 @@ def checkPCBs(parameters):
 
                 logger.warning(
                     f'Coupled connector {repr(coupled_connector_name)} '
-                    f'on pin {repr(coupled_pin_coordinate)} only has one net associated with it.',
+                    f'on pin {repr(coupled_pin_coordinate)} only has '
+                    f'one net associated with it.',
                     extra = {
                         'table' : [
                             (repr(schematic_file_path.name), repr(net_name))
@@ -1362,7 +1409,8 @@ def checkPCBs(parameters):
 
                 logger.warning(
                     f'Coupled connector {repr(coupled_connector_name)} '
-                    f'on pin {repr(coupled_pin_coordinate)} has conflicting nets associated with it.',
+                    f'on pin {repr(coupled_pin_coordinate)} has '
+                    f'conflicting nets associated with it.',
                     extra = {
                         'table' : [
                             (repr(schematic_file_path.name), repr(net_name))
@@ -1373,19 +1421,11 @@ def checkPCBs(parameters):
 
 
 
-################################################################################################################################
+################################################################################
 
 
 
-exit(ui.invoke(sys.argv[1:]))
-
-
-
-################################################################################################################################
-
-
-
-# This is the main Python script that we will be using to pretty much do everything on this project.
-# This includes building, flashing, debugging, opening serial ports, and much more in the future.
-# A lot of this is magic made by the PXD library, so if you'd like to extend this script with more verbs,
-# then please checkout the PXD library and/or read the existing code here as reference.
+try:
+    exit(ui.invoke(sys.argv[1:]))
+except KeyboardInterrupt:
+    logger.warning('Interrupted by keyboard.')
