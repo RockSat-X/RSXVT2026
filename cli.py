@@ -2,63 +2,34 @@
 
 
 
-################################################################################
+#
+# Enforce Python version.
+#
 
 
-
-# Ensure Python version.
 
 import sys
 
-MAJOR = 3
-MINOR = 12
-if not (sys.version_info.major == MAJOR and sys.version_info.minor >= MINOR):
+if not (
+    sys.version_info.major == 3 and
+    sys.version_info.minor >= 13
+):
     raise RuntimeError(
         'Unsupported Python version: ' + repr(sys.version) + '; ' +
-        'please upgrade to at least ' + str(MAJOR) + '.' + str(MINOR) + '; '
+        'please upgrade to at least ' + str(MINIMUM_MAJOR) + '.' + str(MINIMIM_MINOR) + '; '
         'note that it is possible that you have multiple instances of Python installed; '
         'in this case, please set your PATH accordingly or use a Python virtual environment.'
     )
 
 
 
+#
 # Built-in modules.
+#
+
+
 
 import types, shlex, pathlib, shutil, subprocess, time, logging
-
-
-
-# The PXD module.
-
-try:
-
-    import deps.stpy.pxd.metapreprocessor
-    import deps.stpy.pxd.cite
-    from   deps.stpy.pxd.ui    import ExitCode
-    from   deps.stpy.pxd.log   import log, ANSI, Indent
-    from   deps.stpy.pxd.utils import make_main_relative_path, justify
-
-except ModuleNotFoundError as error:
-
-    if 'pxd' not in error.name:
-        raise # Likely a bug in the PXD module.
-
-    import traceback
-
-    traceback.print_exc()
-
-    print()
-    print(f'[ERROR] Could not import "{error.name}"; maybe the Git submodules need to be initialized/updated? Try doing:')
-    print(f'        > git submodule update --init --recursive')
-    print(f'        If this still doesn\'t work, please raise an issue.')
-
-    sys.exit(1)
-
-
-
-# Common definitions with the meta-preprocessor.
-
-from electrical.Shared import *
 
 
 
@@ -138,6 +109,53 @@ logger = logging.getLogger(__name__)
 
 
 #
+# The PXD module.
+#
+
+
+
+try:
+
+    import deps.stpy.pxd.metapreprocessor
+    import deps.stpy.pxd.cite
+    from   deps.stpy.pxd.ui    import ExitCode
+    from   deps.stpy.pxd.log   import log, ANSI, Indent
+    from   deps.stpy.pxd.utils import make_main_relative_path, justify
+
+except ModuleNotFoundError as error:
+
+    if 'pxd' not in error.name:
+        raise # Likely a bug in the PXD module.
+
+    import traceback
+
+    print()
+    traceback.print_exc()
+    print()
+
+    logger.error(
+        f'Could not import "{error.name}"; maybe the Git '
+        f'submodules need to be initialized/updated? Try doing:' '\n'
+        f'> git submodule update --init --recursive'
+        f'If this still doesn\'t work, please raise an issue.'
+    )
+
+    sys.exit(1)
+
+
+
+#
+# Import declarations that's
+# shared with the meta-preprocessor.
+#
+
+
+
+from electrical.Shared import *
+
+
+
+#
 # Import handler for PySerial.
 #
 
@@ -153,11 +171,11 @@ def import_pyserial():
     except ModuleNotFoundError as error:
 
         logger.error(
-            f'Python got {type(error).__name__} ({error}); try doing:\n'
+            f'Python got {type(error).__name__} ({error}); try doing:' '\n'
             f'> pip install pyserial'
         )
 
-        exit(1)
+        sys.exit(1)
 
     return serial, serial.tools.list_ports
 
@@ -340,12 +358,12 @@ def request_stlinks(
     if any('ST-LINK error' in line for line in listing_lines):
 
         logger.error(
-            f'There seems to be an error with an ST-Link; see the output of STM32_Programmer_CLI below:\n'
+            f'There seems to be an error with an ST-Link; see the output of STM32_Programmer_CLI below:' '\n'
             f'\n'
             f'{'\n'.join(listing_lines)}'
         )
 
-        exit(1)
+        sys.exit(1)
 
 
 
@@ -828,7 +846,7 @@ def flash(parameters):
             f'is needed for flashing; try building first.'
         )
 
-        exit(1)
+        sys.exit(1)
 
 
 
@@ -851,7 +869,7 @@ def flash(parameters):
                 f'program or that the ST-Link is disconnected.'
             )
 
-            exit(1)
+            sys.exit(1)
 
 
 
@@ -923,7 +941,7 @@ def debug(parameters):
             f'is needed for debugging; try building first.'
         )
 
-        exit(1)
+        sys.exit(1)
 
 
 
@@ -1036,11 +1054,13 @@ def talk(parameters):
 
 
 
-            # The only reason why PowerShell is used here is because there's no convenient way
-            # in Python to read a single character from STDIN with no blocking and buffering.
-            # Furthermore, the serial port on Windows seem to be buffered up, so data before the
-            # port is opened for reading is available to fetch; PySerial only returns data sent after
-            # the port is opened.
+            # The only reason why PowerShell is used here is
+            # because there's no convenient way in Python to
+            # read a single character from STDIN with no blocking
+            # and buffering. Furthermore, the serial port on
+            # Windows seem to be buffered up, so data before the
+            # port is opened for reading is available to fetch;
+            # PySerial only returns data sent after the port is opened.
 
             powershell = f'''
                 $port = new-Object System.IO.Ports.SerialPort {stlink.comport.device},{STLINK_BAUD},None,8,one;
@@ -1480,6 +1500,9 @@ def checkPCBs(parameters):
 
 
 try:
-    exit(ui.invoke(sys.argv[1:]))
+
+    sys.exit(ui.invoke(sys.argv[1:]))
+
 except KeyboardInterrupt:
-    logger.warning('Interrupted by keyboard.')
+
+    logger.error('Interrupted by keyboard.')
