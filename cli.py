@@ -301,10 +301,11 @@ def make_sure_shell_command_exists(*needed_programs):
 
 
 
-################################################################################
 #
 # Routine for logging out ST-Links as a table.
 #
+
+
 
 def logger_stlinks(stlinks):
 
@@ -336,10 +337,11 @@ def logger_stlinks(stlinks):
 
 
 
-################################################################################
 #
 # Routine for finding ST-Links.
 #
+
+
 
 def request_stlinks(
     *,
@@ -364,7 +366,8 @@ def request_stlinks(
     if any('ST-LINK error' in line for line in listing_lines):
 
         logger.error(
-            f'There seems to be an error with an ST-Link; see the output of STM32_Programmer_CLI below:' '\n'
+            f'There seems to be an error with an ST-Link; '
+            f'see the output of STM32_Programmer_CLI below:' '\n'
             f'\n'
             f'{'\n'.join(listing_lines)}'
         )
@@ -404,23 +407,38 @@ def request_stlinks(
     comports = list_ports.comports()
 
     for stlink in stlinks:
-        stlink.comport, = [comport for comport in comports if comport.serial_number == stlink.serial_number]
+        stlink.comport, = [
+            comport
+            for comport in comports
+            if comport.serial_number == stlink.serial_number
+        ]
 
 
 
-    # If a specific probe index was given, give back that specific ST-Link.
+    # The caller expects a specific ST-Link.
 
     if specific_probe_index is not None:
 
+
+
+        # There's no ST-Links!
+
         if not stlinks:
-            log(ANSI(f'[ERROR] No ST-Links found.', 'fg_red'))
-            raise ExitCode(1)
+            logger.error(f'No ST-Links found.')
+            sys.exit(1)
+
+
+
+        # There's no matching ST-Links!
 
         if not (matches := [stlink for stlink in stlinks if stlink.probe_index == specific_probe_index]):
             logger_stlinks(stlinks)
-            log()
-            log(ANSI(f'[ERROR] No ST-Links found with probe index of "{specific_probe_index}".', 'fg_red'))
-            raise ExitCode(1)
+            logger.error(f'No ST-Links found with probe index of "{specific_probe_index}".')
+            sys.exit(1)
+
+
+
+        # Give back the desired ST-Link.
 
         stlink, = matches
 
@@ -428,19 +446,31 @@ def request_stlinks(
 
 
 
-    # If the caller is assuming there's only one ST-Link, then give back the only one.
+    # If the caller is assuming there's only one
+    # ST-Link, then give back the only one.
 
     if specific_one:
 
+
+
+        # There's no ST-Links!
+
         if not stlinks:
-            log(ANSI(f'[ERROR] No ST-Links found.', 'fg_red'))
-            raise ExitCode(1)
+            logger.error(f'No ST-Links found.')
+            sys.exit(1)
+
+
+
+        # There's too many ST-Links!
 
         if len(stlinks) >= 2:
             logger_stlinks(stlinks)
-            log()
-            log(ANSI(f'[ERROR] Multiple ST-Links found; I don\'t know which one to use.', 'fg_red'))
-            raise ExitCode(1)
+            logger.error(f'Multiple ST-Links found; I don\'t know which one to use.')
+            sys.exit(1)
+
+
+
+        # Give back the only ST-Link.
 
         stlink, = stlinks
 
@@ -448,18 +478,23 @@ def request_stlinks(
 
 
 
-    # Otherwise, give back the list of the ST-Links we found (if any).
+    # Otherwise, give back the list of
+    # the ST-Links we found (if any).
 
     return stlinks
 
 
 
-################################################################################
+#
+# Routine to carry out shell commands.
+#
 
 
 
-class ExecuteShellCommandError(Exception):
+class ExecuteShellCommandNonZeroExitCode(Exception):
     pass
+
+
 
 def execute_shell_command(
     default    = None,
@@ -544,11 +579,13 @@ def execute_shell_command(
 
     for process in processes:
         if process.wait():
-            raise ExecuteShellCommandError # Non-zero exit code.
+            raise ExecuteShellCommandNonZeroExitCode
 
 
 
-################################################################################
+#
+# Set up the command-line-interface of the Python script.
+#
 
 
 
@@ -905,7 +942,7 @@ def flash(parameters):
 
             break
 
-        except ExecuteShellCommandError:
+        except ExecuteShellCommandNonZeroExitCode:
 
             attempts += 1
 
