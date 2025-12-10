@@ -90,9 +90,52 @@ def import_pyserial():
 # Root logger configuration.
 #
 
+
+
 class RootFormatter(logging.Formatter):
 
     def format(self, record):
+
+
+
+        message = super().format(record)
+
+
+
+        # The `table` property allows for a
+        # simple, justified table to be outputted.
+
+        if hasattr(record, 'table'):
+
+            for just_key, just_value in justify([
+                (
+                    ('<' , str(key  )),
+                    (None, str(value)),
+                )
+                for key, value in record.table
+            ]):
+                message += f'\n{just_key} : {just_value}'
+
+
+
+        # Any newlines will be indented so it'll look nice.
+
+        indent = ' ' * len(f'[{record.levelname}] ')
+
+        message = '\n'.join([
+            message.splitlines()[0],
+            *[f'{indent}{line}' for line in message.splitlines()[1:]]
+        ])
+
+
+
+        # Give each log a bit of breathing room.
+
+        message += '\n'
+
+
+
+        # Prepend the log level name and color based on severity.
 
         coloring = {
             'DEBUG'    : '\x1B[0;35m',
@@ -104,43 +147,16 @@ class RootFormatter(logging.Formatter):
 
         reset = '\x1B[0m'
 
-        message = super().format(record)
-
-        return f'{coloring}[{record.levelname}]{reset} {message}'
+        message = f'{coloring}[{record.levelname}]{reset} {message}'
 
 
-class CustomFilter(logging.Filter):
 
-    def filter(self, record):
-
-        if hasattr(record, 'table'):
-
-            for just_key, just_value in justify( [
-                (
-                    ('<' , str(key  )),
-                    (None, str(value)),
-                )
-                for key, value in record.table
-            ]):
-                record.msg += f'\n{just_key} : {just_value}'
-
-        record.msg = '\n'.join((
-            record.msg.splitlines()[0],
-            *(
-                f'{' ' * len(f'[{record.levelname}] ')}{line}'
-                for line in record.msg.splitlines()[1:]
-            ),
-            ''
-        ))
-
-        return super(CustomFilter, self).filter(record)
+        return message
 
 
 
 logging.basicConfig(level = logging.DEBUG)
 logging.getLogger().handlers[0].setFormatter(RootFormatter())
-logging.getLogger().handlers[0].addFilter(CustomFilter())
-
 logger = logging.getLogger(__name__)
 
 
