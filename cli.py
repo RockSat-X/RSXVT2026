@@ -62,30 +62,6 @@ from electrical.Shared import *
 
 
 
-# Import handler for PySerial.
-
-def import_pyserial():
-
-    try:
-
-        import serial
-        import serial.tools.list_ports
-
-    except ModuleNotFoundError as error:
-
-        with ANSI('fg_red'), Indent('[ERROR] ', hanging = True):
-            log(f'''
-                Python got {type(error).__name__} ({error}); try doing:
-                {ANSI('> pip install pyserial', 'bold')}
-            ''')
-
-        raise ExitCode(1)
-
-    return serial, serial.tools.list_ports
-
-
-
-################################################################################
 #
 # Root logger configuration.
 #
@@ -158,6 +134,32 @@ class RootFormatter(logging.Formatter):
 logging.basicConfig(level = logging.DEBUG)
 logging.getLogger().handlers[0].setFormatter(RootFormatter())
 logger = logging.getLogger(__name__)
+
+
+
+#
+# Import handler for PySerial.
+#
+
+
+
+def import_pyserial():
+
+    try:
+
+        import serial
+        import serial.tools.list_ports
+
+    except ModuleNotFoundError as error:
+
+        logger.error(
+            f'Python got {type(error).__name__} ({error}); try doing:\n'
+            f'> pip install pyserial'
+        )
+
+        exit(1)
+
+    return serial, serial.tools.list_ports
 
 
 
