@@ -620,7 +620,7 @@ ui = deps.stpy.pxd.ui.UI(
 def clean(parameters):
 
     DIRECTORIES = (
-        BUILD,
+        make_main_relative_path('./build'),
         make_main_relative_path('./electrical/meta'),
     )
 
@@ -760,14 +760,14 @@ def build(parameters):
 
     execute_shell_command(
         bash = [
-            f'mkdir -p {BUILD / target.name}'
+            f'mkdir -p {make_main_relative_path('./build', target.name)}'
             for target in targets_to_build
             if target.source_file_paths
         ],
         cmd = [
             f'''
-                if not exist "{BUILD / target.name}" (
-                    mkdir {BUILD / target.name}
+                if not exist "{make_main_relative_path('./build', target.name)}" (
+                    mkdir {make_main_relative_path('./build', target.name)}
                 )
             '''
             for target in targets_to_build
@@ -785,7 +785,7 @@ def build(parameters):
                 {target.compiler_flags}
                 -E
                 -x c
-                -o "{(BUILD / target.name / 'link.ld').as_posix()}"
+                -o "{make_main_relative_path('./build', target.name, 'link.ld').as_posix()}"
                 "{make_main_relative_path('./electrical/link.ld').as_posix()}"
         '''
         for target in targets_to_build
@@ -800,8 +800,8 @@ def build(parameters):
         f'''
             arm-none-eabi-gcc
                 {' '.join(f'"{source}"' for source in target.source_file_paths)}
-                -o "{(BUILD / target.name / f'{target.name}.elf').as_posix()}"
-                -T "{(BUILD / target.name / 'link.ld'           ).as_posix()}"
+                -o "{make_main_relative_path('./build', target.name, f'{target.name}.elf').as_posix()}"
+                -T "{make_main_relative_path('./build', target.name, 'link.ld'           ).as_posix()}"
                 {target.compiler_flags}
                 {target.linker_flags}
         '''
@@ -818,8 +818,8 @@ def build(parameters):
             arm-none-eabi-objcopy
                 -S
                 -O binary
-                "{(BUILD / target.name / f'{target.name}.elf').as_posix()}"
-                "{(BUILD / target.name / f'{target.name}.bin').as_posix()}"
+                "{make_main_relative_path('./build', target.name, f'{target.name}.elf').as_posix()}"
+                "{make_main_relative_path('./build', target.name, f'{target.name}.bin').as_posix()}"
         '''
         for target in targets_to_build
         if target.source_file_paths
@@ -852,7 +852,7 @@ def flash(parameters):
 
     # Ensure binary file exists.
 
-    binary_file_path = BUILD / parameters.target.name / f'{parameters.target.name}.bin'
+    binary_file_path = make_main_relative_path('./build', parameters.target.name, f'{parameters.target.name}.bin')
 
     if not binary_file_path.is_file():
 
@@ -947,7 +947,7 @@ def debug(parameters):
 
     # Ensure ELF file exists.
 
-    elf_file_path = BUILD / parameters.target.name / f'{parameters.target.name}.elf'
+    elf_file_path = make_main_relative_path('./build', parameters.target.name, f'{parameters.target.name}.elf')
 
     if not elf_file_path.is_file():
 
@@ -1141,9 +1141,6 @@ ui(deps.stpy.pxd.cite.ui)
 )
 def checkPCBs(parameters):
 
-    DIRECTORY_PATH_OF_KICAD_PROJECTS   = make_main_relative_path('./pcb')
-    DIRECTORY_PATH_OF_SYMBOL_LIBRARIES = make_main_relative_path('./pcb/symbols')
-
 
 
     # We'll be relying on KiCad's CLI program
@@ -1170,7 +1167,7 @@ def checkPCBs(parameters):
 
     symbol_library_file_names = [
         file_name
-        for _, _, file_names in DIRECTORY_PATH_OF_SYMBOL_LIBRARIES.walk()
+        for _, _, file_names in make_main_relative_path('./pcb/symbols').walk()
         for       file_name  in file_names
         if file_name.endswith(suffix := '.kicad_sym')
     ]
@@ -1187,7 +1184,7 @@ def checkPCBs(parameters):
     for symbol_library_file_name in symbol_library_file_names:
 
         symbol_library_sexp = deps.stpy.pxd.sexp.parse_sexp(
-            (DIRECTORY_PATH_OF_SYMBOL_LIBRARIES / symbol_library_file_name).read_text()
+            make_main_relative_path('./pcb/symbols', symbol_library_file_name).read_text()
         )
 
         for entry in symbol_library_sexp:
@@ -1252,7 +1249,7 @@ def checkPCBs(parameters):
 
     kicad_projects = [
         file_name.removesuffix(suffix)
-        for _, _, file_names in DIRECTORY_PATH_OF_KICAD_PROJECTS.walk()
+        for _, _, file_names in make_main_relative_path('./pcb').walk()
         for       file_name  in file_names
         if file_name.endswith(suffix := '.kicad_pro')
     ]
@@ -1271,8 +1268,8 @@ def checkPCBs(parameters):
          # in parallel because of some lock file
          # for some reason.
 
-        schematic_file_path = DIRECTORY_PATH_OF_KICAD_PROJECTS / f'{kicad_project}.kicad_sch'
-        netlist_file_path   = BUILD                            / f'{kicad_project}.net'
+        schematic_file_path = make_main_relative_path('./pcb'  , f'{kicad_project}.kicad_sch')
+        netlist_file_path   = make_main_relative_path('./build', f'{kicad_project}.net'      )
 
         execute_shell_command(f'''
             kicad-cli

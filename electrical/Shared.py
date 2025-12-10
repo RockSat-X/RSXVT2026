@@ -12,8 +12,6 @@ from deps.stpy.mcus      import MCUS
 
 STLINK_BAUD = 1_000_000
 
-BUILD = make_main_relative_path('./build')
-
 MCU_SUPPORT = {
 
     'STM32H7S3L8H6' : {
