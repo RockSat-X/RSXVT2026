@@ -995,7 +995,7 @@ def talk(parameters):
         match sys.platform:
             case 'linux' : log('<ctrl-a ctrl-q> Exit.')
             case 'win32' : log('<ctrl-c> Exit.')
-            case 'win32' : log('<ctrl-c> Exit (maybe?).')
+            case _       : log('<ctrl-c> Exit (maybe?).')
 
         return
 
