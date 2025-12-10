@@ -143,7 +143,7 @@ logger = logging.getLogger(__name__)
 # Routine for ensuring the user has the required programs on their machine (and provide good error messages if not).
 #
 
-def require(*needed_programs):
+def make_sure_shell_command_exists(*needed_programs):
 
     missing_program = next((program for program in needed_programs if shutil.which(program) is None), None)
 
@@ -306,7 +306,7 @@ def request_stlinks(
     # >       Board Name  : NUCLEO-H7S3L8
     # >
 
-    require('STM32_Programmer_CLI')
+    make_sure_shell_command_exists('STM32_Programmer_CLI')
 
     listing_lines = subprocess.check_output(['STM32_Programmer_CLI', '--list', 'st-link']).decode('utf-8').splitlines()
     stlinks       = [
@@ -826,7 +826,7 @@ def build(parameters):
 
     # Build the targets in parallel.
 
-    require(
+    make_sure_shell_command_exists(
         'arm-none-eabi-gcc',
         'arm-none-eabi-cpp',
         'arm-none-eabi-objcopy',
@@ -928,7 +928,7 @@ def flash(parameters):
 
     # Begin flashing the MCU, which might take multiple tries.
 
-    require('STM32_Programmer_CLI')
+    make_sure_shell_command_exists('STM32_Programmer_CLI')
 
     stlink   = request_stlinks(specific_one = True)
     attempts = 0
@@ -1014,7 +1014,7 @@ def debug(parameters):
 
     stlink = request_stlinks(specific_one = True)
 
-    require(
+    make_sure_shell_command_exists(
         'ST-LINK_gdbserver',
         'STM32_Programmer_CLI',
     )
@@ -1038,7 +1038,7 @@ def debug(parameters):
 
     # Set up GDB.
 
-    require('arm-none-eabi-gdb')
+    make_sure_shell_command_exists('arm-none-eabi-gdb')
 
     gdb_init = f'''
         file {repr((BUILD / parameters.target.name / (f'{parameters.target.name}.elf')).as_posix())}
@@ -1088,7 +1088,7 @@ def talk(parameters):
 
 
     if sys.platform == 'linux':
-        require('picocom')
+        make_sure_shell_command_exists('picocom')
 
     stlink = request_stlinks(specific_one = True)
 
@@ -1172,8 +1172,7 @@ ui(deps.stpy.pxd.cite.ui)
 )
 def checkPCBs(parameters):
 
-    make_sure_shell_command_exists = require # TODO Rename.
-    make_main_relative_path        = root    # TODO Rename.
+    make_main_relative_path = root # TODO Rename.
 
 
 
