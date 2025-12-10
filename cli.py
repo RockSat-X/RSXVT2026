@@ -119,7 +119,6 @@ try:
     import deps.stpy.pxd.metapreprocessor
     import deps.stpy.pxd.cite
     from   deps.stpy.pxd.ui    import ExitCode
-    from   deps.stpy.pxd.log   import log
     from   deps.stpy.pxd.utils import make_main_relative_path, justify
 
 except ModuleNotFoundError as error:
@@ -1042,6 +1041,8 @@ def talk(parameters):
 
 
     if parameters.help:
+
+        from deps.stpy.pxd.log import log # TODO Deprecate.
 
         match sys.platform:
             case 'linux' : log('<ctrl-a ctrl-q> Exit.')
