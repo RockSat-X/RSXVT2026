@@ -38,6 +38,8 @@ try:
     from   deps.stpy.pxd.log   import log, ANSI, Indent
     from   deps.stpy.pxd.utils import root, justify
 
+    make_main_relative_path = root # TODO Rename.
+
 except ModuleNotFoundError as error:
 
     if 'pxd' not in error.name:
@@ -381,161 +383,18 @@ def request_stlinks(
 
 
 ################################################################################################################################
-#
-# Routine for executing shell commands.
-#
 
-def execute(
-    default               = None,  # Typically for when the command for cmd.exe and bash are the same (e.g. "echo hello!").
-    *,
-    bash                  = None,
-    cmd                   = None,  # PowerShell is slow to invoke, so cmd.exe would be used if its good enough.
-    powershell            = None,  # "
-    keyboard_interrupt_ok = False,
-    nonzero_exit_code_ok  = False
-):
-
-
-
-    # Determine the shell commands we'll be
-    # executing based on the operating system.
-
-    if cmd is not None and powershell is not None:
-        raise RuntimeError(
-            f'CMD and PowerShell commands cannot be both provided; '
-            f'please raise an issue or patch the script yourself.'
-        )
-
-    match sys.platform:
-
-        case 'win32':
-            use_powershell = cmd is None and powershell is not None
-            commands       = powershell if use_powershell else cmd
-
-        case _:
-            commands       = bash
-            use_powershell = False
-
-    if commands is None:
-        commands = default
-
-    if commands is None:
-        raise RuntimeError(
-            f'Missing shell command for platform "{sys.platform}"; '
-            f'please raise an issue or patch the script yourself.'
-        )
-
-    if isinstance(commands, str):
-        commands = [commands]
-
-
-
-    # Process each command to have it be split into shell tokens.
-    # The lexing that's done here is to do a lot of the funny
-    # business involving escaping quotes and what not. To be honest,
-    # it's a little out my depth, mainly because I frankly do not
-    # care enough to get it 100% correct; it working most of the time
-    # is good enough for me.
-
-    for command_i in range(len(commands)):
-
-        lexer                  = shlex.shlex(commands[command_i])
-        lexer.quotes           = '"'
-        lexer.whitespace_split = True
-        lexer.commenters       = ''
-        commands[command_i]    = list(lexer)
-
-
-
-    # Execute each shell command.
-
-    processes = []
-
-    for command_i, command in enumerate(commands):
-
-        if command_i:
-            log()
-
-        log(
-            '{} {}',
-            ANSI(f'$ {command[0]}', 'fg_bright_green'),
-            ' '.join(command[1:]),
-        )
-
-        command = ' '.join(command)
-
-        if use_powershell:
-
-            # On Windows, Python will call CMD.exe
-            # to run the shell command, so we'll
-            # have to invoke PowerShell to run the
-            # command if PowerShell is needed.
-            processes += [subprocess.Popen(['pwsh', '-Command', command], shell = False)]
-
-        else:
-
-            processes += [subprocess.Popen(command, shell = True)]
-
-
-
-    # Wait on each subprocess to be done.
-
-    for process in processes:
-
-
-
-        # Sometimes commands might stall, so the user
-        # might CTRL-C to kill the subprocess.
-
-        try:
-            subprocess_exit_code = process.wait()
-
-        except KeyboardInterrupt:
-
-            if keyboard_interrupt_ok:
-                subprocess_exit_code = None
-            else:
-                raise
-
-
-
-        # Check results.
-
-        if subprocess_exit_code and not nonzero_exit_code_ok:
-            log()
-            log(ANSI(f'[ERROR] Shell command exited with a non-zero code of {subprocess_exit_code}.', 'fg_red'))
-            raise ExitCode(subprocess_exit_code)
-
-
-
-    # TODO:
-    # For right now, we'll return the exit code for
-    # when there's only one shell command to be executed.
-    # I'd like for this to be more consistent in the future,
-    # however.
-
-    if len(processes) == 1:
-        return subprocess_exit_code
-
-
-
-################################################################################################################################
-#
-# TODO Replace `execute` with `execute_shell_command`.
-#
 
 
 class ExecuteShellCommandError(Exception):
     pass
 
 def execute_shell_command(
-    default               = None,
+    default    = None,
     *,
-    bash                  = None,
-    cmd                   = None,
-    powershell            = None,
-    keyboard_interrupt_ok = False,
-    nonzero_exit_code_ok  = False
+    bash       = None,
+    cmd        = None,
+    powershell = None,
 ):
 
 
@@ -612,29 +471,8 @@ def execute_shell_command(
     # Wait on each subprocess to be done.
 
     for process in processes:
-
-
-
-        # Sometimes commands might stall, so the user
-        # might CTRL-C to kill the subprocess.
-
-        try:
-
-            subprocess_exit_code = process.wait()
-
-        except KeyboardInterrupt:
-
-            if keyboard_interrupt_ok:
-                subprocess_exit_code = None
-            else:
-                raise
-
-
-
-        # Check results.
-
-        if subprocess_exit_code and not nonzero_exit_code_ok:
-            raise ExecuteShellCommandError
+        if process.wait():
+            raise ExecuteShellCommandError # Non-zero exit code.
 
 
 
@@ -673,15 +511,16 @@ ui = deps.stpy.pxd.ui.UI(
 )
 def clean(parameters):
 
-    directories = [
+    DIRECTORIES = (
         BUILD,
-        './electrical/meta',
-    ]
+        make_main_relative_path('./electrical/meta'),
+    )
 
-    for directory in directories:
-        execute(
+    for directory in DIRECTORIES:
+
+        execute_shell_command(
             bash = f'''
-                rm -rf {repr(str(directory))}
+                rm -rf {repr(directory.as_posix())}
             ''',
             cmd = f'''
                 if exist "{directory}" rmdir /S /Q "{directory}"
@@ -837,7 +676,7 @@ def build(parameters):
 
     log_header(f'Build Artifact Folder')
 
-    execute(
+    execute_shell_command(
         bash = [
             f'mkdir -p {BUILD / target.name}'
             for target in targets
@@ -857,7 +696,7 @@ def build(parameters):
 
 
     log_header(f'Linker File Preprocessing')
-    execute([
+    execute_shell_command([
         f'''
             arm-none-eabi-cpp
                 {target.compiler_flags}
@@ -873,7 +712,7 @@ def build(parameters):
 
 
     log_header(f'Building')
-    execute([
+    execute_shell_command([
         f'''
             arm-none-eabi-gcc
                 {' '.join(f'"{source}"' for source in target.source_file_paths)}
@@ -889,7 +728,7 @@ def build(parameters):
 
 
     log_header(f'Binary Conversion')
-    execute([
+    execute_shell_command([
         f'''
             arm-none-eabi-objcopy
                 -S
@@ -966,22 +805,20 @@ def flash(parameters):
 
         # Try flashing.
 
-        exit_code = execute(f'''
-            STM32_Programmer_CLI
-                --connect port=SWD index={stlink.probe_index}
-                --download "{(BUILD / parameters.target.name / f'{parameters.target.name}.bin').as_posix()}" 0x08000000
-                --verify
-                --start
-        ''', nonzero_exit_code_ok = True)
+        try:
 
+            execute_shell_command(f'''
+                STM32_Programmer_CLI
+                    --connect port=SWD index={stlink.probe_index}
+                    --download "{(BUILD / parameters.target.name / f'{parameters.target.name}.bin').as_posix()}" 0x08000000
+                    --verify
+                    --start
+            ''')
 
-
-        # Try again if needed.
-
-        if exit_code:
-            attempts += 1
-        else:
             break
+
+        except ExecuteShellCommandError:
+            attempts += 1
 
 
 
@@ -1031,8 +868,10 @@ def debug(parameters):
     '''
 
     if parameters.just_gdbserver:
-        execute(gdbserver, keyboard_interrupt_ok = True)
-        return
+        try:
+            execute_shell_command(gdbserver)
+        except KeyboardInterruptError:
+            pass
 
 
 
@@ -1054,11 +893,13 @@ def debug(parameters):
 
     # Launch the debugging session.
 
-    execute(
-        bash                  = f'set -m; {gdbserver} 1> /dev/null 2> /dev/null & {gdb}',
-        powershell            = f'{gdbserver} & {gdb}',
-        keyboard_interrupt_ok = True, # Happens whenever we halt execution in GDB using CTRL-C.
-    )
+    try:
+        execute_shell_command(
+            bash       = f'set -m; {gdbserver} 1> /dev/null 2> /dev/null & {gdb}',
+            powershell = f'{gdbserver} & {gdb}',
+        )
+    except KeyboardInterruptError:
+        pass
 
 
 
@@ -1092,46 +933,44 @@ def talk(parameters):
 
     stlink = request_stlinks(specific_one = True)
 
-    execute(
+    try:
+
+        execute_shell_command(
+
+            # Picocom's pretty good!
+
+            bash = f'''
+                picocom --baud={STLINK_BAUD} --quiet --imap=lfcrlf {stlink.comport.device}
+            ''',
 
 
 
-        # Picocom's pretty good!
+            # The only reason why PowerShell is used here is because there's no convenient way
+            # in Python to read a single character from STDIN with no blocking and buffering.
+            # Furthermore, the serial port on Windows seem to be buffered up, so data before the
+            # port is opened for reading is available to fetch; PySerial only returns data sent after
+            # the port is opened.
 
-        bash = f'''
-            picocom --baud={STLINK_BAUD} --quiet --imap=lfcrlf {stlink.comport.device}
-        ''',
-
-
-
-        # The only reason why PowerShell is used here is because there's no convenient way
-        # in Python to read a single character from STDIN with no blocking and buffering.
-        # Furthermore, the serial port on Windows seem to be buffered up, so data before the
-        # port is opened for reading is available to fetch; PySerial only returns data sent after
-        # the port is opened.
-
-        powershell = f'''
-            $port = new-Object System.IO.Ports.SerialPort {stlink.comport.device},{STLINK_BAUD},None,8,one;
-            $port.Open();
-            try {{
-                while ($true) {{
-                    Write-Host -NoNewline $port.ReadExisting();
-                    if ([System.Console]::KeyAvailable) {{
-                        $port.Write([System.Console]::ReadKey($true).KeyChar);
+            powershell = f'''
+                $port = new-Object System.IO.Ports.SerialPort {stlink.comport.device},{STLINK_BAUD},None,8,one;
+                $port.Open();
+                try {{
+                    while ($true) {{
+                        Write-Host -NoNewline $port.ReadExisting();
+                        if ([System.Console]::KeyAvailable) {{
+                            $port.Write([System.Console]::ReadKey($true).KeyChar);
+                        }}
+                        Start-Sleep -Milliseconds 1;
                     }}
-                    Start-Sleep -Milliseconds 1;
+                }} finally {{
+                    $port.Close();
                 }}
-            }} finally {{
-                $port.Close();
-            }}
-        ''',
+            '''
 
+        )
 
-
-        # Whenever we close the port using CTRL-C, a KeyboardInterrupt exception is raised as a false-positive.
-
-        keyboard_interrupt_ok = True,
-    )
+    except KeyboardInterruptError:
+        pass
 
 
 
@@ -1171,10 +1010,6 @@ ui(deps.stpy.pxd.cite.ui)
     },
 )
 def checkPCBs(parameters):
-
-    make_main_relative_path = root # TODO Rename.
-
-
 
     DIRECTORY_PATH_OF_KICAD_PROJECTS   = make_main_relative_path('./pcb')
     DIRECTORY_PATH_OF_OUTPUTS          = make_main_relative_path('./build')
