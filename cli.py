@@ -1142,7 +1142,6 @@ ui(deps.stpy.pxd.cite.ui)
 def checkPCBs(parameters):
 
     DIRECTORY_PATH_OF_KICAD_PROJECTS   = make_main_relative_path('./pcb')
-    DIRECTORY_PATH_OF_OUTPUTS          = make_main_relative_path('./build')
     DIRECTORY_PATH_OF_SYMBOL_LIBRARIES = make_main_relative_path('./pcb/symbols')
 
 
@@ -1273,7 +1272,7 @@ def checkPCBs(parameters):
          # for some reason.
 
         schematic_file_path = DIRECTORY_PATH_OF_KICAD_PROJECTS / f'{kicad_project}.kicad_sch'
-        netlist_file_path   = DIRECTORY_PATH_OF_OUTPUTS        / f'{kicad_project}.net'
+        netlist_file_path   = BUILD                            / f'{kicad_project}.net'
 
         execute_shell_command(f'''
             kicad-cli
