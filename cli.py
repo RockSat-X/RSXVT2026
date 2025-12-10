@@ -119,7 +119,7 @@ try:
     import deps.stpy.pxd.metapreprocessor
     import deps.stpy.pxd.cite
     from   deps.stpy.pxd.ui    import ExitCode
-    from   deps.stpy.pxd.log   import log, ANSI, Indent
+    from   deps.stpy.pxd.log   import log
     from   deps.stpy.pxd.utils import make_main_relative_path, justify
 
 except ModuleNotFoundError as error:
@@ -665,30 +665,18 @@ def build(parameters):
     # Determine the targets we're building for.
 
     if parameters.target is None:
-        targets = TARGETS
+        targets_to_build = TARGETS
     else:
-        targets = [parameters.target]
-
-
-
-    # Logging routine for outputting nice dividers in stdout.
-
-    def log_header(message):
-
-        log(f'''
-
-            {ANSI(f'{'>' * 32} {message} {'<' * 32}', 'bold', 'fg_bright_black')}
-
-        ''')
+        targets_to_build = [parameters.target]
 
 
 
     # Determine the files for the meta-preprocessor to scan through.
 
     metapreprocessor_file_paths = [
-        pathlib.Path(make_main_relative_path, file_name)
-        for make_main_relative_path, dirs, file_names in make_main_relative_path('./electrical').walk()
-        for file_name in file_names
+        pathlib.Path(root, file_name)
+        for root, directories, file_names in make_main_relative_path('./electrical').walk()
+        for                    file_name  in file_names
         if file_name.endswith(('.c', '.h', '.py', '.ld', '.S'))
     ]
 
@@ -696,62 +684,33 @@ def build(parameters):
 
     # Callback of things to do before and after the execution of a meta-directive.
 
-    elapsed = 0
+    elapsed               = 0
+    meta_directive_deltas = []
 
     def metadirective_callback(index, meta_directives):
 
-        nonlocal elapsed
-
-
-
-        # Show some of the symbols that this meta-directive will export.
-
-        export_preview = ', '.join(meta_directives[index].exports)
-
-        if export_preview:
-
-            if len(export_preview) > (cutoff := 64): # This meta-directive is exporting a lot of stuff, so we trim the list.
-                export_preview = ', '.join(export_preview[:cutoff].rsplit(',')[:-1] + ['...'])
-
-            export_preview = ' ' + export_preview
-
-
+        nonlocal elapsed, meta_directive_deltas
 
         # Log the evaluation of the meta-directive.
 
-        just_nth, just_src, just_line = justify(
-            (
-                ('<', meta_directive_i + 1                  ),
-                ('<', meta_directive.source_file_path       ),
-                ('<', meta_directive.meta_header_line_number),
-            )
-            for meta_directive_i, meta_directive in enumerate(meta_directives)
-        )[index]
+        location = f'{meta_directives[index].source_file_path.as_posix()}:{meta_directives[index].meta_header_line_number}'
 
-        log(f'| {just_nth}/{len(meta_directives)} | {just_src} : {just_line} |{export_preview}')
+        logger.info(f'Meta-preprocessing {location}')
 
 
 
         # Record how long it takes to run this meta-directive.
 
-        start  = time.time()
-        output = yield
-        end    = time.time()
-        delta  = end - start
-
-        if delta > 0.050:
-            log(ANSI(f'^ {delta :.3}s', 'fg_yellow')) # Warn that this meta-directive took quite a while to execute.
-
-        elapsed += delta
+        start                  = time.time()
+        output                 = yield
+        end                    = time.time()
+        delta                  = end - start
+        meta_directive_deltas += [(location, delta)]
+        elapsed               += delta
 
 
 
     # Begin meta-preprocessing!
-
-    if not parameters.metapreprocess_only:
-        log_header('Meta-preprocessing')
-    else:
-        log()
 
     try:
         deps.stpy.pxd.metapreprocessor.do(
@@ -761,17 +720,32 @@ def build(parameters):
         )
     except deps.stpy.pxd.metapreprocessor.MetaError as error:
         error.dump()
-        raise ExitCode(1)
+        sys.exit(1)
 
-    log()
-    log(ANSI(f'# Meta-preprocessor : {elapsed :.3f}s.', 'fg_magenta'))
+
+
+    # Log the performance of the meta-preprocessor.
+
+    logger.debug(
+        f'Meta-processing {len(meta_directive_deltas)} meta-directives took {elapsed :.3f}s.',
+        extra = {
+            'table' : [
+                (location, f'{delta :.3f}s | {delta / elapsed * 100 : 5.1f}%')
+                for location, delta in sorted(meta_directive_deltas, key = lambda x: -x[1])
+            ]
+        }
+    )
+
+
+
+    # Sometimes we only just need to run the meta-preprocessor without compiling.
 
     if parameters.metapreprocess_only:
-        raise ExitCode(0)
+        return
 
 
 
-    # Build the targets in parallel.
+    # We now move onto actually building the firmware.
 
     make_sure_shell_command_exists(
         'arm-none-eabi-gcc',
@@ -782,12 +756,12 @@ def build(parameters):
 
 
 
-    log_header(f'Build Artifact Folder')
+    # Creating build artifact folders.
 
     execute_shell_command(
         bash = [
             f'mkdir -p {BUILD / target.name}'
-            for target in targets
+            for target in targets_to_build
             if target.source_file_paths
         ],
         cmd = [
@@ -796,14 +770,15 @@ def build(parameters):
                     mkdir {BUILD / target.name}
                 )
             '''
-            for target in targets
+            for target in targets_to_build
             if target.source_file_paths
         ],
     )
 
 
 
-    log_header(f'Linker File Preprocessing')
+    # Preprocessing the linker files.
+
     execute_shell_command([
         f'''
             arm-none-eabi-cpp
@@ -813,29 +788,31 @@ def build(parameters):
                 -o "{(BUILD / target.name / 'link.ld').as_posix()}"
                 "{make_main_relative_path('./electrical/link.ld').as_posix()}"
         '''
-        for target in targets
+        for target in targets_to_build
         if target.source_file_paths
     ])
 
 
 
-    log_header(f'Building')
+    # Compiling and linking the source code.
+
     execute_shell_command([
         f'''
             arm-none-eabi-gcc
                 {' '.join(f'"{source}"' for source in target.source_file_paths)}
-                -o "{make_main_relative_path('./build', target.name, target.name + '.elf')}"
-                -T "{(BUILD / target.name / 'link.ld').as_posix()}"
+                -o "{(BUILD / target.name / f'{target.name}.elf').as_posix()}"
+                -T "{(BUILD / target.name / 'link.ld'           ).as_posix()}"
                 {target.compiler_flags}
                 {target.linker_flags}
         '''
-        for target in targets
+        for target in targets_to_build
         if target.source_file_paths
     ])
 
 
 
-    log_header(f'Binary Conversion')
+    # Converting the ELF file to a binary file.
+
     execute_shell_command([
         f'''
             arm-none-eabi-objcopy
@@ -844,13 +821,9 @@ def build(parameters):
                 "{(BUILD / target.name / f'{target.name}.elf').as_posix()}"
                 "{(BUILD / target.name / f'{target.name}.bin').as_posix()}"
         '''
-        for target in targets
+        for target in targets_to_build
         if target.source_file_paths
     ])
-
-
-
-    log_header(f'Hip-hip hooray! Built {', '.join(f'"{target.name}"' for target in targets)}!')
 
 
 
