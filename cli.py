@@ -181,117 +181,123 @@ def import_pyserial():
 
 
 
-################################################################################
 #
-# Routine for ensuring the user has the required programs on their machine (and provide good error messages if not).
+# Routine for ensuring the user has the required programs
+# on their machine (and provide good error messages if not).
 #
+
+
 
 def make_sure_shell_command_exists(*needed_programs):
 
-    missing_program = next((program for program in needed_programs if shutil.which(program) is None), None)
-
-    if not missing_program:
-        return # The required programs were found on the machine.
 
 
+    # Search for a missing required program.
 
-    with ANSI('fg_red'), Indent('[ERROR] ', hanging = True):
-
-
-
-        # PowerShell.
-
-        if missing_program in (roster := [
-            'pwsh',
-        ]):
-
-            log(f'''
-                Python couldn\'t find "{missing_program}" in your PATH; have you installed PowerShell yet?
-                {ANSI(f'> https://apps.microsoft.com/detail/9MZ1SNWT0N5D', 'bold')}
-                Installing PowerShell via Windows Store is the most convenient way.
-            ''')
+    for missing_program in needed_programs:
+        if shutil.which(missing_program) is None:
+            break
+    else:
+        return
 
 
 
-        # STM32CubeCLT.
+    # PowerShell.
 
-        elif missing_program in (roster := [
-            'STM32_Programmer_CLI',
-            'ST-LINK_gdbserver',
-            'arm-none-eabi-gcc',
-            'arm-none-eabi-cpp',
-            'arm-none-eabi-objcopy',
-            'arm-none-eabi-gdb',
-        ]):
+    if missing_program in (roster := [
+        'pwsh',
+    ]):
 
-            log(f'''
-                Python couldn't find "{missing_program}" in your PATH; have you installed STM32CubeCLT 1.19.0 yet?
-                {ANSI(f'> https://www.st.com/en/development-tools/stm32cubeclt.html', 'bold')}
-                Note that the installation is behind a login-wall.
-                Install and then make sure all of these commands are available in your PATH:
-            ''')
-
-            for program in roster:
-                if shutil.which(program) is not None:
-                    log(ANSI(f'    - [located] {program}', 'fg_green'))
-                else:
-                    log(f'    - [missing] {program}')
+        logger.error(
+            f'Python couldn\'t find "{missing_program}" in your PATH; have you installed PowerShell yet?' '\n'
+            f'> https://apps.microsoft.com/detail/9MZ1SNWT0N5D'                                           '\n'
+            f'Installing PowerShell via Windows Store is the most convenient way.'                        '\n'
+        )
 
 
 
-        # Picocom.
+    # STM32CubeCLT.
 
-        elif missing_program in (roster := [
-            'picocom'
-        ]):
+    elif missing_program in (roster := [
+        'STM32_Programmer_CLI',
+        'ST-LINK_gdbserver',
+        'arm-none-eabi-gcc',
+        'arm-none-eabi-cpp',
+        'arm-none-eabi-objcopy',
+        'arm-none-eabi-gdb',
+    ]):
 
-            log(f'''
-                Python couldn't find "{missing_program}" in your PATH; have you installed it yet?
-                If you're on a Debian-based distro, this is just simply:
-                {ANSI(f'> sudo apt install picocom', 'bold')}
-                Otherwise, you should only be getting this message on some other Linux distribution
-                to which I have faith in you to figure this out on your own.
-            ''')
-
-
-
-        # Make.
-
-        elif missing_program in (roster := [
-            'make'
-        ]):
-
-            log(f'''
-                Python couldn't find "{missing_program}" in your PATH; have you installed it yet?
-                If you're on a Windows system, run the following command and restart your shell:
-                {ANSI(f'> winget install ezwinports.make', 'bold')}
-            ''')
+        logger.error(
+            f'Python couldn\'t find "{missing_program}" in your PATH; have you installed STM32CubeCLT 1.19.0 yet?' '\n'
+            f'> https://www.st.com/en/development-tools/stm32cubeclt.html'                                         '\n'
+            f'Note that the installation is behind a login-wall.'                                                  '\n'
+            f'Install and then make sure all of these commands are available in your PATH:'                        '\n',
+            extra = {
+                'table' : [
+                    (f'> {program}', ('missing' if shutil.which(program) is None else 'located'))
+                    for program in roster
+                ]
+            }
+        )
 
 
 
-        # Kicad-CLI.
+    # Picocom.
 
-        elif missing_program in (roster := [
-            'kicad-cli'
-        ]):
+    elif missing_program in (roster := [
+        'picocom',
+    ]):
 
-            log(f'''
-                Python couldn't find "{missing_program}" in your PATH.
-                This program comes along with KiCad, so on Windows,
-                you might find it at "C:\\Program Files\\KiCad\\9.0\\bin\\{missing_program}.exe".
-                Thus, add something like "C:\\Program Files\\KiCad\\9.0\\bin" to your PATH.
-            ''')
-
-
-
-        # Not implemented.
-
-        else:
-            log(f'Python couldn\'t find "{missing_program}" in your PATH; have you installed it yet?')
+        logger.error(
+            f'Python couldn\'t find "{missing_program}" in your PATH; have you installed it yet?'  '\n'
+            f'If you\'re on a Debian-based distro, this is just simply:'                           '\n'
+            f'> sudo apt install picocom'                                                          '\n'
+            f'Otherwise, you should only be getting this message on some other Linux distribution' '\n'
+            f'to which I have faith in you to figure this out on your own.'                        '\n'
+        )
 
 
 
-    raise ExitCode(1)
+    # Make.
+
+    elif missing_program in (roster := [
+        'make',
+    ]):
+
+        logger.error(
+            f'Python couldn\'t find "{missing_program}" in your PATH; have you installed it yet?' '\n'
+            f'If you\'re on a Windows system, run the following command and restart your shell:'  '\n'
+            f'> winget install ezwinports.make'                                                   '\n'
+        )
+
+
+
+    # KiCad-CLI.
+
+    elif missing_program in (roster := [
+        'kicad-cli',
+    ]):
+
+        logger.error(
+            f'Python couldn\'t find "{missing_program}" in your PATH.'                           '\n'
+            f'This program comes along with KiCad, so on Windows,'                               '\n'
+            f'you might find it at "C:\\Program Files\\KiCad\\9.0\\bin\\{missing_program}.exe".' '\n'
+            f'Thus, add something like "C:\\Program Files\\KiCad\\9.0\\bin" to your PATH.'       '\n'
+        )
+
+
+
+    # Explanation not implemented.
+
+    else:
+
+        logger.error(
+            f'Python couldn\'t find "{missing_program}" in your PATH; have you installed it yet?'
+        )
+
+
+
+    sys.exit(1)
 
 
 
