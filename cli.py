@@ -595,7 +595,7 @@ def ui_verb_hook(verb, parameters):
     end = time.time()
 
     if (elapsed := end - start) >= 0.5:
-        logger.info(f'"{verb.name}" took: {elapsed :.3f}s')
+        logger.debug(f'"{verb.name}" took {elapsed :.3f}s')
 
 
 
