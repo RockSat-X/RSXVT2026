@@ -1,7 +1,7 @@
 #meta STLINK_BAUD, TARGETS, PER_MCU, PER_TARGET :
 
 import types, collections
-from deps.stpy.pxd.utils import root, c_repr
+from deps.stpy.pxd.utils import make_main_relative_path, c_repr
 from deps.stpy.mcus      import MCUS
 
 
@@ -12,15 +12,13 @@ from deps.stpy.mcus      import MCUS
 
 STLINK_BAUD = 1_000_000
 
-BUILD = root('./build')
-
 MCU_SUPPORT = {
 
     'STM32H7S3L8H6' : {
         'include_paths' : (
-            root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1'),
+            make_main_relative_path('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1'),
         ),
-        'freertos_source_file_paths' : root('''
+        'freertos_source_file_paths' : make_main_relative_path('''
             ./deps/FreeRTOS_Kernel/tasks.c
             ./deps/FreeRTOS_Kernel/queue.c
             ./deps/FreeRTOS_Kernel/list.c
@@ -35,9 +33,9 @@ MCU_SUPPORT = {
 
     'STM32H533RET6' : {
         'include_paths' : (
-            root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
+            make_main_relative_path('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
         ),
-        'freertos_source_file_paths' : root('''
+        'freertos_source_file_paths' : make_main_relative_path('''
             ./deps/FreeRTOS_Kernel/tasks.c
             ./deps/FreeRTOS_Kernel/queue.c
             ./deps/FreeRTOS_Kernel/list.c
@@ -53,9 +51,9 @@ MCU_SUPPORT = {
 
     'STM32H533VET6' : {
         'include_paths' : (
-            root('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
+            make_main_relative_path('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
         ),
-        'freertos_source_file_paths' : root('''
+        'freertos_source_file_paths' : make_main_relative_path('''
             ./deps/FreeRTOS_Kernel/tasks.c
             ./deps/FreeRTOS_Kernel/queue.c
             ./deps/FreeRTOS_Kernel/list.c
@@ -71,11 +69,6 @@ MCU_SUPPORT = {
 
 }
 
-COUPLED_CONNECTORS = (
-    'MainStackConnector',
-    'VehicleStackConnector',
-)
-
 TARGETS = (
 
 
@@ -88,11 +81,11 @@ TARGETS = (
 
         name              = 'SandboxNucleoH7S3L8',
         mcu               = 'STM32H7S3L8H6',
-        source_file_paths = root('''
+        source_file_paths = make_main_relative_path('''
             ./electrical/SandboxNucleoBoard.c
         '''),
 
-        schematic_file_path = None,
+        kicad_project = None,
 
         gpios = (
             ('led_red'   , 'B7' , 'OUTPUT'    , { 'initlvl' : False               }),
@@ -147,11 +140,11 @@ TARGETS = (
 
         name              = 'SandboxNucleoH533RE',
         mcu               = 'STM32H533RET6',
-        source_file_paths = root('''
+        source_file_paths = make_main_relative_path('''
             ./electrical/SandboxNucleoBoard.c
         '''),
 
-        schematic_file_path = None,
+        kicad_project = None,
 
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False              }),
@@ -200,11 +193,11 @@ TARGETS = (
 
         name              = 'DemoI2C',
         mcu               = 'STM32H533RET6',
-        source_file_paths = root('''
+        source_file_paths = make_main_relative_path('''
             ./electrical/DemoI2C.c
         '''),
 
-        schematic_file_path = None,
+        kicad_project = None,
 
         gpios = (
             ('led_green'  , 'A5' , 'OUTPUT'   , { 'initlvl' : False                                          }),
@@ -276,11 +269,11 @@ TARGETS = (
 
         name              = 'DemoTimer',
         mcu               = 'STM32H533RET6',
-        source_file_paths = root('''
+        source_file_paths = make_main_relative_path('''
             ./electrical/DemoTimer.c
         '''),
 
-        schematic_file_path = None,
+        kicad_project = None,
 
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                 }),
@@ -333,11 +326,11 @@ TARGETS = (
 
         name              = 'DemoSPI',
         mcu               = 'STM32H533RET6',
-        source_file_paths = root('''
+        source_file_paths = make_main_relative_path('''
             ./electrical/DemoSPI.c
         '''),
 
-        schematic_file_path = None,
+        kicad_project = None,
 
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                 }),
@@ -398,11 +391,11 @@ TARGETS = (
 
         name              = 'DemoTimekeeping',
         mcu               = 'STM32H533RET6',
-        source_file_paths = root('''
+        source_file_paths = make_main_relative_path('''
             ./electrical/DemoTimekeeping.c
         '''),
 
-        schematic_file_path = None,
+        kicad_project = None,
 
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False              }),
@@ -456,11 +449,11 @@ TARGETS = (
 
         name              = 'DemoSDMMC',
         mcu               = 'STM32H533RET6',
-        source_file_paths = root('''
+        source_file_paths = make_main_relative_path('''
             ./electrical/DemoSDMMC.c
         '''),
 
-        schematic_file_path = None,
+        kicad_project = None,
 
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                 }),
@@ -525,10 +518,11 @@ TARGETS = (
 
         name              = 'SensorShield',
         mcu               = 'STM32H533RET6',
-        source_file_paths = root('''
+        source_file_paths = make_main_relative_path('''
             ./electrical/SensorShield.c
         '''),
-        schematic_file_path = None,
+
+        kicad_project = None,
 
         gpios = (
             ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                                          }),
@@ -590,48 +584,62 @@ TARGETS = (
         mcu               = 'STM32H533VET6',
         source_file_paths = (),
 
-        schematic_file_path = root('./pcb/MainFlightComputer.kicad_sch'),
+        kicad_project = 'MainFlightComputer',
 
         gpios = (
-            ('led_channel_red'  , 'E2' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False }),
-            ('led_channel_green', 'E3' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False }),
-            ('led_channel_blue' , 'E4' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False }),
-            ('stlink_tx'        , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'             }),
-            ('stlink_rx'        , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'             }),
-            ('swdio'            , 'A13', None        , {                                     }),
-            ('swclk'            , 'A14', None        , {                                     }),
-            ('swo'              , 'B3' , None        , {                                     }),
-            ('serial_reset'     , 'D10', 'OUTPUT'    , { 'initlvl' : True                    }),
-            ('serial_rx'        , 'D11', 'ALTERNATE' , { 'altfunc' : 'UART4_RX'              }),
-            ('serial_tx'        , 'D12', 'ALTERNATE' , { 'altfunc' : 'UART4_TX'              }),
-            ('user_button'      , 'E14', 'INPUT'     , { 'pull'    : None, 'active' : True   }),
-            ('buzzer'           , 'C6' , 'ALTERNATE' , { 'altfunc' : 'TIM8_CH1'              }),
-            ('sd_cmd'           , 'D2' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CMD'            }),
-            ('sd_data_0'        , 'C8' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D0'             }),
-            ('sd_data_1'        , 'C9' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D1'             }),
-            ('sd_data_2'        , 'C10', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D2'             }),
-            ('sd_data_3'        , 'C11', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D3'             }),
-            ('sd_clock'         , 'C12', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CK'             }),
-            ('general_purpose_A', 'D0' , None        , {                                     }),
-            ('general_purpose_B', 'D1' , None        , {                                     }),
-            ('spi_nss_A'        , 'B12', 'ALTERNATE' , { 'altfunc' : 'SPI2_NSS'              }),
-            ('spi_clock_A'      , 'B10', 'ALTERNATE' , { 'altfunc' : 'SPI2_SCK'              }),
-            ('spi_mosi_A'       , 'C3' , 'ALTERNATE' , { 'altfunc' : 'SPI2_MOSI'             }),
-            ('spi_miso_A'       , 'C2' , 'ALTERNATE' , { 'altfunc' : 'SPI2_MISO'             }),
-            ('spi_ready_A'      , 'D5' , 'ALTERNATE' , { 'altfunc' : 'SPI2_RDY'              }),
-            ('spi_nss_B'        , 'B8' , 'ALTERNATE' , { 'altfunc' : 'SPI3_NSS'              }),
-            ('spi_clock_B'      , 'B1' , 'ALTERNATE' , { 'altfunc' : 'SPI3_SCK'              }),
-            ('spi_mosi_B'       , 'B5' , 'ALTERNATE' , { 'altfunc' : 'SPI3_MOSI'             }),
-            ('spi_miso_B'       , 'B0' , 'ALTERNATE' , { 'altfunc' : 'SPI3_MISO'             }),
-            ('spi_ready_B'      , 'E0' , 'ALTERNATE' , { 'altfunc' : 'SPI3_RDY'              }),
-            ('uart_tx_A'        , 'B14', 'ALTERNATE' , { 'altfunc' : 'USART1_TX'             }),
-            ('uart_rx_A'        , 'B15', 'ALTERNATE' , { 'altfunc' : 'USART1_RX'             }),
-            ('uart_tx_B'        , 'D8' , 'ALTERNATE' , { 'altfunc' : 'USART3_TX'             }),
-            ('uart_rx_B'        , 'D9' , 'ALTERNATE' , { 'altfunc' : 'USART3_RX'             }),
-            ('i2c_data_A'       , 'B7' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA'              }),
-            ('i2c_clock_A'      , 'B6' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL'              }),
-            ('i2c_data_B'       , 'D7' , 'ALTERNATE' , { 'altfunc' : 'I2C3_SDA'              }),
-            ('i2c_clock_B'      , 'D6' , 'ALTERNATE' , { 'altfunc' : 'I2C3_SCL'              }),
+            ('led_channel_red'                , 'E2' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False }),
+            ('led_channel_green'              , 'E3' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False }),
+            ('led_channel_blue'               , 'E4' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False }),
+            ('stlink_tx'                      , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'             }),
+            ('stlink_rx'                      , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'             }),
+            ('swdio'                          , 'A13', None        , {                                     }),
+            ('swclk'                          , 'A14', None        , {                                     }),
+            ('swo'                            , 'B3' , None        , {                                     }),
+            ('serial_reset'                   , 'D10', 'OUTPUT'    , { 'initlvl' : True                    }),
+            ('serial_rx'                      , 'D11', 'ALTERNATE' , { 'altfunc' : 'UART4_RX'              }),
+            ('serial_tx'                      , 'D12', 'ALTERNATE' , { 'altfunc' : 'UART4_TX'              }),
+            ('user_button'                    , 'E14', 'INPUT'     , { 'pull'    : None, 'active' : True   }),
+            ('logic_gse_1'                    , 'A7' , 'INPUT'     , { 'pull'    : None                    }),
+            ('logic_timer_event_1'            , 'A8' , 'INPUT'     , { 'pull'    : None                    }),
+            ('logic_timer_event_x'            , 'A9' , 'INPUT'     , { 'pull'    : None                    }),
+            ('buzzer'                         , 'C6' , 'ALTERNATE' , { 'altfunc' : 'TIM8_CH1'              }),
+            ('sd_cmd'                         , 'D2' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CMD'            }),
+            ('sd_data_0'                      , 'C8' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D0'             }),
+            ('sd_data_1'                      , 'C9' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D1'             }),
+            ('sd_data_2'                      , 'C10', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D2'             }),
+            ('sd_data_3'                      , 'C11', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D3'             }),
+            ('sd_clock'                       , 'C12', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CK'             }),
+            ('esp32_spi_nss'                  , 'B12', 'ALTERNATE' , { 'altfunc' : 'SPI2_NSS'              }),
+            ('esp32_spi_clock'                , 'B10', 'ALTERNATE' , { 'altfunc' : 'SPI2_SCK'              }),
+            ('esp32_spi_mosi'                 , 'C3' , 'ALTERNATE' , { 'altfunc' : 'SPI2_MOSI'             }),
+            ('esp32_spi_miso'                 , 'C2' , 'ALTERNATE' , { 'altfunc' : 'SPI2_MISO'             }),
+            ('esp32_spi_ready'                , 'D5' , 'ALTERNATE' , { 'altfunc' : 'SPI2_RDY'              }),
+            ('spi_nss_B'                      , 'A4' , 'ALTERNATE' , { 'altfunc' : 'SPI1_NSS'              }),
+            ('spi_clock_B'                    , 'A5' , 'ALTERNATE' , { 'altfunc' : 'SPI1_SCK'              }),
+            ('spi_mosi_B'                     , 'B5' , 'ALTERNATE' , { 'altfunc' : 'SPI1_MOSI'             }),
+            ('spi_miso_B'                     , 'A6' , 'ALTERNATE' , { 'altfunc' : 'SPI1_MISO'             }),
+            ('spi_ready_B'                    , 'B2' , 'ALTERNATE' , { 'altfunc' : 'SPI1_RDY'              }),
+            ('esp32_reset'                    , 'D0' , 'OUTPUT'    , { 'initlvl' : False                   }),
+            ('vehicle_interface_i2c_data'     , 'B7' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA'              }),
+            ('vehicle_interface_i2c_clock'    , 'B6' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL'              }),
+            ('flight_computer_debug_i2c_data' , 'D7' , 'ALTERNATE' , { 'altfunc' : 'I2C3_SDA'              }),
+            ('flight_computer_debug_i2c_clock', 'D6' , 'ALTERNATE' , { 'altfunc' : 'I2C3_SCL'              }),
+            ('uart_tx_A'                      , 'B14', 'ALTERNATE' , { 'altfunc' : 'USART1_TX'             }),
+            ('uart_rx_A'                      , 'B15', 'ALTERNATE' , { 'altfunc' : 'USART1_RX'             }),
+            ('uart_tx_B'                      , 'D8' , 'ALTERNATE' , { 'altfunc' : 'USART3_TX'             }),
+            ('uart_rx_B'                      , 'B1' , 'ALTERNATE' , { 'altfunc' : 'USART3_RX'             }),
+            ('solarboard_analog_A'            , 'D14', None        , {                                     }),
+            ('solarboard_analog_B'            , 'D15', None        , {                                     }),
+            ('general_purpose_B'              , 'E15', None        , {                                     }),
+            ('general_purpose_C'              , 'E5' , None        , {                                     }),
+            ('general_purpose_D'              , 'E6' , None        , {                                     }),
+            ('general_purpose_E'              , 'E7' , None        , {                                     }),
+            ('general_purpose_F'              , 'E8' , None        , {                                     }),
+            ('general_purpose_G'              , 'E9' , None        , {                                     }),
+            ('general_purpose_H'              , 'E10', None        , {                                     }),
+            ('general_purpose_I'              , 'E11', None        , {                                     }),
+            ('general_purpose_J'              , 'E12', None        , {                                     }),
+            ('general_purpose_K'              , 'E13', None        , {                                     }),
         ),
 
         interrupts = None,
@@ -656,59 +664,65 @@ TARGETS = (
         mcu               = 'STM32H533VET6',
         source_file_paths = (),
 
-        schematic_file_path = root('./pcb/VehicleFlightComputer.kicad_sch'),
+        kicad_project = 'VehicleFlightComputer',
+
 
         gpios = (
-            ('led_channel_red'       , 'E2' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False }),
-            ('led_channel_green'     , 'E3' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False }),
-            ('led_channel_blue'      , 'E4' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False }),
-            ('stlink_tx'             , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'             }),
-            ('stlink_rx'             , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'             }),
-            ('swdio'                 , 'A13', None        , {                                     }),
-            ('swclk'                 , 'A14', None        , {                                     }),
-            ('swo'                   , 'B3' , None        , {                                     }),
-            ('serial_reset'          , 'D10', 'OUTPUT'    , { 'initlvl' : True                    }),
-            ('serial_rx'             , 'D11', 'ALTERNATE' , { 'altfunc' : 'UART4_RX'              }),
-            ('serial_tx'             , 'D12', 'ALTERNATE' , { 'altfunc' : 'UART4_TX'              }),
-            ('buzzer'                , 'C6' , 'ALTERNATE' , { 'altfunc' : 'TIM8_CH1'              }),
-            ('sd_cmd'                , 'D2' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CMD'            }),
-            ('sd_data_0'             , 'C8' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D0'             }),
-            ('sd_data_1'             , 'C9' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D1'             }),
-            ('sd_data_2'             , 'C10', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D2'             }),
-            ('sd_data_3'             , 'C11', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D3'             }),
-            ('sd_clock'              , 'C12', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CK'             }),
-            ('battery_allowed'       , 'D0' , 'OUTPUT'    , { 'initlvl' : False                   }),
-            ('external_detected'     , 'D1' , None        , {                                     }),
-            ('openmv_spi_nss'        , 'B12', 'ALTERNATE' , { 'altfunc' : 'SPI2_NSS'              }),
-            ('openmv_spi_clock'      , 'B10', 'ALTERNATE' , { 'altfunc' : 'SPI2_SCK'              }),
-            ('openmv_spi_mosi'       , 'C3' , 'ALTERNATE' , { 'altfunc' : 'SPI2_MOSI'             }),
-            ('openmv_spi_miso'       , 'C2' , 'ALTERNATE' , { 'altfunc' : 'SPI2_MISO'             }),
-            ('openmv_spi_ready'      , 'D5' , 'ALTERNATE' , { 'altfunc' : 'SPI2_RDY'              }),
-            ('openmv_reset'          , 'D14', 'OUTPUT'    , { 'initlvl' : False                   }),
-            ('esp32_spi_nss'         , 'B8' , 'ALTERNATE' , { 'altfunc' : 'SPI3_NSS'              }),
-            ('esp32_spi_clock'       , 'B1' , 'ALTERNATE' , { 'altfunc' : 'SPI3_SCK'              }),
-            ('esp32_spi_mosi'        , 'B5' , 'ALTERNATE' , { 'altfunc' : 'SPI3_MOSI'             }),
-            ('esp32_spi_miso'        , 'B0' , 'ALTERNATE' , { 'altfunc' : 'SPI3_MISO'             }),
-            ('esp32_spi_ready'       , 'E0' , 'ALTERNATE' , { 'altfunc' : 'SPI3_RDY'              }),
-            ('esp32_reset'           , 'D15', 'OUTPUT'    , { 'initlvl' : False                   }),
-            ('motor_uart_tx'         , 'B14', 'ALTERNATE' , { 'altfunc' : 'USART1_TX'             }),
-            ('motor_uart_rx'         , 'B15', 'ALTERNATE' , { 'altfunc' : 'USART1_RX'             }),
-            ('lsm6dsv32x_i2c_data'   , 'B7' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA'              }),
-            ('lsm6dsv32x_i2c_clock'  , 'B6' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL'              }),
-            ('lis2mdl_i2c_data'      , 'D7' , 'ALTERNATE' , { 'altfunc' : 'I2C3_SDA'              }),
-            ('lis2mdl_i2c_clock'     , 'D6' , 'ALTERNATE' , { 'altfunc' : 'I2C3_SCL'              }),
-            ('motor_disable'         , 'E14', 'OUTPUT'    , { 'initlvl' : True                    }),
-            ('motor_step_x'          , 'E11', 'OUTPUT'    , { 'initlvl' : False                   }),
-            ('motor_step_y'          , 'E12', 'OUTPUT'    , { 'initlvl' : False                   }),
-            ('motor_step_z'          , 'E13', 'OUTPUT'    , { 'initlvl' : False                   }),
-            ('motor_direction_x'     , 'E15', 'OUTPUT'    , { 'initlvl' : False                   }),
-            ('motor_direction_y'     , 'D4' , 'OUTPUT'    , { 'initlvl' : False                   }),
-            ('motor_direction_z'     , 'D3' , 'OUTPUT'    , { 'initlvl' : False                   }),
-            ('lsm6dsv32x_interrupt_1', 'A8' , None        , {                                     }),
-            ('lsm6dsv32x_interrupt_2', 'A9' , None        , {                                     }),
-            ('lsm6dsv32x_chip_select', 'A10', 'OUTPUT'    , { 'initlvl': True                     }),
-            ('lis2mdl_data_ready'    , 'C14', None        , {                                     }),
-            ('lis2mdl_chip_select'   , 'C15', None        , {                                     }),
+            ('led_channel_red'            , 'C0'  , 'OUTPUT'    , { 'initlvl' : False, 'active' : False }),
+            ('led_channel_green'          , 'C1'  , 'OUTPUT'    , { 'initlvl' : False, 'active' : False }),
+            ('led_channel_blue'           , 'A0'  , 'OUTPUT'    , { 'initlvl' : False, 'active' : False }),
+            ('stlink_tx'                  , 'A2'  , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'             }),
+            ('stlink_rx'                  , 'A3'  , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'             }),
+            ('swdio'                      , 'A13' , None        , {                                     }),
+            ('swclk'                      , 'A14' , None        , {                                     }),
+            ('swo'                        , 'B3'  , None        , {                                     }),
+            ('serial_reset'               , 'E10' , 'OUTPUT'    , { 'initlvl' : True                    }),
+            ('serial_rx'                  , 'D11' , 'ALTERNATE' , { 'altfunc' : 'UART4_RX'              }),
+            ('serial_tx'                  , 'D12' , 'ALTERNATE' , { 'altfunc' : 'UART4_TX'              }),
+            ('buzzer'                     , 'A5'  , 'ALTERNATE' , { 'altfunc' : 'TIM2_CH1'              }),
+            ('sd_cmd'                     , 'D2'  , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CMD'            }),
+            ('sd_data_0'                  , 'C8'  , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D0'             }),
+            ('sd_data_1'                  , 'C9'  , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D1'             }),
+            ('sd_data_2'                  , 'C10' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D2'             }),
+            ('sd_data_3'                  , 'C11' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D3'             }),
+            ('sd_clock'                   , 'C12' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CK'             }),
+            ('battery_allowed'            , 'D0'  , 'OUTPUT'    , { 'initlvl' : False                   }),
+            ('external_detected'          , 'D1'  , None        , {                                     }),
+            ('openmv_spi_nss'             , 'B12' , 'ALTERNATE' , { 'altfunc' : 'SPI2_NSS'              }),
+            ('openmv_spi_clock'           , 'B10' , 'ALTERNATE' , { 'altfunc' : 'SPI2_SCK'              }),
+            ('openmv_spi_mosi'            , 'C3'  , 'ALTERNATE' , { 'altfunc' : 'SPI2_MOSI'             }),
+            ('openmv_spi_miso'            , 'C2'  , 'ALTERNATE' , { 'altfunc' : 'SPI2_MISO'             }),
+            ('openmv_spi_ready'           , 'D5'  , 'ALTERNATE' , { 'altfunc' : 'SPI2_RDY'              }),
+            ('openmv_reset'               , 'B2'  , 'OUTPUT'    , { 'initlvl' : False                   }),
+            ('esp32_spi_nss'              , 'B8'  , 'ALTERNATE' , { 'altfunc' : 'SPI3_NSS'              }),
+            ('esp32_spi_clock'            , 'B1'  , 'ALTERNATE' , { 'altfunc' : 'SPI3_SCK'              }),
+            ('esp32_spi_mosi'             , 'B5'  , 'ALTERNATE' , { 'altfunc' : 'SPI3_MOSI'             }),
+            ('esp32_spi_miso'             , 'B0'  , 'ALTERNATE' , { 'altfunc' : 'SPI3_MISO'             }),
+            ('esp32_spi_ready'            , 'E0'  , 'ALTERNATE' , { 'altfunc' : 'SPI3_RDY'              }),
+            ('esp32_reset'                , 'E8'  , 'OUTPUT'    , { 'initlvl' : False                   }),
+            ('motor_uart_tx'              , 'B14' , 'ALTERNATE' , { 'altfunc' : 'USART1_TX'             }),
+            ('motor_uart_rx'              , 'B15' , 'ALTERNATE' , { 'altfunc' : 'USART1_RX'             }),
+            ('sensor_i2c_data'            , 'B7'  , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA'              }),
+            ('sensor_i2c_clock'           , 'B6'  , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL'              }),
+            ('vehicle_interface_i2c_data' , 'D7'  , 'ALTERNATE' , { 'altfunc' : 'I2C3_SDA'              }),
+            ('vehicle_interface_i2c_clock', 'D6'  , 'ALTERNATE' , { 'altfunc' : 'I2C3_SCL'              }),
+            ('motor_disable'              , 'A4'  , 'OUTPUT'    , { 'initlvl' : True                    }),
+            ('motor_step_x'               , 'E9'  , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH1'              }),
+            ('motor_step_y'               , 'C6'  , 'ALTERNATE' , { 'altfunc' : 'TIM8_CH1'              }),
+            ('motor_step_z'               , 'E5'  , 'ALTERNATE' , { 'altfunc' : 'TIM15_CH1'             }),
+            ('motor_direction_x'          , 'A9'  , 'OUTPUT'    , { 'initlvl' : False                   }),
+            ('motor_direction_y'          , 'A8'  , 'OUTPUT'    , { 'initlvl' : False                   }),
+            ('motor_direction_z'          , 'A10' , 'OUTPUT'    , { 'initlvl' : False                   }),
+            ('lsm6dsv32x_interrupt_1'     , 'D13' , None        , {                                     }),
+            ('lsm6dsv32x_interrupt_2'     , 'D14' , None        , {                                     }),
+            ('lsm6dsv32x_chip_select'     , 'D15' , 'OUTPUT'    , { 'initlvl': True                     }),
+            ('lis2mdl_data_ready'         , 'B4'  , None        , {                                     }),
+            ('lis2mdl_chip_select'        , 'C15' , None        , {                                     }),
+            ('vn100_uart_tx'              , 'D8'  , 'ALTERNATE' , { 'altfunc' : 'USART3_TX'             }),
+            ('vn100_uart_rx'              , 'D9'  , 'ALTERNATE' , { 'altfunc' : 'USART3_RX'             }),
+            ('vn100_tare_restore'         , 'C13' , None        , {                                     }),
+            ('vn100_sync_out'             , 'H0'  , None        , {                                     }),
+            ('vn100_sync_in'              , 'C5'  , None        , {                                     }),
         ),
 
         interrupts = None,
@@ -731,10 +745,11 @@ TARGETS = (
 
         name              = 'DemoTMC2209',
         mcu               = 'STM32H533RET6',
-        source_file_paths = root('''
+        source_file_paths = make_main_relative_path('''
             ./electrical/DemoTMC2209.c
         '''),
-        schematic_file_path = None,
+
+        kicad_project = None,
 
         gpios = (
             ('led_green'       , 'A5' , 'OUTPUT'    , { 'initlvl' : False                 }),
@@ -851,12 +866,12 @@ for target in TARGETS:
     # Some include-directive search paths.
 
     include_paths = (
-        root('./electrical/meta'),
-        root('./deps/CMSIS_6/CMSIS/Core/Include'),
-        root('./deps/FreeRTOS_Kernel/include'),
-        root('./deps/printf/src'),
-        root('.'),
-        root('./electrical'),
+        make_main_relative_path('./electrical/meta'),
+        make_main_relative_path('./deps/CMSIS_6/CMSIS/Core/Include'),
+        make_main_relative_path('./deps/FreeRTOS_Kernel/include'),
+        make_main_relative_path('./deps/printf/src'),
+        make_main_relative_path('.'),
+        make_main_relative_path('./electrical'),
         *MCU_SUPPORT[target.mcu]['include_paths'],
     )
 

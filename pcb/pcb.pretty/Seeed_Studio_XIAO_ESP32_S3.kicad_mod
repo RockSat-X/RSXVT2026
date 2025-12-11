@@ -454,4 +454,16 @@
 			(xyz -90 -0 -90)
 		)
 	)
+	(model "${KIPRJMOD}/models/Wio-SX1262_for_XIAO_3D_file.step"
+		(opacity 0.6200)
+		(offset
+			(xyz -114.5 121.1 4.7)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -0 -0 -0)
+		)
+	)
 )

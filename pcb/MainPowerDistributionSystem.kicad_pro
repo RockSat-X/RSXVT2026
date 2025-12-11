@@ -656,36 +656,12 @@
       "Timer Event Logic Conversion - TE-1"
     ],
     [
-      "5794667a-7b17-4495-a615-6983a1fee026",
-      "Timer Event Logic Conversion - TE-2"
-    ],
-    [
-      "3f92f74e-3cca-4282-aab2-357fe1c1118f",
-      "Timer Event Logic Conversion - TE-3"
-    ],
-    [
-      "0f780159-799d-4240-a0dc-e97323accb24",
-      "Burnwire Regulator - 1"
-    ],
-    [
-      "7ea803d7-eeec-4516-a8ae-4c33da2eb13f",
-      "Burnwire Regulator - 2"
-    ],
-    [
-      "808cc913-2635-4e01-9a87-a42fd91b330a",
-      "Timer Event Logic Conversion - TE-RA"
-    ],
-    [
-      "7bfeb19b-cfbf-4688-9fe2-f6b9e19ab4b8",
-      "Timer Event Logic Conversion - TE-RB"
-    ],
-    [
       "41b9944a-f63d-4ce0-843f-6c1f8b109fe2",
       "Timer Event Logic Conversion - GSE-1"
     ],
     [
       "5cd708ab-f243-4c3d-b9a6-6ef81c5046b4",
-      "Timer Event Logic Conversion - GSE-2"
+      "Timer Event Logic Conversion - TE-X"
     ]
   ],
   "text_variables": {}
