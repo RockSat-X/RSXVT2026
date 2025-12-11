@@ -1,0 +1,54 @@
+{
+    "mcu_name": "STM32",
+    "package": {
+        "width": 300,
+        "height": 300
+    },
+    "pins": [
+        {
+            "name": "PA0",
+            "side": "top",
+            "index": 0,
+            "functions": [
+                "GPIO",
+                "ADC_IN0",
+                "TIM2_CH1"
+            ],
+            "assigned_function": null
+        },
+        {
+            "name": "PA1",
+            "side": "top",
+            "index": 1,
+            "functions": [
+                "GPIO",
+                "ADC_IN1",
+                "TIM2_CH2",
+                "USART2_RTS"
+            ],
+            "assigned_function": null
+        },
+        {
+            "name": "PA2",
+            "side": "right",
+            "index": 0,
+            "functions": [
+                "GPIO",
+                "USART2_TX",
+                "TIM2_CH3"
+            ],
+            "assigned_function": null
+        },
+        {
+            "name": "PA3",
+            "side": "right",
+            "index": 1,
+            "functions": [
+                "GPIO",
+                "USART2_RX",
+                "TIM2_CH4"
+            ],
+            "assigned_function": null
+        }
+    ]
+}
