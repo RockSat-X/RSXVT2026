@@ -34,12 +34,12 @@ import types, shlex, pathlib, shutil, subprocess, time, logging
 
 
 #
-# Root logger configuration.
+# Logger configuration.
 #
 
 
 
-class RootFormatter(logging.Formatter):
+class MainFormatter(logging.Formatter):
 
     def format(self, record):
 
@@ -65,14 +65,40 @@ class RootFormatter(logging.Formatter):
 
 
 
-        # Any newlines will be indented so it'll look nice.
+        # The main interface logger won't have its
+        # info logs be prepended with the level.
 
-        indent = ' ' * len(f'[{record.levelname}] ')
+        if not (
+            record.name.split('.')[:2] == [__name__, 'main_interface']
+            and record.levelname == 'INFO'
+        ):
 
-        message = '\n'.join([
-            message.splitlines()[0],
-            *[f'{indent}{line}' for line in message.splitlines()[1:]]
-        ])
+
+
+            # Any newlines will be indented so it'll look nice.
+
+            indent = ' ' * len(f'[{record.levelname}] ')
+
+            message = '\n'.join([
+                message.splitlines()[0],
+                *[f'{indent}{line}' for line in message.splitlines()[1:]]
+            ])
+
+
+
+            # Prepend the log level name and color based on severity.
+
+            coloring = {
+                'DEBUG'    : '\x1B[0;35m',
+                'INFO'     : '\x1B[0;36m',
+                'WARNING'  : '\x1B[0;33m',
+                'ERROR'    : '\x1B[0;31m',
+                'CRITICAL' : '\x1B[1;31m',
+            }[record.levelname]
+
+            reset = '\x1B[0m'
+
+            message = f'{coloring}[{record.levelname}]{reset} {message}'
 
 
 
@@ -82,29 +108,15 @@ class RootFormatter(logging.Formatter):
 
 
 
-        # Prepend the log level name and color based on severity.
-
-        coloring = {
-            'DEBUG'    : '\x1B[0;35m',
-            'INFO'     : '\x1B[0;36m',
-            'WARNING'  : '\x1B[0;33m',
-            'ERROR'    : '\x1B[0;31m',
-            'CRITICAL' : '\x1B[1;31m',
-        }[record.levelname]
-
-        reset = '\x1B[0m'
-
-        message = f'{coloring}[{record.levelname}]{reset} {message}'
-
-
-
         return message
 
 
 
-logging.basicConfig(level = logging.DEBUG)
-logging.getLogger().handlers[0].setFormatter(RootFormatter())
-logger = logging.getLogger(__name__)
+logger         = logging.getLogger(__name__)
+logger_handler = logging.StreamHandler(sys.stdout)
+logger_handler.setFormatter(MainFormatter())
+logger.addHandler(logger_handler)
+logger.setLevel(logging.DEBUG)
 
 
 
@@ -117,8 +129,7 @@ logger = logging.getLogger(__name__)
 try:
 
     import deps.stpy.pxd.metapreprocessor
-    import deps.stpy.pxd.cite
-    from   deps.stpy.pxd.ui    import ExitCode
+    import deps.stpy.pxd.interface
     from   deps.stpy.pxd.utils import make_main_relative_path, justify
 
 except ModuleNotFoundError as error:
@@ -588,21 +599,23 @@ def execute_shell_command(
 
 
 
-def ui_verb_hook(verb, parameters):
+def main_interface_hook(verb, parameters):
 
-    start = time.time()
+    start   = time.time()
     yield
-    end = time.time()
+    end     = time.time()
+    elapsed = end - start
 
-    if (elapsed := end - start) >= 0.5:
+    if elapsed >= 0.5:
         logger.debug(f'"{verb.name}" took {elapsed :.3f}s.')
 
 
 
-ui = deps.stpy.pxd.ui.UI(
-    f'{make_main_relative_path(pathlib.Path(__file__).name)}',
-    f'The command line program (pronounced "clippy").',
-    ui_verb_hook,
+main_interface = deps.stpy.pxd.interface.Interface(
+    name        = f'{make_main_relative_path(pathlib.Path(__file__).name)}',
+    description = f'The command line program (pronounced "clippy").',
+    logger      = logging.getLogger(f'{logger.name}.main_interface'),
+    hook        = main_interface_hook,
 )
 
 
@@ -611,7 +624,7 @@ ui = deps.stpy.pxd.ui.UI(
 
 
 
-@ui(
+@main_interface.new_verb(
     {
         'description' : 'Delete all build artifacts.',
     },
@@ -640,7 +653,7 @@ def clean(parameters):
 
 
 
-@ui(
+@main_interface.new_verb(
     {
         'description' : 'Compile and generate the binary for flashing.',
     },
@@ -830,7 +843,7 @@ def build(parameters):
 
 
 
-@ui(
+@main_interface.new_verb(
     {
         'description' : 'Flash the binary to the MCU.',
     },
@@ -923,7 +936,7 @@ def flash(parameters):
 
 
 
-@ui(
+@main_interface.new_verb(
     {
         'description' : 'Set up a debugging session.',
     },
@@ -1030,26 +1043,22 @@ def debug(parameters):
 
 
 
-@ui(
+@main_interface.new_verb(
     {
         'description' : 'Open the COM serial port of the ST-Link.',
-        'help'        : ...,
+        'more_help'   : True,
     },
 )
 def talk(parameters):
 
 
 
-    if parameters.help:
-
-        from deps.stpy.pxd.log import log # TODO Deprecate.
+    if parameters is None:
 
         match sys.platform:
-            case 'linux' : log('<ctrl-a ctrl-q> Exit.')
-            case 'win32' : log('<ctrl-c> Exit.')
-            case _       : log('<ctrl-c> Exit (maybe?).')
-
-        return
+            case 'linux' : return '<ctrl-a ctrl-q> Exit.'
+            case 'win32' : return '<ctrl-c> Exit.'
+            case _       : return '<ctrl-c> Exit (maybe?).'
 
 
 
@@ -1105,7 +1114,7 @@ def talk(parameters):
 
 
 
-@ui(
+@main_interface.new_verb(
     {
         'name'        : 'stlinks',
         'description' : 'Search and list for any ST-Links connected to the computer.',
@@ -1127,15 +1136,7 @@ def _(parameters):
 
 
 
-ui(deps.stpy.pxd.cite.ui)
-
-
-
-################################################################################
-
-
-
-@ui(
+@main_interface.new_verb(
     {
         'description' : 'Check the correctness of PCBs.',
     },
@@ -1155,12 +1156,10 @@ def checkPCBs(parameters):
     # when we run the meta-preprocessor; things like invalid GPIO
     # pin port-number settings will be caught first.
 
-    try: # TODO Bum hack with the UI module...
-        if exit_code := build(types.SimpleNamespace(target = None, metapreprocess_only = True)):
-            raise ExitCode(exit_code)
-    except ExitCode as exit_code:
-        if exit_code.args[0]:
-            raise
+    build(types.SimpleNamespace(
+        target              = None,
+        metapreprocess_only = True
+    ))
 
 
 
@@ -1513,8 +1512,12 @@ def checkPCBs(parameters):
 
 try:
 
-    sys.exit(ui.invoke(sys.argv[1:]))
+    main_interface.invoke(sys.argv[1:])
 
 except KeyboardInterrupt:
 
     logger.error('Interrupted by keyboard.')
+
+except ExecuteShellCommandNonZeroExitCode:
+
+    logger.error('Shell command exited with non-zero exit code.')
