@@ -759,7 +759,7 @@ TARGETS = (
             ('swclk'           , 'A14', None        , {                                   }),
             ('button'          , 'C13', 'INPUT'     , { 'pull'    : None, 'active' : True }),
             ('driver_direction', 'C3' , 'OUTPUT'    , { 'initlvl' : True                  }),
-            ('driver_step'     , 'A8' , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH1'            }),
+            ('driver_step'     , 'A9' , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH2'            }),
             ('driver_enable'   , 'B0' , 'OUTPUT'    , { 'initlvl' : True                  }),
         ),
 
@@ -778,6 +778,7 @@ TARGETS = (
                 'type'       : 'Stepper',
                 'peripheral' : 'TIM1',
                 'interrupt'  : 'TIM1_UP',
+                'channel'    : 2,
                 'handle'     : 'primary',
             },
         ),

@@ -37,9 +37,9 @@
     };
     static constexpr u32 StepperHandle_COUNT = 1;
     #define TIMx_ TIM_
-    static const struct { typeof(TIM1) TIMx; typeof(NVICInterrupt_TIM1_update_event) NVICInterrupt_TIMx_update_event; typeof(STPY_TIM1_DIVIDER) STPY_TIMx_DIVIDER; typeof((struct CMSISTuple) { &RCC->APB2ENR, CONCAT(RCC_, APB2ENR_TIM1EN_Pos), CONCAT(RCC_, APB2ENR_TIM1EN_Msk) }) TIMx_ENABLE; } Stepper_TABLE[] =
+    static const struct { typeof(TIM1) TIMx; typeof(NVICInterrupt_TIM1_update_event) NVICInterrupt_TIMx_update_event; typeof(STPY_TIM1_DIVIDER) STPY_TIMx_DIVIDER; typeof((struct CMSISTuple) { &RCC->APB2ENR, CONCAT(RCC_, APB2ENR_TIM1EN_Pos), CONCAT(RCC_, APB2ENR_TIM1EN_Msk) }) TIMx_ENABLE; typeof((struct CMSISTuple) { &TIM1->CCER, CONCAT(TIM1_, CCER_CC2E_Pos), CONCAT(TIM1_, CCER_CC2E_Msk) }) TIMx_CAPTURE_COMPARE_ENABLE_y; typeof((struct CMSISTuple) { &TIM1->CCR2, CONCAT(TIM1_, CCR2_CCR2_Pos), CONCAT(TIM1_, CCR2_CCR2_Msk) }) TIMx_CAPTURE_COMPARE_VALUE_y; typeof((struct CMSISTuple) { &TIM1->CCMR1, CONCAT(TIM1_, CCMR1_OC2M_Pos), CONCAT(TIM1_, CCMR1_OC2M_Msk) }) TIMx_CAPTURE_COMPARE_MODE_y; } Stepper_TABLE[] =
         {
-            [StepperHandle_primary] = { .TIMx = TIM1, .NVICInterrupt_TIMx_update_event = NVICInterrupt_TIM1_update_event, .STPY_TIMx_DIVIDER = STPY_TIM1_DIVIDER, .TIMx_ENABLE = (struct CMSISTuple) { &RCC->APB2ENR, CONCAT(RCC_, APB2ENR_TIM1EN_Pos), CONCAT(RCC_, APB2ENR_TIM1EN_Msk) } },
+            [StepperHandle_primary] = { .TIMx = TIM1, .NVICInterrupt_TIMx_update_event = NVICInterrupt_TIM1_update_event, .STPY_TIMx_DIVIDER = STPY_TIM1_DIVIDER, .TIMx_ENABLE = (struct CMSISTuple) { &RCC->APB2ENR, CONCAT(RCC_, APB2ENR_TIM1EN_Pos), CONCAT(RCC_, APB2ENR_TIM1EN_Msk) }, .TIMx_CAPTURE_COMPARE_ENABLE_y = (struct CMSISTuple) { &TIM1->CCER, CONCAT(TIM1_, CCER_CC2E_Pos), CONCAT(TIM1_, CCER_CC2E_Msk) }, .TIMx_CAPTURE_COMPARE_VALUE_y = (struct CMSISTuple) { &TIM1->CCR2, CONCAT(TIM1_, CCR2_CCR2_Pos), CONCAT(TIM1_, CCR2_CCR2_Msk) }, .TIMx_CAPTURE_COMPARE_MODE_y = (struct CMSISTuple) { &TIM1->CCMR1, CONCAT(TIM1_, CCMR1_OC2M_Pos), CONCAT(TIM1_, CCMR1_OC2M_Msk) } },
         };
     static void
     _Stepper_driver_interrupt(enum StepperHandle handle);
@@ -57,4 +57,7 @@
     auto const NVICInterrupt_TIMx_update_event = Stepper_TABLE[handle].NVICInterrupt_TIMx_update_event;\
     auto const STPY_TIMx_DIVIDER = Stepper_TABLE[handle].STPY_TIMx_DIVIDER;\
     auto const TIMx_ENABLE = Stepper_TABLE[handle].TIMx_ENABLE;\
+    auto const TIMx_CAPTURE_COMPARE_ENABLE_y = Stepper_TABLE[handle].TIMx_CAPTURE_COMPARE_ENABLE_y;\
+    auto const TIMx_CAPTURE_COMPARE_VALUE_y = Stepper_TABLE[handle].TIMx_CAPTURE_COMPARE_VALUE_y;\
+    auto const TIMx_CAPTURE_COMPARE_MODE_y = Stepper_TABLE[handle].TIMx_CAPTURE_COMPARE_MODE_y;\
 

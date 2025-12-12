@@ -47,11 +47,14 @@
         cmsis_name  = 'TIM',
         common_name = 'TIMx',
         entries     = (
-            { 'name'      : '{}'                           , 'value'       : ... },
-            { 'name'      : 'NVICInterrupt_{}_update_event', 'value'       : ... },
-            { 'name'      : 'STPY_{}_DIVIDER'              , 'value'       : ... },
-            { 'name'      : '{}_ENABLE'                    , 'cmsis_tuple' : ... },
-            { 'interrupt' : 'INTERRUPT_{}_update_event'                          },
+            { 'name'      : '{}'                           , 'value'       : ...                                                                                 },
+            { 'name'      : 'NVICInterrupt_{}_update_event', 'value'       : ...                                                                                 },
+            { 'name'      : 'STPY_{}_DIVIDER'              , 'value'       : ...                                                                                 },
+            { 'name'      : '{}_ENABLE'                    , 'cmsis_tuple' : ...                                                                                 },
+            { 'name'      : '{}_CAPTURE_COMPARE_ENABLE_y'  , 'cmsis_tuple' : lambda driver: f'{driver['peripheral']}_CAPTURE_COMPARE_ENABLE_{driver['channel']}' },
+            { 'name'      : '{}_CAPTURE_COMPARE_VALUE_y'   , 'cmsis_tuple' : lambda driver: f'{driver['peripheral']}_CAPTURE_COMPARE_VALUE_{driver['channel']}'  },
+            { 'name'      : '{}_CAPTURE_COMPARE_MODE_y'    , 'cmsis_tuple' : lambda driver: f'{driver['peripheral']}_CAPTURE_COMPARE_MODE_{driver['channel']}'   },
+            { 'interrupt' : 'INTERRUPT_{}_update_event'                                                                                                          },
         ),
     )
 
@@ -89,20 +92,20 @@ _Stepper_partial_init(enum StepperHandle handle)
 
     // Channel output in PWM mode so we can generate a pulse.
 
-    CMSIS_SET(TIMx, CCMR1, OC1M, 0b0111);
+    CMSIS_PUT(TIMx_CAPTURE_COMPARE_MODE_y, 0b0111);
 
 
 
     // The comparison channel output is inactive
     // when the counter is below this value.
 
-    CMSIS_SET(TIMx, CCR1, CCR1, 1);
+    CMSIS_PUT(TIMx_CAPTURE_COMPARE_VALUE_y, 1);
 
 
 
     // Enable the comparison channel output.
 
-    CMSIS_SET(TIMx, CCER, CC1E, true);
+    CMSIS_PUT(TIMx_CAPTURE_COMPARE_ENABLE_y, true);
 
 
 

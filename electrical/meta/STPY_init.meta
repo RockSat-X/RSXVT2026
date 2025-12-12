@@ -3340,7 +3340,7 @@
             #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__driver_direction C
             #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__driver_direction 3
             #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__driver_step A
-            #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__driver_step 8
+            #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__driver_step 9
             #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__driver_step
             #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_HIGH__driver_enable GPIO_BSRR_BS
             #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_LOW__driver_enable GPIO_BSRR_BR
@@ -3362,14 +3362,14 @@
                 AFSEL2   , 7            ,
                 AFSEL3   , 7            ,
             );
-            CMSIS_WRITE(GPIO_AFRH, GPIOA->AFR[1], AFSEL8, 1);
+            CMSIS_WRITE(GPIO_AFRH, GPIOA->AFR[1], AFSEL9, 1);
             CMSIS_SET
             (
                 GPIOA, MODER,
                 MODE2, 0b10 ,
                 MODE3, 0b10 ,
                 MODE5, 0b01 ,
-                MODE8, 0b10 ,
+                MODE9, 0b10 ,
             );
             CMSIS_SET(GPIOB, MODER, MODE0, 0b01);
             CMSIS_SET
