@@ -10,8 +10,11 @@
         cmsis_name  = 'TIM',
         common_name = 'TIMx',
         entries     = (
-            { 'name'      : '{}'          , 'value': ... },
-            { 'interrupt' : 'INTERRUPT_{}'               },
+            { 'name'      : '{}'              , 'value'       : ... },
+            { 'name'      : 'NVICInterrupt_{}', 'value'       : ... },
+            { 'name'      : 'STPY_{}_DIVIDER' , 'value'       : ... },
+            { 'name'      : '{}_ENABLE'       , 'cmsis_tuple' : ... },
+            { 'interrupt' : 'INTERRUPT_{}'                          },
         ),
     )
 
@@ -30,6 +33,79 @@ struct StepperDriver
 
 
 static struct StepperDriver _Stepper_drivers[StepperHandle_COUNT] = {0};
+
+
+
+static void
+_Stepper_partial_init(enum StepperHandle handle)
+{
+
+    _EXPAND_HANDLE
+
+
+
+    // Enable the peripheral.
+
+    CMSIS_PUT(TIMx_ENABLE, true);
+
+
+
+    // Channel output in PWM mode so we can generate a pulse.
+
+    CMSIS_SET(TIMx, CCMR1, OC1M, 0b0111);
+
+
+
+    // The comparison channel output is inactive
+    // when the counter is below this value.
+
+    CMSIS_SET(TIMx, CCR1, CCR1, 1);
+
+
+
+    // Enable the comparison channel output.
+
+    CMSIS_SET(TIMx, CCER, CC1E, true);
+
+
+
+    // Master enable for the timer's outputs.
+
+    CMSIS_SET(TIMx, BDTR, MOE, true);
+
+
+
+    // Configure the divider to set the rate at
+    // which the timer's counter will increment.
+
+    CMSIS_SET(TIMx, PSC, PSC, STPY_TIMx_DIVIDER);
+
+
+
+    // Trigger an update event so that the shadow registers
+    // ARR, PSC, and CCRx are what we initialize them to be.
+    // The hardware uses shadow registers in order for updates
+    // to these registers not result in a corrupt timer output.
+
+    CMSIS_SET(TIMx, EGR, UG, true);
+
+
+
+    CMSIS_SET
+    (
+        TIMx, CR1 ,
+        URS , 0b1 , // So that the UG bit doesn't set the update event interrupt.
+        OPM , true, // Timer's counter stops incrementing after an update event.
+    );
+
+
+
+    // Enable interrupt on update events.
+
+    CMSIS_SET(TIMx, DIER, UIE, true);
+    NVIC_ENABLE(TIMx);
+
+}
 
 
 

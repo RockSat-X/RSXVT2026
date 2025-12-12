@@ -35,9 +35,9 @@
     };
     static constexpr u32 StepperHandle_COUNT = 1;
     #define TIMx_ TIM_
-    static const struct { typeof(TIM15) TIMx; } Stepper_TABLE[] =
+    static const struct { typeof(TIM15) TIMx; typeof(NVICInterrupt_TIM15) NVICInterrupt_TIMx; typeof(STPY_TIM15_DIVIDER) STPY_TIMx_DIVIDER; typeof((struct CMSISTuple) { &RCC->APB2ENR, CONCAT(RCC_, APB2ENR_TIM15EN_Pos), CONCAT(RCC_, APB2ENR_TIM15EN_Msk) }) TIMx_ENABLE; } Stepper_TABLE[] =
         {
-            [StepperHandle_primary] = { .TIMx = TIM15 },
+            [StepperHandle_primary] = { .TIMx = TIM15, .NVICInterrupt_TIMx = NVICInterrupt_TIM15, .STPY_TIMx_DIVIDER = STPY_TIM15_DIVIDER, .TIMx_ENABLE = (struct CMSISTuple) { &RCC->APB2ENR, CONCAT(RCC_, APB2ENR_TIM15EN_Pos), CONCAT(RCC_, APB2ENR_TIM15EN_Msk) } },
         };
     static void
     _Stepper_driver_interrupt(enum StepperHandle handle);
@@ -52,4 +52,7 @@
         panic;\
     auto const driver = &_Stepper_drivers[handle];\
     auto const TIMx = Stepper_TABLE[handle].TIMx;\
+    auto const NVICInterrupt_TIMx = Stepper_TABLE[handle].NVICInterrupt_TIMx;\
+    auto const STPY_TIMx_DIVIDER = Stepper_TABLE[handle].STPY_TIMx_DIVIDER;\
+    auto const TIMx_ENABLE = Stepper_TABLE[handle].TIMx_ENABLE;\
 

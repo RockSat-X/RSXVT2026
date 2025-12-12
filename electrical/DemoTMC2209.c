@@ -56,66 +56,7 @@ main(void)
 
 
 
-    // Enable the peripheral.
-
-    CMSIS_SET(RCC, APB2ENR, TIM15EN, true);
-
-
-
-    // Channel output in PWM mode so we can generate a pulse.
-
-    CMSIS_SET(TIM15, CCMR1, OC1M, 0b0111);
-
-
-
-    // The comparison channel output is inactive
-    // when the counter is below this value.
-
-    CMSIS_SET(TIM15, CCR1, CCR1, 1);
-
-
-
-    // Enable the comparison channel output.
-
-    CMSIS_SET(TIM15, CCER, CC1E, true);
-
-
-
-    // Master enable for the timer's outputs.
-
-    CMSIS_SET(TIM15, BDTR, MOE, true);
-
-
-
-    // Configure the divider to set the rate at
-    // which the timer's counter will increment.
-
-    CMSIS_SET(TIM15, PSC, PSC, STPY_TIM15_DIVIDER);
-
-
-
-    // Trigger an update event so that the shadow registers
-    // ARR, PSC, and CCRx are what we initialize them to be.
-    // The hardware uses shadow registers in order for updates
-    // to these registers not result in a corrupt timer output.
-
-    CMSIS_SET(TIM15, EGR, UG, true);
-
-
-
-    CMSIS_SET
-    (
-        TIM15, CR1 ,
-        URS  , 0b1 , // So that the UG bit doesn't set the update event interrupt.
-        OPM  , true, // Timer's counter stops incrementing after an update event.
-    );
-
-
-
-    // Enable interrupt on update events.
-
-    CMSIS_SET(TIM15, DIER, UIE, true);
-    NVIC_ENABLE(TIM15);
+    _Stepper_partial_init(StepperHandle_primary);
 
 
 
