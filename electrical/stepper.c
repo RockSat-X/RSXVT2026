@@ -5,6 +5,29 @@
 #include "stepper_driver_support.meta"
 /* #meta
 
+    # As of writing, the timer's counter
+    # frequency must be 1 MHz; this is mostly
+    # arbitrary can be subject to customization.
+
+    for target in TARGETS:
+
+        for driver in target.drivers:
+
+            if driver['type'] != 'Stepper':
+                continue
+
+            timer = driver['peripheral']
+
+            if target.schema.get(property := f'{timer}_COUNTER_RATE', None) != 1_000_000:
+                raise ValueError(
+                    f'The stepper driver '
+                    f'for target {repr(target.name)} '
+                    f'requires {repr(property)} '
+                    f'in the schema with value of {1_000_000}.'
+                )
+
+
+
     IMPLEMENT_DRIVER_SUPPORT(
         driver_type = 'Stepper',
         cmsis_name  = 'TIM',
