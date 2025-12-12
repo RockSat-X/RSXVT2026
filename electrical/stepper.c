@@ -5,16 +5,13 @@
 #include "stepper_driver_support.meta"
 /* #meta
 
+    # As of writing, the timer's counter
+    # frequency must be 1 MHz; this is mostly
+    # arbitrary can be subject to customization.
+
     for target in TARGETS:
 
         for driver in target.drivers:
-
-
-
-            # As of writing, the timer's counter
-            # frequency must be 1 MHz; this is mostly
-            # arbitrary can be subject to customization.
-
             if driver['type'] != 'Stepper':
                 continue
 
@@ -30,31 +27,19 @@
 
 
 
-            # Some timer update interrupts are different
-            # between each instance of timers. One might
-            # be 'INTERRUPT_TIM1_UP' while another is
-            # just 'INTERRUPT_TIM15'. This is how we'll
-            # account for the difference.
-            # TODO Not necessary here.
-
-            Meta.define(f'NVICInterrupt_{driver['peripheral']}_update_event', f'NVICInterrupt_{driver['interrupt']}')
-            Meta.define(f'INTERRUPT_{driver['peripheral']}_update_event'    , f'INTERRUPT_{driver['interrupt']}'    )
-
-
-
     IMPLEMENT_DRIVER_SUPPORT(
         driver_type = 'Stepper',
         cmsis_name  = 'TIM',
         common_name = 'TIMx',
         entries     = (
-            { 'name'      : '{}'                           , 'value'       : ...                                                                                 },
-            { 'name'      : 'NVICInterrupt_{}_update_event', 'value'       : ...                                                                                 },
-            { 'name'      : 'STPY_{}_DIVIDER'              , 'value'       : ...                                                                                 },
-            { 'name'      : '{}_ENABLE'                    , 'cmsis_tuple' : ...                                                                                 },
-            { 'name'      : '{}_CAPTURE_COMPARE_ENABLE_y'  , 'cmsis_tuple' : lambda driver: f'{driver['peripheral']}_CAPTURE_COMPARE_ENABLE_{driver['channel']}' },
-            { 'name'      : '{}_CAPTURE_COMPARE_VALUE_y'   , 'cmsis_tuple' : lambda driver: f'{driver['peripheral']}_CAPTURE_COMPARE_VALUE_{driver['channel']}'  },
-            { 'name'      : '{}_CAPTURE_COMPARE_MODE_y'    , 'cmsis_tuple' : lambda driver: f'{driver['peripheral']}_CAPTURE_COMPARE_MODE_{driver['channel']}'   },
-            { 'interrupt' : 'INTERRUPT_{}_update_event'                                                                                                          },
+            { 'name' : '{}'                           , 'value'       : ...                                                                                 },
+            { 'name' : 'NVICInterrupt_{}_update_event', 'value'       : lambda driver: f'NVICInterrupt_{driver['interrupt']}'                               },
+            { 'name' : 'STPY_{}_DIVIDER'              , 'value'       : ...                                                                                 },
+            { 'name' : '{}_ENABLE'                    , 'cmsis_tuple' : ...                                                                                 },
+            { 'name' : '{}_CAPTURE_COMPARE_ENABLE_y'  , 'cmsis_tuple' : lambda driver: f'{driver['peripheral']}_CAPTURE_COMPARE_ENABLE_{driver['channel']}' },
+            { 'name' : '{}_CAPTURE_COMPARE_VALUE_y'   , 'cmsis_tuple' : lambda driver: f'{driver['peripheral']}_CAPTURE_COMPARE_VALUE_{driver['channel']}'  },
+            { 'name' : '{}_CAPTURE_COMPARE_MODE_y'    , 'cmsis_tuple' : lambda driver: f'{driver['peripheral']}_CAPTURE_COMPARE_MODE_{driver['channel']}'   },
+            { 'name' : 'INTERRUPT_{}_update_event'    , 'interrupt'   : lambda driver: f'INTERRUPT_{driver['interrupt']}'                                   },
         ),
     )
 

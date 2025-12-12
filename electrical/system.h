@@ -699,7 +699,7 @@ halt_(b32 panicking) // @/`Halting`.
 
                     # This entry isn't part of the look-up table.
 
-                    case { 'interrupt' : name, **rest } if not rest:
+                    case { 'name' : name, 'interrupt' : function, **rest } if not rest:
 
                         continue
 
@@ -743,14 +743,17 @@ halt_(b32 panicking) // @/`Halting`.
 
                 for entry in entries:
 
-                    if (interrupt := entry.get('interrupt', None)) is not None:
+                    if 'interrupt' not in entry:
+                        continue
 
-                        Meta.line(f'''
-                            {interrupt.format(driver['peripheral'])}
-                            {{
-                                _{driver_type}_driver_interrupt({driver_type}Handle_{driver['handle']});
-                            }}
-                        ''')
+                    interrupt = entry['name'] if entry['interrupt'] is ... else entry['interrupt'](driver)
+
+                    Meta.line(f'''
+                        {interrupt.format(driver['peripheral'])}
+                        {{
+                            _{driver_type}_driver_interrupt({driver_type}Handle_{driver['handle']});
+                        }}
+                    ''')
 
 
 
@@ -770,7 +773,7 @@ halt_(b32 panicking) // @/`Halting`.
 
             for entry in entries:
 
-                if 'name' not in entry:
+                if 'interrupt' in entry:
                     continue
 
                 field = entry['name'].format(common_name)
