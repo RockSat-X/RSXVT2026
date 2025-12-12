@@ -132,6 +132,26 @@ _Stepper_partial_init(enum StepperHandle handle)
 
 
 
+static useret b32
+_Stepper_push_delta(enum StepperHandle handle, i8 delta)
+{
+
+    _EXPAND_HANDLE
+
+    b32 has_space = driver->writer - driver->reader < countof(driver->deltas);
+
+    if (has_space)
+    {
+        driver->deltas[driver->writer % countof(driver->deltas)]  = delta;
+        driver->writer                                           += 1;
+    }
+
+    return has_space;
+
+}
+
+
+
 static void
 _Stepper_driver_interrupt(enum StepperHandle handle)
 {
