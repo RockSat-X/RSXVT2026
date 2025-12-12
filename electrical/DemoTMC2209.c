@@ -1,6 +1,5 @@
 #include "system.h"
 #include "uxart.c"
-#include "timekeeping.c"
 #include "stepper.c"
 
 
@@ -21,34 +20,6 @@ main(void)
     // Set the prescaler that'll affect all timers' kernel frequency.
 
     CMSIS_SET(RCC, CFGR1, TIMPRE, STPY_GLOBAL_TIMER_PRESCALER);
-
-
-
-    // Enable the peripheral.
-
-    CMSIS_PUT(TIMEKEEPING_TIMER_ENABLE, true);
-
-
-
-    // Configure the divider to set the rate at
-    // which the timer's counter will increment.
-
-    CMSIS_SET(TIMEKEEPING_TIMER, PSC, PSC, TIMEKEEPING_DIVIDER);
-
-
-
-    // Trigger an update event so that the shadow registers
-    // ARR, PSC, and CCRx are what we initialize them to be.
-    // The hardware uses shadow registers in order for updates
-    // to these registers not result in a corrupt timer output.
-
-    CMSIS_SET(TIMEKEEPING_TIMER, EGR, UG, true);
-
-
-
-    // Enable the timer's counter.
-
-    CMSIS_SET(TIMEKEEPING_TIMER, CR1, CEN, true);
 
 
 

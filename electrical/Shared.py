@@ -775,10 +775,6 @@ TARGETS = (
                 'handle'     : 'stlink',
             },
             {
-                'type'       : 'TIMEKEEPING',
-                'peripheral' : 'TIM1',
-            },
-            {
                 'type'       : 'Stepper',
                 'peripheral' : 'TIM15',
                 'handle'     : 'primary',
@@ -797,7 +793,6 @@ TARGETS = (
             'APB2_CK'            : 250_000_000,
             'APB3_CK'            : 250_000_000,
             'USART2_BAUD'        : STLINK_BAUD,
-            'TIM1_COUNTER_RATE'  : 1_000_000,
             'TIM15_COUNTER_RATE' : 1_000_000,
         },
 

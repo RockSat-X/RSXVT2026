@@ -3502,7 +3502,6 @@
 
 
             #define STPY_GLOBAL_TIMER_PRESCALER false
-            #define STPY_TIM1_DIVIDER (250 - 1)
             #define STPY_TIM15_DIVIDER (250 - 1)
 
         }
