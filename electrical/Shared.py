@@ -778,6 +778,11 @@ TARGETS = (
                 'type'       : 'TIMEKEEPING',
                 'peripheral' : 'TIM1',
             },
+            {
+                'type'       : 'Stepper',
+                'peripheral' : 'TIM15',
+                'handle'     : 'primary',
+            },
         ),
 
         use_freertos    = False,
