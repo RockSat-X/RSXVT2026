@@ -1,3 +1,5 @@
+#define NVICInterrupt_TIM1_update_event NVICInterrupt_TIM1_UP
+#define INTERRUPT_TIM1_update_event INTERRUPT_TIM1_UP
 #if TARGET_NAME_IS_SandboxNucleoH7S3L8
     #error Target 'SandboxNucleoH7S3L8' defines no handle for the 'Stepper' driver.
 #endif
@@ -35,13 +37,13 @@
     };
     static constexpr u32 StepperHandle_COUNT = 1;
     #define TIMx_ TIM_
-    static const struct { typeof(TIM15) TIMx; typeof(NVICInterrupt_TIM15) NVICInterrupt_TIMx; typeof(STPY_TIM15_DIVIDER) STPY_TIMx_DIVIDER; typeof((struct CMSISTuple) { &RCC->APB2ENR, CONCAT(RCC_, APB2ENR_TIM15EN_Pos), CONCAT(RCC_, APB2ENR_TIM15EN_Msk) }) TIMx_ENABLE; } Stepper_TABLE[] =
+    static const struct { typeof(TIM1) TIMx; typeof(NVICInterrupt_TIM1_update_event) NVICInterrupt_TIMx_update_event; typeof(STPY_TIM1_DIVIDER) STPY_TIMx_DIVIDER; typeof((struct CMSISTuple) { &RCC->APB2ENR, CONCAT(RCC_, APB2ENR_TIM1EN_Pos), CONCAT(RCC_, APB2ENR_TIM1EN_Msk) }) TIMx_ENABLE; } Stepper_TABLE[] =
         {
-            [StepperHandle_primary] = { .TIMx = TIM15, .NVICInterrupt_TIMx = NVICInterrupt_TIM15, .STPY_TIMx_DIVIDER = STPY_TIM15_DIVIDER, .TIMx_ENABLE = (struct CMSISTuple) { &RCC->APB2ENR, CONCAT(RCC_, APB2ENR_TIM15EN_Pos), CONCAT(RCC_, APB2ENR_TIM15EN_Msk) } },
+            [StepperHandle_primary] = { .TIMx = TIM1, .NVICInterrupt_TIMx_update_event = NVICInterrupt_TIM1_update_event, .STPY_TIMx_DIVIDER = STPY_TIM1_DIVIDER, .TIMx_ENABLE = (struct CMSISTuple) { &RCC->APB2ENR, CONCAT(RCC_, APB2ENR_TIM1EN_Pos), CONCAT(RCC_, APB2ENR_TIM1EN_Msk) } },
         };
     static void
     _Stepper_driver_interrupt(enum StepperHandle handle);
-    INTERRUPT_TIM15
+    INTERRUPT_TIM1_update_event
     {
         _Stepper_driver_interrupt(StepperHandle_primary);
     }
@@ -52,7 +54,7 @@
         panic;\
     auto const driver = &_Stepper_drivers[handle];\
     auto const TIMx = Stepper_TABLE[handle].TIMx;\
-    auto const NVICInterrupt_TIMx = Stepper_TABLE[handle].NVICInterrupt_TIMx;\
+    auto const NVICInterrupt_TIMx_update_event = Stepper_TABLE[handle].NVICInterrupt_TIMx_update_event;\
     auto const STPY_TIMx_DIVIDER = Stepper_TABLE[handle].STPY_TIMx_DIVIDER;\
     auto const TIMx_ENABLE = Stepper_TABLE[handle].TIMx_ENABLE;\
 

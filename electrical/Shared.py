@@ -759,13 +759,13 @@ TARGETS = (
             ('swclk'           , 'A14', None        , {                                   }),
             ('button'          , 'C13', 'INPUT'     , { 'pull'    : None, 'active' : True }),
             ('driver_direction', 'C3' , 'OUTPUT'    , { 'initlvl' : True                  }),
-            ('driver_step'     , 'C12', 'ALTERNATE' , { 'altfunc' : 'TIM15_CH1'           }),
+            ('driver_step'     , 'A8' , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH1'            }),
             ('driver_enable'   , 'B0' , 'OUTPUT'    , { 'initlvl' : True                  }),
         ),
 
         interrupts = (
-            ('USART2', 0),
-            ('TIM15' , 1),
+            ('USART2' , 0),
+            ('TIM1_UP', 1),
         ),
 
         drivers = (
@@ -776,7 +776,8 @@ TARGETS = (
             },
             {
                 'type'       : 'Stepper',
-                'peripheral' : 'TIM15',
+                'peripheral' : 'TIM1',
+                'interrupt'  : 'TIM1_UP',
                 'handle'     : 'primary',
             },
         ),
@@ -784,16 +785,16 @@ TARGETS = (
         use_freertos    = False,
         main_stack_size = 8192,
         schema          = {
-            'HSI_ENABLE'         : True,
-            'HSI48_ENABLE'       : True,
-            'CSI_ENABLE'         : True,
-            'PLL1P_CK'           : 250_000_000,
-            'CPU_CK'             : 250_000_000,
-            'APB1_CK'            : 250_000_000,
-            'APB2_CK'            : 250_000_000,
-            'APB3_CK'            : 250_000_000,
-            'USART2_BAUD'        : STLINK_BAUD,
-            'TIM15_COUNTER_RATE' : 1_000_000,
+            'HSI_ENABLE'        : True,
+            'HSI48_ENABLE'      : True,
+            'CSI_ENABLE'        : True,
+            'PLL1P_CK'          : 250_000_000,
+            'CPU_CK'            : 250_000_000,
+            'APB1_CK'           : 250_000_000,
+            'APB2_CK'           : 250_000_000,
+            'APB3_CK'           : 250_000_000,
+            'USART2_BAUD'       : STLINK_BAUD,
+            'TIM1_COUNTER_RATE' : 1_000_000,
         },
 
     ),

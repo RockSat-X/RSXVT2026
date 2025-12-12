@@ -5,13 +5,15 @@
 #include "stepper_driver_support.meta"
 /* #meta
 
-    # As of writing, the timer's counter
-    # frequency must be 1 MHz; this is mostly
-    # arbitrary can be subject to customization.
-
     for target in TARGETS:
 
         for driver in target.drivers:
+
+
+
+            # As of writing, the timer's counter
+            # frequency must be 1 MHz; this is mostly
+            # arbitrary can be subject to customization.
 
             if driver['type'] != 'Stepper':
                 continue
@@ -28,16 +30,28 @@
 
 
 
+            # Some timer update interrupts are different
+            # between each instance of timers. One might
+            # be 'INTERRUPT_TIM1_UP' while another is
+            # just 'INTERRUPT_TIM15'. This is how we'll
+            # account for the difference.
+            # TODO Not necessary here.
+
+            Meta.define(f'NVICInterrupt_{driver['peripheral']}_update_event', f'NVICInterrupt_{driver['interrupt']}')
+            Meta.define(f'INTERRUPT_{driver['peripheral']}_update_event'    , f'INTERRUPT_{driver['interrupt']}'    )
+
+
+
     IMPLEMENT_DRIVER_SUPPORT(
         driver_type = 'Stepper',
         cmsis_name  = 'TIM',
         common_name = 'TIMx',
         entries     = (
-            { 'name'      : '{}'              , 'value'       : ... },
-            { 'name'      : 'NVICInterrupt_{}', 'value'       : ... },
-            { 'name'      : 'STPY_{}_DIVIDER' , 'value'       : ... },
-            { 'name'      : '{}_ENABLE'       , 'cmsis_tuple' : ... },
-            { 'interrupt' : 'INTERRUPT_{}'                          },
+            { 'name'      : '{}'                           , 'value'       : ... },
+            { 'name'      : 'NVICInterrupt_{}_update_event', 'value'       : ... },
+            { 'name'      : 'STPY_{}_DIVIDER'              , 'value'       : ... },
+            { 'name'      : '{}_ENABLE'                    , 'cmsis_tuple' : ... },
+            { 'interrupt' : 'INTERRUPT_{}_update_event'                          },
         ),
     )
 
@@ -126,7 +140,7 @@ _Stepper_partial_init(enum StepperHandle handle)
     // Enable interrupt on update events.
 
     CMSIS_SET(TIMx, DIER, UIE, true);
-    NVIC_ENABLE(TIMx);
+    NVIC_ENABLE(TIMx_update_event);
 
 }
 
