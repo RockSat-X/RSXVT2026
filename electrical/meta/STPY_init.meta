@@ -3145,11 +3145,13 @@
         enum NVICInterrupt : u32
         {
             NVICInterrupt_USART2 = USART2_IRQn,
+            NVICInterrupt_TIM15  = TIM15_IRQn,
         };
-        static constexpr u32 NVICInterrupt_COUNT = 1;
+        static constexpr u32 NVICInterrupt_COUNT = 2;
         extern void INTERRUPT_BusFault(void);
         extern void INTERRUPT_Default(void);
         extern void INTERRUPT_Reset(void);
+        extern void INTERRUPT_TIM15(void);
         extern void INTERRUPT_USART2(void);
         extern void INTERRUPT_UsageFault(void);
         void (* const INTERRUPT_VECTOR_TABLE[])(void) __attribute__((used, section(".INTERRUPT_VECTOR_TABLE"))) =
@@ -3241,7 +3243,7 @@
                 INTERRUPT_Default            , // [ 68] TIM8_CC
                 INTERRUPT_Default            , // [ 69] ADC2
                 INTERRUPT_Default            , // [ 70] LPTIM2
-                INTERRUPT_Default            , // [ 71] TIM15
+                INTERRUPT_TIM15              , // [ 71] TIM15
                 INTERRUPT_Default            , // [ 72] Reserved
                 INTERRUPT_Default            , // [ 73] Reserved
                 INTERRUPT_Default            , // [ 74] USB_DRD_FS
@@ -3307,6 +3309,7 @@
         #define INTERRUPT_BusFault extern void INTERRUPT_BusFault(void)
         #define INTERRUPT_Default extern void INTERRUPT_Default(void)
         #define INTERRUPT_Reset extern void INTERRUPT_Reset(void)
+        #define INTERRUPT_TIM15 extern void INTERRUPT_TIM15(void)
         #define INTERRUPT_USART2 extern void INTERRUPT_USART2(void)
         #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
         extern void
@@ -3384,6 +3387,8 @@
 
             static_assert(0 <= 0 && 0 < (1 << __NVIC_PRIO_BITS));
             NVIC->IPR[NVICInterrupt_USART2] = 0 << __NVIC_PRIO_BITS;
+            static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
+            NVIC->IPR[NVICInterrupt_TIM15] = 1 << __NVIC_PRIO_BITS;
             CMSIS_SET
             (
                 SCB        , SHCSR,

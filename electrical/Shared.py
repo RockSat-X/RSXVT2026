@@ -764,7 +764,8 @@ TARGETS = (
         ),
 
         interrupts = (
-            ('USART2' , 0),
+            ('USART2', 0),
+            ('TIM15' , 1),
         ),
 
         drivers = (
