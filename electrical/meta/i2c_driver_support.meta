@@ -76,8 +76,8 @@
 #if TARGET_NAME_IS_VehicleFlightComputer
     #error Target 'VehicleFlightComputer' defines no handle for the 'I2C' driver.
 #endif
-#if TARGET_NAME_IS_DemoTMC2209
-    #error Target 'DemoTMC2209' defines no handle for the 'I2C' driver.
+#if TARGET_NAME_IS_DemoStepper
+    #error Target 'DemoStepper' defines no handle for the 'I2C' driver.
 #endif
 #undef _EXPAND_HANDLE
 #define _EXPAND_HANDLE\
@@ -154,7 +154,7 @@
         panic;
     }
 #endif
-#if TARGET_NAME_IS_DemoTMC2209
+#if TARGET_NAME_IS_DemoStepper
     static void INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
     {
         panic;

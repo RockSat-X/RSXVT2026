@@ -3140,7 +3140,7 @@
 #endif
 #if TARGET_NAME_IS_VehicleFlightComputer
 #endif
-#if TARGET_NAME_IS_DemoTMC2209
+#if TARGET_NAME_IS_DemoStepper
     #if STPY_IMPLEMENTATION
         enum NVICInterrupt : u32
         {

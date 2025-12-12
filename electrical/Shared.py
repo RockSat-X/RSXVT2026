@@ -743,10 +743,10 @@ TARGETS = (
 
     types.SimpleNamespace(
 
-        name              = 'DemoTMC2209',
+        name              = 'DemoStepper',
         mcu               = 'STM32H533RET6',
         source_file_paths = make_main_relative_path('''
-            ./electrical/DemoTMC2209.c
+            ./electrical/DemoStepper.c
         '''),
 
         kicad_project = None,
