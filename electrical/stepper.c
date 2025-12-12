@@ -1,4 +1,4 @@
-#define STEP_PERIOD_US 25'000
+#define STEPPER_PERIOD_US 25'000
 
 
 
@@ -209,7 +209,7 @@ _Stepper_driver_interrupt(enum StepperHandle handle)
         // the direction and rate of stepping at fixed
         // intervals.
 
-        CMSIS_SET(TIMx, ARR, ARR, (STEP_PERIOD_US - 1) / (abs_steps ? abs_steps : 1));
+        CMSIS_SET(TIMx, ARR, ARR, (STEPPER_PERIOD_US - 1) / (abs_steps ? abs_steps : 1));
 
 
 
