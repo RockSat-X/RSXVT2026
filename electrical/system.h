@@ -687,11 +687,11 @@ halt_(b32 panicking) // @/`Halting`.
 
                     # The entry's value has to be constructed as a CMSIS tuple.
 
-                    case { 'name' : name, 'cmsis_tuple' : Ellipses, **rest } if not rest:
+                    case { 'name' : name, 'cmsis_tuple' : function, **rest } if not rest:
 
                         field.identifier = name.format(common_name)
                         field.values     = [
-                            CMSIS_TUPLE(target.mcu, name.format(driver['peripheral']))
+                            CMSIS_TUPLE(target.mcu, name.format(driver['peripheral']) if function is ... else function(driver))
                             for driver in drivers
                         ]
 
