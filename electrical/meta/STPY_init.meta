@@ -3140,16 +3140,18 @@
 #endif
 #if TARGET_NAME_IS_VehicleFlightComputer
 #endif
-#if TARGET_NAME_IS_DemoTMC2209
+#if TARGET_NAME_IS_DemoStepper
     #if STPY_IMPLEMENTATION
         enum NVICInterrupt : u32
         {
-            NVICInterrupt_USART2 = USART2_IRQn,
+            NVICInterrupt_USART2  = USART2_IRQn,
+            NVICInterrupt_TIM1_UP = TIM1_UP_IRQn,
         };
-        static constexpr u32 NVICInterrupt_COUNT = 1;
+        static constexpr u32 NVICInterrupt_COUNT = 2;
         extern void INTERRUPT_BusFault(void);
         extern void INTERRUPT_Default(void);
         extern void INTERRUPT_Reset(void);
+        extern void INTERRUPT_TIM1_UP(void);
         extern void INTERRUPT_USART2(void);
         extern void INTERRUPT_UsageFault(void);
         void (* const INTERRUPT_VECTOR_TABLE[])(void) __attribute__((used, section(".INTERRUPT_VECTOR_TABLE"))) =
@@ -3212,7 +3214,7 @@
                 INTERRUPT_Default            , // [ 39] FDCAN1_IT0
                 INTERRUPT_Default            , // [ 40] FDCAN1_IT1
                 INTERRUPT_Default            , // [ 41] TIM1_BRK
-                INTERRUPT_Default            , // [ 42] TIM1_UP
+                INTERRUPT_TIM1_UP            , // [ 42] TIM1_UP
                 INTERRUPT_Default            , // [ 43] TIM1_TRG_COM
                 INTERRUPT_Default            , // [ 44] TIM1_CC
                 INTERRUPT_Default            , // [ 45] TIM2
@@ -3307,6 +3309,7 @@
         #define INTERRUPT_BusFault extern void INTERRUPT_BusFault(void)
         #define INTERRUPT_Default extern void INTERRUPT_Default(void)
         #define INTERRUPT_Reset extern void INTERRUPT_Reset(void)
+        #define INTERRUPT_TIM1_UP extern void INTERRUPT_TIM1_UP(void)
         #define INTERRUPT_USART2 extern void INTERRUPT_USART2(void)
         #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
         extern void
@@ -3336,10 +3339,9 @@
             #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_LOW__driver_direction GPIO_BSRR_BR
             #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__driver_direction C
             #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__driver_direction 3
-            #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_HIGH__driver_step GPIO_BSRR_BS
-            #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_LOW__driver_step GPIO_BSRR_BR
-            #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__driver_step C
-            #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__driver_step 2
+            #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__driver_step A
+            #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__driver_step 9
+            #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__driver_step
             #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_HIGH__driver_enable GPIO_BSRR_BS
             #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_LOW__driver_enable GPIO_BSRR_BR
             #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__driver_enable B
@@ -3353,30 +3355,26 @@
             );
             CMSIS_SET(GPIOA, ODR, OD5, false);
             CMSIS_SET(GPIOB, ODR, OD0, true);
-            CMSIS_SET
-            (
-                GPIOC, ODR ,
-                OD2  , true,
-                OD3  , true,
-            );
+            CMSIS_SET(GPIOC, ODR, OD3, true);
             CMSIS_WRITE
             (
                 GPIO_AFRL, GPIOA->AFR[0],
                 AFSEL2   , 7            ,
                 AFSEL3   , 7            ,
             );
+            CMSIS_WRITE(GPIO_AFRH, GPIOA->AFR[1], AFSEL9, 1);
             CMSIS_SET
             (
                 GPIOA, MODER,
                 MODE2, 0b10 ,
                 MODE3, 0b10 ,
                 MODE5, 0b01 ,
+                MODE9, 0b10 ,
             );
             CMSIS_SET(GPIOB, MODER, MODE0, 0b01);
             CMSIS_SET
             (
                 GPIOC , MODER,
-                MODE2 , 0b01 ,
                 MODE3 , 0b01 ,
                 MODE13, 0b00 ,
             );
@@ -3389,6 +3387,8 @@
 
             static_assert(0 <= 0 && 0 < (1 << __NVIC_PRIO_BITS));
             NVIC->IPR[NVICInterrupt_USART2] = 0 << __NVIC_PRIO_BITS;
+            static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
+            NVIC->IPR[NVICInterrupt_TIM1_UP] = 1 << __NVIC_PRIO_BITS;
             CMSIS_SET
             (
                 SCB        , SHCSR,

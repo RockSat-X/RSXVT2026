@@ -23,14 +23,14 @@
         cmsis_name  = 'USART',
         common_name = 'UXARTx',
         entries     = (
-            { 'name'      : '{}'                   , 'value'       : ... },
-            { 'name'      : 'NVICInterrupt_{}'     , 'value'       : ... },
-            { 'name'      : 'STPY_{}_KERNEL_SOURCE', 'value'       : ... },
-            { 'name'      : 'STPY_{}_BAUD_DIVIDER' , 'value'       : ... },
-            { 'name'      : '{}_RESET'             , 'cmsis_tuple' : ... },
-            { 'name'      : '{}_ENABLE'            , 'cmsis_tuple' : ... },
-            { 'name'      : '{}_KERNEL_SOURCE'     , 'cmsis_tuple' : ... },
-            { 'interrupt' : 'INTERRUPT_{}'                               },
+            { 'name' : '{}'                   , 'value'       : ... },
+            { 'name' : 'NVICInterrupt_{}'     , 'value'       : ... },
+            { 'name' : 'STPY_{}_KERNEL_SOURCE', 'value'       : ... },
+            { 'name' : 'STPY_{}_BAUD_DIVIDER' , 'value'       : ... },
+            { 'name' : '{}_RESET'             , 'cmsis_tuple' : ... },
+            { 'name' : '{}_ENABLE'            , 'cmsis_tuple' : ... },
+            { 'name' : '{}_KERNEL_SOURCE'     , 'cmsis_tuple' : ... },
+            { 'name' : 'INTERRUPT_{}'         , 'interrupt'   : ... },
         ),
     )
 

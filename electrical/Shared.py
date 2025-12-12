@@ -743,10 +743,10 @@ TARGETS = (
 
     types.SimpleNamespace(
 
-        name              = 'DemoTMC2209',
+        name              = 'DemoStepper',
         mcu               = 'STM32H533RET6',
         source_file_paths = make_main_relative_path('''
-            ./electrical/DemoTMC2209.c
+            ./electrical/DemoStepper.c
         '''),
 
         kicad_project = None,
@@ -759,12 +759,13 @@ TARGETS = (
             ('swclk'           , 'A14', None        , {                                   }),
             ('button'          , 'C13', 'INPUT'     , { 'pull'    : None, 'active' : True }),
             ('driver_direction', 'C3' , 'OUTPUT'    , { 'initlvl' : True                  }),
-            ('driver_step'     , 'C2' , 'OUTPUT'    , { 'initlvl' : True                  }),
+            ('driver_step'     , 'A9' , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH2'            }),
             ('driver_enable'   , 'B0' , 'OUTPUT'    , { 'initlvl' : True                  }),
         ),
 
         interrupts = (
             ('USART2' , 0),
+            ('TIM1_UP', 1),
         ),
 
         drivers = (
@@ -774,8 +775,11 @@ TARGETS = (
                 'handle'     : 'stlink',
             },
             {
-                'type'       : 'TIMEKEEPING',
+                'type'       : 'Stepper',
                 'peripheral' : 'TIM1',
+                'interrupt'  : 'TIM1_UP',
+                'channel'    : 2,
+                'handle'     : 'primary',
             },
         ),
 
