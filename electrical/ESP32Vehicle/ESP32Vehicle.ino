@@ -1,7 +1,7 @@
 #include <esp_now.h>
 #include <WiFi.h>
 #include <Arduino.h> 
-
+#include <esp_wifi.h>
 // --- Configurable Parameters ---
 // REPLACE WITH THE MAC ADDRESS OF YOUR RECEIVER ESP32
 //Run the ESP32Main file to get the address of device. You can find it in the serial monitor of the Main code
@@ -11,18 +11,18 @@
 uint8_t receiverAddress[] = {0xD8, 0x3B, 0xDA, 0x74, 0x81, 0xFC};//input MAC address of receiver here if using unicast
 
 // Size of data payload (bytes). Max safe value is around 240.
-//change if deired
+//change if desired
 const uint8_t currentPayloadSize = 64;
 
 // Define maximum payload buffer size (should be >= currentPayloadSize)
-//do not go above 240 as that as what is best for ESPNOW protocol
 #define MAX_PAYLOAD_SIZE 240
 
 // 1. Data Structure Definition
-typedef struct struct_message {
+// __attribute__((packed)) prevents invisible padding bytes
+typedef struct __attribute__((packed)) struct_message {
     uint32_t sequenceNum;          // Sequence number
+        uint32_t crc32;                  // CRC32 checksum
     uint8_t payload[MAX_PAYLOAD_SIZE]; // Data payload buffer
-    uint8_t crc8;                  // CRC8 checksum
 } struct_message;
 
 // Create a variable of the structure type
@@ -32,21 +32,21 @@ uint32_t currentSequenceNum = 0;
 esp_now_peer_info_t peerInfo;
 volatile bool sendNextPacket = true; // Flag to control sending
 
-// 2. CRC8 Calculation Function
-// Calculates CRC8-CCITT checksum
-uint8_t calculateCRC8(const uint8_t *data, size_t length) {
-    uint8_t crc = 0xFF; // Initial value
+// 2. CRC32 Calculation Function (Standard IEEE 802.3)
+uint32_t calculateCRC32(const uint8_t *data, size_t length) {
+    uint32_t crc = 0xFFFFFFFF;
     for (size_t i = 0; i < length; i++) {
-        crc ^= data[i];
-        for (uint8_t j = 0; j < 8; j++) {
-            if (crc & 0x80) {
-                crc = (crc << 1) ^ 0x07; // Polynomial 0x07
+        uint8_t c = data[i];
+        for (uint32_t j = 0; j < 8; j++) {
+            if ((c ^ crc) & 1) {
+                crc = (crc >> 1) ^ 0xEDB88320;
             } else {
-                crc <<= 1;
+                crc >>= 1;
             }
+            c >>= 1;
         }
     }
-    return crc;
+    return ~crc;
 }
 
 // 3. Callback function when data is sent
@@ -70,6 +70,8 @@ void setup() {
 
     // Set device as a Wi-Fi Station
     WiFi.mode(WIFI_STA);
+    //added this wifi set channel function last minute, so if anythings off comment this out
+    esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE);//channel 1
     delay(500); //just added to give bootup more time 
     Serial.print("Transmitter MAC Address: ");
     Serial.println(WiFi.macAddress());
@@ -86,7 +88,7 @@ void setup() {
 
     // Register peer
     memcpy(peerInfo.peer_addr, receiverAddress, 6);
-    peerInfo.channel = 0; // Use default channel 0
+    peerInfo.channel = 1; // Use channel 1
     peerInfo.encrypt = false; // No encryption for this test
 
     // Add peer
@@ -123,17 +125,17 @@ void sendData() {
     //    myData.payload[i] = 0; // Or some padding value
     // }
 
-    // Calculate CRC8 only on sequence number and the *actual* payload size being sent
+// Calculate CRC32
+    // We create a temporary buffer containing: [SequenceNum] + [Active Payload]
     uint8_t bufferForCrc[sizeof(myData.sequenceNum) + currentPayloadSize];
     memcpy(bufferForCrc, &myData.sequenceNum, sizeof(myData.sequenceNum));
     memcpy(bufferForCrc + sizeof(myData.sequenceNum), myData.payload, currentPayloadSize);
-    myData.crc8 = calculateCRC8(bufferForCrc, sizeof(myData.sequenceNum) + currentPayloadSize);
-
+    // Store the result in the new 32-bit field
+    myData.crc32 = calculateCRC32(bufferForCrc, sizeof(bufferForCrc));
     // Send message via ESP-NOW
-    // Note: Send the *entire structure* size, even if payload isn't full.
-    // The receiver expects a fixed size based on the struct definition.
-    esp_err_t result = esp_now_send(receiverAddress, (uint8_t *) &myData, sizeof(struct_message));
-
+// now only sends active data
+size_t packetSize = sizeof(myData.sequenceNum) + sizeof(myData.crc32) + currentPayloadSize;
+esp_err_t result = esp_now_send(receiverAddress, (uint8_t *) &myData, packetSize);
     // Error check - primary check happens in callback, this is just immediate feedback
     if (result != ESP_OK) {
         Serial.print("Immediate Send Error: ");

@@ -1,41 +1,43 @@
 #include <esp_now.h>
 #include <WiFi.h>
 #include <Arduino.h> 
-
+#include <esp_wifi.h>
 // --- Configurable Parameters ---
-// Must match the Vehicle's currentPayloadSize to calculate CRC correctly!
+// Must match the transmitter's currentPayloadSize to calculate CRC correctly!
 const uint8_t currentPayloadSize = 64;
 
-// Size of the payload buffer (must match Vehicle's MAX_PAYLOAD_SIZE)
+// Size of the payload buffer (must match transmitter's MAX_PAYLOAD_SIZE)
 //It is also something you can change for testing purposes
-//do not go above 240 as that is best for ESPNOW protocol
+//keep at 240 as that is what is best for espnow protocol
 #define MAX_PAYLOAD_SIZE 240
 // -----------------------------
 
-// 1. Data Structure Definition (must match Vehicle)
-typedef struct struct_message {
+// 1. Data Structure Definition (must match transmitter)
+// __attribute__((packed)) prevents invisible padding bytes
+typedef struct __attribute__((packed)) struct_message {
     uint32_t sequenceNum;
+     uint32_t crc32;//using this to implement CRC
     uint8_t payload[MAX_PAYLOAD_SIZE];
-    uint8_t crc8;
 } struct_message;
 
 // Create a variable to store received data
 struct_message receivedData;
 
-// 2. CRC8 Calculation Function (must match Vehicle)
-uint8_t calculateCRC8(const uint8_t *data, size_t length) {
-    uint8_t crc = 0xFF; // Initial value
+// 2. CRC32 Calculation Function (Standard IEEE 802.3)
+uint32_t calculateCRC32(const uint8_t *data, size_t length) {
+    uint32_t crc = 0xFFFFFFFF;
     for (size_t i = 0; i < length; i++) {
-        crc ^= data[i];
-        for (uint8_t j = 0; j < 8; j++) {
-            if (crc & 0x80) {
-                crc = (crc << 1) ^ 0x07; // Polynomial 0x07
+        uint8_t c = data[i];
+        for (uint32_t j = 0; j < 8; j++) {
+            if ((c ^ crc) & 1) {
+                crc = (crc >> 1) ^ 0xEDB88320;
             } else {
-                crc <<= 1;
+                crc >>= 1;
             }
+            c >>= 1;
         }
     }
-    return crc;
+    return ~crc;
 }
 
 // 3. Statistics Variables
@@ -44,6 +46,8 @@ volatile uint32_t packetsDropped = 0;
 volatile uint32_t packetsCorrupted = 0;
 volatile uint32_t lastSequenceNum = 0; // Use volatile as it's modified in ISR (callback)
 volatile bool firstPacket = true;     // Use volatile
+volatile uint32_t initialSequenceNum = 0; // New variable to remember where we started
+volatile int32_t currentRSSI = 0; // Stores signal strength in dBm
 unsigned long startTime = 0;
 unsigned long totalBytesReceived = 0; // For throughput calculation
 const unsigned long statInterval = 2000; // Print stats every 2000 ms (2 seconds)
@@ -52,19 +56,21 @@ unsigned long lastStatTime = 0;
 
 // 4. Callback function when data is received
 void OnDataRecv(const esp_now_recv_info * info, const uint8_t *incomingData, int len) { 
-
+currentRSSI = info->rx_ctrl->rssi; // Get RSSI from the packet info
     // Check if received data size matches our expected structure size
-    if (len != sizeof(struct_message)) {
-        // This is unlikely if sender sends fixed size, but good to check
-        // Handle this case - maybe count as corrupted or just log an error
-        packetsCorrupted++; // Example handling
-        return; 
-    }
+// Check against size of Seq + CRC32 + CurrentPayload
+    size_t expectedSize = sizeof(receivedData.sequenceNum) + sizeof(receivedData.crc32) + currentPayloadSize;
 
-    // Copy data into our structure
-    memcpy(&receivedData, incomingData, sizeof(receivedData));
+if (len != expectedSize) {
+    packetsCorrupted++; 
+    return;
+}
+  
 
-   
+    memcpy(&receivedData, incomingData, len);
+
+    // --- Critical Section Start (Minimize processing time here) ---
+
     bool isFirst = firstPacket; // Local copy
     uint32_t lastSeq = lastSequenceNum; // Local copy
 
@@ -81,13 +87,15 @@ void OnDataRecv(const esp_now_recv_info * info, const uint8_t *incomingData, int
         }
     }
 
-    // 2. Verify Checksum (CRC8)
-    uint8_t bufferForCrc[sizeof(receivedData.sequenceNum) + currentPayloadSize];
+    
+// verify checksum(CRC32)
+uint8_t bufferForCrc[sizeof(receivedData.sequenceNum) + currentPayloadSize];
     memcpy(bufferForCrc, &receivedData.sequenceNum, sizeof(receivedData.sequenceNum));
     memcpy(bufferForCrc + sizeof(receivedData.sequenceNum), receivedData.payload, currentPayloadSize);
-    uint8_t calculated_crc = calculateCRC8(bufferForCrc, sizeof(receivedData.sequenceNum) + currentPayloadSize);
 
-    bool crcOk = (calculated_crc == receivedData.crc8);
+    uint32_t calculated_crc = calculateCRC32(bufferForCrc, sizeof(bufferForCrc));
+
+    bool crcOk = (calculated_crc == receivedData.crc32);
 
     // 3. Update Statistics (atomically or carefully if using interrupts)
     // Using simple increments here, assuming callback runs sequentially
@@ -101,6 +109,7 @@ void OnDataRecv(const esp_now_recv_info * info, const uint8_t *incomingData, int
     if (isFirst) {
         firstPacket = false; // Mark that we've received the first packet
         lastSequenceNum = receivedData.sequenceNum; // Initialize sequence
+        initialSequenceNum = receivedData.sequenceNum;//to reset success rate
         startTime = millis(); // Start timer on the *first successfully processed* packet
         if (crcOk) totalBytesReceived += currentPayloadSize; // Only count valid bytes
     }
@@ -111,16 +120,16 @@ void OnDataRecv(const esp_now_recv_info * info, const uint8_t *incomingData, int
         lastSequenceNum = receivedData.sequenceNum;
         totalBytesReceived += currentPayloadSize;
     }
-     // Optional: Handle sequence number rollover (e.g., if Vehicle restarts at 0)
-     //last sequence check is 1000 to ensure that it wasn't simplly a jitter and was in fact a system reset from Vehicle transmission
+     // Optional: Handle sequence number rollover (e.g., if transmitter restarts at 0)
     else if (crcOk && receivedData.sequenceNum == 0 && lastSeq > 1000) { // Simple rollover check
         lastSequenceNum = 0;
         totalBytesReceived += currentPayloadSize;
     }
 
 
+    // --- Critical Section End ---
+
     // Keep serial printing outside the most critical part if possible
-    //uncomment if wanted to debug and see each time a data packet is sent
     // Serial.printf("Recv: Seq=%u, CRC=%s, Drops=%u\n", receivedData.sequenceNum, crcOk ? "OK" : "FAIL", dropsDetected);
 
 } 
@@ -132,6 +141,8 @@ void setup() {
 
     // Set device as a Wi-Fi Station
     WiFi.mode(WIFI_STA);
+    // This must match the Transmitter's channel exactly
+    esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE);
     delay(500);
     Serial.print("Receiver MAC Address: ");
     Serial.println(WiFi.macAddress());
@@ -173,7 +184,7 @@ void loop() {
         // Calculate total expected packets based on the last *valid* sequence number received
         uint32_t totalExpected = 0;
         if (!first) {
-             totalExpected = lastSeq + 1; // Assuming sequence starts at 0
+             totalExpected =(lastSeq - initialSequenceNum) + 1; 
         }
 
 
@@ -199,6 +210,7 @@ void loop() {
         Serial.printf("Success Rate (Good CRC / Expected): %.2f %%\n", successRate);
         Serial.printf("Packet Loss Rate (Drops+Corrupt / Expected): %.2f %%\n", lossRate);
         Serial.printf("Avg Throughput (Good Payloads): %.2f kbps\n", throughput_kbps);
+        Serial.printf("Signal Strength (RSSI): %d dBm\n", currentRSSI);
         Serial.println("-------------------------");
     }
 
