@@ -719,7 +719,7 @@ halt_(b32 panicking) // @/`Halting`.
 
             # TODO Rework `Meta.lut`...
 
-            Meta.lut(f'{driver_type}_TABLE', (
+            Meta.lut(f'{driver_type.upper()}_TABLE', (
                 (
                     f'{driver_type}Handle_{driver['handle']}',
                     *(
@@ -736,7 +736,7 @@ halt_(b32 panicking) // @/`Halting`.
 
             Meta.line(f'''
                 static void
-                _{driver_type}_driver_interrupt(enum {driver_type}Handle handle);
+                _{driver_type.upper()}_driver_interrupt(enum {driver_type}Handle handle);
             ''')
 
             for driver in drivers:
@@ -751,7 +751,7 @@ halt_(b32 panicking) // @/`Halting`.
                     Meta.line(f'''
                         {interrupt.format(driver['peripheral'])}
                         {{
-                            _{driver_type}_driver_interrupt({driver_type}Handle_{driver['handle']});
+                            _{driver_type.upper()}_driver_interrupt({driver_type}Handle_{driver['handle']});
                         }}
                     ''')
 
@@ -768,7 +768,7 @@ halt_(b32 panicking) // @/`Halting`.
             Meta.line(f'''
                 if (!(0 <= handle && handle < {driver_type}Handle_COUNT))
                     panic;
-                auto const driver = &_{driver_type}_drivers[handle];
+                auto const driver = &_{driver_type.upper()}_drivers[handle];
             ''')
 
             for entry in entries:
@@ -779,7 +779,7 @@ halt_(b32 panicking) // @/`Halting`.
                 field = entry['name'].format(common_name)
 
                 Meta.line(f'''
-                    auto const {field} = {driver_type}_TABLE[handle].{field};
+                    auto const {field} = {driver_type.upper()}_TABLE[handle].{field};
                 ''')
 
 */

@@ -57,12 +57,12 @@ struct StepperDriver
 
 
 
-static struct StepperDriver _Stepper_drivers[StepperHandle_COUNT] = {0};
+static struct StepperDriver _STEPPER_drivers[StepperHandle_COUNT] = {0};
 
 
 
 static void
-_Stepper_partial_init(enum StepperHandle handle)
+_STEPPER_partial_init(enum StepperHandle handle)
 {
 
     _EXPAND_HANDLE
@@ -135,7 +135,7 @@ _Stepper_partial_init(enum StepperHandle handle)
 
 
 static useret b32
-_Stepper_push_delta(enum StepperHandle handle, i8 delta)
+_STEPPER_push_delta(enum StepperHandle handle, i8 delta)
 {
 
     _EXPAND_HANDLE
@@ -155,7 +155,7 @@ _Stepper_push_delta(enum StepperHandle handle, i8 delta)
 
 
 static void
-_Stepper_driver_interrupt(enum StepperHandle handle)
+_STEPPER_driver_interrupt(enum StepperHandle handle)
 {
 
     _EXPAND_HANDLE

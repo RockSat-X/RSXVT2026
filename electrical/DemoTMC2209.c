@@ -27,7 +27,7 @@ main(void)
 
 
 
-    _Stepper_partial_init(StepperHandle_primary);
+    _STEPPER_partial_init(StepperHandle_primary);
 
 
 
@@ -55,7 +55,7 @@ main(void)
 
         static i32 index = 0;
 
-        while (!_Stepper_push_delta(StepperHandle_primary, STEPS[index]));
+        while (!_STEPPER_push_delta(StepperHandle_primary, STEPS[index]));
 
         index += 1;
         index %= countof(STEPS);
