@@ -1,4 +1,5 @@
-#define STEPPER_PERIOD_US 25'000
+#define STEPPER_PERIOD_US     25'000
+#define STEPPER_WINDOW_LENGTH 32
 
 
 
@@ -49,11 +50,10 @@
 
 struct StepperDriver
 {
-    i8           deltas[32];
+    i8           deltas[STEPPER_WINDOW_LENGTH];
     volatile u32 reader;
     volatile u32 writer;
 };
-
 
 
 
@@ -62,7 +62,7 @@ static struct StepperDriver _STEPPER_drivers[StepperHandle_COUNT] = {0};
 
 
 static void
-_STEPPER_partial_init(enum StepperHandle handle)
+STEPPER_partial_init(enum StepperHandle handle)
 {
 
     _EXPAND_HANDLE
@@ -135,7 +135,7 @@ _STEPPER_partial_init(enum StepperHandle handle)
 
 
 static useret b32
-_STEPPER_push_delta(enum StepperHandle handle, i8 delta)
+STEPPER_push_delta(enum StepperHandle handle, i8 delta)
 {
 
     _EXPAND_HANDLE
