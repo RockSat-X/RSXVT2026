@@ -23,11 +23,9 @@ main(void)
 
 
 
-    ////////////////////////////////////////////////////////////////////////////////
+    // The stepper driver relies on other timer initializations to be done first.
 
-
-
-    _STEPPER_partial_init(StepperHandle_primary);
+    STEPPER_partial_init(StepperHandle_primary);
 
 
 
@@ -40,7 +38,7 @@ main(void)
     for (;;)
     {
 
-        #include "DemoTMC2209_STEPS.meta"
+        #include "DemoStepper_STEPS.meta"
         /* #meta
 
             import math
@@ -55,7 +53,7 @@ main(void)
 
         static i32 index = 0;
 
-        while (!_STEPPER_push_delta(StepperHandle_primary, STEPS[index]));
+        while (!STEPPER_push_delta(StepperHandle_primary, STEPS[index]));
 
         index += 1;
         index %= countof(STEPS);
