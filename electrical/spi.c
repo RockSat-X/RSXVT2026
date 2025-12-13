@@ -9,16 +9,16 @@
         driver_type = 'SPI',
         cmsis_name  = 'SPI',
         common_name = 'SPIx',
-        entries     = (
-            { 'name' : '{}'                    , 'value'       : ... },
-            { 'name' : 'NVICInterrupt_{}'      , 'value'       : ... },
-            { 'name' : 'STPY_{}_KERNEL_SOURCE' , 'value'       : ... },
-            { 'name' : 'STPY_{}_BYPASS_DIVIDER', 'value'       : ... },
-            { 'name' : 'STPY_{}_DIVIDER'       , 'value'       : ... },
-            { 'name' : '{}_RESET'              , 'cmsis_tuple' : ... },
-            { 'name' : '{}_ENABLE'             , 'cmsis_tuple' : ... },
-            { 'name' : '{}_KERNEL_SOURCE'      , 'cmsis_tuple' : ... },
-            { 'name' : 'INTERRUPT_{}'          , 'interrupt'   : ... },
+        terms       = lambda type, peripheral, handle: (
+            ('{}'                    , 'expression' ),
+            ('NVICInterrupt_{}'      , 'expression' ),
+            ('STPY_{}_KERNEL_SOURCE' , 'expression' ),
+            ('STPY_{}_BYPASS_DIVIDER', 'expression' ),
+            ('STPY_{}_DIVIDER'       , 'expression' ),
+            ('{}_RESET'              , 'cmsis_tuple'),
+            ('{}_ENABLE'             , 'cmsis_tuple'),
+            ('{}_KERNEL_SOURCE'      , 'cmsis_tuple'),
+            ('INTERRUPT_{}'          , 'interrupt'  ),
         ),
     )
 
