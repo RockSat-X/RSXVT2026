@@ -31,15 +31,15 @@
         driver_type = 'Stepper',
         cmsis_name  = 'TIM',
         common_name = 'TIMx',
-        entries     = (
-            { 'name' : '{}'                           , 'value'       : ...                                                                                 },
-            { 'name' : 'NVICInterrupt_{}_update_event', 'value'       : lambda driver: f'NVICInterrupt_{driver['interrupt']}'                               },
-            { 'name' : 'STPY_{}_DIVIDER'              , 'value'       : ...                                                                                 },
-            { 'name' : '{}_ENABLE'                    , 'cmsis_tuple' : ...                                                                                 },
-            { 'name' : '{}_CAPTURE_COMPARE_ENABLE_y'  , 'cmsis_tuple' : lambda driver: f'{driver['peripheral']}_CAPTURE_COMPARE_ENABLE_{driver['channel']}' },
-            { 'name' : '{}_CAPTURE_COMPARE_VALUE_y'   , 'cmsis_tuple' : lambda driver: f'{driver['peripheral']}_CAPTURE_COMPARE_VALUE_{driver['channel']}'  },
-            { 'name' : '{}_CAPTURE_COMPARE_MODE_y'    , 'cmsis_tuple' : lambda driver: f'{driver['peripheral']}_CAPTURE_COMPARE_MODE_{driver['channel']}'   },
-            { 'name' : 'INTERRUPT_{}_update_event'    , 'interrupt'   : lambda driver: f'INTERRUPT_{driver['interrupt']}'                                   },
+        terms       = lambda type, peripheral, interrupt, channel, handle: (
+            ('{}'                           , 'expression' ,                                                 ),
+            ('NVICInterrupt_{}_update_event', 'expression' , f'NVICInterrupt_{interrupt}'                    ),
+            ('STPY_{}_DIVIDER'              , 'expression' ,                                                 ),
+            ('{}_ENABLE'                    , 'cmsis_tuple',                                                 ),
+            ('{}_CAPTURE_COMPARE_ENABLE_y'  , 'cmsis_tuple', f'{peripheral}_CAPTURE_COMPARE_ENABLE_{channel}'),
+            ('{}_CAPTURE_COMPARE_VALUE_y'   , 'cmsis_tuple', f'{peripheral}_CAPTURE_COMPARE_VALUE_{channel}' ),
+            ('{}_CAPTURE_COMPARE_MODE_y'    , 'cmsis_tuple', f'{peripheral}_CAPTURE_COMPARE_MODE_{channel}'  ),
+            ('INTERRUPT_{}_update_event'    , 'interrupt'  , f'INTERRUPT_{interrupt}'                        ),
         ),
     )
 

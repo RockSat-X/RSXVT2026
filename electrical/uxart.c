@@ -22,15 +22,15 @@
         driver_type = 'UXART',
         cmsis_name  = 'USART',
         common_name = 'UXARTx',
-        entries     = (
-            { 'name' : '{}'                   , 'value'       : ... },
-            { 'name' : 'NVICInterrupt_{}'     , 'value'       : ... },
-            { 'name' : 'STPY_{}_KERNEL_SOURCE', 'value'       : ... },
-            { 'name' : 'STPY_{}_BAUD_DIVIDER' , 'value'       : ... },
-            { 'name' : '{}_RESET'             , 'cmsis_tuple' : ... },
-            { 'name' : '{}_ENABLE'            , 'cmsis_tuple' : ... },
-            { 'name' : '{}_KERNEL_SOURCE'     , 'cmsis_tuple' : ... },
-            { 'name' : 'INTERRUPT_{}'         , 'interrupt'   : ... },
+        terms       = lambda type, peripheral, handle: (
+            ('{}'                   , 'expression' ),
+            ('NVICInterrupt_{}'     , 'expression' ),
+            ('STPY_{}_KERNEL_SOURCE', 'expression' ),
+            ('STPY_{}_BAUD_DIVIDER' , 'expression' ),
+            ('{}_RESET'             , 'cmsis_tuple'),
+            ('{}_ENABLE'            , 'cmsis_tuple'),
+            ('{}_KERNEL_SOURCE'     , 'cmsis_tuple'),
+            ('INTERRUPT_{}'         , 'interrupt'  ),
         ),
     )
 

@@ -26,27 +26,21 @@ enum I2CSlaveEvent : u32
         driver_type = 'I2C',
         cmsis_name  = 'I2C',
         common_name = 'I2Cx',
-        entries     = (
-            {
-                'name'  : '{}_DRIVER_ROLE',
-                'value' : lambda driver: f'I2CDriverRole_{driver['role']}',
-            },
-            {
-                'name'  : '{}_SLAVE_ADDRESS',
-                'value' : lambda driver: f'((u16) 0x{driver.get('address', 0) :03X})',
-            },
-            { 'name' : '{}'                   , 'value'       : ... },
-            { 'name' : 'NVICInterrupt_{}_EV'  , 'value'       : ... },
-            { 'name' : 'NVICInterrupt_{}_ER'  , 'value'       : ... },
-            { 'name' : 'STPY_{}_KERNEL_SOURCE', 'value'       : ... },
-            { 'name' : 'STPY_{}_PRESC'        , 'value'       : ... },
-            { 'name' : 'STPY_{}_SCLH'         , 'value'       : ... },
-            { 'name' : 'STPY_{}_SCLL'         , 'value'       : ... },
-            { 'name' : '{}_RESET'             , 'cmsis_tuple' : ... },
-            { 'name' : '{}_ENABLE'            , 'cmsis_tuple' : ... },
-            { 'name' : '{}_KERNEL_SOURCE'     , 'cmsis_tuple' : ... },
-            { 'name' : 'INTERRUPT_{}_EV'      , 'interrupt'   : ... },
-            { 'name' : 'INTERRUPT_{}_ER'      , 'interrupt'   : ... },
+        terms       = lambda type, peripheral, handle, role, address = 0: (
+            ('{}_DRIVER_ROLE'       , 'expression' , f'I2CDriverRole_{role}'    ),
+            ('{}_SLAVE_ADDRESS'     , 'expression' , f'((u16) 0x{address :03X})'),
+            ('{}'                   , 'expression' ,                            ),
+            ('NVICInterrupt_{}_EV'  , 'expression' ,                            ),
+            ('NVICInterrupt_{}_ER'  , 'expression' ,                            ),
+            ('STPY_{}_KERNEL_SOURCE', 'expression' ,                            ),
+            ('STPY_{}_PRESC'        , 'expression' ,                            ),
+            ('STPY_{}_SCLH'         , 'expression' ,                            ),
+            ('STPY_{}_SCLL'         , 'expression' ,                            ),
+            ('{}_RESET'             , 'cmsis_tuple',                            ),
+            ('{}_ENABLE'            , 'cmsis_tuple',                            ),
+            ('{}_KERNEL_SOURCE'     , 'cmsis_tuple',                            ),
+            ('INTERRUPT_{}_EV'      , 'interrupt'  ,                            ),
+            ('INTERRUPT_{}_ER'      , 'interrupt'  ,                            ),
         ),
     )
 
@@ -82,18 +76,18 @@ enum I2CSlaveEvent : u32
         # need to define the slave callback. Otherwise,
         # we define a dummy callback procedure.
 
-        prototype = f'static void INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)'
-
         if slave_drivers:
 
             Meta.line(f'''
-                {prototype};
+                static void
+                INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data);
             ''')
 
         else:
 
             Meta.line(f'''
-                {prototype}
+                static void
+                INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
                 {{
                     panic;
                 }}

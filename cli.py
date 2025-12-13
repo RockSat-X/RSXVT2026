@@ -739,7 +739,7 @@ def build(parameters):
     # Log the performance of the meta-preprocessor.
 
     logger.debug(
-        f'Meta-processing {len(meta_directive_deltas)} meta-directives took {elapsed :.3f}s.',
+        f'Meta-preprocessing {len(meta_directive_deltas)} meta-directives took {elapsed :.3f}s.',
         extra = {
             'table' : [
                 (location, f'{delta :.3f}s | {delta / elapsed * 100 : 5.1f}%')

@@ -602,21 +602,21 @@ halt_(b32 panicking) // @/`Halting`.
 
 /* #meta IMPLEMENT_DRIVER_SUPPORT
 
-    import types
+    import types, collections
 
     def IMPLEMENT_DRIVER_SUPPORT(
         *,
         driver_type,
         cmsis_name,
         common_name,
-        entries,
+        terms,
     ):
 
         for target in PER_TARGET():
 
 
 
-            # e.g: Get all of the I2C drivers for the current target.
+            # Get all of the target's drivers.
 
             drivers = [
                 driver
@@ -635,7 +635,7 @@ halt_(b32 panicking) // @/`Halting`.
 
 
 
-            # e.g: Make enumeration of all I2C driver handles defined by the target.
+            # Make an enumeration for driver handles.
 
             Meta.enums(
                 f'{driver_type}Handle',
@@ -655,65 +655,72 @@ halt_(b32 panicking) // @/`Halting`.
 
 
 
-            # e.g: Make a look-up table for the I2C driver so we can
-            #      read/write to registers based on an arbitrary I2C handle.
+            # Process each driver term; some are about adding a field to
+            # the look-up table while others are about interrupt routines.
 
-            fields = []
+            lookup_table_fields = collections.defaultdict(lambda: [])
+            interrupt_routines  = collections.defaultdict(lambda: [])
 
-            for entry in entries:
+            for driver in drivers:
 
-                field = types.SimpleNamespace(
-                    identifier = None,
-                    values     = None,
-                )
+                for term_name, term_type, *term_value in terms(**driver):
 
-                match entry:
+                    if term_value:
+                        term_value, = term_value
+                    else:
+                        term_value = term_name.format(driver['peripheral'])
 
-
-
-                    # The entry's value will be determined by a function given the driver.
-                    # If the function is not given, then it's assumed that the value
-                    # is the same as the entry's name but mapped with the driver's peripheral.
-
-                    case { 'name' : name, 'value' : function, **rest } if not rest:
-
-                        field.identifier = name.format(common_name)
-                        field.values     = [
-                            name.format(driver['peripheral']) if function is ... else function(driver)
-                            for driver in drivers
-                        ]
+                    match term_type:
 
 
 
-                    # The entry's value has to be constructed as a CMSIS tuple.
+                        # e.g:
+                        # >
+                        # >                  NVICInterrupt_{}_EV
+                        # >                           |
+                        # >                           v
+                        # >    NVICInterrupt_I2Cx_EV <-> NVICInterrupt_I2C3_EV
+                        # >
 
-                    case { 'name' : name, 'cmsis_tuple' : function, **rest } if not rest:
+                        case 'expression':
 
-                        field.identifier = name.format(common_name)
-                        field.values     = [
-                            CMSIS_TUPLE(target.mcu, name.format(driver['peripheral']) if function is ... else function(driver))
-                            for driver in drivers
-                        ]
-
-
-
-                    # This entry isn't part of the look-up table.
-
-                    case { 'name' : name, 'interrupt' : function, **rest } if not rest:
-
-                        continue
+                            field_identifier                       = term_name.format(common_name)
+                            lookup_table_fields[field_identifier] += [term_value]
 
 
 
-                    # Something else entirely...
+                        # e.g:
+                        # >
+                        # >                {}_KERNEL_SOURCE
+                        # >                        |
+                        # >                        v
+                        # >    I2Cx_KERNEL_SOURCE <-> I2C3_KERNEL_SOURCE
+                        # >                                   |
+                        # >                                   v
+                        # >                          RCC_CCIPR4_I2C3SEL
+                        # >
 
-                    case unknown:
+                        case 'cmsis_tuple':
 
-                        raise ValueError(f'Unknown entry format: {repr(unknown)}.')
+                            field_identifier                       = term_name.format(common_name)
+                            lookup_table_fields[field_identifier] += [CMSIS_TUPLE(target.mcu, term_value)]
 
 
 
-                fields += [field]
+                        # e.g:
+                        # >
+                        # >     INTERRUPT_{}_UP
+                        # >             |
+                        # >             v
+                        # >    INTERRUPT_TIM5_UP
+                        # >
+
+                        case 'interrupt':
+                            interrupt_routines[driver['handle']] += [term_value]
+
+
+
+                        case idk: raise ValueError(f'Unknown term type: {repr(idk)}.')
 
 
 
@@ -723,43 +730,37 @@ halt_(b32 panicking) // @/`Halting`.
                 (
                     f'{driver_type}Handle_{driver['handle']}',
                     *(
-                        (field.identifier, field.values[driver_i])
-                        for field in fields
+                        (identifier, values[driver_i])
+                        for identifier, values in lookup_table_fields.items()
                     ),
                 ) for driver_i, driver in enumerate(drivers)
             ))
 
 
 
-            # e.g: All of the I2C interrupt routines will be redirected
-            #      to a common procedure of `_I2C_driver_interrupt`.
+            # All of the interrupt routines will be redirected
+            # to a common procedure of `_XYZ_driver_interrupt`.
 
             Meta.line(f'''
                 static void
                 _{driver_type.upper()}_driver_interrupt(enum {driver_type}Handle handle);
             ''')
 
-            for driver in drivers:
+            for driver_handle, driver_interrupt_names in interrupt_routines.items():
 
-                for entry in entries:
-
-                    if 'interrupt' not in entry:
-                        continue
-
-                    interrupt = entry['name'] if entry['interrupt'] is ... else entry['interrupt'](driver)
+                for driver_interrupt_name in driver_interrupt_names:
 
                     Meta.line(f'''
-                        {interrupt.format(driver['peripheral'])}
+                        {driver_interrupt_name}
                         {{
-                            _{driver_type.upper()}_driver_interrupt({driver_type}Handle_{driver['handle']});
+                            _{driver_type.upper()}_driver_interrupt({driver_type}Handle_{driver_handle});
                         }}
                     ''')
 
 
 
-        # e.g: Make a macro to bring all of the fields
-        #      in the look-up table into the local stack
-        #      given a I2C handle.
+        # Make a macro to bring all of the fields
+        # in the look-up table into the local stack.
 
         Meta.line('#undef _EXPAND_HANDLE')
 
@@ -771,15 +772,10 @@ halt_(b32 panicking) // @/`Halting`.
                 auto const driver = &_{driver_type.upper()}_drivers[handle];
             ''')
 
-            for entry in entries:
-
-                if 'interrupt' in entry:
-                    continue
-
-                field = entry['name'].format(common_name)
+            for field_identifier in lookup_table_fields:
 
                 Meta.line(f'''
-                    auto const {field} = {driver_type.upper()}_TABLE[handle].{field};
+                    auto const {field_identifier} = {driver_type.upper()}_TABLE[handle].{field_identifier};
                 ''')
 
 */
