@@ -166,7 +166,7 @@
         _UXART_driver_interrupt(UXARTHandle_stlink);
     }
 #endif
-#if TARGET_NAME_IS_DemoDCMIPP
+#if TARGET_NAME_IS_DemoOVCAM
     enum UXARTHandle : u32
     {
         UXARTHandle_stlink,

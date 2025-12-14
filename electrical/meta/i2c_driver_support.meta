@@ -79,7 +79,7 @@
 #if TARGET_NAME_IS_DemoStepper
     #error Target 'DemoStepper' defines no handle for the 'I2C' driver.
 #endif
-#if TARGET_NAME_IS_DemoDCMIPP
+#if TARGET_NAME_IS_DemoOVCAM
     enum I2CHandle : u32
     {
         I2CHandle_ovcam_sccb,
@@ -193,7 +193,7 @@
         panic;
     }
 #endif
-#if TARGET_NAME_IS_DemoDCMIPP
+#if TARGET_NAME_IS_DemoOVCAM
     static void
     INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
     {

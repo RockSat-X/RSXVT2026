@@ -808,10 +808,10 @@ TARGETS = (
 
     types.SimpleNamespace(
 
-        name              = 'DemoDCMIPP',
+        name              = 'DemoOVCAM',
         mcu               = 'STM32H533RET6',
         source_file_paths = make_main_relative_path('''
-            ./electrical/DemoDCMIPP.c
+            ./electrical/DemoOVCAM.c
         '''),
 
         kicad_project = None,

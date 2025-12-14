@@ -46,8 +46,8 @@
 #if TARGET_NAME_IS_DemoStepper
     #error Target 'DemoStepper' defines no handle for the 'SPI' driver.
 #endif
-#if TARGET_NAME_IS_DemoDCMIPP
-    #error Target 'DemoDCMIPP' defines no handle for the 'SPI' driver.
+#if TARGET_NAME_IS_DemoOVCAM
+    #error Target 'DemoOVCAM' defines no handle for the 'SPI' driver.
 #endif
 #undef _EXPAND_HANDLE
 #define _EXPAND_HANDLE\
