@@ -392,7 +392,8 @@
 
 
 
-static volatile u8 OVCAM_framebuffer[OVCAM_RESOLUTION_X * OVCAM_RESOLUTION_Y * 3] __attribute__((aligned(16))) = {0}; // TODO.
+static volatile b32 OVCAM_framebuffer_ready = false; // TODO.
+static volatile u8  OVCAM_framebuffer[OVCAM_RESOLUTION_X * OVCAM_RESOLUTION_Y * 3] __attribute__((aligned(16))) = {0}; // TODO.
 
 
 
@@ -762,7 +763,7 @@ INTERRUPT_DCMI_PSSI
 
         case DCMIInterruptEvent_capture_complete:
         {
-            // TODO.
+            OVCAM_framebuffer_ready = true; // TODO.
         } break;
 
         default: panic;

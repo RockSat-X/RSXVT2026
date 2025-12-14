@@ -1614,15 +1614,97 @@ def tv(parameters):
 
 
 
-    # Update loop.
+    # Some state variables.
 
-    pygame = import_pygame()
+    pygame             = import_pygame()
+    serial, list_ports = import_pyserial()
 
     pygame.init()
 
-    screen = pygame.display.set_mode((1280, 960), pygame.RESIZABLE)
+    screen = pygame.display.set_mode((1080, 720), pygame.RESIZABLE)
     clock  = pygame.time.Clock()
     quit   = False
+
+    surface = pygame.Surface((160, 120))
+    surface.fill((74, 65, 42))
+
+
+
+    # Image data sent over the ST-Link serial port
+    # will be delimited with starting and ending tokens.
+
+    stlink      = request_stlinks(specific_one = True)
+    serial_port = serial.Serial(
+        stlink.comport.device,
+        baudrate = STLINK_BAUD,
+        timeout  = 0
+    )
+
+    TV_TOKEN = types.SimpleNamespace(
+        START = b'<TV>',
+        END   = b'</TV>',
+    )
+
+    token_expected = TV_TOKEN.START
+    stream_data    = b''
+
+
+
+    # Routine to handle the chunks of image
+    # data as they come through the serial port.
+
+    image_data = None
+
+    def stream_callback(event, new_data):
+
+        nonlocal image_data
+
+        match event:
+
+
+
+            # Initializing for the new image.
+
+            case 'starting':
+
+                image_data = b''
+
+
+
+            # Adding the new information to the image.
+
+            case 'continuing':
+
+                image_data += new_data
+
+
+
+            # Adding the last bit of data to the image and rendering it.
+
+            case 'ending':
+
+                image_data += new_data
+
+                for y in range(120):
+
+                    for x in range(160):
+
+                        pixel_i = y * 160 + x
+                        pixel   = (
+                            image_data[pixel_i * 3 + 2],
+                            image_data[pixel_i * 3 + 0],
+                            image_data[pixel_i * 3 + 1],
+                        )
+
+                        surface.set_at((x, y), pixel)
+
+
+
+            case idk: raise RuntimeError(idk)
+
+
+
+    # Window loop.
 
     while not quit:
 
@@ -1670,15 +1752,172 @@ def tv(parameters):
 
 
 
-        # Update.
+        # Grab the new serial data, if any.
 
-        # TODO.
+        if serial_port.in_waiting:
+
+            stream_data += serial_port.read(serial_port.in_waiting)
+
+            while True:
+
+
+
+                # Determine the first token in the stream, if any.
+
+                try:
+                    start_token_index = stream_data.index(TV_TOKEN.START)
+                except ValueError:
+                    start_token_index = None
+
+                try:
+                    end_token_index = stream_data.index(TV_TOKEN.END)
+                except ValueError:
+                    end_token_index = None
+
+                next_token_found = None
+                next_token_index = None
+
+                match (start_token_index, end_token_index):
+
+                    case (None, None):
+                        next_token_found = None
+                        next_token_index = None
+
+                    case (_, None):
+                        next_token_found = TV_TOKEN.START
+                        next_token_index = start_token_index
+
+                    case (None, _):
+                        next_token_found = TV_TOKEN.END
+                        next_token_index = end_token_index
+
+                    case (a, b) if a < b:
+                        next_token_found = TV_TOKEN.START
+                        next_token_index = start_token_index
+
+                    case (a, b) if a > b:
+                        next_token_found = TV_TOKEN.END
+                        next_token_index = end_token_index
+
+                    case idk: raise RuntimeError(idk)
+
+
+
+                # A token was found, so we split the stream into
+                # what came before the token and what's after.
+
+                if next_token_found:
+
+                    data_before_token = stream_data[: next_token_index]
+                    stream_data       = stream_data[next_token_index + len(next_token_found) :]
+
+
+
+                # No token was found, so most the stream will be
+                # before whatever the next token will be; we have
+                # to be aware of the edge-case that the next token
+                # might've been truncated at the end of the stream.
+
+                else:
+
+                    split_index = max(
+                        len(stream_data) - max(len(TV_TOKEN.START), len(TV_TOKEN.END)) + 1,
+                        0
+                    )
+
+                    data_before_token = stream_data[            : split_index]
+                    stream_data       = stream_data[split_index :            ]
+
+
+
+                # Handle the new stream data.
+
+                match (token_expected, next_token_found):
+
+
+
+                    # No start token yet,
+                    # so the data is meaningless to us.
+
+                    case (TV_TOKEN.START, None):
+
+                        pass
+
+
+
+                    # Start token found! The following
+                    # stream data will be image data.
+
+                    case (TV_TOKEN.START, TV_TOKEN.START):
+
+                        stream_callback('starting', b'')
+
+                        token_expected = TV_TOKEN.END
+
+
+
+                    # Found an end token for some reason;
+                    # this is probably okay, because the
+                    # TV might've been started during the
+                    # streaming of image data.
+
+                    case (TV_TOKEN.START, TV_TOKEN.END):
+
+                        pass
+
+
+
+                    # We have some new image data that was
+                    # just streamed in!
+
+                    case (TV_TOKEN.END, None):
+
+                        stream_callback('continuing', data_before_token)
+
+
+
+                    # Uh oh, image data stream is starting
+                    # again for some reason...
+
+                    case (TV_TOKEN.END, TV_TOKEN.START):
+
+                        stream_callback('starting', b'')
+
+
+
+                    # We've received the last of the image data.
+
+                    case (TV_TOKEN.END, TV_TOKEN.END):
+
+                        stream_callback('ending', data_before_token)
+
+                        token_expected = TV_TOKEN.START
+
+
+
+                    case idk: raise RuntimeError(idk)
+
+
+
+                # We've processed the stream
+                # as much as we have possibly can.
+
+                if len(stream_data) < max(len(TV_TOKEN.START), len(TV_TOKEN.END)):
+                    break
 
 
 
         # Render.
 
-        # TODO.
+        pygame.display.update(
+            screen.blit(
+                pygame.transform.scale(
+                    surface,
+                    (screen.get_width(), screen.get_height())
+                ),
+                (0, 0)
+            )
+        )
 
 
 
