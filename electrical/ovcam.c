@@ -376,18 +376,15 @@
 
 
 
-            # The first two bytes represent the starting
-            # register address in big-endian format,
-            # followed by the amount of bytes to be
-            # written, and then the data.
+            # Record the write address, length of the write, and the write data.
 
             Meta.line('''
-                0x{:02X}, 0x{:02X}, {},
+                {}, 0x{:02X}, 0x{:02X},
                     {},
             '''.format(
+                len(run_data_bytes),
                 (run_address >> 8) & 0xFF,
                 (run_address >> 0) & 0xFF,
-                len(run_data_bytes),
                 ', '.join(f'0x{byte :02X}' for byte in run_data_bytes)
             ))
 
@@ -420,53 +417,23 @@ OVCAM_init(void)
     while (sequence_index < countof(OVCAM_INITIALIZATION_SEQUENCE))
     {
 
-        // Decode the write run.
+        i32       amount_of_bytes_to_write =  OVCAM_INITIALIZATION_SEQUENCE[sequence_index             ];
+        const u8* data_to_send             = &OVCAM_INITIALIZATION_SEQUENCE[sequence_index + sizeof(u8)];
 
-        u8* big_endian_write_address = (u8*) &OVCAM_INITIALIZATION_SEQUENCE[sequence_index                           ];
-        i32 amount_of_bytes_to_write =        OVCAM_INITIALIZATION_SEQUENCE[sequence_index + sizeof(u16)             ];
-        u8* data_to_write            = (u8*) &OVCAM_INITIALIZATION_SEQUENCE[sequence_index + sizeof(u16) + sizeof(u8)];
+        enum I2CMasterError error =
+            I2C_blocking_transfer
+            (
+                I2CHandle_ovcam_sccb,
+                OVCAM_SEVEN_BIT_ADDRESS,
+                I2CAddressType_seven,
+                I2COperation_write,
+                (u8*) data_to_send,
+                sizeof(u16) + amount_of_bytes_to_write
+            );
 
+        if (error) sorry
 
-
-        // First send the 16-bit write address to the camera module.
-
-        {
-            enum I2CMasterError error =
-                I2C_blocking_transfer
-                (
-                    I2CHandle_ovcam_sccb,
-                    OVCAM_SEVEN_BIT_ADDRESS,
-                    I2CAddressType_seven,
-                    I2COperation_write,
-                    big_endian_write_address,
-                    sizeof(u16)
-                );
-            if (error) sorry
-        }
-
-
-
-        // Then send the actual write data.
-
-        {
-            enum I2CMasterError error =
-                I2C_blocking_transfer
-                (
-                    I2CHandle_ovcam_sccb,
-                    OVCAM_SEVEN_BIT_ADDRESS,
-                    I2CAddressType_seven,
-                    I2COperation_write,
-                    data_to_write,
-                    amount_of_bytes_to_write
-                );
-            if (error) sorry
-        }
-
-
-
-        // Move onto the next write run.
-
-        sequence_index += sizeof(u16) + sizeof(u8) + amount_of_bytes_to_write;
+        sequence_index += + sizeof(u8) + sizeof(u16) + amount_of_bytes_to_write;
 
     }
 
