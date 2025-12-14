@@ -1625,7 +1625,7 @@ def tv(parameters):
     clock  = pygame.time.Clock()
     quit   = False
 
-    surface = pygame.Surface((160, 120))
+    surface = pygame.Surface(OVCAM_RESOLUTION)
     surface.fill((74, 65, 42))
 
 
@@ -1638,11 +1638,6 @@ def tv(parameters):
         stlink.comport.device,
         baudrate = STLINK_BAUD,
         timeout  = 0
-    )
-
-    TV_TOKEN = types.SimpleNamespace(
-        START = b'<TV>',
-        END   = b'</TV>',
     )
 
     token_expected = TV_TOKEN.START
@@ -1685,11 +1680,11 @@ def tv(parameters):
 
                 image_data += new_data
 
-                for y in range(120):
+                for y in range(OVCAM_RESOLUTION[1]):
 
-                    for x in range(160):
+                    for x in range(OVCAM_RESOLUTION[0]):
 
-                        pixel_i = y * 160 + x
+                        pixel_i = y * OVCAM_RESOLUTION[0] + x
                         pixel   = (
                             image_data[pixel_i * 3 + 2],
                             image_data[pixel_i * 3 + 0],

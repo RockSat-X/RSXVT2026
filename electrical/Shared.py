@@ -1,4 +1,4 @@
-#meta STLINK_BAUD, TARGETS, PER_MCU, PER_TARGET :
+#meta STLINK_BAUD, TARGETS, PER_MCU, PER_TARGET, OVCAM_RESOLUTION, TV_TOKEN :
 
 import types, collections
 from deps.stpy.pxd.utils import make_main_relative_path, c_repr
@@ -9,6 +9,13 @@ from deps.stpy.mcus      import MCUS
 ################################################################################
 
 
+
+OVCAM_RESOLUTION = (160, 120)
+
+TV_TOKEN = types.SimpleNamespace(
+    START = b'<TV>',
+    END   = b'</TV>',
+)
 
 STLINK_BAUD = 1_000_000
 

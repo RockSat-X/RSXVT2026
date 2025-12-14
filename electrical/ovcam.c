@@ -12,9 +12,10 @@
 
 
 
-    # Resolution parameters.
+    # Some definitions.
 
-    OVCAM_RESOLUTION = (160, 120)
+    Meta.define('TV_TOKEN_START', f'"{TV_TOKEN.START.decode('UTF-8')}"')
+    Meta.define('TV_TOKEN_END'  , f'"{TV_TOKEN.END  .decode('UTF-8')}"')
 
     Meta.define('OVCAM_RESOLUTION_X', OVCAM_RESOLUTION[0])
     Meta.define('OVCAM_RESOLUTION_Y', OVCAM_RESOLUTION[1])

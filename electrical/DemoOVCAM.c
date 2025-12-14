@@ -106,9 +106,9 @@ main(void)
         if (OVCAM_framebuffer_ready)
         {
 
-            stlink_tx("<TV>");
+            stlink_tx(TV_TOKEN_START);
             _UXART_tx_raw_nonreentrant(UXARTHandle_stlink, (u8*) OVCAM_framebuffer, sizeof(OVCAM_framebuffer));
-            stlink_tx("</TV>");
+            stlink_tx(TV_TOKEN_END);
 
             OVCAM_framebuffer_ready = false;
 
