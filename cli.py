@@ -1570,30 +1570,6 @@ def tv(parameters):
 
 
 
-    @Keybinding('ctrl-c', 'Copy the current frame into clipboard.')
-    def _():
-        print('TODO CTRL-C')
-
-
-
-    @Keybinding('ctrl-s', 'Save the current frame as a BMP.')
-    def _():
-        print('TODO CTRL-S')
-
-
-
-    @Keybinding('f', 'Flip through different orientations of the current frame.')
-    def _():
-        print('TODO F')
-
-
-
-    @Keybinding('i', 'Toggle whether or not the framebuffer gets cleared upon a new frame or it gets interlaced with the previous one.')
-    def _():
-        print('TODO I')
-
-
-
     # List the keybindings in the help message.
 
     if parameters is None:
