@@ -1,5 +1,7 @@
 #include "system.h"
 #include "uxart.c"
+#include "i2c.c"
+#include "ovcam.c"
 
 
 
@@ -9,6 +11,7 @@ main(void)
 
     STPY_init();
     UXART_init(UXARTHandle_stlink);
+    I2C_reinit(I2CHandle_ovcam_sccb);
 
 
 
@@ -88,6 +91,10 @@ main(void)
 
 
     ////////////////////////////////////////////////////////////////////////////////
+
+
+
+    OVCAM_init();
 
 
 

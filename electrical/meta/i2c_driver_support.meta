@@ -80,7 +80,26 @@
     #error Target 'DemoStepper' defines no handle for the 'I2C' driver.
 #endif
 #if TARGET_NAME_IS_DemoDCMIPP
-    #error Target 'DemoDCMIPP' defines no handle for the 'I2C' driver.
+    enum I2CHandle : u32
+    {
+        I2CHandle_ovcam_sccb,
+    };
+    static constexpr u32 I2CHandle_COUNT = 1;
+    #define I2Cx_ I2C_
+    static const struct { typeof(I2CDriverRole_master) I2Cx_DRIVER_ROLE; typeof(((u16) 0x000)) I2Cx_SLAVE_ADDRESS; typeof(I2C2) I2Cx; typeof(NVICInterrupt_I2C2_EV) NVICInterrupt_I2Cx_EV; typeof(NVICInterrupt_I2C2_ER) NVICInterrupt_I2Cx_ER; typeof(STPY_I2C2_KERNEL_SOURCE) STPY_I2Cx_KERNEL_SOURCE; typeof(STPY_I2C2_PRESC) STPY_I2Cx_PRESC; typeof(STPY_I2C2_SCLH) STPY_I2Cx_SCLH; typeof(STPY_I2C2_SCLL) STPY_I2Cx_SCLL; typeof((struct CMSISTuple) { &RCC->APB1LRSTR, CONCAT(RCC_, APB1LRSTR_I2C2RST_Pos), CONCAT(RCC_, APB1LRSTR_I2C2RST_Msk) }) I2Cx_RESET; typeof((struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_I2C2EN_Pos), CONCAT(RCC_, APB1LENR_I2C2EN_Msk) }) I2Cx_ENABLE; typeof((struct CMSISTuple) { &RCC->CCIPR4, CONCAT(RCC_, CCIPR4_I2C2SEL_Pos), CONCAT(RCC_, CCIPR4_I2C2SEL_Msk) }) I2Cx_KERNEL_SOURCE; } I2C_TABLE[] =
+        {
+            [I2CHandle_ovcam_sccb] = { .I2Cx_DRIVER_ROLE = I2CDriverRole_master, .I2Cx_SLAVE_ADDRESS = ((u16) 0x000), .I2Cx = I2C2, .NVICInterrupt_I2Cx_EV = NVICInterrupt_I2C2_EV, .NVICInterrupt_I2Cx_ER = NVICInterrupt_I2C2_ER, .STPY_I2Cx_KERNEL_SOURCE = STPY_I2C2_KERNEL_SOURCE, .STPY_I2Cx_PRESC = STPY_I2C2_PRESC, .STPY_I2Cx_SCLH = STPY_I2C2_SCLH, .STPY_I2Cx_SCLL = STPY_I2C2_SCLL, .I2Cx_RESET = (struct CMSISTuple) { &RCC->APB1LRSTR, CONCAT(RCC_, APB1LRSTR_I2C2RST_Pos), CONCAT(RCC_, APB1LRSTR_I2C2RST_Msk) }, .I2Cx_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_I2C2EN_Pos), CONCAT(RCC_, APB1LENR_I2C2EN_Msk) }, .I2Cx_KERNEL_SOURCE = (struct CMSISTuple) { &RCC->CCIPR4, CONCAT(RCC_, CCIPR4_I2C2SEL_Pos), CONCAT(RCC_, CCIPR4_I2C2SEL_Msk) } },
+        };
+    static void
+    _I2C_driver_interrupt(enum I2CHandle handle);
+    INTERRUPT_I2C2_EV
+    {
+        _I2C_driver_interrupt(I2CHandle_ovcam_sccb);
+    }
+    INTERRUPT_I2C2_ER
+    {
+        _I2C_driver_interrupt(I2CHandle_ovcam_sccb);
+    }
 #endif
 #undef _EXPAND_HANDLE
 #define _EXPAND_HANDLE\
