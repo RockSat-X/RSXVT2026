@@ -166,7 +166,7 @@ from electrical.Shared import *
 
 
 #
-# Import handler for PySerial.
+# Import handlers for non-builtin modules.
 #
 
 
@@ -188,6 +188,25 @@ def import_pyserial():
         sys.exit(1)
 
     return serial, serial.tools.list_ports
+
+
+
+def import_pygame():
+
+    try:
+
+        import pygame
+
+    except ModuleNotFoundError as error:
+
+        logger.error(
+            f'Python got {type(error).__name__} ({error}); try doing:' '\n'
+            f'> pip install pygame'
+        )
+
+        sys.exit(1)
+
+    return pygame
 
 
 
@@ -1503,6 +1522,163 @@ def checkPCBs(parameters):
                         ]
                     }
                 )
+
+
+
+################################################################################
+
+
+
+@main_interface.new_verb(
+    {
+        'description' : 'View image data from the OVCAM driver.',
+        'more_help'   : True
+    },
+)
+def tv(parameters):
+
+
+
+    # Define some useful keybindings.
+
+    keybindings = []
+
+    def Keybinding(keystroke, description):
+
+        def decorator(function):
+
+            nonlocal keybindings
+
+            keybindings += [types.SimpleNamespace(
+                keystroke   = keystroke,
+                description = description,
+                function    = function,
+            )]
+
+            return function
+
+        return decorator
+
+
+
+    @Keybinding('ctrl-w', 'Turn the TV off.')
+    def _():
+
+        nonlocal quit
+
+        quit = True
+
+
+
+    @Keybinding('ctrl-c', 'Copy the current frame into clipboard.')
+    def _():
+        print('TODO CTRL-C')
+
+
+
+    @Keybinding('ctrl-s', 'Save the current frame as a BMP.')
+    def _():
+        print('TODO CTRL-S')
+
+
+
+    @Keybinding('f', 'Flip through different orientations of the current frame.')
+    def _():
+        print('TODO F')
+
+
+
+    @Keybinding('i', 'Toggle whether or not the framebuffer gets cleared upon a new frame or it gets interlaced with the previous one.')
+    def _():
+        print('TODO I')
+
+
+
+    # List the keybindings in the help message.
+
+    if parameters is None:
+
+        more_help = ''
+
+        for just_keystroke, just_description in justify([
+            (
+                ('<' , f'<{keybinding.keystroke}>'),
+                (None, keybinding.description     ),
+            )
+            for keybinding in keybindings
+        ]):
+
+            more_help += f'{just_keystroke} {just_description}\n'
+
+        return more_help
+
+
+
+    # Update loop.
+
+    pygame = import_pygame()
+
+    pygame.init()
+
+    screen = pygame.display.set_mode((1280, 960), pygame.RESIZABLE)
+    clock  = pygame.time.Clock()
+    quit   = False
+
+    while not quit:
+
+
+
+        # Handle inputs.
+
+        dt = clock.tick(60) / 1000
+
+        for event in pygame.event.get():
+
+            match event.type:
+
+
+
+                case pygame.QUIT:
+                    quit = True
+
+
+
+                case pygame.KEYDOWN:
+
+
+
+                    # Determine keystroke.
+
+                    keystroke = pygame.key.name(event.key)
+
+                    if keystroke == 'return':
+                        keystroke = 'enter'
+
+                    if event.mod & pygame.KMOD_SHIFT:
+                        keystroke = f'shift-{keystroke}'
+
+                    if event.mod & pygame.KMOD_CTRL:
+                        keystroke = f'ctrl-{keystroke}'
+
+
+
+                    # Execute the appropriate keybinding if one exists.
+
+                    for keybinding in keybindings:
+                        if keybinding.keystroke == keystroke:
+                                keybinding.function()
+
+
+
+        # Update.
+
+        # TODO.
+
+
+
+        # Render.
+
+        # TODO.
 
 
 
