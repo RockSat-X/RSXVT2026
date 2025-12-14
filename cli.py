@@ -1680,6 +1680,23 @@ def tv(parameters):
 
                 image_data += new_data
 
+
+
+                # Check for consistency of the data.
+
+                got      = len(image_data)
+                expected = OVCAM_RESOLUTION[0] * OVCAM_RESOLUTION[1] * 3
+
+                if got != expected:
+
+                    logger.error(f'Got {got} bytes; expected {expected} bytes.')
+
+                    return
+
+
+
+                # Plot the data.
+
                 for y in range(OVCAM_RESOLUTION[1]):
 
                     for x in range(OVCAM_RESOLUTION[0]):
@@ -1875,6 +1892,8 @@ def tv(parameters):
                     # again for some reason...
 
                     case (TV_TOKEN.END, TV_TOKEN.START):
+
+                        logger.error('Start token was found instead of an end token; restarting image stream.')
 
                         stream_callback('starting', b'')
 
