@@ -392,6 +392,10 @@
 
 
 
+static volatile u8 OVCAM_framebuffer[OVCAM_RESOLUTION_X * OVCAM_RESOLUTION_Y * 3] __attribute__((aligned(16))) = {0}; // TODO.
+
+
+
 static void
 OVCAM_init(void)
 {
@@ -433,7 +437,335 @@ OVCAM_init(void)
 
         if (error) sorry
 
-        sequence_index += + sizeof(u8) + sizeof(u16) + amount_of_bytes_to_write;
+        sequence_index += sizeof(u8) + sizeof(u16) + amount_of_bytes_to_write;
+
+    }
+
+
+
+    // Initialize the DMA for the DCMI peripheral.
+
+    CMSIS_SET(RCC, AHB1RSTR, GPDMA1RST, true ); // TODO.
+    CMSIS_SET(RCC, AHB1RSTR, GPDMA1RST, false); // TODO.
+
+    NVIC_ENABLE(GPDMA1_Channel7);
+
+    CMSIS_SET(RCC            , AHB1ENR, GPDMA1EN, true                     ); // TODO.
+    CMSIS_SET(GPDMA1_Channel7, CBR1   , BNDT    , sizeof(OVCAM_framebuffer)); // TODO.
+    CMSIS_SET(GPDMA1_Channel7, CSAR   , SA      , (u32) &DCMI->DR          ); // TODO.
+    CMSIS_SET(GPDMA1_Channel7, CDAR   , DA      , (u32) &OVCAM_framebuffer ); // TODO.
+    CMSIS_SET
+    (
+        GPDMA1_Channel7, CTR1,
+        DINC           , true , // TODO.
+        SINC           , false, // TODO.
+        DDW_LOG2       , 0b10 , // TODO.
+        SDW_LOG2       , 0b10 , // TODO.
+    );
+    CMSIS_SET
+    (
+        GPDMA1_Channel7, CTR2 ,
+        PFREQ          , true , // TODO.
+        BREQ           , true , // TODO?
+        REQSEL         , 108  , // TODO.
+    );
+    CMSIS_SET
+    (
+        GPDMA1_Channel7, CCR , // Enable interrupts for:
+        TOIE           , true, //     - Trigger over-run.
+        SUSPIE         , true, //     - Completed suspension.
+        USEIE          , true, //     - User setting error.
+        ULEIE          , true, //     - Update link transfer error.
+        DTEIE          , true, //     - Data transfer error.
+        TCIE           , true, //     - Transfer complete.
+    );
+    CMSIS_SET(GPDMA1, MISR, MIS7, true); // TODO.
+
+
+
+    // Initialize the DCMI peripheral.
+
+    NVIC_ENABLE(DCMI_PSSI);
+
+    CMSIS_SET(RCC, AHB2ENR, DCMI_PSSIEN, true); // TODO.
+
+    CMSIS_SET
+    (
+        DCMI     , IER  , // Enable interrupts for:
+        OVR_IE   , true , //     - Data overrun error.
+        FRAME_IE , true , //     - Frame captured.
+    );
+
+    CMSIS_SET
+    (
+        DCMI      , CR   ,
+        EDM       , 0b00 , // TODO.
+        VSPOL     , true , // TODO.
+        HSPOL     , true , // TODO.
+        PCKPOL    , true , // TODO.
+        JPEG      , false, // TODO.
+        CM        , true , // TODO.
+        ENABLE    , true , // TODO.
+    );
+
+
+
+    // TODO.
+
+    CMSIS_SET(GPDMA1_Channel7, CCR, EN     , true); // TODO.
+    CMSIS_SET(DCMI           , CR , CAPTURE, true); // TODO.
+
+}
+
+
+
+INTERRUPT_GPDMA1_Channel7
+{
+
+    enum DMAInterruptEvent : u32
+    {
+        DMAInterruptEvent_none,
+        DMAInterruptEvent_trigger_overrun,
+        DMAInterruptEvent_completed_suspension,
+        DMAInterruptEvent_user_setting_error,
+        DMAInterruptEvent_update_link_transfer_error,
+        DMAInterruptEvent_data_transfer_error,
+        DMAInterruptEvent_transfer_complete,
+    };
+    enum DMAInterruptEvent interrupt_event  = {0};
+    u32                    interrupt_status = GPDMA1_Channel7->CSR;
+
+
+
+    // TODO.
+
+    if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, TOF))
+    {
+        CMSIS_SET(GPDMA1_Channel7, CFCR, TOF, true);
+        interrupt_event = DMAInterruptEvent_trigger_overrun;
+    }
+
+
+
+    // TODO.
+
+    else if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, SUSPF))
+    {
+        CMSIS_SET(GPDMA1_Channel7, CFCR, SUSPF, true);
+        interrupt_event = DMAInterruptEvent_completed_suspension;
+    }
+
+
+
+    // TODO.
+
+    else if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, USEF))
+    {
+        CMSIS_SET(GPDMA1_Channel7, CFCR, USEF, true);
+        interrupt_event = DMAInterruptEvent_user_setting_error;
+    }
+
+
+
+    // TODO.
+
+    else if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, ULEF))
+    {
+        CMSIS_SET(GPDMA1_Channel7, CFCR, ULEF, true);
+        interrupt_event = DMAInterruptEvent_update_link_transfer_error;
+    }
+
+
+
+    // TODO.
+
+    else if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, DTEF))
+    {
+        CMSIS_SET(GPDMA1_Channel7, CFCR, DTEF, true);
+        interrupt_event = DMAInterruptEvent_data_transfer_error;
+    }
+
+
+
+    // TODO.
+
+    else if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, TCF))
+    {
+        CMSIS_SET(GPDMA1_Channel7, CFCR, TCF, true);
+        interrupt_event = DMAInterruptEvent_transfer_complete;
+    }
+
+
+
+    // Nothing notable happened.
+
+    else
+    {
+        interrupt_event = DMAInterruptEvent_none;
+    }
+
+
+
+    // TODO.
+
+    switch (interrupt_event)
+    {
+
+        case DMAInterruptEvent_none:
+        {
+            sorry
+        } break;
+
+        case DMAInterruptEvent_trigger_overrun:
+        {
+            sorry
+        } break;
+
+        case DMAInterruptEvent_completed_suspension:
+        {
+            sorry
+        } break;
+
+        case DMAInterruptEvent_user_setting_error:
+        {
+            sorry
+        } break;
+
+        case DMAInterruptEvent_update_link_transfer_error:
+        {
+            sorry
+        } break;
+
+        case DMAInterruptEvent_data_transfer_error:
+        {
+            sorry
+        } break;
+
+        case DMAInterruptEvent_transfer_complete:
+        {
+            // TODO.
+        } break;
+
+        default: panic;
+
+    }
+
+}
+
+
+
+INTERRUPT_DCMI_PSSI
+{
+
+    enum DCMIInterruptEvent : u32
+    {
+        DCMIInterruptEvent_none,
+        DCMIInterruptEvent_line_received,
+        DCMIInterruptEvent_vsync,
+        DCMIInterruptEvent_sync_error,
+        DCMIInterruptEvent_overrun_error,
+        DCMIInterruptEvent_capture_complete,
+    };
+    enum DCMIInterruptEvent interrupt_event  = {0};
+    u32                     interrupt_status = DCMI->MISR;
+
+
+
+    // TODO.
+
+    if (CMSIS_GET_FROM(interrupt_status, DCMI, MIS, VSYNC_MIS))
+    {
+        CMSIS_SET(DCMI, ICR, VSYNC_ISC, true);
+        interrupt_event = DCMIInterruptEvent_vsync;
+    }
+
+
+
+    // TODO.
+
+    else if (CMSIS_GET_FROM(interrupt_status, DCMI, MIS, ERR_MIS))
+    {
+        CMSIS_SET(DCMI, ICR, ERR_ISC, true);
+        interrupt_event = DCMIInterruptEvent_sync_error;
+    }
+
+
+
+    // TODO.
+
+    else if (CMSIS_GET_FROM(interrupt_status, DCMI, MIS, OVR_MIS))
+    {
+        CMSIS_SET(DCMI, ICR, OVR_ISC, true);
+        interrupt_event = DCMIInterruptEvent_overrun_error;
+    }
+
+
+
+    // TODO.
+
+    else if (CMSIS_GET_FROM(interrupt_status, DCMI, MIS, FRAME_MIS))
+    {
+        CMSIS_SET(DCMI, ICR, FRAME_ISC, true);
+        interrupt_event = DCMIInterruptEvent_capture_complete;
+    }
+
+
+
+    // TODO.
+
+    else if (CMSIS_GET_FROM(interrupt_status, DCMI, MIS, LINE_MIS))
+    {
+        CMSIS_SET(DCMI, ICR, LINE_ISC, true);
+        interrupt_event = DCMIInterruptEvent_line_received;
+    }
+
+
+
+    // Nothing notable happened.
+
+    else
+    {
+        interrupt_event = DCMIInterruptEvent_none;
+    }
+
+
+
+    // TODO.
+
+    switch (interrupt_event)
+    {
+
+        case DCMIInterruptEvent_none:
+        {
+            sorry
+        } break;
+
+        case DCMIInterruptEvent_line_received:
+        {
+            sorry
+        } break;
+
+        case DCMIInterruptEvent_vsync:
+        {
+            sorry
+        } break;
+
+        case DCMIInterruptEvent_sync_error:
+        {
+            sorry
+        } break;
+
+        case DCMIInterruptEvent_overrun_error:
+        {
+            sorry
+        } break;
+
+        case DCMIInterruptEvent_capture_complete:
+        {
+            // TODO.
+        } break;
+
+        default: panic;
 
     }
 

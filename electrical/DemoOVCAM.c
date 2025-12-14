@@ -98,10 +98,28 @@ main(void)
 
 
 
-    for (;;)
+    for (;;) // TMP.
     {
         stlink_tx("Hello!\n");
         spinlock_nop(100'000'000);
+
+        if (stlink_rx(&(char) {0}))
+        {
+            stlink_tx("\n\n\n");
+            for (i32 i = 0; i < countof(OVCAM_framebuffer); i += 1)
+            {
+                stlink_tx("%02X", OVCAM_framebuffer[i]);
+                if ((i + 1) % 32 == 0)
+                {
+                    stlink_tx("\n");
+                }
+                else
+                {
+                    stlink_tx(" ");
+                }
+            }
+            stlink_tx("\n\n\n");
+        }
     }
 
 }

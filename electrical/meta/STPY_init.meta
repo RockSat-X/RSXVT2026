@@ -3523,13 +3523,17 @@
     #if STPY_IMPLEMENTATION
         enum NVICInterrupt : u32
         {
-            NVICInterrupt_USART2  = USART2_IRQn,
-            NVICInterrupt_I2C2_EV = I2C2_EV_IRQn,
-            NVICInterrupt_I2C2_ER = I2C2_ER_IRQn,
+            NVICInterrupt_USART2          = USART2_IRQn,
+            NVICInterrupt_GPDMA1_Channel7 = GPDMA1_Channel7_IRQn,
+            NVICInterrupt_DCMI_PSSI       = DCMI_PSSI_IRQn,
+            NVICInterrupt_I2C2_EV         = I2C2_EV_IRQn,
+            NVICInterrupt_I2C2_ER         = I2C2_ER_IRQn,
         };
-        static constexpr u32 NVICInterrupt_COUNT = 3;
+        static constexpr u32 NVICInterrupt_COUNT = 5;
         extern void INTERRUPT_BusFault(void);
+        extern void INTERRUPT_DCMI_PSSI(void);
         extern void INTERRUPT_Default(void);
+        extern void INTERRUPT_GPDMA1_Channel7(void);
         extern void INTERRUPT_I2C2_ER(void);
         extern void INTERRUPT_I2C2_EV(void);
         extern void INTERRUPT_Reset(void);
@@ -3587,7 +3591,7 @@
                 INTERRUPT_Default            , // [ 31] GPDMA1_Channel4
                 INTERRUPT_Default            , // [ 32] GPDMA1_Channel5
                 INTERRUPT_Default            , // [ 33] GPDMA1_Channel6
-                INTERRUPT_Default            , // [ 34] GPDMA1_Channel7
+                INTERRUPT_GPDMA1_Channel7    , // [ 34] GPDMA1_Channel7
                 INTERRUPT_Default            , // [ 35] IWDG
                 INTERRUPT_Default            , // [ 36] SAES
                 INTERRUPT_Default            , // [ 37] ADC1
@@ -3661,7 +3665,7 @@
                 INTERRUPT_Default            , // [105] DCACHE1
                 INTERRUPT_Default            , // [106] Reserved
                 INTERRUPT_Default            , // [107] Reserved
-                INTERRUPT_Default            , // [108] DCMI_PSSI
+                INTERRUPT_DCMI_PSSI          , // [108] DCMI_PSSI
                 INTERRUPT_Default            , // [109] FDCAN2_IT0
                 INTERRUPT_Default            , // [110] FDCAN2_IT1
                 INTERRUPT_Default            , // [111] Reserved
@@ -3688,7 +3692,9 @@
                 INTERRUPT_Default            , // [132] I3C2_ER
             };
         #define INTERRUPT_BusFault extern void INTERRUPT_BusFault(void)
+        #define INTERRUPT_DCMI_PSSI extern void INTERRUPT_DCMI_PSSI(void)
         #define INTERRUPT_Default extern void INTERRUPT_Default(void)
+        #define INTERRUPT_GPDMA1_Channel7 extern void INTERRUPT_GPDMA1_Channel7(void)
         #define INTERRUPT_I2C2_ER extern void INTERRUPT_I2C2_ER(void)
         #define INTERRUPT_I2C2_EV extern void INTERRUPT_I2C2_EV(void)
         #define INTERRUPT_Reset extern void INTERRUPT_Reset(void)
@@ -3872,9 +3878,13 @@
             static_assert(0 <= 0 && 0 < (1 << __NVIC_PRIO_BITS));
             NVIC->IPR[NVICInterrupt_USART2] = 0 << __NVIC_PRIO_BITS;
             static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
-            NVIC->IPR[NVICInterrupt_I2C2_EV] = 1 << __NVIC_PRIO_BITS;
-            static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
-            NVIC->IPR[NVICInterrupt_I2C2_ER] = 1 << __NVIC_PRIO_BITS;
+            NVIC->IPR[NVICInterrupt_GPDMA1_Channel7] = 1 << __NVIC_PRIO_BITS;
+            static_assert(0 <= 2 && 2 < (1 << __NVIC_PRIO_BITS));
+            NVIC->IPR[NVICInterrupt_DCMI_PSSI] = 2 << __NVIC_PRIO_BITS;
+            static_assert(0 <= 3 && 3 < (1 << __NVIC_PRIO_BITS));
+            NVIC->IPR[NVICInterrupt_I2C2_EV] = 3 << __NVIC_PRIO_BITS;
+            static_assert(0 <= 3 && 3 < (1 << __NVIC_PRIO_BITS));
+            NVIC->IPR[NVICInterrupt_I2C2_ER] = 3 << __NVIC_PRIO_BITS;
             CMSIS_SET
             (
                 SCB        , SHCSR,

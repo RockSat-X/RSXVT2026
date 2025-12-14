@@ -842,9 +842,11 @@ TARGETS = (
         ),
 
         interrupts = (
-            ('USART2' , 0),
-            ('I2C2_EV', 1),
-            ('I2C2_ER', 1),
+            ('USART2'         , 0),
+            ('GPDMA1_Channel7', 1),
+            ('DCMI_PSSI'      , 2),
+            ('I2C2_EV'        , 3),
+            ('I2C2_ER'        , 3),
         ),
 
         drivers = (
