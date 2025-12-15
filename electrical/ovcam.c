@@ -402,8 +402,15 @@ enum OVCAMFramebufferState : u32
 
 static volatile enum OVCAMFramebufferState OVCAM_framebuffer_state = {0};
 
+
+
 // The framebuffer has alignment requirements due to DMA.
+// Furthermore, the DCMI peripheral organizes its FIFO to
+// be in units of 32-bit words.
+
 static volatile u8 OVCAM_framebuffer[OVCAM_RESOLUTION_X * OVCAM_RESOLUTION_Y * 3] __attribute__((aligned(4))) = {0};
+
+static_assert(sizeof(OVCAM_framebuffer) % sizeof(u32) == 0);
 
 
 
