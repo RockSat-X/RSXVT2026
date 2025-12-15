@@ -442,20 +442,12 @@ OVCAM_begin_capture(void)
 
 
 
-    // Set the amount of bytes to be transferred.
-    // DMA channels operate data transfers in terms of blocks,
-    // which can be up to 64KiB; to transfer more data
-    // than that, we apply a reptition of a certain amount
-    // until we get the desired transfer size.
+    // Configure the DMA channel in such a way that it always
+    // expect more data than there'll actually be in the transfer.
+    // This is so we can handle variable lengthed data transfers.
 
-    #define GPDMA1_CHANNEL7_BLOCK_SIZE (160 * 120 * 3)
-
-    static_assert(GPDMA1_CHANNEL7_BLOCK_SIZE % sizeof(u32) == 0);
-    static_assert(GPDMA1_CHANNEL7_BLOCK_SIZE < (1 << 16));
-    static_assert(sizeof(OVCAM_framebuffer) % GPDMA1_CHANNEL7_BLOCK_SIZE == 0);
-
-    CMSIS_SET(GPDMA1_Channel7, CBR1, BRC , sizeof(OVCAM_framebuffer) / GPDMA1_CHANNEL7_BLOCK_SIZE - 1);
-    CMSIS_SET(GPDMA1_Channel7, CBR1, BNDT, GPDMA1_CHANNEL7_BLOCK_SIZE);
+    CMSIS_SET(GPDMA1_Channel7, CBR1, BRC , -1U);
+    CMSIS_SET(GPDMA1_Channel7, CBR1, BNDT, (((u16) -1) - 1) / 4 * 4);
 
 
 
@@ -661,20 +653,43 @@ INTERRUPT_GPDMA1_Channel7
             sorry
         } break;
 
-        case DMAInterruptEvent_transfer_complete:
+        case DMAInterruptEvent_completed_suspension:
         {
-
-            // We got the last bit of data into the framebuffer!
 
             if (OVCAM_framebuffer_state != OVCAMFramebufferState_filling)
                 panic;
+
+
+
+            // Ensure that there's no outstanding data
+            // that hasn't been transferred to the framebuffer.
+
+            if (CMSIS_GET(DCMI, SR, FNE))
+                sorry
+
+            if (CMSIS_GET(GPDMA1_Channel7, CSR, FIFOL))
+                sorry
+
+            if (CMSIS_GET(GPDMA1_Channel7, CDAR, DA) != (u32) &OVCAM_framebuffer[countof(OVCAM_framebuffer)])
+                sorry
+
+
+
+            // We can now reset the DMA channel to have
+            // it be reconfigured for the next transfer.
+
+            CMSIS_SET(GPDMA1_Channel7, CCR, RESET, true);
+
+
+
+            // User can now use the received data.
 
             OVCAM_framebuffer_state = OVCAMFramebufferState_filled;
 
         } break;
 
-        case DMAInterruptEvent_completed_suspension       : panic; // We aren't using this DMA feature.
-        case DMAInterruptEvent_update_link_transfer_error : panic; // "
+        case DMAInterruptEvent_transfer_complete          : panic; // The DCMI gave us way more data than it should've.
+        case DMAInterruptEvent_update_link_transfer_error : panic; // We aren't using this DMA feature.
         default                                           : panic;
 
     }
@@ -723,13 +738,38 @@ INTERRUPT_DCMI_PSSI
 
         case DCMIInterruptEvent_capture_complete:
         {
-            switch (OVCAM_framebuffer_state)
-            {
-                case OVCAMFramebufferState_empty   : panic; // Invalid.
-                case OVCAMFramebufferState_filling : break; // DMA might still be transferring from DCMI's FIFO into the framebuffer.
-                case OVCAMFramebufferState_filled  : break; // DMA finished filling the framebuffer.
-                default                            : panic;
-            }
+
+            if (OVCAM_framebuffer_state != OVCAMFramebufferState_filling)
+                panic;
+
+
+
+            // The DMA should should still be active; the way we
+            // will disable it is through suspension. However, we
+            // should wait until the DMA has definitely grabbed all
+            // of the data in DCMI's FIFO and has transferred it all.
+            // It should be noted that I haven't been able to stimulate
+            // this edge-case, so I can't say for certainty that this
+            // works as expected.
+
+            if (!CMSIS_GET(GPDMA1_Channel7, CCR, EN))
+                panic;
+
+            while
+            (
+                CMSIS_GET(DCMI, SR, FNE) &&            // Data still in DCMI's FIFO?
+                CMSIS_GET(GPDMA1_Channel7, CSR, FIFOL) // Data still in DMA's FIFO?
+            );
+
+
+
+            // The DMA is configured in such a way that it'll be able to
+            // handle arbitrary lengthed data, but to disable it so we
+            // can configure for the next transfer, we have to first
+            // suspend the channel.
+
+            CMSIS_SET(GPDMA1_Channel7, CCR, SUSP, true);
+
         } break;
 
         case DCMIInterruptEvent_line_received       : panic; // Shouldn't happen because the interrupt for it isn't enabled.
