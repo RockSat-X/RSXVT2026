@@ -436,14 +436,19 @@ OVCAM_begin_capture(void)
 
 
     // Set the amount of bytes to be transferred.
-    // This gets decremented on each transfer, so
-    // we have to reset it each time we do a capture.
+    // DMA channels operate data transfers in terms of blocks,
+    // which can be up to 64KiB; to transfer more data
+    // than that, we apply a reptition of a certain amount
+    // until we get the desired transfer size.
 
-    constexpr u32 amount_of_bytes_to_transfer = sizeof(OVCAM_framebuffer);
+    #define GPDMA1_CHANNEL7_BLOCK_SIZE (160 * 120 * 3)
 
-    static_assert(amount_of_bytes_to_transfer < (1 << 16));
+    static_assert(GPDMA1_CHANNEL7_BLOCK_SIZE % sizeof(u32) == 0);
+    static_assert(GPDMA1_CHANNEL7_BLOCK_SIZE < (1 << 16));
+    static_assert(sizeof(OVCAM_framebuffer) % GPDMA1_CHANNEL7_BLOCK_SIZE == 0);
 
-    CMSIS_SET(GPDMA1_Channel7, CBR1, BNDT, amount_of_bytes_to_transfer);
+    CMSIS_SET(GPDMA1_Channel7, CBR1, BRC , sizeof(OVCAM_framebuffer) / GPDMA1_CHANNEL7_BLOCK_SIZE - 1);
+    CMSIS_SET(GPDMA1_Channel7, CBR1, BNDT, GPDMA1_CHANNEL7_BLOCK_SIZE);
 
 
 
