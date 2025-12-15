@@ -1628,11 +1628,13 @@ def tv(parameters):
     # Routine to handle the chunks of image
     # data as they come through the serial port.
 
-    image_data = None
+    image_data      = None
+    past_sizes      = []
+    past_timestamps = []
 
     def stream_callback(event, new_data):
 
-        nonlocal image_data, surface
+        nonlocal surface, image_data, past_sizes, past_timestamps
 
         match event:
 
@@ -1651,6 +1653,17 @@ def tv(parameters):
             case 'continuing':
 
                 image_data += new_data
+
+
+
+                # Seems like PyGame's image loader is sometimes okay
+                # when the JPEG frame is incomplete; we might
+                # as well render it to show progress so far.
+
+                try:
+                    surface = pygame.image.load(io.BytesIO(image_data))
+                except pygame.error as error:
+                    pass
 
 
 
@@ -1673,6 +1686,52 @@ def tv(parameters):
 
                 image_data += new_data
 
+
+
+                # Record the size of the JPEG frame
+                # and average it with the past frames.
+
+                past_sizes   += [len(image_data)]
+                past_sizes    = past_sizes[-10:]
+                average_size  = sum(past_sizes) / len(past_sizes)
+
+
+
+                # Record the delta time between each frame
+                # to estimate the frame-rate.
+
+                past_timestamps += [time.time()]
+                past_timestamps  = past_timestamps[-10:]
+
+                if len(past_timestamps) >= 2:
+
+                    average_fps = [
+                        1 / (past_timestamps[i + 1] - past_timestamps[i])
+                        for i in range(len(past_timestamps) - 1)
+                    ]
+
+                    average_fps = sum(average_fps) / len(average_fps)
+
+                else:
+
+                    average_fps = 0
+
+
+
+                # Display the statistics.
+
+                pygame.display.set_caption(
+                    ' | '.join((
+                        f'curr. {len(image_data) :_} bytes',
+                        f'avg. {round(average_size) :_} bytes',
+                        f'avg. {average_fps :.4f} FPS',
+                    ))
+                )
+
+
+
+                # Try parsing the JPEG frame.
+
                 try:
 
                     surface = pygame.image.load(io.BytesIO(image_data))
@@ -1682,8 +1741,6 @@ def tv(parameters):
                     logger.error(f'PyGame failed to parse received JPEG image data: {repr(str(error))}.')
 
                     return True
-
-                logger.info(f'JPEG frame was {len(image_data) :_} bytes.')
 
 
 
@@ -1897,7 +1954,9 @@ def tv(parameters):
 
                     surface.fill(SURFACE_DEFAULT_RGB)
 
-                    token_expected = TV_TOKEN.START
+                    token_expected  = TV_TOKEN.START
+                    past_sizes      = []
+                    past_timestamps = []
 
 
 
