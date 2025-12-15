@@ -656,10 +656,12 @@ INTERRUPT_GPDMA1_Channel7
         case DMAInterruptEvent_transfer_complete:
         {
 
-            // Should only happen when we're filling the framebuffer.
+            // We got the last bit of data into the framebuffer!
 
             if (OVCAM_framebuffer_state != OVCAMFramebufferState_filling)
                 panic;
+
+            OVCAM_framebuffer_state = OVCAMFramebufferState_filled;
 
         } break;
 
@@ -713,12 +715,13 @@ INTERRUPT_DCMI_PSSI
 
         case DCMIInterruptEvent_capture_complete:
         {
-
-            if (OVCAM_framebuffer_state != OVCAMFramebufferState_filling)
-                panic;
-
-            OVCAM_framebuffer_state = OVCAMFramebufferState_filled;
-
+            switch (OVCAM_framebuffer_state)
+            {
+                case OVCAMFramebufferState_empty   : panic; // Invalid.
+                case OVCAMFramebufferState_filling : break; // DMA might still be transferring from DCMI's FIFO into the framebuffer.
+                case OVCAMFramebufferState_filled  : break; // DMA finished filling the framebuffer.
+                default                            : panic;
+            }
         } break;
 
         case DCMIInterruptEvent_line_received       : panic; // Shouldn't happen because the interrupt for it isn't enabled.
