@@ -122,7 +122,7 @@ main(void)
                 (
                     UXARTHandle_stlink,
                     (u8*) OVCAM_framebuffer,
-                    sizeof(OVCAM_framebuffer)
+                    OVCAM_framebuffer_length
                 );
 
                 stlink_tx(TV_TOKEN_END);

@@ -57,10 +57,10 @@
         0x3008 0x82   # SYSTEM CTROL.
 
         0x3000 0x00   # SYSTEM RESET.
-        0x3002 0x1C   # "
+        0x3002 0x20   # "
 
         0x3004 0xFF   # CLOCK ENABLE.
-        0x3006 0xC3   # "
+        0x3006 0xEB   # "
 
         0x300E 0x58   # MIPI CONTROL.
 
@@ -96,6 +96,7 @@
         0x3814 0x31   # TIMING X INC.
         0x3815 0x31   # TIMING Y INC.
         0x3820 0x0600 # TIMING TC REG.
+        0x3821 0x20   # COMPRESSION ENABLE.
 
         0x3A02 0x03D8 # AEC MAX EXPO (60Hz).
 
@@ -129,7 +130,7 @@
         0x4001 0x02   # BLC CTRL.
         0x4004 0x02   # "
 
-        0x4300 0xFA   # FORMAT CONTROL. TODO Look into JPEG?
+        0x4300 0x30   # FORMAT CONTROL.
 
         0x4407 0x04   # JPEG CTRL.
 
@@ -144,7 +145,7 @@
 
         0x503D 0x{pre_isp_test_setting :02X} # PRE ISP TEST SETTING.
 
-        0x501F 0x01   # FORMAT MUX CONTROL.
+        0x501F 0x00   # FORMAT MUX CONTROL.
 
         0x5180 0xFF   # AWB CONTROL.
         0x5181 0xF2   # "
@@ -412,6 +413,8 @@ static volatile u8 OVCAM_framebuffer[OVCAM_RESOLUTION_X * OVCAM_RESOLUTION_Y * 3
 
 static_assert(sizeof(OVCAM_framebuffer) % sizeof(u32) == 0);
 
+static volatile i32 OVCAM_framebuffer_length = {0};
+
 
 
 static void
@@ -578,22 +581,22 @@ OVCAM_init(void)
 
     CMSIS_SET
     (
-        DCMI     , IER  , // Enable interrupts for:
-        ERR_IE   , true , //     - Embedded synchronization error.
-        OVR_IE   , true , //     - Data overrun error.
-        FRAME_IE , true , //     - Frame captured.
+        DCMI    , IER  , // Enable interrupts for:
+        ERR_IE  , true , //     - Embedded synchronization error.
+        OVR_IE  , true , //     - Data overrun error.
+        FRAME_IE, true , //     - Frame captured.
     );
 
     CMSIS_SET
     (
-        DCMI      , CR   ,
-        EDM       , 0b00 , // "00: Interface captures 8-bit data on every pixel clock."
-        VSPOL     , true , // "1: DCMI_VSYNC active high".
-        HSPOL     , true , // "1: DCMI_HSYNC active high".
-        PCKPOL    , true , // "1: Rising edge active".
-        JPEG      , false, // TODO Use JPEG.
-        CM        , true , // "1: Snapshot mode (single frame) - ..."
-        ENABLE    , true , // We're done configuring and the DCMI is ready to be used.
+        DCMI  , CR   ,
+        EDM   , 0b00 , // "00: Interface captures 8-bit data on every pixel clock."
+        VSPOL , true , // "1: DCMI_VSYNC active high".
+        HSPOL , true , // "1: DCMI_HSYNC active high".
+        PCKPOL, true , // "1: Rising edge active".
+        JPEG  , true , // Expect JPEG data.
+        CM    , true , // "1: Snapshot mode (single frame) - ..."
+        ENABLE, true , // We're done configuring and the DCMI is ready to be used.
     );
 
     NVIC_ENABLE(DCMI_PSSI);
@@ -670,7 +673,14 @@ INTERRUPT_GPDMA1_Channel7
             if (CMSIS_GET(GPDMA1_Channel7, CSR, FIFOL))
                 sorry
 
-            if (CMSIS_GET(GPDMA1_Channel7, CDAR, DA) != (u32) &OVCAM_framebuffer[countof(OVCAM_framebuffer)])
+
+
+            // With JPEG compression, the amount of
+            // received data will be variable.
+
+            OVCAM_framebuffer_length = (i32) CMSIS_GET(GPDMA1_Channel7, CDAR, DA) - (i32) &OVCAM_framebuffer;
+
+            if (OVCAM_framebuffer_length >= sizeof(OVCAM_framebuffer))
                 sorry
 
 

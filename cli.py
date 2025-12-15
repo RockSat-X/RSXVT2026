@@ -29,7 +29,7 @@ if not (
 
 
 
-import types, shlex, pathlib, shutil, subprocess, time, logging
+import types, shlex, pathlib, shutil, subprocess, time, logging, io
 
 
 
@@ -1605,7 +1605,7 @@ def tv(parameters):
     clock  = pygame.time.Clock()
     quit   = False
 
-    surface = pygame.Surface(OVCAM_RESOLUTION)
+    surface = pygame.Surface((1, 1))
     surface.fill(SURFACE_DEFAULT_RGB)
 
 
@@ -1632,9 +1632,7 @@ def tv(parameters):
 
     def stream_callback(event, new_data):
 
-        nonlocal image_data
-
-        expected_length = OVCAM_RESOLUTION[0] * OVCAM_RESOLUTION[1] * 3
+        nonlocal image_data, surface
 
         match event:
 
@@ -1658,11 +1656,12 @@ def tv(parameters):
 
                 # Ensure we aren't collecting too much data.
 
-                got = len(image_data)
+                got       = len(image_data)
+                excessive = OVCAM_RESOLUTION[0] * OVCAM_RESOLUTION[1] * 3
 
-                if got > expected_length:
+                if got > excessive:
 
-                    logger.error(f'Got {got} bytes; expected {expected_length} bytes.')
+                    logger.error(f'Got {got} bytes; expected at most {excessive} bytes.')
 
                     return True
 
@@ -1674,34 +1673,17 @@ def tv(parameters):
 
                 image_data += new_data
 
+                try:
 
+                    surface = pygame.image.load(io.BytesIO(image_data))
 
-                # Check for consistency of the data.
+                except pygame.error as error:
 
-                got = len(image_data)
-
-                if got != expected_length:
-
-                    logger.error(f'Ended up with {got} bytes; expected {expected_length} bytes.')
+                    logger.error(f'PyGame failed to parse received JPEG image data: {repr(str(error))}.')
 
                     return True
 
-
-
-                # Plot the data.
-
-                for y in range(OVCAM_RESOLUTION[1]):
-
-                    for x in range(OVCAM_RESOLUTION[0]):
-
-                        pixel_i = y * OVCAM_RESOLUTION[0] + x
-                        pixel   = (
-                            image_data[pixel_i * 3 + 2],
-                            image_data[pixel_i * 3 + 0],
-                            image_data[pixel_i * 3 + 1],
-                        )
-
-                        surface.set_at((x, y), pixel)
+                logger.info(f'JPEG frame was {len(image_data) :_} bytes.')
 
 
 
