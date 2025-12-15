@@ -494,12 +494,12 @@ OVCAM_init(void)
     GPIO_HIGH(ovcam_power_down); // Pulling high so the camera is powered down.
     GPIO_LOW(ovcam_restart);     // Pulling low so the camera is resetting.
 
-    spinlock_nop(100'000);
+    spinlock_nop(100'000); // TODO something less ad-hoc?
 
     GPIO_LOW(ovcam_power_down);
     GPIO_HIGH(ovcam_restart);
 
-    spinlock_nop(100'000);
+    spinlock_nop(100'000); // TODO something less ad-hoc?
 
 
 
@@ -541,7 +541,7 @@ OVCAM_init(void)
 
     CMSIS_SET
     (
-        GPDMA1_Channel7, CTR1,
+        GPDMA1_Channel7, CTR1 ,
         DINC           , true , // Destination address will be incremented on each transfer.
         SINC           , false, // Source addresss will stay fixed.
         DDW_LOG2       , 0b10 , // Transfer size of four bytes.
@@ -550,9 +550,10 @@ OVCAM_init(void)
 
     CMSIS_SET
     (
-        GPDMA1_Channel7, CTR2 ,
-        PFREQ          , true , // The peripheral will dictate when the transfer can happen.
-        REQSEL         , 108  , // The DCMI peripheral is the one that'll be providing the transfer request.
+        GPDMA1_Channel7, CTR2,
+        PFREQ          , true, // The peripheral will dictate when the transfer can happen.
+        REQSEL         , 108 , // The DCMI peripheral is the one that'll be providing the transfer request.
+        TCEM           , 0b01, // The transfer is considered complete when BNDT and BRC are both zero.
     );
 
     CMSIS_SET
