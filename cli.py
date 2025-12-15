@@ -1539,6 +1539,10 @@ def tv(parameters):
 
 
 
+    SURFACE_DEFAULT_RGB = (74, 65, 42)
+
+
+
     # Define some useful keybindings.
 
     keybindings = []
@@ -1602,7 +1606,7 @@ def tv(parameters):
     quit   = False
 
     surface = pygame.Surface(OVCAM_RESOLUTION)
-    surface.fill((74, 65, 42))
+    surface.fill(SURFACE_DEFAULT_RGB)
 
 
 
@@ -1630,6 +1634,8 @@ def tv(parameters):
 
         nonlocal image_data
 
+        expected_length = OVCAM_RESOLUTION[0] * OVCAM_RESOLUTION[1] * 3
+
         match event:
 
 
@@ -1650,6 +1656,18 @@ def tv(parameters):
 
 
 
+                # Ensure we aren't collecting too much data.
+
+                got = len(image_data)
+
+                if got > expected_length:
+
+                    logger.error(f'Got {got} bytes; expected {expected_length} bytes.')
+
+                    return True
+
+
+
             # Adding the last bit of data to the image and rendering it.
 
             case 'ending':
@@ -1660,14 +1678,13 @@ def tv(parameters):
 
                 # Check for consistency of the data.
 
-                got      = len(image_data)
-                expected = OVCAM_RESOLUTION[0] * OVCAM_RESOLUTION[1] * 3
+                got = len(image_data)
 
-                if got != expected:
+                if got != expected_length:
 
-                    logger.error(f'Got {got} bytes; expected {expected} bytes.')
+                    logger.error(f'Ended up with {got} bytes; expected {expected_length} bytes.')
 
-                    return
+                    return True
 
 
 
@@ -1820,6 +1837,8 @@ def tv(parameters):
 
                 # Handle the new stream data.
 
+                stream_error = None
+
                 match (token_expected, next_token_found):
 
 
@@ -1838,8 +1857,7 @@ def tv(parameters):
 
                     case (TV_TOKEN.START, TV_TOKEN.START):
 
-                        stream_callback('starting', b'')
-
+                        stream_error   = stream_callback('starting', b'')
                         token_expected = TV_TOKEN.END
 
 
@@ -1860,7 +1878,7 @@ def tv(parameters):
 
                     case (TV_TOKEN.END, None):
 
-                        stream_callback('continuing', data_before_token)
+                        stream_error = stream_callback('continuing', data_before_token)
 
 
 
@@ -1869,7 +1887,9 @@ def tv(parameters):
 
                     case (TV_TOKEN.END, TV_TOKEN.START):
 
-                        logger.error('Start token was found instead of an end token; restarting image stream.')
+                        logger.error('Two consecutive start tokens found; restarting image stream.')
+
+                        stream_error = True
 
                         stream_callback('starting', b'')
 
@@ -1879,13 +1899,23 @@ def tv(parameters):
 
                     case (TV_TOKEN.END, TV_TOKEN.END):
 
-                        stream_callback('ending', data_before_token)
-
+                        stream_error   = stream_callback('ending', data_before_token)
                         token_expected = TV_TOKEN.START
 
 
 
                     case idk: raise RuntimeError(idk)
+
+
+
+                # If there was something wrong with the data,
+                # we'll pretty much discard everything and start over.
+
+                if stream_error:
+
+                    surface.fill(SURFACE_DEFAULT_RGB)
+
+                    token_expected = TV_TOKEN.START
 
 
 
