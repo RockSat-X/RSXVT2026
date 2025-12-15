@@ -394,7 +394,64 @@
 
 
 static volatile b32 OVCAM_framebuffer_ready = false; // TODO.
-static volatile u8  OVCAM_framebuffer[OVCAM_RESOLUTION_X * OVCAM_RESOLUTION_Y * 3] __attribute__((aligned(16))) = {0}; // TODO.
+static volatile u8  OVCAM_framebuffer[OVCAM_RESOLUTION_X * OVCAM_RESOLUTION_Y * 3] __attribute__((aligned(4))) = {0}; // TODO.
+
+
+
+static void
+OVCAM_begin_capture(void)
+{
+
+    // Things should've been disabled at this point.
+
+    if (CMSIS_GET(GPDMA1_Channel7, CCR, EN))
+        panic;
+
+    if (CMSIS_GET(DCMI, CR, CAPTURE))
+        panic;
+
+
+
+    // The framebuffer will be filled
+    // with data by DMA over time.
+
+    OVCAM_framebuffer_ready = false;
+
+
+
+    // Set the amount of bytes to be transferred.
+    // This gets decremented on each transfer, so
+    // we have to reset it each time we do a capture.
+
+    constexpr u32 amount_of_bytes_to_transfer = sizeof(OVCAM_framebuffer);
+
+    static_assert(amount_of_bytes_to_transfer < (1 << 16));
+
+    CMSIS_SET(GPDMA1_Channel7, CBR1, BNDT, amount_of_bytes_to_transfer);
+
+
+
+    // Set the destination of the data.
+    // This gets incremented on each transfer, so we
+    // also have to reset it each time we do a capture.
+
+    CMSIS_SET(GPDMA1_Channel7, CDAR, DA, (u32) &OVCAM_framebuffer);
+
+
+
+    // The DMA channel is now ready to begin transferring
+    // data whenever the DCMI requests to do so.
+
+    CMSIS_SET(GPDMA1_Channel7, CCR, EN, true);
+
+
+
+    // Tell DCMI to begin capturing the next
+    // frame sent by the camera module.
+
+    CMSIS_SET(DCMI, CR, CAPTURE, true);
+
+}
 
 
 
@@ -402,7 +459,16 @@ static void
 OVCAM_init(void)
 {
 
-    // Reset cycle the camera module.
+    // Reset-cycle the peripherals.
+
+    CMSIS_SET(RCC, AHB1RSTR, GPDMA1RST   , true );
+    CMSIS_SET(RCC, AHB2RSTR, DCMI_PSSIRST, true );
+    CMSIS_SET(RCC, AHB1RSTR, GPDMA1RST   , false);
+    CMSIS_SET(RCC, AHB2RSTR, DCMI_PSSIRST, false);
+
+
+
+    // Reset-cycle the camera module.
 
     GPIO_HIGH(ovcam_power_down); // Pulling high so the camera is powered down.
     GPIO_LOW(ovcam_restart);     // Pulling low so the camera is resetting.
@@ -437,7 +503,8 @@ OVCAM_init(void)
                 sizeof(u16) + amount_of_bytes_to_write
             );
 
-        if (error) sorry
+        if (error)
+            sorry
 
         sequence_index += sizeof(u8) + sizeof(u16) + amount_of_bytes_to_write;
 
@@ -447,30 +514,26 @@ OVCAM_init(void)
 
     // Initialize the DMA for the DCMI peripheral.
 
-    CMSIS_SET(RCC, AHB1RSTR, GPDMA1RST, true ); // TODO.
-    CMSIS_SET(RCC, AHB1RSTR, GPDMA1RST, false); // TODO.
+    CMSIS_SET(RCC, AHB1ENR, GPDMA1EN, true); // Clock the GPDMA1 peripheral.
 
-    NVIC_ENABLE(GPDMA1_Channel7);
+    CMSIS_SET(GPDMA1_Channel7, CSAR, SA, (u32) &DCMI->DR); // The address to get the data from.
 
-    CMSIS_SET(RCC            , AHB1ENR, GPDMA1EN, true                     ); // TODO.
-    CMSIS_SET(GPDMA1_Channel7, CBR1   , BNDT    , sizeof(OVCAM_framebuffer)); // TODO.
-    CMSIS_SET(GPDMA1_Channel7, CSAR   , SA      , (u32) &DCMI->DR          ); // TODO.
-    CMSIS_SET(GPDMA1_Channel7, CDAR   , DA      , (u32) &OVCAM_framebuffer ); // TODO.
     CMSIS_SET
     (
         GPDMA1_Channel7, CTR1,
-        DINC           , true , // TODO.
-        SINC           , false, // TODO.
-        DDW_LOG2       , 0b10 , // TODO.
-        SDW_LOG2       , 0b10 , // TODO.
+        DINC           , true , // Destination address will be incremented on each transfer.
+        SINC           , false, // Source addresss will stay fixed.
+        DDW_LOG2       , 0b10 , // Transfer size of four bytes.
+        SDW_LOG2       , 0b10 , // "
     );
+
     CMSIS_SET
     (
         GPDMA1_Channel7, CTR2 ,
-        PFREQ          , true , // TODO.
-        BREQ           , true , // TODO?
-        REQSEL         , 108  , // TODO.
+        PFREQ          , true , // The peripheral will dictate when the transfer can happen.
+        REQSEL         , 108  , // The DCMI peripheral is the one that'll be providing the transfer request.
     );
+
     CMSIS_SET
     (
         GPDMA1_Channel7, CCR , // Enable interrupts for:
@@ -481,19 +544,21 @@ OVCAM_init(void)
         DTEIE          , true, //     - Data transfer error.
         TCIE           , true, //     - Transfer complete.
     );
-    CMSIS_SET(GPDMA1, MISR, MIS7, true); // TODO.
+
+    CMSIS_SET(GPDMA1, MISR, MIS7, true); // Allow interrupts for the DMA channel.
+
+    NVIC_ENABLE(GPDMA1_Channel7);
 
 
 
     // Initialize the DCMI peripheral.
 
-    NVIC_ENABLE(DCMI_PSSI);
-
-    CMSIS_SET(RCC, AHB2ENR, DCMI_PSSIEN, true); // TODO.
+    CMSIS_SET(RCC, AHB2ENR, DCMI_PSSIEN, true); // Clock the DCMI peripheral.
 
     CMSIS_SET
     (
         DCMI     , IER  , // Enable interrupts for:
+        ERR_IE   , true , //     - Embedded synchronization error.
         OVR_IE   , true , //     - Data overrun error.
         FRAME_IE , true , //     - Frame captured.
     );
@@ -501,21 +566,22 @@ OVCAM_init(void)
     CMSIS_SET
     (
         DCMI      , CR   ,
-        EDM       , 0b00 , // TODO.
-        VSPOL     , true , // TODO.
-        HSPOL     , true , // TODO.
-        PCKPOL    , true , // TODO.
-        JPEG      , false, // TODO.
-        CM        , true , // TODO.
-        ENABLE    , true , // TODO.
+        EDM       , 0b00 , // "00: Interface captures 8-bit data on every pixel clock."
+        VSPOL     , true , // "1: DCMI_VSYNC active high".
+        HSPOL     , true , // "1: DCMI_HSYNC active high".
+        PCKPOL    , true , // "1: Rising edge active".
+        JPEG      , false, // TODO Use JPEG.
+        CM        , true , // "1: Snapshot mode (single frame) - ..."
+        ENABLE    , true , // We're done configuring and the DCMI is ready to be used.
     );
+
+    NVIC_ENABLE(DCMI_PSSI);
 
 
 
     // TODO.
 
-    CMSIS_SET(GPDMA1_Channel7, CCR, EN     , true); // TODO.
-    CMSIS_SET(DCMI           , CR , CAPTURE, true); // TODO.
+    OVCAM_begin_capture();
 
 }
 
@@ -537,85 +603,23 @@ INTERRUPT_GPDMA1_Channel7
     enum DMAInterruptEvent interrupt_event  = {0};
     u32                    interrupt_status = GPDMA1_Channel7->CSR;
 
-
-
-    // TODO.
-
-    if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, TOF))
-    {
-        CMSIS_SET(GPDMA1_Channel7, CFCR, TOF, true);
-        interrupt_event = DMAInterruptEvent_trigger_overrun;
-    }
-
-
-
-    // TODO.
-
-    else if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, SUSPF))
-    {
-        CMSIS_SET(GPDMA1_Channel7, CFCR, SUSPF, true);
-        interrupt_event = DMAInterruptEvent_completed_suspension;
-    }
-
-
-
-    // TODO.
-
-    else if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, USEF))
-    {
-        CMSIS_SET(GPDMA1_Channel7, CFCR, USEF, true);
-        interrupt_event = DMAInterruptEvent_user_setting_error;
-    }
-
-
-
-    // TODO.
-
-    else if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, ULEF))
-    {
-        CMSIS_SET(GPDMA1_Channel7, CFCR, ULEF, true);
-        interrupt_event = DMAInterruptEvent_update_link_transfer_error;
-    }
-
-
-
-    // TODO.
-
-    else if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, DTEF))
-    {
-        CMSIS_SET(GPDMA1_Channel7, CFCR, DTEF, true);
-        interrupt_event = DMAInterruptEvent_data_transfer_error;
-    }
-
-
-
-    // TODO.
-
-    else if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, TCF))
-    {
-        CMSIS_SET(GPDMA1_Channel7, CFCR, TCF, true);
-        interrupt_event = DMAInterruptEvent_transfer_complete;
-    }
-
-
-
-    // Nothing notable happened.
-
+    if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, SUSPF)) { CMSIS_SET(GPDMA1_Channel7, CFCR, SUSPF, true); interrupt_event = DMAInterruptEvent_completed_suspension;       } else
+    if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, ULEF )) { CMSIS_SET(GPDMA1_Channel7, CFCR, ULEF , true); interrupt_event = DMAInterruptEvent_update_link_transfer_error; } else
+    if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, TOF  )) { CMSIS_SET(GPDMA1_Channel7, CFCR, TOF  , true); interrupt_event = DMAInterruptEvent_trigger_overrun;            } else
+    if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, USEF )) { CMSIS_SET(GPDMA1_Channel7, CFCR, USEF , true); interrupt_event = DMAInterruptEvent_user_setting_error;         } else
+    if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, DTEF )) { CMSIS_SET(GPDMA1_Channel7, CFCR, DTEF , true); interrupt_event = DMAInterruptEvent_data_transfer_error;        } else
+    if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, TCF  )) { CMSIS_SET(GPDMA1_Channel7, CFCR, TCF  , true); interrupt_event = DMAInterruptEvent_transfer_complete;          }
     else
     {
         interrupt_event = DMAInterruptEvent_none;
     }
-
-
-
-    // TODO.
 
     switch (interrupt_event)
     {
 
         case DMAInterruptEvent_none:
         {
-            sorry
+            // Nothing interesting here...
         } break;
 
         case DMAInterruptEvent_trigger_overrun:
@@ -623,17 +627,8 @@ INTERRUPT_GPDMA1_Channel7
             sorry
         } break;
 
-        case DMAInterruptEvent_completed_suspension:
-        {
-            sorry
-        } break;
 
         case DMAInterruptEvent_user_setting_error:
-        {
-            sorry
-        } break;
-
-        case DMAInterruptEvent_update_link_transfer_error:
         {
             sorry
         } break;
@@ -648,7 +643,9 @@ INTERRUPT_GPDMA1_Channel7
             // TODO.
         } break;
 
-        default: panic;
+        case DMAInterruptEvent_completed_suspension       : panic; // We aren't using this DMA feature.
+        case DMAInterruptEvent_update_link_transfer_error : panic; // "
+        default                                           : panic;
 
     }
 
@@ -664,97 +661,29 @@ INTERRUPT_DCMI_PSSI
         DCMIInterruptEvent_none,
         DCMIInterruptEvent_line_received,
         DCMIInterruptEvent_vsync,
-        DCMIInterruptEvent_sync_error,
+        DCMIInterruptEvent_embedded_sync_error,
         DCMIInterruptEvent_overrun_error,
         DCMIInterruptEvent_capture_complete,
     };
     enum DCMIInterruptEvent interrupt_event  = {0};
     u32                     interrupt_status = DCMI->MISR;
 
-
-
-    // TODO.
-
-    if (CMSIS_GET_FROM(interrupt_status, DCMI, MIS, VSYNC_MIS))
-    {
-        CMSIS_SET(DCMI, ICR, VSYNC_ISC, true);
-        interrupt_event = DCMIInterruptEvent_vsync;
-    }
-
-
-
-    // TODO.
-
-    else if (CMSIS_GET_FROM(interrupt_status, DCMI, MIS, ERR_MIS))
-    {
-        CMSIS_SET(DCMI, ICR, ERR_ISC, true);
-        interrupt_event = DCMIInterruptEvent_sync_error;
-    }
-
-
-
-    // TODO.
-
-    else if (CMSIS_GET_FROM(interrupt_status, DCMI, MIS, OVR_MIS))
-    {
-        CMSIS_SET(DCMI, ICR, OVR_ISC, true);
-        interrupt_event = DCMIInterruptEvent_overrun_error;
-    }
-
-
-
-    // TODO.
-
-    else if (CMSIS_GET_FROM(interrupt_status, DCMI, MIS, FRAME_MIS))
-    {
-        CMSIS_SET(DCMI, ICR, FRAME_ISC, true);
-        interrupt_event = DCMIInterruptEvent_capture_complete;
-    }
-
-
-
-    // TODO.
-
-    else if (CMSIS_GET_FROM(interrupt_status, DCMI, MIS, LINE_MIS))
-    {
-        CMSIS_SET(DCMI, ICR, LINE_ISC, true);
-        interrupt_event = DCMIInterruptEvent_line_received;
-    }
-
-
-
-    // Nothing notable happened.
-
+    if (CMSIS_GET_FROM(interrupt_status, DCMI, MIS, VSYNC_MIS)) { CMSIS_SET(DCMI, ICR, VSYNC_ISC, true); interrupt_event = DCMIInterruptEvent_vsync;               } else
+    if (CMSIS_GET_FROM(interrupt_status, DCMI, MIS, ERR_MIS  )) { CMSIS_SET(DCMI, ICR, ERR_ISC  , true); interrupt_event = DCMIInterruptEvent_embedded_sync_error; } else
+    if (CMSIS_GET_FROM(interrupt_status, DCMI, MIS, OVR_MIS  )) { CMSIS_SET(DCMI, ICR, OVR_ISC  , true); interrupt_event = DCMIInterruptEvent_overrun_error;       } else
+    if (CMSIS_GET_FROM(interrupt_status, DCMI, MIS, FRAME_MIS)) { CMSIS_SET(DCMI, ICR, FRAME_ISC, true); interrupt_event = DCMIInterruptEvent_capture_complete;    } else
+    if (CMSIS_GET_FROM(interrupt_status, DCMI, MIS, LINE_MIS )) { CMSIS_SET(DCMI, ICR, LINE_ISC , true); interrupt_event = DCMIInterruptEvent_line_received;       }
     else
     {
         interrupt_event = DCMIInterruptEvent_none;
     }
-
-
-
-    // TODO.
 
     switch (interrupt_event)
     {
 
         case DCMIInterruptEvent_none:
         {
-            sorry
-        } break;
-
-        case DCMIInterruptEvent_line_received:
-        {
-            sorry
-        } break;
-
-        case DCMIInterruptEvent_vsync:
-        {
-            sorry
-        } break;
-
-        case DCMIInterruptEvent_sync_error:
-        {
-            sorry
+            // Nothing interesting here...
         } break;
 
         case DCMIInterruptEvent_overrun_error:
@@ -767,7 +696,10 @@ INTERRUPT_DCMI_PSSI
             OVCAM_framebuffer_ready = true; // TODO.
         } break;
 
-        default: panic;
+        case DCMIInterruptEvent_line_received       : panic; // Shouldn't happen because the interrupt for it isn't enabled.
+        case DCMIInterruptEvent_vsync               : panic; // "
+        case DCMIInterruptEvent_embedded_sync_error : panic; // We aren't using embedded codes.
+        default                                     : panic;
 
     }
 

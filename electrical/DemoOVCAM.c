@@ -98,66 +98,17 @@ main(void)
 
 
 
-    for (;;) // TMP.
+    for (;;)
     {
-        stlink_tx("Hello!\n");
-        spinlock_nop(100'000'000);
-
         if (OVCAM_framebuffer_ready)
         {
-
             stlink_tx(TV_TOKEN_START);
             _UXART_tx_raw_nonreentrant(UXARTHandle_stlink, (u8*) OVCAM_framebuffer, sizeof(OVCAM_framebuffer));
             stlink_tx(TV_TOKEN_END);
 
-            OVCAM_framebuffer_ready = false;
-
-            CMSIS_SET(RCC            , AHB1ENR, GPDMA1EN, true                     ); // TODO.
-            CMSIS_SET(GPDMA1_Channel7, CBR1   , BNDT    , sizeof(OVCAM_framebuffer)); // TODO.
-            CMSIS_SET(GPDMA1_Channel7, CSAR   , SA      , (u32) &DCMI->DR          ); // TODO.
-            CMSIS_SET(GPDMA1_Channel7, CDAR   , DA      , (u32) &OVCAM_framebuffer ); // TODO.
-            CMSIS_SET
-            (
-                GPDMA1_Channel7, CTR1,
-                DINC           , true , // TODO.
-                SINC           , false, // TODO.
-                DDW_LOG2       , 0b10 , // TODO.
-                SDW_LOG2       , 0b10 , // TODO.
-            );
-            CMSIS_SET
-            (
-                GPDMA1_Channel7, CTR2 ,
-                PFREQ          , true , // TODO.
-                BREQ           , true , // TODO?
-                REQSEL         , 108  , // TODO.
-            );
-            CMSIS_SET
-            (
-                GPDMA1_Channel7, CCR , // Enable interrupts for:
-                TOIE           , true, //     - Trigger over-run.
-                SUSPIE         , true, //     - Completed suspension.
-                USEIE          , true, //     - User setting error.
-                ULEIE          , true, //     - Update link transfer error.
-                DTEIE          , true, //     - Data transfer error.
-                TCIE           , true, //     - Transfer complete.
-            );
-            CMSIS_SET(GPDMA1, MISR, MIS7, true); // TODO.
-            CMSIS_SET
-            (
-                DCMI      , CR   ,
-                EDM       , 0b00 , // TODO.
-                VSPOL     , true , // TODO.
-                HSPOL     , true , // TODO.
-                PCKPOL    , true , // TODO.
-                JPEG      , false, // TODO.
-                CM        , true , // TODO.
-                ENABLE    , true , // TODO.
-            );
-            CMSIS_SET(GPDMA1_Channel7, CCR, EN     , true); // TODO.
-            CMSIS_SET(DCMI           , CR , CAPTURE, true); // TODO.
+            OVCAM_begin_capture();
 
             GPIO_TOGGLE(led_green);
-
         }
     }
 
