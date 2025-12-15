@@ -96,19 +96,53 @@ main(void)
 
     OVCAM_init();
 
-
-
     for (;;)
     {
-        if (OVCAM_framebuffer_ready)
+        switch (OVCAM_framebuffer_state)
         {
-            stlink_tx(TV_TOKEN_START);
-            _UXART_tx_raw_nonreentrant(UXARTHandle_stlink, (u8*) OVCAM_framebuffer, sizeof(OVCAM_framebuffer));
-            stlink_tx(TV_TOKEN_END);
 
-            OVCAM_begin_capture();
+            case OVCAMFramebufferState_empty:
+            {
+                OVCAM_begin_capture(); // Begin the first image capture.
+            } break;
 
-            GPIO_TOGGLE(led_green);
+            case OVCAMFramebufferState_filling:
+            {
+                // The image is being captured...
+            } break;
+
+            case OVCAMFramebufferState_filled:
+            {
+
+                // Send the data over.
+
+                stlink_tx(TV_TOKEN_START);
+
+                _UXART_tx_raw_nonreentrant
+                (
+                    UXARTHandle_stlink,
+                    (u8*) OVCAM_framebuffer,
+                    sizeof(OVCAM_framebuffer)
+                );
+
+                stlink_tx(TV_TOKEN_END);
+
+
+
+                // Heart-beat.
+
+                GPIO_TOGGLE(led_green);
+
+
+
+                // Begin the next image capture.
+
+                OVCAM_begin_capture();
+
+            } break;
+
+            default: panic;
+
         }
     }
 

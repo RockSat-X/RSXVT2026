@@ -393,8 +393,17 @@
 
 
 
-static volatile b32 OVCAM_framebuffer_ready = false; // TODO.
-static volatile u8  OVCAM_framebuffer[OVCAM_RESOLUTION_X * OVCAM_RESOLUTION_Y * 3] __attribute__((aligned(4))) = {0}; // TODO.
+enum OVCAMFramebufferState : u32
+{
+    OVCAMFramebufferState_empty,
+    OVCAMFramebufferState_filling,
+    OVCAMFramebufferState_filled,
+};
+
+static volatile enum OVCAMFramebufferState OVCAM_framebuffer_state = {0};
+
+// The framebuffer has alignment requirements due to DMA.
+static volatile u8 OVCAM_framebuffer[OVCAM_RESOLUTION_X * OVCAM_RESOLUTION_Y * 3] __attribute__((aligned(4))) = {0};
 
 
 
@@ -402,7 +411,7 @@ static void
 OVCAM_begin_capture(void)
 {
 
-    // Things should've been disabled at this point.
+    // There shouldn't be an ongoing capture.
 
     if (CMSIS_GET(GPDMA1_Channel7, CCR, EN))
         panic;
@@ -410,12 +419,19 @@ OVCAM_begin_capture(void)
     if (CMSIS_GET(DCMI, CR, CAPTURE))
         panic;
 
+    if
+    (
+        OVCAM_framebuffer_state != OVCAMFramebufferState_empty &&
+        OVCAM_framebuffer_state != OVCAMFramebufferState_filled
+    )
+        panic;
+
 
 
     // The framebuffer will be filled
     // with data by DMA over time.
 
-    OVCAM_framebuffer_ready = false;
+    OVCAM_framebuffer_state = OVCAMFramebufferState_filling;
 
 
 
@@ -577,12 +593,6 @@ OVCAM_init(void)
 
     NVIC_ENABLE(DCMI_PSSI);
 
-
-
-    // TODO.
-
-    OVCAM_begin_capture();
-
 }
 
 
@@ -640,7 +650,12 @@ INTERRUPT_GPDMA1_Channel7
 
         case DMAInterruptEvent_transfer_complete:
         {
-            // TODO.
+
+            // Should only happen when we're filling the framebuffer.
+
+            if (OVCAM_framebuffer_state != OVCAMFramebufferState_filling)
+                panic;
+
         } break;
 
         case DMAInterruptEvent_completed_suspension       : panic; // We aren't using this DMA feature.
@@ -693,7 +708,12 @@ INTERRUPT_DCMI_PSSI
 
         case DCMIInterruptEvent_capture_complete:
         {
-            OVCAM_framebuffer_ready = true; // TODO.
+
+            if (OVCAM_framebuffer_state != OVCAMFramebufferState_filling)
+                panic;
+
+            OVCAM_framebuffer_state = OVCAMFramebufferState_filled;
+
         } break;
 
         case DCMIInterruptEvent_line_received       : panic; // Shouldn't happen because the interrupt for it isn't enabled.
