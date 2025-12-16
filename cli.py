@@ -1574,6 +1574,17 @@ def tv(parameters):
 
 
 
+    orientation = 0
+
+    @Keybinding('f', 'Flip through different orientations.')
+    def _():
+
+        nonlocal orientation
+
+        orientation = (orientation + 1) % 4
+
+
+
     stream_image_progress = False
 
     @Keybinding('p', 'Toggle whether or not image data is rendered as it streams in.')
@@ -1986,7 +1997,11 @@ def tv(parameters):
         pygame.display.update(
             screen.blit(
                 pygame.transform.scale(
-                    surface,
+                    pygame.transform.flip(
+                        surface,
+                        orientation & 0b01,
+                        orientation & 0b10,
+                    ),
                     (screen.get_width(), screen.get_height())
                 ),
                 (0, 0)
