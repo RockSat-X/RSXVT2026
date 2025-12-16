@@ -30,6 +30,21 @@
 
 
 
+    # Some JPEG configurations.
+
+    jpeg_ctrl3 = (
+        (False << 7) | # 0: ROM QT, 1: SRAM QT.
+        (False << 6) | # Enable MPEG.
+        (True  << 5) | # Enable zero stuffing.
+        (True  << 4) | # Enable Huffman table output.
+        (True  << 3) | # Enable rounding for C.
+        (True  << 2) | # Enable rounding for Y.
+        (True  << 1) | # Input shift 128 select for C.
+        (True  << 0)   # Input shift 128 select for Y.
+    )
+
+
+
     # Color test pattern configuration for debugging purposes.
 
     pre_isp_test_setting = (
@@ -54,38 +69,66 @@
 
     write_lines = f'''
 
+        0x3103 0x11   # SCCB SYSTEM CTRL.
         0x3008 0x82   # SYSTEM CTROL.
-
-        0x3000 0x00   # SYSTEM RESET.
-        0x3002 0x20   # "
-
-        0x3004 0xFF   # CLOCK ENABLE.
-        0x3006 0xEB   # "
-
-        0x300E 0x58   # MIPI CONTROL.
-
-        0x3017 0xFF   # PAD OUTPUT ENABLE.
-        0x3018 0xF3   # "
-
-        0x3034 0x18   # SC PLL CONTRL.
-        0x3035 0x41   # "
-        0x3036 0x38   # "
-        0x3037 0x16   # "
-
         0x3103 0x03   # SCCB SYSTEM CTRL.
 
-        0x3108 0x01   # SYSTEM ROOT DIVIDER.
+        0x3630 0x36   # Undocumented.
+        0x3631 0x0E   # "
+        0x3632 0xE2   # "
+        0x3633 0x12   # "
+        0x3621 0xE0   # "
+        0x3704 0xA0   # "
+        0x3703 0x5A   # "
+        0x3715 0x78   # "
+        0x3717 0x01   # "
+        0x370B 0x60   # "
+        0x3705 0x1A   # "
+        0x3905 0x02   # "
+        0x3906 0x10   # "
+        0x3901 0x0A   # "
+        0x3731 0x12   # "
+        0x3600 0x08   # "
+        0x3601 0x33   # "
+        0x302D 0x60   # "
+        0x3620 0x52   # "
+        0x371B 0x20   # "
+        0x471C 0x50   # "
 
-        0x3632 0xE2   # Undocumented.
+        0x3A02 0x03D8 # AEC MAX EXPO (60Hz).
+        0x3A08 0x0127 # AEC B STEP.
+        0x3A0A 0x00F6 # "
+        0x3A0D 0x04   # AEC CTRL.
+        0x3A0E 0x03   # "
+        0x3A0F 0x30   # "
+        0x3A10 0x28   # "
+        0x3A11 0x60   # "
+        0x3A13 0x43   # "
+        0x3A14 0x03D8 # AEC MAX EXPO (50Hz).
+        0x3A18 0xF8   # AEC GAIN CEILING.
+        0x3A1B 0x30   # AEC CTRL.
+        0x3A1E 0x26   # "
+        0x3A1F 0x14   # "
+
+        0x3635 0x13   # Undocumented
+        0x3636 0x03   # "
         0x3634 0x40   # "
-        0x3709 0x52   # "
-        0x370C 0x03   # "
+        0x3622 0x01   # "
 
-        0x3800 0x0000 # TIMING HS.
-        0x3802 0x0004 # TIMING VS.
-        0x3804 0x0A3F # TIMING HW.
-        0x3806 0x079B # TIMING VH.
+        0x3C01 0x34   # 5060HZ CTRL.
+        0x3C04 0x28   # "
+        0x3C05 0x98   # "
+        0x3C06 0x0000 # LIGHTMETER.
+        0x3C08 0x012C # "
+        0x3C0A 0x9C40 # SAMPLE NUMBER.
 
+        0x3820 0x0620                       # TIMING TC REG.
+        0x3814 0x31                         # TIMING X INC.
+        0x3815 0x31                         # TIMING Y INC.
+        0x3800 0x0000                       # TIMING HS.
+        0x3802 0x0004                       # TIMING VS.
+        0x3804 0x0A3F                       # TIMING HW.
+        0x3806 0x079B                       # TIMING VH.
         0x3808 0x{OVCAM_RESOLUTION[0] :04X} # TIMING DVPHO.
         0x380A 0x{OVCAM_RESOLUTION[1] :04X} # TIMING DVPVO.
 
@@ -93,63 +136,37 @@
         0x380E 0x0440 # TIMING VTS.
         0x3810 0x0010 # TIMING HOFFSET.
         0x3812 0x0006 # TIMING VOFFSET.
-        0x3814 0x31   # TIMING X INC.
-        0x3815 0x31   # TIMING Y INC.
-        0x3820 0x0600 # TIMING TC REG.
-        0x3821 0x20   # COMPRESSION ENABLE.
 
-        0x3A02 0x03D8 # AEC MAX EXPO (60Hz).
-
-        0x3A08 0x0127 # AEC B STEP.
-        0x3A0A 0x00F6 # "
-
-        0x3A0D 0x04   # AEC CTRL.
-        0x3A0E 0x03   # "
-        0x3A0F 0x30   # "
-        0x3A10 0x28   # "
-        0x3A11 0x60   # "
-        0x3A13 0x43   # "
-
-        0x3A14 0x03D8 # AEC MAX EXPO (50Hz).
-
-        0x3A18 0xF8   # AEC GAIN CEILING.
-
-        0x3A1B 0x30   # AEC CTRL.
-        0x3A1E 0x26   # "
-        0x3A1F 0x14   # "
-
-        0x3C01 0x34   # 5060HZ CTRL.
-        0x3C04 0x28   # "
-        0x3C05 0x98   # "
-
-        0x3C06 0x0000 # LIGHTMETER.
-        0x3C08 0x012C # "
-
-        0x3C0A 0x9C40 # SAMPLE NUMBER.
+        0x3618 0x00   # Undocumented.
+        0x3612 0x29   # "
+        0x3708 0x6452 # "
+        0x370C 0x03   # "
 
         0x4001 0x02   # BLC CTRL.
         0x4004 0x02   # "
-
+        0x3000 0x00   # SYSTEM RESET.
+        0x3002 0x1C   # "
+        0x3004 0xFF   # CLOCK ENABLE.
+        0x3006 0xC3   # "
+        0x300E 0x58   # MIPI CONTROL.
+        0x302E 0x00
+        0x4740 0x22   # POLARITY CTRL.
         0x4300 0x30   # FORMAT CONTROL.
 
-        0x4407 0x04   # JPEG CTRL.
+        0x4713 0x03                # JPG MODE SELECT.
+        0x4403 0x{jpeg_ctrl3 :02X} # JPEG CTRL.
+        0x4407 0x04                # "
 
-        0x4713 0x03   # JPG MODE SELECT.
+        0x440E 0x00   # Undocumented.
 
-        0x4400 0x01                  # TODO Document.
-        0x4403 0x{ 0b1011_1111 :02X} # TODO Document.
-        0x460C 0x{ 0b0010_0100 :02X} # TODO Document.
-
-        0x4740 0x22   # POLARITY CTRL.
-
+        0x460B 0x35   # Undocumented.
+        0x460C 0x23   # VFIFO CTRL.
         0x4837 0x22   # PCLK PERIOD.
+
+        0x3824 0x02   # Undocumented.
 
         0x5000 0xA7   # ISP CONTROL.
         0x5001 0xA3   # "
-
-        0x503D 0x{pre_isp_test_setting :02X} # PRE ISP TEST SETTING.
-
-        0x501F 0x00   # FORMAT MUX CONTROL.
 
         0x5180 0xFF   # AWB CONTROL.
         0x5181 0xF2   # "
@@ -304,6 +321,26 @@
         0x583C 0x42   # "
 
         0x583D 0xCE   # LENC BR OFFSET.
+
+        0x5025 0x00   # Undocumented.
+
+        0x3008 0x02   # SYSTEM CTROL.
+
+        0x3017 0xFFF3 # PAD OUTPUT ENABLE.
+
+        0x3034 0x18   # SC PLL CONTRL.
+        0x3035 0x41   # "
+        0x3036 0x60   # "
+        0x3037 0x13   # "
+
+        0x3108 0x01   # SYSTEM ROOT DIVIDER.
+
+        0x501F 0x00   # FORMAT MUX CONTROL.
+
+        0x3002 0x00   # SYSTEM RESET.
+        0x3006 0xEB   # CLOCK ENABLE.
+
+        0x503D 0x{pre_isp_test_setting :02X} # PRE ISP TEST SETTING.
 
     '''.splitlines()
 
