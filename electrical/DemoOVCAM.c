@@ -98,52 +98,41 @@ main(void)
 
     for (;;)
     {
-        switch (OVCAM_framebuffer_state)
-        {
 
-            case OVCAMFramebufferState_empty:
-            {
-                OVCAM_begin_capture(); // Begin the first image capture.
-            } break;
+        while (_OVCAM_swapchain.reader == _OVCAM_swapchain.writer);
 
-            case OVCAMFramebufferState_filling:
-            {
-                // The image is being captured...
-            } break;
-
-            case OVCAMFramebufferState_filled:
-            {
-
-                // Send the data over.
-
-                stlink_tx(TV_TOKEN_START);
-
-                _UXART_tx_raw_nonreentrant
-                (
-                    UXARTHandle_stlink,
-                    (u8*) OVCAM_framebuffer,
-                    OVCAM_framebuffer_length
-                );
-
-                stlink_tx(TV_TOKEN_END);
+        i32 read_index = _OVCAM_swapchain.reader % countof(_OVCAM_swapchain.framebuffers);
 
 
 
-                // Heart-beat.
-
-                GPIO_TOGGLE(led_green);
+        // Send the data over.
 
 
+        stlink_tx(TV_TOKEN_START);
 
-                // Begin the next image capture.
+        _UXART_tx_raw_nonreentrant
+        (
+            UXARTHandle_stlink,
+            (u8*) _OVCAM_swapchain.framebuffers[read_index].data,
+            _OVCAM_swapchain.framebuffers[read_index].length
+        );
 
-                OVCAM_begin_capture();
+        stlink_tx(TV_TOKEN_END);
 
-            } break;
 
-            default: panic;
 
-        }
+        // Heart-beat.
+
+        GPIO_TOGGLE(led_green);
+
+
+
+        // Begin the next image capture.
+
+        _OVCAM_swapchain.reader += 1;
+
+        OVCAM_begin_capture();
+
     }
 
 }

@@ -10,7 +10,7 @@ from deps.stpy.mcus      import MCUS
 
 
 
-OVCAM_RESOLUTION = (160, 120)
+OVCAM_RESOLUTION = (800, 480)
 
 TV_TOKEN = types.SimpleNamespace(
     START = b'<TV>',

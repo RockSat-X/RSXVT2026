@@ -136,6 +136,10 @@
 
         0x4713 0x03   # JPG MODE SELECT.
 
+        0x4400 0x01                  # TODO Document.
+        0x4403 0x{ 0b1011_1111 :02X} # TODO Document.
+        0x460C 0x{ 0b0010_0100 :02X} # TODO Document.
+
         0x4740 0x22   # POLARITY CTRL.
 
         0x4837 0x22   # PCLK PERIOD.
@@ -394,26 +398,35 @@
 
 
 
-enum OVCAMFramebufferState : u32
+struct OVCAMSwapchain
 {
-    OVCAMFramebufferState_empty,
-    OVCAMFramebufferState_filling,
-    OVCAMFramebufferState_filled,
+
+    volatile u32 reader;
+    volatile u32 writer;
+
+    struct OVCAMFramebuffer
+    {
+
+        volatile u32 length;
+
+        // The framebuffer has alignment requirements due to DMA.
+        // Furthermore, the DCMI peripheral organizes its FIFO to
+        // be in units of 32-bit words.
+
+        u8 data[OVCAM_RESOLUTION_X * OVCAM_RESOLUTION_Y * 3 / 10] __attribute__((aligned(4)));
+
+    } framebuffers[2];
+
 };
 
-static volatile enum OVCAMFramebufferState OVCAM_framebuffer_state = {0};
+static struct OVCAMSwapchain _OVCAM_swapchain = {0};
+
+static_assert(IS_POWER_OF_TWO(countof(_OVCAM_swapchain.framebuffers)));
+static_assert(sizeof(_OVCAM_swapchain.framebuffers[0].data) % sizeof(u32) == 0);
 
 
 
-// The framebuffer has alignment requirements due to DMA.
-// Furthermore, the DCMI peripheral organizes its FIFO to
-// be in units of 32-bit words.
-
-static volatile u8 OVCAM_framebuffer[OVCAM_RESOLUTION_X * OVCAM_RESOLUTION_Y * 3] __attribute__((aligned(4))) = {0};
-
-static_assert(sizeof(OVCAM_framebuffer) % sizeof(u32) == 0);
-
-static volatile i32 OVCAM_framebuffer_length = {0};
+////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -429,19 +442,8 @@ OVCAM_begin_capture(void)
     if (CMSIS_GET(DCMI, CR, CAPTURE))
         panic;
 
-    if
-    (
-        OVCAM_framebuffer_state != OVCAMFramebufferState_empty &&
-        OVCAM_framebuffer_state != OVCAMFramebufferState_filled
-    )
+    if (_OVCAM_swapchain.writer - _OVCAM_swapchain.reader >= countof(_OVCAM_swapchain.framebuffers))
         panic;
-
-
-
-    // The framebuffer will be filled
-    // with data by DMA over time.
-
-    OVCAM_framebuffer_state = OVCAMFramebufferState_filling;
 
 
 
@@ -458,7 +460,9 @@ OVCAM_begin_capture(void)
     // This gets incremented on each transfer, so we
     // also have to reset it each time we do a capture.
 
-    CMSIS_SET(GPDMA1_Channel7, CDAR, DA, (u32) &OVCAM_framebuffer);
+    i32 write_index = _OVCAM_swapchain.writer % countof(_OVCAM_swapchain.framebuffers);
+
+    CMSIS_SET(GPDMA1_Channel7, CDAR, DA, (u32) &_OVCAM_swapchain.framebuffers[write_index].data);
 
 
 
@@ -601,6 +605,12 @@ OVCAM_init(void)
 
     NVIC_ENABLE(DCMI_PSSI);
 
+
+
+    // TODO.
+
+    OVCAM_begin_capture();
+
 }
 
 
@@ -659,7 +669,7 @@ INTERRUPT_GPDMA1_Channel7
         case DMAInterruptEvent_completed_suspension:
         {
 
-            if (OVCAM_framebuffer_state != OVCAMFramebufferState_filling)
+            if (_OVCAM_swapchain.writer - _OVCAM_swapchain.reader >= countof(_OVCAM_swapchain.framebuffers))
                 panic;
 
 
@@ -678,10 +688,13 @@ INTERRUPT_GPDMA1_Channel7
             // With JPEG compression, the amount of
             // received data will be variable.
 
-            OVCAM_framebuffer_length = (i32) CMSIS_GET(GPDMA1_Channel7, CDAR, DA) - (i32) &OVCAM_framebuffer;
+            i32 write_index = _OVCAM_swapchain.writer % countof(_OVCAM_swapchain.framebuffers);
+            i32 length      = (i32) CMSIS_GET(GPDMA1_Channel7, CDAR, DA) - (i32) &_OVCAM_swapchain.framebuffers[write_index].data;
 
-            if (OVCAM_framebuffer_length >= sizeof(OVCAM_framebuffer))
+            if (length >= sizeof(_OVCAM_swapchain.framebuffers[write_index].data))
                 sorry
+
+            _OVCAM_swapchain.framebuffers[write_index].length = length;
 
 
 
@@ -694,7 +707,7 @@ INTERRUPT_GPDMA1_Channel7
 
             // User can now use the received data.
 
-            OVCAM_framebuffer_state = OVCAMFramebufferState_filled;
+            _OVCAM_swapchain.writer += 1;
 
         } break;
 
@@ -749,7 +762,7 @@ INTERRUPT_DCMI_PSSI
         case DCMIInterruptEvent_capture_complete:
         {
 
-            if (OVCAM_framebuffer_state != OVCAMFramebufferState_filling)
+            if (_OVCAM_swapchain.writer - _OVCAM_swapchain.reader >= countof(_OVCAM_swapchain.framebuffers))
                 panic;
 
 
