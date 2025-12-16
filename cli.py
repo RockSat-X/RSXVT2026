@@ -1583,6 +1583,8 @@ def tv(parameters):
 
         orientation = (orientation + 1) % 4
 
+        logger.info(f'Orientation: {orientation}.')
+
 
 
     stream_image_progress = False
@@ -1593,6 +1595,8 @@ def tv(parameters):
         nonlocal stream_image_progress
 
         stream_image_progress = not stream_image_progress
+
+        logger.info(f'Partial frame rendering: {'enabled' if stream_image_progress else 'disabled'}.')
 
 
 
