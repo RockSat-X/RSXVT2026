@@ -1574,6 +1574,17 @@ def tv(parameters):
 
 
 
+    stream_image_progress = False
+
+    @Keybinding('p', 'Toggle whether or not image data is rendered as it streams in.')
+    def _():
+
+        nonlocal stream_image_progress
+
+        stream_image_progress = not stream_image_progress
+
+
+
     # List the keybindings in the help message.
 
     if parameters is None:
@@ -1660,10 +1671,12 @@ def tv(parameters):
                 # when the JPEG frame is incomplete; we might
                 # as well render it to show progress so far.
 
-                try:
-                    surface = pygame.image.load(io.BytesIO(image_data))
-                except pygame.error as error:
-                    pass
+                if stream_image_progress:
+
+                    try:
+                        surface = pygame.image.load(io.BytesIO(image_data))
+                    except pygame.error as error:
+                        pass
 
 
 
