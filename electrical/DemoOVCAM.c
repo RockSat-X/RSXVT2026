@@ -131,7 +131,7 @@ main(void)
 
         _OVCAM_swapchain.reader += 1;
 
-        OVCAM_begin_capture();
+        NVIC_SET_PENDING(GPDMA1_Channel7);
 
     }
 

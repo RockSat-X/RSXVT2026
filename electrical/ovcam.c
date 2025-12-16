@@ -609,7 +609,7 @@ OVCAM_init(void)
 
     // TODO.
 
-    OVCAM_begin_capture();
+    NVIC_SET_PENDING(GPDMA1_Channel7);
 
 }
 
@@ -647,7 +647,16 @@ INTERRUPT_GPDMA1_Channel7
 
         case DMAInterruptEvent_none:
         {
-            // Nothing interesting here...
+
+            if (CMSIS_GET(GPDMA1_Channel7, CCR, EN))
+            {
+                // DMA is still working...
+            }
+            else
+            {
+                OVCAM_begin_capture(); // TODO.
+            }
+
         } break;
 
         case DMAInterruptEvent_trigger_overrun:
@@ -708,6 +717,15 @@ INTERRUPT_GPDMA1_Channel7
             // User can now use the received data.
 
             _OVCAM_swapchain.writer += 1;
+
+
+
+            // TODO.
+
+            if (_OVCAM_swapchain.writer - _OVCAM_swapchain.reader < countof(_OVCAM_swapchain.framebuffers))
+            {
+                OVCAM_begin_capture();
+            }
 
         } break;
 
