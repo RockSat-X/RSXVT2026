@@ -24,22 +24,27 @@ main(void)
     for (;;)
     {
 
-        while (_OVCAM_swapchain.reader == _OVCAM_swapchain.writer);
+        // Wait for the next image frame.
 
-        i32 read_index = _OVCAM_swapchain.reader % countof(_OVCAM_swapchain.framebuffers);
+        struct OVCAMFramebuffer* framebuffer = {0};
+
+        do
+        {
+            framebuffer = OVCAM_get_next_framebuffer();
+        }
+        while (!framebuffer);
 
 
 
         // Send the data over.
-
 
         stlink_tx(TV_TOKEN_START);
 
         _UXART_tx_raw_nonreentrant
         (
             UXARTHandle_stlink,
-            (u8*) _OVCAM_swapchain.framebuffers[read_index].data,
-            _OVCAM_swapchain.framebuffers[read_index].length
+            (u8*) framebuffer->data,
+            framebuffer->length
         );
 
         stlink_tx(TV_TOKEN_END);
@@ -52,11 +57,9 @@ main(void)
 
 
 
-        // Begin the next image capture.
+        // Release the current image frame to get the next one.
 
-        _OVCAM_swapchain.reader += 1;
-
-        NVIC_SET_PENDING(GPDMA1_Channel7);
+        OVCAM_free_framebuffer();
 
     }
 

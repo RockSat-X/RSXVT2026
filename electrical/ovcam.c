@@ -467,8 +467,46 @@ static_assert(sizeof(_OVCAM_swapchain.framebuffers[0].data) % sizeof(u32) == 0);
 
 
 
+static struct OVCAMFramebuffer*
+OVCAM_get_next_framebuffer(void)
+{
+
+    struct OVCAMFramebuffer* framebuffer = {0};
+
+    if (_OVCAM_swapchain.reader == _OVCAM_swapchain.writer)
+    {
+        framebuffer = nullptr;
+    }
+    else
+    {
+        framebuffer = &_OVCAM_swapchain.framebuffers[_OVCAM_swapchain.reader % countof(_OVCAM_swapchain.framebuffers)];
+    }
+
+    return framebuffer;
+
+}
+
+
+
 static void
-OVCAM_begin_capture(void)
+OVCAM_free_framebuffer(void)
+{
+
+    i32 framebuffers_filled = _OVCAM_swapchain.writer - _OVCAM_swapchain.reader;
+
+    if (!(1 <= framebuffers_filled && framebuffers_filled <= countof(_OVCAM_swapchain.framebuffers)))
+        panic;
+
+    _OVCAM_swapchain.reader += 1;
+
+    NVIC_SET_PENDING(GPDMA1_Channel7);
+
+}
+
+
+
+static void
+_OVCAM_begin_capture(void)
 {
 
     // There shouldn't be an ongoing capture.
@@ -691,7 +729,7 @@ INTERRUPT_GPDMA1_Channel7
             }
             else
             {
-                OVCAM_begin_capture(); // TODO.
+                _OVCAM_begin_capture(); // TODO.
             }
 
         } break;
@@ -761,7 +799,7 @@ INTERRUPT_GPDMA1_Channel7
 
             if (_OVCAM_swapchain.writer - _OVCAM_swapchain.reader < countof(_OVCAM_swapchain.framebuffers))
             {
-                OVCAM_begin_capture();
+                _OVCAM_begin_capture();
             }
 
         } break;
