@@ -3764,9 +3764,6 @@
             #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_LOW__ovcam_restart GPIO_BSRR_BR
             #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__ovcam_restart C
             #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__ovcam_restart 5
-            #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__ovcam_external_clock A
-            #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__ovcam_external_clock 8
-            #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__ovcam_external_clock
             #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__ovcam_i2c_clock B
             #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__ovcam_i2c_clock 10
             #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__ovcam_i2c_clock
@@ -3793,7 +3790,6 @@
                 OD10 , true ,
             );
             CMSIS_SET(GPIOC, ODR, OD5, false);
-            CMSIS_SET(GPIOA, OSPEEDR, OSPEED8, 0b11);
             CMSIS_SET
             (
                 GPIOB , PUPDR,
@@ -3808,7 +3804,6 @@
                 AFSEL4   , 13           ,
                 AFSEL6   , 13           ,
             );
-            CMSIS_WRITE(GPIO_AFRH, GPIOA->AFR[1], AFSEL8, 1);
             CMSIS_WRITE
             (
                 GPIO_AFRL, GPIOB->AFR[0],
@@ -3844,7 +3839,6 @@
                 MODE4 , 0b10 ,
                 MODE5 , 0b01 ,
                 MODE6 , 0b10 ,
-                MODE8 , 0b10 ,
                 MODE10, 0b01 ,
             );
             CMSIS_SET
@@ -4001,16 +3995,6 @@
             #define STPY_I2C2_PRESC 7
             #define STPY_I2C2_SCLH 200
             #define STPY_I2C2_SCLL 200
-
-
-
-            /////////////////////////////////// Timers ///////////////////////////////////
-
-
-
-            #define STPY_GLOBAL_TIMER_PRESCALER false
-            #define STPY_TIM1_DIVIDER (1 - 1)
-            #define STPY_TIM1_MODULATION (10 - 1)
 
         }
     #endif
