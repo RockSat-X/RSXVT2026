@@ -30,21 +30,6 @@
 
 
 
-    # Some JPEG configurations.
-
-    jpeg_ctrl3 = (
-        (False << 7) | # 0: ROM QT, 1: SRAM QT.
-        (False << 6) | # Enable MPEG.
-        (True  << 5) | # Enable zero stuffing.
-        (True  << 4) | # Enable Huffman table output.
-        (True  << 3) | # Enable rounding for C.
-        (True  << 2) | # Enable rounding for Y.
-        (True  << 1) | # Input shift 128 select for C.
-        (True  << 0)   # Input shift 128 select for Y.
-    )
-
-
-
     # Color test pattern configuration for debugging purposes.
 
     pre_isp_test_setting = (
@@ -61,6 +46,15 @@
                        #     0b01 : "Random data".
                        #     0b10 : "Square data".
                        #     0b11 : "Black image".
+    )
+
+
+
+    # Default value for JPEG CTRL3 register.
+
+    jpeg_ctrl3 = sum(
+        field.default << bit_i
+        for bit_i, field in enumerate(OVCAM_JPEG_CTRL3_FIELDS)
     )
 
 

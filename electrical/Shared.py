@@ -1,7 +1,7 @@
-#meta STLINK_BAUD, TARGETS, PER_MCU, PER_TARGET, OVCAM_RESOLUTION, TV_TOKEN :
+#meta STLINK_BAUD, TARGETS, PER_MCU, PER_TARGET, OVCAM_RESOLUTION, TV_TOKEN, OVCAM_JPEG_CTRL3_FIELDS :
 
 import types, collections
-from deps.stpy.pxd.utils import make_main_relative_path, c_repr
+from deps.stpy.pxd.utils import make_main_relative_path, c_repr, SimpleNamespaceTable
 from deps.stpy.mcus      import MCUS
 
 
@@ -11,6 +11,18 @@ from deps.stpy.mcus      import MCUS
 
 
 OVCAM_RESOLUTION = (800, 480)
+
+OVCAM_JPEG_CTRL3_FIELDS = SimpleNamespaceTable(
+    ('description'                   , 'default'),
+    ('Input shift 128 select for Y.' , True     ),
+    ('Input shift 128 select for C.' , True     ),
+    ('Enable rounding for Y.'        , True     ),
+    ('Enable rounding for C.'        , True     ),
+    ('Enable Huffman table output.'  , True     ),
+    ('Enable zero stuffing.'         , True     ),
+    ('Enable MPEG.'                  , False    ),
+    ('Use SRAM QT instead of ROM QT.', False    ),
+)
 
 TV_TOKEN = types.SimpleNamespace(
     START = b'<TV>',

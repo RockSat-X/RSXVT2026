@@ -193,6 +193,8 @@ def import_pyserial():
 
 def import_pygame():
 
+
+
     try:
 
         import pygame
@@ -206,7 +208,24 @@ def import_pygame():
 
         sys.exit(1)
 
-    return pygame
+
+
+    try:
+
+        import pygame_gui
+
+    except ModuleNotFoundError as error:
+
+        logger.error(
+            f'Python got {type(error).__name__} ({error}); try doing:' '\n'
+            f'> pip install pygame_gui'
+        )
+
+        sys.exit(1)
+
+
+
+    return pygame, pygame_gui
 
 
 
@@ -1600,6 +1619,18 @@ def tv(parameters):
 
 
 
+    @Keybinding('g', 'Toggle visibility of debug GUI.')
+    def _():
+
+        for checkbox in jpeg_ctrl3_checkboxes:
+
+            if checkbox.visible:
+                checkbox.hide()
+            else:
+                checkbox.show()
+
+
+
     # List the keybindings in the help message.
 
     if parameters is None:
@@ -1622,17 +1653,29 @@ def tv(parameters):
 
     # Some state variables.
 
-    pygame             = import_pygame()
+    pygame, pygame_gui = import_pygame()
     serial, list_ports = import_pyserial()
 
     pygame.init()
 
-    screen = pygame.display.set_mode((1080, 720), pygame.RESIZABLE)
-    clock  = pygame.time.Clock()
-    quit   = False
+    screen  = pygame.display.set_mode((1080, 720), pygame.RESIZABLE)
+    manager = pygame_gui.UIManager(screen.get_size())
+    clock   = pygame.time.Clock()
+    quit    = False
 
     surface = pygame.Surface((1, 1))
     surface.fill(SURFACE_DEFAULT_RGB)
+
+    jpeg_ctrl3_checkboxes = [
+        pygame_gui.elements.UICheckBox(
+            relative_rect = pygame.Rect((0, 20 * bit_index), (16, 16)),
+            text          = field.description,
+            initial_state = field.default,
+            visible       = False,
+            manager       = manager,
+        )
+        for bit_index, field in enumerate(OVCAM_JPEG_CTRL3_FIELDS)
+    ]
 
 
 
@@ -1788,14 +1831,20 @@ def tv(parameters):
 
         for event in pygame.event.get():
 
+            manager.process_events(event)
+
             match event.type:
 
 
+
+                # A quit signal from ALT+F4 for instance.
 
                 case pygame.QUIT:
                     quit = True
 
 
+
+                # Handle keybindings.
 
                 case pygame.KEYDOWN:
 
@@ -1821,6 +1870,31 @@ def tv(parameters):
                     for keybinding in keybindings:
                         if keybinding.keystroke == keystroke:
                                 keybinding.function()
+
+
+
+                # Handle UI events.
+
+                case (
+                    pygame_gui.UI_BUTTON_PRESSED      |
+                    pygame_gui.UI_CHECK_BOX_CHECKED   |
+                    pygame_gui.UI_CHECK_BOX_UNCHECKED
+                ):
+
+                    match event.ui_element:
+
+
+
+                        case jpeg_ctrl3_checkbox if jpeg_ctrl3_checkbox in jpeg_ctrl3_checkboxes:
+
+                            serial_port.write(bytes([sum(
+                                checkbox.get_state() << bit_i
+                                for bit_i, checkbox in enumerate(jpeg_ctrl3_checkboxes)
+                            )]))
+
+
+
+                        case idk: raise RuntimeError(idk)
 
 
 
@@ -1998,19 +2072,22 @@ def tv(parameters):
 
         # Render.
 
-        pygame.display.update(
-            screen.blit(
-                pygame.transform.scale(
-                    pygame.transform.flip(
-                        surface,
-                        orientation & 0b01,
-                        orientation & 0b10,
-                    ),
-                    (screen.get_width(), screen.get_height())
+        screen.blit(
+            pygame.transform.scale(
+                pygame.transform.flip(
+                    surface,
+                    orientation & 0b01,
+                    orientation & 0b10,
                 ),
-                (0, 0)
-            )
+                (screen.get_width(), screen.get_height())
+            ),
+            (0, 0)
         )
+
+        manager.update(dt)
+        manager.draw_ui(screen)
+
+        pygame.display.update()
 
 
 
