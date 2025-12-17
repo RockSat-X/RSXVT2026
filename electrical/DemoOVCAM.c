@@ -93,6 +93,33 @@ main(void)
 
                 } break;
 
+                case 0x03: // Set PRE-ISP test settings.
+                {
+
+                    u8 pre_isp_test_setting1 = {0};
+
+                    while (!stlink_rx((char*) &pre_isp_test_setting1));
+
+                    enum I2CMasterError error =
+                        I2C_blocking_transfer
+                        (
+                            I2CHandle_ovcam_sccb,
+                            OVCAM_SEVEN_BIT_ADDRESS,
+                            I2CAddressType_seven,
+                            I2COperation_write,
+                            (u8[])
+                            {
+                                0x50, 0x3D,
+                                pre_isp_test_setting1
+                            },
+                            3
+                        );
+
+                    if (error)
+                        sorry
+
+                } break;
+
                 default:
                 {
                     // Don't care.

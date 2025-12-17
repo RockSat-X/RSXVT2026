@@ -32,6 +32,16 @@ OVCAM_JPEG_CTRL3_FIELDS = SimpleNamespaceTable(
     ('Use SRAM QT instead of ROM QT.', False    , True          ),
 )
 
+PRE_ISP_TEST_SETTING_FIELDS = SimpleNamespaceTable(
+    ('description'              , 'options'),
+    ('PRE-ISP test type.'       , ('Color bar', 'Random data', 'Square data', 'Black image')),
+    ('PRE-ISP test bar style.'  , ('Standard 8 color bar', 'Gradual change at vertical mode 1', 'Gradual change at horizontal', 'Gradual change at vertical mode 2')),
+    ('Black and white squares.' , bool),
+    ('Transparent PRE-ISP test.', bool),
+    ('Rolling PRE-ISP test.'    , bool),
+    ('Enable PRE-ISP test.'     , bool),
+)
+
 TV_TOKEN = types.SimpleNamespace(
     START = b'<TV>',
     END   = b'</TV>',

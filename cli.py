@@ -1754,6 +1754,69 @@ def tv(parameters):
 
 
 
+    # Options for doing PRE-ISP tests.
+
+    def pre_isp_test_callback(widget):
+
+        pre_isp_test_setting_value = 0
+        bit_index                  = 0
+
+        for field in PRE_ISP_TEST_SETTING_FIELDS:
+
+            widget, = (
+                widget
+                for widget in widgets
+                if widget.callback == pre_isp_test_callback
+                if widget.field    == field
+            )
+
+            if field.options == bool:
+                field_value = widget.element.get_state()
+                field_width = 1
+            else:
+                field_value = field.options.index(widget.element.selected_option[0])
+                field_width = len(f'{len(field.options) :b}') - 1
+
+            pre_isp_test_setting_value |= field_value << bit_index
+            bit_index                  += field_width
+
+        serial_port.write(bytes([0x03, pre_isp_test_setting_value]))
+
+    for field in reversed(PRE_ISP_TEST_SETTING_FIELDS):
+
+        if field.options == bool:
+
+            widgets += [types.SimpleNamespace(
+                field    = field,
+                callback = pre_isp_test_callback,
+                element  = pygame_gui.elements.UICheckBox(
+                    relative_rect = pygame.Rect((0, calculate_widget_y()), (16, 16)),
+                    text          = field.description,
+                    initial_state = False,
+                    visible       = False,
+                    manager       = manager,
+                ),
+            )]
+
+        else:
+
+            widgets += [types.SimpleNamespace(
+                field    = field,
+                callback = pre_isp_test_callback,
+                element  = pygame_gui.elements.UIDropDownMenu(
+                    relative_rect = pygame.Rect(
+                        (0, calculate_widget_y()),
+                        (max(len(option) for option in field.options) * 12, 32)
+                    ),
+                    options_list    = field.options,
+                    starting_option = field.options[0],
+                    visible         = False,
+                    manager         = manager,
+                ),
+            )]
+
+
+
     # Image data sent over the ST-Link serial port
     # will be delimited with starting and ending tokens.
 

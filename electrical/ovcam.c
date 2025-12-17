@@ -19,26 +19,6 @@
 
 
 
-    # Color test pattern configuration for debugging purposes.
-
-    pre_isp_test_setting = (
-        (False << 7) | # Pre-ISP test enable.
-        (True  << 6) | # Rolling.
-        (False << 5) | # Transparent.
-        (0b00  << 2) | # Pre-ISP bar style.
-                       #     0b00 : "Standard 8 color bar".
-                       #     0b01 : "Gradual change at vertical mode 1".
-                       #     0b10 : "Gradual change at horizontal".
-                       #     0b11 : "Gradual change at vertical mode 2".
-        (0b00  << 0)   # Test select.
-                       #     0b00 : "Color bar".
-                       #     0b01 : "Random data".
-                       #     0b10 : "Square data".
-                       #     0b11 : "Black image".
-    )
-
-
-
     # Default value for JPEG CTRL3 register.
 
     jpeg_ctrl3 = sum(
@@ -322,8 +302,6 @@
 
         0x3002 0x00   # SYSTEM RESET.
         0x3006 0xEB   # CLOCK ENABLE.
-
-        0x503D 0x{pre_isp_test_setting :02X} # PRE ISP TEST SETTING.
 
     '''.splitlines()
 

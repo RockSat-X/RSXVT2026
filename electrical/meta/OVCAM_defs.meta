@@ -146,6 +146,4 @@ static const u8 OVCAM_INITIALIZATION_SEQUENCE[] =
             0x00,
         1, 0x30, 0x06,
             0xEB,
-        1, 0x50, 0x3D,
-            0x40,
     };
