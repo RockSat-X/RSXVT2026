@@ -1622,7 +1622,7 @@ def tv(parameters):
     @Keybinding('g', 'Toggle visibility of debug GUI.')
     def _():
 
-        for checkbox in jpeg_ctrl3_checkboxes:
+        for checkbox in jpeg_ctrl3_checkboxes.values():
 
             if checkbox.visible:
                 checkbox.hide()
@@ -1666,16 +1666,20 @@ def tv(parameters):
     surface = pygame.Surface((1, 1))
     surface.fill(SURFACE_DEFAULT_RGB)
 
-    jpeg_ctrl3_checkboxes = [
-        pygame_gui.elements.UICheckBox(
-            relative_rect = pygame.Rect((0, 20 * bit_index), (16, 16)),
+    jpeg_ctrl3_checkboxes = {
+        bit_index : pygame_gui.elements.UICheckBox(
+            relative_rect = pygame.Rect((0, 20 * row), (16, 16)),
             text          = field.description,
             initial_state = field.default,
             visible       = False,
             manager       = manager,
         )
-        for bit_index, field in enumerate(OVCAM_JPEG_CTRL3_FIELDS)
-    ]
+        for row, (bit_index, field) in enumerate(
+            (bit_index, field)
+            for bit_index, field in enumerate(OVCAM_JPEG_CTRL3_FIELDS)
+            if field.configurable
+        )
+    }
 
 
 
@@ -1885,11 +1889,11 @@ def tv(parameters):
 
 
 
-                        case jpeg_ctrl3_checkbox if jpeg_ctrl3_checkbox in jpeg_ctrl3_checkboxes:
+                        case jpeg_ctrl3_checkbox if jpeg_ctrl3_checkbox in jpeg_ctrl3_checkboxes.values():
 
                             serial_port.write(bytes([sum(
-                                checkbox.get_state() << bit_i
-                                for bit_i, checkbox in enumerate(jpeg_ctrl3_checkboxes)
+                                (jpeg_ctrl3_checkboxes[bit_index].get_state() if field.configurable else field.default) << bit_index
+                                for bit_index, field in enumerate(OVCAM_JPEG_CTRL3_FIELDS)
                             )]))
 
 

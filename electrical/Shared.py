@@ -13,15 +13,15 @@ from deps.stpy.mcus      import MCUS
 OVCAM_RESOLUTION = (800, 480)
 
 OVCAM_JPEG_CTRL3_FIELDS = SimpleNamespaceTable(
-    ('description'                   , 'default'),
-    ('Input shift 128 select for Y.' , True     ),
-    ('Input shift 128 select for C.' , True     ),
-    ('Enable rounding for Y.'        , True     ),
-    ('Enable rounding for C.'        , True     ),
-    ('Enable Huffman table output.'  , True     ),
-    ('Enable zero stuffing.'         , True     ),
-    ('Enable MPEG.'                  , False    ),
-    ('Use SRAM QT instead of ROM QT.', False    ),
+    ('description'                   , 'default', 'configurable'),
+    ('Input shift 128 select for Y.' , True     , True          ),
+    ('Input shift 128 select for C.' , True     , True          ),
+    ('Enable rounding for Y.'        , True     , True          ),
+    ('Enable rounding for C.'        , True     , True          ),
+    ('Enable Huffman table output.'  , True     , False         ), # Breaking change.
+    ('Enable zero stuffing.'         , True     , False         ), # Breaking change.
+    ('Enable MPEG.'                  , False    , False         ), # Doesn't seem to do anything.
+    ('Use SRAM QT instead of ROM QT.', False    , True          ),
 )
 
 TV_TOKEN = types.SimpleNamespace(
