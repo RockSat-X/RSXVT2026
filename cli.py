@@ -1727,7 +1727,7 @@ def tv(parameters):
 
     def resolution_callback(widget):
 
-        width, height = resolution_options_list[widget.text]
+        width, height = resolution_options_list[widget.element.selected_option[0]]
 
         serial_port.write(bytes([
             0x02,
@@ -1951,25 +1951,21 @@ def tv(parameters):
                 # Handle UI events.
 
                 case (
-                    pygame_gui.UI_BUTTON_PRESSED      |
-                    pygame_gui.UI_CHECK_BOX_CHECKED   |
-                    pygame_gui.UI_CHECK_BOX_UNCHECKED
+                    pygame_gui.UI_BUTTON_PRESSED         |
+                    pygame_gui.UI_CHECK_BOX_CHECKED      |
+                    pygame_gui.UI_CHECK_BOX_UNCHECKED    |
+                    pygame_gui.UI_DROP_DOWN_MENU_CHANGED
                 ):
 
 
 
-                    # Do some weird fiddling with PyGame GUI's
-                    # dumb hierarchical UI tree.
+                    # Skip buttons belonging to drop-down menus.
 
-                    element = event.ui_element
-
-                    if hasattr(event.ui_element, 'parent_element'):
-
-                        if isinstance(event.ui_element.parent_element, pygame_gui.elements.ui_drop_down_menu.UIDropDownMenu):
-                            continue
-
-                        if isinstance(event.ui_element.parent_element, pygame_gui.elements.ui_selection_list.UISelectionList):
-                            element = element.parent_element.parent_element
+                    if (hasattr(event.ui_element, 'parent_element') and (
+                        isinstance(event.ui_element.parent_element, pygame_gui.elements.ui_drop_down_menu.UIDropDownMenu ) or
+                        isinstance(event.ui_element.parent_element, pygame_gui.elements.ui_selection_list.UISelectionList)
+                    )):
+                        continue
 
 
 
@@ -1978,10 +1974,10 @@ def tv(parameters):
                     widget, = (
                         widget
                         for widget in widgets
-                        if widget.element == element
+                        if widget.element == event.ui_element
                     )
 
-                    widget.callback(event.ui_element)
+                    widget.callback(widget)
 
 
 
