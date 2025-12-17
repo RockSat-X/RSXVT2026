@@ -26,30 +26,79 @@ main(void)
 
         // Change configuration of the camera module if requested.
 
-        u8 jpeg_ctrl3 = {0};
+        u8 code = {0};
 
-        if (stlink_rx((char*) &jpeg_ctrl3))
+        if (stlink_rx((char*) &code))
         {
 
-            // Write the updated register settings.
+            switch (code)
+            {
 
-            enum I2CMasterError error =
-                I2C_blocking_transfer
-                (
-                    I2CHandle_ovcam_sccb,
-                    OVCAM_SEVEN_BIT_ADDRESS,
-                    I2CAddressType_seven,
-                    I2COperation_write,
-                    (u8[])
-                    {
-                        0x44, 0x03,
-                        jpeg_ctrl3
-                    },
-                    3
-                );
+                case 0x01: // Change JPEG CTRL3 register.
+                {
 
-            if (error)
-                sorry
+                    u8 jpeg_ctrl3 = {0};
+
+                    while (!stlink_rx((char*) &jpeg_ctrl3));
+
+                    enum I2CMasterError error =
+                        I2C_blocking_transfer
+                        (
+                            I2CHandle_ovcam_sccb,
+                            OVCAM_SEVEN_BIT_ADDRESS,
+                            I2CAddressType_seven,
+                            I2COperation_write,
+                            (u8[])
+                            {
+                                0x44, 0x03,
+                                jpeg_ctrl3
+                            },
+                            3
+                        );
+
+                    if (error)
+                        sorry
+
+                } break;
+
+                case 0x02: // Change resolution.
+                {
+
+                    u8 width_bytes[2] = {0};
+                    while (!stlink_rx((char*) &width_bytes[0]));
+                    while (!stlink_rx((char*) &width_bytes[1]));
+
+                    u8 height_bytes[2] = {0};
+                    while (!stlink_rx((char*) &height_bytes[0]));
+                    while (!stlink_rx((char*) &height_bytes[1]));
+
+                    enum I2CMasterError error =
+                        I2C_blocking_transfer
+                        (
+                            I2CHandle_ovcam_sccb,
+                            OVCAM_SEVEN_BIT_ADDRESS,
+                            I2CAddressType_seven,
+                            I2COperation_write,
+                            (u8[])
+                            {
+                                0x38, 0x08,
+                                width_bytes[0], width_bytes[1],
+                                height_bytes[0], height_bytes[1],
+                            },
+                            6
+                        );
+
+                    if (error)
+                        sorry
+
+                } break;
+
+                default:
+                {
+                    // Don't care.
+                } break;
+
+            }
 
 
 

@@ -1,4 +1,4 @@
-#meta STLINK_BAUD, TARGETS, PER_MCU, PER_TARGET, OVCAM_RESOLUTION, TV_TOKEN, OVCAM_JPEG_CTRL3_FIELDS :
+#meta STLINK_BAUD, TARGETS, PER_MCU, PER_TARGET, OVCAM_DEFAULT_RESOLUTION, TV_TOKEN, OVCAM_JPEG_CTRL3_FIELDS :
 
 import types, collections
 from deps.stpy.pxd.utils import make_main_relative_path, c_repr, SimpleNamespaceTable
@@ -10,7 +10,15 @@ from deps.stpy.mcus      import MCUS
 
 
 
-OVCAM_RESOLUTION = (800, 480)
+OVCAM_DEFAULT_RESOLUTION = (800, 480)
+
+OVCAM_RESOLUTIONS = (
+    (160, 120),
+    (320, 240),
+    (480, 272),
+    (640, 480),
+    (800, 480),
+)
 
 OVCAM_JPEG_CTRL3_FIELDS = SimpleNamespaceTable(
     ('description'                   , 'default', 'configurable'),

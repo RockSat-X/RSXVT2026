@@ -17,17 +17,6 @@
     Meta.define('TV_TOKEN_START', f'"{TV_TOKEN.START.decode('UTF-8')}"')
     Meta.define('TV_TOKEN_END'  , f'"{TV_TOKEN.END  .decode('UTF-8')}"')
 
-    Meta.define('OVCAM_RESOLUTION_X', OVCAM_RESOLUTION[0])
-    Meta.define('OVCAM_RESOLUTION_Y', OVCAM_RESOLUTION[1])
-
-    assert OVCAM_RESOLUTION in (
-        (160, 120),
-        (320, 240),
-        (480, 272),
-        (640, 480),
-        (800, 480),
-    ), f'Unsupported resolution: {repr(OVCAM_RESOLUTION)}.'
-
 
 
     # Color test pattern configuration for debugging purposes.
@@ -116,15 +105,15 @@
         0x3C08 0x012C # "
         0x3C0A 0x9C40 # SAMPLE NUMBER.
 
-        0x3820 0x0620                       # TIMING TC REG.
-        0x3814 0x31                         # TIMING X INC.
-        0x3815 0x31                         # TIMING Y INC.
-        0x3800 0x0000                       # TIMING HS.
-        0x3802 0x0004                       # TIMING VS.
-        0x3804 0x0A3F                       # TIMING HW.
-        0x3806 0x079B                       # TIMING VH.
-        0x3808 0x{OVCAM_RESOLUTION[0] :04X} # TIMING DVPHO.
-        0x380A 0x{OVCAM_RESOLUTION[1] :04X} # TIMING DVPVO.
+        0x3820 0x0620                               # TIMING TC REG.
+        0x3814 0x31                                 # TIMING X INC.
+        0x3815 0x31                                 # TIMING Y INC.
+        0x3800 0x0000                               # TIMING HS.
+        0x3802 0x0004                               # TIMING VS.
+        0x3804 0x0A3F                               # TIMING HW.
+        0x3806 0x079B                               # TIMING VH.
+        0x3808 0x{OVCAM_DEFAULT_RESOLUTION[0] :04X} # TIMING DVPHO.
+        0x380A 0x{OVCAM_DEFAULT_RESOLUTION[1] :04X} # TIMING DVPVO.
 
         0x380C 0x0790 # TIMING HTS.
         0x380E 0x0440 # TIMING VTS.
@@ -444,7 +433,7 @@ struct OVCAMSwapchain
         // Furthermore, the DCMI peripheral organizes its FIFO to
         // be in units of 32-bit words.
 
-        u8 data[OVCAM_RESOLUTION_X * OVCAM_RESOLUTION_Y * 3 / 10] __attribute__((aligned(4)));
+        u8 data[100'000] __attribute__((aligned(4)));
 
     } framebuffers[2];
 

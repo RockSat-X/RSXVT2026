@@ -1622,12 +1622,12 @@ def tv(parameters):
     @Keybinding('g', 'Toggle visibility of debug GUI.')
     def _():
 
-        for checkbox in jpeg_ctrl3_checkboxes.values():
+        for widget in widgets:
 
-            if checkbox.visible:
-                checkbox.hide()
+            if widget.element.visible:
+                widget.element.hide()
             else:
-                checkbox.show()
+                widget.element.show()
 
 
 
@@ -1666,20 +1666,91 @@ def tv(parameters):
     surface = pygame.Surface((1, 1))
     surface.fill(SURFACE_DEFAULT_RGB)
 
-    jpeg_ctrl3_checkboxes = {
-        bit_index : pygame_gui.elements.UICheckBox(
-            relative_rect = pygame.Rect((0, 20 * row), (16, 16)),
-            text          = field.description,
-            initial_state = field.default,
-            visible       = False,
-            manager       = manager,
-        )
-        for row, (bit_index, field) in enumerate(
-            (bit_index, field)
-            for bit_index, field in enumerate(OVCAM_JPEG_CTRL3_FIELDS)
-            if field.configurable
-        )
+    widgets = []
+
+    def calculate_widget_y():
+        return 1.25 * sum(widget.element.relative_rect[3] for widget in widgets)
+
+
+
+    # Options for configuring JPEG CTRL3 register.
+
+    def jpeg_ctrl3_callback(_):
+
+        jpeg_ctrl3_value = 0
+
+        for bit_index, field in enumerate(OVCAM_JPEG_CTRL3_FIELDS):
+
+            if field.configurable:
+
+                widget, = (
+                    widget
+                    for widget in widgets
+                    if widget.callback == jpeg_ctrl3_callback
+                    if widget.field    == field
+                )
+                bit = widget.element.get_state()
+
+            else:
+
+                bit = field.default
+
+            jpeg_ctrl3_value |= bit << bit_index
+
+        serial_port.write(bytes([0x01, jpeg_ctrl3_value]))
+
+    for bit_index, field in enumerate(OVCAM_JPEG_CTRL3_FIELDS):
+
+        if not field.configurable:
+            continue
+
+        widgets += [types.SimpleNamespace(
+            field    = field,
+            callback = jpeg_ctrl3_callback,
+            element  = pygame_gui.elements.UICheckBox(
+                relative_rect = pygame.Rect((0, calculate_widget_y()), (16, 16)),
+                text          = field.description,
+                initial_state = field.default,
+                visible       = False,
+                manager       = manager,
+            ),
+        )]
+
+
+
+    # Options for changing the image resolution.
+
+    resolution_options_list = {
+        f'{width}x{height}' : (width, height)
+        for width, height in OVCAM_RESOLUTIONS
     }
+
+    def resolution_callback(widget):
+
+        width, height = resolution_options_list[widget.text]
+
+        serial_port.write(bytes([
+            0x02,
+            (width  >> 8) & 0xFF,
+            (width  >> 0) & 0xFF,
+            (height >> 8) & 0xFF,
+            (height >> 0) & 0xFF,
+        ]))
+
+    widgets += [types.SimpleNamespace(
+        callback = resolution_callback,
+        element  = pygame_gui.elements.UIDropDownMenu(
+            relative_rect   = pygame.Rect((0, calculate_widget_y()), (128, 32)),
+            options_list    = resolution_options_list,
+            starting_option = [
+                text
+                for text, resolution in resolution_options_list.items()
+                if resolution == OVCAM_DEFAULT_RESOLUTION
+            ][0],
+            visible = False,
+            manager = manager,
+        ),
+    )]
 
 
 
@@ -1745,7 +1816,7 @@ def tv(parameters):
                 # Ensure we aren't collecting too much data.
 
                 got       = len(image_data)
-                excessive = OVCAM_RESOLUTION[0] * OVCAM_RESOLUTION[1] * 3
+                excessive = 128 * 1024
 
                 if got > excessive:
 
@@ -1885,20 +1956,32 @@ def tv(parameters):
                     pygame_gui.UI_CHECK_BOX_UNCHECKED
                 ):
 
-                    match event.ui_element:
+
+
+                    # Do some weird fiddling with PyGame GUI's
+                    # dumb hierarchical UI tree.
+
+                    element = event.ui_element
+
+                    if hasattr(event.ui_element, 'parent_element'):
+
+                        if isinstance(event.ui_element.parent_element, pygame_gui.elements.ui_drop_down_menu.UIDropDownMenu):
+                            continue
+
+                        if isinstance(event.ui_element.parent_element, pygame_gui.elements.ui_selection_list.UISelectionList):
+                            element = element.parent_element.parent_element
 
 
 
-                        case jpeg_ctrl3_checkbox if jpeg_ctrl3_checkbox in jpeg_ctrl3_checkboxes.values():
+                    # Find the corresponding widget and run its callback.
 
-                            serial_port.write(bytes([sum(
-                                (jpeg_ctrl3_checkboxes[bit_index].get_state() if field.configurable else field.default) << bit_index
-                                for bit_index, field in enumerate(OVCAM_JPEG_CTRL3_FIELDS)
-                            )]))
+                    widget, = (
+                        widget
+                        for widget in widgets
+                        if widget.element == element
+                    )
 
-
-
-                        case idk: raise RuntimeError(idk)
+                    widget.callback(event.ui_element)
 
 
 
