@@ -149,7 +149,7 @@ except ModuleNotFoundError as error:
     logger.error(
         f'Could not import "{error.name}"; maybe the Git '
         f'submodules need to be initialized/updated? Try doing:' '\n'
-        f'> git submodule update --init --recursive'
+        f'> git submodule update --init --recursive'             '\n'
         f'If this still doesn\'t work, please raise an issue.'
     )
 
