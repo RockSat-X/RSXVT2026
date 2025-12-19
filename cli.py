@@ -10,9 +10,12 @@
 
 import sys
 
+MINIMUM_MAJOR = 3
+MINIMUM_MINOR = 13
+
 if not (
-    sys.version_info.major == 3 and
-    sys.version_info.minor >= 13
+    sys.version_info.major == MINIMUM_MAJOR and
+    sys.version_info.minor >= MINIMUM_MINOR
 ):
     raise RuntimeError(
         'Unsupported Python version: ' + repr(sys.version) + '; ' +
