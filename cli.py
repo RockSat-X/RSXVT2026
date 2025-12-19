@@ -19,7 +19,7 @@ if not (
 ):
     raise RuntimeError(
         'Unsupported Python version: ' + repr(sys.version) + '; ' +
-        'please upgrade to at least ' + str(MINIMUM_MAJOR) + '.' + str(MINIMIM_MINOR) + '; '
+        'please upgrade to at least ' + str(MINIMUM_MAJOR) + '.' + str(MINIMUM_MINOR) + '; '
         'note that it is possible that you have multiple instances of Python installed; '
         'in this case, please set your PATH accordingly or use a Python virtual environment.'
     )
