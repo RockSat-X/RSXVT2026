@@ -24,108 +24,41 @@ main(void)
     for (;;)
     {
 
-        // Change configuration of the camera module if requested.
+        // See if we received a write command.
 
         u8 code = {0};
 
-        if (stlink_rx((char*) &code))
+        if (stlink_rx((char*) &code) && code == TV_WRITE_BYTE)
         {
 
-            switch (code)
+            // Update one of the camera module's register.
+
+            struct WriteCommand
             {
+                u16 address;
+                u8  content;
+            } __attribute__((packed));
 
-                case 0x01: // Change JPEG CTRL3 register.
-                {
+            struct WriteCommand command = {0};
 
-                    u8 jpeg_ctrl3 = {0};
-
-                    while (!stlink_rx((char*) &jpeg_ctrl3));
-
-                    enum I2CMasterError error =
-                        I2C_blocking_transfer
-                        (
-                            I2CHandle_ovcam_sccb,
-                            OVCAM_SEVEN_BIT_ADDRESS,
-                            I2CAddressType_seven,
-                            I2COperation_write,
-                            (u8[])
-                            {
-                                0x44, 0x03,
-                                jpeg_ctrl3
-                            },
-                            3
-                        );
-
-                    if (error)
-                        sorry
-
-                } break;
-
-                case 0x02: // Change resolution.
-                {
-
-                    u8 width_bytes[2] = {0};
-                    while (!stlink_rx((char*) &width_bytes[0]));
-                    while (!stlink_rx((char*) &width_bytes[1]));
-
-                    u8 height_bytes[2] = {0};
-                    while (!stlink_rx((char*) &height_bytes[0]));
-                    while (!stlink_rx((char*) &height_bytes[1]));
-
-                    enum I2CMasterError error =
-                        I2C_blocking_transfer
-                        (
-                            I2CHandle_ovcam_sccb,
-                            OVCAM_SEVEN_BIT_ADDRESS,
-                            I2CAddressType_seven,
-                            I2COperation_write,
-                            (u8[])
-                            {
-                                0x38, 0x08,
-                                width_bytes[0], width_bytes[1],
-                                height_bytes[0], height_bytes[1],
-                            },
-                            6
-                        );
-
-                    if (error)
-                        sorry
-
-                } break;
-
-                case 0x03: // Set PRE-ISP test settings.
-                {
-
-                    u8 pre_isp_test_setting1 = {0};
-
-                    while (!stlink_rx((char*) &pre_isp_test_setting1));
-
-                    enum I2CMasterError error =
-                        I2C_blocking_transfer
-                        (
-                            I2CHandle_ovcam_sccb,
-                            OVCAM_SEVEN_BIT_ADDRESS,
-                            I2CAddressType_seven,
-                            I2COperation_write,
-                            (u8[])
-                            {
-                                0x50, 0x3D,
-                                pre_isp_test_setting1
-                            },
-                            3
-                        );
-
-                    if (error)
-                        sorry
-
-                } break;
-
-                default:
-                {
-                    // Don't care.
-                } break;
-
+            for (i32 i = 0; i < sizeof(command); i += 1)
+            {
+                while (!stlink_rx((char*) &command + i));
             }
+
+            enum I2CMasterError error =
+                I2C_blocking_transfer
+                (
+                    I2CHandle_ovcam_sccb,
+                    OVCAM_SEVEN_BIT_ADDRESS,
+                    I2CAddressType_seven,
+                    I2COperation_write,
+                    (u8*) &command,
+                    sizeof(command.address) + sizeof(command.content)
+                );
+
+            if (error)
+                sorry
 
 
 

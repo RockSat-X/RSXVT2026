@@ -16,6 +16,7 @@
 
     Meta.define('TV_TOKEN_START', f'"{TV_TOKEN.START.decode('UTF-8')}"')
     Meta.define('TV_TOKEN_END'  , f'"{TV_TOKEN.END  .decode('UTF-8')}"')
+    Meta.define('TV_WRITE_BYTE' , f'0x{TV_WRITE_BYTE :02X}')
 
 
 

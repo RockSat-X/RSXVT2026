@@ -1700,7 +1700,7 @@ def tv(parameters):
 
             jpeg_ctrl3_value |= bit << bit_index
 
-        serial_port.write(bytes([0x01, jpeg_ctrl3_value]))
+        serial_port.write(bytes([TV_WRITE_BYTE, 0x44, 0x03, jpeg_ctrl3_value]))
 
     for bit_index, field in enumerate(OVCAM_JPEG_CTRL3_FIELDS):
 
@@ -1732,13 +1732,10 @@ def tv(parameters):
 
         width, height = resolution_options_list[widget.element.selected_option[0]]
 
-        serial_port.write(bytes([
-            0x02,
-            (width  >> 8) & 0xFF,
-            (width  >> 0) & 0xFF,
-            (height >> 8) & 0xFF,
-            (height >> 0) & 0xFF,
-        ]))
+        serial_port.write(bytes([TV_WRITE_BYTE, 0x38, 0x08, (width  >> 8) & 0xFF]))
+        serial_port.write(bytes([TV_WRITE_BYTE, 0x38, 0x09, (width  >> 0) & 0xFF]))
+        serial_port.write(bytes([TV_WRITE_BYTE, 0x38, 0x0A, (height >> 8) & 0xFF]))
+        serial_port.write(bytes([TV_WRITE_BYTE, 0x38, 0x0B, (height >> 0) & 0xFF]))
 
     widgets += [types.SimpleNamespace(
         callback = resolution_callback,
@@ -1783,7 +1780,7 @@ def tv(parameters):
             pre_isp_test_setting_value |= field_value << bit_index
             bit_index                  += field_width
 
-        serial_port.write(bytes([0x03, pre_isp_test_setting_value]))
+        serial_port.write(bytes([TV_WRITE_BYTE, 0x50, 0x3D, pre_isp_test_setting_value]))
 
     for field in reversed(PRE_ISP_TEST_SETTING_FIELDS):
 

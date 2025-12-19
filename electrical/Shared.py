@@ -1,4 +1,4 @@
-#meta STLINK_BAUD, TARGETS, PER_MCU, PER_TARGET, OVCAM_DEFAULT_RESOLUTION, TV_TOKEN, OVCAM_JPEG_CTRL3_FIELDS :
+#meta STLINK_BAUD, TARGETS, PER_MCU, PER_TARGET, OVCAM_DEFAULT_RESOLUTION, TV_WRITE_BYTE, TV_TOKEN, OVCAM_JPEG_CTRL3_FIELDS :
 
 import types, collections
 from deps.stpy.pxd.utils import make_main_relative_path, c_repr, SimpleNamespaceTable
@@ -41,6 +41,8 @@ PRE_ISP_TEST_SETTING_FIELDS = SimpleNamespaceTable(
     ('Rolling PRE-ISP test.'    , bool),
     ('Enable PRE-ISP test.'     , bool),
 )
+
+TV_WRITE_BYTE = 0x01
 
 TV_TOKEN = types.SimpleNamespace(
     START = b'<TV>',
