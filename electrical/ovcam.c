@@ -1,4 +1,5 @@
 #define OVCAM_SEVEN_BIT_ADDRESS 0x3C
+#define OVCAM_FRAMEBUFFER_SIZE  (100 * 1024)
 
 #include "OVCAM_defs.meta"
 /* #meta
@@ -412,7 +413,7 @@ struct OVCAMSwapchain
         // Furthermore, the DCMI peripheral organizes its FIFO to
         // be in units of 32-bit words.
 
-        u8 data[100'000] __attribute__((aligned(4)));
+        u8 data[OVCAM_FRAMEBUFFER_SIZE] __attribute__((aligned(4)));
 
     } framebuffers[2];
 
@@ -432,6 +433,9 @@ static_assert(sizeof(_OVCAM_swapchain.framebuffers[0].data) % sizeof(u32) == 0);
 static struct OVCAMFramebuffer*
 OVCAM_get_next_framebuffer(void)
 {
+
+    if (!CMSIS_GET(DCMI, CR, ENABLE))
+        panic;
 
     struct OVCAMFramebuffer* framebuffer = {0};
 
@@ -453,6 +457,9 @@ OVCAM_get_next_framebuffer(void)
 static void
 OVCAM_free_framebuffer(void)
 {
+
+    if (!CMSIS_GET(DCMI, CR, ENABLE))
+        panic;
 
     i32 framebuffers_filled = _OVCAM_swapchain.writer - _OVCAM_swapchain.reader;
 
@@ -482,14 +489,27 @@ _OVCAM_begin_capture(void)
     if (_OVCAM_swapchain.writer - _OVCAM_swapchain.reader >= countof(_OVCAM_swapchain.framebuffers))
         panic;
 
+    if (!CMSIS_GET(DCMI, CR, ENABLE))
+        panic;
+
 
 
     // Configure the DMA channel in such a way that it always
     // expect more data than there'll actually be in the transfer.
     // This is so we can handle variable lengthed data transfers.
+    // Thus, the data transfer should technically never complete;
+    // if it does, then this means the framebuffer got too full.
 
-    CMSIS_SET(GPDMA1_Channel7, CBR1, BRC , -1U);
-    CMSIS_SET(GPDMA1_Channel7, CBR1, BNDT, (((u16) -1) - 1) / 4 * 4);
+    #define OVCAM_BYTES_PER_BLOCK_TRANSFER 1024
+
+    static_assert(OVCAM_FRAMEBUFFER_SIZE % OVCAM_BYTES_PER_BLOCK_TRANSFER == 0);
+
+    #define OVCAM_BLOCK_REPETITIONS (OVCAM_FRAMEBUFFER_SIZE / OVCAM_BYTES_PER_BLOCK_TRANSFER)
+
+    static_assert(OVCAM_BLOCK_REPETITIONS < (1 << 11));
+
+    CMSIS_SET(GPDMA1_Channel7, CBR1, BRC , OVCAM_BLOCK_REPETITIONS       );
+    CMSIS_SET(GPDMA1_Channel7, CBR1, BNDT, OVCAM_BYTES_PER_BLOCK_TRANSFER);
 
 
 
@@ -644,7 +664,7 @@ OVCAM_init(void)
 
 
 
-    // TODO.
+    // The DMA channel will schedule the capture of the first frame.
 
     NVIC_SET_PENDING(GPDMA1_Channel7);
 
@@ -689,9 +709,9 @@ INTERRUPT_GPDMA1_Channel7
             {
                 // DMA is still working...
             }
-            else
+            else // Initialize the DCMI and DMA to capture an image.
             {
-                _OVCAM_begin_capture(); // TODO.
+                _OVCAM_begin_capture();
             }
 
         } break;
@@ -711,6 +731,11 @@ INTERRUPT_GPDMA1_Channel7
         {
             sorry
         } break;
+
+
+
+        // The DCMI suspended the DMA channel
+        // because the image frame was complete.
 
         case DMAInterruptEvent_completed_suspension:
         {
@@ -757,7 +782,8 @@ INTERRUPT_GPDMA1_Channel7
 
 
 
-            // TODO.
+            // There's still space in the swapchain;
+            // prepare to capture the next image.
 
             if (_OVCAM_swapchain.writer - _OVCAM_swapchain.reader < countof(_OVCAM_swapchain.framebuffers))
             {
@@ -766,7 +792,31 @@ INTERRUPT_GPDMA1_Channel7
 
         } break;
 
-        case DMAInterruptEvent_transfer_complete          : panic; // The DCMI gave us way more data than it should've.
+
+
+        // We ran out of framebuffer space;
+        // we're going to have to discard the frame.
+        // This can typically happen when the
+        // camera module's register is updated in
+        // such a way that the new image data coming
+        // in correspond to a larger image.
+
+        case DMAInterruptEvent_transfer_complete:
+        {
+
+            // Although the reference manual doesn't seem to be explicit about this,
+            // it seems like disabling and enabling the DCMI interface is sufficient
+            // in resetting the internal DCMI state machine to discard whatever's
+            // remaining of the image frame and prepare for the next.
+
+            CMSIS_SET(DCMI, CR, ENABLE, false);
+            CMSIS_SET(DCMI, CR, ENABLE, true );
+            _OVCAM_begin_capture();
+
+        } break;
+
+
+
         case DMAInterruptEvent_update_link_transfer_error : panic; // We aren't using this DMA feature.
         default                                           : panic;
 
