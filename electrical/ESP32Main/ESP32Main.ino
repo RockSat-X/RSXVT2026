@@ -2,7 +2,7 @@
 
 
 
-static struct Message message_buffer[8]            = {0};
+static struct Message message_buffer[128]          = {0};
 static volatile u32   message_writer               = {0};
 static volatile u32   message_reader               = {0};
 static volatile i32   message_invalid_length_count = {0};
@@ -74,7 +74,7 @@ setup(void)
 
     if (esp_now_init() != ESP_OK)
     {
-        Serial.printf("Error initializing ESP-NOW\n");
+        Serial.printf("Error initializing ESP-NOW.\n");
         ESP.restart();
         return;
     }
@@ -116,7 +116,7 @@ loop(void)
 
         // Check sequence number.
 
-        static u8 expected_sequence_number = {0};
+        static typeof(message->sequence_number) expected_sequence_number = {0};
 
         if (expected_sequence_number == message->sequence_number)
         {
@@ -132,9 +132,9 @@ loop(void)
 
 
 
-        // Count the amount of useful we got.
+        // Count the amount of data we got.
 
-        payload_bytes_received += sizeof(message->payload);
+        payload_bytes_received += sizeof(*message);
 
 
 

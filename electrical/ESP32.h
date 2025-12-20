@@ -1,7 +1,6 @@
-#include <esp_now.h>
 #include <WiFi.h>
-#include <Arduino.h>
 #include <esp_wifi.h>
+#include <esp_now.h>
 
 
 
@@ -34,8 +33,23 @@ typedef double             f64; static_assert(sizeof(f64) == 8);
 
 struct Message
 {
-    u8 sequence_number;
-    u8 payload[239];
+    f32 quaternion_i;
+    f32 quaternion_j;
+    f32 quaternion_k;
+    f32 quaternion_r;
+    f32 magnetometer_x;
+    f32 magnetometer_y;
+    f32 magnetometer_z;
+    f32 accelerometer_x;
+    f32 accelerometer_y;
+    f32 accelerometer_z;
+    f32 gyro_x;
+    f32 gyro_y;
+    f32 gyro_z;
+    f32 computer_vision_confidence;
+    u16 timestamp_ms;
+    u16 sequence_number;
+    u8  image_chunk[190];
 } __attribute__((packed));
 
-static_assert(sizeof(struct Message) == 240);
+static_assert(sizeof(struct Message) == 250);
