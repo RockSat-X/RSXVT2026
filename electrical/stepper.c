@@ -3,6 +3,10 @@
 
 
 
+static_assert(IS_POWER_OF_TWO(STEPPER_WINDOW_LENGTH));
+
+
+
 #include "stepper_driver_support.meta"
 /* #meta
 

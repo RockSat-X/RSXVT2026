@@ -10,13 +10,16 @@
 
 import sys
 
+MINIMUM_MAJOR = 3
+MINIMUM_MINOR = 13
+
 if not (
-    sys.version_info.major == 3 and
-    sys.version_info.minor >= 13
+    sys.version_info.major == MINIMUM_MAJOR and
+    sys.version_info.minor >= MINIMUM_MINOR
 ):
     raise RuntimeError(
         'Unsupported Python version: ' + repr(sys.version) + '; ' +
-        'please upgrade to at least ' + str(MINIMUM_MAJOR) + '.' + str(MINIMIM_MINOR) + '; '
+        'please upgrade to at least ' + str(MINIMUM_MAJOR) + '.' + str(MINIMUM_MINOR) + '; '
         'note that it is possible that you have multiple instances of Python installed; '
         'in this case, please set your PATH accordingly or use a Python virtual environment.'
     )
@@ -29,7 +32,7 @@ if not (
 
 
 
-import types, shlex, pathlib, shutil, subprocess, time, logging
+import types, shlex, pathlib, shutil, subprocess, time, logging, io
 
 
 
@@ -146,7 +149,7 @@ except ModuleNotFoundError as error:
     logger.error(
         f'Could not import "{error.name}"; maybe the Git '
         f'submodules need to be initialized/updated? Try doing:' '\n'
-        f'> git submodule update --init --recursive'
+        f'> git submodule update --init --recursive'             '\n'
         f'If this still doesn\'t work, please raise an issue.'
     )
 
@@ -166,7 +169,7 @@ from electrical.Shared import *
 
 
 #
-# Import handler for PySerial.
+# Import handlers for non-builtin modules.
 #
 
 
@@ -188,6 +191,44 @@ def import_pyserial():
         sys.exit(1)
 
     return serial, serial.tools.list_ports
+
+
+
+def import_pygame():
+
+
+
+    try:
+
+        import pygame
+
+    except ModuleNotFoundError as error:
+
+        logger.error(
+            f'Python got {type(error).__name__} ({error}); try doing:' '\n'
+            f'> pip install pygame'
+        )
+
+        sys.exit(1)
+
+
+
+    try:
+
+        import pygame_gui
+
+    except ModuleNotFoundError as error:
+
+        logger.error(
+            f'Python got {type(error).__name__} ({error}); try doing:' '\n'
+            f'> pip install pygame_gui'
+        )
+
+        sys.exit(1)
+
+
+
+    return pygame, pygame_gui
 
 
 
@@ -1503,6 +1544,696 @@ def checkPCBs(parameters):
                         ]
                     }
                 )
+
+
+
+################################################################################
+
+
+
+@main_interface.new_verb(
+    {
+        'description' : 'View image data from the OVCAM driver.',
+        'more_help'   : True
+    },
+)
+def tv(parameters):
+
+
+
+    SURFACE_DEFAULT_RGB = (74, 65, 42)
+
+
+
+    # Define some useful keybindings.
+
+    keybindings = []
+
+    def Keybinding(keystroke, description):
+
+        def decorator(function):
+
+            nonlocal keybindings
+
+            keybindings += [types.SimpleNamespace(
+                keystroke   = keystroke,
+                description = description,
+                function    = function,
+            )]
+
+            return function
+
+        return decorator
+
+
+
+    @Keybinding('ctrl-w', 'Turn the TV off.')
+    def _():
+
+        nonlocal quit
+
+        quit = True
+
+
+
+    orientation = 0
+
+    @Keybinding('f', 'Flip through different orientations.')
+    def _():
+
+        nonlocal orientation
+
+        orientation = (orientation + 1) % 4
+
+        logger.info(f'Orientation: {orientation}.')
+
+
+
+    stream_image_progress = False
+
+    @Keybinding('p', 'Toggle whether or not image data is rendered as it streams in.')
+    def _():
+
+        nonlocal stream_image_progress
+
+        stream_image_progress = not stream_image_progress
+
+        logger.info(f'Partial frame rendering: {'enabled' if stream_image_progress else 'disabled'}.')
+
+
+
+    @Keybinding('g', 'Toggle visibility of debug GUI.')
+    def _():
+
+        for widget in widgets:
+
+            if widget.element.visible:
+                widget.element.hide()
+            else:
+                widget.element.show()
+
+
+
+    # List the keybindings in the help message.
+
+    if parameters is None:
+
+        more_help = ''
+
+        for just_keystroke, just_description in justify([
+            (
+                ('<' , f'<{keybinding.keystroke}>'),
+                (None, keybinding.description     ),
+            )
+            for keybinding in keybindings
+        ]):
+
+            more_help += f'{just_keystroke} {just_description}\n'
+
+        return more_help
+
+
+
+    # Some state variables.
+
+    pygame, pygame_gui = import_pygame()
+    serial, list_ports = import_pyserial()
+
+    pygame.init()
+
+    screen  = pygame.display.set_mode((1080, 720), pygame.RESIZABLE)
+    manager = pygame_gui.UIManager(screen.get_size())
+    clock   = pygame.time.Clock()
+    quit    = False
+
+    surface = pygame.Surface((1, 1))
+    surface.fill(SURFACE_DEFAULT_RGB)
+
+    widgets = []
+
+    def calculate_widget_y():
+        return 1.25 * sum(widget.element.relative_rect[3] for widget in widgets)
+
+
+
+    # Options for configuring JPEG CTRL3 register.
+
+    def jpeg_ctrl3_callback(_):
+
+        jpeg_ctrl3_value = 0
+
+        for bit_index, field in enumerate(OVCAM_JPEG_CTRL3_FIELDS):
+
+            if field.configurable:
+
+                widget, = (
+                    widget
+                    for widget in widgets
+                    if widget.callback == jpeg_ctrl3_callback
+                    if widget.field    == field
+                )
+                bit = widget.element.get_state()
+
+            else:
+
+                bit = field.default
+
+            jpeg_ctrl3_value |= bit << bit_index
+
+        serial_port.write(bytes([TV_WRITE_BYTE, 0x44, 0x03, jpeg_ctrl3_value]))
+
+    for bit_index, field in enumerate(OVCAM_JPEG_CTRL3_FIELDS):
+
+        if not field.configurable:
+            continue
+
+        widgets += [types.SimpleNamespace(
+            field    = field,
+            callback = jpeg_ctrl3_callback,
+            element  = pygame_gui.elements.UICheckBox(
+                relative_rect = pygame.Rect((0, calculate_widget_y()), (16, 16)),
+                text          = field.description,
+                initial_state = field.default,
+                visible       = False,
+                manager       = manager,
+            ),
+        )]
+
+
+
+    # Options for changing the image resolution.
+
+    resolution_options_list = {
+        f'{width}x{height}' : (width, height)
+        for width, height in OVCAM_RESOLUTIONS
+    }
+
+    def resolution_callback(widget):
+
+        width, height = resolution_options_list[widget.element.selected_option[0]]
+
+        serial_port.write(bytes([TV_WRITE_BYTE, 0x38, 0x08, (width  >> 8) & 0xFF]))
+        serial_port.write(bytes([TV_WRITE_BYTE, 0x38, 0x09, (width  >> 0) & 0xFF]))
+        serial_port.write(bytes([TV_WRITE_BYTE, 0x38, 0x0A, (height >> 8) & 0xFF]))
+        serial_port.write(bytes([TV_WRITE_BYTE, 0x38, 0x0B, (height >> 0) & 0xFF]))
+
+    widgets += [types.SimpleNamespace(
+        callback = resolution_callback,
+        element  = pygame_gui.elements.UIDropDownMenu(
+            relative_rect   = pygame.Rect((0, calculate_widget_y()), (128, 32)),
+            options_list    = resolution_options_list,
+            starting_option = [
+                text
+                for text, resolution in resolution_options_list.items()
+                if resolution == OVCAM_DEFAULT_RESOLUTION
+            ][0],
+            visible = False,
+            manager = manager,
+        ),
+    )]
+
+
+
+    # Options for doing PRE-ISP tests.
+
+    def pre_isp_test_callback(widget):
+
+        pre_isp_test_setting_value = 0
+        bit_index                  = 0
+
+        for field in PRE_ISP_TEST_SETTING_FIELDS:
+
+            widget, = (
+                widget
+                for widget in widgets
+                if widget.callback == pre_isp_test_callback
+                if widget.field    == field
+            )
+
+            if field.options == bool:
+                field_value = widget.element.get_state()
+                field_width = 1
+            else:
+                field_value = field.options.index(widget.element.selected_option[0])
+                field_width = len(f'{len(field.options) :b}') - 1
+
+            pre_isp_test_setting_value |= field_value << bit_index
+            bit_index                  += field_width
+
+        serial_port.write(bytes([TV_WRITE_BYTE, 0x50, 0x3D, pre_isp_test_setting_value]))
+
+    for field in reversed(PRE_ISP_TEST_SETTING_FIELDS):
+
+        if field.options == bool:
+
+            widgets += [types.SimpleNamespace(
+                field    = field,
+                callback = pre_isp_test_callback,
+                element  = pygame_gui.elements.UICheckBox(
+                    relative_rect = pygame.Rect((0, calculate_widget_y()), (16, 16)),
+                    text          = field.description,
+                    initial_state = False,
+                    visible       = False,
+                    manager       = manager,
+                ),
+            )]
+
+        else:
+
+            widgets += [types.SimpleNamespace(
+                field    = field,
+                callback = pre_isp_test_callback,
+                element  = pygame_gui.elements.UIDropDownMenu(
+                    relative_rect = pygame.Rect(
+                        (0, calculate_widget_y()),
+                        (max(len(option) for option in field.options) * 12, 32)
+                    ),
+                    options_list    = field.options,
+                    starting_option = field.options[0],
+                    visible         = False,
+                    manager         = manager,
+                ),
+            )]
+
+
+
+    # Image data sent over the ST-Link serial port
+    # will be delimited with starting and ending tokens.
+
+    stlink      = request_stlinks(specific_one = True)
+    serial_port = serial.Serial(
+        stlink.comport.device,
+        baudrate = STLINK_BAUD,
+        timeout  = 0
+    )
+
+    token_expected = TV_TOKEN.START
+    stream_data    = b''
+
+
+
+    # Routine to handle the chunks of image
+    # data as they come through the serial port.
+
+    image_data      = None
+    past_sizes      = []
+    past_timestamps = []
+
+    def stream_callback(event, new_data):
+
+        nonlocal surface, image_data, past_sizes, past_timestamps
+
+        match event:
+
+
+
+            # Initializing for the new image.
+
+            case 'starting':
+
+                image_data = b''
+
+
+
+            # Adding the new information to the image.
+
+            case 'continuing':
+
+                image_data += new_data
+
+
+
+                # Seems like PyGame's image loader is sometimes okay
+                # when the JPEG frame is incomplete; we might
+                # as well render it to show progress so far.
+
+                if stream_image_progress:
+
+                    try:
+                        surface = pygame.image.load(io.BytesIO(image_data))
+                    except pygame.error as error:
+                        pass
+
+
+
+                # Ensure we aren't collecting too much data.
+
+                got       = len(image_data)
+                excessive = 128 * 1024
+
+                if got > excessive:
+
+                    logger.error(f'Got {got} bytes; expected at most {excessive} bytes.')
+
+                    return True
+
+
+
+            # Adding the last bit of data to the image and rendering it.
+
+            case 'ending':
+
+                image_data += new_data
+
+
+
+                # Record the size of the JPEG frame
+                # and average it with the past frames.
+
+                past_sizes   += [len(image_data)]
+                past_sizes    = past_sizes[-10:]
+                average_size  = sum(past_sizes) / len(past_sizes)
+
+
+
+                # Record the delta time between each frame
+                # to estimate the frame-rate.
+
+                past_timestamps += [time.time()]
+                past_timestamps  = past_timestamps[-10:]
+
+                if len(past_timestamps) >= 2:
+
+                    average_fps = [
+                        1 / (past_timestamps[i + 1] - past_timestamps[i])
+                        for i in range(len(past_timestamps) - 1)
+                    ]
+
+                    average_fps = sum(average_fps) / len(average_fps)
+
+                else:
+
+                    average_fps = 0
+
+
+
+                # Display the statistics.
+
+                pygame.display.set_caption(
+                    ' | '.join((
+                        f'curr. {len(image_data) :_} bytes',
+                        f'avg. {round(average_size) :_} bytes',
+                        f'avg. {average_fps :.4f} FPS',
+                    ))
+                )
+
+
+
+                # Try parsing the JPEG frame.
+
+                try:
+
+                    surface = pygame.image.load(io.BytesIO(image_data))
+
+                except pygame.error as error:
+
+                    logger.error(f'PyGame failed to parse received JPEG image data: {repr(str(error))}.')
+
+                    return True
+
+
+
+            case idk: raise RuntimeError(idk)
+
+
+
+    # Window loop.
+
+    while not quit:
+
+
+
+        # Handle inputs.
+
+        dt = clock.tick(60) / 1000
+
+        for event in pygame.event.get():
+
+            manager.process_events(event)
+
+            match event.type:
+
+
+
+                # A quit signal from ALT+F4 for instance.
+
+                case pygame.QUIT:
+                    quit = True
+
+
+
+                # Handle keybindings.
+
+                case pygame.KEYDOWN:
+
+
+
+                    # Determine keystroke.
+
+                    keystroke = pygame.key.name(event.key)
+
+                    if keystroke == 'return':
+                        keystroke = 'enter'
+
+                    if event.mod & pygame.KMOD_SHIFT:
+                        keystroke = f'shift-{keystroke}'
+
+                    if event.mod & pygame.KMOD_CTRL:
+                        keystroke = f'ctrl-{keystroke}'
+
+
+
+                    # Execute the appropriate keybinding if one exists.
+
+                    for keybinding in keybindings:
+                        if keybinding.keystroke == keystroke:
+                                keybinding.function()
+
+
+
+                # Handle UI events.
+
+                case (
+                    pygame_gui.UI_BUTTON_PRESSED         |
+                    pygame_gui.UI_CHECK_BOX_CHECKED      |
+                    pygame_gui.UI_CHECK_BOX_UNCHECKED    |
+                    pygame_gui.UI_DROP_DOWN_MENU_CHANGED
+                ):
+
+
+
+                    # Skip buttons belonging to drop-down menus.
+
+                    if (hasattr(event.ui_element, 'parent_element') and (
+                        isinstance(event.ui_element.parent_element, pygame_gui.elements.ui_drop_down_menu.UIDropDownMenu ) or
+                        isinstance(event.ui_element.parent_element, pygame_gui.elements.ui_selection_list.UISelectionList)
+                    )):
+                        continue
+
+
+
+                    # Find the corresponding widget and run its callback.
+
+                    widget, = (
+                        widget
+                        for widget in widgets
+                        if widget.element == event.ui_element
+                    )
+
+                    widget.callback(widget)
+
+
+
+        # Grab the new serial data, if any.
+
+        if serial_port.in_waiting:
+
+            stream_data += serial_port.read(serial_port.in_waiting)
+
+            while True:
+
+
+
+                # Determine the first token in the stream, if any.
+
+                try:
+                    start_token_index = stream_data.index(TV_TOKEN.START)
+                except ValueError:
+                    start_token_index = None
+
+                try:
+                    end_token_index = stream_data.index(TV_TOKEN.END)
+                except ValueError:
+                    end_token_index = None
+
+                next_token_found = None
+                next_token_index = None
+
+                match (start_token_index, end_token_index):
+
+                    case (None, None):
+                        next_token_found = None
+                        next_token_index = None
+
+                    case (_, None):
+                        next_token_found = TV_TOKEN.START
+                        next_token_index = start_token_index
+
+                    case (None, _):
+                        next_token_found = TV_TOKEN.END
+                        next_token_index = end_token_index
+
+                    case (a, b) if a < b:
+                        next_token_found = TV_TOKEN.START
+                        next_token_index = start_token_index
+
+                    case (a, b) if a > b:
+                        next_token_found = TV_TOKEN.END
+                        next_token_index = end_token_index
+
+                    case idk: raise RuntimeError(idk)
+
+
+
+                # A token was found, so we split the stream into
+                # what came before the token and what's after.
+
+                if next_token_found:
+
+                    data_before_token = stream_data[: next_token_index]
+                    stream_data       = stream_data[next_token_index + len(next_token_found) :]
+
+
+
+                # No token was found, so most the stream will be
+                # before whatever the next token will be; we have
+                # to be aware of the edge-case that the next token
+                # might've been truncated at the end of the stream.
+
+                else:
+
+                    split_index = max(
+                        len(stream_data) - max(len(TV_TOKEN.START), len(TV_TOKEN.END)) + 1,
+                        0
+                    )
+
+                    data_before_token = stream_data[            : split_index]
+                    stream_data       = stream_data[split_index :            ]
+
+
+
+                # Handle the new stream data.
+
+                stream_error = None
+
+                match (token_expected, next_token_found):
+
+
+
+                    # No start token yet,
+                    # so the data is meaningless to us.
+
+                    case (TV_TOKEN.START, None):
+
+                        pass
+
+
+
+                    # Start token found! The following
+                    # stream data will be image data.
+
+                    case (TV_TOKEN.START, TV_TOKEN.START):
+
+                        stream_error   = stream_callback('starting', b'')
+                        token_expected = TV_TOKEN.END
+
+
+
+                    # Found an end token for some reason;
+                    # this is probably okay, because the
+                    # TV might've been started during the
+                    # streaming of image data.
+
+                    case (TV_TOKEN.START, TV_TOKEN.END):
+
+                        pass
+
+
+
+                    # We have some new image data that was
+                    # just streamed in!
+
+                    case (TV_TOKEN.END, None):
+
+                        stream_error = stream_callback('continuing', data_before_token)
+
+
+
+                    # Uh oh, image data stream is starting
+                    # again for some reason...
+
+                    case (TV_TOKEN.END, TV_TOKEN.START):
+
+                        logger.error('Two consecutive start tokens found; restarting image stream.')
+
+                        stream_error = True
+
+                        stream_callback('starting', b'')
+
+
+
+                    # We've received the last of the image data.
+
+                    case (TV_TOKEN.END, TV_TOKEN.END):
+
+                        stream_error   = stream_callback('ending', data_before_token)
+                        token_expected = TV_TOKEN.START
+
+
+
+                    case idk: raise RuntimeError(idk)
+
+
+
+                # If there was something wrong with the data,
+                # we'll pretty much discard everything and start over.
+
+                if stream_error:
+
+                    surface.fill(SURFACE_DEFAULT_RGB)
+
+                    token_expected  = TV_TOKEN.START
+                    past_sizes      = []
+                    past_timestamps = []
+
+
+
+                # We've processed the stream
+                # as much as we have possibly can.
+
+                if len(stream_data) < max(len(TV_TOKEN.START), len(TV_TOKEN.END)):
+                    break
+
+
+
+        # Render.
+
+        screen.blit(
+            pygame.transform.scale(
+                pygame.transform.flip(
+                    surface,
+                    orientation & 0b01,
+                    orientation & 0b10,
+                ),
+                (screen.get_width(), screen.get_height())
+            ),
+            (0, 0)
+        )
+
+        manager.update(dt)
+        manager.draw_ui(screen)
+
+        pygame.display.update()
 
 
 

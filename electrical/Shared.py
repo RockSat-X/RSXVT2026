@@ -1,7 +1,7 @@
-#meta STLINK_BAUD, TARGETS, PER_MCU, PER_TARGET :
+#meta STLINK_BAUD, TARGETS, PER_MCU, PER_TARGET, OVCAM_DEFAULT_RESOLUTION, TV_WRITE_BYTE, TV_TOKEN, OVCAM_JPEG_CTRL3_FIELDS :
 
 import types, collections
-from deps.stpy.pxd.utils import make_main_relative_path, c_repr
+from deps.stpy.pxd.utils import make_main_relative_path, c_repr, SimpleNamespaceTable
 from deps.stpy.mcus      import MCUS
 
 
@@ -9,6 +9,45 @@ from deps.stpy.mcus      import MCUS
 ################################################################################
 
 
+
+OVCAM_DEFAULT_RESOLUTION = (800, 480)
+
+OVCAM_RESOLUTIONS = (
+    (160, 120),
+    (320, 240),
+    (480, 272),
+    (640, 480),
+    (800, 480),
+)
+
+OVCAM_JPEG_CTRL3_FIELDS = SimpleNamespaceTable(
+    ('description'                   , 'default', 'configurable'),
+    ('Input shift 128 select for Y.' , True     , True          ),
+    ('Input shift 128 select for C.' , True     , True          ),
+    ('Enable rounding for Y.'        , True     , True          ),
+    ('Enable rounding for C.'        , True     , True          ),
+    ('Enable Huffman table output.'  , True     , False         ), # Breaking change.
+    ('Enable zero stuffing.'         , True     , False         ), # Breaking change.
+    ('Enable MPEG.'                  , False    , False         ), # Doesn't seem to do anything.
+    ('Use SRAM QT instead of ROM QT.', False    , True          ),
+)
+
+PRE_ISP_TEST_SETTING_FIELDS = SimpleNamespaceTable(
+    ('description'              , 'options'),
+    ('PRE-ISP test type.'       , ('Color bar', 'Random data', 'Square data', 'Black image')),
+    ('PRE-ISP test bar style.'  , ('Standard 8 color bar', 'Gradual change at vertical mode 1', 'Gradual change at horizontal', 'Gradual change at vertical mode 2')),
+    ('Black and white squares.' , bool),
+    ('Transparent PRE-ISP test.', bool),
+    ('Rolling PRE-ISP test.'    , bool),
+    ('Enable PRE-ISP test.'     , bool),
+)
+
+TV_WRITE_BYTE = 0x01
+
+TV_TOKEN = types.SimpleNamespace(
+    START = b'<TV>',
+    END   = b'</TV>',
+)
 
 STLINK_BAUD = 1_000_000
 
@@ -796,6 +835,85 @@ TARGETS = (
             'APB3_CK'           : 250_000_000,
             'USART2_BAUD'       : STLINK_BAUD,
             'TIM1_COUNTER_RATE' : 1_000_000,
+        },
+
+    ),
+
+
+
+    ########################################
+
+
+
+    types.SimpleNamespace(
+
+        name              = 'DemoOVCAM',
+        mcu               = 'STM32H533RET6',
+        source_file_paths = make_main_relative_path('''
+            ./electrical/DemoOVCAM.c
+        '''),
+
+        kicad_project = None,
+
+        gpios = (
+            ('led_green'           , 'A5' , 'OUTPUT'   , { 'initlvl' : False                                          }),
+            ('stlink_tx'           , 'A2' , 'ALTERNATE', { 'altfunc' : 'USART2_TX'                                    }),
+            ('stlink_rx'           , 'A3' , 'ALTERNATE', { 'altfunc' : 'USART2_RX'                                    }),
+            ('swdio'               , 'A13', None       , {                                                            }),
+            ('swclk'               , 'A14', None       , {                                                            }),
+            ('button'              , 'C13', 'INPUT'    , { 'pull'    : None, 'active' : True                          }),
+            ('ovcam_data_0'        , 'C6' , 'ALTERNATE', { 'altfunc' : 'DCMI_D0'                                      }),
+            ('ovcam_data_1'        , 'C7' , 'ALTERNATE', { 'altfunc' : 'DCMI_D1'                                      }),
+            ('ovcam_data_2'        , 'B15', 'ALTERNATE', { 'altfunc' : 'DCMI_D2'                                      }),
+            ('ovcam_data_3'        , 'C9' , 'ALTERNATE', { 'altfunc' : 'DCMI_D3'                                      }),
+            ('ovcam_data_4'        , 'C11', 'ALTERNATE', { 'altfunc' : 'DCMI_D4'                                      }),
+            ('ovcam_data_5'        , 'B6' , 'ALTERNATE', { 'altfunc' : 'DCMI_D5'                                      }),
+            ('ovcam_data_6'        , 'B8' , 'ALTERNATE', { 'altfunc' : 'DCMI_D6'                                      }),
+            ('ovcam_data_7'        , 'B4' , 'ALTERNATE', { 'altfunc' : 'DCMI_D7'                                      }),
+            ('ovcam_pixel_clock'   , 'A6' , 'ALTERNATE', { 'altfunc' : 'DCMI_PIXCLK'                                  }),
+            ('ovcam_vsync'         , 'B7' , 'ALTERNATE', { 'altfunc' : 'DCMI_VSYNC'                                   }),
+            ('ovcam_hsync'         , 'A4' , 'ALTERNATE', { 'altfunc' : 'DCMI_HSYNC'                                   }), # Note that SB22 should be shorted, SB3 and SB7 open.
+            ('ovcam_power_down'    , 'A10', 'OUTPUT'   , { 'initlvl' : True                                           }),
+            ('ovcam_restart'       , 'C5' , 'OUTPUT'   , { 'initlvl' : False                                          }),
+            ('ovcam_i2c_clock'     , 'B10', 'ALTERNATE', { 'altfunc' : 'I2C2_SCL', 'open_drain' : True, 'pull' : 'UP' }),
+            ('ovcam_i2c_data'      , 'B12', 'ALTERNATE', { 'altfunc' : 'I2C2_SDA', 'open_drain' : True, 'pull' : 'UP' }),
+        ),
+
+        interrupts = (
+            ('USART2'         , 0),
+            ('GPDMA1_Channel7', 1),
+            ('DCMI_PSSI'      , 2),
+            ('I2C2_EV'        , 3),
+            ('I2C2_ER'        , 3),
+        ),
+
+        drivers = (
+            {
+                'type'       : 'UXART',
+                'peripheral' : 'USART2',
+                'handle'     : 'stlink',
+            },
+            {
+                'type'       : 'I2C',
+                'peripheral' : 'I2C2',
+                'handle'     : 'ovcam_sccb',
+                'role'       : 'master',
+            },
+        ),
+
+        use_freertos    = False,
+        main_stack_size = 8192,
+        schema          = {
+            'HSI_ENABLE'   : True,
+            'HSI48_ENABLE' : True,
+            'CSI_ENABLE'   : True,
+            'PLL1P_CK'     : 240_000_000,
+            'CPU_CK'       : 240_000_000,
+            'APB1_CK'      : 240_000_000,
+            'APB2_CK'      : 240_000_000,
+            'APB3_CK'      : 240_000_000,
+            'USART2_BAUD'  : STLINK_BAUD,
+            'I2C2_BAUD'    : 10_000,
         },
 
     ),
