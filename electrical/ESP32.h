@@ -77,3 +77,65 @@ pack_push
 pack_pop
 
 static_assert(sizeof(struct PacketESP32) == 250);
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+// TODO Look more into the specs.
+// TODO Make robust.
+extern void
+common_init_esp_now(void)
+{
+
+    WiFi.mode(WIFI_STA);
+    esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE);
+
+    if (esp_now_init() != ESP_OK)
+    {
+        Serial.printf("Error initializing ESP-NOW.\n");
+        ESP.restart();
+        return;
+    }
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+static SX1262 packet_lora_radio = new Module(41, 39, 42, 40);
+
+
+
+// TODO Look more into the specs.
+// TODO Make robust.
+extern void
+common_init_lora()
+{
+
+    if (packet_lora_radio.begin() != RADIOLIB_ERR_NONE)
+    {
+        Serial.printf("Failed to initialize radio.\n");
+        ESP.restart();
+        return;
+    }
+
+    packet_lora_radio.setFrequency(915.0);
+    packet_lora_radio.setBandwidth(7.8);
+    packet_lora_radio.setSpreadingFactor(6);
+    packet_lora_radio.setCodingRate(5);
+    packet_lora_radio.setOutputPower(22);
+    packet_lora_radio.setPreambleLength(8);
+    packet_lora_radio.setSyncWord(0x34);
+    packet_lora_radio.setCRC(true);
+
+    extern void packet_lora_callback(void);
+
+    packet_lora_radio.setDio1Action(packet_lora_callback);
+
+}
