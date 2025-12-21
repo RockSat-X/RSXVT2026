@@ -119,9 +119,9 @@ loop(void)
 
         // Fill in the sequence number.
 
-        static typeof(packet_esp32->nonredundant.sequence_number) current_sequence_number = {0};
+        static typeof(packet_esp32->sequence_number) current_sequence_number = {0};
 
-        packet_esp32->nonredundant.sequence_number = current_sequence_number;
+        packet_esp32->sequence_number = current_sequence_number;
 
         current_sequence_number += 1;
 

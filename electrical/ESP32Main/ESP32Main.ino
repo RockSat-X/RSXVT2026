@@ -153,15 +153,15 @@ loop(void)
 
         // Check sequence number.
 
-        static typeof(packet_esp32->nonredundant.sequence_number) expected_sequence_number = {0};
+        static typeof(packet_esp32->sequence_number) expected_sequence_number = {0};
 
-        if (packet_esp32->nonredundant.sequence_number == expected_sequence_number)
+        if (packet_esp32->sequence_number == expected_sequence_number)
         {
             packet_esp32_consecutive_sequence_number_count += 1;
         }
         else
         {
-            expected_sequence_number                   = packet_esp32->nonredundant.sequence_number;
+            expected_sequence_number                   = packet_esp32->sequence_number;
             packet_esp32_broken_sequence_number_count += 1;
         }
 

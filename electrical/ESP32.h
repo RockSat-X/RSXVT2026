@@ -34,35 +34,45 @@ typedef double             f64; static_assert(sizeof(f64) == 8);
 
 
 pack_push
+
+    struct PacketLoRa
+    {
+        u16 sequence_number;
+        u16 timestamp_ms;
+        f32 quaternion_i;
+        f32 quaternion_j;
+        f32 quaternion_k;
+        f32 quaternion_r;
+        f32 accelerometer_x;
+        f32 accelerometer_y;
+        f32 accelerometer_z;
+        f32 gyro_x;
+        f32 gyro_y;
+        f32 gyro_z;
+        f32 computer_vision_confidence;
+    };
+
     struct PacketESP32
     {
-
-        struct PacketLoRa
-        {
-            u16 sequence_number;
-            u16 timestamp_ms;
-            f32 quaternion_i;
-            f32 quaternion_j;
-            f32 quaternion_k;
-            f32 quaternion_r;
-            f32 accelerometer_x;
-            f32 accelerometer_y;
-            f32 accelerometer_z;
-            f32 gyro_x;
-            f32 gyro_y;
-            f32 gyro_z;
-            f32 computer_vision_confidence;
-        } nonredundant;
-
-        struct
-        {
-            f32 magnetometer_x;
-            f32 magnetometer_y;
-            f32 magnetometer_z;
-            u8  image_chunk[190];
-        } redundant;
-
+        u16 sequence_number;
+        u16 timestamp_ms;
+        f32 quaternion_i;
+        f32 quaternion_j;
+        f32 quaternion_k;
+        f32 quaternion_r;
+        f32 accelerometer_x;
+        f32 accelerometer_y;
+        f32 accelerometer_z;
+        f32 gyro_x;
+        f32 gyro_y;
+        f32 gyro_z;
+        f32 computer_vision_confidence;
+        f32 magnetometer_x;
+        f32 magnetometer_y;
+        f32 magnetometer_z;
+        u8  image_chunk[190];
     };
+
 pack_pop
 
 static_assert(sizeof(struct PacketESP32) == 250);
