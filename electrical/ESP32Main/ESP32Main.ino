@@ -147,21 +147,21 @@ loop(void)
     if (packet_esp32_reader != packet_esp32_writer)
     {
 
-        struct PacketESP32* packet_esp32 = &packet_esp32_buffer[packet_esp32_reader % countof(packet_esp32_buffer)];
+        struct PacketESP32* packet = &packet_esp32_buffer[packet_esp32_reader % countof(packet_esp32_buffer)];
 
 
 
         // Check sequence number.
 
-        static typeof(packet_esp32->sequence_number) expected_sequence_number = {0};
+        static typeof(packet->sequence_number) expected_sequence_number = {0};
 
-        if (packet_esp32->sequence_number == expected_sequence_number)
+        if (packet->sequence_number == expected_sequence_number)
         {
             packet_esp32_consecutive_sequence_number_count += 1;
         }
         else
         {
-            expected_sequence_number                   = packet_esp32->sequence_number;
+            expected_sequence_number                   = packet->sequence_number;
             packet_esp32_broken_sequence_number_count += 1;
         }
 
@@ -171,7 +171,7 @@ loop(void)
 
         // Count the amount of data we got.
 
-        packet_esp32_bytes_received += sizeof(*packet_esp32);
+        packet_esp32_bytes_received += sizeof(*packet);
 
 
 

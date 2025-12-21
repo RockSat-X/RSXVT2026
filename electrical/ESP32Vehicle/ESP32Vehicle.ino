@@ -113,15 +113,15 @@ loop(void)
     if (packet_esp32_writer - packet_esp32_reader < countof(packet_esp32_buffer))
     {
 
-        struct PacketESP32* packet_esp32 = &packet_esp32_buffer[packet_esp32_writer % countof(packet_esp32_buffer)];
+        struct PacketESP32* packet = &packet_esp32_buffer[packet_esp32_writer % countof(packet_esp32_buffer)];
 
 
 
         // Fill in the sequence number.
 
-        static typeof(packet_esp32->sequence_number) current_sequence_number = {0};
+        static typeof(packet->sequence_number) current_sequence_number = {0};
 
-        packet_esp32->sequence_number = current_sequence_number;
+        packet->sequence_number = current_sequence_number;
 
         current_sequence_number += 1;
 
