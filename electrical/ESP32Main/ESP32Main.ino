@@ -288,10 +288,9 @@ loop(void)
         Serial.printf("(ESP32) Packets with consecutive sequence number so far : %d"            "\n", packet_esp32_consecutive_sequence_number_count);
         Serial.printf("(ESP32) Packets with broken sequence number so far      : %d"            "\n", packet_esp32_broken_sequence_number_count);
 
-
         Serial.printf("(LoRa)  Payload bytes received                          : %u"   " bytes" "\n", packet_lora_bytes_received);
         Serial.printf("(LoRa)  Average throughput since power-on               : %.0f" " B/s"   "\n", packet_lora_bytes_received / (millis() / 1000.0f));
-        Serial.printf("(ESP32) Packets of invalid length so far                : %d"            "\n", packet_lora_invalid_length_count);
+        Serial.printf("(LoRa)  Packets of invalid length so far                : %d"            "\n", packet_lora_invalid_length_count);
         Serial.printf("(LoRa)  Packets with radio error so far                 : %d"            "\n", packet_lora_radio_error_count);
         Serial.printf("(LoRa)  Packets dropped from ring-buffer so far         : %d"            "\n", packet_lora_overrun_count);
         Serial.printf("(LoRa)  Packets with consecutive sequence number so far : %d"            "\n", packet_lora_consecutive_sequence_number_count);
