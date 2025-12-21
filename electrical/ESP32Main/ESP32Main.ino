@@ -2,7 +2,7 @@
 
 
 
-static struct PacketLoRa  packet_lora_buffer[128]           = {0};
+static struct PacketLoRa  packet_lora_buffer[128]           = {};
 static volatile u32       packet_lora_writer                = 0;
 static volatile u32       packet_lora_reader                = 0;
 static volatile b32       packet_lora_radio_data_available  = false;
@@ -10,7 +10,7 @@ static volatile i32       packet_lora_invalid_length_count  = 0;
 static volatile i32       packet_lora_radio_error_count     = 0;
 static volatile i32       packet_lora_overrun_count         = 0;
 
-static struct PacketESP32 packet_esp32_buffer[128]          = {0};
+static struct PacketESP32 packet_esp32_buffer[128]          = {};
 static volatile u32       packet_esp32_writer               = 0;
 static volatile u32       packet_esp32_reader               = 0;
 static volatile i32       packet_esp32_invalid_length_count = 0;
@@ -121,13 +121,13 @@ loop(void)
 
     digitalWrite(BUILTIN_LED, !digitalRead(BUILTIN_LED));
 
-    static u32 packet_esp32_bytes_received                    = {0};
-    static i32 packet_esp32_consecutive_sequence_number_count = {0};
-    static i32 packet_esp32_broken_sequence_number_count      = {0};
+    static u32 packet_esp32_bytes_received                    = 0;
+    static i32 packet_esp32_consecutive_sequence_number_count = 0;
+    static i32 packet_esp32_broken_sequence_number_count      = 0;
 
-    static u32 packet_lora_bytes_received                     = {0};
-    static i32 packet_lora_consecutive_sequence_number_count  = {0};
-    static i32 packet_lora_broken_sequence_number_count       = {0};
+    static u32 packet_lora_bytes_received                     = 0;
+    static i32 packet_lora_consecutive_sequence_number_count  = 0;
+    static i32 packet_lora_broken_sequence_number_count       = 0;
 
 
 
@@ -142,15 +142,15 @@ loop(void)
 
         // Check sequence number.
 
-        static typeof(packet->sequence_number) expected_sequence_number = {0};
+        static typeof(packet->nonredundant.sequence_number) expected_sequence_number = 0;
 
-        if (packet->sequence_number == expected_sequence_number)
+        if (packet->nonredundant.sequence_number == expected_sequence_number)
         {
             packet_esp32_consecutive_sequence_number_count += 1;
         }
         else
         {
-            expected_sequence_number                   = packet->sequence_number;
+            expected_sequence_number                   = packet->nonredundant.sequence_number;
             packet_esp32_broken_sequence_number_count += 1;
         }
 
@@ -191,7 +191,7 @@ loop(void)
 
             // TODO This might flush it.
 
-            u8 dummy = {0};
+            u8 dummy = 0;
             packet_lora_radio.readData(&dummy, 1);
 
             packet_lora_invalid_length_count += 1;
@@ -240,7 +240,7 @@ loop(void)
 
         // Check sequence number.
 
-        static typeof(packet->sequence_number) expected_sequence_number = {0};
+        static typeof(packet->sequence_number) expected_sequence_number = 0;
 
         if (packet->sequence_number == expected_sequence_number)
         {
@@ -272,7 +272,7 @@ loop(void)
 
     // Output statistics at regular intervals.
 
-    static u32 last_statistic_timestamp_ms = {0};
+    static u32 last_statistic_timestamp_ms = 0;
 
     u32 current_timestamp_ms = millis();
 
