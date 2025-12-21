@@ -4,25 +4,25 @@
 
 const static u8 MAIN_ESP32_MAC_ADDRESS[] = { 0x10, 0xB4, 0x1D, 0xE8, 0x97, 0x28 };
 
-static struct Message message_buffer[128] = {0};
-static volatile u32   message_writer      = 0;
-static volatile u32   message_reader      = 0;
-static volatile b32   transmission_busy   = false;
+static struct PacketESP32 packet_esp32_buffer[128]       = {0};
+static volatile u32       packet_esp32_writer            = 0;
+static volatile u32       packet_esp32_reader            = 0;
+static volatile b32       packet_esp32_transmission_busy = false;
 
-static SX1262        radio      = new Module(41, 39, 42, 40);
-static volatile bool radio_busy = false;
+static SX1262        packet_lora_radio             = new Module(41, 39, 42, 40);
+static volatile bool packet_lora_transmission_busy = false;
 
 
 
 extern void
-transmission_callback
+packet_esp32_transmission_callback
 (
     const wifi_tx_info_t* info,
     esp_now_send_status_t status
 )
 {
-    message_reader    += 1;
-    transmission_busy  = false;
+    packet_esp32_reader            += 1;
+    packet_esp32_transmission_busy  = false;
 }
 
 
@@ -31,7 +31,7 @@ ICACHE_RAM_ATTR
 extern void
 radio_callback(void)
 {
-    radio_busy = false;
+    packet_lora_transmission_busy = false;
 }
 
 
@@ -62,7 +62,7 @@ setup(void)
         return;
     }
 
-    esp_now_register_send_cb(transmission_callback);
+    esp_now_register_send_cb(packet_esp32_transmission_callback);
 
     esp_now_peer_info_t info = {0};
     info.peer_addr[0] = MAIN_ESP32_MAC_ADDRESS[0];
@@ -87,14 +87,14 @@ setup(void)
     // TODO Look more into the specs.
     // TODO Make robust.
 
-    if (radio.begin() != RADIOLIB_ERR_NONE)
+    if (packet_lora_radio.begin() != RADIOLIB_ERR_NONE)
     {
         Serial.printf("Failed to initialize radio.\n");
         ESP.restart();
         return;
     }
 
-    radio.setDio1Action(radio_callback);
+    packet_lora_radio.setDio1Action(radio_callback);
 
 }
 
@@ -108,20 +108,20 @@ loop(void)
 
 
 
-    // Space for another packet to be queued up for transmission?
+    // Space for another ESP32 packet to be queued up for transmission?
 
-    if (message_writer - message_reader < countof(message_buffer))
+    if (packet_esp32_writer - packet_esp32_reader < countof(packet_esp32_buffer))
     {
 
-        struct Message* message = &message_buffer[message_writer % countof(message_buffer)];
+        struct PacketESP32* packet_esp32 = &packet_esp32_buffer[packet_esp32_writer % countof(packet_esp32_buffer)];
 
 
 
         // Fill in the sequence number.
 
-        static typeof(message->sequence_number) current_sequence_number = {0};
+        static typeof(packet_esp32->nonredundant.sequence_number) current_sequence_number = {0};
 
-        message->sequence_number = current_sequence_number;
+        packet_esp32->nonredundant.sequence_number = current_sequence_number;
 
         current_sequence_number += 1;
 
@@ -135,32 +135,32 @@ loop(void)
 
         // A new packet is available in the ring-buffer!
 
-        message_writer += 1;
+        packet_esp32_writer += 1;
 
     }
 
 
 
-    // See if there's a packet to be sent and
+    // See if there's an ESP32 packet to be sent and
     // that we can transmit one at all.
 
-    if (message_reader != message_writer && !transmission_busy)
+    if (packet_esp32_reader != packet_esp32_writer && !packet_esp32_transmission_busy)
     {
 
-        transmission_busy = true;
+        packet_esp32_transmission_busy = true;
 
         if
         (
             esp_now_send
             (
                 MAIN_ESP32_MAC_ADDRESS,
-                (u8*) &message_buffer[message_reader % countof(message_buffer)],
-                sizeof(struct Message)
+                (u8*) &packet_esp32_buffer[packet_esp32_reader % countof(packet_esp32_buffer)],
+                sizeof(struct PacketESP32)
             ) != ESP_OK
         )
         {
             Serial.printf("Send Error!\n");
-            transmission_busy = false;
+            packet_esp32_transmission_busy = false;
         }
 
     }
@@ -169,11 +169,11 @@ loop(void)
 
     // Send the next LoRa packet.
 
-    if (!radio_busy)
+    if (!packet_lora_transmission_busy)
     {
-        radio_busy = true;
+        packet_lora_transmission_busy = true;
         Serial.printf("Sending another packet...\n");
-        radio.startTransmit("Hello World!");
+        packet_lora_radio.startTransmit("Hello World!");
     }
 
 }

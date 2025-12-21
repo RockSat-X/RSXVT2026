@@ -9,6 +9,8 @@
 
 
 #define countof(...) (sizeof(__VA_ARGS__) / sizeof((__VA_ARGS__)[0]))
+#define pack_push    _Pragma("pack(push, 1)")
+#define pack_pop     _Pragma("pack(pop)")
 
 typedef unsigned char      u8;  static_assert(sizeof(u8 ) == 1);
 typedef unsigned short     u16; static_assert(sizeof(u16) == 2);
@@ -31,25 +33,36 @@ typedef double             f64; static_assert(sizeof(f64) == 8);
 
 
 
-struct Message
-{
-    f32 quaternion_i;
-    f32 quaternion_j;
-    f32 quaternion_k;
-    f32 quaternion_r;
-    f32 magnetometer_x;
-    f32 magnetometer_y;
-    f32 magnetometer_z;
-    f32 accelerometer_x;
-    f32 accelerometer_y;
-    f32 accelerometer_z;
-    f32 gyro_x;
-    f32 gyro_y;
-    f32 gyro_z;
-    f32 computer_vision_confidence;
-    u16 timestamp_ms;
-    u16 sequence_number;
-    u8  image_chunk[190];
-} __attribute__((packed));
+pack_push
+    struct PacketESP32
+    {
 
-static_assert(sizeof(struct Message) == 250);
+        struct PacketLoRa
+        {
+            u16 sequence_number;
+            u16 timestamp_ms;
+            f32 quaternion_i;
+            f32 quaternion_j;
+            f32 quaternion_k;
+            f32 quaternion_r;
+            f32 accelerometer_x;
+            f32 accelerometer_y;
+            f32 accelerometer_z;
+            f32 gyro_x;
+            f32 gyro_y;
+            f32 gyro_z;
+            f32 computer_vision_confidence;
+        } nonredundant;
+
+        struct
+        {
+            f32 magnetometer_x;
+            f32 magnetometer_y;
+            f32 magnetometer_z;
+            u8  image_chunk[190];
+        } redundant;
+
+    };
+pack_pop
+
+static_assert(sizeof(struct PacketESP32) == 250);

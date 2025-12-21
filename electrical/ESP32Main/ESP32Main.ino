@@ -2,19 +2,19 @@
 
 
 
-static SX1262         radio                = new Module(41, 39, 42, 40);
-static volatile b32   radio_data_available = false;
+static SX1262         packet_lora_radio          = new Module(41, 39, 42, 40);
+static volatile b32   packet_lora_data_available = false;
 
-static struct Message message_buffer[128]          = {0};
-static volatile u32   message_writer               = {0};
-static volatile u32   message_reader               = {0};
-static volatile i32   message_invalid_length_count = {0};
-static volatile i32   message_overrun_count        = {0};
+static struct PacketESP32 packet_esp32_buffer[128]          = {0};
+static volatile u32       packet_esp32_writer               = {0};
+static volatile u32       packet_esp32_reader               = {0};
+static volatile i32       packet_esp32_invalid_length_count = {0};
+static volatile i32       packet_esp32_overrun_count        = {0};
 
 
 
 extern void
-reception_callback
+packet_esp32_reception_callback
 (
     const esp_now_recv_info* info,
     const u8*                received_data,
@@ -24,18 +24,18 @@ reception_callback
 
     // Received packet is of the wrong length?
 
-    if (received_amount != sizeof(struct Message))
+    if (received_amount != sizeof(struct PacketESP32))
     {
-        message_invalid_length_count += 1;
+        packet_esp32_invalid_length_count += 1;
     }
 
 
 
     // Not enough space in the ring-buffer?
 
-    else if (message_writer - message_reader >= countof(message_buffer))
+    else if (packet_esp32_writer - packet_esp32_reader >= countof(packet_esp32_buffer))
     {
-        message_overrun_count += 1;
+        packet_esp32_overrun_count += 1;
     }
 
 
@@ -46,11 +46,11 @@ reception_callback
     {
         memcpy
         (
-            &message_buffer[message_writer % countof(message_buffer)],
+            &packet_esp32_buffer[packet_esp32_writer % countof(packet_esp32_buffer)],
             received_data,
             received_amount
         );
-        message_writer += 1;
+        packet_esp32_writer += 1;
     }
 
 }
@@ -59,9 +59,9 @@ reception_callback
 
 ICACHE_RAM_ATTR
 extern void
-radio_callback(void)
+packet_lora_callback(void)
 {
-    radio_data_available = true;
+    packet_lora_data_available = true;
 }
 
 
@@ -92,7 +92,7 @@ setup(void)
         return;
     }
 
-    esp_now_register_recv_cb(reception_callback);
+    esp_now_register_recv_cb(packet_esp32_reception_callback);
 
 
 
@@ -110,16 +110,16 @@ setup(void)
     // TODO Look more into the specs.
     // TODO Make robust.
 
-    if (radio.begin() != RADIOLIB_ERR_NONE)
+    if (packet_lora_radio.begin() != RADIOLIB_ERR_NONE)
     {
-        Serial.printf("Failed to initialize radio.\n");
+        Serial.printf("Failed to initialize packet_lora_radio.\n");
         ESP.restart();
         return;
     }
 
-    radio.setDio1Action(radio_callback);
+    packet_lora_radio.setDio1Action(packet_lora_callback);
 
-    if (radio.startReceive() != RADIOLIB_ERR_NONE)
+    if (packet_lora_radio.startReceive() != RADIOLIB_ERR_NONE)
     {
         Serial.printf("Failed to start receiving.\n");
         ESP.restart();
@@ -136,33 +136,33 @@ loop(void)
 
     digitalWrite(BUILTIN_LED, !digitalRead(BUILTIN_LED));
 
-    static u32 payload_bytes_received            = {0};
-    static u32 consecutive_sequence_number_count = {0};
-    static u32 broken_sequence_number_count      = {0};
+    static u32 packet_esp32_bytes_received                    = {0};
+    static u32 packet_esp32_consecutive_sequence_number_count = {0};
+    static u32 packet_esp32_broken_sequence_number_count      = {0};
 
 
 
     // See if there's a new packet in the ESP-NOW ring-buffer.
 
-    if (message_reader != message_writer)
+    if (packet_esp32_reader != packet_esp32_writer)
     {
 
-        struct Message* message = &message_buffer[message_reader % countof(message_buffer)];
+        struct PacketESP32* packet_esp32 = &packet_esp32_buffer[packet_esp32_reader % countof(packet_esp32_buffer)];
 
 
 
         // Check sequence number.
 
-        static typeof(message->sequence_number) expected_sequence_number = {0};
+        static typeof(packet_esp32->nonredundant.sequence_number) expected_sequence_number = {0};
 
-        if (expected_sequence_number == message->sequence_number)
+        if (packet_esp32->nonredundant.sequence_number == expected_sequence_number)
         {
-            consecutive_sequence_number_count += 1;
+            packet_esp32_consecutive_sequence_number_count += 1;
         }
         else
         {
-            expected_sequence_number      = message->sequence_number;
-            broken_sequence_number_count += 1;
+            expected_sequence_number                   = packet_esp32->nonredundant.sequence_number;
+            packet_esp32_broken_sequence_number_count += 1;
         }
 
         expected_sequence_number += 1;
@@ -171,13 +171,13 @@ loop(void)
 
         // Count the amount of data we got.
 
-        payload_bytes_received += sizeof(*message);
+        packet_esp32_bytes_received += sizeof(*packet_esp32);
 
 
 
         // We're done with the packet.
 
-        message_reader += 1;
+        packet_esp32_reader += 1;
 
     }
 
@@ -185,14 +185,14 @@ loop(void)
 
     // Process received LoRa packets.
 
-    if (radio_data_available)
+    if (packet_lora_data_available)
     {
 
-        radio_data_available = false;
+        packet_lora_data_available = false;
 
         String string;
 
-        if (radio.readData(string) == RADIOLIB_ERR_NONE)
+        if (packet_lora_radio.readData(string) == RADIOLIB_ERR_NONE)
         {
             Serial.printf("Got : %s" "\n", string);
         }
@@ -212,12 +212,12 @@ loop(void)
 
         last_statistic_timestamp_ms = current_timestamp_ms;
 
-        Serial.printf("Payload bytes received                          : %u"   " bytes" "\n", payload_bytes_received);
-        Serial.printf("Average throughput since power-on               : %.0f" " KiB/S" "\n", payload_bytes_received / (millis() / 1000.0f) / 1024.0f);
-        Serial.printf("Packets of invalid length so far                : %d"            "\n", message_invalid_length_count);
-        Serial.printf("Packets dropped from ring-buffer so far         : %d"            "\n", message_overrun_count);
-        Serial.printf("Packets with consecutive sequence number so far : %d"            "\n", consecutive_sequence_number_count);
-        Serial.printf("Packets with broken sequence number so far      : %d"            "\n", broken_sequence_number_count);
+        Serial.printf("(ESP32) Payload bytes received                          : %u"   " bytes" "\n", packet_esp32_bytes_received);
+        Serial.printf("(ESP32) Average throughput since power-on               : %.0f" " KiB/S" "\n", packet_esp32_bytes_received / (millis() / 1000.0f) / 1024.0f);
+        Serial.printf("(ESP32) Packets of invalid length so far                : %d"            "\n", packet_esp32_invalid_length_count);
+        Serial.printf("(ESP32) Packets dropped from ring-buffer so far         : %d"            "\n", packet_esp32_overrun_count);
+        Serial.printf("(ESP32) Packets with consecutive sequence number so far : %d"            "\n", packet_esp32_consecutive_sequence_number_count);
+        Serial.printf("(ESP32) Packets with broken sequence number so far      : %d"            "\n", packet_esp32_broken_sequence_number_count);
         Serial.printf("\n");
 
     }
