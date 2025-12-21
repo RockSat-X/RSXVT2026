@@ -2,14 +2,20 @@
 
 
 
-static SX1262         packet_lora_radio          = new Module(41, 39, 42, 40);
-static volatile b32   packet_lora_data_available = false;
+static SX1262             packet_lora_radio                 = new Module(41, 39, 42, 40);
+static struct PacketLoRa  packet_lora_buffer[128]           = {0};
+static volatile u32       packet_lora_writer                = 0;
+static volatile u32       packet_lora_reader                = 0;
+static volatile b32       packet_lora_radio_data_available  = false;
+static volatile i32       packet_lora_invalid_length_count  = 0;
+static volatile i32       packet_lora_radio_error_count     = 0;
+static volatile i32       packet_lora_overrun_count         = 0;
 
 static struct PacketESP32 packet_esp32_buffer[128]          = {0};
-static volatile u32       packet_esp32_writer               = {0};
-static volatile u32       packet_esp32_reader               = {0};
-static volatile i32       packet_esp32_invalid_length_count = {0};
-static volatile i32       packet_esp32_overrun_count        = {0};
+static volatile u32       packet_esp32_writer               = 0;
+static volatile u32       packet_esp32_reader               = 0;
+static volatile i32       packet_esp32_invalid_length_count = 0;
+static volatile i32       packet_esp32_overrun_count        = 0;
 
 
 
@@ -44,24 +50,23 @@ packet_esp32_reception_callback
 
     else
     {
-        memcpy
-        (
-            &packet_esp32_buffer[packet_esp32_writer % countof(packet_esp32_buffer)],
-            received_data,
-            received_amount
-        );
+
+        struct PacketESP32* packet = &packet_esp32_buffer[packet_esp32_writer % countof(packet_esp32_buffer)];
+
+        memmove(packet, received_data, sizeof(*packet));
+
         packet_esp32_writer += 1;
+
     }
 
 }
 
 
 
-ICACHE_RAM_ATTR
 extern void
 packet_lora_callback(void)
 {
-    packet_lora_data_available = true;
+    packet_lora_radio_data_available = true;
 }
 
 
@@ -117,6 +122,15 @@ setup(void)
         return;
     }
 
+    packet_lora_radio.setFrequency(915.0);
+    packet_lora_radio.setBandwidth(7.8);
+    packet_lora_radio.setSpreadingFactor(6);
+    packet_lora_radio.setCodingRate(5);
+    packet_lora_radio.setOutputPower(22);
+    packet_lora_radio.setPreambleLength(8);
+    packet_lora_radio.setSyncWord(0x34);
+    packet_lora_radio.setCRC(true);
+
     packet_lora_radio.setDio1Action(packet_lora_callback);
 
     if (packet_lora_radio.startReceive() != RADIOLIB_ERR_NONE)
@@ -137,8 +151,12 @@ loop(void)
     digitalWrite(BUILTIN_LED, !digitalRead(BUILTIN_LED));
 
     static u32 packet_esp32_bytes_received                    = {0};
-    static u32 packet_esp32_consecutive_sequence_number_count = {0};
-    static u32 packet_esp32_broken_sequence_number_count      = {0};
+    static i32 packet_esp32_consecutive_sequence_number_count = {0};
+    static i32 packet_esp32_broken_sequence_number_count      = {0};
+
+    static u32 packet_lora_bytes_received                     = {0};
+    static i32 packet_lora_consecutive_sequence_number_count  = {0};
+    static i32 packet_lora_broken_sequence_number_count       = {0};
 
 
 
@@ -183,19 +201,99 @@ loop(void)
 
 
 
-    // Process received LoRa packets.
+    // See if the LoRa module got some data.
 
-    if (packet_lora_data_available)
+    if (packet_lora_radio_data_available)
     {
 
-        packet_lora_data_available = false;
+        packet_lora_radio_data_available = false;
 
-        String string;
+        struct PacketLoRa* packet = &packet_lora_buffer[packet_lora_writer % countof(packet_lora_buffer)];
 
-        if (packet_lora_radio.readData(string) == RADIOLIB_ERR_NONE)
+
+
+        // Received packet is of the wrong length?
+        // TODO Test.
+
+        if (packet_lora_radio.getPacketLength() != sizeof(*packet))
         {
-            Serial.printf("Got : %s" "\n", string);
+
+            // TODO This might flush it.
+
+            u8 dummy = {0};
+            packet_lora_radio.readData(&dummy, 1);
+
+            packet_lora_invalid_length_count += 1;
+
         }
+
+
+
+        // Not enough space in the ring-buffer?
+
+        else if (packet_lora_writer - packet_lora_reader >= countof(packet_lora_buffer))
+        {
+            packet_lora_overrun_count += 1;
+        }
+
+
+
+        // Failed to receive the LoRa data?
+
+        else if (packet_lora_radio.readData((u8*) packet, sizeof(*packet)) != RADIOLIB_ERR_NONE)
+        {
+            packet_lora_radio_error_count += 1;
+        }
+
+
+
+        // The LoRa packet is now in the ring-buffer to be processed later.
+
+        else
+        {
+            packet_lora_writer += 1;
+        }
+
+    }
+
+
+
+    // See if there's a new packet in the LoRa ring-buffer.
+
+    if (packet_lora_reader != packet_lora_writer)
+    {
+
+        struct PacketLoRa* packet = &packet_lora_buffer[packet_lora_reader % countof(packet_lora_buffer)];
+
+
+
+        // Check sequence number.
+
+        static typeof(packet->sequence_number) expected_sequence_number = {0};
+
+        if (packet->sequence_number == expected_sequence_number)
+        {
+            packet_lora_consecutive_sequence_number_count += 1;
+        }
+        else
+        {
+            expected_sequence_number                  = packet->sequence_number;
+            packet_lora_broken_sequence_number_count += 1;
+        }
+
+        expected_sequence_number += 1;
+
+
+
+        // Count the amount of data we got.
+
+        packet_lora_bytes_received += sizeof(*packet);
+
+
+
+        // We're done with the packet.
+
+        packet_lora_reader += 1;
 
     }
 
@@ -213,11 +311,21 @@ loop(void)
         last_statistic_timestamp_ms = current_timestamp_ms;
 
         Serial.printf("(ESP32) Payload bytes received                          : %u"   " bytes" "\n", packet_esp32_bytes_received);
-        Serial.printf("(ESP32) Average throughput since power-on               : %.0f" " KiB/S" "\n", packet_esp32_bytes_received / (millis() / 1000.0f) / 1024.0f);
+        Serial.printf("(ESP32) Average throughput since power-on               : %.0f" " KiB/s" "\n", packet_esp32_bytes_received / (millis() / 1000.0f) / 1024.0f);
         Serial.printf("(ESP32) Packets of invalid length so far                : %d"            "\n", packet_esp32_invalid_length_count);
         Serial.printf("(ESP32) Packets dropped from ring-buffer so far         : %d"            "\n", packet_esp32_overrun_count);
         Serial.printf("(ESP32) Packets with consecutive sequence number so far : %d"            "\n", packet_esp32_consecutive_sequence_number_count);
         Serial.printf("(ESP32) Packets with broken sequence number so far      : %d"            "\n", packet_esp32_broken_sequence_number_count);
+
+
+        Serial.printf("(LoRa)  Payload bytes received                          : %u"   " bytes" "\n", packet_lora_bytes_received);
+        Serial.printf("(LoRa)  Average throughput since power-on               : %.0f" " B/s"   "\n", packet_lora_bytes_received / (millis() / 1000.0f));
+        Serial.printf("(ESP32) Packets of invalid length so far                : %d"            "\n", packet_lora_invalid_length_count);
+        Serial.printf("(LoRa)  Packets with radio error so far                 : %d"            "\n", packet_lora_radio_error_count);
+        Serial.printf("(LoRa)  Packets dropped from ring-buffer so far         : %d"            "\n", packet_lora_overrun_count);
+        Serial.printf("(LoRa)  Packets with consecutive sequence number so far : %d"            "\n", packet_lora_consecutive_sequence_number_count);
+        Serial.printf("(LoRa)  Packets with broken sequence number so far      : %d"            "\n", packet_lora_broken_sequence_number_count);
+
         Serial.printf("\n");
 
     }

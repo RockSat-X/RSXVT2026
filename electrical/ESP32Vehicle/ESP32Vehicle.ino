@@ -9,8 +9,11 @@ static volatile u32       packet_esp32_writer            = 0;
 static volatile u32       packet_esp32_reader            = 0;
 static volatile b32       packet_esp32_transmission_busy = false;
 
-static SX1262        packet_lora_radio             = new Module(41, 39, 42, 40);
-static volatile bool packet_lora_transmission_busy = false;
+static SX1262             packet_lora_radio              = new Module(41, 39, 42, 40);
+static struct PacketLoRa  packet_lora_buffer[128]        = {0};
+static volatile u32       packet_lora_writer             = 0;
+static volatile u32       packet_lora_reader             = 0;
+static volatile bool      packet_lora_transmission_busy  = false;
 
 
 
@@ -27,11 +30,11 @@ packet_esp32_transmission_callback
 
 
 
-ICACHE_RAM_ATTR
 extern void
-radio_callback(void)
+packet_lora_callback(void)
 {
-    packet_lora_transmission_busy = false;
+    packet_lora_reader            += 1;
+    packet_lora_transmission_busy  = false;
 }
 
 
@@ -94,7 +97,16 @@ setup(void)
         return;
     }
 
-    packet_lora_radio.setDio1Action(radio_callback);
+    packet_lora_radio.setFrequency(915.0);
+    packet_lora_radio.setBandwidth(7.8);
+    packet_lora_radio.setSpreadingFactor(6);
+    packet_lora_radio.setCodingRate(5);
+    packet_lora_radio.setOutputPower(22);
+    packet_lora_radio.setPreambleLength(8);
+    packet_lora_radio.setSyncWord(0x34);
+    packet_lora_radio.setCRC(true);
+
+    packet_lora_radio.setDio1Action(packet_lora_callback);
 
 }
 
@@ -141,6 +153,39 @@ loop(void)
 
 
 
+    // Space for another LoRa packet to be queued up for transmission?
+
+    if (packet_lora_writer - packet_lora_reader < countof(packet_lora_buffer))
+    {
+
+        struct PacketLoRa* packet_lora = &packet_lora_buffer[packet_lora_writer % countof(packet_lora_buffer)];
+
+
+
+        // Fill in the sequence number.
+
+        static typeof(packet_lora->sequence_number) current_sequence_number = {0};
+
+        packet_lora->sequence_number = current_sequence_number;
+
+        current_sequence_number += 1;
+
+
+
+        // Fill in the payload data.
+
+        // TODO.
+
+
+
+        // A new packet is available in the ring-buffer!
+
+        packet_lora_writer += 1;
+
+    }
+
+
+
     // See if there's an ESP32 packet to be sent and
     // that we can transmit one at all.
 
@@ -149,13 +194,15 @@ loop(void)
 
         packet_esp32_transmission_busy = true;
 
+        struct PacketESP32* packet = &packet_esp32_buffer[packet_esp32_reader % countof(packet_esp32_buffer)];
+
         if
         (
             esp_now_send
             (
                 MAIN_ESP32_MAC_ADDRESS,
-                (u8*) &packet_esp32_buffer[packet_esp32_reader % countof(packet_esp32_buffer)],
-                sizeof(struct PacketESP32)
+                (u8*) packet,
+                sizeof(*packet)
             ) != ESP_OK
         )
         {
@@ -167,13 +214,18 @@ loop(void)
 
 
 
-    // Send the next LoRa packet.
+    // See if there's an LoRa packet to be sent and
+    // that we can transmit one at all.
 
-    if (!packet_lora_transmission_busy)
+    if (packet_lora_reader != packet_lora_writer && !packet_lora_transmission_busy)
     {
+
         packet_lora_transmission_busy = true;
-        Serial.printf("Sending another packet...\n");
-        packet_lora_radio.startTransmit("Hello World!");
+
+        struct PacketLoRa* packet = &packet_lora_buffer[packet_lora_reader % countof(packet_lora_buffer)];
+
+        packet_lora_radio.startTransmit((u8*) packet, sizeof(*packet));
+
     }
 
 }
