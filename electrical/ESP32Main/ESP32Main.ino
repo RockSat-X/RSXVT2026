@@ -2,6 +2,9 @@
 
 
 
+static SX1262         radio                = new Module(41, 39, 42, 40);
+static volatile b32   radio_data_available = false;
+
 static struct Message message_buffer[128]          = {0};
 static volatile u32   message_writer               = {0};
 static volatile u32   message_reader               = {0};
@@ -54,6 +57,15 @@ reception_callback
 
 
 
+ICACHE_RAM_ATTR
+extern void
+radio_callback(void)
+{
+    radio_data_available = true;
+}
+
+
+
 extern void
 setup(void)
 {
@@ -68,6 +80,7 @@ setup(void)
 
     // Initialize WiFi stuff.
     // TODO Look more into the specs.
+    // TODO Make robust.
 
     WiFi.mode(WIFI_STA);
     esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE);
@@ -91,6 +104,28 @@ setup(void)
     Serial.print(WiFi.macAddress());
     Serial.printf("\n");
 
+
+
+    // Initialize LoRa stuff.
+    // TODO Look more into the specs.
+    // TODO Make robust.
+
+    if (radio.begin() != RADIOLIB_ERR_NONE)
+    {
+        Serial.printf("Failed to initialize radio.\n");
+        ESP.restart();
+        return;
+    }
+
+    radio.setDio1Action(radio_callback);
+
+    if (radio.startReceive() != RADIOLIB_ERR_NONE)
+    {
+        Serial.printf("Failed to start receiving.\n");
+        ESP.restart();
+        return;
+    }
+
 }
 
 
@@ -99,13 +134,15 @@ extern void
 loop(void)
 {
 
+    digitalWrite(BUILTIN_LED, !digitalRead(BUILTIN_LED));
+
     static u32 payload_bytes_received            = {0};
     static u32 consecutive_sequence_number_count = {0};
     static u32 broken_sequence_number_count      = {0};
 
 
 
-    // See if there's a new packet in the ring-buffer.
+    // See if there's a new packet in the ESP-NOW ring-buffer.
 
     if (message_reader != message_writer)
     {
@@ -141,6 +178,24 @@ loop(void)
         // We're done with the packet.
 
         message_reader += 1;
+
+    }
+
+
+
+    // Process received LoRa packets.
+
+    if (radio_data_available)
+    {
+
+        radio_data_available = false;
+
+        String string;
+
+        if (radio.readData(string) == RADIOLIB_ERR_NONE)
+        {
+            Serial.printf("Got : %s" "\n", string);
+        }
 
     }
 

@@ -9,6 +9,9 @@ static volatile u32   message_writer      = 0;
 static volatile u32   message_reader      = 0;
 static volatile b32   transmission_busy   = false;
 
+static SX1262        radio      = new Module(41, 39, 42, 40);
+static volatile bool radio_busy = false;
+
 
 
 extern void
@@ -20,6 +23,15 @@ transmission_callback
 {
     message_reader    += 1;
     transmission_busy  = false;
+}
+
+
+
+ICACHE_RAM_ATTR
+extern void
+radio_callback(void)
+{
+    radio_busy = false;
 }
 
 
@@ -38,6 +50,7 @@ setup(void)
 
     // Initialize WiFi stuff.
     // TODO Look more into the specs.
+    // TODO Make robust.
 
     WiFi.mode(WIFI_STA);
     esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE);
@@ -68,6 +81,21 @@ setup(void)
         return;
     }
 
+
+
+    // Initialize LoRa stuff.
+    // TODO Look more into the specs.
+    // TODO Make robust.
+
+    if (radio.begin() != RADIOLIB_ERR_NONE)
+    {
+        Serial.printf("Failed to initialize radio.\n");
+        ESP.restart();
+        return;
+    }
+
+    radio.setDio1Action(radio_callback);
+
 }
 
 
@@ -75,6 +103,10 @@ setup(void)
 extern void
 loop(void)
 {
+
+    digitalWrite(BUILTIN_LED, !digitalRead(BUILTIN_LED));
+
+
 
     // Space for another packet to be queued up for transmission?
 
@@ -131,8 +163,17 @@ loop(void)
             transmission_busy = false;
         }
 
-        digitalWrite(BUILTIN_LED, !digitalRead(BUILTIN_LED));
+    }
 
+
+
+    // Send the next LoRa packet.
+
+    if (!radio_busy)
+    {
+        radio_busy = true;
+        Serial.printf("Sending another packet...\n");
+        radio.startTransmit("Hello World!");
     }
 
 }
