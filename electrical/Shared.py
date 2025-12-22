@@ -944,7 +944,8 @@ TARGETS = (
             ('swdio'    , 'A13', None        , {                                }),
             ('swclk'    , 'A14', None        , {                                }),
             ('button'   , 'C13', 'INPUT'     , { 'pull' : None, 'active' : True }),
-            ('uart_tx'  , 'B10', 'ALTERNATE' , { 'altfunc' : 'USART3_TX'        }),
+            ('esp32_tx' , 'B10', 'ALTERNATE' , { 'altfunc' : 'USART3_TX'        }),
+            ('esp32_rx' , 'C4' , 'ALTERNATE' , { 'altfunc' : 'USART3_RX'        }),
             ('debug'    , 'C2' , 'OUTPUT'    , { 'initlvl' : False              }),
         ),
 

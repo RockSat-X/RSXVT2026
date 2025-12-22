@@ -178,8 +178,9 @@ loop(void)
 
         struct PacketESP32* packet = &packet_esp32_buffer[packet_esp32_reader % countof(packet_esp32_buffer)];
 
-        if (esp_now_send(MAIN_ESP32_MAC_ADDRESS, (u8*) packet, sizeof(*packet)) != ESP_OK
-        )
+        Serial.printf("Sending ESP-NOW packet (%u ms).\n", packet->nonredundant.timestamp_ms);
+
+        if (esp_now_send(MAIN_ESP32_MAC_ADDRESS, (u8*) packet, sizeof(*packet)) != ESP_OK)
         {
             Serial.printf("Send Error!\n");
             packet_esp32_transmission_busy = false;
@@ -198,6 +199,8 @@ loop(void)
         packet_lora_transmission_busy = true;
 
         struct PacketLoRa* packet = &packet_lora_buffer[packet_lora_reader % countof(packet_lora_buffer)];
+
+        Serial.printf("Sending LoRa packet (%u ms).\n", packet->timestamp_ms);
 
         packet_lora_radio.startTransmit((u8*) packet, sizeof(*packet)); // TODO Error checking?
 
