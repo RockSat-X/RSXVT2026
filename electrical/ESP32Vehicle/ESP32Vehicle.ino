@@ -51,11 +51,9 @@ setup(void)
 
 
 
-    // Initialize UART.
+    // Initialize UART stuff.
 
-    Serial1.setRxBufferSize(1024); // TODO Look into more?
-    Serial1.begin(400'000, SERIAL_8N1, D7, D6);
-    while (!Serial1);
+    common_init_uart();
 
 
 

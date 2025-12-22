@@ -130,6 +130,18 @@ static_assert(sizeof(struct PacketESP32) <= 250);
     #include <esp_now.h>
     #include <RadioLib.h>
 
+
+
+    extern void
+    common_init_uart(void)
+    {
+        Serial1.setRxBufferSize(1024); // TODO Look into more?
+        Serial1.begin(400'000, SERIAL_8N1, D7, D6);
+        while (!Serial1);
+    }
+
+
+
     // TODO Look more into the specs.
     // TODO Make robust.
     extern void

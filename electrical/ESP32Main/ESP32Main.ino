@@ -83,6 +83,12 @@ setup(void)
 
 
 
+    // Initialize UART stuff.
+
+    common_init_uart();
+
+
+
     // Initialize ESP-NOW stuff.
 
     common_init_esp_now();
@@ -119,47 +125,6 @@ loop(void)
     static u32 packet_lora_bytes_received                     = 0;
     static i32 packet_lora_consecutive_sequence_number_count  = 0;
     static i32 packet_lora_broken_sequence_number_count       = 0;
-
-
-
-    // See if there's a new packet in the ESP-NOW ring-buffer.
-
-    if (packet_esp32_reader != packet_esp32_writer)
-    {
-
-        struct PacketESP32* packet = &packet_esp32_buffer[packet_esp32_reader % countof(packet_esp32_buffer)];
-
-
-
-        // Check sequence number.
-
-        static typeof(packet->nonredundant.sequence_number) expected_sequence_number = 0;
-
-        if (packet->nonredundant.sequence_number == expected_sequence_number)
-        {
-            packet_esp32_consecutive_sequence_number_count += 1;
-        }
-        else
-        {
-            expected_sequence_number                   = packet->nonredundant.sequence_number;
-            packet_esp32_broken_sequence_number_count += 1;
-        }
-
-        expected_sequence_number += 1;
-
-
-
-        // Count the amount of data we got.
-
-        packet_esp32_bytes_received += sizeof(*packet);
-
-
-
-        // We're done with the packet.
-
-        packet_esp32_reader += 1;
-
-    }
 
 
 
@@ -220,6 +185,53 @@ loop(void)
 
 
 
+    // See if there's a new packet in the ESP-NOW ring-buffer.
+
+    if (packet_esp32_reader != packet_esp32_writer)
+    {
+
+        struct PacketESP32* packet = &packet_esp32_buffer[packet_esp32_reader % countof(packet_esp32_buffer)];
+
+
+
+        // Check sequence number.
+
+        static typeof(packet->nonredundant.sequence_number) expected_sequence_number = 0;
+
+        if (packet->nonredundant.sequence_number == expected_sequence_number)
+        {
+            packet_esp32_consecutive_sequence_number_count += 1;
+        }
+        else
+        {
+            expected_sequence_number                   = packet->nonredundant.sequence_number;
+            packet_esp32_broken_sequence_number_count += 1;
+        }
+
+        expected_sequence_number += 1;
+
+
+
+        // Count the amount of data we got.
+
+        packet_esp32_bytes_received += sizeof(*packet);
+
+
+
+        // Send the data over to the main flight computer.
+
+        Serial1.write((u8*) packet, sizeof(*packet));
+
+
+
+        // We're done with the packet.
+
+        packet_esp32_reader += 1;
+
+    }
+
+
+
     // See if there's a new packet in the LoRa ring-buffer.
 
     if (packet_lora_reader != packet_lora_writer)
@@ -250,6 +262,12 @@ loop(void)
         // Count the amount of data we got.
 
         packet_lora_bytes_received += sizeof(*packet);
+
+
+
+        // Send the data over to the main flight computer.
+
+        Serial1.write((u8*) packet, sizeof(*packet));
 
 
 
