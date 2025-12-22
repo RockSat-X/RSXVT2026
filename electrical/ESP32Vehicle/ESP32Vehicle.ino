@@ -50,6 +50,14 @@ setup(void)
 
 
 
+    // Initialize UART.
+
+    Serial1.setRxBufferSize(1024); // TODO Look into more?
+    Serial1.begin(400'000, SERIAL_8N1, D7, D6);
+    while (!Serial1);
+
+
+
     // Initialize ESP-NOW stuff.
 
     common_init_esp_now();
@@ -93,12 +101,33 @@ loop(void)
 
 
 
-    // See if we received data over SPI.
+    // See if we received data over UART.
+    // We determine the start of a payload
+    // by looking for the magic starting token
+    // in place of the sequence number.
 
-    struct PacketESP32 payload = {};
-
-    if (true) // TODO.
+    while
+    (
+        Serial1.available() >= sizeof(struct PacketESP32)
+        && Serial1.read() == (PACKET_ESP32_START_TOKEN & 0xFF)
+        && Serial1.peek() == ((PACKET_ESP32_START_TOKEN >> 8) & 0xFF)
+        && Serial1.read() == ((PACKET_ESP32_START_TOKEN >> 8) & 0xFF)
+    )
     {
+
+        // Get the rest of the payload data.
+
+        struct PacketESP32 payload = {};
+
+        Serial1.readBytes
+        (
+            (char*) &payload.nonredundant.sequence_number + sizeof(payload.nonredundant.sequence_number),
+            sizeof(payload) - sizeof(payload.nonredundant.sequence_number)
+        );
+
+        Serial.printf("Got payload (%u ms).\n", payload.nonredundant.timestamp_ms);
+
+
 
         // Try pushing packet into ESP-NOW ring-buffer.
 
