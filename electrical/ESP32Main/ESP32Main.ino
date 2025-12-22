@@ -90,16 +90,6 @@ setup(void)
 
 
 
-    // Give the MAC address so that the vehicle
-    // ESP32 can be programmed to directly message
-    // this main ESP32.
-
-    Serial.printf("Receiver MAC Address: ");
-    Serial.print(WiFi.macAddress());
-    Serial.printf("\n");
-
-
-
     // Initialize LoRa stuff.
 
     common_init_lora();
@@ -281,6 +271,7 @@ loop(void)
 
         last_statistic_timestamp_ms = current_timestamp_ms;
 
+        Serial.printf("MAC Address : { 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X }"        "\n", WiFi.macAddress()[0], WiFi.macAddress()[1], WiFi.macAddress()[2], WiFi.macAddress()[3], WiFi.macAddress()[4], WiFi.macAddress()[5]);
         Serial.printf("(ESP32) Payload bytes received                          : %u"   " bytes" "\n", packet_esp32_bytes_received);
         Serial.printf("(ESP32) Average throughput since power-on               : %.0f" " KiB/s" "\n", packet_esp32_bytes_received / (millis() / 1000.0f) / 1024.0f);
         Serial.printf("(ESP32) Packets of invalid length so far                : %d"            "\n", packet_esp32_invalid_length_count);
