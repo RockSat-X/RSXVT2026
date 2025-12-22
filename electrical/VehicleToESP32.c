@@ -11,6 +11,50 @@ main(void)
     UXART_init(UXARTHandle_stlink);
     UXART_init(UXARTHandle_esp32);
 
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+
+
+
+    // Set the prescaler that'll affect all timers' kernel frequency.
+
+    CMSIS_SET(RCC, CFGR1, TIMPRE, STPY_GLOBAL_TIMER_PRESCALER);
+
+
+
+    // Enable the peripheral.
+
+    CMSIS_SET(RCC, APB2ENR, TIM1EN, true);
+
+
+
+    // Configure the divider to set the rate at
+    // which the timer's counter will increment.
+
+    CMSIS_SET(TIM1, PSC, PSC, STPY_TIM1_DIVIDER);
+
+
+
+    // Trigger an update event so that the shadow registers
+    // ARR, PSC, and CCRx are what we initialize them to be.
+    // The hardware uses shadow registers in order for updates
+    // to these registers not result in a corrupt timer output.
+
+    CMSIS_SET(TIM1, EGR, UG, true);
+
+
+
+    // Enable the timer's counter.
+
+    CMSIS_SET(TIM1, CR1, CEN, true);
+
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+
+
+
     for (i32 iteration = 0;; iteration += 1)
     {
 
@@ -35,7 +79,7 @@ main(void)
                     .nonredundant.gyro_y                     = 2.2f,
                     .nonredundant.gyro_z                     = 2.3f,
                     .nonredundant.computer_vision_confidence = -1.0f,
-                    .nonredundant.timestamp_ms               = 12345,
+                    .nonredundant.timestamp_ms               = CMSIS_GET(TIM1, CNT, CNT),
                     .nonredundant.sequence_number            = 0,
                     .nonredundant.crc                        = 0x00,
                 };

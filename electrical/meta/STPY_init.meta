@@ -4350,7 +4350,7 @@
                 RCC  , CFGR2 ,
                 HPRE , 0b0000,
                 PPRE1, 0b000 ,
-                PPRE2, 0b000 ,
+                PPRE2, 0b110 ,
                 PPRE3, 0b000 ,
             );
             CMSIS_SET(RCC, CFGR1, SW, 0b011);
@@ -4374,6 +4374,15 @@
             #define STPY_USART3_KERNEL_SOURCE 0b000
             #define STPY_USART3_BAUD_DIVIDER 625
 
+
+
+            /////////////////////////////////// Timers ///////////////////////////////////
+
+
+
+            #define STPY_GLOBAL_TIMER_PRESCALER false
+            #define STPY_TIM1_DIVIDER (62500 - 1)
+
         }
     #endif
     #undef STPY_IMPLEMENTATION
@@ -4386,6 +4395,6 @@
     #define STPY_PLL1P_CK      (250'000'000)
     #define STPY_PLL1_VCO_FREQ (500'000'000)
     #define STPY_APB1_CK       (250'000'000)
-    #define STPY_APB2_CK       (250'000'000)
+    #define STPY_APB2_CK       ( 31'250'000)
     #define STPY_APB3_CK       (250'000'000)
 #endif
