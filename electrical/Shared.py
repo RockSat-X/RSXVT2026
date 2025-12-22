@@ -54,6 +54,7 @@ STLINK_BAUD = 1_000_000
 MCU_SUPPORT = {
 
     'STM32H7S3L8H6' : {
+        'cpu' : 'cortex-m7',
         'include_paths' : (
             make_main_relative_path('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1'),
         ),
@@ -71,6 +72,7 @@ MCU_SUPPORT = {
     },
 
     'STM32H533RET6' : {
+        'cpu' : 'cortex-m33',
         'include_paths' : (
             make_main_relative_path('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
         ),
@@ -89,6 +91,7 @@ MCU_SUPPORT = {
     },
 
     'STM32H533VET6' : {
+        'cpu' : 'cortex-m33',
         'include_paths' : (
             make_main_relative_path('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
         ),
@@ -1060,8 +1063,8 @@ for target in TARGETS:
 
     # Flags for both the compiler and linker.
 
-    architecture_flags = '''
-        -mcpu=cortex-m7
+    architecture_flags = f'''
+        -mcpu={MCU_SUPPORT[target.mcu]['cpu']}
         -mfloat-abi=hard
     '''
 
