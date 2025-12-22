@@ -10,7 +10,11 @@ static volatile u32       packet_esp32_writer            = 0;
 static volatile u32       packet_esp32_reader            = 0;
 static volatile b32       packet_esp32_transmission_busy = false;
 
-static struct PacketLoRa  packet_lora_buffer[128]        = {};
+// LoRa ring-buffer shouldn't be very deep because
+// it's such low throughput. If it was deep, a lot
+// of the data might be data far in the past and not
+// the more recent stuff.
+static struct PacketLoRa  packet_lora_buffer[4]          = {};
 static volatile u32       packet_lora_writer             = 0;
 static volatile u32       packet_lora_reader             = 0;
 static volatile bool      packet_lora_transmission_busy  = false;
