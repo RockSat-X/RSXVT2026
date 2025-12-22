@@ -1,35 +1,6 @@
 #include "system.h"
 #include "uxart.c"
 
-pack_push
-
-    struct PacketLoRa
-    {
-        u16 sequence_number;
-        u16 timestamp_ms;
-        f32 quaternion_i;
-        f32 quaternion_j;
-        f32 quaternion_k;
-        f32 quaternion_r;
-        f32 accelerometer_x;
-        f32 accelerometer_y;
-        f32 accelerometer_z;
-        f32 gyro_x;
-        f32 gyro_y;
-        f32 gyro_z;
-        f32 computer_vision_confidence;
-    };
-
-    struct PacketESP32
-    {
-        struct PacketLoRa nonredundant;
-        f32               magnetometer_x;
-        f32               magnetometer_y;
-        f32               magnetometer_z;
-        u8                image_chunk[190];
-    };
-
-pack_pop
 
 
 extern noret void
@@ -45,7 +16,7 @@ main(void)
 
         struct PacketESP32 payload =
             {
-                .nonredundant.sequence_number            = 0xBABE,
+                .nonredundant.sequence_number            = PACKET_ESP32_START_TOKEN,
                 .nonredundant.timestamp_ms               = 12345,
                 .nonredundant.quaternion_i               = 0.1f,
                 .nonredundant.quaternion_j               = 0.2f,

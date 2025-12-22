@@ -1103,6 +1103,7 @@ for target in TARGETS:
         ('TARGET_MCU'          , target.mcu            ),
         ('TARGET_USES_FREERTOS', target.use_freertos   ),
         ('MAIN_STACK_SIZE'     , target.main_stack_size),
+        ('COMPILING_ESP32'     , False                 ),
     ]
 
     for other_target in TARGETS:

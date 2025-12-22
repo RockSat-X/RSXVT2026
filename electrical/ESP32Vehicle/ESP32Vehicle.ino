@@ -1,4 +1,5 @@
-#include "../ESP32.h"
+#define COMPILING_ESP32 true
+#include "../system.h"
 
 
 

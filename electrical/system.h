@@ -46,7 +46,6 @@
 #define pack_pop                _Pragma("pack(pop)")
 #define memeq(X, Y)             (static_assert_expr(sizeof(X) == sizeof(Y)), !memcmp(&(X), &(Y), sizeof(Y)))
 #define memzero(X)              memset((X), 0, sizeof(*(X)))
-#define static_assert(...)      _Static_assert(__VA_ARGS__, #__VA_ARGS__)
 #define static_assert_expr(...) ((void) sizeof(struct { static_assert(__VA_ARGS__, #__VA_ARGS__); }))
 #ifndef offsetof
 #define offsetof __builtin_offsetof
@@ -78,6 +77,114 @@ typedef signed             b32; static_assert(sizeof(b32) == 4);
 typedef signed   long long b64; static_assert(sizeof(b64) == 8);
 typedef float              f32; static_assert(sizeof(f32) == 4);
 typedef double             f64; static_assert(sizeof(f64) == 8);
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// ESP32 related stuff.
+//
+
+
+
+#define PACKET_ESP32_START_TOKEN 0xBABE
+
+pack_push
+
+    struct PacketLoRa
+    {
+        u16 sequence_number; // When going from FC to ESP32, is set to `PACKET_ESP32_START_TOKEN`.
+        u16 timestamp_ms;
+        f32 quaternion_i;
+        f32 quaternion_j;
+        f32 quaternion_k;
+        f32 quaternion_r;
+        f32 accelerometer_x;
+        f32 accelerometer_y;
+        f32 accelerometer_z;
+        f32 gyro_x;
+        f32 gyro_y;
+        f32 gyro_z;
+        f32 computer_vision_confidence;
+    };
+
+    struct PacketESP32
+    {
+        struct PacketLoRa nonredundant;
+        f32               magnetometer_x;
+        f32               magnetometer_y;
+        f32               magnetometer_z;
+        u8                image_chunk[190];
+    };
+
+pack_pop
+
+static_assert(sizeof(struct PacketESP32) <= 250);
+
+
+
+#if COMPILING_ESP32
+
+    #include <WiFi.h>
+    #include <esp_wifi.h>
+    #include <esp_now.h>
+    #include <RadioLib.h>
+
+    // TODO Look more into the specs.
+    // TODO Make robust.
+    extern void
+    common_init_esp_now(void)
+    {
+
+        WiFi.mode(WIFI_STA);
+        esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE);
+
+        if (esp_now_init() != ESP_OK)
+        {
+            Serial.printf("Error initializing ESP-NOW.\n");
+            ESP.restart();
+            return;
+        }
+
+    }
+
+
+
+    static SX1262 packet_lora_radio = new Module(41, 39, 42, 40);
+
+
+
+    // TODO Look more into the specs.
+    // TODO Make robust.
+    extern void
+    common_init_lora()
+    {
+
+        if (packet_lora_radio.begin() != RADIOLIB_ERR_NONE)
+        {
+            Serial.printf("Failed to initialize radio.\n");
+            ESP.restart();
+            return;
+        }
+
+        packet_lora_radio.setFrequency(915.0);
+        packet_lora_radio.setBandwidth(7.8);
+        packet_lora_radio.setSpreadingFactor(6);
+        packet_lora_radio.setCodingRate(5);
+        packet_lora_radio.setOutputPower(22);
+        packet_lora_radio.setPreambleLength(8);
+        packet_lora_radio.setSyncWord(0x34);
+        packet_lora_radio.setCRC(true);
+
+        extern void packet_lora_callback(void);
+
+        packet_lora_radio.setDio1Action(packet_lora_callback);
+
+    }
+
+#endif
+
+#if !COMPILING_ESP32
 
 
 
@@ -781,6 +888,8 @@ halt_(b32 panicking) // @/`Halting`.
 */
 
 
+
+#endif
 
 #endif
 
