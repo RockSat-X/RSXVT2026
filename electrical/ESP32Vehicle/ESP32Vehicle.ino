@@ -19,6 +19,14 @@ static volatile u32       packet_lora_writer             = 0;
 static volatile u32       packet_lora_reader             = 0;
 static volatile bool      packet_lora_transmission_busy  = false;
 
+static i32                last_uart_packet_timestamp_ms  = 0;
+static i32                packet_uart_packet_count       = 0;
+static i32                packet_uart_crc_error_count    = 0;
+static i32                packet_esp32_packet_count      = 0;
+static i32                packet_esp32_overrun_count     = 0;
+static i32                packet_lora_packet_count       = 0;
+static i32                packet_lora_overrun_count      = 0;
+
 
 
 extern void
@@ -124,39 +132,66 @@ loop(void)
 
         Serial1.readBytes((char*) &payload, sizeof(payload));
 
-        Serial.printf("Got payload (%u ms).\n", payload.nonredundant.timestamp_ms);
+        u8 digest = calculate_crc((u8*) &payload, sizeof(payload));
+
+        last_uart_packet_timestamp_ms  = payload.nonredundant.timestamp_ms;
+        packet_uart_packet_count      += 1;
 
 
 
-        // Try pushing packet into ESP-NOW ring-buffer.
+        // If there's no corruption between vehicle FC and ESP32,
+        // we're ready to send the packet from the vehicle ESP32 to the main ESP32.
 
-        if (packet_esp32_writer - packet_esp32_reader < countof(packet_esp32_buffer))
+        if (digest)
         {
-
-            struct PacketESP32*                                 packet                  = &packet_esp32_buffer[packet_esp32_writer % countof(packet_esp32_buffer)];
-            static typeof(packet->nonredundant.sequence_number) current_sequence_number = 0;
-
-            *packet                               = payload;
-            packet->nonredundant.sequence_number  = current_sequence_number;
-            current_sequence_number              += 1;
-            packet_esp32_writer                  += 1;
-
+            packet_uart_crc_error_count += 1;
         }
-
-
-
-        // Try pushing packet into LoRa ring-buffer.
-
-        if (packet_lora_writer - packet_lora_reader < countof(packet_lora_buffer))
+        else
         {
 
-            struct PacketLoRa*                     packet                  = &packet_lora_buffer[packet_lora_writer % countof(packet_lora_buffer)];
-            static typeof(packet->sequence_number) current_sequence_number = 0;
+            // Try pushing packet into ESP-NOW ring-buffer.
 
-            *packet                  = payload.nonredundant;
-            packet->sequence_number  = current_sequence_number;
-            current_sequence_number += 1;
-            packet_lora_writer      += 1;
+            if (packet_esp32_writer - packet_esp32_reader < countof(packet_esp32_buffer))
+            {
+
+                struct PacketESP32*                                 packet                  = &packet_esp32_buffer[packet_esp32_writer % countof(packet_esp32_buffer)];
+                static typeof(packet->nonredundant.sequence_number) current_sequence_number = 0;
+
+                *packet                               = payload;
+                packet->nonredundant.sequence_number  = current_sequence_number;
+                packet->nonredundant.crc              = calculate_crc((u8*) packet, sizeof(*packet) - sizeof(packet->nonredundant.crc));
+                current_sequence_number              += 1;
+                packet_esp32_writer                  += 1;
+                packet_esp32_packet_count            += 1;
+
+            }
+            else
+            {
+                packet_esp32_overrun_count += 1;
+            }
+
+
+
+            // Try pushing packet into LoRa ring-buffer.
+
+            if (packet_lora_writer - packet_lora_reader < countof(packet_lora_buffer))
+            {
+
+                struct PacketLoRa*                     packet                  = &packet_lora_buffer[packet_lora_writer % countof(packet_lora_buffer)];
+                static typeof(packet->sequence_number) current_sequence_number = 0;
+
+                *packet                   = payload.nonredundant;
+                packet->sequence_number   = current_sequence_number;
+                packet->crc               = calculate_crc((u8*) packet, sizeof(*packet) - sizeof(packet->crc));
+                current_sequence_number  += 1;
+                packet_lora_writer       += 1;
+                packet_lora_packet_count += 1;
+
+            }
+            else
+            {
+                packet_lora_overrun_count += 1;
+            }
 
         }
 
@@ -173,8 +208,6 @@ loop(void)
         packet_esp32_transmission_busy = true;
 
         struct PacketESP32* packet = &packet_esp32_buffer[packet_esp32_reader % countof(packet_esp32_buffer)];
-
-        Serial.printf("Sending ESP-NOW packet (%u ms).\n", packet->nonredundant.timestamp_ms);
 
         if (esp_now_send(MAIN_ESP32_MAC_ADDRESS, (u8*) packet, sizeof(*packet)) != ESP_OK)
         {
@@ -196,9 +229,31 @@ loop(void)
 
         struct PacketLoRa* packet = &packet_lora_buffer[packet_lora_reader % countof(packet_lora_buffer)];
 
-        Serial.printf("Sending LoRa packet (%u ms).\n", packet->timestamp_ms);
-
         packet_lora_radio.startTransmit((u8*) packet, sizeof(*packet)); // TODO Error checking?
+
+    }
+
+
+
+    // Output statistics at regular intervals.
+
+    static u32 last_statistic_timestamp_ms = 0;
+
+    u32 current_timestamp_ms = millis();
+
+    if (current_timestamp_ms - last_statistic_timestamp_ms >= 500)
+    {
+
+        last_statistic_timestamp_ms = current_timestamp_ms;
+
+        Serial.printf("Last timestamp        : %d ms" "\n", last_uart_packet_timestamp_ms);
+        Serial.printf("UART packets received : %d"    "\n", packet_uart_packet_count);
+        Serial.printf("UART CRC mismatches   : %d"    "\n", packet_uart_crc_error_count);
+        Serial.printf("ESP32 packets queued  : %d"    "\n", packet_esp32_packet_count);
+        Serial.printf("ESP32 packet overruns : %d"    "\n", packet_esp32_overrun_count);
+        Serial.printf("LoRa packets queued   : %d"    "\n", packet_lora_packet_count);
+        Serial.printf("LoRa packet overruns  : %d"    "\n", packet_lora_overrun_count);
+        Serial.printf("\n");
 
     }
 

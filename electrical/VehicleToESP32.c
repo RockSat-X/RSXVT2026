@@ -17,10 +17,13 @@ main(void)
         // Send the payload.
 
         {
+
             struct PacketESP32 payload =
                 {
-                    .nonredundant.sequence_number            = 6767,
-                    .nonredundant.timestamp_ms               = 12345,
+                    .magnetometer_x                          = 3.1f,
+                    .magnetometer_y                          = 3.2f,
+                    .magnetometer_z                          = 3.3f,
+                    .image_chunk                             = { 'M', 'E', 'O', 'W', '!', '?' },
                     .nonredundant.quaternion_i               = 0.1f,
                     .nonredundant.quaternion_j               = 0.2f,
                     .nonredundant.quaternion_k               = 0.3f,
@@ -32,18 +35,18 @@ main(void)
                     .nonredundant.gyro_y                     = 2.2f,
                     .nonredundant.gyro_z                     = 2.3f,
                     .nonredundant.computer_vision_confidence = -1.0f,
-                    .magnetometer_x                          = 3.1f,
-                    .magnetometer_y                          = 3.2f,
-                    .magnetometer_z                          = 3.3f,
-                    .image_chunk                             = { 'M', 'E', 'O', 'W', '!', '?' },
+                    .nonredundant.timestamp_ms               = 12345,
+                    .nonredundant.sequence_number            = 0,
+                    .nonredundant.crc                        = 0x00,
                 };
 
-            GPIO_HIGH(debug);
+            payload.nonredundant.crc = calculate_crc((u8*) &payload, sizeof(payload) - sizeof(payload.nonredundant.crc));
 
+            GPIO_HIGH(debug);
             _UXART_tx_raw_nonreentrant(UXARTHandle_esp32, (u8*) &(u16) { PACKET_ESP32_START_TOKEN }, sizeof(u16));
             _UXART_tx_raw_nonreentrant(UXARTHandle_esp32, (u8*) &payload, sizeof(payload));
-
             GPIO_LOW(debug);
+
         }
 
 
@@ -56,7 +59,6 @@ main(void)
 
             for (i32 i = 0; i < 1'000'000; i += 1)
             {
-
                 if (length < countof(buffer))
                 {
                     if (UXART_rx(UXARTHandle_esp32, (char*) &buffer[length]))
@@ -64,27 +66,29 @@ main(void)
                         length += 1;
                     }
                 }
-
             }
 
             struct PacketESP32* payload = (struct PacketESP32*) buffer;
 
-            stlink_tx("sequence_number            : %u\n", payload->nonredundant.sequence_number);
-            stlink_tx("timestamp_ms               : %u\n", payload->nonredundant.timestamp_ms);
-            stlink_tx("quaternion_i               : %f\n", payload->nonredundant.quaternion_i);
-            stlink_tx("quaternion_j               : %f\n", payload->nonredundant.quaternion_j);
-            stlink_tx("quaternion_k               : %f\n", payload->nonredundant.quaternion_k);
-            stlink_tx("quaternion_r               : %f\n", payload->nonredundant.quaternion_r);
-            stlink_tx("accelerometer_x            : %f\n", payload->nonredundant.accelerometer_x);
-            stlink_tx("accelerometer_y            : %f\n", payload->nonredundant.accelerometer_y);
-            stlink_tx("accelerometer_z            : %f\n", payload->nonredundant.accelerometer_z);
-            stlink_tx("gyro_x                     : %f\n", payload->nonredundant.gyro_x);
-            stlink_tx("gyro_y                     : %f\n", payload->nonredundant.gyro_y);
-            stlink_tx("gyro_z                     : %f\n", payload->nonredundant.gyro_z);
-            stlink_tx("computer_vision_confidence : %f\n", payload->nonredundant.computer_vision_confidence);
-            stlink_tx("magnetometer_x             : %f\n", payload->magnetometer_x);
-            stlink_tx("magnetometer_y             : %f\n", payload->magnetometer_y);
-            stlink_tx("magnetometer_z             : %f\n", payload->magnetometer_z);
+            u8 digest = calculate_crc((u8*) payload, sizeof(*payload));
+
+            stlink_tx("magnetometer_x             : %f"              "\n", payload->magnetometer_x);
+            stlink_tx("magnetometer_y             : %f"              "\n", payload->magnetometer_y);
+            stlink_tx("magnetometer_z             : %f"              "\n", payload->magnetometer_z);
+            stlink_tx("quaternion_i               : %f"              "\n", payload->nonredundant.quaternion_i);
+            stlink_tx("quaternion_j               : %f"              "\n", payload->nonredundant.quaternion_j);
+            stlink_tx("quaternion_k               : %f"              "\n", payload->nonredundant.quaternion_k);
+            stlink_tx("quaternion_r               : %f"              "\n", payload->nonredundant.quaternion_r);
+            stlink_tx("accelerometer_x            : %f"              "\n", payload->nonredundant.accelerometer_x);
+            stlink_tx("accelerometer_y            : %f"              "\n", payload->nonredundant.accelerometer_y);
+            stlink_tx("accelerometer_z            : %f"              "\n", payload->nonredundant.accelerometer_z);
+            stlink_tx("gyro_x                     : %f"              "\n", payload->nonredundant.gyro_x);
+            stlink_tx("gyro_y                     : %f"              "\n", payload->nonredundant.gyro_y);
+            stlink_tx("gyro_z                     : %f"              "\n", payload->nonredundant.gyro_z);
+            stlink_tx("computer_vision_confidence : %f"              "\n", payload->nonredundant.computer_vision_confidence);
+            stlink_tx("timestamp_ms               : %u"              "\n", payload->nonredundant.timestamp_ms);
+            stlink_tx("sequence_number            : %u"              "\n", payload->nonredundant.sequence_number);
+            stlink_tx("crc                        : 0x%02X (0x%02X)" "\n", payload->nonredundant.crc, digest);
             stlink_tx("\n");
 
         }

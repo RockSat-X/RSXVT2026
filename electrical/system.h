@@ -93,8 +93,6 @@ pack_push
 
     struct PacketLoRa
     {
-        u16 sequence_number;
-        u16 timestamp_ms;
         f32 quaternion_i;
         f32 quaternion_j;
         f32 quaternion_k;
@@ -106,20 +104,47 @@ pack_push
         f32 gyro_y;
         f32 gyro_z;
         f32 computer_vision_confidence;
+        u16 timestamp_ms;
+        u8  sequence_number;
+        u8  crc;
     };
 
     struct PacketESP32
     {
-        struct PacketLoRa nonredundant;
         f32               magnetometer_x;
         f32               magnetometer_y;
         f32               magnetometer_z;
         u8                image_chunk[190];
+        struct PacketLoRa nonredundant;
     };
 
 pack_pop
 
 static_assert(sizeof(struct PacketESP32) <= 250);
+
+
+
+// TODO Document.
+// TODO Have look-up table.
+extern useret u8
+calculate_crc(u8* data, i32 length)
+{
+    u8 crc = 0xFF;
+
+    for (i32 i = 0; i < length; i += 1)
+    {
+        crc ^= data[i];
+
+        for (i32 j = 0; j < 8; j += 1)
+        {
+            crc = (crc & (1 << 7))
+                ? (crc << 1) ^ 0x2F
+                : (crc << 1);
+        }
+    }
+
+    return crc;
+}
 
 
 

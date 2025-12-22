@@ -3,19 +3,21 @@
 
 
 
-static struct PacketLoRa  packet_lora_buffer[128]           = {};
-static volatile u32       packet_lora_writer                = 0;
-static volatile u32       packet_lora_reader                = 0;
 static volatile b32       packet_lora_radio_data_available  = false;
-static volatile i32       packet_lora_invalid_length_count  = 0;
-static volatile i32       packet_lora_radio_error_count     = 0;
-static volatile i32       packet_lora_overrun_count         = 0;
+static struct PacketLoRa  packet_lora_buffer[128]           = {};
+static u32                packet_lora_writer                = 0;
+static u32                packet_lora_reader                = 0;
+static i32                packet_lora_invalid_length_count  = 0;
+static i32                packet_lora_radio_error_count     = 0;
+static i32                packet_lora_overrun_count         = 0;
+static i32                packet_lora_crc_error_count       = 0;
 
 static struct PacketESP32 packet_esp32_buffer[128]          = {};
 static volatile u32       packet_esp32_writer               = 0;
 static volatile u32       packet_esp32_reader               = 0;
 static volatile i32       packet_esp32_invalid_length_count = 0;
 static volatile i32       packet_esp32_overrun_count        = 0;
+static i32                packet_esp32_crc_error_count      = 0;
 
 
 
@@ -194,33 +196,46 @@ loop(void)
 
 
 
-        // Check sequence number.
+        // Check CRC checksum.
 
-        static typeof(packet->nonredundant.sequence_number) expected_sequence_number = 0;
+        u8 digest = calculate_crc((u8*) packet, sizeof(*packet));
 
-        if (packet->nonredundant.sequence_number == expected_sequence_number)
+        if (digest)
         {
-            packet_esp32_consecutive_sequence_number_count += 1;
+            packet_esp32_crc_error_count += 1;
         }
         else
         {
-            expected_sequence_number                   = packet->nonredundant.sequence_number;
-            packet_esp32_broken_sequence_number_count += 1;
+
+            // Check sequence number.
+
+            static typeof(packet->nonredundant.sequence_number) expected_sequence_number = 0;
+
+            if (packet->nonredundant.sequence_number == expected_sequence_number)
+            {
+                packet_esp32_consecutive_sequence_number_count += 1;
+            }
+            else
+            {
+                expected_sequence_number                   = packet->nonredundant.sequence_number;
+                packet_esp32_broken_sequence_number_count += 1;
+            }
+
+            expected_sequence_number += 1;
+
+
+
+            // Count the amount of data we got.
+
+            packet_esp32_bytes_received += sizeof(*packet);
+
+
+
+            // Send the data over to the main flight computer.
+
+            Serial1.write((u8*) packet, sizeof(*packet));
+
         }
-
-        expected_sequence_number += 1;
-
-
-
-        // Count the amount of data we got.
-
-        packet_esp32_bytes_received += sizeof(*packet);
-
-
-
-        // Send the data over to the main flight computer.
-
-        Serial1.write((u8*) packet, sizeof(*packet));
 
 
 
@@ -241,33 +256,46 @@ loop(void)
 
 
 
-        // Check sequence number.
+        // Check CRC checksum.
 
-        static typeof(packet->sequence_number) expected_sequence_number = 0;
+        u8 digest = calculate_crc((u8*) packet, sizeof(*packet));
 
-        if (packet->sequence_number == expected_sequence_number)
+        if (digest)
         {
-            packet_lora_consecutive_sequence_number_count += 1;
+            packet_lora_crc_error_count += 1;
         }
         else
         {
-            expected_sequence_number                  = packet->sequence_number;
-            packet_lora_broken_sequence_number_count += 1;
+
+            // Check sequence number.
+
+            static typeof(packet->sequence_number) expected_sequence_number = 0;
+
+            if (packet->sequence_number == expected_sequence_number)
+            {
+                packet_lora_consecutive_sequence_number_count += 1;
+            }
+            else
+            {
+                expected_sequence_number                  = packet->sequence_number;
+                packet_lora_broken_sequence_number_count += 1;
+            }
+
+            expected_sequence_number += 1;
+
+
+
+            // Count the amount of data we got.
+
+            packet_lora_bytes_received += sizeof(*packet);
+
+
+
+            // Send the data over to the main flight computer.
+
+            Serial1.write((u8*) packet, sizeof(*packet));
+
         }
-
-        expected_sequence_number += 1;
-
-
-
-        // Count the amount of data we got.
-
-        packet_lora_bytes_received += sizeof(*packet);
-
-
-
-        // Send the data over to the main flight computer.
-
-        Serial1.write((u8*) packet, sizeof(*packet));
 
 
 
@@ -297,6 +325,7 @@ loop(void)
         Serial.printf("(ESP32) Packets dropped from ring-buffer so far         : %d"            "\n", packet_esp32_overrun_count);
         Serial.printf("(ESP32) Packets with consecutive sequence number so far : %d"            "\n", packet_esp32_consecutive_sequence_number_count);
         Serial.printf("(ESP32) Packets with broken sequence number so far      : %d"            "\n", packet_esp32_broken_sequence_number_count);
+        Serial.printf("(ESP32) Packets with checksum error so far              : %d"            "\n", packet_esp32_crc_error_count);
 
         Serial.printf("(LoRa)  Payload bytes received                          : %u"   " bytes" "\n", packet_lora_bytes_received);
         Serial.printf("(LoRa)  Average throughput since power-on               : %.0f" " B/s"   "\n", packet_lora_bytes_received / (millis() / 1000.0f));
@@ -305,6 +334,7 @@ loop(void)
         Serial.printf("(LoRa)  Packets dropped from ring-buffer so far         : %d"            "\n", packet_lora_overrun_count);
         Serial.printf("(LoRa)  Packets with consecutive sequence number so far : %d"            "\n", packet_lora_consecutive_sequence_number_count);
         Serial.printf("(LoRa)  Packets with broken sequence number so far      : %d"            "\n", packet_lora_broken_sequence_number_count);
+        Serial.printf("(LoRa)  Packets with checksum error so far              : %d"            "\n", packet_lora_crc_error_count);
 
         Serial.printf("\n");
 
