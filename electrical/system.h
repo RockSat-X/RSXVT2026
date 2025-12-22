@@ -983,13 +983,13 @@ halt_(b32 panicking) // @/`Halting`.
 // >               ~~~~~~~~~~~~~~~~~~~~
 // >    Niceness      |
 // >          vv     ~~~~
-// >          15 : 0b1111'xxxx \
+// >          15 : 0b1111'xxxx ~
 // >          14 : 0b1110'xxxx |--- These interrupt priorities are nicer.
 // >          13 : 0b1101'xxxx |    Any interrupt routine can execute
 // >          12 : 0b1100'xxxx |    FreeRTOS API functions from here.
 // >          11 : 0b1011'xxxx |
-// >          10 : 0b1010'xxxx / <- configMAX_SYSCALL_INTERRUPT_PRIORITY = 0b1010'xxxx
-// >           9 : 0b1001'xxxx \
+// >          10 : 0b1010'xxxx ~ <- configMAX_SYSCALL_INTERRUPT_PRIORITY = 0b1010'xxxx
+// >           9 : 0b1001'xxxx ~
 // >           8 : 0b1000'xxxx |
 // >           7 : 0b0111'xxxx |
 // >           6 : 0b0110'xxxx |
@@ -998,7 +998,7 @@ halt_(b32 panicking) // @/`Halting`.
 // >           3 : 0b0011'xxxx |    FreeRTOS API functions from here.
 // >           2 : 0b0010'xxxx |
 // >           1 : 0b0001'xxxx |
-// >           0 : 0b0000'xxxx /
+// >           0 : 0b0000'xxxx ~
 // >
 
 
