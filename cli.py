@@ -852,7 +852,7 @@ def build(parameters):
     execute_shell_command([
         f'''
             arm-none-eabi-gcc
-                {' '.join(f'"{source}"' for source in target.source_file_paths)}
+                {' '.join(f'"{source.as_posix()}"' for source in target.source_file_paths)}
                 -o "{make_main_relative_path('./build', target.name, f'{target.name}.elf').as_posix()}"
                 -T "{make_main_relative_path('./build', target.name, 'link.ld'           ).as_posix()}"
                 {target.compiler_flags}
