@@ -122,11 +122,7 @@ loop(void)
 
         struct PacketESP32 payload = {};
 
-        Serial1.readBytes
-        (
-            (char*) &payload.nonredundant.sequence_number + sizeof(payload.nonredundant.sequence_number),
-            sizeof(payload) - sizeof(payload.nonredundant.sequence_number)
-        );
+        Serial1.readBytes((char*) &payload, sizeof(payload));
 
         Serial.printf("Got payload (%u ms).\n", payload.nonredundant.timestamp_ms);
 

@@ -93,7 +93,7 @@ pack_push
 
     struct PacketLoRa
     {
-        u16 sequence_number; // When going from FC to ESP32, is set to `PACKET_ESP32_START_TOKEN`.
+        u16 sequence_number;
         u16 timestamp_ms;
         f32 quaternion_i;
         f32 quaternion_j;

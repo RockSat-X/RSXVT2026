@@ -19,7 +19,7 @@ main(void)
         {
             struct PacketESP32 payload =
                 {
-                    .nonredundant.sequence_number            = PACKET_ESP32_START_TOKEN,
+                    .nonredundant.sequence_number            = 6767,
                     .nonredundant.timestamp_ms               = 12345,
                     .nonredundant.quaternion_i               = 0.1f,
                     .nonredundant.quaternion_j               = 0.2f,
@@ -40,6 +40,7 @@ main(void)
 
             GPIO_HIGH(debug);
 
+            _UXART_tx_raw_nonreentrant(UXARTHandle_esp32, (u8*) &(u16) { PACKET_ESP32_START_TOKEN }, sizeof(u16));
             _UXART_tx_raw_nonreentrant(UXARTHandle_esp32, (u8*) &payload, sizeof(payload));
 
             GPIO_LOW(debug);
