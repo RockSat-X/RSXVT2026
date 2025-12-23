@@ -32,7 +32,7 @@ if not (
 
 
 
-import types, shlex, pathlib, shutil, subprocess, time, logging, io
+import types, shlex, pathlib, shutil, subprocess, time, logging, io, struct
 
 
 
@@ -2234,6 +2234,200 @@ def tv(parameters):
         manager.draw_ui(screen)
 
         pygame.display.update()
+
+
+
+################################################################################
+
+
+
+@main_interface.new_verb(
+    {
+        'description' : 'Parse UART data from the main ESP32.',
+    },
+)
+def parseESP32(parameters):
+
+
+
+    # TODO Move elsewhere.
+
+    PACKET_START_TOKEN = (
+        types.SimpleNamespace(
+            name    = 'ESP32',
+            value   = bytes([0xBE, 0xBA]),
+            members = (
+                ('magnetometer_x'            , 'f'),
+                ('magnetometer_y'            , 'f'),
+                ('magnetometer_z'            , 'f'),
+                ('image_chunk'               , 'B' * 190),
+                ('quaternion_i'              , 'f'),
+                ('quaternion_j'              , 'f'),
+                ('quaternion_k'              , 'f'),
+                ('quaternion_r'              , 'f'),
+                ('accelerometer_x'           , 'f'),
+                ('accelerometer_y'           , 'f'),
+                ('accelerometer_z'           , 'f'),
+                ('gyro_x'                    , 'f'),
+                ('gyro_y'                    , 'f'),
+                ('gyro_z'                    , 'f'),
+                ('computer_vision_confidence', 'f'),
+                ('timestamp_ms'              , 'H'),
+                ('sequence_number'           , 'B'),
+                ('crc'                       , 'B'),
+            ),
+        ),
+        types.SimpleNamespace(
+            name    = 'LORA',
+            value   = bytes([0xFE, 0xCA]),
+            members = (
+                ('quaternion_i'              , 'f'),
+                ('quaternion_j'              , 'f'),
+                ('quaternion_k'              , 'f'),
+                ('quaternion_r'              , 'f'),
+                ('accelerometer_x'           , 'f'),
+                ('accelerometer_y'           , 'f'),
+                ('accelerometer_z'           , 'f'),
+                ('gyro_x'                    , 'f'),
+                ('gyro_y'                    , 'f'),
+                ('gyro_z'                    , 'f'),
+                ('computer_vision_confidence', 'f'),
+                ('timestamp_ms'              , 'H'),
+                ('sequence_number'           , 'B'),
+                ('crc'                       , 'B'),
+            ),
+        ),
+    )
+
+
+
+    # Open serial port of ST-Link.
+
+    serial, list_ports = import_pyserial()
+    stlink             = request_stlinks(specific_one = True)
+    serial_port        = serial.Serial(
+        stlink.comport.device,
+        baudrate = STLINK_BAUD,
+        timeout  = 0
+    )
+
+
+
+    # Continously parse UART data.
+
+    stream_data = b''
+
+    while True:
+
+
+
+        # Spinlock without burning up the CPU.
+
+        if not serial_port.in_waiting:
+
+            time.sleep(0.010)
+
+            continue
+
+
+
+        # Find the first start token in the stream, if any.
+
+        stream_data       += serial_port.read(serial_port.in_waiting)
+        first_token_index  = None
+        first_token        = None
+
+        for start_token in PACKET_START_TOKEN:
+
+            try:
+                start_token_index = stream_data.index(start_token.value)
+            except ValueError:
+                continue
+
+            if first_token_index is None or first_token_index > start_token_index:
+                first_token_index = start_token_index
+                first_token       = start_token
+
+
+
+        # No start token found, so we
+        # discard most of the received data.
+
+        if first_token is None:
+
+            split_index = max(
+                len(stream_data) - max(len(token.value) for token in PACKET_START_TOKEN) + 1,
+                0
+            )
+
+            stream_data = stream_data[split_index:]
+
+            continue
+
+
+
+        # Ignore everything before the starting token.
+
+        stream_data = stream_data[first_token_index:]
+
+
+
+        # Ensure that we have collected enough
+        # of the bytes to parse the payload.
+
+        first_token_format = f'<{''.join(
+            member_format
+            for member_name, member_format in first_token.members
+        )}'
+
+        payload_size = struct.calcsize(first_token_format)
+
+        if len(stream_data) < len(first_token.value) + payload_size:
+
+            continue
+
+
+
+        # Parse the payload.
+
+        stream_data  = stream_data[len(first_token.value) :             ]
+        payload_data = stream_data[                       : payload_size]
+        stream_data  = stream_data[payload_size           :             ]
+
+        payload_struct = {}
+        member_offset  = 0
+
+        for member_name, member_format in first_token.members:
+
+            member_size                  = struct.calcsize(member_format)
+            payload_struct[member_name]  = struct.unpack(member_format, payload_data[member_offset:][:member_size])
+            member_offset               += member_size
+
+            if len(payload_struct[member_name]) == 1:
+                payload_struct[member_name], = payload_struct[member_name]
+
+
+
+        # Check CRC.
+
+        crc = 0xFF
+
+        for payload_data_i, payload_data in enumerate(payload_data):
+
+            crc ^= payload_data
+
+            for i in range(8):
+
+                crc = (((crc << 1) ^ 0x2F) if (crc & (1 << 7)) else (crc << 1)) & 0xFF
+
+
+
+        # Output the payload.
+
+        if crc:
+            logger.warning(f'{(first_token.name, payload_struct)}')
+        else:
+            logger.info(f'{(first_token.name, payload_struct)}')
 
 
 
