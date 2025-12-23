@@ -36,8 +36,19 @@ packet_esp32_transmission_callback
     esp_now_send_status_t status
 )
 {
+
+    if (packet_esp32_writer == packet_esp32_reader) // TODO Trap.
+    {
+        for (;;)
+        {
+            digitalWrite(BUILTIN_LED, !digitalRead(BUILTIN_LED));
+            delay(1000);
+        }
+    }
+
     packet_esp32_reader            += 1;
     packet_esp32_transmission_busy  = false;
+
 }
 
 
@@ -45,8 +56,19 @@ packet_esp32_transmission_callback
 extern void
 packet_lora_callback(void)
 {
+
+    if (packet_lora_writer == packet_lora_reader) // TODO Trap.
+    {
+        for (;;)
+        {
+            digitalWrite(BUILTIN_LED, !digitalRead(BUILTIN_LED));
+            delay(2000);
+        }
+    }
+
     packet_lora_reader            += 1;
     packet_lora_transmission_busy  = false;
+
 }
 
 
@@ -193,6 +215,40 @@ loop(void)
                 packet_lora_overrun_count += 1;
             }
 
+        }
+
+    }
+
+    if (packet_esp32_writer - packet_esp32_reader > countof(packet_esp32_buffer)) // TODO Trap.
+    {
+
+        Serial.println(packet_esp32_writer);
+        Serial.println(packet_esp32_reader);
+        Serial.println(packet_esp32_writer - packet_esp32_reader);
+        Serial.println(countof(packet_esp32_buffer));
+        Serial.println(packet_esp32_writer - packet_esp32_reader > countof(packet_esp32_buffer));
+
+        for (;;)
+        {
+            digitalWrite(BUILTIN_LED, !digitalRead(BUILTIN_LED));
+            delay(100);
+        }
+
+    }
+
+    if (packet_lora_writer - packet_lora_reader > countof(packet_lora_buffer)) // TODO Trap.
+    {
+
+        Serial.println(packet_lora_writer);
+        Serial.println(packet_lora_reader);
+        Serial.println(packet_lora_writer - packet_lora_reader);
+        Serial.println(countof(packet_lora_buffer));
+        Serial.println(packet_lora_writer - packet_lora_reader > countof(packet_lora_buffer));
+
+        for (;;)
+        {
+            digitalWrite(BUILTIN_LED, !digitalRead(BUILTIN_LED));
+            delay(500);
         }
 
     }
