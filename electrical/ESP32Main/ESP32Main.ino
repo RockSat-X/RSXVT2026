@@ -233,6 +233,8 @@ loop(void)
 
             // Send the data over to the main flight computer.
 
+            u16 token = PACKET_ESP32_START_TOKEN;
+            Serial1.write((u8*) &token, sizeof(token));
             Serial1.write((u8*) packet, sizeof(*packet));
 
         }
@@ -293,6 +295,8 @@ loop(void)
 
             // Send the data over to the main flight computer.
 
+            u16 token = PACKET_LORA_START_TOKEN;
+            Serial1.write((u8*) &token, sizeof(token));
             Serial1.write((u8*) packet, sizeof(*packet));
 
         }

@@ -58,7 +58,7 @@ main(void)
     for (i32 iteration = 0;; iteration += 1)
     {
 
-        // Send the payload.
+        // Send the payload to the vehicle ESP32.
 
         {
 
@@ -95,45 +95,17 @@ main(void)
 
 
 
-        // Get the payload.
+        // Any data sent from the main ESP32 will be redirected through the ST-LINK.
 
+        for (i32 i = 0; i < (iteration / 16 % 2 == 0 ? 1'000 : 100'000); i += 1)
         {
-            u8  buffer[512] = {0};
-            i32 length      = 0;
 
-            for (i32 i = 0; i < 1'000'000; i += 1)
+            u8 data = {0};
+
+            if (UXART_rx(UXARTHandle_esp32, (char*) &data))
             {
-                if (length < countof(buffer))
-                {
-                    if (UXART_rx(UXARTHandle_esp32, (char*) &buffer[length]))
-                    {
-                        length += 1;
-                    }
-                }
+                _UXART_tx_raw_nonreentrant(UXARTHandle_stlink, &data, sizeof(data));
             }
-
-            struct PacketESP32* payload = (struct PacketESP32*) buffer;
-
-            u8 digest = calculate_crc((u8*) payload, sizeof(*payload));
-
-            stlink_tx("magnetometer_x             : %f"              "\n", payload->magnetometer_x);
-            stlink_tx("magnetometer_y             : %f"              "\n", payload->magnetometer_y);
-            stlink_tx("magnetometer_z             : %f"              "\n", payload->magnetometer_z);
-            stlink_tx("quaternion_i               : %f"              "\n", payload->nonredundant.quaternion_i);
-            stlink_tx("quaternion_j               : %f"              "\n", payload->nonredundant.quaternion_j);
-            stlink_tx("quaternion_k               : %f"              "\n", payload->nonredundant.quaternion_k);
-            stlink_tx("quaternion_r               : %f"              "\n", payload->nonredundant.quaternion_r);
-            stlink_tx("accelerometer_x            : %f"              "\n", payload->nonredundant.accelerometer_x);
-            stlink_tx("accelerometer_y            : %f"              "\n", payload->nonredundant.accelerometer_y);
-            stlink_tx("accelerometer_z            : %f"              "\n", payload->nonredundant.accelerometer_z);
-            stlink_tx("gyro_x                     : %f"              "\n", payload->nonredundant.gyro_x);
-            stlink_tx("gyro_y                     : %f"              "\n", payload->nonredundant.gyro_y);
-            stlink_tx("gyro_z                     : %f"              "\n", payload->nonredundant.gyro_z);
-            stlink_tx("computer_vision_confidence : %f"              "\n", payload->nonredundant.computer_vision_confidence);
-            stlink_tx("timestamp_ms               : %u"              "\n", payload->nonredundant.timestamp_ms);
-            stlink_tx("sequence_number            : %u"              "\n", payload->nonredundant.sequence_number);
-            stlink_tx("crc                        : 0x%02X (0x%02X)" "\n", payload->nonredundant.crc, digest);
-            stlink_tx("\n");
 
         }
 

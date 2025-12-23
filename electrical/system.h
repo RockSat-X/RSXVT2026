@@ -88,6 +88,7 @@ typedef double             f64; static_assert(sizeof(f64) == 8);
 
 
 #define PACKET_ESP32_START_TOKEN 0xBABE
+#define PACKET_LORA_START_TOKEN  0xCAFE
 
 pack_push
 
