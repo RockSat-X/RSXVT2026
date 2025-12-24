@@ -184,7 +184,7 @@
         _UXART_driver_interrupt(UXARTHandle_stlink);
     }
 #endif
-#if TARGET_NAME_IS_VehicleToESP32
+#if TARGET_NAME_IS_TestESP32s
     enum UXARTHandle : u32
     {
         UXARTHandle_stlink,

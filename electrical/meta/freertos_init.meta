@@ -62,7 +62,7 @@
     enum FreeRTOSTask : u32;
     static constexpr u32 FreeRTOSTask_COUNT = 0;
 #endif
-#if TARGET_NAME_IS_VehicleToESP32
+#if TARGET_NAME_IS_TestESP32s
     enum FreeRTOSTask : u32;
     static constexpr u32 FreeRTOSTask_COUNT = 0;
 #endif

@@ -929,10 +929,10 @@ TARGETS = (
 
     types.SimpleNamespace(
 
-        name              = 'VehicleToESP32',
+        name              = 'TestESP32s',
         mcu               = 'STM32H533RET6',
         source_file_paths = make_main_relative_path('''
-            ./electrical/VehicleToESP32.c
+            ./electrical/TestESP32s.c
         '''),
 
         kicad_project = None,

@@ -101,8 +101,8 @@
         _I2C_driver_interrupt(I2CHandle_ovcam_sccb);
     }
 #endif
-#if TARGET_NAME_IS_VehicleToESP32
-    #error Target 'VehicleToESP32' defines no handle for the 'I2C' driver.
+#if TARGET_NAME_IS_TestESP32s
+    #error Target 'TestESP32s' defines no handle for the 'I2C' driver.
 #endif
 #undef _EXPAND_HANDLE
 #define _EXPAND_HANDLE\
@@ -203,7 +203,7 @@
         panic;
     }
 #endif
-#if TARGET_NAME_IS_VehicleToESP32
+#if TARGET_NAME_IS_TestESP32s
     static void
     INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
     {

@@ -4011,7 +4011,7 @@
     #define STPY_APB2_CK       (240'000'000)
     #define STPY_APB3_CK       (240'000'000)
 #endif
-#if TARGET_NAME_IS_VehicleToESP32
+#if TARGET_NAME_IS_TestESP32s
     #if STPY_IMPLEMENTATION
         enum NVICInterrupt : u32
         {
