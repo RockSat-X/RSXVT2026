@@ -37,7 +37,7 @@ packet_esp32_transmission_callback
 )
 {
 
-    if (packet_esp32_writer == packet_esp32_reader) // TODO Trap.
+    if (packet_esp32_writer == packet_esp32_reader) // TODO @/`Ring-Buffer Bug`.
     {
         for (;;)
         {
@@ -57,7 +57,7 @@ extern void
 packet_lora_callback(void)
 {
 
-    if (packet_lora_writer == packet_lora_reader) // TODO Trap.
+    if (packet_lora_writer == packet_lora_reader) // TODO @/`Ring-Buffer Bug`.
     {
         for (;;)
         {
@@ -219,7 +219,7 @@ loop(void)
 
     }
 
-    if (packet_esp32_writer - packet_esp32_reader > countof(packet_esp32_buffer)) // TODO Trap.
+    if (packet_esp32_writer - packet_esp32_reader > countof(packet_esp32_buffer)) // TODO @/`Ring-Buffer Bug`.
     {
 
         Serial.println(packet_esp32_writer);
@@ -236,7 +236,7 @@ loop(void)
 
     }
 
-    if (packet_lora_writer - packet_lora_reader > countof(packet_lora_buffer)) // TODO Trap.
+    if (packet_lora_writer - packet_lora_reader > countof(packet_lora_buffer)) // TODO @/`Ring-Buffer Bug`.
     {
 
         Serial.println(packet_lora_writer);
@@ -314,3 +314,22 @@ loop(void)
     }
 
 }
+
+
+
+// @/`Ring-Buffer Bug`:
+// There seems to be a bug where the ring-buffer reader
+// gets ahead of the writer somehow, and as a result, the
+// buffer seems to be always full but the vehicle will
+// end up transmitting stale packet data.
+// There are some if-statements with infinite loops in them
+// to catch these instances. I, however, haven't been able
+// to seen the bug reproduce at all yet.
+// If need be, we can easily patch this by ensuring the reader
+// is always behind the writer if we find it not to be so;
+// this is just a band-aid to the underlying issue, but given
+// it's so rare, it just might be fine.
+
+
+
+// TODO I think after a while, ESP-NOW packets stop being sent/received. Investigate.
