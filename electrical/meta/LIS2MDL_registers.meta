@@ -51,3 +51,10 @@ static const struct { typeof("OFFSET_X_REG_L") name; typeof(LIS2MDLRegister_OFFS
         { .name = "TEMP_OUT_L_REG", .address = LIS2MDLRegister_TEMP_OUT_L_REG },
         { .name = "TEMP_OUT_H_REG", .address = LIS2MDLRegister_TEMP_OUT_H_REG },
     };
+static const u8 LIS2MDL_INITIALIZATION_SEQUENCE[][2] =
+    {
+        { LIS2MDLRegister_CFG_REG_A, 0x60 },
+        { LIS2MDLRegister_CFG_REG_A, 0x8C },
+        { LIS2MDLRegister_CFG_REG_B, 0x03 },
+        { LIS2MDLRegister_CFG_REG_C, 0x10 },
+    };

@@ -3,6 +3,10 @@
 #include "LIS2MDL_registers.meta"
 /* #meta
 
+
+
+    # Some info on all of the registers of the LIS2MDL.
+
     REGISTER_MAP = (
         ('OFFSET_X_REG_L', 0x45),
         ('OFFSET_X_REG_H', 0x46),
@@ -34,13 +38,42 @@
         for register_name, register_address in REGISTER_MAP
     ))
 
-
     Meta.lut('LIS2MDL_REGISTERS', (
         (
             ('name'   , f'"{register_name}"'              ),
             ('address', f'LIS2MDLRegister_{register_name}'),
         ) for register_name, register_address in REGISTER_MAP
     ))
+
+
+
+    # Make array of writes to the LIS2MDL sensor to configure it.
+
+    INITIALIZATION_SEQUENCE = (
+
+        ('CFG_REG_A', (1    << 6) # Reboot the magnetometer's memory content.
+                    | (1    << 5) # Reset configuration and user registers.
+        ),
+        ('CFG_REG_A', (1    << 7) # Enable temperature compensation, as required.
+                    | (0    << 4) # Don't use low-power mode so we can get full resolution.
+                    | (0b11 << 2) # Set the rate the data is outputted.
+                    | (0b00 << 0) # Continuously measure sensor data.
+        ),
+        ('CFG_REG_B', (1    << 1) # Enable offset cancellation.
+                    | (1    << 0) # Enable digital low-pass filter.
+        ),
+        ('CFG_REG_C', (1    << 4) # TODO Something about preventing async read corruption?
+        ),
+
+    )
+
+    with Meta.enter('static const u8 LIS2MDL_INITIALIZATION_SEQUENCE[][2] ='):
+
+        for register_name, register_value in INITIALIZATION_SEQUENCE:
+
+            Meta.line(f'''
+                {{ LIS2MDLRegister_{register_name}, 0x{register_value :02X} }},
+            ''')
 
 */
 
@@ -49,5 +82,27 @@
 static void
 LIS2MDL_init(void)
 {
-    // TODO.
+
+    // Simply do some writes to the LIS2MDL
+    // sensor to get it up and going.
+
+    for (i32 write_index = 0; write_index < countof(LIS2MDL_INITIALIZATION_SEQUENCE); write_index += 1)
+    {
+
+        enum I2CMasterError error =
+            I2C_blocking_transfer
+            (
+                I2CHandle_primary,
+                LIS2MDL_SEVEN_BIT_ADDRESS,
+                I2CAddressType_seven,
+                I2COperation_write,
+                (u8*) &LIS2MDL_INITIALIZATION_SEQUENCE[write_index],
+                sizeof(LIS2MDL_INITIALIZATION_SEQUENCE[write_index])
+            );
+
+        if (error)
+            sorry
+
+    }
+
 }
