@@ -1,147 +1,335 @@
-#include <esp_now.h>
-#include <WiFi.h>
-#include <Arduino.h> 
-#include <esp_wifi.h>
-// --- Configurable Parameters ---
-// REPLACE WITH THE MAC ADDRESS OF YOUR RECEIVER ESP32
-//Run the ESP32Main file to get the address of device. You can find it in the serial monitor of the Main code
-// For unicast method Find the receiver's MAC by uploading a simple sketch that prints WiFi.macAddress()
-// Or use 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF for broadcast
-//unicast allows for more precise data transmission
-uint8_t receiverAddress[] = {0xD8, 0x3B, 0xDA, 0x74, 0x81, 0xFC};//input MAC address of receiver here if using unicast
+#define COMPILING_ESP32 true
+#include "../system.h"
 
-// Size of data payload (bytes). Max safe value is around 240.
-//change if desired
-const uint8_t currentPayloadSize = 64;
 
-// Define maximum payload buffer size (should be >= currentPayloadSize)
-#define MAX_PAYLOAD_SIZE 240
 
-// 1. Data Structure Definition
-// __attribute__((packed)) prevents invisible padding bytes
-typedef struct __attribute__((packed)) struct_message {
-    uint32_t sequenceNum;          // Sequence number
-        uint32_t crc32;                  // CRC32 checksum
-    uint8_t payload[MAX_PAYLOAD_SIZE]; // Data payload buffer
-} struct_message;
+const static u8 MAIN_ESP32_MAC_ADDRESS[] = { 0x10, 0xB4, 0x1D, 0xE8, 0x97, 0x28 };
 
-// Create a variable of the structure type
-struct_message myData;
-uint32_t currentSequenceNum = 0;
-//info for receiver 
-esp_now_peer_info_t peerInfo;
-volatile bool sendNextPacket = true; // Flag to control sending
+static struct PacketESP32 packet_esp32_buffer[128]       = {};
+static volatile u32       packet_esp32_writer            = 0;
+static volatile u32       packet_esp32_reader            = 0;
+static volatile b32       packet_esp32_transmission_busy = false;
 
-// 2. CRC32 Calculation Function (Standard IEEE 802.3)
-uint32_t calculateCRC32(const uint8_t *data, size_t length) {
-    uint32_t crc = 0xFFFFFFFF;
-    for (size_t i = 0; i < length; i++) {
-        uint8_t c = data[i];
-        for (uint32_t j = 0; j < 8; j++) {
-            if ((c ^ crc) & 1) {
-                crc = (crc >> 1) ^ 0xEDB88320;
-            } else {
-                crc >>= 1;
-            }
-            c >>= 1;
+// LoRa ring-buffer shouldn't be very deep because
+// it's such low throughput. If it was deep, a lot
+// of the data might be data far in the past and not
+// the more recent stuff.
+static struct PacketLoRa  packet_lora_buffer[4]          = {};
+static volatile u32       packet_lora_writer             = 0;
+static volatile u32       packet_lora_reader             = 0;
+static volatile bool      packet_lora_transmission_busy  = false;
+
+static i32                last_uart_packet_timestamp_ms  = 0;
+static i32                packet_uart_packet_count       = 0;
+static i32                packet_uart_crc_error_count    = 0;
+static i32                packet_esp32_packet_count      = 0;
+static i32                packet_esp32_overrun_count     = 0;
+static i32                packet_lora_packet_count       = 0;
+static i32                packet_lora_overrun_count      = 0;
+
+
+
+extern void
+packet_esp32_transmission_callback
+(
+    const wifi_tx_info_t* info,
+    esp_now_send_status_t status
+)
+{
+
+    if (packet_esp32_writer == packet_esp32_reader) // TODO @/`Ring-Buffer Bug`.
+    {
+        for (;;)
+        {
+            digitalWrite(BUILTIN_LED, !digitalRead(BUILTIN_LED));
+            delay(1000);
         }
     }
-    return ~crc;
+
+    packet_esp32_reader            += 1;
+    packet_esp32_transmission_busy  = false;
+
 }
 
-// 3. Callback function when data is sent
-//checks whether packet was sent succesfully and acts as a pit stop to prevent and buffer overload
-void OnDataSent(const wifi_tx_info_t* tx_info, esp_now_send_status_t status) { 
-    if (status != ESP_NOW_SEND_SUCCESS) {
-        Serial.print("Send Status: Fail, Error: ");
-        Serial.println(status); // Print error code if failed
+
+
+extern void
+packet_lora_callback(void)
+{
+
+    if (packet_lora_writer == packet_lora_reader) // TODO @/`Ring-Buffer Bug`.
+    {
+        for (;;)
+        {
+            digitalWrite(BUILTIN_LED, !digitalRead(BUILTIN_LED));
+            delay(2000);
+        }
     }
-    // Set flag to allow the loop to send the next packet
-    sendNextPacket = true;
+
+    packet_lora_reader            += 1;
+    packet_lora_transmission_busy  = false;
+
 }
 
-// 4. Setup Function
-void setup() {
+
+
+extern void
+setup(void)
+{
+
+    // Debug set-up.
+
     Serial.begin(115200);
-    Serial.println("ESP-NOW Transmitter Profiler");
 
-    // Seed the random number generator
-    randomSeed(micros());
+    pinMode(LED_BUILTIN, OUTPUT);
 
-    // Set device as a Wi-Fi Station
-    WiFi.mode(WIFI_STA);
-    //added this wifi set channel function last minute, so if anythings off comment this out
-    esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE);//channel 1
-    delay(500); //just added to give bootup more time 
-    Serial.print("Transmitter MAC Address: ");
-    Serial.println(WiFi.macAddress());
 
-    // Init ESP-NOW
-    if (esp_now_init() != ESP_OK) {
-        Serial.println("Error initializing ESP-NOW");
-        ESP.restart(); // Restart if initialization fails
+
+    // Initialize UART stuff.
+
+    common_init_uart();
+
+
+
+    // Initialize ESP-NOW stuff.
+
+    common_init_esp_now();
+
+    esp_now_register_send_cb(packet_esp32_transmission_callback);
+
+    esp_now_peer_info_t info = {};
+    info.peer_addr[0] = MAIN_ESP32_MAC_ADDRESS[0];
+    info.peer_addr[1] = MAIN_ESP32_MAC_ADDRESS[1];
+    info.peer_addr[2] = MAIN_ESP32_MAC_ADDRESS[2];
+    info.peer_addr[3] = MAIN_ESP32_MAC_ADDRESS[3];
+    info.peer_addr[4] = MAIN_ESP32_MAC_ADDRESS[4];
+    info.peer_addr[5] = MAIN_ESP32_MAC_ADDRESS[5];
+    info.channel      = 1;
+    info.encrypt      = false;
+
+    if (esp_now_add_peer(&info) != ESP_OK)
+    {
+        Serial.printf("Failed to add peer.\n");
+        ESP.restart();
         return;
     }
 
-    // Register the send callback
-    esp_now_register_send_cb(OnDataSent);
 
-    // Register peer
-    memcpy(peerInfo.peer_addr, receiverAddress, 6);
-    peerInfo.channel = 1; // Use channel 1
-    peerInfo.encrypt = false; // No encryption for this test
 
-    // Add peer
-    if (esp_now_add_peer(&peerInfo) != ESP_OK) {
-        Serial.println("Failed to add peer");
-        ESP.restart(); // Restart if adding peer fails
-        return;
-    }
-    Serial.println("Setup complete. Starting transmission...");
+    // Initialize LoRa stuff.
+
+    common_init_lora();
+
 }
 
-// 5. Main Loop
-void loop() {
-    // Send data as fast as possible using the callback flag
-    if (sendNextPacket) {
-        sendNextPacket = false; // Prevent sending again until callback confirms
-        sendData();
+
+
+extern void
+loop(void)
+{
+
+    // Heart-beat.
+
+    digitalWrite(BUILTIN_LED, !digitalRead(BUILTIN_LED));
+
+
+
+    // See if we received data over UART.
+    // We determine the start of a payload
+    // by looking for the magic starting token
+    // in place of the sequence number.
+
+    while
+    (
+        Serial1.available() >= sizeof(struct PacketESP32)
+        && Serial1.read() == (PACKET_ESP32_START_TOKEN & 0xFF)
+        && Serial1.peek() == ((PACKET_ESP32_START_TOKEN >> 8) & 0xFF)
+        && Serial1.read() == ((PACKET_ESP32_START_TOKEN >> 8) & 0xFF)
+    )
+    {
+
+        // Get the rest of the payload data.
+
+        struct PacketESP32 payload = {};
+
+        Serial1.readBytes((char*) &payload, sizeof(payload));
+
+        u8 digest = calculate_crc((u8*) &payload, sizeof(payload));
+
+        last_uart_packet_timestamp_ms  = payload.nonredundant.timestamp_ms;
+        packet_uart_packet_count      += 1;
+
+
+
+        // If there's no corruption between vehicle FC and ESP32,
+        // we're ready to send the packet from the vehicle ESP32 to the main ESP32.
+
+        if (digest)
+        {
+            packet_uart_crc_error_count += 1;
+        }
+        else
+        {
+
+            // Try pushing packet into ESP-NOW ring-buffer.
+
+            if (packet_esp32_writer - packet_esp32_reader < countof(packet_esp32_buffer))
+            {
+
+                struct PacketESP32*                                 packet                  = &packet_esp32_buffer[packet_esp32_writer % countof(packet_esp32_buffer)];
+                static typeof(packet->nonredundant.sequence_number) current_sequence_number = 0;
+
+                *packet                               = payload;
+                packet->nonredundant.sequence_number  = current_sequence_number;
+                packet->nonredundant.crc              = calculate_crc((u8*) packet, sizeof(*packet) - sizeof(packet->nonredundant.crc));
+                current_sequence_number              += 1;
+                packet_esp32_writer                  += 1;
+                packet_esp32_packet_count            += 1;
+
+            }
+            else
+            {
+                packet_esp32_overrun_count += 1;
+            }
+
+
+
+            // Try pushing packet into LoRa ring-buffer.
+
+            if (packet_lora_writer - packet_lora_reader < countof(packet_lora_buffer))
+            {
+
+                struct PacketLoRa*                     packet                  = &packet_lora_buffer[packet_lora_writer % countof(packet_lora_buffer)];
+                static typeof(packet->sequence_number) current_sequence_number = 0;
+
+                *packet                   = payload.nonredundant;
+                packet->sequence_number   = current_sequence_number;
+                packet->crc               = calculate_crc((u8*) packet, sizeof(*packet) - sizeof(packet->crc));
+                current_sequence_number  += 1;
+                packet_lora_writer       += 1;
+                packet_lora_packet_count += 1;
+
+            }
+            else
+            {
+                packet_lora_overrun_count += 1;
+            }
+
+        }
+
     }
-    // A small yield or delay can sometimes help stability if watchdog timer issues arise
-    // delay(1); // Optional: uncomment if needed
-    yield(); 
+
+    if (packet_esp32_writer - packet_esp32_reader > countof(packet_esp32_buffer)) // TODO @/`Ring-Buffer Bug`.
+    {
+
+        Serial.println(packet_esp32_writer);
+        Serial.println(packet_esp32_reader);
+        Serial.println(packet_esp32_writer - packet_esp32_reader);
+        Serial.println(countof(packet_esp32_buffer));
+        Serial.println(packet_esp32_writer - packet_esp32_reader > countof(packet_esp32_buffer));
+
+        for (;;)
+        {
+            digitalWrite(BUILTIN_LED, !digitalRead(BUILTIN_LED));
+            delay(100);
+        }
+
+    }
+
+    if (packet_lora_writer - packet_lora_reader > countof(packet_lora_buffer)) // TODO @/`Ring-Buffer Bug`.
+    {
+
+        Serial.println(packet_lora_writer);
+        Serial.println(packet_lora_reader);
+        Serial.println(packet_lora_writer - packet_lora_reader);
+        Serial.println(countof(packet_lora_buffer));
+        Serial.println(packet_lora_writer - packet_lora_reader > countof(packet_lora_buffer));
+
+        for (;;)
+        {
+            digitalWrite(BUILTIN_LED, !digitalRead(BUILTIN_LED));
+            delay(500);
+        }
+
+    }
+
+
+
+    // See if there's an ESP32 packet to be sent and
+    // that we can transmit one at all.
+
+    if (packet_esp32_reader != packet_esp32_writer && !packet_esp32_transmission_busy)
+    {
+
+        packet_esp32_transmission_busy = true;
+
+        struct PacketESP32* packet = &packet_esp32_buffer[packet_esp32_reader % countof(packet_esp32_buffer)];
+
+        if (esp_now_send(MAIN_ESP32_MAC_ADDRESS, (u8*) packet, sizeof(*packet)) != ESP_OK)
+        {
+            Serial.printf("Send Error!\n");
+            packet_esp32_transmission_busy = false;
+        }
+
+    }
+
+
+
+    // See if there's an LoRa packet to be sent and
+    // that we can transmit one at all.
+
+    if (packet_lora_reader != packet_lora_writer && !packet_lora_transmission_busy)
+    {
+
+        packet_lora_transmission_busy = true;
+
+        struct PacketLoRa* packet = &packet_lora_buffer[packet_lora_reader % countof(packet_lora_buffer)];
+
+        packet_lora_radio.startTransmit((u8*) packet, sizeof(*packet)); // TODO Error checking?
+
+    }
+
+
+
+    // Output statistics at regular intervals.
+
+    static u32 last_statistic_timestamp_ms = 0;
+
+    u32 current_timestamp_ms = millis();
+
+    if (current_timestamp_ms - last_statistic_timestamp_ms >= 500)
+    {
+
+        last_statistic_timestamp_ms = current_timestamp_ms;
+
+        Serial.printf("Last timestamp        : %d ms" "\n", last_uart_packet_timestamp_ms);
+        Serial.printf("UART packets received : %d"    "\n", packet_uart_packet_count);
+        Serial.printf("UART CRC mismatches   : %d"    "\n", packet_uart_crc_error_count);
+        Serial.printf("ESP32 packets queued  : %d"    "\n", packet_esp32_packet_count);
+        Serial.printf("ESP32 packet overruns : %d"    "\n", packet_esp32_overrun_count);
+        Serial.printf("LoRa packets queued   : %d"    "\n", packet_lora_packet_count);
+        Serial.printf("LoRa packet overruns  : %d"    "\n", packet_lora_overrun_count);
+        Serial.printf("\n");
+
+    }
+
 }
 
-// 6. Main function that sends data
-void sendData() {
-    myData.sequenceNum = currentSequenceNum;
 
-    // Fill payload with non-trivial data (random bytes)
-    for (int i = 0; i < currentPayloadSize; i++) {
-        myData.payload[i] = random(0, 256);
-    }
-    // Pad the rest of the buffer if needed 
-    // for (int i = currentPayloadSize; i < MAX_PAYLOAD_SIZE; i++) {
-    //    myData.payload[i] = 0; // Or some padding value
-    // }
 
-// Calculate CRC32
-    // We create a temporary buffer containing: [SequenceNum] + [Active Payload]
-    uint8_t bufferForCrc[sizeof(myData.sequenceNum) + currentPayloadSize];
-    memcpy(bufferForCrc, &myData.sequenceNum, sizeof(myData.sequenceNum));
-    memcpy(bufferForCrc + sizeof(myData.sequenceNum), myData.payload, currentPayloadSize);
-    // Store the result in the new 32-bit field
-    myData.crc32 = calculateCRC32(bufferForCrc, sizeof(bufferForCrc));
-    // Send message via ESP-NOW
-// now only sends active data
-size_t packetSize = sizeof(myData.sequenceNum) + sizeof(myData.crc32) + currentPayloadSize;
-esp_err_t result = esp_now_send(receiverAddress, (uint8_t *) &myData, packetSize);
-    // Error check - primary check happens in callback, this is just immediate feedback
-    if (result != ESP_OK) {
-        Serial.print("Immediate Send Error: ");
-        Serial.println(result);
-        sendNextPacket = true; // Allow trying again immediately on error
-    }
+// @/`Ring-Buffer Bug`:
+// There seems to be a bug where the ring-buffer reader
+// gets ahead of the writer somehow, and as a result, the
+// buffer seems to be always full but the vehicle will
+// end up transmitting stale packet data.
+// There are some if-statements with infinite loops in them
+// to catch these instances. I, however, haven't been able
+// to seen the bug reproduce at all yet.
+// If need be, we can easily patch this by ensuring the reader
+// is always behind the writer if we find it not to be so;
+// this is just a band-aid to the underlying issue, but given
+// it's so rare, it just might be fine.
 
-    currentSequenceNum++; // Increment for the next packet
-}
+
+
+// TODO I think after a while, ESP-NOW packets stop being sent/received. Investigate.

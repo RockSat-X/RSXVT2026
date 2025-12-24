@@ -42,7 +42,7 @@ struct UXARTDriver
 {
     volatile u32  reception_reader;
     volatile u32  reception_writer;
-    volatile char reception_buffer[1 << 5];
+    volatile char reception_buffer[1 << 8]; // TODO Consider being able to be set.
 
     #if TARGET_USES_FREERTOS
         StaticSemaphore_t transmission_mutex_data;

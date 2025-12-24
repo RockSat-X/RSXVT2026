@@ -49,6 +49,9 @@
 #if TARGET_NAME_IS_DemoOVCAM
     #error Target 'DemoOVCAM' defines no handle for the 'SD' driver.
 #endif
+#if TARGET_NAME_IS_TestESP32s
+    #error Target 'TestESP32s' defines no handle for the 'SD' driver.
+#endif
 #undef _EXPAND_HANDLE
 #define _EXPAND_HANDLE\
     if (!(0 <= handle && handle < SDHandle_COUNT))\
