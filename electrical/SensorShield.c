@@ -19,59 +19,26 @@ main(void)
     for (;;)
     {
 
-        for (i32 register_i = 0; register_i < countof(LIS2MDL_REGISTERS); register_i += 1)
-        {
+        struct LIS2MDLPayload payload = LIS2MDL_get_payload();
 
-            u8 data = {0};
-            {
-
-                enum I2CMasterError error =
-                    I2C_blocking_transfer
-                    (
-                        I2CHandle_primary,
-                        LIS2MDL_SEVEN_BIT_ADDRESS,
-                        I2CAddressType_seven,
-                        I2COperation_write,
-                        &(u8) { LIS2MDL_REGISTERS[register_i].address },
-                        1
-                    );
-
-                if (error)
-                    sorry
-
-            }
-            {
-
-                enum I2CMasterError error =
-                    I2C_blocking_transfer
-                    (
-                        I2CHandle_primary,
-                        LIS2MDL_SEVEN_BIT_ADDRESS,
-                        I2CAddressType_seven,
-                        I2COperation_read,
-                        &data,
-                        sizeof(data)
-                    );
-
-                if (error)
-                    sorry
-
-            }
-
-            stlink_tx
-            (
-                "Register %-14s (0x%02X) : 0x%02X\n",
-                LIS2MDL_REGISTERS[register_i].name,
-                LIS2MDL_REGISTERS[register_i].address,
-                data
-            );
-
-        }
+        stlink_tx
+        (
+            "status      : " "0x%02X" "\n"
+            "x           : " "%f"     "\n"
+            "y           : " "%f"     "\n"
+            "z           : " "%f"     "\n"
+            "temperature : " "%d"     "\n",
+            payload.status,
+            payload.x / 32768.0f,
+            payload.y / 32768.0f,
+            payload.z / 32768.0f,
+            payload.temperature
+        );
 
         stlink_tx("\n");
 
         GPIO_TOGGLE(led_green);
-        spinlock_nop(400'000'000);
+        spinlock_nop(10'000'000);
 
     }
 

@@ -79,6 +79,17 @@
 
 
 
+struct LIS2MDLPayload
+{
+    u8  status;      // STATUS_REG.
+    i16 x;           // OUTX_L_REG, OUTX_H_REG.
+    i16 y;           // OUTY_L_REG, OUTY_H_REG.
+    i16 z;           // OUTZ_L_REG, OUTZ_H_REG.
+    i16 temperature; // TEMP_OUT_L_REG, TEMP_OUT_H_REG.
+};
+
+
+
 static void
 LIS2MDL_init(void)
 {
@@ -104,5 +115,52 @@ LIS2MDL_init(void)
             sorry
 
     }
+
+}
+
+
+
+static useret struct LIS2MDLPayload
+LIS2MDL_get_payload(void)
+{
+
+    struct LIS2MDLPayload payload = {0};
+
+    {
+
+        enum I2CMasterError error =
+            I2C_blocking_transfer
+            (
+                I2CHandle_primary,
+                LIS2MDL_SEVEN_BIT_ADDRESS,
+                I2CAddressType_seven,
+                I2COperation_write,
+                &(u8) { LIS2MDLRegister_STATUS_REG },
+                1
+            );
+
+        if (error)
+            sorry
+
+    }
+    {
+
+        enum I2CMasterError error =
+            I2C_blocking_transfer
+            (
+                I2CHandle_primary,
+                LIS2MDL_SEVEN_BIT_ADDRESS,
+                I2CAddressType_seven,
+                I2COperation_read,
+                (u8*) &payload,
+                sizeof(payload)
+            );
+
+        if (error)
+            sorry
+
+    }
+
+    return payload;
 
 }
