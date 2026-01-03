@@ -4,6 +4,8 @@ build/
 data/
 *.swp
 .~lock*
+*.pdb
+*.exe
 
 # KiCAD.
 *-backups/
