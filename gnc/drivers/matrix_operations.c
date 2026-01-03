@@ -1,38 +1,48 @@
-// matrix dimensions so that we dont have to pass them as
-// parametersmat1[R1][C1] and mat2[R2][C2]
-#define R1 3 // number of rows in matrix 1
-#define C1 6 // number of columns in matrix 1
-#define R2 6 // number of rows in matrix 2
-#define C2 1 // number of columns in matrix 2
+#define Matrix(ROWS, COLUMNS, VALUES...) \
+    ((struct Matrix*) (int[2 + (ROWS) * (COLUMNS)]) { (ROWS), (COLUMNS), VALUES })
 
-void matrix_multiply(int m1[R1][C1], int m2[R1][C2], int result[R1][C2] )
+struct Matrix
 {
-    for (int i = 0; i < R1; i++) {
-        for (int j = 0; j < C2; j++) {
-            result[i][j] = 0;
+    int rows;
+    int columns;
+    int values[];
+};
 
-            for (int k = 0; k < R2; k++) {
-                result[i][j] += m1[i][k] * m2[k][j];
+
+
+static void
+MATRIX_multiply(struct Matrix* dst, struct Matrix* lhs, struct Matrix* rhs)
+{
+
+    for (int i = 0; i < lhs->rows; i += 1)
+    {
+        for (int j = 0; j < rhs->columns; j += 1)
+        {
+
+            dst->values[i * dst->columns + j] = 0;
+
+            for (int k = 0; k < rhs->rows; k += 1)
+            {
+                dst->values[i * dst->columns + j] +=
+                    lhs->values[i * lhs->columns + k] *
+                    rhs->values[k * rhs->columns + j];
             }
-        }
-    }
-}
 
-void matrix_add(int m1[][C2], int m2[][C2], int result[][C2] )
-{
-    for (int i = 0; i < R1; i++) {
-        for (int j = 0; j < C2; j++) {
-            result[i][j] = m1[i][j] + m2[i][j];
         }
     }
+
 }
 
 
-void matrix_subtract(int m1[][C2], int m2[][C2], int result[][C2] )
+
+static void
+MATRIX_multiply_add(struct Matrix* accumulator, struct Matrix* addend, int factor)
 {
-    for (int i = 0; i < R1; i++) {
-        for (int j = 0; j < C2; j++) {
-            result[i][j] = m1[i][j] - m2[i][j];
+    for (int i = 0; i < accumulator->rows; i += 1)
+    {
+        for (int j = 0; j < accumulator->columns; j += 1)
+        {
+            accumulator->values[i * accumulator->columns + j] += addend->values[i * addend->columns + j] * factor;
         }
     }
 }
