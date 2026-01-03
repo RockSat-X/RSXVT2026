@@ -3,13 +3,14 @@
 #include <assert.h>
 #include "matrix_operations.c"
 
-int main()
+extern int
+main(void)
 {
 
     struct Matrix* gain =
         Matrix
         (
-            1, 6,
+            3, 6,
             1, 0, 0, 1, 0, 0,
             0, 1, 0, 0, 1, 0,
             0, 0, 1, 0, 0, 1,
@@ -43,7 +44,7 @@ int main()
     {
         for (int j = 0; j < control_output->columns; j += 1)
         {
-            printf("%d\t", control_output->values[i * control_output->columns + j]);
+            printf("%f\t", control_output->values[i * control_output->columns + j]);
         }
         printf("\n");
     }

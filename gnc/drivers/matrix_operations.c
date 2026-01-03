@@ -1,11 +1,19 @@
-#define Matrix(ROWS, COLUMNS, VALUES...) \
-    ((struct Matrix*) (int[2 + (ROWS) * (COLUMNS)]) { (ROWS), (COLUMNS), VALUES })
+#define Matrix(ROWS, COLUMNS, VALUES...)    \
+    (                                       \
+        (struct Matrix*)                    \
+        (float[2 + (ROWS) * (COLUMNS)])     \
+        {                                   \
+            *(float*) &(int) { (ROWS   ) }, \
+            *(float*) &(int) { (COLUMNS) }, \
+            VALUES                          \
+        }                                   \
+    )
 
 struct Matrix
 {
-    int rows;
-    int columns;
-    int values[];
+    int   rows;
+    int   columns;
+    float values[];
 };
 
 
@@ -43,7 +51,7 @@ MATRIX_multiply(struct Matrix* dst, struct Matrix* lhs, struct Matrix* rhs)
 
 
 static void
-MATRIX_multiply_add(struct Matrix* accumulator, struct Matrix* addend, int factor)
+MATRIX_multiply_add(struct Matrix* accumulator, struct Matrix* addend, float factor)
 {
 
     assert(accumulator);
