@@ -14,6 +14,13 @@ static void
 MATRIX_multiply(struct Matrix* dst, struct Matrix* lhs, struct Matrix* rhs)
 {
 
+    assert(dst);
+    assert(lhs);
+    assert(rhs);
+    assert(dst->rows    == lhs->rows   );
+    assert(dst->columns == rhs->columns);
+    assert(lhs->columns == rhs->rows   );
+
     for (int i = 0; i < lhs->rows; i += 1)
     {
         for (int j = 0; j < rhs->columns; j += 1)
@@ -38,6 +45,12 @@ MATRIX_multiply(struct Matrix* dst, struct Matrix* lhs, struct Matrix* rhs)
 static void
 MATRIX_multiply_add(struct Matrix* accumulator, struct Matrix* addend, int factor)
 {
+
+    assert(accumulator);
+    assert(addend);
+    assert(accumulator->rows    == addend->rows   );
+    assert(accumulator->columns == addend->columns);
+
     for (int i = 0; i < accumulator->rows; i += 1)
     {
         for (int j = 0; j < accumulator->columns; j += 1)
@@ -45,4 +58,5 @@ MATRIX_multiply_add(struct Matrix* accumulator, struct Matrix* addend, int facto
             accumulator->values[i * accumulator->columns + j] += addend->values[i * addend->columns + j] * factor;
         }
     }
+
 }

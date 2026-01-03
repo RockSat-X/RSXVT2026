@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 #include "matrix_operations.c"
 
 int main()
@@ -8,7 +9,7 @@ int main()
     struct Matrix* gain =
         Matrix
         (
-            3, 6,
+            1, 6,
             1, 0, 0, 1, 0, 0,
             0, 1, 0, 0, 1, 0,
             0, 0, 1, 0, 0, 1,
