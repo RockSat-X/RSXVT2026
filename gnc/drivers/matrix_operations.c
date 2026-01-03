@@ -1,3 +1,17 @@
+// The following macro creates a Matrix instance
+// on the stack. This means matrices should not be
+// used as return values as they are allocated in the
+// function's stack frame.
+//
+// Matrices should be made by doing `Matrix(A, B)`
+// to create a AxB matrix of zeros or `Matrix(A, B, ...)`
+// where all elements are listed out explicitly;
+// it should be noted that it's not checked if the amount
+// of listed elements matches up with AxB, so if too few
+// elements are given, the rest of the matrix's elements
+// are initialized to zero (but too many and the compiler
+// will complain, so that's okay).
+
 #define Matrix(ROWS, COLUMNS, VALUES...)    \
     (                                       \
         (struct Matrix*)                    \
@@ -17,6 +31,19 @@ struct Matrix
 };
 
 
+
+// Matrix elements are stored as a
+// flat array in row-major order.
+// The following macro makes it convenient
+// to index an arbitrary matrix.
+
+#define AT(MATRIX, ROW, COLUMN) \
+    (MATRIX)->values[(ROW) * (MATRIX)->columns + (COLUMN)]
+
+
+
+// To multiply two matrices, the destination matrix
+// should be allocated beforehand to the correct dimensions.
 
 static void
 MATRIX_multiply(struct Matrix* dst, struct Matrix* lhs, struct Matrix* rhs)
@@ -38,9 +65,7 @@ MATRIX_multiply(struct Matrix* dst, struct Matrix* lhs, struct Matrix* rhs)
 
             for (int k = 0; k < rhs->rows; k += 1)
             {
-                dst->values[i * dst->columns + j] +=
-                    lhs->values[i * lhs->columns + k] *
-                    rhs->values[k * rhs->columns + j];
+                AT(dst, i, j) += AT(lhs, i, k) * AT(rhs, k, j);
             }
 
         }
@@ -49,6 +74,11 @@ MATRIX_multiply(struct Matrix* dst, struct Matrix* lhs, struct Matrix* rhs)
 }
 
 
+
+// Matrices can be added/subtracted with
+// the following multiply-add routine.
+// Note that it's accumulator-based, so it
+// modifies one of the given matrices.
 
 static void
 MATRIX_multiply_add(struct Matrix* accumulator, struct Matrix* addend, float factor)
@@ -63,7 +93,7 @@ MATRIX_multiply_add(struct Matrix* accumulator, struct Matrix* addend, float fac
     {
         for (int j = 0; j < accumulator->columns; j += 1)
         {
-            accumulator->values[i * accumulator->columns + j] += addend->values[i * addend->columns + j] * factor;
+            AT(accumulator, i, j) += AT(addend, i, j) * factor;
         }
     }
 

@@ -44,7 +44,7 @@ main(void)
     {
         for (int j = 0; j < control_output->columns; j += 1)
         {
-            printf("%f\t", control_output->values[i * control_output->columns + j]);
+            printf("%f\t", AT(control_output, i, j));
         }
         printf("\n");
     }
