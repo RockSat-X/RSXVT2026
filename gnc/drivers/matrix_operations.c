@@ -1,5 +1,9 @@
-#include <stdio.h>
-#include "matrix_operations.h"
+// matrix dimensions so that we dont have to pass them as
+// parametersmat1[R1][C1] and mat2[R2][C2]
+#define R1 3 // number of rows in matrix 1
+#define C1 6 // number of columns in matrix 1
+#define R2 6 // number of rows in matrix 2
+#define C2 1 // number of columns in matrix 2
 
 void matrix_multiply(int m1[R1][C1], int m2[R1][C2], int result[R1][C2] )
 {

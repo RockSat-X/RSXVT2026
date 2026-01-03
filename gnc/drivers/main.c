@@ -1,7 +1,7 @@
 // C program to multiply two matrices
 #include <stdio.h>
 #include <stdlib.h>
-#include "matrix_operations.h"
+#include "matrix_operations.c"
 
 // Driver code
 int main()
