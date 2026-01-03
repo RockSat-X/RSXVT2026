@@ -40,14 +40,7 @@ main(void)
 
     printf("Resultant Matrix is:\n");
 
-    for (int i = 0; i < control_output->rows; i += 1)
-    {
-        for (int j = 0; j < control_output->columns; j += 1)
-        {
-            printf("%f\t", AT(control_output, i, j));
-        }
-        printf("\n");
-    }
+    MATRIX_print(control_output);
 
 
 

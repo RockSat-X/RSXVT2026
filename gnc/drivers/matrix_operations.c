@@ -98,3 +98,37 @@ MATRIX_multiply_add(struct Matrix* accumulator, struct Matrix* addend, float fac
     }
 
 }
+
+
+
+// Helper routine to dump the contents of the matrix
+// for diagnostics. The rounding should be accounted for
+// if the values are to be analyzed seriously.
+
+static void
+MATRIX_print(struct Matrix* matrix)
+{
+    for (int i = 0; i < matrix->rows; i += 1)
+    {
+        printf
+        (
+            "%c ",
+            matrix->rows == 1     ? '<'  :
+            i == 0                ? '/'  :
+            i == matrix->rows - 1 ? '\\' : '|'
+        );
+
+        for (int j = 0; j < matrix->columns; j += 1)
+        {
+            printf("%9.5g ", AT(matrix, i, j));
+        }
+
+        printf
+        (
+            "%c\n",
+            matrix->rows == 1     ? '>'  :
+            i == 0                ? '\\' :
+            i == matrix->rows - 1 ? '/'  : '|'
+        );
+    }
+}
