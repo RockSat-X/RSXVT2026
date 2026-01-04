@@ -1,8 +1,10 @@
-#meta STLINK_BAUD, TARGETS, PER_MCU, PER_TARGET, OVCAM_DEFAULT_RESOLUTION, TV_WRITE_BYTE, TV_TOKEN, OVCAM_JPEG_CTRL3_FIELDS :
+#meta global STLINK_BAUD, TARGETS, PER_MCU, PER_TARGET
+#meta global OVCAM_DEFAULT_RESOLUTION
+#meta global TV_WRITE_BYTE, TV_TOKEN, OVCAM_JPEG_CTRL3_FIELDS
 
 import types, collections
-from deps.stpy.pxd.utils import make_main_relative_path, c_repr, SimpleNamespaceTable
-from deps.stpy.mcus      import MCUS
+import deps.stpy.pxd.pxd as pxd
+from deps.stpy.mcus import MCUS
 
 
 
@@ -20,7 +22,7 @@ OVCAM_RESOLUTIONS = (
     (800, 480),
 )
 
-OVCAM_JPEG_CTRL3_FIELDS = SimpleNamespaceTable(
+OVCAM_JPEG_CTRL3_FIELDS = pxd.SimpleNamespaceTable(
     ('description'                   , 'default', 'configurable'),
     ('Input shift 128 select for Y.' , True     , True          ),
     ('Input shift 128 select for C.' , True     , True          ),
@@ -32,7 +34,7 @@ OVCAM_JPEG_CTRL3_FIELDS = SimpleNamespaceTable(
     ('Use SRAM QT instead of ROM QT.', False    , True          ),
 )
 
-PRE_ISP_TEST_SETTING_FIELDS = SimpleNamespaceTable(
+PRE_ISP_TEST_SETTING_FIELDS = pxd.SimpleNamespaceTable(
     ('description'              , 'options'),
     ('PRE-ISP test type.'       , ('Color bar', 'Random data', 'Square data', 'Black image')),
     ('PRE-ISP test bar style.'  , ('Standard 8 color bar', 'Gradual change at vertical mode 1', 'Gradual change at horizontal', 'Gradual change at vertical mode 2')),
@@ -56,14 +58,14 @@ MCU_SUPPORT = {
     'STM32H7S3L8H6' : {
         'cpu' : 'cortex-m7',
         'include_paths' : (
-            make_main_relative_path('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1'),
+            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1'),
         ),
-        'freertos_source_file_paths' : make_main_relative_path('''
-            ./deps/FreeRTOS_Kernel/tasks.c
-            ./deps/FreeRTOS_Kernel/queue.c
-            ./deps/FreeRTOS_Kernel/list.c
-            ./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1/port.c
-        '''),
+        'freertos_source_file_paths' : (
+            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/tasks.c'),
+            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/queue.c'),
+            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/list.c'),
+            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1/port.c'),
+        ),
         'freertos_interrupts' : (
             ('SysTick', None, { 'symbol' : 'xPortSysTickHandler' }),
             ('SVCall' , None, { 'symbol' : 'vPortSVCHandler'     }),
@@ -74,15 +76,15 @@ MCU_SUPPORT = {
     'STM32H533RET6' : {
         'cpu' : 'cortex-m33',
         'include_paths' : (
-            make_main_relative_path('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
+            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
         ),
-        'freertos_source_file_paths' : make_main_relative_path('''
-            ./deps/FreeRTOS_Kernel/tasks.c
-            ./deps/FreeRTOS_Kernel/queue.c
-            ./deps/FreeRTOS_Kernel/list.c
-            ./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure/port.c
-            ./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure/portasm.c
-        '''),
+        'freertos_source_file_paths' : (
+            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/tasks.c'),
+            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/queue.c'),
+            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/list.c'),
+            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure/port.c'),
+            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure/portasm.c'),
+        ),
         'freertos_interrupts' : (
             ('SysTick', None, { 'symbol' : 'SysTick_Handler' }),
             ('SVCall' , None, { 'symbol' : 'SVC_Handler'     }),
@@ -93,15 +95,15 @@ MCU_SUPPORT = {
     'STM32H533VET6' : {
         'cpu' : 'cortex-m33',
         'include_paths' : (
-            make_main_relative_path('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
+            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
         ),
-        'freertos_source_file_paths' : make_main_relative_path('''
-            ./deps/FreeRTOS_Kernel/tasks.c
-            ./deps/FreeRTOS_Kernel/queue.c
-            ./deps/FreeRTOS_Kernel/list.c
-            ./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure/port.c
-            ./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure/portasm.c
-        '''),
+        'freertos_source_file_paths' : (
+            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/tasks.c'),
+            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/queue.c'),
+            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/list.c'),
+            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure/port.c'),
+            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure/portasm.c'),
+        ),
         'freertos_interrupts' : (
             ('SysTick', None, { 'symbol' : 'SysTick_Handler' }),
             ('SVCall' , None, { 'symbol' : 'SVC_Handler'     }),
@@ -123,9 +125,9 @@ TARGETS = (
 
         name              = 'SandboxNucleoH7S3L8',
         mcu               = 'STM32H7S3L8H6',
-        source_file_paths = make_main_relative_path('''
-            ./electrical/SandboxNucleoBoard.c
-        '''),
+        source_file_paths = (
+            pxd.make_main_relative_path('./electrical/SandboxNucleoBoard.c'),
+        ),
 
         kicad_project = None,
 
@@ -182,9 +184,9 @@ TARGETS = (
 
         name              = 'SandboxNucleoH533RE',
         mcu               = 'STM32H533RET6',
-        source_file_paths = make_main_relative_path('''
-            ./electrical/SandboxNucleoBoard.c
-        '''),
+        source_file_paths = (
+            pxd.make_main_relative_path('./electrical/SandboxNucleoBoard.c'),
+        ),
 
         kicad_project = None,
 
@@ -235,9 +237,9 @@ TARGETS = (
 
         name              = 'DemoI2C',
         mcu               = 'STM32H533RET6',
-        source_file_paths = make_main_relative_path('''
-            ./electrical/DemoI2C.c
-        '''),
+        source_file_paths = (
+            pxd.make_main_relative_path('./electrical/DemoI2C.c'),
+        ),
 
         kicad_project = None,
 
@@ -311,9 +313,9 @@ TARGETS = (
 
         name              = 'DemoTimer',
         mcu               = 'STM32H533RET6',
-        source_file_paths = make_main_relative_path('''
-            ./electrical/DemoTimer.c
-        '''),
+        source_file_paths = (
+            pxd.make_main_relative_path('./electrical/DemoTimer.c'),
+        ),
 
         kicad_project = None,
 
@@ -368,9 +370,9 @@ TARGETS = (
 
         name              = 'DemoSPI',
         mcu               = 'STM32H533RET6',
-        source_file_paths = make_main_relative_path('''
-            ./electrical/DemoSPI.c
-        '''),
+        source_file_paths = (
+            pxd.make_main_relative_path('./electrical/DemoSPI.c'),
+        ),
 
         kicad_project = None,
 
@@ -433,9 +435,9 @@ TARGETS = (
 
         name              = 'DemoTimekeeping',
         mcu               = 'STM32H533RET6',
-        source_file_paths = make_main_relative_path('''
-            ./electrical/DemoTimekeeping.c
-        '''),
+        source_file_paths = (
+            pxd.make_main_relative_path('./electrical/DemoTimekeeping.c'),
+        ),
 
         kicad_project = None,
 
@@ -491,9 +493,9 @@ TARGETS = (
 
         name              = 'DemoSDMMC',
         mcu               = 'STM32H533RET6',
-        source_file_paths = make_main_relative_path('''
-            ./electrical/DemoSDMMC.c
-        '''),
+        source_file_paths = (
+            pxd.make_main_relative_path('./electrical/DemoSDMMC.c'),
+        ),
 
         kicad_project = None,
 
@@ -560,9 +562,9 @@ TARGETS = (
 
         name              = 'SensorShield',
         mcu               = 'STM32H533RET6',
-        source_file_paths = make_main_relative_path('''
-            ./electrical/SensorShield.c
-        '''),
+        source_file_paths = (
+            pxd.make_main_relative_path('./electrical/SensorShield.c'),
+        ),
 
         kicad_project = None,
 
@@ -787,9 +789,9 @@ TARGETS = (
 
         name              = 'DemoStepper',
         mcu               = 'STM32H533RET6',
-        source_file_paths = make_main_relative_path('''
-            ./electrical/DemoStepper.c
-        '''),
+        source_file_paths = (
+            pxd.make_main_relative_path('./electrical/DemoStepper.c'),
+        ),
 
         kicad_project = None,
 
@@ -852,9 +854,9 @@ TARGETS = (
 
         name              = 'DemoOVCAM',
         mcu               = 'STM32H533RET6',
-        source_file_paths = make_main_relative_path('''
-            ./electrical/DemoOVCAM.c
-        '''),
+        source_file_paths = (
+            pxd.make_main_relative_path('./electrical/DemoOVCAM.c'),
+        ),
 
         kicad_project = None,
 
@@ -931,9 +933,9 @@ TARGETS = (
 
         name              = 'TestESP32s',
         mcu               = 'STM32H533RET6',
-        source_file_paths = make_main_relative_path('''
-            ./electrical/TestESP32s.c
-        '''),
+        source_file_paths = (
+            pxd.make_main_relative_path('./electrical/TestESP32s.c'),
+        ),
 
         kicad_project = None,
 
@@ -1052,12 +1054,12 @@ for target in TARGETS:
     # Some include-directive search paths.
 
     include_paths = (
-        make_main_relative_path('./electrical/meta'),
-        make_main_relative_path('./deps/CMSIS_6/CMSIS/Core/Include'),
-        make_main_relative_path('./deps/FreeRTOS_Kernel/include'),
-        make_main_relative_path('./deps/printf/src'),
-        make_main_relative_path('.'),
-        make_main_relative_path('./electrical'),
+        pxd.make_main_relative_path('./electrical/meta'),
+        pxd.make_main_relative_path('./deps/CMSIS_6/CMSIS/Core/Include'),
+        pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/include'),
+        pxd.make_main_relative_path('./deps/printf/src'),
+        pxd.make_main_relative_path('.'),
+        pxd.make_main_relative_path('./electrical'),
         *MCU_SUPPORT[target.mcu]['include_paths'],
     )
 
@@ -1143,10 +1145,10 @@ for target in TARGETS:
             -fno-eliminate-unused-debug-types
             -ffunction-sections
             -fcompare-debug-second
-            {'\n'.join(f'-D {name}="{c_repr(value)}"' for name, value in defines                  )}
-            {'\n'.join(f'-W{name}'                    for name        in enabled_warnings .split())}
-            {'\n'.join(f'-Wno-{name}'                 for name        in disabled_warnings.split())}
-            {'\n'.join(f'-I "{path.as_posix()}"'      for path        in include_paths            )}
+            {'\n'.join(f'-D {name}="{pxd.c_repr(value)}"' for name, value in defines                  )}
+            {'\n'.join(f'-W{name}'                        for name        in enabled_warnings .split())}
+            {'\n'.join(f'-Wno-{name}'                     for name        in disabled_warnings.split())}
+            {'\n'.join(f'-I "{path.as_posix()}"'          for path        in include_paths            )}
         '''
     )
 

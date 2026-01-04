@@ -4,6 +4,7 @@ build/
 data/
 *.swp
 .~lock*
+__META_MAIN__.py
 
 # KiCAD.
 *-backups/
