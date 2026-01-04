@@ -5,7 +5,7 @@
 
 
 
-/* #meta CMSIS_SET, CMSIS_WRITE, CMSIS_SPINLOCK, CMSIS_TUPLE :
+/* #meta global CMSIS_SET, CMSIS_WRITE, CMSIS_SPINLOCK, CMSIS_TUPLE
 
     from deps.stpy.cmsis_tools import get_cmsis_tools
 
@@ -745,7 +745,7 @@ halt_(b32 panicking) // @/`Halting`.
 
 
 
-/* #meta IMPLEMENT_DRIVER_SUPPORT
+/* #meta export IMPLEMENT_DRIVER_SUPPORT
 
     import types, collections
 

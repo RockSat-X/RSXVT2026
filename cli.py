@@ -2,142 +2,17 @@
 
 
 
-#
-# Enforce Python version.
-#
-
-
+# The PXD module.
 
 import sys
 
-MINIMUM_MAJOR = 3
-MINIMUM_MINOR = 13
-
-if not (
-    sys.version_info.major == MINIMUM_MAJOR and
-    sys.version_info.minor >= MINIMUM_MINOR
-):
-    raise RuntimeError(
-        'Unsupported Python version: ' + repr(sys.version) + '; ' +
-        'please upgrade to at least ' + str(MINIMUM_MAJOR) + '.' + str(MINIMUM_MINOR) + '; '
-        'note that it is possible that you have multiple instances of Python installed; '
-        'in this case, please set your PATH accordingly or use a Python virtual environment.'
-    )
-
-
-
-#
-# Built-in modules.
-#
-
-
-
-import types, shlex, pathlib, shutil, subprocess, time, logging, io, struct
-
-
-
-#
-# Logger configuration.
-#
-
-
-
-class MainFormatter(logging.Formatter):
-
-    def format(self, record):
-
-
-
-        message = super().format(record)
-
-
-
-        # The `table` property allows for a
-        # simple, justified table to be outputted.
-
-        if hasattr(record, 'table'):
-
-            for just_key, just_value in justify([
-                (
-                    ('<' , str(key  )),
-                    (None, str(value)),
-                )
-                for key, value in record.table
-            ]):
-                message += f'\n{just_key} : {just_value}'
-
-
-
-        # The main interface logger won't have its
-        # info logs be prepended with the level.
-
-        if not (
-            record.name.split('.')[:2] == [__name__, 'main_interface']
-            and record.levelname == 'INFO'
-        ):
-
-
-
-            # Any newlines will be indented so it'll look nice.
-
-            indent = ' ' * len(f'[{record.levelname}] ')
-
-            message = '\n'.join([
-                message.splitlines()[0],
-                *[f'{indent}{line}' for line in message.splitlines()[1:]]
-            ])
-
-
-
-            # Prepend the log level name and color based on severity.
-
-            coloring = {
-                'DEBUG'    : '\x1B[0;35m',
-                'INFO'     : '\x1B[0;36m',
-                'WARNING'  : '\x1B[0;33m',
-                'ERROR'    : '\x1B[0;31m',
-                'CRITICAL' : '\x1B[1;31m',
-            }[record.levelname]
-
-            reset = '\x1B[0m'
-
-            message = f'{coloring}[{record.levelname}]{reset} {message}'
-
-
-
-        # Give each log a bit of breathing room.
-
-        message += '\n'
-
-
-
-        return message
-
-
-
-logger         = logging.getLogger(__name__)
-logger_handler = logging.StreamHandler(sys.stdout)
-logger_handler.setFormatter(MainFormatter())
-logger.addHandler(logger_handler)
-logger.setLevel(logging.DEBUG)
-
-
-
-#
-# The PXD module.
-#
-
-
-
 try:
 
-    import deps.stpy.pxd.metapreprocessor
-    import deps.stpy.pxd.interface
-    from   deps.stpy.pxd.utils import make_main_relative_path, justify
+    import deps.stpy.pxd.pxd as pxd
 
 except ModuleNotFoundError as error:
 
-    if 'pxd' not in error.name:
+    if not any(module in error.name for module in ('deps', 'stpy', 'pxd')):
         raise # Likely a bug in the PXD module.
 
     import traceback
@@ -146,33 +21,31 @@ except ModuleNotFoundError as error:
     traceback.print_exc()
     print()
 
-    logger.error(
+    print(
         f'Could not import "{error.name}"; maybe the Git '
         f'submodules need to be initialized/updated? Try doing:' '\n'
         f'> git submodule update --init --recursive'             '\n'
-        f'If this still doesn\'t work, please raise an issue.'
+        f'If this still doesn\'t work, please raise an issue.'   '\n'
     )
 
     sys.exit(1)
 
 
 
-#
+# Built-in modules.
+
+import types, pathlib, shutil, subprocess, time, io, struct
+
+
+
 # Import declarations that's
 # shared with the meta-preprocessor.
-#
-
-
 
 from electrical.Shared import *
 
 
 
-#
 # Import handlers for non-builtin modules.
-#
-
-
 
 def import_pyserial():
 
@@ -183,7 +56,7 @@ def import_pyserial():
 
     except ModuleNotFoundError as error:
 
-        logger.error(
+        pxd.pxd_logger.error(
             f'Python got {type(error).__name__} ({error}); try doing:' '\n'
             f'> pip install pyserial'
         )
@@ -192,11 +65,7 @@ def import_pyserial():
 
     return serial, serial.tools.list_ports
 
-
-
 def import_pygame():
-
-
 
     try:
 
@@ -204,14 +73,12 @@ def import_pygame():
 
     except ModuleNotFoundError as error:
 
-        logger.error(
+        pxd.pxd_logger.error(
             f'Python got {type(error).__name__} ({error}); try doing:' '\n'
             f'> pip install pygame'
         )
 
         sys.exit(1)
-
-
 
     try:
 
@@ -219,25 +86,19 @@ def import_pygame():
 
     except ModuleNotFoundError as error:
 
-        logger.error(
+        pxd.pxd_logger.error(
             f'Python got {type(error).__name__} ({error}); try doing:' '\n'
             f'> pip install pygame_gui'
         )
 
         sys.exit(1)
 
-
-
     return pygame, pygame_gui
 
 
 
-#
 # Routine for ensuring the user has the required programs
 # on their machine (and provide good error messages if not).
-#
-
-
 
 def make_sure_shell_command_exists(*needed_programs):
 
@@ -259,7 +120,7 @@ def make_sure_shell_command_exists(*needed_programs):
         'pwsh',
     ]):
 
-        logger.error(
+        pxd.pxd_logger.error(
             f'Python couldn\'t find "{missing_program}" in your PATH; have you installed PowerShell yet?' '\n'
             f'> https://apps.microsoft.com/detail/9MZ1SNWT0N5D'                                           '\n'
             f'Installing PowerShell via Windows Store is the most convenient way.'                        '\n'
@@ -278,7 +139,7 @@ def make_sure_shell_command_exists(*needed_programs):
         'arm-none-eabi-gdb',
     ]):
 
-        logger.error(
+        pxd.pxd_logger.error(
             f'Python couldn\'t find "{missing_program}" in your PATH; have you installed STM32CubeCLT 1.19.0 yet?' '\n'
             f'> https://www.st.com/en/development-tools/stm32cubeclt.html'                                         '\n'
             f'Note that the installation is behind a login-wall.'                                                  '\n'
@@ -299,7 +160,7 @@ def make_sure_shell_command_exists(*needed_programs):
         'picocom',
     ]):
 
-        logger.error(
+        pxd.pxd_logger.error(
             f'Python couldn\'t find "{missing_program}" in your PATH; have you installed it yet?'  '\n'
             f'If you\'re on a Debian-based distro, this is just simply:'                           '\n'
             f'> sudo apt install picocom'                                                          '\n'
@@ -315,7 +176,7 @@ def make_sure_shell_command_exists(*needed_programs):
         'make',
     ]):
 
-        logger.error(
+        pxd.pxd_logger.error(
             f'Python couldn\'t find "{missing_program}" in your PATH; have you installed it yet?' '\n'
             f'If you\'re on a Windows system, run the following command and restart your shell:'  '\n'
             f'> winget install ezwinports.make'                                                   '\n'
@@ -329,7 +190,7 @@ def make_sure_shell_command_exists(*needed_programs):
         'kicad-cli',
     ]):
 
-        logger.error(
+        pxd.pxd_logger.error(
             f'Python couldn\'t find "{missing_program}" in your PATH.'                           '\n'
             f'This program comes along with KiCad, so on Windows,'                               '\n'
             f'you might find it at "C:\\Program Files\\KiCad\\9.0\\bin\\{missing_program}.exe".' '\n'
@@ -342,7 +203,7 @@ def make_sure_shell_command_exists(*needed_programs):
 
     else:
 
-        logger.error(
+        pxd.pxd_logger.error(
             f'Python couldn\'t find "{missing_program}" in your PATH; have you installed it yet?'
         )
 
@@ -352,18 +213,14 @@ def make_sure_shell_command_exists(*needed_programs):
 
 
 
-#
 # Routine for logging out ST-Links as a table.
-#
-
-
 
 def logger_stlinks(stlinks):
 
-    logger.info(
+    pxd.pxd_logger.info(
         '\n'.join(
             f'| {' | '.join(justs)} |'
-            for justs in justify(
+            for justs in pxd.justify(
                 [
                     (
                         ('<', 'Probe Index'  ),
@@ -388,11 +245,7 @@ def logger_stlinks(stlinks):
 
 
 
-#
 # Routine for finding ST-Links.
-#
-
-
 
 def request_stlinks(
     *,
@@ -416,7 +269,7 @@ def request_stlinks(
 
     if any('ST-LINK error' in line for line in listing_lines):
 
-        logger.error(
+        pxd.pxd_logger.error(
             f'There seems to be an error with an ST-Link; '
             f'see the output of STM32_Programmer_CLI below:' '\n'
             f'\n'
@@ -475,7 +328,7 @@ def request_stlinks(
         # There's no ST-Links!
 
         if not stlinks:
-            logger.error(f'No ST-Links found.')
+            pxd.pxd_logger.error(f'No ST-Links found.')
             sys.exit(1)
 
 
@@ -484,7 +337,7 @@ def request_stlinks(
 
         if not (matches := [stlink for stlink in stlinks if stlink.probe_index == specific_probe_index]):
             logger_stlinks(stlinks)
-            logger.error(f'No ST-Links found with probe index of "{specific_probe_index}".')
+            pxd.pxd_logger.error(f'No ST-Links found with probe index of "{specific_probe_index}".')
             sys.exit(1)
 
 
@@ -507,7 +360,7 @@ def request_stlinks(
         # There's no ST-Links!
 
         if not stlinks:
-            logger.error(f'No ST-Links found.')
+            pxd.pxd_logger.error(f'No ST-Links found.')
             sys.exit(1)
 
 
@@ -516,7 +369,7 @@ def request_stlinks(
 
         if len(stlinks) >= 2:
             logger_stlinks(stlinks)
-            logger.error(f'Multiple ST-Links found; I don\'t know which one to use.')
+            pxd.pxd_logger.error(f'Multiple ST-Links found; I don\'t know which one to use.')
             sys.exit(1)
 
 
@@ -536,128 +389,11 @@ def request_stlinks(
 
 
 
-#
-# Routine to carry out shell commands.
-#
+################################################################################
 
 
 
-class ExecuteShellCommandNonZeroExitCode(Exception):
-    pass
-
-
-
-def execute_shell_command(
-    default    = None,
-    *,
-    bash       = None,
-    cmd        = None,
-    powershell = None,
-):
-
-
-
-    # PowerShell is slow to invoke, so cmd.exe
-    # would be used if its good enough.
-
-    if cmd is not None and powershell is not None:
-        raise ValueError('CMD and PowerShell commands cannot be both provided.')
-
-    match sys.platform:
-
-        case 'win32':
-            use_powershell = cmd is None and powershell is not None
-            commands       = powershell if use_powershell else cmd
-
-        case _:
-            commands       = bash
-            use_powershell = False
-
-    if commands is None:
-        commands = default
-
-    if commands is None:
-        raise ValueError(f'Missing shell command for platform {repr(sys.platform)}.')
-
-    if isinstance(commands, str):
-        commands = [commands]
-
-
-
-    # Process each command to have it be split into shell tokens.
-    # The lexing that's done here is to do a lot of the funny
-    # business involving escaping quotes and what not. To be honest,
-    # it's a little out my depth, mainly because I frankly do not
-    # care enough to get it 100% correct; it working most of the time
-    # is good enough for me.
-
-    for command_i in range(len(commands)):
-
-        lexer                  = shlex.shlex(commands[command_i])
-        lexer.quotes           = '"'
-        lexer.whitespace_split = True
-        lexer.commenters       = ''
-        commands[command_i]    = list(lexer)
-
-
-
-    # Execute each shell command.
-
-    processes = []
-
-    for command_i, command in enumerate(commands):
-
-        command = ' '.join(command)
-
-        logger.info(f'$ {command}')
-
-        if use_powershell:
-
-            # On Windows, Python will call CMD.exe
-            # to run the shell command, so we'll
-            # have to invoke PowerShell to run the
-            # command if PowerShell is needed.
-
-            processes += [subprocess.Popen(['pwsh', '-Command', command], shell = False)]
-
-        else:
-
-            processes += [subprocess.Popen(command, shell = True)]
-
-
-
-    # Wait on each subprocess to be done.
-
-    for process in processes:
-        if process.wait():
-            raise ExecuteShellCommandNonZeroExitCode
-
-
-
-#
-# Set up the command-line-interface of the Python script.
-#
-
-
-
-def main_interface_hook(verb, parameters):
-
-    start   = time.time()
-    yield
-    end     = time.time()
-    elapsed = end - start
-
-    if elapsed >= 0.5:
-        logger.debug(f'"{verb.name}" took {elapsed :.3f}s.')
-
-
-
-main_interface = deps.stpy.pxd.interface.Interface(
-    name        = f'{make_main_relative_path(pathlib.Path(__file__).name)}',
-    description = f'The command line program (pronounced "clippy").',
-    logger      = logging.getLogger(f'{logger.name}.main_interface'),
-    hook        = main_interface_hook,
-)
+main_interface = pxd.CommandLineInterface()
 
 
 
@@ -673,13 +409,13 @@ main_interface = deps.stpy.pxd.interface.Interface(
 def clean(parameters):
 
     DIRECTORIES = (
-        make_main_relative_path('./build'),
-        make_main_relative_path('./electrical/meta'),
+        pxd.make_main_relative_path('./build'),
+        pxd.make_main_relative_path('./electrical/meta'),
     )
 
     for directory in DIRECTORIES:
 
-        execute_shell_command(
+        pxd.execute_shell_command(
             bash = f'''
                 rm -rf {repr(directory.as_posix())}
             ''',
@@ -728,7 +464,7 @@ def build(parameters):
 
     metapreprocessor_file_paths = [
         pathlib.Path(root, file_name)
-        for root, directories, file_names in make_main_relative_path('./electrical').walk()
+        for root, directories, file_names in pxd.make_main_relative_path('./electrical').walk()
         for                    file_name  in file_names
         if file_name.endswith(('.c', '.h', '.py', '.ld', '.S'))
     ]
@@ -740,15 +476,19 @@ def build(parameters):
     elapsed               = 0
     meta_directive_deltas = []
 
-    def metadirective_callback(index, meta_directives):
+    def metadirective_callback(meta_directives, meta_directive_i):
 
         nonlocal elapsed, meta_directive_deltas
 
+        meta_directive = meta_directives[meta_directive_i]
+
+
+
         # Log the evaluation of the meta-directive.
 
-        location = f'{meta_directives[index].source_file_path.as_posix()}:{meta_directives[index].meta_header_line_number}'
+        location = f'{meta_directive.source_file_path.as_posix()}:{meta_directive.first_header_line_number}'
 
-        logger.info(f'Meta-preprocessing {location}')
+        pxd.pxd_logger.info(f'Meta-preprocessing {location}')
 
 
 
@@ -766,20 +506,19 @@ def build(parameters):
     # Begin meta-preprocessing!
 
     try:
-        deps.stpy.pxd.metapreprocessor.do(
-            output_directory_path = make_main_relative_path('./electrical/meta'),
+        pxd.metapreprocess(
+            output_directory_path = pxd.make_main_relative_path('./electrical/meta'),
             source_file_paths     = metapreprocessor_file_paths,
             callback              = metadirective_callback,
         )
-    except deps.stpy.pxd.metapreprocessor.MetaError as error:
-        error.dump()
+    except pxd.MetaPreprocessorError:
         sys.exit(1)
 
 
 
     # Log the performance of the meta-preprocessor.
 
-    logger.debug(
+    pxd.pxd_logger.debug(
         f'Meta-preprocessing {len(meta_directive_deltas)} meta-directives took {elapsed :.3f}s.',
         extra = {
             'table' : [
@@ -811,16 +550,16 @@ def build(parameters):
 
     # Creating build artifact folders.
 
-    execute_shell_command(
+    pxd.execute_shell_command(
         bash = [
-            f'mkdir -p {make_main_relative_path('./build', target.name)}'
+            f'mkdir -p {pxd.make_main_relative_path('./build', target.name)}'
             for target in targets_to_build
             if target.source_file_paths
         ],
         cmd = [
             f'''
-                if not exist "{make_main_relative_path('./build', target.name)}" (
-                    mkdir {make_main_relative_path('./build', target.name)}
+                if not exist "{pxd.make_main_relative_path('./build', target.name)}" (
+                    mkdir {pxd.make_main_relative_path('./build', target.name)}
                 )
             '''
             for target in targets_to_build
@@ -832,14 +571,14 @@ def build(parameters):
 
     # Preprocessing the linker files.
 
-    execute_shell_command([
+    pxd.execute_shell_command([
         f'''
             arm-none-eabi-cpp
                 {target.compiler_flags}
                 -E
                 -x c
-                -o "{make_main_relative_path('./build', target.name, 'link.ld').as_posix()}"
-                "{make_main_relative_path('./electrical/link.ld').as_posix()}"
+                -o "{pxd.make_main_relative_path('./build', target.name, 'link.ld').as_posix()}"
+                "{pxd.make_main_relative_path('./electrical/link.ld').as_posix()}"
         '''
         for target in targets_to_build
         if target.source_file_paths
@@ -849,12 +588,12 @@ def build(parameters):
 
     # Compiling and linking the source code.
 
-    execute_shell_command([
+    pxd.execute_shell_command([
         f'''
             arm-none-eabi-gcc
                 {' '.join(f'"{source.as_posix()}"' for source in target.source_file_paths)}
-                -o "{make_main_relative_path('./build', target.name, f'{target.name}.elf').as_posix()}"
-                -T "{make_main_relative_path('./build', target.name, 'link.ld'           ).as_posix()}"
+                -o "{pxd.make_main_relative_path('./build', target.name, f'{target.name}.elf').as_posix()}"
+                -T "{pxd.make_main_relative_path('./build', target.name, 'link.ld'           ).as_posix()}"
                 {target.compiler_flags}
                 {target.linker_flags}
         '''
@@ -866,13 +605,13 @@ def build(parameters):
 
     # Converting the ELF file to a binary file.
 
-    execute_shell_command([
+    pxd.execute_shell_command([
         f'''
             arm-none-eabi-objcopy
                 -S
                 -O binary
-                "{make_main_relative_path('./build', target.name, f'{target.name}.elf').as_posix()}"
-                "{make_main_relative_path('./build', target.name, f'{target.name}.bin').as_posix()}"
+                "{pxd.make_main_relative_path('./build', target.name, f'{target.name}.elf').as_posix()}"
+                "{pxd.make_main_relative_path('./build', target.name, f'{target.name}.bin').as_posix()}"
         '''
         for target in targets_to_build
         if target.source_file_paths
@@ -905,11 +644,11 @@ def flash(parameters):
 
     # Ensure binary file exists.
 
-    binary_file_path = make_main_relative_path('./build', parameters.target.name, f'{parameters.target.name}.bin')
+    binary_file_path = pxd.make_main_relative_path('./build', parameters.target.name, f'{parameters.target.name}.bin')
 
     if not binary_file_path.is_file():
 
-        logger.error(
+        pxd.pxd_logger.error(
             f'Binary file {repr(binary_file_path.as_posix())} '
             f'is needed for flashing; try building first.'
         )
@@ -931,7 +670,7 @@ def flash(parameters):
 
         if attempts == 3:
 
-            logger.error(
+            pxd.pxd_logger.error(
                 f'Failed to flash; this might be because '
                 f'the ST-Link is being used by another '
                 f'program or that the ST-Link is disconnected.'
@@ -945,7 +684,7 @@ def flash(parameters):
 
         elif attempts:
 
-            logger.warning(
+            pxd.pxd_logger.warning(
                 f'Failed to flash '
                 f'(maybe due to verification error); '
                 f'trying again...'
@@ -957,7 +696,7 @@ def flash(parameters):
 
         try:
 
-            execute_shell_command(f'''
+            pxd.execute_shell_command(f'''
                 STM32_Programmer_CLI
                     --connect port=SWD index={stlink.probe_index}
                     --download "{binary_file_path.as_posix()}" 0x08000000
@@ -967,7 +706,7 @@ def flash(parameters):
 
             break
 
-        except ExecuteShellCommandNonZeroExitCode:
+        except pxd.ExecuteShellCommandNonZeroExitCode:
 
             attempts += 1
 
@@ -1000,11 +739,11 @@ def debug(parameters):
 
     # Ensure ELF file exists.
 
-    elf_file_path = make_main_relative_path('./build', parameters.target.name, f'{parameters.target.name}.elf')
+    elf_file_path = pxd.make_main_relative_path('./build', parameters.target.name, f'{parameters.target.name}.elf')
 
     if not elf_file_path.is_file():
 
-        logger.error(
+        pxd.pxd_logger.error(
             f'ELF file {repr(elf_file_path.as_posix())} '
             f'is needed for debugging; try building first.'
         )
@@ -1037,7 +776,7 @@ def debug(parameters):
     # Just set up the GDB-server now if that's all that's needed of us.
 
     if parameters.just_gdbserver:
-        execute_shell_command(gdbserver)
+        pxd.execute_shell_command(gdbserver)
         return
 
 
@@ -1065,7 +804,7 @@ def debug(parameters):
 
     try:
 
-        execute_shell_command(
+        pxd.execute_shell_command(
             bash       = f'set -m; {gdbserver} 1> /dev/null 2> /dev/null & {gdb}',
             powershell = f'{gdbserver} & {gdb}',
         )
@@ -1110,7 +849,7 @@ def talk(parameters):
 
     try:
 
-        execute_shell_command(
+        pxd.execute_shell_command(
 
             # Picocom's pretty good!
 
@@ -1169,7 +908,7 @@ def _(parameters):
 
     else:
 
-        logger.info('No ST-Link detected by STM32_Programmer_CLI.')
+        pxd.pxd_logger.info('No ST-Link detected by STM32_Programmer_CLI.')
 
 
 
@@ -1208,7 +947,7 @@ def checkPCBs(parameters):
 
     symbol_library_file_names = [
         file_name
-        for _, _, file_names in make_main_relative_path('./pcb/symbols').walk()
+        for _, _, file_names in pxd.make_main_relative_path('./pcb/symbols').walk()
         for       file_name  in file_names
         if file_name.endswith(suffix := '.kicad_sym')
     ]
@@ -1218,14 +957,12 @@ def checkPCBs(parameters):
     # Find any symbols with the 'CoupledConnector' keyword
     # associated with it and get the pin-outs for them.
 
-    import deps.stpy.pxd.sexp
-
     coupled_connectors = {}
 
     for symbol_library_file_name in symbol_library_file_names:
 
-        symbol_library_sexp = deps.stpy.pxd.sexp.parse_sexp(
-            make_main_relative_path('./pcb/symbols', symbol_library_file_name).read_text()
+        symbol_library_sexp = pxd.parse_sexp(
+            pxd.make_main_relative_path('./pcb/symbols', symbol_library_file_name).read_text()
         )
 
         for entry in symbol_library_sexp:
@@ -1290,7 +1027,7 @@ def checkPCBs(parameters):
 
     kicad_projects = [
         file_name.removesuffix(suffix)
-        for _, _, file_names in make_main_relative_path('./pcb').walk()
+        for _, _, file_names in pxd.make_main_relative_path('./pcb').walk()
         for       file_name  in file_names
         if file_name.endswith(suffix := '.kicad_pro')
     ]
@@ -1309,10 +1046,10 @@ def checkPCBs(parameters):
          # in parallel because of some lock file
          # for some reason.
 
-        schematic_file_path = make_main_relative_path('./pcb'  , f'{kicad_project}.kicad_sch')
-        netlist_file_path   = make_main_relative_path('./build', f'{kicad_project}.net'      )
+        schematic_file_path = pxd.make_main_relative_path('./pcb'  , f'{kicad_project}.kicad_sch')
+        netlist_file_path   = pxd.make_main_relative_path('./build', f'{kicad_project}.net'      )
 
-        execute_shell_command(f'''
+        pxd.execute_shell_command(f'''
             kicad-cli
                 sch export netlist "{schematic_file_path.as_posix()}"
                 --output "{netlist_file_path.as_posix()}"
@@ -1325,7 +1062,7 @@ def checkPCBs(parameters):
 
         netlist_sexp = netlist_file_path.read_text()
         netlist_sexp = netlist_sexp.removesuffix('*\n') # Trailing asterisk for some reason.
-        netlist_sexp = deps.stpy.pxd.sexp.parse_sexp(netlist_sexp)
+        netlist_sexp = pxd.parse_sexp(netlist_sexp)
 
         match netlist_sexp:
             case ('{', 'EESchema', 'Netlist', 'Version', _, 'created', _, '}', *rest):
@@ -1362,7 +1099,7 @@ def checkPCBs(parameters):
                 # The MCU is missing from the schematic.
 
                 case []:
-                    logger.warning(
+                    pxd.pxd_logger.warning(
                         f'For target {repr(target.name)} '
                         f'and schematic {repr(schematic_file_path.as_posix())}, '
                         f'symbol {repr(target.mcu)} is missing.'
@@ -1381,7 +1118,7 @@ def checkPCBs(parameters):
                 # There are multiple MCUs.
 
                 case _:
-                    logger.warning(
+                    pxd.pxd_logger.warning(
                         f'For target {repr(target.name)} '
                         f'and schematic {repr(schematic_file_path.as_posix())}, '
                         f'multiple {repr(target.mcu)} are found.'
@@ -1440,7 +1177,7 @@ def checkPCBs(parameters):
 
                     case []:
                         if not mcu_pin_net_name.startswith('unconnected-('):
-                            logger.warning(
+                            pxd.pxd_logger.warning(
                                 f'For target {repr(target.name)} '
                                 f'and schematic {repr(schematic_file_path.as_posix())}, '
                                 f'pin {repr(mcu_pin_port_number)} should be '
@@ -1457,7 +1194,7 @@ def checkPCBs(parameters):
                     case [gpio_name]:
 
                         if mcu_pin_net_name.startswith('unconnected-('):
-                            logger.warning(
+                            pxd.pxd_logger.warning(
                                 f'For target {repr(target.name)} '
                                 f'and schematic {repr(schematic_file_path.as_posix())}, '
                                 f'pin {repr(mcu_pin_port_number)} should have '
@@ -1466,7 +1203,7 @@ def checkPCBs(parameters):
                             )
 
                         elif gpio_name != mcu_pin_net_name.removeprefix('/'):
-                            logger.warning(
+                            pxd.pxd_logger.warning(
                                 f'For target {repr(target.name)} '
                                 f'and schematic {repr(schematic_file_path.as_posix())}, '
                                 f'pin {repr(mcu_pin_port_number)} should have '
@@ -1511,7 +1248,7 @@ def checkPCBs(parameters):
                 if not net_name.startswith('unconnected-')
             ]) == 1 and coupled_pin.name != net_names[0]:
 
-                logger.warning(
+                pxd.pxd_logger.warning(
                     f'Coupled connector {repr(coupled_connector_name)} '
                     f'on pin {repr(coupled_pin_coordinate)} only has '
                     f'one net associated with it.',
@@ -1533,7 +1270,7 @@ def checkPCBs(parameters):
                 if not net_name.startswith('unconnected-')
             )) >= 2:
 
-                logger.warning(
+                pxd.pxd_logger.warning(
                     f'Coupled connector {repr(coupled_connector_name)} '
                     f'on pin {repr(coupled_pin_coordinate)} has '
                     f'conflicting nets associated with it.',
@@ -1605,7 +1342,7 @@ def tv(parameters):
 
         orientation = (orientation + 1) % 4
 
-        logger.info(f'Orientation: {orientation}.')
+        pxd.pxd_logger.info(f'Orientation: {orientation}.')
 
 
 
@@ -1618,7 +1355,7 @@ def tv(parameters):
 
         stream_image_progress = not stream_image_progress
 
-        logger.info(f'Partial frame rendering: {'enabled' if stream_image_progress else 'disabled'}.')
+        pxd.pxd_logger.info(f'Partial frame rendering: {'enabled' if stream_image_progress else 'disabled'}.')
 
 
 
@@ -1640,7 +1377,7 @@ def tv(parameters):
 
         more_help = ''
 
-        for just_keystroke, just_description in justify([
+        for just_keystroke, just_description in pxd.justify([
             (
                 ('<' , f'<{keybinding.keystroke}>'),
                 (None, keybinding.description     ),
@@ -1883,7 +1620,7 @@ def tv(parameters):
 
                 if got > excessive:
 
-                    logger.error(f'Got {got} bytes; expected at most {excessive} bytes.')
+                    pxd.pxd_logger.error(f'Got {got} bytes; expected at most {excessive} bytes.')
 
                     return True
 
@@ -1947,7 +1684,7 @@ def tv(parameters):
 
                 except pygame.error as error:
 
-                    logger.error(f'PyGame failed to parse received JPEG image data: {repr(str(error))}.')
+                    pxd.pxd_logger.error(f'PyGame failed to parse received JPEG image data: {repr(str(error))}.')
 
                     return True
 
@@ -2174,7 +1911,7 @@ def tv(parameters):
 
                     case (TV_TOKEN.END, TV_TOKEN.START):
 
-                        logger.error('Two consecutive start tokens found; restarting image stream.')
+                        pxd.pxd_logger.error('Two consecutive start tokens found; restarting image stream.')
 
                         stream_error = True
 
@@ -2425,9 +2162,9 @@ def parseESP32(parameters):
         # Output the payload.
 
         if crc:
-            logger.warning(f'{(first_token.name, payload_struct)}')
+            pxd.pxd_logger.warning(f'{(first_token.name, payload_struct)}')
         else:
-            logger.info(f'{(first_token.name, payload_struct)}')
+            pxd.pxd_logger.info(f'{(first_token.name, payload_struct)}')
 
 
 
@@ -2435,14 +2172,4 @@ def parseESP32(parameters):
 
 
 
-try:
-
-    main_interface.invoke(sys.argv[1:])
-
-except KeyboardInterrupt:
-
-    logger.error('Interrupted by keyboard.')
-
-except ExecuteShellCommandNonZeroExitCode:
-
-    logger.error('Shell command exited with non-zero exit code.')
+main_interface.invoke()
