@@ -225,7 +225,7 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
         // so that the waveform has its rising edge slighly
         // delayed from when the DIR signal is updated.
 
-        CMSIS_SET(TIMx, CCR1, CCR1, abs_steps ? 1 : -1);
+        CMSIS_PUT(TIMx_CAPTURE_COMPARE_VALUE_y, (abs_steps ? 1 : -1));
 
 
 
