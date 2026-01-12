@@ -151,6 +151,7 @@ TARGETS = (
                 'type'       : 'UXART',
                 'peripheral' : 'USART3',
                 'handle'     : 'stlink',
+                'mode'       : 'full_duplex',
             },
         ),
 
@@ -208,6 +209,7 @@ TARGETS = (
                 'type'       : 'UXART',
                 'peripheral' : 'USART2',
                 'handle'     : 'stlink',
+                'mode'       : 'full_duplex',
             },
         ),
 
@@ -269,6 +271,7 @@ TARGETS = (
                 'type'       : 'UXART',
                 'peripheral' : 'USART2',
                 'handle'     : 'stlink',
+                'mode'       : 'full_duplex',
             },
             {
                 'type'       : 'I2C',
@@ -340,6 +343,7 @@ TARGETS = (
                 'type'       : 'UXART',
                 'peripheral' : 'USART2',
                 'handle'     : 'stlink',
+                'mode'       : 'full_duplex',
             },
         ),
 
@@ -399,6 +403,7 @@ TARGETS = (
                 'type'       : 'UXART',
                 'peripheral' : 'USART2',
                 'handle'     : 'stlink',
+                'mode'       : 'full_duplex',
             },
             {
                 'type'       : 'SPI',
@@ -459,6 +464,7 @@ TARGETS = (
                 'type'       : 'UXART',
                 'peripheral' : 'USART2',
                 'handle'     : 'stlink',
+                'mode'       : 'full_duplex',
             },
             {
                 'type'       : 'TIMEKEEPING',
@@ -524,6 +530,7 @@ TARGETS = (
                 'type'       : 'UXART',
                 'peripheral' : 'USART2',
                 'handle'     : 'stlink',
+                'mode'       : 'full_duplex',
             },
             {
                 'type'       : 'SD',
@@ -590,6 +597,7 @@ TARGETS = (
                 'type'       : 'UXART',
                 'peripheral' : 'USART2',
                 'handle'     : 'stlink',
+                'mode'       : 'full_duplex',
             },
             {
                 'type'       : 'I2C',
@@ -817,6 +825,7 @@ TARGETS = (
                 'type'       : 'UXART',
                 'peripheral' : 'USART2',
                 'handle'     : 'stlink',
+                'mode'       : 'full_duplex',
             },
             {
                 'type'       : 'Stepper',
@@ -897,6 +906,7 @@ TARGETS = (
                 'type'       : 'UXART',
                 'peripheral' : 'USART2',
                 'handle'     : 'stlink',
+                'mode'       : 'full_duplex',
             },
             {
                 'type'       : 'I2C',
@@ -961,11 +971,13 @@ TARGETS = (
                 'type'       : 'UXART',
                 'peripheral' : 'USART2',
                 'handle'     : 'stlink',
+                'mode'       : 'full_duplex',
             },
             {
                 'type'       : 'UXART',
                 'peripheral' : 'USART3',
                 'handle'     : 'esp32',
+                'mode'       : 'full_duplex',
             },
         ),
 
