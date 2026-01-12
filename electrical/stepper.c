@@ -57,11 +57,31 @@ static_assert(IS_POWER_OF_TWO(STEPPER_WINDOW_LENGTH));
 
 
 
+enum StepperDriverUARTState : u32
+{
+    StepperDriverUARTState_standby,
+    StepperDriverUARTState_read_scheduled,
+    StepperDriverUARTState_read_requested,
+    StepperDriverUARTState_write_scheduled,
+    StepperDriverUARTState_done,
+};
+
+
+
 struct StepperDriver
 {
+
     i8           deltas[STEPPER_WINDOW_LENGTH];
     volatile u32 reader;
     volatile u32 writer;
+
+    struct StepperDriverUART
+    {
+        enum StepperDriverUARTState state;
+        u8                          register_address;
+        u32                         data;
+    } uart;
+
 };
 
 
@@ -291,7 +311,7 @@ STEPPER_blocking_read_response(enum StepperHandle handle, u8 register_address, u
 
 
 static void
-STEPPER_blocking_write(enum StepperHandle handle, u8 register_address, u32 data)
+STEPPER_blocking_write_request(enum StepperHandle handle, u8 register_address, u32 data)
 {
 
     _EXPAND_HANDLE
@@ -528,46 +548,105 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
         // TODO.
 
+        for (b32 yield = false; !yield;)
         {
-            static i32 TMP  = 0;
-            static u32 data = {0};
 
+            static i32 TMP = 0;
             GPIO_SET(debug, TMP == 0);
 
-            switch (TMP)
+            switch (driver->uart.state)
             {
-                case 0:
+
+                case StepperDriverUARTState_standby:
                 {
-                    STEPPER_blocking_read_request(StepperHandle_primary, 0x00);
+
+                    switch (TMP)
+                    {
+
+                        case 0:
+                        {
+                            driver->uart =
+                                (struct StepperDriverUART)
+                                {
+                                    .state            = StepperDriverUARTState_read_scheduled,
+                                    .register_address = 0x00,
+                                };
+                        } break;
+
+                        case 1:
+                        {
+                            driver->uart =
+                                (struct StepperDriverUART)
+                                {
+                                    .state            = StepperDriverUARTState_write_scheduled,
+                                    .register_address = 0x00,
+                                    .data             = (driver->uart.data | (1 << 6)) ^ (1 << 3),
+                                };
+                        } break;
+
+                        case 2:
+                        {
+                            driver->uart =
+                                (struct StepperDriverUART)
+                                {
+                                    .state            = StepperDriverUARTState_read_scheduled,
+                                    .register_address = 0x00,
+                                };
+                        } break;
+
+                        default: panic;
+
+                    }
+
                 } break;
 
-                case 1:
+                case StepperDriverUARTState_done:
                 {
-                    STEPPER_blocking_read_response(StepperHandle_primary, 0x00, &data);
+
+                    driver->uart.state = StepperDriverUARTState_standby;
+
+                    TMP += 1;
+                    TMP %= 3;
+
                 } break;
 
-                case 2:
+                case StepperDriverUARTState_read_scheduled:
                 {
-                    data |= (1 << 6);
-                    data ^= (1 << 3);
-                    STEPPER_blocking_write(StepperHandle_primary, 0x00, data);
+
+                    STEPPER_blocking_read_request(handle, driver->uart.register_address);
+
+                    driver->uart.state = StepperDriverUARTState_read_requested;
+
+                    yield = true;
+
                 } break;
 
-                case 3:
+                case StepperDriverUARTState_read_requested:
                 {
-                    STEPPER_blocking_read_request(StepperHandle_primary, 0x00);
+
+                    STEPPER_blocking_read_response(handle, driver->uart.register_address, &driver->uart.data);
+
+                    driver->uart.state = StepperDriverUARTState_done;
+
+                    yield = true;
+
                 } break;
 
-                case 4:
+                case StepperDriverUARTState_write_scheduled:
                 {
-                    STEPPER_blocking_read_response(StepperHandle_primary, 0x00, &data);
+
+                    STEPPER_blocking_write_request(handle, driver->uart.register_address, driver->uart.data);
+
+                    driver->uart.state = StepperDriverUARTState_done;
+
+                    yield = true;
+
                 } break;
 
                 default: panic;
+
             }
 
-            TMP += 1;
-            TMP %= 5;
         }
 
     }
