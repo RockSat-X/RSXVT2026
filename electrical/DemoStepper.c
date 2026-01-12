@@ -61,10 +61,22 @@ main(void)
 
 
 
+        stlink_tx("\n");
+
         u32 data = {0};
+        STEPPER_read_register(0, 0x00, &data);
+        stlink_tx("0x%08X\n", data);
+
+        spinlock_nop(8'000'000);
+
+        data |= (1 << 6);
+        data ^= (1 << 3);
+        STEPPER_write_register(0, 0x00, data);
+        stlink_tx("0x%08X\n", data);
+
+        spinlock_nop(8'000'000);
 
         STEPPER_read_register(0, 0x00, &data);
-
         stlink_tx("0x%08X\n", data);
 
         spinlock_nop(100'000'000);

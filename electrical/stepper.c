@@ -88,6 +88,15 @@ pack_push
         u8  crc;
     };
 
+    struct StepperWriteRequest
+    {
+        u8  sync;
+        u8  node_address;
+        u8  register_address;
+        u32 data; // Big-endian.
+        u8  crc;
+    };
+
 pack_pop
 
 
@@ -275,6 +284,52 @@ STEPPER_read_register(u8 node_address, u8 register_address, u32* dst)
 
 
     // TODO Return error code.
+
+}
+
+
+
+static void
+STEPPER_write_register(u8 node_address, u8 register_address, u32 data)
+{
+
+    // TODO Verify node_address.
+    // TODO Verify register_address.
+
+
+
+    // Set up the request.
+
+    struct StepperWriteRequest request =
+        {
+            .sync             = 0b0000'0101,
+            .node_address     = node_address,
+            .register_address = register_address | (1 << 7),
+            .data             = __builtin_bswap32(data),
+            .crc              = 0,
+        };
+
+    request.crc =
+        _STEPPER_calculate_crc
+        (
+            (u8*) &request,
+            sizeof(request) - sizeof(request.crc)
+        );
+
+
+
+    // Send the request.
+
+    _UXART_tx_raw_nonreentrant
+    (
+        UXARTHandle_stepper_uart,
+        (u8*) &request,
+        sizeof(request)
+    );
+
+
+
+    // TODO Return error code?
 
 }
 
