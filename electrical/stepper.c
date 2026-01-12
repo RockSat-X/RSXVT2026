@@ -70,12 +70,21 @@ enum StepperDriverUARTTransferState : u32
 
 
 
+enum StepperDriverState : u32
+{
+    StepperDriverState_setting_uart_write_sequence_number,
+    StepperDriverState_inited,
+};
+
+
+
 struct StepperDriver
 {
 
-    i8           deltas[STEPPER_WINDOW_LENGTH];
-    volatile u32 reader;
-    volatile u32 writer;
+    enum StepperDriverState state;
+    i8                      deltas[STEPPER_WINDOW_LENGTH];
+    volatile u32            reader;
+    volatile u32            writer;
 
     struct StepperDriverUARTTransfer
     {
@@ -369,9 +378,6 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
         for (b32 yield = false; !yield;)
         {
 
-            static i32 TMP = -1;
-            GPIO_SET(debug, TMP == 0);
-
             switch (driver->uart_transfer.state)
             {
 
@@ -379,56 +385,39 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
                 // The next UART transfer can be scheduled.
 
-                case StepperDriverUARTTransferState_standby:
+                case StepperDriverUARTTransferState_standby: switch (driver->state)
                 {
 
-                    switch (TMP)
+
+
+                    // This has to be the first thing we do
+                    // for the configuration of the TMC2209
+                    // so that we can know whether or not the
+                    // first write request is successful.
+
+                    case StepperDriverState_setting_uart_write_sequence_number:
                     {
+                        driver->uart_transfer =
+                            (struct StepperDriverUARTTransfer)
+                            {
+                                .state            = StepperDriverUARTTransferState_read_scheduled,
+                                .register_address = 0x02,
+                            };
+                    } break;
 
-                        case -1:
-                        {
-                            driver->uart_transfer =
-                                (struct StepperDriverUARTTransfer)
-                                {
-                                    .state            = StepperDriverUARTTransferState_read_scheduled,
-                                    .register_address = 0x02,
-                                };
-                        } break;
 
-                        case 0:
-                        {
-                            driver->uart_transfer =
-                                (struct StepperDriverUARTTransfer)
-                                {
-                                    .state            = StepperDriverUARTTransferState_read_scheduled,
-                                    .register_address = 0x00,
-                                };
-                        } break;
 
-                        case 1:
-                        {
-                            driver->uart_transfer =
-                                (struct StepperDriverUARTTransfer)
-                                {
-                                    .state            = StepperDriverUARTTransferState_write_scheduled,
-                                    .register_address = 0x00,
-                                    .data             = (driver->uart_transfer.data | (1 << 6)) ^ (1 << 3),
-                                };
-                        } break;
+                    // The TMC2209 is done being configured;
+                    // nothing else to do.
 
-                        case 2:
-                        {
-                            driver->uart_transfer =
-                                (struct StepperDriverUARTTransfer)
-                                {
-                                    .state            = StepperDriverUARTTransferState_read_scheduled,
-                                    .register_address = 0x00,
-                                };
-                        } break;
+                    case StepperDriverState_inited:
+                    {
+                        yield = true;
+                    } break;
 
-                        default: panic;
 
-                    }
+
+                    default: panic;
 
                 } break;
 
@@ -439,15 +428,28 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
                 case StepperDriverUARTTransferState_done:
                 {
 
-                    if (TMP == -1)
+                    switch (driver->state)
                     {
-                        driver->uart_write_sequence_number = driver->uart_transfer.data + 1;
+
+
+
+                        // We now know what the first write
+                        // request's sequence number will be.
+
+                        case StepperDriverState_setting_uart_write_sequence_number:
+                        {
+                            driver->uart_write_sequence_number = driver->uart_transfer.data + 1;
+                            driver->state                      = StepperDriverState_inited;
+                        } break;
+
+
+
+                        case StepperDriverState_inited : panic;
+                        default                        : panic;
+
                     }
 
                     driver->uart_transfer.state = StepperDriverUARTTransferState_standby;
-
-                    TMP += 1;
-                    TMP %= 3;
 
                 } break;
 
