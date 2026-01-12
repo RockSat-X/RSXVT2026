@@ -90,38 +90,6 @@ static struct StepperDriver _STEPPER_drivers[StepperHandle_COUNT] = {0};
 
 
 
-pack_push
-
-    struct StepperReadRequest
-    {
-        u8 sync;
-        u8 node_address;
-        u8 register_address;
-        u8 crc;
-    };
-
-    struct StepperReadResponse
-    {
-        u8  sync;
-        u8  master_address;
-        u8  register_address;
-        u32 data; // Big-endian.
-        u8  crc;
-    };
-
-    struct StepperWriteRequest
-    {
-        u8  sync;
-        u8  node_address;
-        u8  register_address;
-        u32 data; // Big-endian.
-        u8  crc;
-    };
-
-pack_pop
-
-
-
 ////////////////////////////////////////////////////////////////////////////////
 
 
@@ -196,163 +164,6 @@ _STEPPER_calculate_crc(u8* data, u8 length)
         (((crc >> 0) & 1) << 7);
 
     return crc;
-
-}
-
-
-
-static void
-STEPPER_blocking_read_request(enum StepperHandle handle, u8 register_address)
-{
-
-    _EXPAND_HANDLE
-
-    if (register_address & (1 << 7))
-        panic;
-
-
-
-    // Set up the request.
-
-    struct StepperReadRequest request =
-        {
-            .sync             = 0b0000'0101,
-            .node_address     = STEPPER_NODE_ADDRESS,
-            .register_address = register_address,
-            .crc              = 0,
-        };
-
-    request.crc =
-        _STEPPER_calculate_crc
-        (
-            (u8*) &request,
-            sizeof(request) - sizeof(request.crc)
-        );
-
-
-
-    // Send the request.
-
-    _UXART_tx_raw_nonreentrant
-    (
-        UXARTHandle_stepper_uart,
-        (u8*) &request,
-        sizeof(request)
-    );
-
-
-
-    // Flush the RX-FIFO.
-    // TODO Don't use char.
-
-    while (UXART_rx(UXARTHandle_stepper_uart, &(char) {0}));
-
-
-
-    // TODO Return error code?
-
-}
-
-
-
-static void
-STEPPER_blocking_read_response(enum StepperHandle handle, u8 register_address, u32* dst)
-{
-
-    if (register_address & (1 << 7))
-        panic;
-
-    if (!dst)
-        panic;
-
-    *dst = 0;
-
-
-
-    // Get the response.
-
-    struct StepperReadResponse response = {0};
-
-    for (i32 i = 0; i < sizeof(response); i += 1)
-    {
-        while (!UXART_rx(UXARTHandle_stepper_uart, &((char*) &response)[i]));
-    }
-
-
-
-    // Verify integrity of response.
-
-    u8 digest = _STEPPER_calculate_crc((u8*) &response, sizeof(response) - sizeof(response.crc));
-
-    if (digest != response.crc)
-        panic;
-
-    if (response.sync != 0b0000'0101)
-        panic;
-
-    if (response.master_address != 0xFF)
-        panic;
-
-    if (response.register_address != register_address)
-        panic;
-
-
-
-    // Got the register data intact!
-
-    *dst = __builtin_bswap32(response.data);
-
-
-
-    // TODO Return error code.
-
-}
-
-
-
-static void
-STEPPER_blocking_write_request(enum StepperHandle handle, u8 register_address, u32 data)
-{
-
-    _EXPAND_HANDLE
-
-    if (register_address & (1 << 7))
-        panic;
-
-
-
-    // Set up the request.
-
-    struct StepperWriteRequest request =
-        {
-            .sync             = 0b0000'0101,
-            .node_address     = STEPPER_NODE_ADDRESS,
-            .register_address = register_address | (1 << 7),
-            .data             = __builtin_bswap32(data),
-            .crc              = 0,
-        };
-
-    request.crc =
-        _STEPPER_calculate_crc
-        (
-            (u8*) &request,
-            sizeof(request) - sizeof(request.crc)
-        );
-
-
-
-    // Send the request.
-
-    _UXART_tx_raw_nonreentrant
-    (
-        UXARTHandle_stepper_uart,
-        (u8*) &request,
-        sizeof(request)
-    );
-
-
-
-    // TODO Return error code?
 
 }
 
@@ -613,33 +424,180 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
                 case StepperDriverUARTState_read_scheduled:
                 {
 
-                    STEPPER_blocking_read_request(handle, driver->uart.register_address);
+                    if (driver->uart.register_address & (1 << 7))
+                        panic;
+
+
+
+                    // Set up the request.
+
+                    pack_push
+                        struct StepperReadRequest
+                        {
+                            u8 sync;
+                            u8 node_address;
+                            u8 register_address;
+                            u8 crc;
+                        };
+                    pack_pop
+
+                    struct StepperReadRequest request =
+                        {
+                            .sync             = 0b0000'0101,
+                            .node_address     = STEPPER_NODE_ADDRESS,
+                            .register_address = driver->uart.register_address,
+                            .crc              = 0,
+                        };
+
+                    request.crc =
+                        _STEPPER_calculate_crc
+                        (
+                            (u8*) &request,
+                            sizeof(request) - sizeof(request.crc)
+                        );
+
+
+
+                    // Send the request.
+
+                    _UXART_tx_raw_nonreentrant
+                    (
+                        UXARTHandle_stepper_uart,
+                        (u8*) &request,
+                        sizeof(request)
+                    );
+
+
+
+                    // Flush the RX-FIFO.
+                    // TODO Don't use char.
+
+                    while (UXART_rx(UXARTHandle_stepper_uart, &(char) {0}));
+
+
+
+                    // We now wait for the response.
 
                     driver->uart.state = StepperDriverUARTState_read_requested;
-
-                    yield = true;
+                    yield              = true;
 
                 } break;
 
                 case StepperDriverUARTState_read_requested:
                 {
 
-                    STEPPER_blocking_read_response(handle, driver->uart.register_address, &driver->uart.data);
+                    if (driver->uart.register_address & (1 << 7))
+                        panic;
+
+
+
+                    // Get the response.
+
+                    pack_push
+                        struct StepperReadResponse
+                        {
+                            u8  sync;
+                            u8  master_address;
+                            u8  register_address;
+                            u32 data; // Big-endian.
+                            u8  crc;
+                        };
+                    pack_pop
+
+                    struct StepperReadResponse response = {0};
+
+                    for (i32 i = 0; i < sizeof(response); i += 1)
+                    {
+                        while (!UXART_rx(UXARTHandle_stepper_uart, &((char*) &response)[i]));
+                    }
+
+
+
+                    // Verify integrity of response.
+
+                    u8 digest = _STEPPER_calculate_crc((u8*) &response, sizeof(response) - sizeof(response.crc));
+
+                    if (digest != response.crc)
+                        panic;
+
+                    if (response.sync != 0b0000'0101)
+                        panic;
+
+                    if (response.master_address != 0xFF)
+                        panic;
+
+                    if (response.register_address != driver->uart.register_address)
+                        panic;
+
+
+
+                    // Got the register data intact!
+
+                    driver->uart.data = __builtin_bswap32(response.data);
+
+
+
+                    // We're now done reading the register.
 
                     driver->uart.state = StepperDriverUARTState_done;
-
-                    yield = true;
 
                 } break;
 
                 case StepperDriverUARTState_write_scheduled:
                 {
 
-                    STEPPER_blocking_write_request(handle, driver->uart.register_address, driver->uart.data);
+                    if (driver->uart.register_address & (1 << 7))
+                        panic;
+
+
+
+                    // Set up the request.
+
+                    pack_push
+                        struct StepperWriteRequest
+                        {
+                            u8  sync;
+                            u8  node_address;
+                            u8  register_address;
+                            u32 data; // Big-endian.
+                            u8  crc;
+                        };
+                    pack_pop
+
+                    struct StepperWriteRequest request =
+                        {
+                            .sync             = 0b0000'0101,
+                            .node_address     = STEPPER_NODE_ADDRESS,
+                            .register_address = driver->uart.register_address | (1 << 7),
+                            .data             = __builtin_bswap32(driver->uart.data),
+                            .crc              = 0,
+                        };
+
+                    request.crc =
+                        _STEPPER_calculate_crc
+                        (
+                            (u8*) &request,
+                            sizeof(request) - sizeof(request.crc)
+                        );
+
+
+
+                    // Send the request.
+
+                    _UXART_tx_raw_nonreentrant
+                    (
+                        UXARTHandle_stepper_uart,
+                        (u8*) &request,
+                        sizeof(request)
+                    );
+
+
+
+                    // The write request transfer should be
+                    // done upon the next update interrupt.
 
                     driver->uart.state = StepperDriverUARTState_done;
-
-                    yield = true;
+                    yield              = true;
 
                 } break;
 
