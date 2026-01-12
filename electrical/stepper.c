@@ -11,6 +11,10 @@ static_assert(IS_POWER_OF_TWO(STEPPER_WINDOW_LENGTH));
 
 
 
+#define TMC2209_IFCNT_ADDRESS 0x02
+
+
+
 #include "stepper_driver_support.meta"
 /* #meta
 
@@ -403,7 +407,7 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
                             (struct StepperDriverUARTTransfer)
                             {
                                 .state            = StepperDriverUARTTransferState_read_scheduled,
-                                .register_address = 0x02,
+                                .register_address = TMC2209_IFCNT_ADDRESS,
                             };
                     } break;
 
@@ -486,7 +490,7 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
                             .node_address     = STEPPER_NODE_ADDRESS,
                             .register_address =
                                 driver->uart_transfer.state == StepperDriverUARTTransferState_write_verification_read_scheduled
-                                    ? 0x02
+                                    ? TMC2209_IFCNT_ADDRESS
                                     : driver->uart_transfer.register_address,
                         };
 
@@ -579,7 +583,7 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
                     u8 expected_register_address =
                         driver->uart_transfer.state == StepperDriverUARTTransferState_write_verification_read_requested
-                            ? 0x02
+                            ? TMC2209_IFCNT_ADDRESS
                             : driver->uart_transfer.register_address;
 
                     if (response.register_address != expected_register_address)
