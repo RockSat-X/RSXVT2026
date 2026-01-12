@@ -818,8 +818,8 @@ TARGETS = (
 
         interrupts = (
             ('USART2' , 0),
-            ('TIM1_UP', 1),
-            ('USART3' , 2),
+            ('USART3' , 1),
+            ('TIM1_UP', 2),
         ),
 
         drivers = (
@@ -857,7 +857,7 @@ TARGETS = (
             'APB2_CK'           : 250_000_000,
             'APB3_CK'           : 250_000_000,
             'USART2_BAUD'       : STLINK_BAUD,
-            'USART3_BAUD'       : 10_000,
+            'USART3_BAUD'       : 100_000,
             'TIM1_COUNTER_RATE' : 1_000_000,
         },
 

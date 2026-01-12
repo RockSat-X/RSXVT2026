@@ -59,28 +59,6 @@ main(void)
         index += 1;
         index %= countof(STEPS);
 
-
-
-        stlink_tx("\n");
-
-        u32 data = {0};
-        STEPPER_blocking_read(StepperHandle_primary, 0x00, &data);
-        stlink_tx("0x%08X\n", data);
-
-        spinlock_nop(8'000'000);
-
-        data |= (1 << 6);
-        data ^= (1 << 3);
-        STEPPER_blocking_write(StepperHandle_primary, 0x00, data);
-        stlink_tx("0x%08X\n", data);
-
-        spinlock_nop(8'000'000);
-
-        STEPPER_blocking_read(StepperHandle_primary, 0x00, &data);
-        stlink_tx("0x%08X\n", data);
-
-        spinlock_nop(100'000'000);
-
     }
 
 }

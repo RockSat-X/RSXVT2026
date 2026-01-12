@@ -526,6 +526,46 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
         CMSIS_SET(TIMx, CR1, CEN, true);
 
+
+
+        // TODO.
+
+        {
+            static i32 TMP  = 0;
+            static u32 data = {0};
+
+            switch (TMP)
+            {
+                case 0:
+                {
+
+                    STEPPER_blocking_read(StepperHandle_primary, 0x00, &data);
+
+                } break;
+
+                case 1:
+                {
+
+                    data |= (1 << 6);
+                    data ^= (1 << 3);
+                    STEPPER_blocking_write(StepperHandle_primary, 0x00, data);
+
+                } break;
+
+                case 2:
+                {
+
+                    STEPPER_blocking_read(StepperHandle_primary, 0x00, &data);
+
+                } break;
+
+                default: panic;
+            }
+
+            TMP += 1;
+            TMP %= 3;
+        }
+
     }
 
 }

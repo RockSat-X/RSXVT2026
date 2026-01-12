@@ -3145,8 +3145,8 @@
         enum NVICInterrupt : u32
         {
             NVICInterrupt_USART2  = USART2_IRQn,
-            NVICInterrupt_TIM1_UP = TIM1_UP_IRQn,
             NVICInterrupt_USART3  = USART3_IRQn,
+            NVICInterrupt_TIM1_UP = TIM1_UP_IRQn,
         };
         static constexpr u32 NVICInterrupt_COUNT = 3;
         extern void INTERRUPT_BusFault(void);
@@ -3401,9 +3401,9 @@
             static_assert(0 <= 0 && 0 < (1 << __NVIC_PRIO_BITS));
             NVIC->IPR[NVICInterrupt_USART2] = 0 << __NVIC_PRIO_BITS;
             static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
-            NVIC->IPR[NVICInterrupt_TIM1_UP] = 1 << __NVIC_PRIO_BITS;
+            NVIC->IPR[NVICInterrupt_USART3] = 1 << __NVIC_PRIO_BITS;
             static_assert(0 <= 2 && 2 < (1 << __NVIC_PRIO_BITS));
-            NVIC->IPR[NVICInterrupt_USART3] = 2 << __NVIC_PRIO_BITS;
+            NVIC->IPR[NVICInterrupt_TIM1_UP] = 2 << __NVIC_PRIO_BITS;
             CMSIS_SET
             (
                 SCB        , SHCSR,
@@ -3517,7 +3517,7 @@
 
 
             #define STPY_USART3_KERNEL_SOURCE 0b000
-            #define STPY_USART3_BAUD_DIVIDER 25000
+            #define STPY_USART3_BAUD_DIVIDER 2500
 
 
 
