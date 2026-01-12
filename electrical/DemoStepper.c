@@ -59,73 +59,13 @@ main(void)
         index += 1;
         index %= countof(STEPS);
 
-        pack_push
-            struct ReadRequest
-            {
-                u8 sync;
-                u8 node_address;
-                u8 register_address;
-                u8 crc;
-            };
-            struct ReadResponse
-            {
-                u8  sync;
-                u8  master_address;
-                u8  register_address;
-                u32 data;
-                u8  crc;
-            };
-        pack_pop
 
-        struct ReadRequest request =
-            {
-                .sync             = 0b0000'0101,
-                .node_address     = 0,
-                .register_address = 0x06,
-                .crc              = 0,
-            };
 
-        request.crc = _STEPPER_calculate_crc((u8*) &request, sizeof(request) - sizeof(request.crc));
+        u32 data = {0};
 
-        while (UXART_rx(UXARTHandle_stepper_uart, &(char) {0}));
+        STEPPER_read_register(0, 0x00, &data);
 
-        _UXART_tx_raw_nonreentrant
-        (
-            UXARTHandle_stepper_uart,
-            (u8*) &request,
-            sizeof(request)
-        );
-
-        for (i32 i = 0; i < sizeof(request); i += 1)
-        {
-            char byte = {0};
-            while (!UXART_rx(UXARTHandle_stepper_uart, &byte));
-            if (byte != ((char*) &request)[i])
-                panic;
-        }
-
-        struct ReadResponse response = {0};
-
-        for (i32 i = 0; i < sizeof(response); i += 1)
-        {
-            while (!UXART_rx(UXARTHandle_stepper_uart, &((char*) &response)[i]));
-        }
-
-        u8 digest = _STEPPER_calculate_crc((u8*) &response, sizeof(response) - sizeof(response.crc));
-
-        if (digest != response.crc)
-            panic;
-
-        if (response.sync != 0b0000'0101)
-            panic;
-
-        if (response.master_address != 0xFF)
-            panic;
-
-        if (response.register_address != 0x06)
-            panic;
-
-        stlink_tx("0x%08X\n", response.data);
+        stlink_tx("0x%08X\n", data);
 
         spinlock_nop(100'000'000);
 

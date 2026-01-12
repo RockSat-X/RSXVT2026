@@ -1,3 +1,7 @@
+////////////////////////////////////////////////////////////////////////////////
+
+
+
 #define STEPPER_PERIOD_US     25'000
 #define STEPPER_WINDOW_LENGTH 32
 
@@ -62,6 +66,33 @@ struct StepperDriver
 
 
 static struct StepperDriver _STEPPER_drivers[StepperHandle_COUNT] = {0};
+
+
+
+pack_push
+
+    struct StepperReadRequest
+    {
+        u8 sync;
+        u8 node_address;
+        u8 register_address;
+        u8 crc;
+    };
+
+    struct StepperReadResponse
+    {
+        u8  sync;
+        u8  master_address;
+        u8  register_address;
+        u32 data; // Big-endian.
+        u8  crc;
+    };
+
+pack_pop
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -135,6 +166,115 @@ _STEPPER_calculate_crc(u8* data, u8 length)
         (((crc >> 0) & 1) << 7);
 
     return crc;
+
+}
+
+
+
+static void
+STEPPER_read_register(u8 node_address, u8 register_address, u32* dst)
+{
+
+    // TODO Verify node_address.
+    // TODO Verify register_address.
+
+    if (!dst)
+        panic;
+
+    *dst = 0;
+
+
+
+    // Set up the request.
+
+    struct StepperReadRequest request =
+        {
+            .sync             = 0b0000'0101,
+            .node_address     = node_address,
+            .register_address = register_address,
+            .crc              = 0,
+        };
+
+    request.crc =
+        _STEPPER_calculate_crc
+        (
+            (u8*) &request,
+            sizeof(request) - sizeof(request.crc)
+        );
+
+
+
+    // Flush the RX-FIFO.
+    // TODO Don't use char.
+
+    while (UXART_rx(UXARTHandle_stepper_uart, &(char) {0}));
+
+
+
+    // Send the request.
+
+    _UXART_tx_raw_nonreentrant
+    (
+        UXARTHandle_stepper_uart,
+        (u8*) &request,
+        sizeof(request)
+    );
+
+
+
+    // Because we're half-duplex, we discard the received
+    // bytes that are actually the request we just sent.
+    // TODO Don't use char.
+
+    for (i32 i = 0; i < sizeof(request); i += 1)
+    {
+
+        char byte = {0};
+        while (!UXART_rx(UXARTHandle_stepper_uart, &byte));
+
+        if (byte != ((char*) &request)[i])
+            panic;
+
+    }
+
+
+
+    // Get the response.
+
+    struct StepperReadResponse response = {0};
+
+    for (i32 i = 0; i < sizeof(response); i += 1)
+    {
+        while (!UXART_rx(UXARTHandle_stepper_uart, &((char*) &response)[i]));
+    }
+
+
+
+    // Verify integrity of response.
+
+    u8 digest = _STEPPER_calculate_crc((u8*) &response, sizeof(response) - sizeof(response.crc));
+
+    if (digest != response.crc)
+        panic;
+
+    if (response.sync != 0b0000'0101)
+        panic;
+
+    if (response.master_address != 0xFF)
+        panic;
+
+    if (response.register_address != register_address)
+        panic;
+
+
+
+    // Got the register data intact!
+
+    *dst = __builtin_bswap32(response.data);
+
+
+
+    // TODO Return error code.
 
 }
 
