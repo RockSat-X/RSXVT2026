@@ -151,6 +151,7 @@ TARGETS = (
                 'type'       : 'UXART',
                 'peripheral' : 'USART3',
                 'handle'     : 'stlink',
+                'mode'       : 'full_duplex',
             },
         ),
 
@@ -208,6 +209,7 @@ TARGETS = (
                 'type'       : 'UXART',
                 'peripheral' : 'USART2',
                 'handle'     : 'stlink',
+                'mode'       : 'full_duplex',
             },
         ),
 
@@ -269,6 +271,7 @@ TARGETS = (
                 'type'       : 'UXART',
                 'peripheral' : 'USART2',
                 'handle'     : 'stlink',
+                'mode'       : 'full_duplex',
             },
             {
                 'type'       : 'I2C',
@@ -340,6 +343,7 @@ TARGETS = (
                 'type'       : 'UXART',
                 'peripheral' : 'USART2',
                 'handle'     : 'stlink',
+                'mode'       : 'full_duplex',
             },
         ),
 
@@ -399,6 +403,7 @@ TARGETS = (
                 'type'       : 'UXART',
                 'peripheral' : 'USART2',
                 'handle'     : 'stlink',
+                'mode'       : 'full_duplex',
             },
             {
                 'type'       : 'SPI',
@@ -459,6 +464,7 @@ TARGETS = (
                 'type'       : 'UXART',
                 'peripheral' : 'USART2',
                 'handle'     : 'stlink',
+                'mode'       : 'full_duplex',
             },
             {
                 'type'       : 'TIMEKEEPING',
@@ -524,6 +530,7 @@ TARGETS = (
                 'type'       : 'UXART',
                 'peripheral' : 'USART2',
                 'handle'     : 'stlink',
+                'mode'       : 'full_duplex',
             },
             {
                 'type'       : 'SD',
@@ -590,6 +597,7 @@ TARGETS = (
                 'type'       : 'UXART',
                 'peripheral' : 'USART2',
                 'handle'     : 'stlink',
+                'mode'       : 'full_duplex',
             },
             {
                 'type'       : 'I2C',
@@ -796,20 +804,22 @@ TARGETS = (
         kicad_project = None,
 
         gpios = (
-            ('led_green'       , 'A5' , 'OUTPUT'    , { 'initlvl' : False                 }),
-            ('stlink_tx'       , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'           }),
-            ('stlink_rx'       , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'           }),
-            ('swdio'           , 'A13', None        , {                                   }),
-            ('swclk'           , 'A14', None        , {                                   }),
-            ('button'          , 'C13', 'INPUT'     , { 'pull'    : None, 'active' : True }),
-            ('driver_direction', 'C3' , 'OUTPUT'    , { 'initlvl' : True                  }),
-            ('driver_step'     , 'A9' , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH2'            }),
-            ('driver_enable'   , 'B0' , 'OUTPUT'    , { 'initlvl' : True                  }),
+            ('led_green'       , 'A5' , 'OUTPUT'    , { 'initlvl' : False                            }),
+            ('stlink_tx'       , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'                      }),
+            ('stlink_rx'       , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'                      }),
+            ('swdio'           , 'A13', None        , {                                              }),
+            ('swclk'           , 'A14', None        , {                                              }),
+            ('button'          , 'C13', 'INPUT'     , { 'pull'    : None, 'active' : True            }),
+            ('driver_direction', 'C3' , 'OUTPUT'    , { 'initlvl' : True                             }),
+            ('driver_step'     , 'A9' , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH2'                       }),
+            ('driver_enable'   , 'B0' , 'OUTPUT'    , { 'initlvl' : True                             }),
+            ('driver_uart'     , 'B10', 'ALTERNATE' , { 'altfunc' : 'USART3_TX', 'open_drain' : True }),
         ),
 
         interrupts = (
             ('USART2' , 0),
-            ('TIM1_UP', 1),
+            ('USART3' , 1),
+            ('TIM1_UP', 2),
         ),
 
         drivers = (
@@ -817,13 +827,21 @@ TARGETS = (
                 'type'       : 'UXART',
                 'peripheral' : 'USART2',
                 'handle'     : 'stlink',
+                'mode'       : 'full_duplex',
             },
             {
-                'type'       : 'Stepper',
-                'peripheral' : 'TIM1',
-                'interrupt'  : 'TIM1_UP',
-                'channel'    : 2,
-                'handle'     : 'primary',
+                'type'       : 'UXART',
+                'peripheral' : 'USART3',
+                'handle'     : 'stepper_uart',
+                'mode'       : 'half_duplex',
+            },
+            {
+                'type'         : 'Stepper',
+                'peripheral'   : 'TIM1',
+                'interrupt'    : 'TIM1_UP',
+                'channel'      : 2,
+                'handle'       : 'primary',
+                'node_address' : 0,
             },
         ),
 
@@ -839,6 +857,7 @@ TARGETS = (
             'APB2_CK'           : 250_000_000,
             'APB3_CK'           : 250_000_000,
             'USART2_BAUD'       : STLINK_BAUD,
+            'USART3_BAUD'       : 100_000,
             'TIM1_COUNTER_RATE' : 1_000_000,
         },
 
@@ -897,6 +916,7 @@ TARGETS = (
                 'type'       : 'UXART',
                 'peripheral' : 'USART2',
                 'handle'     : 'stlink',
+                'mode'       : 'full_duplex',
             },
             {
                 'type'       : 'I2C',
@@ -961,11 +981,13 @@ TARGETS = (
                 'type'       : 'UXART',
                 'peripheral' : 'USART2',
                 'handle'     : 'stlink',
+                'mode'       : 'full_duplex',
             },
             {
                 'type'       : 'UXART',
                 'peripheral' : 'USART3',
                 'handle'     : 'esp32',
+                'mode'       : 'full_duplex',
             },
         ),
 

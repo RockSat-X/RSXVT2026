@@ -80,6 +80,10 @@ typedef double             f64; static_assert(sizeof(f64) == 8);
 
 
 
+#ifndef COMPILING_FREERTOS_SOURCE_FILE
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 // ESP32 related stuff.
@@ -146,6 +150,10 @@ calculate_crc(u8* data, i32 length)
 
     return crc;
 }
+
+
+
+#endif
 
 
 

@@ -15,6 +15,14 @@
 
 
 
+enum UXARTMode : u32
+{
+    UXARTMode_full_duplex,
+    UXARTMode_half_duplex,
+};
+
+
+
 #include "uxart_driver_support.meta"
 /* #meta
 
@@ -22,15 +30,16 @@
         driver_type = 'UXART',
         cmsis_name  = 'USART',
         common_name = 'UXARTx',
-        terms       = lambda type, peripheral, handle: (
-            ('{}'                   , 'expression' ),
-            ('NVICInterrupt_{}'     , 'expression' ),
-            ('STPY_{}_KERNEL_SOURCE', 'expression' ),
-            ('STPY_{}_BAUD_DIVIDER' , 'expression' ),
-            ('{}_RESET'             , 'cmsis_tuple'),
-            ('{}_ENABLE'            , 'cmsis_tuple'),
-            ('{}_KERNEL_SOURCE'     , 'cmsis_tuple'),
-            ('INTERRUPT_{}'         , 'interrupt'  ),
+        terms       = lambda type, peripheral, handle, mode: (
+            ('{}'                   , 'expression' ,                    ),
+            ('NVICInterrupt_{}'     , 'expression' ,                    ),
+            ('STPY_{}_KERNEL_SOURCE', 'expression' ,                    ),
+            ('STPY_{}_BAUD_DIVIDER' , 'expression' ,                    ),
+            ('{}_RESET'             , 'cmsis_tuple',                    ),
+            ('{}_ENABLE'            , 'cmsis_tuple',                    ),
+            ('{}_KERNEL_SOURCE'     , 'cmsis_tuple',                    ),
+            ('INTERRUPT_{}'         , 'interrupt'  ,                    ),
+            ('{}_MODE'              , 'expression' , f'UXARTMode_{mode}'),
         ),
     )
 
@@ -74,6 +83,9 @@ _UXART_tx_raw_nonreentrant(enum UXARTHandle handle, u8* data, i32 length)
         // Wait if the TX-FIFO is full.
         while (!CMSIS_GET(UXARTx, ISR, TXE));
 
+        // Ensure the transfer-complete flag is not set.
+        CMSIS_SET(UXARTx, ICR, TCCF, true);
+
         // This procedure is non-reentrant because a task
         // switch could occur right here; if that task
         // pushes data to TDR, then our current task might
@@ -83,6 +95,15 @@ _UXART_tx_raw_nonreentrant(enum UXARTHandle handle, u8* data, i32 length)
         CMSIS_SET(UXARTx, TDR, TDR, data[i]);
 
     }
+
+    // Wait until the transfer is completely done.
+    // This isn't necessary for most calls,
+    // but for certain situations like with half-duplex,
+    // it's conveneient to be able to guarantee that
+    // by the time the function returns, the transmission
+    // is also finished.
+
+    while (!CMSIS_GET(UXARTx, ISR, TC));
 
 }
 
@@ -208,7 +229,12 @@ UXART_init(enum UXARTHandle handle)
     // Configure the peripheral.
 
     CMSIS_SET(UXARTx, BRR, BRR, STPY_UXARTx_BAUD_DIVIDER); // Set baud rate.
-    CMSIS_SET(UXARTx, CR3, EIE, true                    ); // Trigger interrupt upon error.
+    CMSIS_SET
+    (
+        UXARTx, CR3                                 ,
+        EIE   , true                                , // Trigger interrupt upon error.
+        HDSEL , UXARTx_MODE == UXARTMode_half_duplex, // Whether or not to use half-duplex.
+    );
     CMSIS_SET
     (
         UXARTx, CR1 ,

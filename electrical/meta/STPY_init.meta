@@ -3145,14 +3145,16 @@
         enum NVICInterrupt : u32
         {
             NVICInterrupt_USART2  = USART2_IRQn,
+            NVICInterrupt_USART3  = USART3_IRQn,
             NVICInterrupt_TIM1_UP = TIM1_UP_IRQn,
         };
-        static constexpr u32 NVICInterrupt_COUNT = 2;
+        static constexpr u32 NVICInterrupt_COUNT = 3;
         extern void INTERRUPT_BusFault(void);
         extern void INTERRUPT_Default(void);
         extern void INTERRUPT_Reset(void);
         extern void INTERRUPT_TIM1_UP(void);
         extern void INTERRUPT_USART2(void);
+        extern void INTERRUPT_USART3(void);
         extern void INTERRUPT_UsageFault(void);
         void (* const INTERRUPT_VECTOR_TABLE[])(void) __attribute__((used, section(".INTERRUPT_VECTOR_TABLE"))) =
             {
@@ -3232,7 +3234,7 @@
                 INTERRUPT_Default            , // [ 57] SPI3
                 INTERRUPT_Default            , // [ 58] USART1
                 INTERRUPT_USART2             , // [ 59] USART2
-                INTERRUPT_Default            , // [ 60] USART3
+                INTERRUPT_USART3             , // [ 60] USART3
                 INTERRUPT_Default            , // [ 61] UART4
                 INTERRUPT_Default            , // [ 62] UART5
                 INTERRUPT_Default            , // [ 63] LPUART1
@@ -3311,6 +3313,7 @@
         #define INTERRUPT_Reset extern void INTERRUPT_Reset(void)
         #define INTERRUPT_TIM1_UP extern void INTERRUPT_TIM1_UP(void)
         #define INTERRUPT_USART2 extern void INTERRUPT_USART2(void)
+        #define INTERRUPT_USART3 extern void INTERRUPT_USART3(void)
         #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
         extern void
         STPY_init(void)
@@ -3346,6 +3349,9 @@
             #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_LOW__driver_enable GPIO_BSRR_BR
             #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__driver_enable B
             #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__driver_enable 0
+            #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__driver_uart B
+            #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__driver_uart 10
+            #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__driver_uart
             CMSIS_SET
             (
                 RCC    , AHB2ENR,
@@ -3353,6 +3359,7 @@
                 GPIOBEN, true   ,
                 GPIOCEN, true   ,
             );
+            CMSIS_SET(GPIOB, OTYPER, OT10, true);
             CMSIS_SET(GPIOA, ODR, OD5, false);
             CMSIS_SET(GPIOB, ODR, OD0, true);
             CMSIS_SET(GPIOC, ODR, OD3, true);
@@ -3363,6 +3370,7 @@
                 AFSEL3   , 7            ,
             );
             CMSIS_WRITE(GPIO_AFRH, GPIOA->AFR[1], AFSEL9, 1);
+            CMSIS_WRITE(GPIO_AFRH, GPIOB->AFR[1], AFSEL10, 7);
             CMSIS_SET
             (
                 GPIOA, MODER,
@@ -3371,7 +3379,12 @@
                 MODE5, 0b01 ,
                 MODE9, 0b10 ,
             );
-            CMSIS_SET(GPIOB, MODER, MODE0, 0b01);
+            CMSIS_SET
+            (
+                GPIOB , MODER,
+                MODE0 , 0b01 ,
+                MODE10, 0b10 ,
+            );
             CMSIS_SET
             (
                 GPIOC , MODER,
@@ -3388,7 +3401,9 @@
             static_assert(0 <= 0 && 0 < (1 << __NVIC_PRIO_BITS));
             NVIC->IPR[NVICInterrupt_USART2] = 0 << __NVIC_PRIO_BITS;
             static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
-            NVIC->IPR[NVICInterrupt_TIM1_UP] = 1 << __NVIC_PRIO_BITS;
+            NVIC->IPR[NVICInterrupt_USART3] = 1 << __NVIC_PRIO_BITS;
+            static_assert(0 <= 2 && 2 < (1 << __NVIC_PRIO_BITS));
+            NVIC->IPR[NVICInterrupt_TIM1_UP] = 2 << __NVIC_PRIO_BITS;
             CMSIS_SET
             (
                 SCB        , SHCSR,
@@ -3494,6 +3509,15 @@
 
             #define STPY_USART2_KERNEL_SOURCE 0b000
             #define STPY_USART2_BAUD_DIVIDER 250
+
+
+
+            /////////////////////////////////// USART3 ///////////////////////////////////
+
+
+
+            #define STPY_USART3_KERNEL_SOURCE 0b000
+            #define STPY_USART3_BAUD_DIVIDER 2500
 
 
 

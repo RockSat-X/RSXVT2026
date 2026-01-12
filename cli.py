@@ -471,62 +471,15 @@ def build(parameters):
 
 
 
-    # Callback of things to do before and after the execution of a meta-directive.
-
-    elapsed               = 0
-    meta_directive_deltas = []
-
-    def metadirective_callback(meta_directives, meta_directive_i):
-
-        nonlocal elapsed, meta_directive_deltas
-
-        meta_directive = meta_directives[meta_directive_i]
-
-
-
-        # Log the evaluation of the meta-directive.
-
-        location = f'{meta_directive.source_file_path.as_posix()}:{meta_directive.first_header_line_number}'
-
-        pxd.pxd_logger.info(f'Meta-preprocessing {location}')
-
-
-
-        # Record how long it takes to run this meta-directive.
-
-        start                  = time.time()
-        output                 = yield
-        end                    = time.time()
-        delta                  = end - start
-        meta_directive_deltas += [(location, delta)]
-        elapsed               += delta
-
-
-
     # Begin meta-preprocessing!
 
     try:
         pxd.metapreprocess(
             output_directory_path = pxd.make_main_relative_path('./electrical/meta'),
             source_file_paths     = metapreprocessor_file_paths,
-            callback              = metadirective_callback,
         )
     except pxd.MetaPreprocessorError:
         sys.exit(1)
-
-
-
-    # Log the performance of the meta-preprocessor.
-
-    pxd.pxd_logger.debug(
-        f'Meta-preprocessing {len(meta_directive_deltas)} meta-directives took {elapsed :.3f}s.',
-        extra = {
-            'table' : [
-                (location, f'{delta :.3f}s | {delta / elapsed * 100 : 5.1f}%')
-                for location, delta in sorted(meta_directive_deltas, key = lambda x: -x[1])
-            ]
-        }
-    )
 
 
 

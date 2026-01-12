@@ -10,6 +10,7 @@ main(void)
 
     STPY_init();
     UXART_init(UXARTHandle_stlink);
+    UXART_init(UXARTHandle_stepper_uart);
 
 
 
