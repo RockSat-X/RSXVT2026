@@ -182,7 +182,7 @@ _STEPPER_calculate_crc(u8* data, u8 length)
 
 
 static void
-STEPPER_read_register(enum StepperHandle handle, u8 register_address, u32* dst)
+STEPPER_blocking_read(enum StepperHandle handle, u8 register_address, u32* dst)
 {
 
     _EXPAND_HANDLE
@@ -293,7 +293,7 @@ STEPPER_read_register(enum StepperHandle handle, u8 register_address, u32* dst)
 
 
 static void
-STEPPER_write_register(enum StepperHandle handle, u8 register_address, u32 data)
+STEPPER_blocking_write(enum StepperHandle handle, u8 register_address, u32 data)
 {
 
     _EXPAND_HANDLE
