@@ -3352,6 +3352,10 @@
             #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__driver_uart B
             #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__driver_uart 10
             #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__driver_uart
+            #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_HIGH__debug GPIO_BSRR_BS
+            #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_LOW__debug GPIO_BSRR_BR
+            #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__debug C
+            #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__debug 12
             CMSIS_SET
             (
                 RCC    , AHB2ENR,
@@ -3362,7 +3366,12 @@
             CMSIS_SET(GPIOB, OTYPER, OT10, true);
             CMSIS_SET(GPIOA, ODR, OD5, false);
             CMSIS_SET(GPIOB, ODR, OD0, true);
-            CMSIS_SET(GPIOC, ODR, OD3, true);
+            CMSIS_SET
+            (
+                GPIOC, ODR  ,
+                OD3  , true ,
+                OD12 , false,
+            );
             CMSIS_WRITE
             (
                 GPIO_AFRL, GPIOA->AFR[0],
@@ -3389,6 +3398,7 @@
             (
                 GPIOC , MODER,
                 MODE3 , 0b01 ,
+                MODE12, 0b01 ,
                 MODE13, 0b00 ,
             );
 

@@ -182,18 +182,13 @@ _STEPPER_calculate_crc(u8* data, u8 length)
 
 
 static void
-STEPPER_blocking_read(enum StepperHandle handle, u8 register_address, u32* dst)
+STEPPER_blocking_read_request(enum StepperHandle handle, u8 register_address)
 {
 
     _EXPAND_HANDLE
 
     if (register_address & (1 << 7))
         panic;
-
-    if (!dst)
-        panic;
-
-    *dst = 0;
 
 
 
@@ -216,13 +211,6 @@ STEPPER_blocking_read(enum StepperHandle handle, u8 register_address, u32* dst)
 
 
 
-    // Flush the RX-FIFO.
-    // TODO Don't use char.
-
-    while (UXART_rx(UXARTHandle_stepper_uart, &(char) {0}));
-
-
-
     // Send the request.
 
     _UXART_tx_raw_nonreentrant
@@ -234,20 +222,30 @@ STEPPER_blocking_read(enum StepperHandle handle, u8 register_address, u32* dst)
 
 
 
-    // Because we're half-duplex, we discard the received
-    // bytes that are actually the request we just sent.
+    // Flush the RX-FIFO.
     // TODO Don't use char.
 
-    for (i32 i = 0; i < sizeof(request); i += 1)
-    {
+    while (UXART_rx(UXARTHandle_stepper_uart, &(char) {0}));
 
-        char byte = {0};
-        while (!UXART_rx(UXARTHandle_stepper_uart, &byte));
 
-        if (byte != ((char*) &request)[i])
-            panic;
 
-    }
+    // TODO Return error code?
+
+}
+
+
+
+static void
+STEPPER_blocking_read_response(enum StepperHandle handle, u8 register_address, u32* dst)
+{
+
+    if (register_address & (1 << 7))
+        panic;
+
+    if (!dst)
+        panic;
+
+    *dst = 0;
 
 
 
@@ -534,36 +532,42 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
             static i32 TMP  = 0;
             static u32 data = {0};
 
+            GPIO_SET(debug, TMP == 0);
+
             switch (TMP)
             {
                 case 0:
                 {
-
-                    STEPPER_blocking_read(StepperHandle_primary, 0x00, &data);
-
+                    STEPPER_blocking_read_request(StepperHandle_primary, 0x00);
                 } break;
 
                 case 1:
                 {
-
-                    data |= (1 << 6);
-                    data ^= (1 << 3);
-                    STEPPER_blocking_write(StepperHandle_primary, 0x00, data);
-
+                    STEPPER_blocking_read_response(StepperHandle_primary, 0x00, &data);
                 } break;
 
                 case 2:
                 {
+                    data |= (1 << 6);
+                    data ^= (1 << 3);
+                    STEPPER_blocking_write(StepperHandle_primary, 0x00, data);
+                } break;
 
-                    STEPPER_blocking_read(StepperHandle_primary, 0x00, &data);
+                case 3:
+                {
+                    STEPPER_blocking_read_request(StepperHandle_primary, 0x00);
+                } break;
 
+                case 4:
+                {
+                    STEPPER_blocking_read_response(StepperHandle_primary, 0x00, &data);
                 } break;
 
                 default: panic;
             }
 
             TMP += 1;
-            TMP %= 3;
+            TMP %= 5;
         }
 
     }

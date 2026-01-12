@@ -814,6 +814,7 @@ TARGETS = (
             ('driver_step'     , 'A9' , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH2'                       }),
             ('driver_enable'   , 'B0' , 'OUTPUT'    , { 'initlvl' : True                             }),
             ('driver_uart'     , 'B10', 'ALTERNATE' , { 'altfunc' : 'USART3_TX', 'open_drain' : True }),
+            ('debug'           , 'C12', 'OUTPUT'    , { 'initlvl' : False                            }),
         ),
 
         interrupts = (
