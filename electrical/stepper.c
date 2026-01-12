@@ -272,6 +272,10 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
     // See if the timer has finished pulsing steps;
     // if so, the next sequence of steps can be queued up now.
+    // We will also carry out any UART transfers as needed,
+    // as this timer update interrupt is a convenient way to
+    // ensure the timing of the half-duplex transfer is done
+    // in a reliable manner.
 
     if (CMSIS_GET(TIMx, SR, UIF))
     {
@@ -357,7 +361,7 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
 
 
-        // TODO.
+        // Handle UART transfers.
 
         for (b32 yield = false; !yield;)
         {
@@ -367,6 +371,10 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
             switch (driver->uart.state)
             {
+
+
+
+                // The next UART transfer can be scheduled.
 
                 case StepperDriverUARTState_standby:
                 {
@@ -411,6 +419,10 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
                 } break;
 
+
+
+                // We just finished a UART transfer.
+
                 case StepperDriverUARTState_done:
                 {
 
@@ -420,6 +432,10 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
                     TMP %= 3;
 
                 } break;
+
+
+
+                // We send a read request packet to the TMC2209.
 
                 case StepperDriverUARTState_read_scheduled:
                 {
@@ -483,6 +499,10 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
                 } break;
 
+
+
+                // See if the TMC2209 replied back to the read request.
+
                 case StepperDriverUARTState_read_requested:
                 {
 
@@ -542,6 +562,10 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
                     driver->uart.state = StepperDriverUARTState_done;
 
                 } break;
+
+
+
+                // We send a write request packet to the TMC2209.
 
                 case StepperDriverUARTState_write_scheduled:
                 {
