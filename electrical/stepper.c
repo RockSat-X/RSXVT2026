@@ -89,8 +89,8 @@ struct StepperDriver
     struct StepperDriverUARTTransfer
     {
         enum StepperDriverUARTTransferState state;
-        u8                          register_address;
-        u32                         data;
+        u8                                  register_address;
+        u32                                 data;
     }  uart_transfer;
     u8 uart_write_sequence_number;
 
