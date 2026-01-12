@@ -63,6 +63,8 @@ enum StepperDriverUARTState : u32
     StepperDriverUARTState_read_scheduled,
     StepperDriverUARTState_read_requested,
     StepperDriverUARTState_write_scheduled,
+    StepperDriverUARTState_write_verification_read_scheduled,
+    StepperDriverUARTState_write_verification_read_requested,
     StepperDriverUARTState_done,
 };
 
@@ -81,6 +83,8 @@ struct StepperDriver
         u8                          register_address;
         u32                         data;
     } uart;
+
+    u8 uart_write_sequence_number;
 
 };
 
@@ -366,7 +370,7 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
         for (b32 yield = false; !yield;)
         {
 
-            static i32 TMP = 0;
+            static i32 TMP = -1;
             GPIO_SET(debug, TMP == 0);
 
             switch (driver->uart.state)
@@ -381,6 +385,16 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
                     switch (TMP)
                     {
+
+                        case -1:
+                        {
+                            driver->uart =
+                                (struct StepperDriverUART)
+                                {
+                                    .state            = StepperDriverUARTState_read_scheduled,
+                                    .register_address = 0x02,
+                                };
+                        } break;
 
                         case 0:
                         {
@@ -426,6 +440,11 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
                 case StepperDriverUARTState_done:
                 {
 
+                    if (TMP == -1)
+                    {
+                        driver->uart_write_sequence_number = driver->uart.data + 1;
+                    }
+
                     driver->uart.state = StepperDriverUARTState_standby;
 
                     TMP += 1;
@@ -438,6 +457,7 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
                 // We send a read request packet to the TMC2209.
 
                 case StepperDriverUARTState_read_scheduled:
+                case StepperDriverUARTState_write_verification_read_scheduled:
                 {
 
                     if (driver->uart.register_address & (1 << 7))
@@ -461,8 +481,10 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
                         {
                             .sync             = 0b0000'0101,
                             .node_address     = STEPPER_NODE_ADDRESS,
-                            .register_address = driver->uart.register_address,
-                            .crc              = 0,
+                            .register_address =
+                                driver->uart.state == StepperDriverUARTState_write_verification_read_scheduled
+                                    ? 0x02
+                                    : driver->uart.register_address,
                         };
 
                     request.crc =
@@ -494,8 +516,12 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
                     // We now wait for the response.
 
-                    driver->uart.state = StepperDriverUARTState_read_requested;
-                    yield              = true;
+                    driver->uart.state =
+                        driver->uart.state == StepperDriverUARTState_write_verification_read_scheduled
+                            ? StepperDriverUARTState_write_verification_read_requested
+                            : StepperDriverUARTState_read_requested;
+
+                    yield = true;
 
                 } break;
 
@@ -504,6 +530,7 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
                 // See if the TMC2209 replied back to the read request.
 
                 case StepperDriverUARTState_read_requested:
+                case StepperDriverUARTState_write_verification_read_requested:
                 {
 
                     if (driver->uart.register_address & (1 << 7))
@@ -547,18 +574,42 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
                     if (response.master_address != 0xFF)
                         sorry
 
-                    if (response.register_address != driver->uart.register_address)
+                    u8 expected_register_address =
+                        driver->uart.state == StepperDriverUARTState_write_verification_read_requested
+                            ? 0x02
+                            : driver->uart.register_address;
+
+                    if (response.register_address != expected_register_address)
                         sorry
 
 
 
                     // Got the register data intact!
 
-                    driver->uart.data = __builtin_bswap32(response.data);
+                    u32 data = __builtin_bswap32(response.data);
 
 
 
-                    // We're now done reading the register.
+                    // Handle the data.
+
+                    if (driver->uart.state == StepperDriverUARTState_write_verification_read_requested)
+                    {
+
+                        if (driver->uart_write_sequence_number != data)
+                            sorry
+
+                        driver->uart_write_sequence_number = data + 1;
+
+                    }
+                    else
+                    {
+                        driver->uart.data = data;
+                    }
+
+
+
+                    // We're now done reading the register
+                    // (or maybe verifying that the write request was successful).
 
                     driver->uart.state = StepperDriverUARTState_done;
 
@@ -595,7 +646,6 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
                             .node_address     = STEPPER_NODE_ADDRESS,
                             .register_address = driver->uart.register_address | (1 << 7),
                             .data             = __builtin_bswap32(driver->uart.data),
-                            .crc              = 0,
                         };
 
                     request.crc =
@@ -618,13 +668,16 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
 
 
-                    // The write request transfer should be
-                    // done upon the next update interrupt.
+                    // After the write transfer, we read the
+                    // interface transmission counter register
+                    // to ensure the write request went through.
 
-                    driver->uart.state = StepperDriverUARTState_done;
+                    driver->uart.state = StepperDriverUARTState_write_verification_read_scheduled;
                     yield              = true;
 
                 } break;
+
+
 
                 default: panic;
 
