@@ -44,7 +44,7 @@ static_assert(IS_POWER_OF_TWO(STEPPER_WINDOW_LENGTH));
         driver_type = 'Stepper',
         cmsis_name  = 'TIM',
         common_name = 'TIMx',
-        terms       = lambda type, peripheral, interrupt, channel, handle, node_address: (
+        terms       = lambda type, peripheral, interrupt, channel, handle, node_address, uxart_handle: (
             ('{}'                           , 'expression' ,                                                 ),
             ('NVICInterrupt_{}_update_event', 'expression' , f'NVICInterrupt_{interrupt}'                    ),
             ('STPY_{}_DIVIDER'              , 'expression' ,                                                 ),
@@ -54,6 +54,7 @@ static_assert(IS_POWER_OF_TWO(STEPPER_WINDOW_LENGTH));
             ('{}_CAPTURE_COMPARE_MODE_y'    , 'cmsis_tuple', f'{peripheral}_CAPTURE_COMPARE_MODE_{channel}'  ),
             ('INTERRUPT_{}_update_event'    , 'interrupt'  , f'INTERRUPT_{interrupt}'                        ),
             ('STEPPER_NODE_ADDRESS'         , 'expression' , node_address                                    ),
+            ('STEPPER_UXART_HANDLE'         , 'expression' , f'UXARTHandle_{uxart_handle}'                   ),
         ),
     )
 
@@ -590,7 +591,7 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
                     _UXART_tx_raw_nonreentrant
                     (
-                        UXARTHandle_stepper_uart,
+                        STEPPER_UXART_HANDLE,
                         (u8*) &request,
                         sizeof(request)
                     );
@@ -600,7 +601,7 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
                     // Flush the RX-FIFO.
                     // TODO Don't use char.
 
-                    while (UXART_rx(UXARTHandle_stepper_uart, &(char) {0}));
+                    while (UXART_rx(STEPPER_UXART_HANDLE, &(char) {0}));
 
 
 
@@ -645,7 +646,7 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
                     for (i32 i = 0; i < sizeof(response); i += 1)
                     {
-                        if (!UXART_rx(UXARTHandle_stepper_uart, &((char*) &response)[i])) // TODO Not use char.
+                        if (!UXART_rx(STEPPER_UXART_HANDLE, &((char*) &response)[i])) // TODO Not use char.
                             sorry
                     }
 
@@ -751,7 +752,7 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
                     _UXART_tx_raw_nonreentrant
                     (
-                        UXARTHandle_stepper_uart,
+                        STEPPER_UXART_HANDLE,
                         (u8*) &request,
                         sizeof(request)
                     );

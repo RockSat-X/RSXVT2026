@@ -842,6 +842,7 @@ TARGETS = (
                 'channel'      : 2,
                 'handle'       : 'primary',
                 'node_address' : 0,
+                'uxart_handle' : 'stepper_uart',
             },
         ),
 

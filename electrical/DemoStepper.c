@@ -24,7 +24,8 @@ main(void)
 
 
 
-    // The stepper driver relies on other timer initializations to be done first.
+    // The stepper driver relies on other timer
+    // and UART initializations to be done first.
 
     STEPPER_partial_init(StepperHandle_primary);
 
