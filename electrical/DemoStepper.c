@@ -2,27 +2,7 @@
 #include "uxart.c"
 #include "stepper.c"
 
-void swuart_calcCRC(u8* datagram, u8 datagramLength)
-{
-    i32 i,j;
-    u8* crc = datagram + (datagramLength-1); // CRC located in last byte of message
-    u8 currentByte;
-    *crc = 0;
-    for (i=0; i<(datagramLength-1); i++) {
-        currentByte = datagram[i];
-        for (j=0; j<8; j++) {
-            if ((*crc >> 7) ^ (currentByte&0x01))
-            {
-                *crc = (*crc << 1) ^ 0x07;
-            }
-            else
-            {
-                *crc = (*crc << 1);
-            }
-            currentByte = currentByte >> 1;
-        }
-    }
-}
+
 
 extern noret void
 main(void)
@@ -105,7 +85,7 @@ main(void)
                 .crc              = 0,
             };
 
-        swuart_calcCRC((u8*) &request, sizeof(request));
+        request.crc = _STEPPER_calculate_crc((u8*) &request, sizeof(request) - sizeof(request.crc));
 
         while (UXART_rx(UXARTHandle_stepper_uart, &(char) {0}));
 
@@ -130,6 +110,11 @@ main(void)
         {
             while (!UXART_rx(UXARTHandle_stepper_uart, &((char*) &response)[i]));
         }
+
+        u8 digest = _STEPPER_calculate_crc((u8*) &response, sizeof(response) - sizeof(response.crc));
+
+        if (digest != response.crc)
+            panic;
 
         if (response.sync != 0b0000'0101)
             panic;
