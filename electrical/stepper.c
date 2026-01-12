@@ -528,7 +528,8 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
                     for (i32 i = 0; i < sizeof(response); i += 1)
                     {
-                        while (!UXART_rx(UXARTHandle_stepper_uart, &((char*) &response)[i]));
+                        if (!UXART_rx(UXARTHandle_stepper_uart, &((char*) &response)[i])) // TODO Not use char.
+                            sorry
                     }
 
 
@@ -538,16 +539,16 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
                     u8 digest = _STEPPER_calculate_crc((u8*) &response, sizeof(response) - sizeof(response.crc));
 
                     if (digest != response.crc)
-                        panic;
+                        sorry
 
                     if (response.sync != 0b0000'0101)
-                        panic;
+                        sorry
 
                     if (response.master_address != 0xFF)
-                        panic;
+                        sorry
 
                     if (response.register_address != driver->uart.register_address)
-                        panic;
+                        sorry
 
 
 
