@@ -836,11 +836,12 @@ TARGETS = (
                 'mode'       : 'half_duplex',
             },
             {
-                'type'       : 'Stepper',
-                'peripheral' : 'TIM1',
-                'interrupt'  : 'TIM1_UP',
-                'channel'    : 2,
-                'handle'     : 'primary',
+                'type'         : 'Stepper',
+                'peripheral'   : 'TIM1',
+                'interrupt'    : 'TIM1_UP',
+                'channel'      : 2,
+                'handle'       : 'primary',
+                'node_address' : 0,
             },
         ),
 

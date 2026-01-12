@@ -40,7 +40,7 @@ static_assert(IS_POWER_OF_TWO(STEPPER_WINDOW_LENGTH));
         driver_type = 'Stepper',
         cmsis_name  = 'TIM',
         common_name = 'TIMx',
-        terms       = lambda type, peripheral, interrupt, channel, handle: (
+        terms       = lambda type, peripheral, interrupt, channel, handle, node_address: (
             ('{}'                           , 'expression' ,                                                 ),
             ('NVICInterrupt_{}_update_event', 'expression' , f'NVICInterrupt_{interrupt}'                    ),
             ('STPY_{}_DIVIDER'              , 'expression' ,                                                 ),
@@ -49,6 +49,7 @@ static_assert(IS_POWER_OF_TWO(STEPPER_WINDOW_LENGTH));
             ('{}_CAPTURE_COMPARE_VALUE_y'   , 'cmsis_tuple', f'{peripheral}_CAPTURE_COMPARE_VALUE_{channel}' ),
             ('{}_CAPTURE_COMPARE_MODE_y'    , 'cmsis_tuple', f'{peripheral}_CAPTURE_COMPARE_MODE_{channel}'  ),
             ('INTERRUPT_{}_update_event'    , 'interrupt'  , f'INTERRUPT_{interrupt}'                        ),
+            ('STEPPER_NODE_ADDRESS'         , 'expression' , node_address                                    ),
         ),
     )
 
@@ -181,10 +182,13 @@ _STEPPER_calculate_crc(u8* data, u8 length)
 
 
 static void
-STEPPER_read_register(u8 node_address, u8 register_address, u32* dst)
+STEPPER_read_register(enum StepperHandle handle, u8 register_address, u32* dst)
 {
 
-    // TODO Verify node_address.
+    _EXPAND_HANDLE
+
+
+
     // TODO Verify register_address.
 
     if (!dst)
@@ -199,7 +203,7 @@ STEPPER_read_register(u8 node_address, u8 register_address, u32* dst)
     struct StepperReadRequest request =
         {
             .sync             = 0b0000'0101,
-            .node_address     = node_address,
+            .node_address     = STEPPER_NODE_ADDRESS,
             .register_address = register_address,
             .crc              = 0,
         };
@@ -290,10 +294,13 @@ STEPPER_read_register(u8 node_address, u8 register_address, u32* dst)
 
 
 static void
-STEPPER_write_register(u8 node_address, u8 register_address, u32 data)
+STEPPER_write_register(enum StepperHandle handle, u8 register_address, u32 data)
 {
 
-    // TODO Verify node_address.
+    _EXPAND_HANDLE
+
+
+
     // TODO Verify register_address.
 
 
@@ -303,7 +310,7 @@ STEPPER_write_register(u8 node_address, u8 register_address, u32 data)
     struct StepperWriteRequest request =
         {
             .sync             = 0b0000'0101,
-            .node_address     = node_address,
+            .node_address     = STEPPER_NODE_ADDRESS,
             .register_address = register_address | (1 << 7),
             .data             = __builtin_bswap32(data),
             .crc              = 0,
