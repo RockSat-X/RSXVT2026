@@ -77,6 +77,9 @@ enum StepperDriverUARTTransferState : u32
 enum StepperDriverState : u32
 {
     StepperDriverState_setting_uart_write_sequence_number,
+    StepperDriverState_configuring_GCONF,
+    StepperDriverState_configuring_NODECONF,
+    StepperDriverState_configuring_CHOPCONF,
     StepperDriverState_inited,
 };
 
@@ -413,6 +416,58 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
 
 
+                    // TODO.
+
+                    case StepperDriverState_configuring_GCONF:
+                    {
+                        driver->uart_transfer =
+                            (struct StepperDriverUARTTransfer)
+                            {
+                                .state            = StepperDriverUARTTransferState_write_scheduled,
+                                .register_address = 0x00,
+                                .data             =
+                                    (1 << 0) | // "I_scale_analog"   : TODO.
+                                    (0 << 1) | // "internal_Rsense"  : TODO.
+                                    (0 << 2) | // "en_SpreadCycle"   : TODO.
+                                    (0 << 3) | // "shaft"            : TODO.
+                                    (0 << 4) | // "index_otpw"       : TODO.
+                                    (0 << 5) | // "index_step"       : TODO.
+                                    (1 << 6) | // "pdn_disable"      : TODO.
+                                    (1 << 7) | // "mstep_reg_select" : TODO.
+                                    (1 << 8)   // "multistep_filt"   : TODO.
+                            };
+                    } break;
+
+                    case StepperDriverState_configuring_NODECONF:
+                    {
+                        driver->uart_transfer =
+                            (struct StepperDriverUARTTransfer)
+                            {
+                                .state            = StepperDriverUARTTransferState_write_scheduled,
+                                .register_address = 0x03,
+                                .data             = (15 << 8), // "SENDDELAY" : TODO.
+                            };
+                    } break;
+
+                    case StepperDriverState_configuring_CHOPCONF:
+                    {
+                        driver->uart_transfer =
+                            (struct StepperDriverUARTTransfer)
+                            {
+                                .state            = StepperDriverUARTTransferState_write_scheduled,
+                                .register_address = 0x6C,
+                                .data             =
+                                    (0      << 31) | // "diss2vs" : TODO.
+                                    (0      << 30) | // "diss2g"  : TODO.
+                                    (1      << 28) | // "intpol"  : TODO.
+                                    (0b0101 << 24) | // "MRES"    : TODO.
+                                    (5      <<  4) | // "HSTRT"   : TODO.
+                                    (3      <<  0)   // "TOFF"    : TODO.
+                            };
+                    } break;
+
+
+
                     // The TMC2209 is done being configured;
                     // nothing else to do.
 
@@ -445,7 +500,26 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
                         case StepperDriverState_setting_uart_write_sequence_number:
                         {
                             driver->uart_write_sequence_number = driver->uart_transfer.data + 1;
-                            driver->state                      = StepperDriverState_inited;
+                            driver->state                      = StepperDriverState_configuring_GCONF;
+                        } break;
+
+
+
+                        // TODO.
+
+                        case StepperDriverState_configuring_GCONF:
+                        {
+                            driver->state = StepperDriverState_configuring_NODECONF;
+                        } break;
+
+                        case StepperDriverState_configuring_NODECONF:
+                        {
+                            driver->state = StepperDriverState_configuring_CHOPCONF;
+                        } break;
+
+                        case StepperDriverState_configuring_CHOPCONF:
+                        {
+                            driver->state = StepperDriverState_inited;
                         } break;
 
 
