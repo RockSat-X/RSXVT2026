@@ -61,32 +61,44 @@ static_assert(IS_POWER_OF_TWO(STEPPER_WINDOW_LENGTH));
 
 
 
+enum StepperMicrostepResolution : u32
+{
+    StepperMicrostepResolution_256 = 0b0000,
+    StepperMicrostepResolution_128 = 0b0001,
+    StepperMicrostepResolution_64  = 0b0010,
+    StepperMicrostepResolution_32  = 0b0011,
+    StepperMicrostepResolution_16  = 0b0100,
+    StepperMicrostepResolution_8   = 0b0101,
+    StepperMicrostepResolution_4   = 0b0110,
+    StepperMicrostepResolution_2   = 0b0111,
+    StepperMicrostepResolution_1   = 0b1000,
+};
+
+
+
 static const struct { u8 register_address; u32 data; } STEPPER_INITIALIZATION_SEQUENCE[] =
     {
         {
             0x00,
-            (1 << 0) | // "I_scale_analog"   : TODO.
-            (0 << 1) | // "internal_Rsense"  : TODO.
-            (0 << 2) | // "en_SpreadCycle"   : TODO.
-            (0 << 3) | // "shaft"            : TODO.
-            (0 << 4) | // "index_otpw"       : TODO.
-            (0 << 5) | // "index_step"       : TODO.
-            (1 << 6) | // "pdn_disable"      : TODO.
-            (1 << 7) | // "mstep_reg_select" : TODO.
-            (1 << 8)   // "multistep_filt"   : TODO.
+              (0 << 0) // "I_scale_analog"   : Whether or not to use VREF as current reference.
+            | (0 << 1) // "internal_Rsense"  : Whether or not to use internal sense resistors. TODO Look into trying?
+            | (0 << 2) // "en_SpreadCycle"   : Whether or not to only use SpreadCycle (louder and more power, but more torque); otherwise, a mix of StealthChop and SpreadCycle is done.
+            | (1 << 6) // "pdn_disable"      : The power-down and UART functionality both share the same pin, so we disable the former.
+            | (1 << 7) // "mstep_reg_select" : Microstep resolution determined by a register field rather than the MS1/MS2 pins.
+            | (1 << 8) // "multistep_filt"   : Apply filtering to the STEP signal.
         },
         {
             0x03,
-            (15 << 8) // "SENDDELAY" : TODO.
+            (15 << 8) // "SENDDELAY" : Amount of delay before the read response is sent back.
         },
         {
             0x6C,
-            (0      << 31) | // "diss2vs" : TODO.
-            (0      << 30) | // "diss2g"  : TODO.
-            (1      << 28) | // "intpol"  : TODO.
-            (0b0101 << 24) | // "MRES"    : TODO.
-            (5      <<  4) | // "HSTRT"   : TODO.
-            (3      <<  0)   // "TOFF"    : TODO.
+              (0                            << 31) // "diss2vs" : "0: Short protection low side is on".
+            | (0                            << 30) // "diss2g"  : "0: Short to GND protection is on".
+            | (1                            << 28) // "intpol"  : The actual microstep resolution is "extrapolated to 256 microsteps for smoothest motor operation".
+            | (StepperMicrostepResolution_8 << 24) // "MRES"    : Microstep resolution.
+            | (5                            <<  4) // "HSTRT"   : Addend to "hysteresis low value HEND".
+            | (3                            <<  0) // "TOFF"    : "Off time setting controls duration of slow decay phase".
         },
     };
 
