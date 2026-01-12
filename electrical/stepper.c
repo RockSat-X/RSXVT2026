@@ -187,9 +187,8 @@ STEPPER_read_register(enum StepperHandle handle, u8 register_address, u32* dst)
 
     _EXPAND_HANDLE
 
-
-
-    // TODO Verify register_address.
+    if (register_address & (1 << 7))
+        panic;
 
     if (!dst)
         panic;
@@ -299,9 +298,8 @@ STEPPER_write_register(enum StepperHandle handle, u8 register_address, u32 data)
 
     _EXPAND_HANDLE
 
-
-
-    // TODO Verify register_address.
+    if (register_address & (1 << 7))
+        panic;
 
 
 
