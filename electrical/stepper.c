@@ -61,6 +61,37 @@ static_assert(IS_POWER_OF_TWO(STEPPER_WINDOW_LENGTH));
 
 
 
+static const struct { u8 register_address; u32 data; } STEPPER_INITIALIZATION_SEQUENCE[] =
+    {
+        {
+            0x00,
+            (1 << 0) | // "I_scale_analog"   : TODO.
+            (0 << 1) | // "internal_Rsense"  : TODO.
+            (0 << 2) | // "en_SpreadCycle"   : TODO.
+            (0 << 3) | // "shaft"            : TODO.
+            (0 << 4) | // "index_otpw"       : TODO.
+            (0 << 5) | // "index_step"       : TODO.
+            (1 << 6) | // "pdn_disable"      : TODO.
+            (1 << 7) | // "mstep_reg_select" : TODO.
+            (1 << 8)   // "multistep_filt"   : TODO.
+        },
+        {
+            0x03,
+            (15 << 8) // "SENDDELAY" : TODO.
+        },
+        {
+            0x6C,
+            (0      << 31) | // "diss2vs" : TODO.
+            (0      << 30) | // "diss2g"  : TODO.
+            (1      << 28) | // "intpol"  : TODO.
+            (0b0101 << 24) | // "MRES"    : TODO.
+            (5      <<  4) | // "HSTRT"   : TODO.
+            (3      <<  0)   // "TOFF"    : TODO.
+        },
+    };
+
+
+
 enum StepperDriverUARTTransferState : u32
 {
     StepperDriverUARTTransferState_standby,
@@ -77,9 +108,7 @@ enum StepperDriverUARTTransferState : u32
 enum StepperDriverState : u32
 {
     StepperDriverState_setting_uart_write_sequence_number,
-    StepperDriverState_configuring_GCONF,
-    StepperDriverState_configuring_NODECONF,
-    StepperDriverState_configuring_CHOPCONF,
+    StepperDriverState_doing_initialization_sequence,
     StepperDriverState_inited,
 };
 
@@ -89,6 +118,8 @@ struct StepperDriver
 {
 
     volatile enum StepperDriverState state;
+    i32                              initialization_sequence_index;
+
     i8                               deltas[STEPPER_WINDOW_LENGTH];
     volatile u32                     reader;
     volatile u32                     writer;
@@ -416,53 +447,17 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
 
 
-                    // TODO.
+                    // We do a series of register
+                    // writes to configure the TMC2209.
 
-                    case StepperDriverState_configuring_GCONF:
+                    case StepperDriverState_doing_initialization_sequence:
                     {
                         driver->uart_transfer =
                             (struct StepperDriverUARTTransfer)
                             {
                                 .state            = StepperDriverUARTTransferState_write_scheduled,
-                                .register_address = 0x00,
-                                .data             =
-                                    (1 << 0) | // "I_scale_analog"   : TODO.
-                                    (0 << 1) | // "internal_Rsense"  : TODO.
-                                    (0 << 2) | // "en_SpreadCycle"   : TODO.
-                                    (0 << 3) | // "shaft"            : TODO.
-                                    (0 << 4) | // "index_otpw"       : TODO.
-                                    (0 << 5) | // "index_step"       : TODO.
-                                    (1 << 6) | // "pdn_disable"      : TODO.
-                                    (1 << 7) | // "mstep_reg_select" : TODO.
-                                    (1 << 8)   // "multistep_filt"   : TODO.
-                            };
-                    } break;
-
-                    case StepperDriverState_configuring_NODECONF:
-                    {
-                        driver->uart_transfer =
-                            (struct StepperDriverUARTTransfer)
-                            {
-                                .state            = StepperDriverUARTTransferState_write_scheduled,
-                                .register_address = 0x03,
-                                .data             = (15 << 8), // "SENDDELAY" : TODO.
-                            };
-                    } break;
-
-                    case StepperDriverState_configuring_CHOPCONF:
-                    {
-                        driver->uart_transfer =
-                            (struct StepperDriverUARTTransfer)
-                            {
-                                .state            = StepperDriverUARTTransferState_write_scheduled,
-                                .register_address = 0x6C,
-                                .data             =
-                                    (0      << 31) | // "diss2vs" : TODO.
-                                    (0      << 30) | // "diss2g"  : TODO.
-                                    (1      << 28) | // "intpol"  : TODO.
-                                    (0b0101 << 24) | // "MRES"    : TODO.
-                                    (5      <<  4) | // "HSTRT"   : TODO.
-                                    (3      <<  0)   // "TOFF"    : TODO.
+                                .register_address = STEPPER_INITIALIZATION_SEQUENCE[driver->initialization_sequence_index].register_address,
+                                .data             = STEPPER_INITIALIZATION_SEQUENCE[driver->initialization_sequence_index].data,
                             };
                     } break;
 
@@ -500,26 +495,28 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
                         case StepperDriverState_setting_uart_write_sequence_number:
                         {
                             driver->uart_write_sequence_number = driver->uart_transfer.data + 1;
-                            driver->state                      = StepperDriverState_configuring_GCONF;
+                            driver->state                      = StepperDriverState_doing_initialization_sequence;
                         } break;
 
 
 
-                        // TODO.
+                        // See if we're done doing the series of
+                        // register writes to configure the TMC2209.
 
-                        case StepperDriverState_configuring_GCONF:
+                        case StepperDriverState_doing_initialization_sequence:
                         {
-                            driver->state = StepperDriverState_configuring_NODECONF;
-                        } break;
 
-                        case StepperDriverState_configuring_NODECONF:
-                        {
-                            driver->state = StepperDriverState_configuring_CHOPCONF;
-                        } break;
+                            driver->initialization_sequence_index += 1;
 
-                        case StepperDriverState_configuring_CHOPCONF:
-                        {
-                            driver->state = StepperDriverState_inited;
+                            if (driver->initialization_sequence_index < countof(STEPPER_INITIALIZATION_SEQUENCE))
+                            {
+                                // We still have more registers to write to.
+                            }
+                            else
+                            {
+                                driver->state = StepperDriverState_inited;
+                            }
+
                         } break;
 
 
