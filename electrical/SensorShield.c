@@ -19,7 +19,11 @@ main(void)
     for (;;)
     {
 
+        while (!GPIO_READ(lis2mdl_data_ready));
+
+        GPIO_HIGH(debug);
         struct LIS2MDLPayload payload = LIS2MDL_get_payload();
+        GPIO_LOW(debug);
 
         stlink_tx
         (
@@ -38,7 +42,6 @@ main(void)
         stlink_tx("\n");
 
         GPIO_TOGGLE(led_green);
-        spinlock_nop(10'000'000);
 
     }
 

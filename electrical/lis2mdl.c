@@ -1,3 +1,7 @@
+////////////////////////////////////////////////////////////////////////////////
+
+
+
 #define LIS2MDL_SEVEN_BIT_ADDRESS 0x1E
 
 
@@ -23,7 +27,8 @@ static const struct { u8 address; u8 value; } LIS2MDL_INITIALIZATION_SEQUENCE[] 
         },
         {
             0x62,         // CFG_REG_C.
-            (1 << 4)      // TODO Something about preventing async read corruption?
+              (1 << 4)    // TODO Something about preventing async read corruption?
+            | (1 << 0)    // "If 1, the data-ready signal [...] is driven on the INT/DRDY pin."
         },
     };
 
@@ -37,6 +42,10 @@ struct LIS2MDLPayload
     i16 z;           // OUTZ_L_REG, OUTZ_H_REG.
     i16 temperature; // TEMP_OUT_L_REG, TEMP_OUT_H_REG.
 };
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 
 
 
