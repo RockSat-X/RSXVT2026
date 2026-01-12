@@ -83,6 +83,9 @@ _UXART_tx_raw_nonreentrant(enum UXARTHandle handle, u8* data, i32 length)
         // Wait if the TX-FIFO is full.
         while (!CMSIS_GET(UXARTx, ISR, TXE));
 
+        // Ensure the transfer-complete flag is not set.
+        CMSIS_SET(UXARTx, ICR, TCCF, true);
+
         // This procedure is non-reentrant because a task
         // switch could occur right here; if that task
         // pushes data to TDR, then our current task might
@@ -92,6 +95,15 @@ _UXART_tx_raw_nonreentrant(enum UXARTHandle handle, u8* data, i32 length)
         CMSIS_SET(UXARTx, TDR, TDR, data[i]);
 
     }
+
+    // Wait until the transfer is completely done.
+    // This isn't necessary for most calls,
+    // but for certain situations like with half-duplex,
+    // it's conveneient to be able to guarantee that
+    // by the time the function returns, the transmission
+    // is also finished.
+
+    while (!CMSIS_GET(UXARTx, ISR, TC));
 
 }
 
