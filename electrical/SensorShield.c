@@ -7,9 +7,8 @@
 
 static volatile b32 lis2mdl_data_ready = false;
 
-INTERRUPT_EXTI1
+INTERRUPT_EXTIx_lis2mdl_data_ready
 {
-    CMSIS_SET(EXTI, RPR1, RPIF1, true);
     lis2mdl_data_ready = true;
 }
 
@@ -21,16 +20,7 @@ main(void)
 
     STPY_init();
     UXART_init(UXARTHandle_stlink);
-
     I2C_reinit(I2CHandle_primary);
-
-    CMSIS_SET(EXTI, RTSR1 , RT1 , true);
-    CMSIS_SET(EXTI, SWIER1, SWI1, true);
-    CMSIS_SET(EXTI, IMR1  , IM1 , true);
-    CMSIS_WRITE(EXTI_EXTICR1, EXTI->EXTICR[0], EXTI1, 0x01);
-
-    NVIC_ENABLE(EXTI1);
-
     LIS2MDL_init();
 
 

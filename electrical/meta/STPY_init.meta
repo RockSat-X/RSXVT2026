@@ -2919,6 +2919,17 @@
         #define INTERRUPT_Reset extern void INTERRUPT_Reset(void)
         #define INTERRUPT_USART2 extern void INTERRUPT_USART2(void)
         #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
+        static void
+        INTERRUPT_EXTIx_lis2mdl_data_ready(void);
+        INTERRUPT_EXTI1
+        {
+            if (CMSIS_GET(EXTI, RPR1, RPIF1))
+            {
+                CMSIS_SET(EXTI, RPR1, RPIF1, true);
+                INTERRUPT_EXTIx_lis2mdl_data_ready();
+            }
+        }
+        #define INTERRUPT_EXTIx_lis2mdl_data_ready static void INTERRUPT_EXTIx_lis2mdl_data_ready(void)
         extern void
         STPY_init(void)
         {
@@ -3008,6 +3019,10 @@
                 MODE12, 0b01 ,
                 MODE13, 0b00 ,
             );
+            CMSIS_WRITE(EXTI_EXTICR1, EXTI->EXTICR[0], EXTI1, 0x01);
+            CMSIS_SET(EXTI, RTSR1, RT1, true);
+            CMSIS_SET(EXTI, IMR1, IM1, true);
+            NVIC_ENABLE(EXTI1);
 
 
 

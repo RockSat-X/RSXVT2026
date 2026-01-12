@@ -581,10 +581,10 @@ TARGETS = (
             ('stlink_rx'         , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'                                    }),
             ('swdio'             , 'A13', None        , {                                                            }),
             ('swclk'             , 'A14', None        , {                                                            }),
-            ('button'            , 'C13', 'INPUT'     , { 'pull'    : None, 'active' : True                          }),
+            ('button'            , 'C13', 'INPUT'     , { 'pull'    : None      , 'active'     : True                }),
             ('lis2mdl_scl'       , 'B6' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL', 'open_drain' : True, 'pull' : 'UP' }),
             ('lis2mdl_sda'       , 'B7' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA', 'open_drain' : True, 'pull' : 'UP' }),
-            ('lis2mdl_data_ready', 'B1' , 'INPUT'     , { 'pull' : None                                              }),
+            ('lis2mdl_data_ready', 'B1' , 'INPUT'     , { 'pull'    : None      , 'interrupt'  : 'RISING'            }),
             ('debug'             , 'C12', 'OUTPUT'    , { 'initlvl' : False                                          }),
         ),
 
