@@ -2746,12 +2746,14 @@
         enum NVICInterrupt : u32
         {
             NVICInterrupt_USART2  = USART2_IRQn,
+            NVICInterrupt_EXTI1   = EXTI1_IRQn,
             NVICInterrupt_I2C1_EV = I2C1_EV_IRQn,
             NVICInterrupt_I2C1_ER = I2C1_ER_IRQn,
         };
-        static constexpr u32 NVICInterrupt_COUNT = 3;
+        static constexpr u32 NVICInterrupt_COUNT = 4;
         extern void INTERRUPT_BusFault(void);
         extern void INTERRUPT_Default(void);
+        extern void INTERRUPT_EXTI1(void);
         extern void INTERRUPT_I2C1_ER(void);
         extern void INTERRUPT_I2C1_EV(void);
         extern void INTERRUPT_Reset(void);
@@ -2787,7 +2789,7 @@
                 INTERRUPT_Default            , // [  9] RCC
                 INTERRUPT_Default            , // [ 10] RCC_S
                 INTERRUPT_Default            , // [ 11] EXTI0
-                INTERRUPT_Default            , // [ 12] EXTI1
+                INTERRUPT_EXTI1              , // [ 12] EXTI1
                 INTERRUPT_Default            , // [ 13] EXTI2
                 INTERRUPT_Default            , // [ 14] EXTI3
                 INTERRUPT_Default            , // [ 15] EXTI4
@@ -2911,6 +2913,7 @@
             };
         #define INTERRUPT_BusFault extern void INTERRUPT_BusFault(void)
         #define INTERRUPT_Default extern void INTERRUPT_Default(void)
+        #define INTERRUPT_EXTI1 extern void INTERRUPT_EXTI1(void)
         #define INTERRUPT_I2C1_ER extern void INTERRUPT_I2C1_ER(void)
         #define INTERRUPT_I2C1_EV extern void INTERRUPT_I2C1_EV(void)
         #define INTERRUPT_Reset extern void INTERRUPT_Reset(void)
@@ -3015,9 +3018,11 @@
             static_assert(0 <= 0 && 0 < (1 << __NVIC_PRIO_BITS));
             NVIC->IPR[NVICInterrupt_USART2] = 0 << __NVIC_PRIO_BITS;
             static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
-            NVIC->IPR[NVICInterrupt_I2C1_EV] = 1 << __NVIC_PRIO_BITS;
-            static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
-            NVIC->IPR[NVICInterrupt_I2C1_ER] = 1 << __NVIC_PRIO_BITS;
+            NVIC->IPR[NVICInterrupt_EXTI1] = 1 << __NVIC_PRIO_BITS;
+            static_assert(0 <= 2 && 2 < (1 << __NVIC_PRIO_BITS));
+            NVIC->IPR[NVICInterrupt_I2C1_EV] = 2 << __NVIC_PRIO_BITS;
+            static_assert(0 <= 2 && 2 < (1 << __NVIC_PRIO_BITS));
+            NVIC->IPR[NVICInterrupt_I2C1_ER] = 2 << __NVIC_PRIO_BITS;
             CMSIS_SET
             (
                 SCB        , SHCSR,
