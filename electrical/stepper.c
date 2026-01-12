@@ -81,10 +81,10 @@ enum StepperDriverState : u32
 struct StepperDriver
 {
 
-    enum StepperDriverState state;
-    i8                      deltas[STEPPER_WINDOW_LENGTH];
-    volatile u32            reader;
-    volatile u32            writer;
+    volatile enum StepperDriverState state;
+    i8                               deltas[STEPPER_WINDOW_LENGTH];
+    volatile u32                     reader;
+    volatile u32                     writer;
 
     struct StepperDriverUARTTransfer
     {
@@ -260,15 +260,17 @@ STEPPER_push_delta(enum StepperHandle handle, i8 delta)
 
     _EXPAND_HANDLE
 
-    b32 has_space = driver->writer - driver->reader < countof(driver->deltas);
+    b32 delta_can_be_pushed =
+        driver->state == StepperDriverState_inited &&
+        (driver->writer - driver->reader < countof(driver->deltas));
 
-    if (has_space)
+    if (delta_can_be_pushed)
     {
         driver->deltas[driver->writer % countof(driver->deltas)]  = delta;
         driver->writer                                           += 1;
     }
 
-    return has_space;
+    return delta_can_be_pushed;
 
 }
 
