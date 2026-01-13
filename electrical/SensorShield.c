@@ -5,6 +5,26 @@
 
 
 
+INTERRUPT_EXTIx_lis2mdl_data_ready
+{
+    NVIC_SET_PENDING(I2Cx_EV_primary);
+}
+
+
+
+INTERRUPT_I2Cx_primary(enum I2CMasterCallbackEvent event)
+{
+    enum LIS2MDLUpdateResult result =
+        LIS2MDL_update
+        (
+            I2CHandle_primary,
+            event,
+            GPIO_READ(lis2mdl_data_ready)
+        );
+}
+
+
+
 extern noret void
 main(void)
 {
@@ -12,7 +32,8 @@ main(void)
     STPY_init();
     UXART_init(UXARTHandle_stlink);
     I2C_reinit(I2CHandle_primary);
-    LIS2MDL_init();
+
+    NVIC_SET_PENDING(I2Cx_EV_primary); // To begin initializing the LIS2MDL sensor.
 
     for (;;)
     {

@@ -72,21 +72,6 @@ static_assert(IS_POWER_OF_TWO(countof(_LIS2MDL_driver.measurements)));
 
 
 
-static void
-LIS2MDL_init(void)
-{
-    NVIC_SET_PENDING(I2Cx_EV_primary); // TODO Coupled.
-}
-
-
-
-INTERRUPT_EXTIx_lis2mdl_data_ready
-{
-    NVIC_SET_PENDING(I2Cx_EV_primary); // TODO Coupled.
-}
-
-
-
 static useret b32
 LIS2MDL_pop_measurement(struct LIS2MDLMeasurement* dst)
 {
@@ -110,8 +95,20 @@ LIS2MDL_pop_measurement(struct LIS2MDLMeasurement* dst)
 
 
 
-INTERRUPT_I2Cx_primary(enum I2CMasterCallbackEvent event) // TODO Coupled.
+static useret enum LIS2MDLUpdateResult : u32
 {
+    LIS2MDLUpdateResult_relinquished,
+    LIS2MDLUpdateResult_busy,
+}
+LIS2MDL_update
+(
+    enum I2CHandle              handle,
+    enum I2CMasterCallbackEvent event,
+    b32                         data_ready
+)
+{
+
+    enum LIS2MDLUpdateResult result = LIS2MDLUpdateResult_busy;
 
     switch (_LIS2MDL_driver.state)
     {
@@ -132,7 +129,7 @@ INTERRUPT_I2Cx_primary(enum I2CMasterCallbackEvent event) // TODO Coupled.
                 enum I2CMasterError error =
                     I2C_transfer
                     (
-                        I2CHandle_primary, // TODO Coupled.
+                        handle,
                         LIS2MDL_SEVEN_BIT_ADDRESS,
                         I2CAddressType_seven,
                         I2COperation_write,
@@ -148,7 +145,7 @@ INTERRUPT_I2Cx_primary(enum I2CMasterCallbackEvent event) // TODO Coupled.
             case I2CMasterCallbackEvent_transfer_done:
             {
 
-                if (_I2C_drivers[I2CHandle_primary].master.error) // TODO Coupled.
+                if (_I2C_drivers[handle].master.error) // TODO Coupled.
                     sorry
 
                 _LIS2MDL_driver.initialization_sequence_index += 1;
@@ -178,13 +175,14 @@ INTERRUPT_I2Cx_primary(enum I2CMasterCallbackEvent event) // TODO Coupled.
 
             case I2CMasterCallbackEvent_can_schedule_next_transfer:
             {
-                if (GPIO_READ(lis2mdl_data_ready))
+
+                if (data_ready)
                 {
 
                     enum I2CMasterError error =
                         I2C_transfer // Set the address of where to start reading the sensor's register data.
                         (
-                            I2CHandle_primary, // TODO Coupled.
+                            handle,
                             LIS2MDL_SEVEN_BIT_ADDRESS,
                             I2CAddressType_seven,
                             I2COperation_write,
@@ -196,12 +194,17 @@ INTERRUPT_I2Cx_primary(enum I2CMasterCallbackEvent event) // TODO Coupled.
                         panic;
 
                 }
+                else // Other I2C controllers can use the handle freely.
+                {
+                    result = LIS2MDLUpdateResult_relinquished;
+                }
+
             } break;
 
             case I2CMasterCallbackEvent_transfer_done:
             {
 
-                if (_I2C_drivers[I2CHandle_primary].master.error) // TODO Coupled.
+                if (_I2C_drivers[handle].master.error) // TODO Coupled.
                     sorry
 
                 _LIS2MDL_driver.state = LIS2MDLDriverState_reading_measurement;
@@ -225,7 +228,7 @@ INTERRUPT_I2Cx_primary(enum I2CMasterCallbackEvent event) // TODO Coupled.
                 enum I2CMasterError error =
                     I2C_transfer
                     (
-                        I2CHandle_primary, // TODO Coupled.
+                        handle,
                         LIS2MDL_SEVEN_BIT_ADDRESS,
                         I2CAddressType_seven,
                         I2COperation_read,
@@ -241,7 +244,7 @@ INTERRUPT_I2Cx_primary(enum I2CMasterCallbackEvent event) // TODO Coupled.
             case I2CMasterCallbackEvent_transfer_done:
             {
 
-                if (_I2C_drivers[I2CHandle_primary].master.error) // TODO Coupled.
+                if (_I2C_drivers[handle].master.error) // TODO Coupled.
                     sorry
 
 
@@ -273,5 +276,7 @@ INTERRUPT_I2Cx_primary(enum I2CMasterCallbackEvent event) // TODO Coupled.
         default: panic;
 
     }
+
+    return result;
 
 }
