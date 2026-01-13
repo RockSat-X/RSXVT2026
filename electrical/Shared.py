@@ -607,6 +607,7 @@ TARGETS = (
                 'peripheral' : 'I2C1',
                 'handle'     : 'primary',
                 'role'       : 'master',
+                'callback'   : True,
             },
         ),
 
