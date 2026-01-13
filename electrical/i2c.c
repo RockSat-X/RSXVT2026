@@ -23,7 +23,8 @@ enum I2CSlaveEvent : u32
 enum I2CMasterCallbackEvent
 {
     I2CMasterCallbackEvent_can_schedule_next_transfer,
-    I2CMasterCallbackEvent_transfer_done,
+    I2CMasterCallbackEvent_transfer_successful,
+    I2CMasterCallbackEvent_transfer_unacknowledged,
 };
 
 typedef void I2CMasterCallback(enum I2CMasterCallbackEvent event);
@@ -865,7 +866,12 @@ _I2C_update_once(enum I2CHandle handle)
 
                         if (I2Cx_DRIVER_ROLE == I2CDriverRole_master_callback)
                         {
-                            I2Cx_MASTER_CALLBACK(I2CMasterCallbackEvent_transfer_done);
+                            switch (driver->master.error)
+                            {
+                                case I2CMasterError_none           : I2Cx_MASTER_CALLBACK(I2CMasterCallbackEvent_transfer_successful    ); break;
+                                case I2CMasterError_no_acknowledge : I2Cx_MASTER_CALLBACK(I2CMasterCallbackEvent_transfer_unacknowledged); break;
+                                default: panic;
+                            }
                         }
 
                         return I2CUpdateOnce_again;

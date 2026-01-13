@@ -142,11 +142,8 @@ LIS2MDL_update
 
             } break;
 
-            case I2CMasterCallbackEvent_transfer_done:
+            case I2CMasterCallbackEvent_transfer_successful:
             {
-
-                if (_I2C_drivers[handle].master.error) // TODO Coupled.
-                    sorry
 
                 _LIS2MDL_driver.initialization_sequence_index += 1;
 
@@ -159,6 +156,11 @@ LIS2MDL_update
                     _LIS2MDL_driver.state = LIS2MDLDriverState_idle;
                 }
 
+            } break;
+
+            case I2CMasterCallbackEvent_transfer_unacknowledged:
+            {
+                sorry
             } break;
 
             default: panic;
@@ -201,14 +203,16 @@ LIS2MDL_update
 
             } break;
 
-            case I2CMasterCallbackEvent_transfer_done:
+            case I2CMasterCallbackEvent_transfer_successful:
             {
-
-                if (_I2C_drivers[handle].master.error) // TODO Coupled.
-                    sorry
 
                 _LIS2MDL_driver.state = LIS2MDLDriverState_reading_measurement;
 
+            } break;
+
+            case I2CMasterCallbackEvent_transfer_unacknowledged:
+            {
+                sorry
             } break;
 
             default: panic;
@@ -241,13 +245,8 @@ LIS2MDL_update
 
             } break;
 
-            case I2CMasterCallbackEvent_transfer_done:
+            case I2CMasterCallbackEvent_transfer_successful:
             {
-
-                if (_I2C_drivers[handle].master.error) // TODO Coupled.
-                    sorry
-
-
 
                 // See if we can insert the measurement into the ring-buffer.
 
@@ -265,6 +264,11 @@ LIS2MDL_update
 
                 _LIS2MDL_driver.state = LIS2MDLDriverState_idle;
 
+            } break;
+
+            case I2CMasterCallbackEvent_transfer_unacknowledged:
+            {
+                sorry
             } break;
 
             default: panic;
