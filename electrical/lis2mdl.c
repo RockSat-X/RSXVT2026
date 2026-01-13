@@ -43,26 +43,6 @@ struct LIS2MDLMeasurement
     i16 temperature; // TEMP_OUT_L_REG, TEMP_OUT_H_REG.
 };
 
-
-
-struct LIS2MDLBuffer
-{
-    struct LIS2MDLMeasurement measurements[64];
-    volatile u32              reader;
-    volatile u32              writer;
-};
-
-
-
-static struct LIS2MDLBuffer _LIS2MDL_buffer = {0};
-
-
-
-static_assert(IS_POWER_OF_TWO(countof(_LIS2MDL_buffer.measurements)));
-
-
-
-
 enum LIS2MDLDriverState : u32
 {
     LIS2MDLDriverState_initing,
@@ -75,10 +55,16 @@ struct LIS2MDLDriver
     enum LIS2MDLDriverState   state;
     i32                       initialization_sequence_index;
     struct LIS2MDLMeasurement freshest_measurement;
+    struct LIS2MDLMeasurement measurements[64];
+    volatile u32              reader;
+    volatile u32              writer;
 };
 
 static struct LIS2MDLDriver _LIS2MDL_driver = {0};
 
+
+
+static_assert(IS_POWER_OF_TWO(countof(_LIS2MDL_driver.measurements)));
 
 
 
@@ -105,13 +91,13 @@ static useret b32
 LIS2MDL_pop_measurement(struct LIS2MDLMeasurement* dst)
 {
 
-    b32 got_measurement = _LIS2MDL_buffer.reader != _LIS2MDL_buffer.writer;
+    b32 got_measurement = _LIS2MDL_driver.reader != _LIS2MDL_driver.writer;
 
     if (got_measurement)
     {
-        i32 index = _LIS2MDL_buffer.reader % countof(_LIS2MDL_buffer.measurements);
-        *dst                    = _LIS2MDL_buffer.measurements[index];
-        _LIS2MDL_buffer.reader += 1;
+        i32 index = _LIS2MDL_driver.reader % countof(_LIS2MDL_driver.measurements);
+        *dst                    = _LIS2MDL_driver.measurements[index];
+        _LIS2MDL_driver.reader += 1;
     }
     else
     {
@@ -250,11 +236,11 @@ INTERRUPT_I2Cx_primary // TODO Coupled.
 
                 // See if we can insert the measurement into the ring-buffer.
 
-                if (_LIS2MDL_buffer.writer - _LIS2MDL_buffer.reader < countof(_LIS2MDL_buffer.measurements))
+                if (_LIS2MDL_driver.writer - _LIS2MDL_driver.reader < countof(_LIS2MDL_driver.measurements))
                 {
-                    i32 index = _LIS2MDL_buffer.writer % countof(_LIS2MDL_buffer.measurements);
-                    _LIS2MDL_buffer.measurements[index]  = _LIS2MDL_driver.freshest_measurement;
-                    _LIS2MDL_buffer.writer              += 1;
+                    i32 index = _LIS2MDL_driver.writer % countof(_LIS2MDL_driver.measurements);
+                    _LIS2MDL_driver.measurements[index]  = _LIS2MDL_driver.freshest_measurement;
+                    _LIS2MDL_driver.writer              += 1;
                 }
 
 
