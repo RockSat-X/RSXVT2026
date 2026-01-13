@@ -464,7 +464,8 @@
       "pcb"
     ],
     "pinned_symbol_libs": [
-      "MainStackConnector"
+      "MainStackConnector",
+      "12401598E4_2A"
     ]
   },
   "meta": {
@@ -507,7 +508,7 @@
       "plot": "",
       "pos_files": "",
       "specctra_dsn": "",
-      "step": "models/Main_Stack_Dummy.step",
+      "step": "models/MainFlightComputer.step",
       "svg": "",
       "vrml": ""
     },

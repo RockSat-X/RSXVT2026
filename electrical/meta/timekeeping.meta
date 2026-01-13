@@ -24,11 +24,9 @@
 #endif
 #if TARGET_NAME_IS_VehicleFlightComputer
 #endif
-#if TARGET_NAME_IS_DemoTMC2209
-    static constexpr auto TIMEKEEPING_TIMER_ENABLE = (struct CMSISTuple) { &RCC->APB2ENR, CONCAT(RCC_, APB2ENR_TIM1EN_Pos), CONCAT(RCC_, APB2ENR_TIM1EN_Msk) };
-    static constexpr auto TIMEKEEPING_DIVIDER      = STPY_TIM1_DIVIDER;
-    typedef u16 TIMEKEEPING_COUNTER_TYPE;
-    #define TIMEKEEPING_COUNTER() CMSIS_GET(TIM1, CNT, CNT)
-    #define TIMEKEEPING_TIMER_    TIM1_
-    #define TIMEKEEPING_TIMER     TIM1
+#if TARGET_NAME_IS_DemoStepper
+#endif
+#if TARGET_NAME_IS_DemoOVCAM
+#endif
+#if TARGET_NAME_IS_TestESP32s
 #endif
