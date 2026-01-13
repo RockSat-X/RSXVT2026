@@ -33,8 +33,6 @@ main(void)
     UXART_init(UXARTHandle_stlink);
     I2C_reinit(I2CHandle_primary);
 
-    NVIC_SET_PENDING(I2Cx_EV_primary); // To begin initializing the LIS2MDL sensor.
-
     for (;;)
     {
 

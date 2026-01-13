@@ -451,6 +451,16 @@ I2C_reinit(enum I2CHandle handle)
         PE    , true  , // Enable the peripheral.
     );
 
+
+
+    // Eventually indicate to the caller
+    // that a transfer can be scheduled now.
+
+    if (I2Cx_DRIVER_ROLE == I2CDriverRole_master_callback)
+    {
+        NVIC_SET_PENDING(I2Cx_EV);
+    }
+
 }
 
 
