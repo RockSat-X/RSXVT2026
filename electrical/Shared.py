@@ -590,9 +590,9 @@ TARGETS = (
 
         interrupts = (
             ('USART2' , 0),
-            ('EXTI1'  , 1),
-            ('I2C1_EV', 2),
-            ('I2C1_ER', 2),
+            ('I2C1_EV', 1),
+            ('I2C1_ER', 1),
+            ('EXTI1'  , 2),
         ),
 
         drivers = (

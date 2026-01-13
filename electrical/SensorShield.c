@@ -5,15 +5,6 @@
 
 
 
-static volatile b32 lis2mdl_data_ready = false;
-
-INTERRUPT_EXTIx_lis2mdl_data_ready
-{
-    lis2mdl_data_ready = true;
-}
-
-
-
 extern noret void
 main(void)
 {
@@ -23,34 +14,27 @@ main(void)
     I2C_reinit(I2CHandle_primary);
     LIS2MDL_init();
 
-
-
     for (;;)
     {
 
-        if (lis2mdl_data_ready)
+        struct LIS2MDLMeasurement measurement = {0};
+
+        if (LIS2MDL_pop_measurement(&measurement))
         {
-            lis2mdl_data_ready = false;
-
-            GPIO_HIGH(debug);
-            struct LIS2MDLPayload payload = LIS2MDL_get_payload();
-            GPIO_LOW(debug);
-
             stlink_tx
             (
                 "status      : " "0x%02X" "\n"
                 "x           : " "%f"     "\n"
                 "y           : " "%f"     "\n"
                 "z           : " "%f"     "\n"
-                "temperature : " "%d"     "\n",
-                payload.status,
-                payload.x / 32768.0f,
-                payload.y / 32768.0f,
-                payload.z / 32768.0f,
-                payload.temperature
+                "temperature : " "%d"     "\n"
+                "\n",
+                measurement.status,
+                measurement.x / 32768.0f,
+                measurement.y / 32768.0f,
+                measurement.z / 32768.0f,
+                measurement.temperature
             );
-
-            stlink_tx("\n");
         }
 
         GPIO_TOGGLE(led_green);

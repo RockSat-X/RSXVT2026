@@ -2746,9 +2746,9 @@
         enum NVICInterrupt : u32
         {
             NVICInterrupt_USART2  = USART2_IRQn,
-            NVICInterrupt_EXTI1   = EXTI1_IRQn,
             NVICInterrupt_I2C1_EV = I2C1_EV_IRQn,
             NVICInterrupt_I2C1_ER = I2C1_ER_IRQn,
+            NVICInterrupt_EXTI1   = EXTI1_IRQn,
         };
         static constexpr u32 NVICInterrupt_COUNT = 4;
         extern void INTERRUPT_BusFault(void);
@@ -3033,11 +3033,11 @@
             static_assert(0 <= 0 && 0 < (1 << __NVIC_PRIO_BITS));
             NVIC->IPR[NVICInterrupt_USART2] = 0 << __NVIC_PRIO_BITS;
             static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
-            NVIC->IPR[NVICInterrupt_EXTI1] = 1 << __NVIC_PRIO_BITS;
+            NVIC->IPR[NVICInterrupt_I2C1_EV] = 1 << __NVIC_PRIO_BITS;
+            static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
+            NVIC->IPR[NVICInterrupt_I2C1_ER] = 1 << __NVIC_PRIO_BITS;
             static_assert(0 <= 2 && 2 < (1 << __NVIC_PRIO_BITS));
-            NVIC->IPR[NVICInterrupt_I2C1_EV] = 2 << __NVIC_PRIO_BITS;
-            static_assert(0 <= 2 && 2 < (1 << __NVIC_PRIO_BITS));
-            NVIC->IPR[NVICInterrupt_I2C1_ER] = 2 << __NVIC_PRIO_BITS;
+            NVIC->IPR[NVICInterrupt_EXTI1] = 2 << __NVIC_PRIO_BITS;
             CMSIS_SET
             (
                 SCB        , SHCSR,
