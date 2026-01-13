@@ -123,7 +123,7 @@ INTERRUPT_I2Cx_primary // TODO Coupled.
         case LIS2MDLDriverState_initing: switch (event)
         {
 
-            case I2CMasterInterruptCallbackEvent_can_schedule_next_transfer:
+            case I2CMasterCallbackEvent_can_schedule_next_transfer:
             {
 
                 if (_LIS2MDL_driver.initialization_sequence_index >= countof(LIS2MDL_INITIALIZATION_SEQUENCE))
@@ -141,7 +141,7 @@ INTERRUPT_I2Cx_primary // TODO Coupled.
 
             } break;
 
-            case I2CMasterInterruptCallbackEvent_transfer_done:
+            case I2CMasterCallbackEvent_transfer_done:
             {
 
                 if (_I2C_drivers[I2CHandle_primary].master.error) // TODO Coupled.
@@ -172,7 +172,7 @@ INTERRUPT_I2Cx_primary // TODO Coupled.
         case LIS2MDLDriverState_idle: switch (event)
         {
 
-            case I2CMasterInterruptCallbackEvent_can_schedule_next_transfer:
+            case I2CMasterCallbackEvent_can_schedule_next_transfer:
             {
 
                 if (GPIO_READ(lis2mdl_data_ready))
@@ -192,7 +192,7 @@ INTERRUPT_I2Cx_primary // TODO Coupled.
 
             } break;
 
-            case I2CMasterInterruptCallbackEvent_transfer_done:
+            case I2CMasterCallbackEvent_transfer_done:
             {
 
                 if (_I2C_drivers[I2CHandle_primary].master.error) // TODO Coupled.
@@ -213,7 +213,7 @@ INTERRUPT_I2Cx_primary // TODO Coupled.
         case LIS2MDLDriverState_reading_measurement: switch (event)
         {
 
-            case I2CMasterInterruptCallbackEvent_can_schedule_next_transfer:
+            case I2CMasterCallbackEvent_can_schedule_next_transfer:
             {
                 I2C_initiate_transfer
                 (
@@ -226,7 +226,7 @@ INTERRUPT_I2Cx_primary // TODO Coupled.
                 );
             } break;
 
-            case I2CMasterInterruptCallbackEvent_transfer_done:
+            case I2CMasterCallbackEvent_transfer_done:
             {
 
                 if (_I2C_drivers[I2CHandle_primary].master.error) // TODO Coupled.

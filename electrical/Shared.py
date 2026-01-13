@@ -277,7 +277,7 @@ TARGETS = (
                 'type'       : 'I2C',
                 'peripheral' : 'I2C1',
                 'handle'     : 'queen',
-                'role'       : 'master',
+                'role'       : 'master_blocking',
             },
             {
                 'type'       : 'I2C',
@@ -606,8 +606,7 @@ TARGETS = (
                 'type'       : 'I2C',
                 'peripheral' : 'I2C1',
                 'handle'     : 'primary',
-                'role'       : 'master',
-                'callback'   : True,
+                'role'       : 'master_callback',
             },
         ),
 
@@ -927,7 +926,7 @@ TARGETS = (
                 'type'       : 'I2C',
                 'peripheral' : 'I2C2',
                 'handle'     : 'ovcam_sccb',
-                'role'       : 'master',
+                'role'       : 'master_blocking',
             },
         ),
 

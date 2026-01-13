@@ -4,7 +4,8 @@
 
 enum I2CDriverRole : u32
 {
-    I2CDriverRole_master,
+    I2CDriverRole_master_blocking,
+    I2CDriverRole_master_callback,
     I2CDriverRole_slave,
 };
 
@@ -19,13 +20,13 @@ enum I2CSlaveEvent : u32
 
 
 
-enum I2CMasterInterruptCallbackEvent
+enum I2CMasterCallbackEvent
 {
-    I2CMasterInterruptCallbackEvent_can_schedule_next_transfer,
-    I2CMasterInterruptCallbackEvent_transfer_done,
+    I2CMasterCallbackEvent_can_schedule_next_transfer,
+    I2CMasterCallbackEvent_transfer_done,
 };
 
-typedef void I2CMasterInterruptCallback(enum I2CMasterInterruptCallbackEvent event);
+typedef void I2CMasterCallback(enum I2CMasterCallbackEvent event);
 
 
 
@@ -37,19 +38,18 @@ typedef void I2CMasterInterruptCallback(enum I2CMasterInterruptCallbackEvent eve
 
     for target in PER_TARGET():
 
-        master_drivers_with_callbacks = [
+        master_callback_drivers = [
             driver
             for driver in target.drivers
             if driver['type'] == 'I2C'
-            if driver['role'] == 'master'
-            if driver.get('callback', False)
+            if driver['role'] == 'master_callback'
         ]
 
-        for driver in master_drivers_with_callbacks:
+        for driver in master_callback_drivers:
 
             Meta.line(f'''
                 static void
-                INTERRUPT_I2Cx_{driver['handle']}(enum I2CMasterInterruptCallbackEvent event);
+                INTERRUPT_I2Cx_{driver['handle']}(enum I2CMasterCallbackEvent event);
             ''')
 
 
@@ -58,22 +58,22 @@ typedef void I2CMasterInterruptCallback(enum I2CMasterInterruptCallbackEvent eve
         driver_type = 'I2C',
         cmsis_name  = 'I2C',
         common_name = 'I2Cx',
-        terms       = lambda type, peripheral, handle, role, address = 0, callback = False: (
-            ('{}_DRIVER_ROLE'              , 'expression' , f'I2CDriverRole_{role}'    ),
-            ('{}_SLAVE_ADDRESS'            , 'expression' , f'((u16) 0x{address :03X})'),
-            ('{}'                          , 'expression' ,                            ),
-            ('NVICInterrupt_{}_EV'         , 'expression' ,                            ),
-            ('NVICInterrupt_{}_ER'         , 'expression' ,                            ),
-            ('STPY_{}_KERNEL_SOURCE'       , 'expression' ,                            ),
-            ('STPY_{}_PRESC'               , 'expression' ,                            ),
-            ('STPY_{}_SCLH'                , 'expression' ,                            ),
-            ('STPY_{}_SCLL'                , 'expression' ,                            ),
-            ('{}_RESET'                    , 'cmsis_tuple',                            ),
-            ('{}_ENABLE'                   , 'cmsis_tuple',                            ),
-            ('{}_KERNEL_SOURCE'            , 'cmsis_tuple',                            ),
-            ('INTERRUPT_{}_EV'             , 'interrupt'  ,                            ),
-            ('INTERRUPT_{}_ER'             , 'interrupt'  ,                            ),
-            ('{}_MASTER_INTERRUPT_CALLBACK', 'expression' , f'(I2CMasterInterruptCallback*) {f'INTERRUPT_I2Cx_{handle}' if callback else 'nullptr'}'),
+        terms       = lambda type, peripheral, handle, role, address = 0: (
+            ('{}_DRIVER_ROLE'       , 'expression' , f'I2CDriverRole_{role}'    ),
+            ('{}_SLAVE_ADDRESS'     , 'expression' , f'((u16) 0x{address :03X})'),
+            ('{}'                   , 'expression' ,                            ),
+            ('NVICInterrupt_{}_EV'  , 'expression' ,                            ),
+            ('NVICInterrupt_{}_ER'  , 'expression' ,                            ),
+            ('STPY_{}_KERNEL_SOURCE', 'expression' ,                            ),
+            ('STPY_{}_PRESC'        , 'expression' ,                            ),
+            ('STPY_{}_SCLH'         , 'expression' ,                            ),
+            ('STPY_{}_SCLL'         , 'expression' ,                            ),
+            ('{}_RESET'             , 'cmsis_tuple',                            ),
+            ('{}_ENABLE'            , 'cmsis_tuple',                            ),
+            ('{}_KERNEL_SOURCE'     , 'cmsis_tuple',                            ),
+            ('INTERRUPT_{}_EV'      , 'interrupt'  ,                            ),
+            ('INTERRUPT_{}_ER'      , 'interrupt'  ,                            ),
+            ('{}_MASTER_CALLBACK'   , 'expression' , f'(I2CMasterCallback*) {f'INTERRUPT_I2Cx_{handle}' if role == 'master_callback' else 'nullptr'}'),
         ),
     )
 
@@ -85,19 +85,18 @@ typedef void I2CMasterInterruptCallback(enum I2CMasterInterruptCallbackEvent eve
 
         # TODO.
 
-        master_drivers_with_callbacks = [
+        master_callback_drivers = [
             driver
             for driver in target.drivers
             if driver['type'] == 'I2C'
-            if driver['role'] == 'master'
-            if driver.get('callback', False)
+            if driver['role'] == 'master_callback'
         ]
 
-        for driver in master_drivers_with_callbacks:
+        for driver in master_callback_drivers:
 
             Meta.define(
                 f'INTERRUPT_I2Cx_{driver['handle']}',
-                f'void INTERRUPT_I2Cx_{driver['handle']}(enum I2CMasterInterruptCallbackEvent event)'
+                f'void INTERRUPT_I2Cx_{driver['handle']}(enum I2CMasterCallbackEvent event)'
             )
 
 
@@ -236,7 +235,7 @@ I2C_blocking_transfer
 
     // Validation.
 
-    if (I2Cx_DRIVER_ROLE != I2CDriverRole_master)
+    if (I2Cx_DRIVER_ROLE != I2CDriverRole_master_blocking)
         panic;
 
     if (!pointer)
@@ -347,7 +346,7 @@ I2C_initiate_transfer
 
     // Validation.
 
-    if (I2Cx_DRIVER_ROLE != I2CDriverRole_master)
+    if (I2Cx_DRIVER_ROLE != I2CDriverRole_master_callback)
         panic;
 
     if (!pointer)
@@ -456,7 +455,8 @@ I2C_reinit(enum I2CHandle handle)
         // The I2C peripheral will work as a controller.
         // @/pg 2091/sec 48.4.9/`H533rm`.
 
-        case I2CDriverRole_master:
+        case I2CDriverRole_master_blocking:
+        case I2CDriverRole_master_callback:
         {
 
             CMSIS_SET
@@ -691,7 +691,8 @@ _I2C_update_once(enum I2CHandle handle)
         // Master initiates all data transfers.
         //
 
-        case I2CDriverRole_master:
+        case I2CDriverRole_master_blocking:
+        case I2CDriverRole_master_callback:
         {
 
             switch (driver->master.state)
@@ -705,9 +706,9 @@ _I2C_update_once(enum I2CHandle handle)
                     if (interrupt_event)
                         panic;
 
-                    if (I2Cx_MASTER_INTERRUPT_CALLBACK)
+                    if (I2Cx_DRIVER_ROLE == I2CDriverRole_master_callback)
                     {
-                        I2Cx_MASTER_INTERRUPT_CALLBACK(I2CMasterInterruptCallbackEvent_can_schedule_next_transfer);
+                        I2Cx_MASTER_CALLBACK(I2CMasterCallbackEvent_can_schedule_next_transfer);
                     }
 
                     return I2CUpdateOnce_yield;
@@ -912,9 +913,9 @@ _I2C_update_once(enum I2CHandle handle)
 
                         driver->master.state = I2CMasterState_standby;
 
-                        if (I2Cx_MASTER_INTERRUPT_CALLBACK)
+                        if (I2Cx_DRIVER_ROLE == I2CDriverRole_master_callback)
                         {
-                            I2Cx_MASTER_INTERRUPT_CALLBACK(I2CMasterInterruptCallbackEvent_transfer_done);
+                            I2Cx_MASTER_CALLBACK(I2CMasterCallbackEvent_transfer_done);
                         }
 
                         return I2CUpdateOnce_again;
