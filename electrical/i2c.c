@@ -85,22 +85,27 @@ typedef void I2CSlaveCallback(enum I2CSlaveCallbackEvent event, u8* data);
         cmsis_name  = 'I2C',
         common_name = 'I2Cx',
         terms       = lambda type, peripheral, handle, role, address = 0: (
-            ('{}_DRIVER_ROLE'              , 'expression' , f'I2CDriverRole_{role}'    ),
-            ('{}_SLAVE_ADDRESS'            , 'expression' , f'((u16) 0x{address :03X})'),
-            ('{}'                          , 'expression' ,                            ),
-            ('NVICInterrupt_{}_EV'         , 'expression' ,                            ),
-            ('NVICInterrupt_{}_ER'         , 'expression' ,                            ),
-            ('STPY_{}_KERNEL_SOURCE'       , 'expression' ,                            ),
-            ('STPY_{}_PRESC'               , 'expression' ,                            ),
-            ('STPY_{}_SCLH'                , 'expression' ,                            ),
-            ('STPY_{}_SCLL'                , 'expression' ,                            ),
-            ('{}_RESET'                    , 'cmsis_tuple',                            ),
-            ('{}_ENABLE'                   , 'cmsis_tuple',                            ),
-            ('{}_KERNEL_SOURCE'            , 'cmsis_tuple',                            ),
-            ('{}_EV'                       , 'interrupt'  ,                            ),
-            ('{}_ER'                       , 'interrupt'  ,                            ),
-            ('INTERRUPT_{}_MASTER_CALLBACK', 'expression' , f'{f'&INTERRUPT_I2Cx_{handle}' if role == 'master_callback' else '(I2CMasterCallback*) nullptr'}'),
-            ('INTERRUPT_{}_SLAVE_CALLBACK' , 'expression' , f'{f'&INTERRUPT_I2Cx_{handle}' if role == 'slave'           else '(I2CSlaveCallback*) nullptr'}' ),
+            ('{}_DRIVER_ROLE'       , 'expression' , f'I2CDriverRole_{role}'    ),
+            ('{}_SLAVE_ADDRESS'     , 'expression' , f'((u16) 0x{address :03X})'),
+            ('{}'                   , 'expression' ,                            ),
+            ('NVICInterrupt_{}_EV'  , 'expression' ,                            ),
+            ('NVICInterrupt_{}_ER'  , 'expression' ,                            ),
+            ('STPY_{}_KERNEL_SOURCE', 'expression' ,                            ),
+            ('STPY_{}_PRESC'        , 'expression' ,                            ),
+            ('STPY_{}_SCLH'         , 'expression' ,                            ),
+            ('STPY_{}_SCLL'         , 'expression' ,                            ),
+            ('{}_RESET'             , 'cmsis_tuple',                            ),
+            ('{}_ENABLE'            , 'cmsis_tuple',                            ),
+            ('{}_KERNEL_SOURCE'     , 'cmsis_tuple',                            ),
+            ('{}_EV'                , 'interrupt'  ,                            ),
+            ('{}_ER'                , 'interrupt'  ,                            ),
+            ('INTERRUPT_{}_CALLBACK', 'expression' ,
+                f'(void*) {
+                    f'&INTERRUPT_I2Cx_{handle}'
+                    if role in ('master_callback', 'slave') else
+                    'nullptr'
+                }'
+            ),
         ),
     )
 
@@ -656,7 +661,10 @@ _I2C_update_once(enum I2CHandle handle)
 
                     if (I2Cx_DRIVER_ROLE == I2CDriverRole_master_callback)
                     {
-                        INTERRUPT_I2Cx_MASTER_CALLBACK(I2CMasterCallbackEvent_can_schedule_next_transfer);
+                        ((I2CMasterCallback*) INTERRUPT_I2Cx_CALLBACK)
+                        (
+                            I2CMasterCallbackEvent_can_schedule_next_transfer
+                        );
                     }
 
                     return I2CUpdateOnce_yield;
@@ -865,8 +873,23 @@ _I2C_update_once(enum I2CHandle handle)
                         {
                             switch (driver->master.error)
                             {
-                                case I2CMasterError_none           : INTERRUPT_I2Cx_MASTER_CALLBACK(I2CMasterCallbackEvent_transfer_successful    ); break;
-                                case I2CMasterError_no_acknowledge : INTERRUPT_I2Cx_MASTER_CALLBACK(I2CMasterCallbackEvent_transfer_unacknowledged); break;
+
+                                case I2CMasterError_none:
+                                {
+                                    ((I2CMasterCallback*) INTERRUPT_I2Cx_CALLBACK)
+                                    (
+                                        I2CMasterCallbackEvent_transfer_successful
+                                    );
+                                } break;
+
+                                case I2CMasterError_no_acknowledge:
+                                {
+                                    ((I2CMasterCallback*) INTERRUPT_I2Cx_CALLBACK)
+                                    (
+                                        I2CMasterCallbackEvent_transfer_unacknowledged
+                                    );
+                                } break;
+
                                 default: panic;
                             }
                         }
@@ -977,7 +1000,7 @@ _I2C_update_once(enum I2CHandle handle)
 
                     // Get the next byte that the user wants to send.
 
-                    INTERRUPT_I2Cx_SLAVE_CALLBACK
+                    ((I2CSlaveCallback*) INTERRUPT_I2Cx_CALLBACK)
                     (
                         I2CSlaveCallbackEvent_ready_to_transmit_data,
                         &data
@@ -1014,7 +1037,7 @@ _I2C_update_once(enum I2CHandle handle)
 
                     // Let the user handle the data.
 
-                    INTERRUPT_I2Cx_SLAVE_CALLBACK
+                    ((I2CSlaveCallback*) INTERRUPT_I2Cx_CALLBACK)
                     (
                         I2CSlaveCallbackEvent_data_available_to_read,
                         &data
@@ -1081,7 +1104,7 @@ _I2C_update_once(enum I2CHandle handle)
 
                     // Let the user know that the transfer ended.
 
-                    INTERRUPT_I2Cx_SLAVE_CALLBACK
+                    ((I2CSlaveCallback*) INTERRUPT_I2Cx_CALLBACK)
                     (
                         I2CSlaveCallbackEvent_stop_signaled,
                         nullptr
