@@ -263,97 +263,85 @@ main(void)
 // for more complex slave-master transactions.
 //
 
-static void
-INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
+INTERRUPT_I2Cx_bee(enum I2CSlaveCallbackEvent event, u8* data)
 {
-    switch (handle)
+
+    static i32 reply_index = 0;
+    static i32 stop_count  = 0;
+
+    switch (event)
     {
 
-        case I2CHandle_bee:
+        ////////////////////////////////////////////////////////////////////////////////
+        //
+        // The master gave us data.
+        //
+
+        case I2CSlaveCallbackEvent_data_available_to_read:
+        {
+            stlink_tx("Bee   : got byte : `%c`\n", *data);
+        } break;
+
+
+
+        ////////////////////////////////////////////////////////////////////////////////
+        //
+        // The master wants data.
+        //
+
+        case I2CSlaveCallbackEvent_ready_to_transmit_data:
         {
 
-            static i32 reply_index = 0;
-            static i32 stop_count  = 0;
+            // Send the next byte for the master.
 
-            switch (event)
+            char reply[20] = {0};
+            snprintf_(reply, sizeof(reply), "Eat the rich! x %d", stop_count);
+
+            if (reply_index < sizeof(reply))
             {
+                *data = reply[reply_index];
+            }
 
-                ////////////////////////////////////////////////////////////////////////////////
-                //
-                // The master gave us data.
-                //
-
-                case I2CSlaveEvent_data_available_to_read:
-                {
-                    stlink_tx("Bee   : got byte : `%c`\n", *data);
-                } break;
+            reply_index += 1;
 
 
 
-                ////////////////////////////////////////////////////////////////////////////////
-                //
-                // The master wants data.
-                //
+            // Note that there's nothing to stop the master from reading
+            // more data than they should be doing; best we can
+            // do as the slave is transmit back the dummy byte 0xFF.
 
-                case I2CSlaveEvent_ready_to_transmit_data:
-                {
-
-                    // Send the next byte for the master.
-
-                    char reply[20] = {0};
-                    snprintf_(reply, sizeof(reply), "Eat the rich! x %d", stop_count);
-
-                    if (reply_index < sizeof(reply))
-                    {
-                        *data = reply[reply_index];
-                    }
-
-                    reply_index += 1;
-
-
-
-                    // Note that there's nothing to stop the master from reading
-                    // more data than they should be doing; best we can
-                    // do as the slave is transmit back the dummy byte 0xFF.
-
-                    if (*data == 0xFF)
-                    {
-                        stlink_tx("Bee   : dummy byte : 0x%02X\n", *data);
-                    }
-                    else
-                    {
-                        stlink_tx("Bee   : sending byte : `%c`\n", *data);
-                    }
-
-                } break;
-
-
-
-                ////////////////////////////////////////////////////////////////////////////////
-                //
-                // A read/write transfer just ended.
-                //
-
-                case I2CSlaveEvent_stop_signaled:
-                {
-
-                    stlink_tx("Bee   : stop detected\n");
-
-                    reply_index  = 0;
-                    stop_count  += 1;
-
-                } break;
-
-
-
-                default: panic;
-
-            } break;
+            if (*data == 0xFF)
+            {
+                stlink_tx("Bee   : dummy byte : 0x%02X\n", *data);
+            }
+            else
+            {
+                stlink_tx("Bee   : sending byte : `%c`\n", *data);
+            }
 
         } break;
 
-        case I2CHandle_queen : panic;
-        default              : panic;
+
+
+        ////////////////////////////////////////////////////////////////////////////////
+        //
+        // A read/write transfer just ended.
+        //
+
+        case I2CSlaveCallbackEvent_stop_signaled:
+        {
+
+            stlink_tx("Bee   : stop detected\n");
+
+            reply_index  = 0;
+            stop_count  += 1;
+
+        } break;
+
+
+
+        default: panic;
 
     }
+
 }

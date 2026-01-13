@@ -11,15 +11,6 @@ enum I2CDriverRole : u32
 
 
 
-enum I2CSlaveEvent : u32
-{
-    I2CSlaveEvent_data_available_to_read,
-    I2CSlaveEvent_ready_to_transmit_data,
-    I2CSlaveEvent_stop_signaled,
-};
-
-
-
 enum I2CMasterCallbackEvent
 {
     I2CMasterCallbackEvent_can_schedule_next_transfer,
@@ -28,6 +19,17 @@ enum I2CMasterCallbackEvent
 };
 
 typedef void I2CMasterCallback(enum I2CMasterCallbackEvent event);
+
+
+
+enum I2CSlaveCallbackEvent : u32
+{
+    I2CSlaveCallbackEvent_data_available_to_read,
+    I2CSlaveCallbackEvent_ready_to_transmit_data,
+    I2CSlaveCallbackEvent_stop_signaled,
+};
+
+typedef void I2CSlaveCallback(enum I2CSlaveCallbackEvent event, u8* data);
 
 
 
@@ -40,24 +42,41 @@ typedef void I2CMasterCallback(enum I2CMasterCallbackEvent event);
 
     for target in PER_TARGET():
 
-        master_callback_drivers = [
-            driver
-            for driver in target.drivers
-            if driver['type'] == 'I2C'
-            if driver['role'] == 'master_callback'
-        ]
+        for driver in target.drivers:
 
-        for driver in master_callback_drivers:
+            if driver['type'] != 'I2C':
+                continue
 
-            Meta.line(f'''
-                static I2CMasterCallback INTERRUPT_I2Cx_{driver['handle']};
-            ''')
 
-            Meta.define(
-                f'INTERRUPT_I2Cx_{driver['handle']}',
-                ('...'),
-                f'static void INTERRUPT_I2Cx_{driver['handle']}(__VA_ARGS__)'
-            )
+            match driver['role']:
+
+
+
+                case 'master_callback':
+
+                    Meta.line(f'''
+                        static I2CMasterCallback INTERRUPT_I2Cx_{driver['handle']};
+                    ''')
+
+                    Meta.define(
+                        f'INTERRUPT_I2Cx_{driver['handle']}',
+                        ('...'),
+                        f'static void INTERRUPT_I2Cx_{driver['handle']}(__VA_ARGS__)'
+                    )
+
+
+
+                case 'slave':
+
+                    Meta.line(f'''
+                        static I2CSlaveCallback INTERRUPT_I2Cx_{driver['handle']};
+                    ''')
+
+                    Meta.define(
+                        f'INTERRUPT_I2Cx_{driver['handle']}',
+                        ('...'),
+                        f'static void INTERRUPT_I2Cx_{driver['handle']}(__VA_ARGS__)'
+                    )
 
 
 
@@ -80,7 +99,13 @@ typedef void I2CMasterCallback(enum I2CMasterCallbackEvent event);
             ('{}_KERNEL_SOURCE'     , 'cmsis_tuple',                            ),
             ('{}_EV'                , 'interrupt'  ,                            ),
             ('{}_ER'                , 'interrupt'  ,                            ),
-            ('{}_MASTER_CALLBACK'   , 'expression' , f'{f'&INTERRUPT_I2Cx_{handle}' if role == 'master_callback' else '(I2CMasterCallback*) nullptr'}'),
+            ('INTERRUPT_{}_CALLBACK', 'expression' ,
+                f'(void*) {
+                    f'&INTERRUPT_I2Cx_{handle}'
+                    if role in ('master_callback', 'slave') else
+                    'nullptr'
+                }'
+            ),
         ),
     )
 
@@ -109,29 +134,6 @@ typedef void I2CMasterCallback(enum I2CMasterCallbackEvent event);
                 f'I2C peripheral {repr(driver['handle'])} '
                 f'with invalid 7-bit address of {repr(driver['address'])}.'
             )
-
-
-
-        # If an I2C slave driver is used, the user will
-        # need to define the slave callback. Otherwise,
-        # we define a dummy callback procedure.
-
-        if slave_drivers:
-
-            Meta.line(f'''
-                static void
-                INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data);
-            ''')
-
-        else:
-
-            Meta.line(f'''
-                static void
-                INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
-                {{
-                    panic;
-                }}
-            ''')
 
 */
 
@@ -659,7 +661,10 @@ _I2C_update_once(enum I2CHandle handle)
 
                     if (I2Cx_DRIVER_ROLE == I2CDriverRole_master_callback)
                     {
-                        I2Cx_MASTER_CALLBACK(I2CMasterCallbackEvent_can_schedule_next_transfer);
+                        ((I2CMasterCallback*) INTERRUPT_I2Cx_CALLBACK)
+                        (
+                            I2CMasterCallbackEvent_can_schedule_next_transfer
+                        );
                     }
 
                     return I2CUpdateOnce_yield;
@@ -868,8 +873,23 @@ _I2C_update_once(enum I2CHandle handle)
                         {
                             switch (driver->master.error)
                             {
-                                case I2CMasterError_none           : I2Cx_MASTER_CALLBACK(I2CMasterCallbackEvent_transfer_successful    ); break;
-                                case I2CMasterError_no_acknowledge : I2Cx_MASTER_CALLBACK(I2CMasterCallbackEvent_transfer_unacknowledged); break;
+
+                                case I2CMasterError_none:
+                                {
+                                    ((I2CMasterCallback*) INTERRUPT_I2Cx_CALLBACK)
+                                    (
+                                        I2CMasterCallbackEvent_transfer_successful
+                                    );
+                                } break;
+
+                                case I2CMasterError_no_acknowledge:
+                                {
+                                    ((I2CMasterCallback*) INTERRUPT_I2Cx_CALLBACK)
+                                    (
+                                        I2CMasterCallbackEvent_transfer_unacknowledged
+                                    );
+                                } break;
+
                                 default: panic;
                             }
                         }
@@ -980,7 +1000,11 @@ _I2C_update_once(enum I2CHandle handle)
 
                     // Get the next byte that the user wants to send.
 
-                    INTERRUPT_i2c_slave_callback(handle, I2CSlaveEvent_ready_to_transmit_data, &data);
+                    ((I2CSlaveCallback*) INTERRUPT_I2Cx_CALLBACK)
+                    (
+                        I2CSlaveCallbackEvent_ready_to_transmit_data,
+                        &data
+                    );
 
 
 
@@ -1013,7 +1037,11 @@ _I2C_update_once(enum I2CHandle handle)
 
                     // Let the user handle the data.
 
-                    INTERRUPT_i2c_slave_callback(handle, I2CSlaveEvent_data_available_to_read, &data);
+                    ((I2CSlaveCallback*) INTERRUPT_I2Cx_CALLBACK)
+                    (
+                        I2CSlaveCallbackEvent_data_available_to_read,
+                        &data
+                    );
 
                     return I2CUpdateOnce_again;
 
@@ -1076,7 +1104,11 @@ _I2C_update_once(enum I2CHandle handle)
 
                     // Let the user know that the transfer ended.
 
-                    INTERRUPT_i2c_slave_callback(handle, I2CSlaveEvent_stop_signaled, nullptr);
+                    ((I2CSlaveCallback*) INTERRUPT_I2Cx_CALLBACK)
+                    (
+                        I2CSlaveCallbackEvent_stop_signaled,
+                        nullptr
+                    );
 
 
 
