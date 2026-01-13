@@ -75,14 +75,14 @@ static_assert(IS_POWER_OF_TWO(countof(_LIS2MDL_driver.measurements)));
 static void
 LIS2MDL_init(void)
 {
-    NVIC_SET_PENDING(I2C1_EV); // TODO Coupled.
+    NVIC_SET_PENDING(I2Cx_EV_primary); // TODO Coupled.
 }
 
 
 
 INTERRUPT_EXTIx_lis2mdl_data_ready
 {
-    NVIC_SET_PENDING(I2C1_EV); // TODO Coupled.
+    NVIC_SET_PENDING(I2Cx_EV_primary); // TODO Coupled.
 }
 
 

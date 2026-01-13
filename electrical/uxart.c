@@ -38,7 +38,7 @@ enum UXARTMode : u32
             ('{}_RESET'             , 'cmsis_tuple',                    ),
             ('{}_ENABLE'            , 'cmsis_tuple',                    ),
             ('{}_KERNEL_SOURCE'     , 'cmsis_tuple',                    ),
-            ('INTERRUPT_{}'         , 'interrupt'  ,                    ),
+            ('{}'                   , 'interrupt'  ,                    ),
             ('{}_MODE'              , 'expression' , f'UXARTMode_{mode}'),
         ),
     )

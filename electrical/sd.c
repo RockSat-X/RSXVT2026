@@ -26,7 +26,7 @@
             ('{}_RESET'                , 'cmsis_tuple'),
             ('{}_ENABLE'               , 'cmsis_tuple'),
             ('{}_KERNEL_SOURCE'        , 'cmsis_tuple'),
-            ('INTERRUPT_{}'            , 'interrupt'  ),
+            ('{}'                      , 'interrupt'  ),
         ),
     )
 
