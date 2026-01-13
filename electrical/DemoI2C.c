@@ -75,7 +75,7 @@ main(void)
                     // current slave address to see if we get an acknowledge.
 
                     enum I2CMasterError error =
-                        I2C_blocking_transfer
+                        I2C_transfer
                         (
                             I2CHandle_queen,
                             slave_address,
@@ -149,7 +149,7 @@ main(void)
                     char message[] = "Doing taxes suck!";
 
                     enum I2CMasterError error =
-                        I2C_blocking_transfer
+                        I2C_transfer
                         (
                             I2CHandle_queen,
                             I2C_TABLE[I2CHandle_bee].I2Cx_SLAVE_ADDRESS,
@@ -199,7 +199,7 @@ main(void)
                     char response[24] = {0};
 
                     enum I2CMasterError error =
-                        I2C_blocking_transfer
+                        I2C_transfer
                         (
                             I2CHandle_queen,
                             I2C_TABLE[I2CHandle_bee].I2Cx_SLAVE_ADDRESS,

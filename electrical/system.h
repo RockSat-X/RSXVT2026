@@ -813,6 +813,7 @@ halt_(b32 panicking) // @/`Halting`.
 
             lookup_table_fields = collections.defaultdict(lambda: [])
             interrupt_routines  = collections.defaultdict(lambda: [])
+            nvic_mappings       = []
 
             for driver in drivers:
 
@@ -869,11 +870,28 @@ halt_(b32 panicking) // @/`Halting`.
                         # >
 
                         case 'interrupt':
+
+                            nvic_mappings += [(
+                                f'{term_name.format(common_name)}_{driver['handle']}',
+                                f'{term_value}',
+                            )]
+
                             interrupt_routines[driver['handle']] += [term_value]
 
 
 
                         case idk: raise ValueError(f'Unknown term type: {repr(idk)}.')
+
+
+
+            # Create macros to map NVIC interrupts using the driver handle name.
+
+            for nvic_driver_handle, nvic_peripheral in nvic_mappings:
+
+                Meta.define(
+                    f'NVICInterrupt_{nvic_driver_handle}',
+                    f'NVICInterrupt_{nvic_peripheral}'
+                )
 
 
 
@@ -904,7 +922,7 @@ halt_(b32 panicking) // @/`Halting`.
                 for driver_interrupt_name in driver_interrupt_names:
 
                     Meta.line(f'''
-                        {driver_interrupt_name}
+                        INTERRUPT_{driver_interrupt_name}
                         {{
                             _{driver_type.upper()}_driver_interrupt({driver_type}Handle_{driver_handle});
                         }}

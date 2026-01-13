@@ -1,85 +1,40 @@
+////////////////////////////////////////////////////////////////////////////////
+
+
+
 #define LIS2MDL_SEVEN_BIT_ADDRESS 0x1E
 
-#include "LIS2MDL_registers.meta"
-/* #meta
+
+
+static const struct { u8 address; u8 value; } LIS2MDL_INITIALIZATION_SEQUENCE[] =
+    {
+        {
+            0x60,         // CFG_REG_A.
+              (1 << 6)    // Reboot the magnetometer's memory content.
+            | (1 << 5)    // Reset configuration and user registers.
+        },
+        {
+            0x60,         // CFG_REG_A.
+              (1    << 7) // Enable temperature compensation, as required.
+            | (0    << 4) // Don't use low-power mode so we can get full resolution.
+            | (0b11 << 2) // Set the rate the data is outputted.
+            | (0b00 << 0) // Continuously measure sensor data.
+        },
+        {
+            0x61,         // CFG_REG_B.
+              (1 << 1)    // Enable offset cancellation.
+            | (1 << 0)    // Enable digital low-pass filter.
+        },
+        {
+            0x62,         // CFG_REG_C.
+              (1 << 4)    // Prevent incorrect data from being read for 16-bit words.
+            | (1 << 0)    // "If 1, the data-ready signal [...] is driven on the INT/DRDY pin."
+        },
+    };
 
 
 
-    # Some info on all of the registers of the LIS2MDL.
-
-    REGISTER_MAP = (
-        ('OFFSET_X_REG_L', 0x45),
-        ('OFFSET_X_REG_H', 0x46),
-        ('OFFSET_Y_REG_L', 0x47),
-        ('OFFSET_Y_REG_H', 0x48),
-        ('OFFSET_Z_REG_L', 0x49),
-        ('OFFSET_Z_REG_H', 0x4A),
-        ('WHO_AM_I'      , 0x4F),
-        ('CFG_REG_A'     , 0x60),
-        ('CFG_REG_B'     , 0x61),
-        ('CFG_REG_C'     , 0x62),
-        ('INT_CRTL_REG'  , 0x63),
-        ('INT_SOURCE_REG', 0x64),
-        ('INT_THS_L_REG' , 0x65),
-        ('INT_THS_H_REG' , 0x66),
-        ('STATUS_REG'    , 0x67),
-        ('OUTX_L_REG'    , 0x68),
-        ('OUTX_H_REG'    , 0x69),
-        ('OUTY_L_REG'    , 0x6A),
-        ('OUTY_H_REG'    , 0x6B),
-        ('OUTZ_L_REG'    , 0x6C),
-        ('OUTZ_H_REG'    , 0x6D),
-        ('TEMP_OUT_L_REG', 0x6E),
-        ('TEMP_OUT_H_REG', 0x6F),
-    )
-
-    Meta.enums('LIS2MDLRegister', 'u8', (
-        (register_name, f'0x{register_address :02X}')
-        for register_name, register_address in REGISTER_MAP
-    ))
-
-    Meta.lut('LIS2MDL_REGISTERS', (
-        (
-            ('name'   , f'"{register_name}"'              ),
-            ('address', f'LIS2MDLRegister_{register_name}'),
-        ) for register_name, register_address in REGISTER_MAP
-    ))
-
-
-
-    # Make array of writes to the LIS2MDL sensor to configure it.
-
-    INITIALIZATION_SEQUENCE = (
-
-        ('CFG_REG_A', (1    << 6) # Reboot the magnetometer's memory content.
-                    | (1    << 5) # Reset configuration and user registers.
-        ),
-        ('CFG_REG_A', (1    << 7) # Enable temperature compensation, as required.
-                    | (0    << 4) # Don't use low-power mode so we can get full resolution.
-                    | (0b11 << 2) # Set the rate the data is outputted.
-                    | (0b00 << 0) # Continuously measure sensor data.
-        ),
-        ('CFG_REG_B', (1    << 1) # Enable offset cancellation.
-                    | (1    << 0) # Enable digital low-pass filter.
-        ),
-        ('CFG_REG_C', (1    << 4) # TODO Something about preventing async read corruption?
-        ),
-
-    )
-
-    with Meta.enter('static const u8 LIS2MDL_INITIALIZATION_SEQUENCE[][2] ='):
-
-        for register_name, register_value in INITIALIZATION_SEQUENCE:
-
-            Meta.line(f'''
-                {{ LIS2MDLRegister_{register_name}, 0x{register_value :02X} }},
-            ''')
-
-*/
-
-
-
-struct LIS2MDLPayload
+struct LIS2MDLMeasurement
 {
     u8  status;      // STATUS_REG.
     i16 x;           // OUTX_L_REG, OUTX_H_REG.
@@ -88,79 +43,244 @@ struct LIS2MDLPayload
     i16 temperature; // TEMP_OUT_L_REG, TEMP_OUT_H_REG.
 };
 
+enum LIS2MDLDriverState : u32
+{
+    LIS2MDLDriverState_initing,
+    LIS2MDLDriverState_idle,
+    LIS2MDLDriverState_reading_measurement,
+};
+
+struct LIS2MDLDriver
+{
+    enum LIS2MDLDriverState   state;
+    i32                       initialization_sequence_index;
+    struct LIS2MDLMeasurement freshest_measurement;
+    struct LIS2MDLMeasurement measurements[64];
+    volatile u32              reader;
+    volatile u32              writer;
+};
+
+static struct LIS2MDLDriver _LIS2MDL_driver = {0};
 
 
-static void
-LIS2MDL_init(void)
+
+static_assert(IS_POWER_OF_TWO(countof(_LIS2MDL_driver.measurements)));
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+static useret b32
+LIS2MDL_pop_measurement(struct LIS2MDLMeasurement* dst)
 {
 
-    // Simply do some writes to the LIS2MDL
-    // sensor to get it up and going.
+    b32 got_measurement = _LIS2MDL_driver.reader != _LIS2MDL_driver.writer;
 
-    for (i32 write_index = 0; write_index < countof(LIS2MDL_INITIALIZATION_SEQUENCE); write_index += 1)
+    if (got_measurement)
     {
-
-        enum I2CMasterError error =
-            I2C_blocking_transfer
-            (
-                I2CHandle_primary,
-                LIS2MDL_SEVEN_BIT_ADDRESS,
-                I2CAddressType_seven,
-                I2COperation_write,
-                (u8*) &LIS2MDL_INITIALIZATION_SEQUENCE[write_index],
-                sizeof(LIS2MDL_INITIALIZATION_SEQUENCE[write_index])
-            );
-
-        if (error)
-            sorry
-
+        i32 index = _LIS2MDL_driver.reader % countof(_LIS2MDL_driver.measurements);
+        *dst                    = _LIS2MDL_driver.measurements[index];
+        _LIS2MDL_driver.reader += 1;
     }
+    else
+    {
+        *dst = (struct LIS2MDLMeasurement) {0};
+    }
+
+    return got_measurement;
 
 }
 
 
 
-static useret struct LIS2MDLPayload
-LIS2MDL_get_payload(void)
+static useret enum LIS2MDLUpdateResult : u32
+{
+    LIS2MDLUpdateResult_relinquished,
+    LIS2MDLUpdateResult_busy,
+}
+LIS2MDL_update
+(
+    enum I2CHandle              handle,
+    enum I2CMasterCallbackEvent event,
+    b32                         data_ready
+)
 {
 
-    struct LIS2MDLPayload payload = {0};
+    enum LIS2MDLUpdateResult result = LIS2MDLUpdateResult_busy;
 
+    switch (_LIS2MDL_driver.state)
     {
 
-        enum I2CMasterError error =
-            I2C_blocking_transfer
-            (
-                I2CHandle_primary,
-                LIS2MDL_SEVEN_BIT_ADDRESS,
-                I2CAddressType_seven,
-                I2COperation_write,
-                &(u8) { LIS2MDLRegister_STATUS_REG },
-                1
-            );
 
-        if (error)
-            sorry
+
+        // The sensor's registers needs to be configured.
+
+        case LIS2MDLDriverState_initing: switch (event)
+        {
+
+            case I2CMasterCallbackEvent_can_schedule_next_transfer:
+            {
+
+                if (_LIS2MDL_driver.initialization_sequence_index >= countof(LIS2MDL_INITIALIZATION_SEQUENCE))
+                    panic;
+
+                enum I2CMasterError error =
+                    I2C_transfer
+                    (
+                        handle,
+                        LIS2MDL_SEVEN_BIT_ADDRESS,
+                        I2CAddressType_seven,
+                        I2COperation_write,
+                        (u8*) &LIS2MDL_INITIALIZATION_SEQUENCE[_LIS2MDL_driver.initialization_sequence_index],
+                        sizeof(LIS2MDL_INITIALIZATION_SEQUENCE[_LIS2MDL_driver.initialization_sequence_index])
+                    );
+
+                if (error)
+                    panic;
+
+            } break;
+
+            case I2CMasterCallbackEvent_transfer_successful:
+            {
+
+                _LIS2MDL_driver.initialization_sequence_index += 1;
+
+                if (_LIS2MDL_driver.initialization_sequence_index < countof(LIS2MDL_INITIALIZATION_SEQUENCE))
+                {
+                    // The sensor still has registers to be configured.
+                }
+                else // We're done configuring the sensor's registers.
+                {
+                    _LIS2MDL_driver.state = LIS2MDLDriverState_idle;
+                }
+
+            } break;
+
+            case I2CMasterCallbackEvent_transfer_unacknowledged:
+            {
+                sorry
+            } break;
+
+            default: panic;
+
+        } break;
+
+
+
+        // No transfer is currently being done;
+        // see if we can poll a measurement from the sensor.
+
+        case LIS2MDLDriverState_idle: switch (event)
+        {
+
+            case I2CMasterCallbackEvent_can_schedule_next_transfer:
+            {
+
+                if (data_ready)
+                {
+
+                    enum I2CMasterError error =
+                        I2C_transfer // Set the address of where to start reading the sensor's register data.
+                        (
+                            handle,
+                            LIS2MDL_SEVEN_BIT_ADDRESS,
+                            I2CAddressType_seven,
+                            I2COperation_write,
+                            &(u8) { 0x67 },
+                            1
+                        );
+
+                    if (error)
+                        panic;
+
+                }
+                else // Other I2C controllers can use the handle freely.
+                {
+                    result = LIS2MDLUpdateResult_relinquished;
+                }
+
+            } break;
+
+            case I2CMasterCallbackEvent_transfer_successful:
+            {
+
+                _LIS2MDL_driver.state = LIS2MDLDriverState_reading_measurement;
+
+            } break;
+
+            case I2CMasterCallbackEvent_transfer_unacknowledged:
+            {
+                sorry
+            } break;
+
+            default: panic;
+
+        } break;
+
+
+
+        // Now actually read the sensor data.
+
+        case LIS2MDLDriverState_reading_measurement: switch (event)
+        {
+
+            case I2CMasterCallbackEvent_can_schedule_next_transfer:
+            {
+
+                enum I2CMasterError error =
+                    I2C_transfer
+                    (
+                        handle,
+                        LIS2MDL_SEVEN_BIT_ADDRESS,
+                        I2CAddressType_seven,
+                        I2COperation_read,
+                        (u8*) &_LIS2MDL_driver.freshest_measurement,
+                        sizeof(_LIS2MDL_driver.freshest_measurement)
+                    );
+
+                if (error)
+                    panic;
+
+            } break;
+
+            case I2CMasterCallbackEvent_transfer_successful:
+            {
+
+                // See if we can insert the measurement into the ring-buffer.
+
+                if (_LIS2MDL_driver.writer - _LIS2MDL_driver.reader < countof(_LIS2MDL_driver.measurements))
+                {
+                    i32 index = _LIS2MDL_driver.writer % countof(_LIS2MDL_driver.measurements);
+                    _LIS2MDL_driver.measurements[index]  = _LIS2MDL_driver.freshest_measurement;
+                    _LIS2MDL_driver.writer              += 1;
+                }
+
+
+
+                // Now back to waiting for the sensor
+                // to set its data-ready signal.
+
+                _LIS2MDL_driver.state = LIS2MDLDriverState_idle;
+
+            } break;
+
+            case I2CMasterCallbackEvent_transfer_unacknowledged:
+            {
+                sorry
+            } break;
+
+            default: panic;
+
+        } break;
+
+
+
+        default: panic;
 
     }
-    {
 
-        enum I2CMasterError error =
-            I2C_blocking_transfer
-            (
-                I2CHandle_primary,
-                LIS2MDL_SEVEN_BIT_ADDRESS,
-                I2CAddressType_seven,
-                I2COperation_read,
-                (u8*) &payload,
-                sizeof(payload)
-            );
-
-        if (error)
-            sorry
-
-    }
-
-    return payload;
+    return result;
 
 }

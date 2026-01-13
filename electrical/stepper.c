@@ -52,7 +52,7 @@ static_assert(IS_POWER_OF_TWO(STEPPER_WINDOW_LENGTH));
             ('{}_CAPTURE_COMPARE_ENABLE_y'  , 'cmsis_tuple', f'{peripheral}_CAPTURE_COMPARE_ENABLE_{channel}'),
             ('{}_CAPTURE_COMPARE_VALUE_y'   , 'cmsis_tuple', f'{peripheral}_CAPTURE_COMPARE_VALUE_{channel}' ),
             ('{}_CAPTURE_COMPARE_MODE_y'    , 'cmsis_tuple', f'{peripheral}_CAPTURE_COMPARE_MODE_{channel}'  ),
-            ('INTERRUPT_{}_update_event'    , 'interrupt'  , f'INTERRUPT_{interrupt}'                        ),
+            ('{}_update_event'              , 'interrupt'  , interrupt                                       ),
             ('STEPPER_NODE_ADDRESS'         , 'expression' , node_address                                    ),
             ('STEPPER_UXART_HANDLE'         , 'expression' , f'UXARTHandle_{uxart_handle}'                   ),
         ),

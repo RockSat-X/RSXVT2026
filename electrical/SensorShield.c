@@ -5,6 +5,26 @@
 
 
 
+INTERRUPT_EXTIx_lis2mdl_data_ready
+{
+    NVIC_SET_PENDING(I2Cx_EV_primary);
+}
+
+
+
+INTERRUPT_I2Cx_primary(enum I2CMasterCallbackEvent event)
+{
+    enum LIS2MDLUpdateResult result =
+        LIS2MDL_update
+        (
+            I2CHandle_primary,
+            event,
+            GPIO_READ(lis2mdl_data_ready)
+        );
+}
+
+
+
 extern noret void
 main(void)
 {
@@ -12,33 +32,31 @@ main(void)
     STPY_init();
     UXART_init(UXARTHandle_stlink);
     I2C_reinit(I2CHandle_primary);
-    LIS2MDL_init();
-
-
 
     for (;;)
     {
 
-        struct LIS2MDLPayload payload = LIS2MDL_get_payload();
+        struct LIS2MDLMeasurement measurement = {0};
 
-        stlink_tx
-        (
-            "status      : " "0x%02X" "\n"
-            "x           : " "%f"     "\n"
-            "y           : " "%f"     "\n"
-            "z           : " "%f"     "\n"
-            "temperature : " "%d"     "\n",
-            payload.status,
-            payload.x / 32768.0f,
-            payload.y / 32768.0f,
-            payload.z / 32768.0f,
-            payload.temperature
-        );
-
-        stlink_tx("\n");
+        if (LIS2MDL_pop_measurement(&measurement))
+        {
+            stlink_tx
+            (
+                "status      : " "0x%02X" "\n"
+                "x           : " "%f"     "\n"
+                "y           : " "%f"     "\n"
+                "z           : " "%f"     "\n"
+                "temperature : " "%d"     "\n"
+                "\n",
+                measurement.status,
+                measurement.x / 32768.0f,
+                measurement.y / 32768.0f,
+                measurement.z / 32768.0f,
+                measurement.temperature
+            );
+        }
 
         GPIO_TOGGLE(led_green);
-        spinlock_nop(10'000'000);
 
     }
 
