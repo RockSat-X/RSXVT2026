@@ -13,8 +13,8 @@
 #if TARGET_NAME_IS_DemoSDMMC
 #endif
 #if TARGET_NAME_IS_SensorShield
-    static void
-    INTERRUPT_I2Cx_primary(enum I2CMasterCallbackEvent event);
+    static I2CMasterCallback INTERRUPT_I2Cx_primary;
+    #define INTERRUPT_I2Cx_primary(...) static void INTERRUPT_I2Cx_primary(__VA_ARGS__)
 #endif
 #if TARGET_NAME_IS_MainFlightComputer
 #endif
@@ -198,7 +198,6 @@
     }
 #endif
 #if TARGET_NAME_IS_SensorShield
-    #define INTERRUPT_I2Cx_primary void INTERRUPT_I2Cx_primary(enum I2CMasterCallbackEvent event)
     static void
     INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
     {

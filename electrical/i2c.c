@@ -34,7 +34,8 @@ typedef void I2CMasterCallback(enum I2CMasterCallbackEvent event);
 /* #meta
 
 
-    # TODO.
+
+    # Forward-declare any callbacks that a driver might use.
 
     for target in PER_TARGET():
 
@@ -48,9 +49,14 @@ typedef void I2CMasterCallback(enum I2CMasterCallbackEvent event);
         for driver in master_callback_drivers:
 
             Meta.line(f'''
-                static void
-                INTERRUPT_I2Cx_{driver['handle']}(enum I2CMasterCallbackEvent event);
+                static I2CMasterCallback INTERRUPT_I2Cx_{driver['handle']};
             ''')
+
+            Meta.define(
+                f'INTERRUPT_I2Cx_{driver['handle']}',
+                ('...'),
+                f'static void INTERRUPT_I2Cx_{driver['handle']}(__VA_ARGS__)'
+            )
 
 
 
@@ -80,26 +86,6 @@ typedef void I2CMasterCallback(enum I2CMasterCallbackEvent event);
 
 
     for target in PER_TARGET():
-
-
-
-        # TODO.
-
-        master_callback_drivers = [
-            driver
-            for driver in target.drivers
-            if driver['type'] == 'I2C'
-            if driver['role'] == 'master_callback'
-        ]
-
-        for driver in master_callback_drivers:
-
-            Meta.define(
-                f'INTERRUPT_I2Cx_{driver['handle']}',
-                f'void INTERRUPT_I2Cx_{driver['handle']}(enum I2CMasterCallbackEvent event)'
-            )
-
-
 
         slave_drivers = [
             driver

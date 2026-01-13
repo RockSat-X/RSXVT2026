@@ -110,7 +110,7 @@ LIS2MDL_pop_measurement(struct LIS2MDLMeasurement* dst)
 
 
 
-INTERRUPT_I2Cx_primary // TODO Coupled.
+INTERRUPT_I2Cx_primary(enum I2CMasterCallbackEvent event) // TODO Coupled.
 {
 
     switch (_LIS2MDL_driver.state)
