@@ -79,7 +79,7 @@ typedef void I2CMasterCallback(enum I2CMasterCallbackEvent event);
             ('{}_KERNEL_SOURCE'     , 'cmsis_tuple',                            ),
             ('INTERRUPT_{}_EV'      , 'interrupt'  ,                            ),
             ('INTERRUPT_{}_ER'      , 'interrupt'  ,                            ),
-            ('{}_MASTER_CALLBACK'   , 'expression' , f'(I2CMasterCallback*) {f'INTERRUPT_I2Cx_{handle}' if role == 'master_callback' else 'nullptr'}'),
+            ('{}_MASTER_CALLBACK'   , 'expression' , f'{f'&INTERRUPT_I2Cx_{handle}' if role == 'master_callback' else '(I2CMasterCallback*) nullptr'}'),
         ),
     )
 
