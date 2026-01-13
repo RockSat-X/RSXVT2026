@@ -27,7 +27,7 @@ static const struct { u8 address; u8 value; } LIS2MDL_INITIALIZATION_SEQUENCE[] 
         },
         {
             0x62,         // CFG_REG_C.
-              (1 << 4)    // TODO Something about preventing async read corruption?
+              (1 << 4)    // Prevent incorrect data from being read for 16-bit words.
             | (1 << 0)    // "If 1, the data-ready signal [...] is driven on the INT/DRDY pin."
         },
     };
