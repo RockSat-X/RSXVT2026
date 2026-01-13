@@ -577,7 +577,7 @@ OVCAM_init(void)
         const u8* data_to_send             = &OVCAM_INITIALIZATION_SEQUENCE[sequence_index + sizeof(u8)];
 
         enum I2CMasterError error =
-            I2C_blocking_transfer
+            I2C_transfer
             (
                 I2CHandle_ovcam_sccb,
                 OVCAM_SEVEN_BIT_ADDRESS,

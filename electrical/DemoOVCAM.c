@@ -47,7 +47,7 @@ main(void)
             }
 
             enum I2CMasterError error =
-                I2C_blocking_transfer
+                I2C_transfer
                 (
                     I2CHandle_ovcam_sccb,
                     OVCAM_SEVEN_BIT_ADDRESS,

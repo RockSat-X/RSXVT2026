@@ -129,15 +129,19 @@ INTERRUPT_I2Cx_primary // TODO Coupled.
                 if (_LIS2MDL_driver.initialization_sequence_index >= countof(LIS2MDL_INITIALIZATION_SEQUENCE))
                     panic;
 
-                I2C_initiate_transfer
-                (
-                    I2CHandle_primary, // TODO Coupled.
-                    LIS2MDL_SEVEN_BIT_ADDRESS,
-                    I2CAddressType_seven,
-                    I2COperation_write,
-                    (u8*) &LIS2MDL_INITIALIZATION_SEQUENCE[_LIS2MDL_driver.initialization_sequence_index],
-                    sizeof(LIS2MDL_INITIALIZATION_SEQUENCE[_LIS2MDL_driver.initialization_sequence_index])
-                );
+                enum I2CMasterError error =
+                    I2C_transfer
+                    (
+                        I2CHandle_primary, // TODO Coupled.
+                        LIS2MDL_SEVEN_BIT_ADDRESS,
+                        I2CAddressType_seven,
+                        I2COperation_write,
+                        (u8*) &LIS2MDL_INITIALIZATION_SEQUENCE[_LIS2MDL_driver.initialization_sequence_index],
+                        sizeof(LIS2MDL_INITIALIZATION_SEQUENCE[_LIS2MDL_driver.initialization_sequence_index])
+                    );
+
+                if (error)
+                    panic;
 
             } break;
 
@@ -174,22 +178,24 @@ INTERRUPT_I2Cx_primary // TODO Coupled.
 
             case I2CMasterCallbackEvent_can_schedule_next_transfer:
             {
-
                 if (GPIO_READ(lis2mdl_data_ready))
                 {
-                    // Set the address of where to start
-                    // reading the sensor's register data.
-                    I2C_initiate_transfer
-                    (
-                        I2CHandle_primary, // TODO Coupled.
-                        LIS2MDL_SEVEN_BIT_ADDRESS,
-                        I2CAddressType_seven,
-                        I2COperation_write,
-                        &(u8) { 0x67 },
-                        1
-                    );
-                }
 
+                    enum I2CMasterError error =
+                        I2C_transfer // Set the address of where to start reading the sensor's register data.
+                        (
+                            I2CHandle_primary, // TODO Coupled.
+                            LIS2MDL_SEVEN_BIT_ADDRESS,
+                            I2CAddressType_seven,
+                            I2COperation_write,
+                            &(u8) { 0x67 },
+                            1
+                        );
+
+                    if (error)
+                        panic;
+
+                }
             } break;
 
             case I2CMasterCallbackEvent_transfer_done:
@@ -215,15 +221,21 @@ INTERRUPT_I2Cx_primary // TODO Coupled.
 
             case I2CMasterCallbackEvent_can_schedule_next_transfer:
             {
-                I2C_initiate_transfer
-                (
-                    I2CHandle_primary, // TODO Coupled.
-                    LIS2MDL_SEVEN_BIT_ADDRESS,
-                    I2CAddressType_seven,
-                    I2COperation_read,
-                    (u8*) &_LIS2MDL_driver.freshest_measurement,
-                    sizeof(_LIS2MDL_driver.freshest_measurement)
-                );
+
+                enum I2CMasterError error =
+                    I2C_transfer
+                    (
+                        I2CHandle_primary, // TODO Coupled.
+                        LIS2MDL_SEVEN_BIT_ADDRESS,
+                        I2CAddressType_seven,
+                        I2COperation_read,
+                        (u8*) &_LIS2MDL_driver.freshest_measurement,
+                        sizeof(_LIS2MDL_driver.freshest_measurement)
+                    );
+
+                if (error)
+                    panic;
+
             } break;
 
             case I2CMasterCallbackEvent_transfer_done:

@@ -218,7 +218,7 @@ static struct I2CDriver _I2C_drivers[I2CHandle_COUNT] = {0};
 
 
 static useret enum I2CMasterError
-I2C_blocking_transfer
+I2C_transfer
 (
     enum I2CHandle      handle,
     u32                 address,      // @/`I2C Slave Address`.
@@ -235,7 +235,11 @@ I2C_blocking_transfer
 
     // Validation.
 
-    if (I2Cx_DRIVER_ROLE != I2CDriverRole_master_blocking)
+    if
+    (
+        I2Cx_DRIVER_ROLE != I2CDriverRole_master_blocking &&
+        I2Cx_DRIVER_ROLE != I2CDriverRole_master_callback
+    )
         panic;
 
     if (!pointer)
@@ -292,113 +296,63 @@ I2C_blocking_transfer
 
 
 
-    // Wait until the transfer is done.
-
-    while (true)
+    switch (I2Cx_DRIVER_ROLE)
     {
-        switch (driver->master.state)
+
+
+
+        // Wait until the transfer is done.
+
+        case I2CDriverRole_master_blocking:
         {
-
-            // The driver just finished!
-
-            case I2CMasterState_standby:
+            while (true)
             {
-                return driver->master.error;
-            } break;
+                switch (driver->master.state)
+                {
+
+                    // The driver just finished!
+
+                    case I2CMasterState_standby:
+                    {
+                        return driver->master.error;
+                    } break;
 
 
 
-            // The driver is still busy with our transfer.
+                    // The driver is still busy with our transfer.
 
-            case I2CMasterState_scheduled_transfer:
-            case I2CMasterState_transferring:
-            case I2CMasterState_stopping:
-            {
-                // Keep waiting...
-            } break;
-
-
-
-            default: panic;
-
-        }
-    }
-
-}
+                    case I2CMasterState_scheduled_transfer:
+                    case I2CMasterState_transferring:
+                    case I2CMasterState_stopping:
+                    {
+                        // Keep waiting...
+                    } break;
 
 
 
-static void
-I2C_initiate_transfer
-(
-    enum I2CHandle      handle,
-    u32                 address,      // @/`I2C Slave Address`.
-    enum I2CAddressType address_type, // "
-    enum I2COperation   operation,
-    u8*                 pointer,
-    i32                 amount
-)
-{
+                    default: panic;
 
-    _EXPAND_HANDLE
-
-
-
-    // Validation.
-
-    if (I2Cx_DRIVER_ROLE != I2CDriverRole_master_callback)
-        panic;
-
-    if (!pointer)
-        panic;
-
-    if (amount <= 0)
-        panic;
-
-    switch (address_type)
-    {
-        case I2CAddressType_seven:
-        {
-            if (!(0b0000'1000 <= address && address <= 0b0111'0111))
-                panic;
+                }
+            }
         } break;
 
-        case I2CAddressType_ten:
+
+
+        // The master's callback will be called
+        // once the transfer is done (or when an
+        // error is encountered), so as of now,
+        // there's no issue.
+
+        case I2CDriverRole_master_callback:
         {
-            if (address >= (1 << 10))
-                panic;
+            return I2CMasterError_none;
         } break;
 
-        default: panic;
-    }
 
 
+        case I2CDriverRole_slave : panic;
+        default                  : panic;
 
-    // Schedule the transfer.
-
-    switch (driver->master.state)
-    {
-        case I2CMasterState_standby:
-        {
-
-            driver->master.address      = address;
-            driver->master.address_type = address_type;
-            driver->master.operation    = operation;
-            driver->master.pointer      = pointer;
-            driver->master.amount       = amount;
-            driver->master.progress     = 0;
-            driver->master.error        = I2CMasterError_none;
-            __DMB();
-            driver->master.state        = I2CMasterState_scheduled_transfer;
-
-            NVIC_SET_PENDING(I2Cx_EV);
-
-        } break;
-
-        case I2CMasterState_scheduled_transfer : panic;
-        case I2CMasterState_transferring       : panic;
-        case I2CMasterState_stopping           : panic;
-        default                                : panic;
     }
 
 }
