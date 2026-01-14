@@ -41,6 +41,47 @@ static i32                packet_lora_overrun_count      = 0;
 
 
 
+// TODO There seems to be a bug where the ring-buffer reader
+// gets ahead of the writer somehow, and as a result, the
+// buffer seems to be always full but the vehicle will
+// end up transmitting stale packet data.
+// There are some if-statements with infinite loops in them
+// to catch these instances. I, however, haven't been able
+// to seen the bug reproduce at all yet.
+// If need be, we can easily patch this by ensuring the reader
+// is always behind the writer if we find it not to be so;
+// this is just a band-aid to the underlying issue, but given
+// it's so rare, it just might be fine.
+
+#define TRAP_INVALID_RING_BUFFER_CONDITION(PERIOD_MS)                                 \
+    do                                                                                \
+    {                                                                                 \
+        if (packet_esp32_writer - packet_esp32_reader > countof(packet_esp32_buffer)) \
+        {                                                                             \
+            for (;;)                                                                  \
+            {                                                                         \
+                digitalWrite(BUILTIN_LED, true);                                      \
+                delay(10);                                                            \
+                digitalWrite(BUILTIN_LED, false);                                     \
+                delay(PERIOD_MS);                                                     \
+            }                                                                         \
+        }                                                                             \
+                                                                                      \
+        if (packet_lora_writer - packet_lora_reader > countof(packet_lora_buffer))    \
+        {                                                                             \
+            for (;;)                                                                  \
+            {                                                                         \
+                digitalWrite(BUILTIN_LED, false);                                     \
+                delay(10);                                                            \
+                digitalWrite(BUILTIN_LED, true);                                      \
+                delay(PERIOD_MS);                                                     \
+            }                                                                         \
+        }                                                                             \
+    }                                                                                 \
+    while (false)
+
+
+
 extern void
 packet_esp32_transmission_callback
 (
@@ -49,14 +90,7 @@ packet_esp32_transmission_callback
 )
 {
 
-    if (packet_esp32_writer == packet_esp32_reader) // TODO @/`Ring-Buffer Bug`.
-    {
-        for (;;)
-        {
-            digitalWrite(BUILTIN_LED, !digitalRead(BUILTIN_LED));
-            delay(1000);
-        }
-    }
+    TRAP_INVALID_RING_BUFFER_CONDITION(1000);
 
     packet_esp32_reader            += 1;
     packet_esp32_transmission_busy  = false;
@@ -69,14 +103,7 @@ extern void
 packet_lora_callback(void)
 {
 
-    if (packet_lora_writer == packet_lora_reader) // TODO @/`Ring-Buffer Bug`.
-    {
-        for (;;)
-        {
-            digitalWrite(BUILTIN_LED, !digitalRead(BUILTIN_LED));
-            delay(2000);
-        }
-    }
+    TRAP_INVALID_RING_BUFFER_CONDITION(2000);
 
     packet_lora_reader            += 1;
     packet_lora_transmission_busy  = false;
@@ -203,39 +230,7 @@ process_payload(struct PacketESP32* payload)
 
     }
 
-    if (packet_esp32_writer - packet_esp32_reader > countof(packet_esp32_buffer)) // TODO @/`Ring-Buffer Bug`.
-    {
-
-        Serial.println(packet_esp32_writer);
-        Serial.println(packet_esp32_reader);
-        Serial.println(packet_esp32_writer - packet_esp32_reader);
-        Serial.println(countof(packet_esp32_buffer));
-        Serial.println(packet_esp32_writer - packet_esp32_reader > countof(packet_esp32_buffer));
-
-        for (;;)
-        {
-            digitalWrite(BUILTIN_LED, !digitalRead(BUILTIN_LED));
-            delay(100);
-        }
-
-    }
-
-    if (packet_lora_writer - packet_lora_reader > countof(packet_lora_buffer)) // TODO @/`Ring-Buffer Bug`.
-    {
-
-        Serial.println(packet_lora_writer);
-        Serial.println(packet_lora_reader);
-        Serial.println(packet_lora_writer - packet_lora_reader);
-        Serial.println(countof(packet_lora_buffer));
-        Serial.println(packet_lora_writer - packet_lora_reader > countof(packet_lora_buffer));
-
-        for (;;)
-        {
-            digitalWrite(BUILTIN_LED, !digitalRead(BUILTIN_LED));
-            delay(500);
-        }
-
-    }
+    TRAP_INVALID_RING_BUFFER_CONDITION(100);
 
 }
 
@@ -363,21 +358,6 @@ loop(void)
     }
 
 }
-
-
-
-// @/`Ring-Buffer Bug`:
-// There seems to be a bug where the ring-buffer reader
-// gets ahead of the writer somehow, and as a result, the
-// buffer seems to be always full but the vehicle will
-// end up transmitting stale packet data.
-// There are some if-statements with infinite loops in them
-// to catch these instances. I, however, haven't been able
-// to seen the bug reproduce at all yet.
-// If need be, we can easily patch this by ensuring the reader
-// is always behind the writer if we find it not to be so;
-// this is just a band-aid to the underlying issue, but given
-// it's so rare, it just might be fine.
 
 
 
