@@ -132,7 +132,7 @@ static_assert(sizeof(struct PacketESP32) <= 250);
 // TODO Document.
 // TODO Have look-up table.
 extern useret u8
-calculate_crc(u8* data, i32 length)
+ESP32_calculate_crc(u8* data, i32 length)
 {
     u8 crc = 0xFF;
 

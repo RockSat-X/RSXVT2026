@@ -154,7 +154,7 @@ loop(void)
 
         Serial1.readBytes((char*) &payload, sizeof(payload));
 
-        u8 digest = calculate_crc((u8*) &payload, sizeof(payload));
+        u8 digest = ESP32_calculate_crc((u8*) &payload, sizeof(payload));
 
         last_uart_packet_timestamp_ms  = payload.nonredundant.timestamp_ms;
         packet_uart_packet_count      += 1;
@@ -181,7 +181,7 @@ loop(void)
 
                 *packet                               = payload;
                 packet->nonredundant.sequence_number  = current_sequence_number;
-                packet->nonredundant.crc              = calculate_crc((u8*) packet, sizeof(*packet) - sizeof(packet->nonredundant.crc));
+                packet->nonredundant.crc              = ESP32_calculate_crc((u8*) packet, sizeof(*packet) - sizeof(packet->nonredundant.crc));
                 current_sequence_number              += 1;
                 packet_esp32_writer                  += 1;
                 packet_esp32_packet_count            += 1;
@@ -204,7 +204,7 @@ loop(void)
 
                 *packet                   = payload.nonredundant;
                 packet->sequence_number   = current_sequence_number;
-                packet->crc               = calculate_crc((u8*) packet, sizeof(*packet) - sizeof(packet->crc));
+                packet->crc               = ESP32_calculate_crc((u8*) packet, sizeof(*packet) - sizeof(packet->crc));
                 current_sequence_number  += 1;
                 packet_lora_writer       += 1;
                 packet_lora_packet_count += 1;
