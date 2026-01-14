@@ -6596,10 +6596,6 @@
 		(uuid "ffd35cf8-c97d-466e-8f80-1e31ea255312")
 	)
 	(no_connect
-		(at 250.19 262.89)
-		(uuid "00f8f9b0-0af4-419d-bb67-30153eea6390")
-	)
-	(no_connect
 		(at 250.19 189.23)
 		(uuid "0146502b-a95b-47ed-b07d-10fd72782485")
 	)
@@ -6626,6 +6622,10 @@
 	(no_connect
 		(at 250.19 242.57)
 		(uuid "20876b7a-b6ef-43c8-bfe2-a87b31c15b65")
+	)
+	(no_connect
+		(at 250.19 199.39)
+		(uuid "2c7c35dd-c3ac-42fd-9846-e10f425ae946")
 	)
 	(no_connect
 		(at 250.19 196.85)
@@ -6704,10 +6704,6 @@
 		(uuid "6f35a4a7-9803-4d63-b160-35db86daa8f2")
 	)
 	(no_connect
-		(at 189.23 247.65)
-		(uuid "706216ba-c661-4e9e-a004-64d8084711d7")
-	)
-	(no_connect
 		(at 250.19 298.45)
 		(uuid "70e4056b-f167-4f02-b77f-32706b678ce6")
 	)
@@ -6720,8 +6716,8 @@
 		(uuid "80d4aee8-780d-40c2-93cf-b2291c30db51")
 	)
 	(no_connect
-		(at 250.19 280.67)
-		(uuid "86218a69-7581-466b-8967-28a3b32c5dbd")
+		(at 250.19 224.79)
+		(uuid "869bb663-fcea-46bc-b10f-6442cda059a5")
 	)
 	(no_connect
 		(at 250.19 176.53)
@@ -6730,6 +6726,10 @@
 	(no_connect
 		(at 250.19 219.71)
 		(uuid "8f6493c8-ce7a-471e-b681-abebf2696702")
+	)
+	(no_connect
+		(at 250.19 250.19)
+		(uuid "90bd30cc-f11e-4446-90ff-84ecdea2ed4a")
 	)
 	(no_connect
 		(at 189.23 232.41)
@@ -8063,6 +8063,28 @@
 			)
 		)
 	)
+	(global_label "ovcam_y5"
+		(shape bidirectional)
+		(at 189.23 204.47 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "15833518-2b12-4945-8a15-3583c41e0011")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 179.8722 204.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "BOOT0"
 		(shape bidirectional)
 		(at 189.23 181.61 180)
@@ -8437,28 +8459,6 @@
 			)
 		)
 	)
-	(global_label "ovcam_y5"
-		(shape bidirectional)
-		(at 250.19 283.21 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "4ef1c2df-23f6-44da-9191-b4bb9b2ef437")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 259.5478 283.21 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "stlink_tx"
 		(shape bidirectional)
 		(at 383.54 154.94 180)
@@ -8547,7 +8547,29 @@
 			)
 		)
 	)
-	(global_label "ovcam_powerdown"
+	(global_label "ovcam_y2"
+		(shape bidirectional)
+		(at 250.19 275.59 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "59902032-fe0f-4d06-adbf-59f3eba1560e")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 259.5478 275.59 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "ovcam_power_down"
 		(shape bidirectional)
 		(at 189.23 212.09 180)
 		(fields_autoplaced yes)
@@ -8559,34 +8581,12 @@
 		)
 		(uuid "5bcd9900-4d9d-47ae-b981-900fbbe1ce4e")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 171.7685 212.09 0)
+			(at 166.87 212.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "sd_data_0"
-		(shape bidirectional)
-		(at 250.19 250.19 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "5c587729-f0dc-4b39-8ae0-88dc024f51d4")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 263.781 250.19 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
 				(hide yes)
 			)
 		)
@@ -8635,28 +8635,6 @@
 			)
 		)
 	)
-	(global_label "sd_cmd"
-		(shape bidirectional)
-		(at 250.19 224.79 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "63584fe1-d0ee-48ad-a77d-cc18f2877119")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 261.3621 224.79 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "swclk"
 		(shape bidirectional)
 		(at 250.19 212.09 0)
@@ -8701,24 +8679,46 @@
 			)
 		)
 	)
-	(global_label "ovcam_powerdown"
+	(global_label "ovcam_power_down"
 		(shape bidirectional)
-		(at 276.86 97.79 0)
+		(at 171.45 78.74 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify left)
+			(justify right)
 		)
-		(uuid "68c7d04c-4dc3-40b6-abee-a4eb46e87f1b")
+		(uuid "696343aa-2a0f-493b-8f8d-d8609decaca6")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 294.3215 97.79 0)
+			(at 149.09 78.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "sd_cmd"
+		(shape bidirectional)
+		(at 189.23 247.65 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "6c0b040b-3801-4c08-b4e7-7e8c288be407")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 178.0579 247.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
 				(hide yes)
 			)
 		)
@@ -8736,28 +8736,6 @@
 		(uuid "6ff5be47-c029-4da0-98cc-8e322b8884bc")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 259.5478 278.13 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "sd_data_1"
-		(shape bidirectional)
-		(at 250.19 275.59 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "7299fa87-a73a-4847-afca-acfaf41c7e0d")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 263.781 275.59 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9185,46 +9163,24 @@
 			)
 		)
 	)
-	(global_label "ovcam_powerdown"
+	(global_label "sd_data_1"
 		(shape bidirectional)
-		(at 171.45 78.74 180)
+		(at 250.19 283.21 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify right)
+			(justify left)
 		)
-		(uuid "c2f139a8-5aa5-4017-90c4-7b5625638a95")
+		(uuid "cb5c4490-b124-41a7-8d2d-e00d5ab69628")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 153.9885 78.74 0)
+			(at 263.781 283.21 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "led_channel_green"
-		(shape bidirectional)
-		(at 189.23 204.47 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "c7293c1e-dd98-4f06-a630-49c14e394c5b")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 167.5957 204.47 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
+				(justify left)
 				(hide yes)
 			)
 		)
@@ -9317,9 +9273,9 @@
 			)
 		)
 	)
-	(global_label "ovcam_y2"
+	(global_label "sd_data_0"
 		(shape bidirectional)
-		(at 250.19 199.39 0)
+		(at 250.19 280.67 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -9327,9 +9283,9 @@
 			)
 			(justify left)
 		)
-		(uuid "df519745-ff04-40f3-9ca0-9e702934d3fe")
+		(uuid "daa6ced1-cd70-4132-a644-a9150ce093f4")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 259.5478 199.39 0)
+			(at 263.781 280.67 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9449,6 +9405,28 @@
 			)
 		)
 	)
+	(global_label "ovcam_power_down"
+		(shape bidirectional)
+		(at 276.86 97.79 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "e84a5b25-76c3-4802-af03-e76fe4844022")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 299.22 97.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "led_channel_blue"
 		(shape bidirectional)
 		(at 368.3 289.56 180)
@@ -9528,6 +9506,28 @@
 		(uuid "fce8b9af-a66b-40e2-a08c-e76022e5f033")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 265.4139 247.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "led_channel_green"
+		(shape bidirectional)
+		(at 250.19 262.89 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "fd7d926c-158b-44ee-b6a6-37ee8def215c")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 271.8243 262.89 0)
 			(effects
 				(font
 					(size 1.27 1.27)
