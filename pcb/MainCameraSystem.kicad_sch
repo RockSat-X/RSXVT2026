@@ -11819,7 +11819,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "pcb:Flat Flexible Cable 24-Pin 0.5mm Connector"
+		(property "Footprint" "pcb:Flat Flexible Cable 24-Pin 0.5mm Connector - REVERSED"
 			(at 176.53 88.9 0)
 			(effects
 				(font
