@@ -5051,7 +5051,7 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "Regulator_Linear:TLV70015_SOT23-5"
+		(symbol "Regulator_Linear:AP2127N-1.8"
 			(pin_names
 				(offset 0.254)
 			)
@@ -5059,15 +5059,15 @@
 			(in_bom yes)
 			(on_board yes)
 			(property "Reference" "U"
-				(at -3.81 5.715 0)
+				(at -3.81 3.175 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
 				)
 			)
-			(property "Value" "TLV70015_SOT23-5"
-				(at 0 5.715 0)
+			(property "Value" "AP2127N-1.8"
+				(at 0 3.175 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -5075,8 +5075,8 @@
 					(justify left)
 				)
 			)
-			(property "Footprint" "Package_TO_SOT_SMD:SOT-23-5"
-				(at 0 8.255 0)
+			(property "Footprint" "Package_TO_SOT_SMD:SOT-23"
+				(at 0 5.715 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -5085,16 +5085,7 @@
 					(hide yes)
 				)
 			)
-			(property "Datasheet" "http://www.ti.com/lit/ds/symlink/tlv700.pdf"
-				(at 0 1.27 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Description" "200mA Low Dropout Voltage Regulator, Fixed Output 1.5V, SOT-23-5"
+			(property "Datasheet" "https://www.diodes.com/assets/Datasheets/AP2127.pdf"
 				(at 0 0 0)
 				(effects
 					(font
@@ -5103,7 +5094,16 @@
 					(hide yes)
 				)
 			)
-			(property "ki_keywords" "200mA LDO Regulator Fixed Positive"
+			(property "Description" "300mA low dropout linear regulator, shutdown pin, 2.5V-6V input voltage, 1.8V fixed positive output, SOT-23 package"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "linear regulator ldo fixed positive"
 				(at 0 0 0)
 				(effects
 					(font
@@ -5121,9 +5121,9 @@
 					(hide yes)
 				)
 			)
-			(symbol "TLV70015_SOT23-5_0_1"
+			(symbol "AP2127N-1.8_0_1"
 				(rectangle
-					(start -5.08 4.445)
+					(start -5.08 1.905)
 					(end 5.08 -5.08)
 					(stroke
 						(width 0.254)
@@ -5134,29 +5134,11 @@
 					)
 				)
 			)
-			(symbol "TLV70015_SOT23-5_1_1"
+			(symbol "AP2127N-1.8_1_1"
 				(pin power_in line
-					(at -7.62 2.54 0)
-					(length 2.54)
-					(name "IN"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin input line
 					(at -7.62 0 0)
 					(length 2.54)
-					(name "EN"
+					(name "VI"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -5181,26 +5163,7 @@
 							)
 						)
 					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin no_connect line
-					(at 5.08 0 180)
-					(length 2.54)
-					(hide yes)
-					(name "NC"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "4"
+					(number "1"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -5209,16 +5172,16 @@
 					)
 				)
 				(pin power_out line
-					(at 7.62 2.54 180)
+					(at 7.62 0 180)
 					(length 2.54)
-					(name "OUT"
+					(name "VO"
 						(effects
 							(font
 								(size 1.27 1.27)
 							)
 						)
 					)
-					(number "5"
+					(number "2"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -5229,7 +5192,7 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "Regulator_Linear:TLV70028_SOT353"
+		(symbol "Regulator_Linear:AP2127N-2.8"
 			(pin_names
 				(offset 0.254)
 			)
@@ -5237,15 +5200,15 @@
 			(in_bom yes)
 			(on_board yes)
 			(property "Reference" "U"
-				(at -3.81 5.715 0)
+				(at -3.81 3.175 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
 				)
 			)
-			(property "Value" "TLV70028_SOT353"
-				(at 0 5.715 0)
+			(property "Value" "AP2127N-2.8"
+				(at 0 3.175 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -5253,8 +5216,8 @@
 					(justify left)
 				)
 			)
-			(property "Footprint" "Package_TO_SOT_SMD:SOT-353_SC-70-5"
-				(at 0 7.62 0)
+			(property "Footprint" "Package_TO_SOT_SMD:SOT-23"
+				(at 0 5.715 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -5263,16 +5226,7 @@
 					(hide yes)
 				)
 			)
-			(property "Datasheet" "http://www.ti.com/lit/ds/symlink/tlv700.pdf"
-				(at 0 1.27 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Description" "200mA Low Dropout Voltage Regulator, Fixed Output 2.8V, SC70-5"
+			(property "Datasheet" "https://www.diodes.com/assets/Datasheets/AP2127.pdf"
 				(at 0 0 0)
 				(effects
 					(font
@@ -5281,7 +5235,7 @@
 					(hide yes)
 				)
 			)
-			(property "ki_keywords" "200mA LDO Regulator Fixed Positive"
+			(property "Description" "300mA low dropout linear regulator, shutdown pin, 2.5V-6V input voltage, 2.8V fixed positive output, SOT-23 package"
 				(at 0 0 0)
 				(effects
 					(font
@@ -5290,7 +5244,7 @@
 					(hide yes)
 				)
 			)
-			(property "ki_fp_filters" "SOT*353*"
+			(property "ki_keywords" "linear regulator ldo fixed positive"
 				(at 0 0 0)
 				(effects
 					(font
@@ -5299,9 +5253,18 @@
 					(hide yes)
 				)
 			)
-			(symbol "TLV70028_SOT353_0_1"
+			(property "ki_fp_filters" "SOT?23*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "AP2127N-2.8_0_1"
 				(rectangle
-					(start -5.08 4.445)
+					(start -5.08 1.905)
 					(end 5.08 -5.08)
 					(stroke
 						(width 0.254)
@@ -5312,29 +5275,11 @@
 					)
 				)
 			)
-			(symbol "TLV70028_SOT353_1_1"
+			(symbol "AP2127N-2.8_1_1"
 				(pin power_in line
-					(at -7.62 2.54 0)
-					(length 2.54)
-					(name "IN"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin input line
 					(at -7.62 0 0)
 					(length 2.54)
-					(name "EN"
+					(name "VI"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -5359,26 +5304,7 @@
 							)
 						)
 					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin no_connect line
-					(at 5.08 0 180)
-					(length 2.54)
-					(hide yes)
-					(name "NC"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "4"
+					(number "1"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -5387,16 +5313,16 @@
 					)
 				)
 				(pin power_out line
-					(at 7.62 2.54 180)
+					(at 7.62 0 180)
 					(length 2.54)
-					(name "OUT"
+					(name "VO"
 						(effects
 							(font
 								(size 1.27 1.27)
 							)
 						)
 					)
-					(number "5"
+					(number "2"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -6452,12 +6378,6 @@
 		(uuid "4aa6fc3c-2c2d-49e6-97bf-e4062be2cde1")
 	)
 	(junction
-		(at 342.9 72.39)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "4bec3efc-0208-49d9-a41e-2ddb330f81d8")
-	)
-	(junction
 		(at 359.41 328.93)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -6474,12 +6394,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "5dee460e-7a6b-4397-b13d-eb9a5a2e7bb4")
-	)
-	(junction
-		(at 342.9 97.79)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "5f572797-3f75-4cc6-a748-d61273e257f3")
 	)
 	(junction
 		(at 382.27 215.9)
@@ -6893,6 +6807,16 @@
 	)
 	(wire
 		(pts
+			(xy 350.52 80.01) (xy 350.52 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "17989a58-7958-4c57-88d3-75ea54ac9b1a")
+	)
+	(wire
+		(pts
 			(xy 246.38 64.77) (xy 248.92 64.77)
 		)
 		(stroke
@@ -7273,16 +7197,6 @@
 	)
 	(wire
 		(pts
-			(xy 342.9 72.39) (xy 342.9 74.93)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "6658e587-0f72-4197-9981-d04e7a7d76a0")
-	)
-	(wire
-		(pts
 			(xy 401.32 356.87) (xy 401.32 355.6)
 		)
 		(stroke
@@ -7320,6 +7234,16 @@
 			(type default)
 		)
 		(uuid "74b8ea34-a2e9-432d-9fce-f6d31fabca40")
+	)
+	(wire
+		(pts
+			(xy 350.52 105.41) (xy 350.52 107.95)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7735c096-5a6e-4b1e-87d9-3e6a09ccc729")
 	)
 	(wire
 		(pts
@@ -7480,16 +7404,6 @@
 			(type default)
 		)
 		(uuid "a22a22f3-a363-4072-bb67-ec0f57bfb333")
-	)
-	(wire
-		(pts
-			(xy 342.9 97.79) (xy 342.9 100.33)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "a328a7bc-167d-4a61-a124-f4d1abfdfb9d")
 	)
 	(wire
 		(pts
@@ -10855,6 +10769,78 @@
 		)
 	)
 	(symbol
+		(lib_id "Regulator_Linear:AP2127N-2.8")
+		(at 350.52 72.39 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "21d56768-ffb3-4015-ba1d-1b348d33497b")
+		(property "Reference" "U2"
+			(at 350.52 66.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "AP2127N-2.8TRG1"
+			(at 350.52 68.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-3"
+			(at 350.52 66.675 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+					(italic yes)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.diodes.com/assets/Datasheets/AP2127.pdf"
+			(at 350.52 72.39 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "300mA low dropout linear regulator, shutdown pin, 2.5V-6V input voltage, 2.8V fixed positive output, SOT-23 package"
+			(at 350.52 72.39 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "4c266be7-f538-4c56-8709-40f1786e5425")
+		)
+		(pin "3"
+			(uuid "4f2f270a-1cf6-4ef2-bdaa-9518b0599da8")
+		)
+		(pin "2"
+			(uuid "8371bf05-5285-49f2-b95e-190bcd0304f1")
+		)
+		(instances
+			(project ""
+				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
+					(reference "U2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:C")
 		(at 364.49 77.47 0)
 		(unit 1)
@@ -11194,84 +11180,6 @@
 			(project ""
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
 					(reference "R8")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Regulator_Linear:TLV70028_SOT353")
-		(at 350.52 74.93 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "3c293b26-afac-4d33-af9e-7a4cae821322")
-		(property "Reference" "U2"
-			(at 350.52 66.04 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "TLV70028DDCR"
-			(at 350.52 68.58 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Package_TO_SOT_SMD:SOT-353_SC-70-5"
-			(at 350.52 67.31 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-					(italic yes)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "http://www.ti.com/lit/ds/symlink/tlv700.pdf"
-			(at 350.52 73.66 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "200mA Low Dropout Voltage Regulator, Fixed Output 2.8V, SC70-5"
-			(at 350.52 74.93 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "4"
-			(uuid "0cea47f0-9a7f-4aa3-be14-6c7dcc8ad663")
-		)
-		(pin "1"
-			(uuid "505fabfa-0f49-4721-a6e7-e6b9b12561ef")
-		)
-		(pin "5"
-			(uuid "553e9b0b-23fb-453a-9052-d41e05c580a6")
-		)
-		(pin "3"
-			(uuid "a5d2f740-9688-4fbb-9809-47e8712b0e2d")
-		)
-		(pin "2"
-			(uuid "bc9ced73-2c25-4c92-91c8-fda69b9e37ec")
-		)
-		(instances
-			(project ""
-				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "U2")
 					(unit 1)
 				)
 			)
@@ -13131,84 +13039,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Regulator_Linear:TLV70015_SOT23-5")
-		(at 350.52 100.33 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "7376e716-414a-4910-bddc-a25eea7eeeb8")
-		(property "Reference" "U3"
-			(at 350.52 91.44 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "TLV70015DDCR"
-			(at 350.52 93.98 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-5"
-			(at 350.52 92.075 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-					(italic yes)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "http://www.ti.com/lit/ds/symlink/tlv700.pdf"
-			(at 350.52 99.06 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "200mA Low Dropout Voltage Regulator, Fixed Output 1.5V, SOT-23-5"
-			(at 350.52 100.33 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "f00b6e6f-f212-4a68-82b9-8ba3e287e6ed")
-		)
-		(pin "2"
-			(uuid "b2d058ed-01a3-41f8-9837-7eef6cd8e184")
-		)
-		(pin "3"
-			(uuid "b119797f-7fc0-460e-a08e-f3ba14ffdd57")
-		)
-		(pin "4"
-			(uuid "4e733ffa-4cc2-44f5-845f-8aff1bb5ecd3")
-		)
-		(pin "5"
-			(uuid "537bbf25-49b2-42e9-8955-baf813393c9d")
-		)
-		(instances
-			(project ""
-				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "U3")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Oscillator:ASV-xxxMHz")
 		(at 350.52 49.53 0)
 		(unit 1)
@@ -14704,6 +14534,78 @@
 			(project ""
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
 					(reference "FB1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Regulator_Linear:AP2127N-1.8")
+		(at 350.52 97.79 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "b01399d7-777c-4c79-a343-06148a366c69")
+		(property "Reference" "U3"
+			(at 350.52 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "AP2127N-1.8"
+			(at 350.52 93.98 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-3"
+			(at 350.52 92.075 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+					(italic yes)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.diodes.com/assets/Datasheets/AP2127.pdf"
+			(at 350.52 97.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "300mA low dropout linear regulator, shutdown pin, 2.5V-6V input voltage, 1.8V fixed positive output, SOT-23 package"
+			(at 350.52 97.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "e007147c-2aeb-4889-9992-cae638e80505")
+		)
+		(pin "3"
+			(uuid "ed7fc237-1fe3-4577-869b-72d7d29f3224")
+		)
+		(pin "1"
+			(uuid "c4227290-20ce-4cac-9f3a-5424c31cf26b")
+		)
+		(instances
+			(project ""
+				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
+					(reference "U3")
 					(unit 1)
 				)
 			)
