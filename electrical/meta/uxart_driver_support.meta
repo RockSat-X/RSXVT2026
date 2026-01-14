@@ -156,6 +156,9 @@
 #if TARGET_NAME_IS_VehicleFlightComputer
     #error Target 'VehicleFlightComputer' defines no handle for the 'UXART' driver.
 #endif
+#if TARGET_NAME_IS_MainCameraSystem
+    #error Target 'MainCameraSystem' defines no handle for the 'UXART' driver.
+#endif
 #if TARGET_NAME_IS_DemoStepper
     enum UXARTHandle : u32
     {

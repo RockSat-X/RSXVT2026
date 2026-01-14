@@ -3174,6 +3174,8 @@
 #endif
 #if TARGET_NAME_IS_VehicleFlightComputer
 #endif
+#if TARGET_NAME_IS_MainCameraSystem
+#endif
 #if TARGET_NAME_IS_DemoStepper
     #if STPY_IMPLEMENTATION
         enum NVICInterrupt : u32
@@ -3818,10 +3820,10 @@
             #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_LOW__ovcam_power_down GPIO_BSRR_BR
             #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__ovcam_power_down A
             #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__ovcam_power_down 10
-            #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_HIGH__ovcam_restart GPIO_BSRR_BS
-            #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_LOW__ovcam_restart GPIO_BSRR_BR
-            #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__ovcam_restart C
-            #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__ovcam_restart 5
+            #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_HIGH__ovcam_reset GPIO_BSRR_BS
+            #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_LOW__ovcam_reset GPIO_BSRR_BR
+            #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__ovcam_reset C
+            #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__ovcam_reset 5
             #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__ovcam_i2c_clock B
             #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__ovcam_i2c_clock 10
             #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__ovcam_i2c_clock

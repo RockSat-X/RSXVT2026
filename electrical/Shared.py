@@ -721,7 +721,6 @@ TARGETS = (
 
         kicad_project = 'VehicleFlightComputer',
 
-
         gpios = (
             ('led_channel_red'            , 'C0'  , 'OUTPUT'    , { 'initlvl' : False, 'active' : False }),
             ('led_channel_green'          , 'C1'  , 'OUTPUT'    , { 'initlvl' : False, 'active' : False }),
@@ -778,6 +777,62 @@ TARGETS = (
             ('vn100_tare_restore'         , 'C13' , None        , {                                     }),
             ('vn100_sync_out'             , 'H0'  , None        , {                                     }),
             ('vn100_sync_in'              , 'C5'  , None        , {                                     }),
+        ),
+
+        interrupts = None,
+
+        drivers = (),
+
+        use_freertos    = False,
+        main_stack_size = 8192,
+        schema          = None,
+
+    ),
+
+
+
+    ########################################
+
+
+
+    types.SimpleNamespace(
+
+        name              = 'MainCameraSystem',
+        mcu               = 'STM32H533VET6',
+        source_file_paths = (),
+
+        kicad_project = 'MainCameraSystem',
+
+        gpios = (
+            ('led_channel_red'  , 'E0' , 'OUTPUT'   , { 'initlvl' : False, 'active' : False                        }),
+            ('led_channel_green', 'C1' , 'OUTPUT'   , { 'initlvl' : False, 'active' : False                        }),
+            ('led_channel_blue' , 'E3' , 'OUTPUT'   , { 'initlvl' : False, 'active' : False                        }),
+            ('stlink_tx'        , 'A2' , 'ALTERNATE', { 'altfunc' : 'USART2_TX'                                    }),
+            ('stlink_rx'        , 'A3' , 'ALTERNATE', { 'altfunc' : 'USART2_RX'                                    }),
+            ('swdio'            , 'A13', None       , {                                                            }),
+            ('swclk'            , 'A14', None       , {                                                            }),
+            ('swo'              , 'B3' , None       , {                                                            }),
+            ('sd_cmd'           , 'D2' , 'ALTERNATE', { 'altfunc' : 'SDMMC1_CMD'                                   }),
+            ('sd_data_0'        , 'C8' , 'ALTERNATE', { 'altfunc' : 'SDMMC1_D0'                                    }),
+            ('sd_data_1'        , 'C9' , 'ALTERNATE', { 'altfunc' : 'SDMMC1_D1'                                    }),
+            ('sd_data_2'        , 'C10', 'ALTERNATE', { 'altfunc' : 'SDMMC1_D2'                                    }),
+            ('sd_data_3'        , 'C11', 'ALTERNATE', { 'altfunc' : 'SDMMC1_D3'                                    }),
+            ('sd_clock'         , 'C12', 'ALTERNATE', { 'altfunc' : 'SDMMC1_CK'                                    }),
+            ('ovcam_y2'         , 'C6' , 'ALTERNATE', { 'altfunc' : 'DCMI_D0'                                      }),
+            ('ovcam_y3'         , 'C7' , 'ALTERNATE', { 'altfunc' : 'DCMI_D1'                                      }),
+            ('ovcam_y4'         , 'B15', 'ALTERNATE', { 'altfunc' : 'DCMI_D2'                                      }),
+            ('ovcam_y5'         , 'E2' , 'ALTERNATE', { 'altfunc' : 'DCMI_D3'                                      }),
+            ('ovcam_y6'         , 'E4' , 'ALTERNATE', { 'altfunc' : 'DCMI_D4'                                      }),
+            ('ovcam_y7'         , 'B6' , 'ALTERNATE', { 'altfunc' : 'DCMI_D5'                                      }),
+            ('ovcam_y8'         , 'B8' , 'ALTERNATE', { 'altfunc' : 'DCMI_D6'                                      }),
+            ('ovcam_y9'         , 'B4' , 'ALTERNATE', { 'altfunc' : 'DCMI_D7'                                      }),
+            ('ovcam_pixel_clock', 'A6' , 'ALTERNATE', { 'altfunc' : 'DCMI_PIXCLK'                                  }),
+            ('ovcam_vsync'      , 'B7' , 'ALTERNATE', { 'altfunc' : 'DCMI_VSYNC'                                   }),
+            ('ovcam_hsync'      , 'A4' , 'ALTERNATE', { 'altfunc' : 'DCMI_HSYNC'                                   }), # Note that SB22 should be shorted, SB3 and SB7 open.
+            ('ovcam_power_down' , 'E5' , 'OUTPUT'   , { 'initlvl' : True                                           }),
+            ('ovcam_reset'      , 'E6' , 'OUTPUT'   , { 'initlvl' : False                                          }),
+            ('ovcam_i2c_clock'  , 'B10', 'ALTERNATE', { 'altfunc' : 'I2C2_SCL', 'open_drain' : True, 'pull' : 'UP' }),
+            ('ovcam_i2c_data'   , 'B12', 'ALTERNATE', { 'altfunc' : 'I2C2_SDA', 'open_drain' : True, 'pull' : 'UP' }),
         ),
 
         interrupts = None,
@@ -884,27 +939,27 @@ TARGETS = (
         kicad_project = None,
 
         gpios = (
-            ('led_green'           , 'A5' , 'OUTPUT'   , { 'initlvl' : False                                          }),
-            ('stlink_tx'           , 'A2' , 'ALTERNATE', { 'altfunc' : 'USART2_TX'                                    }),
-            ('stlink_rx'           , 'A3' , 'ALTERNATE', { 'altfunc' : 'USART2_RX'                                    }),
-            ('swdio'               , 'A13', None       , {                                                            }),
-            ('swclk'               , 'A14', None       , {                                                            }),
-            ('button'              , 'C13', 'INPUT'    , { 'pull'    : None, 'active' : True                          }),
-            ('ovcam_data_0'        , 'C6' , 'ALTERNATE', { 'altfunc' : 'DCMI_D0'                                      }),
-            ('ovcam_data_1'        , 'C7' , 'ALTERNATE', { 'altfunc' : 'DCMI_D1'                                      }),
-            ('ovcam_data_2'        , 'B15', 'ALTERNATE', { 'altfunc' : 'DCMI_D2'                                      }),
-            ('ovcam_data_3'        , 'C9' , 'ALTERNATE', { 'altfunc' : 'DCMI_D3'                                      }),
-            ('ovcam_data_4'        , 'C11', 'ALTERNATE', { 'altfunc' : 'DCMI_D4'                                      }),
-            ('ovcam_data_5'        , 'B6' , 'ALTERNATE', { 'altfunc' : 'DCMI_D5'                                      }),
-            ('ovcam_data_6'        , 'B8' , 'ALTERNATE', { 'altfunc' : 'DCMI_D6'                                      }),
-            ('ovcam_data_7'        , 'B4' , 'ALTERNATE', { 'altfunc' : 'DCMI_D7'                                      }),
-            ('ovcam_pixel_clock'   , 'A6' , 'ALTERNATE', { 'altfunc' : 'DCMI_PIXCLK'                                  }),
-            ('ovcam_vsync'         , 'B7' , 'ALTERNATE', { 'altfunc' : 'DCMI_VSYNC'                                   }),
-            ('ovcam_hsync'         , 'A4' , 'ALTERNATE', { 'altfunc' : 'DCMI_HSYNC'                                   }), # Note that SB22 should be shorted, SB3 and SB7 open.
-            ('ovcam_power_down'    , 'A10', 'OUTPUT'   , { 'initlvl' : True                                           }),
-            ('ovcam_restart'       , 'C5' , 'OUTPUT'   , { 'initlvl' : False                                          }),
-            ('ovcam_i2c_clock'     , 'B10', 'ALTERNATE', { 'altfunc' : 'I2C2_SCL', 'open_drain' : True, 'pull' : 'UP' }),
-            ('ovcam_i2c_data'      , 'B12', 'ALTERNATE', { 'altfunc' : 'I2C2_SDA', 'open_drain' : True, 'pull' : 'UP' }),
+            ('led_green'        , 'A5' , 'OUTPUT'   , { 'initlvl' : False                                          }),
+            ('stlink_tx'        , 'A2' , 'ALTERNATE', { 'altfunc' : 'USART2_TX'                                    }),
+            ('stlink_rx'        , 'A3' , 'ALTERNATE', { 'altfunc' : 'USART2_RX'                                    }),
+            ('swdio'            , 'A13', None       , {                                                            }),
+            ('swclk'            , 'A14', None       , {                                                            }),
+            ('button'           , 'C13', 'INPUT'    , { 'pull'    : None, 'active' : True                          }),
+            ('ovcam_data_0'     , 'C6' , 'ALTERNATE', { 'altfunc' : 'DCMI_D0'                                      }),
+            ('ovcam_data_1'     , 'C7' , 'ALTERNATE', { 'altfunc' : 'DCMI_D1'                                      }),
+            ('ovcam_data_2'     , 'B15', 'ALTERNATE', { 'altfunc' : 'DCMI_D2'                                      }),
+            ('ovcam_data_3'     , 'C9' , 'ALTERNATE', { 'altfunc' : 'DCMI_D3'                                      }),
+            ('ovcam_data_4'     , 'C11', 'ALTERNATE', { 'altfunc' : 'DCMI_D4'                                      }),
+            ('ovcam_data_5'     , 'B6' , 'ALTERNATE', { 'altfunc' : 'DCMI_D5'                                      }),
+            ('ovcam_data_6'     , 'B8' , 'ALTERNATE', { 'altfunc' : 'DCMI_D6'                                      }),
+            ('ovcam_data_7'     , 'B4' , 'ALTERNATE', { 'altfunc' : 'DCMI_D7'                                      }),
+            ('ovcam_pixel_clock', 'A6' , 'ALTERNATE', { 'altfunc' : 'DCMI_PIXCLK'                                  }),
+            ('ovcam_vsync'      , 'B7' , 'ALTERNATE', { 'altfunc' : 'DCMI_VSYNC'                                   }),
+            ('ovcam_hsync'      , 'A4' , 'ALTERNATE', { 'altfunc' : 'DCMI_HSYNC'                                   }), # Note that SB22 should be shorted, SB3 and SB7 open.
+            ('ovcam_power_down' , 'A10', 'OUTPUT'   , { 'initlvl' : True                                           }),
+            ('ovcam_reset'      , 'C5' , 'OUTPUT'   , { 'initlvl' : False                                          }),
+            ('ovcam_i2c_clock'  , 'B10', 'ALTERNATE', { 'altfunc' : 'I2C2_SCL', 'open_drain' : True, 'pull' : 'UP' }),
+            ('ovcam_i2c_data'   , 'B12', 'ALTERNATE', { 'altfunc' : 'I2C2_SDA', 'open_drain' : True, 'pull' : 'UP' }),
         ),
 
         interrupts = (

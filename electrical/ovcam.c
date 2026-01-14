@@ -555,12 +555,12 @@ OVCAM_init(void)
     // Reset-cycle the camera module.
 
     GPIO_HIGH(ovcam_power_down); // Pulling high so the camera is powered down.
-    GPIO_LOW(ovcam_restart);     // Pulling low so the camera is resetting.
+    GPIO_LOW(ovcam_reset);       // Pulling low so the camera is resetting.
 
     spinlock_nop(100'000); // TODO something less ad-hoc?
 
     GPIO_LOW(ovcam_power_down);
-    GPIO_HIGH(ovcam_restart);
+    GPIO_HIGH(ovcam_reset);
 
     spinlock_nop(100'000); // TODO something less ad-hoc?
 
