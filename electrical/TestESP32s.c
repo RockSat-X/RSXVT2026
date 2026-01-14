@@ -84,7 +84,7 @@ main(void)
                     .nonredundant.crc                        = 0x00,
                 };
 
-            payload.nonredundant.crc = calculate_crc((u8*) &payload, sizeof(payload) - sizeof(payload.nonredundant.crc));
+            payload.nonredundant.crc = ESP32_calculate_crc((u8*) &payload, sizeof(payload) - sizeof(payload.nonredundant.crc));
 
             GPIO_HIGH(debug);
             _UXART_tx_raw_nonreentrant(UXARTHandle_esp32, (u8*) &(u16) { PACKET_ESP32_START_TOKEN }, sizeof(u16));

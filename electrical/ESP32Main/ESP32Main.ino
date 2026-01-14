@@ -198,7 +198,7 @@ loop(void)
 
         // Check CRC checksum.
 
-        u8 digest = calculate_crc((u8*) packet, sizeof(*packet));
+        u8 digest = ESP32_calculate_crc((u8*) packet, sizeof(*packet));
 
         if (digest)
         {
@@ -260,7 +260,7 @@ loop(void)
 
         // Check CRC checksum.
 
-        u8 digest = calculate_crc((u8*) packet, sizeof(*packet));
+        u8 digest = ESP32_calculate_crc((u8*) packet, sizeof(*packet));
 
         if (digest)
         {

@@ -1,9 +1,21 @@
-#define COMPILING_ESP32 true
+#define COMPILING_ESP32        true
+#define GENERATE_DUMMY_PACKETS false
 #include "../system.h"
 
 
 
-const static u8 MAIN_ESP32_MAC_ADDRESS[] = { 0x10, 0xB4, 0x1D, 0xE8, 0x97, 0x28 };
+const static u8 MAIN_ESP32_MAC_ADDRESS[] =
+    {
+        #if __has_include("MAIN_ESP32_MAC_ADDRESS.txt")
+            #include "MAIN_ESP32_MAC_ADDRESS.txt"
+        #else
+            #error "Make the file './electrical/ESP32Vehicle/MAIN_ESP32_MAC_ADDRESS.txt' with the MAC address of the other ESP32 please! Example of what the file should only contain: '0x10, 0xB4, 0x1D, 0xE8, 0x97, 0x28'."
+        #endif
+    };
+
+static_assert(countof(MAIN_ESP32_MAC_ADDRESS) == 6);
+
+
 
 static struct PacketESP32 packet_esp32_buffer[128]       = {};
 static volatile u32       packet_esp32_writer            = 0;
@@ -29,6 +41,47 @@ static i32                packet_lora_overrun_count      = 0;
 
 
 
+// TODO There seems to be a bug where the ring-buffer reader
+// gets ahead of the writer somehow, and as a result, the
+// buffer seems to be always full but the vehicle will
+// end up transmitting stale packet data.
+// There are some if-statements with infinite loops in them
+// to catch these instances. I, however, haven't been able
+// to seen the bug reproduce at all yet.
+// If need be, we can easily patch this by ensuring the reader
+// is always behind the writer if we find it not to be so;
+// this is just a band-aid to the underlying issue, but given
+// it's so rare, it just might be fine.
+
+#define TRAP_INVALID_RING_BUFFER_CONDITION(PERIOD_MS)                                 \
+    do                                                                                \
+    {                                                                                 \
+        if (packet_esp32_writer - packet_esp32_reader > countof(packet_esp32_buffer)) \
+        {                                                                             \
+            for (;;)                                                                  \
+            {                                                                         \
+                digitalWrite(BUILTIN_LED, true);                                      \
+                delay(10);                                                            \
+                digitalWrite(BUILTIN_LED, false);                                     \
+                delay(PERIOD_MS);                                                     \
+            }                                                                         \
+        }                                                                             \
+                                                                                      \
+        if (packet_lora_writer - packet_lora_reader > countof(packet_lora_buffer))    \
+        {                                                                             \
+            for (;;)                                                                  \
+            {                                                                         \
+                digitalWrite(BUILTIN_LED, false);                                     \
+                delay(10);                                                            \
+                digitalWrite(BUILTIN_LED, true);                                      \
+                delay(PERIOD_MS);                                                     \
+            }                                                                         \
+        }                                                                             \
+    }                                                                                 \
+    while (false)
+
+
+
 extern void
 packet_esp32_transmission_callback
 (
@@ -37,14 +90,7 @@ packet_esp32_transmission_callback
 )
 {
 
-    if (packet_esp32_writer == packet_esp32_reader) // TODO @/`Ring-Buffer Bug`.
-    {
-        for (;;)
-        {
-            digitalWrite(BUILTIN_LED, !digitalRead(BUILTIN_LED));
-            delay(1000);
-        }
-    }
+    TRAP_INVALID_RING_BUFFER_CONDITION(1000);
 
     packet_esp32_reader            += 1;
     packet_esp32_transmission_busy  = false;
@@ -57,14 +103,7 @@ extern void
 packet_lora_callback(void)
 {
 
-    if (packet_lora_writer == packet_lora_reader) // TODO @/`Ring-Buffer Bug`.
-    {
-        for (;;)
-        {
-            digitalWrite(BUILTIN_LED, !digitalRead(BUILTIN_LED));
-            delay(2000);
-        }
-    }
+    TRAP_INVALID_RING_BUFFER_CONDITION(2000);
 
     packet_lora_reader            += 1;
     packet_lora_transmission_busy  = false;
@@ -125,6 +164,79 @@ setup(void)
 
 
 extern void
+process_payload(struct PacketESP32* payload)
+{
+
+    u8 digest = ESP32_calculate_crc((u8*) payload, sizeof(*payload));
+
+    last_uart_packet_timestamp_ms  = payload->nonredundant.timestamp_ms;
+    packet_uart_packet_count      += 1;
+
+
+
+    // If there's no corruption between vehicle FC and ESP32,
+    // we're ready to send the packet from the vehicle ESP32 to the main ESP32.
+
+    if (digest)
+    {
+        packet_uart_crc_error_count += 1;
+    }
+    else
+    {
+
+        // Try pushing packet into ESP-NOW ring-buffer.
+
+        if (packet_esp32_writer - packet_esp32_reader < countof(packet_esp32_buffer))
+        {
+
+            struct PacketESP32*                                 packet                  = &packet_esp32_buffer[packet_esp32_writer % countof(packet_esp32_buffer)];
+            static typeof(packet->nonredundant.sequence_number) current_sequence_number = 0;
+
+            *packet                               = *payload;
+            packet->nonredundant.sequence_number  = current_sequence_number;
+            packet->nonredundant.crc              = ESP32_calculate_crc((u8*) packet, sizeof(*packet) - sizeof(packet->nonredundant.crc));
+            current_sequence_number              += 1;
+            packet_esp32_writer                  += 1;
+            packet_esp32_packet_count            += 1;
+
+        }
+        else
+        {
+            packet_esp32_overrun_count += 1;
+        }
+
+
+
+        // Try pushing packet into LoRa ring-buffer.
+
+        if (packet_lora_writer - packet_lora_reader < countof(packet_lora_buffer))
+        {
+
+            struct PacketLoRa*                     packet                  = &packet_lora_buffer[packet_lora_writer % countof(packet_lora_buffer)];
+            static typeof(packet->sequence_number) current_sequence_number = 0;
+
+            *packet                   = payload->nonredundant;
+            packet->sequence_number   = current_sequence_number;
+            packet->crc               = ESP32_calculate_crc((u8*) packet, sizeof(*packet) - sizeof(packet->crc));
+            current_sequence_number  += 1;
+            packet_lora_writer       += 1;
+            packet_lora_packet_count += 1;
+
+        }
+        else
+        {
+            packet_lora_overrun_count += 1;
+        }
+
+    }
+
+    TRAP_INVALID_RING_BUFFER_CONDITION(100);
+
+}
+
+
+
+extern void
 loop(void)
 {
 
@@ -136,8 +248,7 @@ loop(void)
 
     // See if we received data over UART.
     // We determine the start of a payload
-    // by looking for the magic starting token
-    // in place of the sequence number.
+    // by looking for the magic starting token.
 
     while
     (
@@ -148,110 +259,43 @@ loop(void)
     )
     {
 
-        // Get the rest of the payload data.
-
         struct PacketESP32 payload = {};
 
         Serial1.readBytes((char*) &payload, sizeof(payload));
 
-        u8 digest = calculate_crc((u8*) &payload, sizeof(payload));
-
-        last_uart_packet_timestamp_ms  = payload.nonredundant.timestamp_ms;
-        packet_uart_packet_count      += 1;
-
-
-
-        // If there's no corruption between vehicle FC and ESP32,
-        // we're ready to send the packet from the vehicle ESP32 to the main ESP32.
-
-        if (digest)
-        {
-            packet_uart_crc_error_count += 1;
-        }
-        else
-        {
-
-            // Try pushing packet into ESP-NOW ring-buffer.
-
-            if (packet_esp32_writer - packet_esp32_reader < countof(packet_esp32_buffer))
-            {
-
-                struct PacketESP32*                                 packet                  = &packet_esp32_buffer[packet_esp32_writer % countof(packet_esp32_buffer)];
-                static typeof(packet->nonredundant.sequence_number) current_sequence_number = 0;
-
-                *packet                               = payload;
-                packet->nonredundant.sequence_number  = current_sequence_number;
-                packet->nonredundant.crc              = calculate_crc((u8*) packet, sizeof(*packet) - sizeof(packet->nonredundant.crc));
-                current_sequence_number              += 1;
-                packet_esp32_writer                  += 1;
-                packet_esp32_packet_count            += 1;
-
-            }
-            else
-            {
-                packet_esp32_overrun_count += 1;
-            }
-
-
-
-            // Try pushing packet into LoRa ring-buffer.
-
-            if (packet_lora_writer - packet_lora_reader < countof(packet_lora_buffer))
-            {
-
-                struct PacketLoRa*                     packet                  = &packet_lora_buffer[packet_lora_writer % countof(packet_lora_buffer)];
-                static typeof(packet->sequence_number) current_sequence_number = 0;
-
-                *packet                   = payload.nonredundant;
-                packet->sequence_number   = current_sequence_number;
-                packet->crc               = calculate_crc((u8*) packet, sizeof(*packet) - sizeof(packet->crc));
-                current_sequence_number  += 1;
-                packet_lora_writer       += 1;
-                packet_lora_packet_count += 1;
-
-            }
-            else
-            {
-                packet_lora_overrun_count += 1;
-            }
-
-        }
+        process_payload(&payload);
 
     }
 
-    if (packet_esp32_writer - packet_esp32_reader > countof(packet_esp32_buffer)) // TODO @/`Ring-Buffer Bug`.
+
+
+    // For testing purposes, the ESP32 will make up payloads
+    // so an external MCU with UART connection isn't necessary.
+
+    #if GENERATE_DUMMY_PACKETS
     {
 
-        Serial.println(packet_esp32_writer);
-        Serial.println(packet_esp32_reader);
-        Serial.println(packet_esp32_writer - packet_esp32_reader);
-        Serial.println(countof(packet_esp32_buffer));
-        Serial.println(packet_esp32_writer - packet_esp32_reader > countof(packet_esp32_buffer));
+        // ESP-NOW will have higher throughput than LoRa,
+        // so to prevent excessive overruns, we generate a
+        // dummy payload whenever the ESP-NOW buffer can handle it.
 
-        for (;;)
+        if (packet_esp32_writer - packet_esp32_reader < countof(packet_esp32_buffer))
         {
-            digitalWrite(BUILTIN_LED, !digitalRead(BUILTIN_LED));
-            delay(100);
+            struct PacketESP32 payload = {};
+
+            payload.nonredundant.timestamp_ms = millis();
+
+            static typeof(payload.nonredundant.sequence_number) dummy_sequence_number = 0;
+            payload.nonredundant.sequence_number   = dummy_sequence_number;
+            dummy_sequence_number                += 1;
+
+            payload.nonredundant.crc = ESP32_calculate_crc((u8*) &payload, sizeof(payload) - sizeof(payload.nonredundant.crc));
+
+            process_payload(&payload);
         }
 
     }
-
-    if (packet_lora_writer - packet_lora_reader > countof(packet_lora_buffer)) // TODO @/`Ring-Buffer Bug`.
-    {
-
-        Serial.println(packet_lora_writer);
-        Serial.println(packet_lora_reader);
-        Serial.println(packet_lora_writer - packet_lora_reader);
-        Serial.println(countof(packet_lora_buffer));
-        Serial.println(packet_lora_writer - packet_lora_reader > countof(packet_lora_buffer));
-
-        for (;;)
-        {
-            digitalWrite(BUILTIN_LED, !digitalRead(BUILTIN_LED));
-            delay(500);
-        }
-
-    }
+    #endif
 
 
 
@@ -314,21 +358,6 @@ loop(void)
     }
 
 }
-
-
-
-// @/`Ring-Buffer Bug`:
-// There seems to be a bug where the ring-buffer reader
-// gets ahead of the writer somehow, and as a result, the
-// buffer seems to be always full but the vehicle will
-// end up transmitting stale packet data.
-// There are some if-statements with infinite loops in them
-// to catch these instances. I, however, haven't been able
-// to seen the bug reproduce at all yet.
-// If need be, we can easily patch this by ensuring the reader
-// is always behind the writer if we find it not to be so;
-// this is just a band-aid to the underlying issue, but given
-// it's so rare, it just might be fine.
 
 
 
