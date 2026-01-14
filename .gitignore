@@ -17,3 +17,8 @@ fp-info-cache
 
 # SolidWorks.
 ~$*
+
+
+
+# Misc.
+MAIN_ESP32_MAC_ADDRESS.txt

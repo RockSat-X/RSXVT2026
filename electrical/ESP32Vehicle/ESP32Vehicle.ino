@@ -3,7 +3,18 @@
 
 
 
-const static u8 MAIN_ESP32_MAC_ADDRESS[] = { 0x10, 0xB4, 0x1D, 0xE8, 0x97, 0x28 };
+const static u8 MAIN_ESP32_MAC_ADDRESS[] =
+    {
+        #if __has_include("MAIN_ESP32_MAC_ADDRESS.txt")
+            #include "MAIN_ESP32_MAC_ADDRESS.txt"
+        #else
+            #error "Make the file './electrical/ESP32Vehicle/MAIN_ESP32_MAC_ADDRESS.txt' with the MAC address of the other ESP32 please! Example of what the file should only contain: '0x10, 0xB4, 0x1D, 0xE8, 0x97, 0x28'."
+        #endif
+    };
+
+static_assert(countof(MAIN_ESP32_MAC_ADDRESS) == 6);
+
+
 
 static struct PacketESP32 packet_esp32_buffer[128]       = {};
 static volatile u32       packet_esp32_writer            = 0;
