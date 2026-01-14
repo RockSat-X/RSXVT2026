@@ -1,4 +1,5 @@
-#define COMPILING_ESP32 true
+#define COMPILING_ESP32        true
+#define GENERATE_DUMMY_PACKETS false
 #include "../system.h"
 
 
@@ -136,96 +137,68 @@ setup(void)
 
 
 extern void
-loop(void)
+process_payload(struct PacketESP32* payload)
 {
 
-    // Heart-beat.
+    u8 digest = ESP32_calculate_crc((u8*) payload, sizeof(*payload));
 
-    digitalWrite(BUILTIN_LED, !digitalRead(BUILTIN_LED));
+    last_uart_packet_timestamp_ms  = payload->nonredundant.timestamp_ms;
+    packet_uart_packet_count      += 1;
 
 
 
-    // See if we received data over UART.
-    // We determine the start of a payload
-    // by looking for the magic starting token
-    // in place of the sequence number.
+    // If there's no corruption between vehicle FC and ESP32,
+    // we're ready to send the packet from the vehicle ESP32 to the main ESP32.
 
-    while
-    (
-        Serial1.available() >= sizeof(struct PacketESP32)
-        && Serial1.read() == (PACKET_ESP32_START_TOKEN & 0xFF)
-        && Serial1.peek() == ((PACKET_ESP32_START_TOKEN >> 8) & 0xFF)
-        && Serial1.read() == ((PACKET_ESP32_START_TOKEN >> 8) & 0xFF)
-    )
+    if (digest)
+    {
+        packet_uart_crc_error_count += 1;
+    }
+    else
     {
 
-        // Get the rest of the payload data.
+        // Try pushing packet into ESP-NOW ring-buffer.
 
-        struct PacketESP32 payload = {};
-
-        Serial1.readBytes((char*) &payload, sizeof(payload));
-
-        u8 digest = ESP32_calculate_crc((u8*) &payload, sizeof(payload));
-
-        last_uart_packet_timestamp_ms  = payload.nonredundant.timestamp_ms;
-        packet_uart_packet_count      += 1;
-
-
-
-        // If there's no corruption between vehicle FC and ESP32,
-        // we're ready to send the packet from the vehicle ESP32 to the main ESP32.
-
-        if (digest)
+        if (packet_esp32_writer - packet_esp32_reader < countof(packet_esp32_buffer))
         {
-            packet_uart_crc_error_count += 1;
+
+            struct PacketESP32*                                 packet                  = &packet_esp32_buffer[packet_esp32_writer % countof(packet_esp32_buffer)];
+            static typeof(packet->nonredundant.sequence_number) current_sequence_number = 0;
+
+            *packet                               = *payload;
+            packet->nonredundant.sequence_number  = current_sequence_number;
+            packet->nonredundant.crc              = ESP32_calculate_crc((u8*) packet, sizeof(*packet) - sizeof(packet->nonredundant.crc));
+            current_sequence_number              += 1;
+            packet_esp32_writer                  += 1;
+            packet_esp32_packet_count            += 1;
+
         }
         else
         {
-
-            // Try pushing packet into ESP-NOW ring-buffer.
-
-            if (packet_esp32_writer - packet_esp32_reader < countof(packet_esp32_buffer))
-            {
-
-                struct PacketESP32*                                 packet                  = &packet_esp32_buffer[packet_esp32_writer % countof(packet_esp32_buffer)];
-                static typeof(packet->nonredundant.sequence_number) current_sequence_number = 0;
-
-                *packet                               = payload;
-                packet->nonredundant.sequence_number  = current_sequence_number;
-                packet->nonredundant.crc              = ESP32_calculate_crc((u8*) packet, sizeof(*packet) - sizeof(packet->nonredundant.crc));
-                current_sequence_number              += 1;
-                packet_esp32_writer                  += 1;
-                packet_esp32_packet_count            += 1;
-
-            }
-            else
-            {
-                packet_esp32_overrun_count += 1;
-            }
+            packet_esp32_overrun_count += 1;
+        }
 
 
 
-            // Try pushing packet into LoRa ring-buffer.
+        // Try pushing packet into LoRa ring-buffer.
 
-            if (packet_lora_writer - packet_lora_reader < countof(packet_lora_buffer))
-            {
+        if (packet_lora_writer - packet_lora_reader < countof(packet_lora_buffer))
+        {
 
-                struct PacketLoRa*                     packet                  = &packet_lora_buffer[packet_lora_writer % countof(packet_lora_buffer)];
-                static typeof(packet->sequence_number) current_sequence_number = 0;
+            struct PacketLoRa*                     packet                  = &packet_lora_buffer[packet_lora_writer % countof(packet_lora_buffer)];
+            static typeof(packet->sequence_number) current_sequence_number = 0;
 
-                *packet                   = payload.nonredundant;
-                packet->sequence_number   = current_sequence_number;
-                packet->crc               = ESP32_calculate_crc((u8*) packet, sizeof(*packet) - sizeof(packet->crc));
-                current_sequence_number  += 1;
-                packet_lora_writer       += 1;
-                packet_lora_packet_count += 1;
+            *packet                   = payload->nonredundant;
+            packet->sequence_number   = current_sequence_number;
+            packet->crc               = ESP32_calculate_crc((u8*) packet, sizeof(*packet) - sizeof(packet->crc));
+            current_sequence_number  += 1;
+            packet_lora_writer       += 1;
+            packet_lora_packet_count += 1;
 
-            }
-            else
-            {
-                packet_lora_overrun_count += 1;
-            }
-
+        }
+        else
+        {
+            packet_lora_overrun_count += 1;
         }
 
     }
@@ -263,6 +236,71 @@ loop(void)
         }
 
     }
+
+}
+
+
+
+extern void
+loop(void)
+{
+
+    // Heart-beat.
+
+    digitalWrite(BUILTIN_LED, !digitalRead(BUILTIN_LED));
+
+
+
+    // See if we received data over UART.
+    // We determine the start of a payload
+    // by looking for the magic starting token.
+
+    while
+    (
+        Serial1.available() >= sizeof(struct PacketESP32)
+        && Serial1.read() == (PACKET_ESP32_START_TOKEN & 0xFF)
+        && Serial1.peek() == ((PACKET_ESP32_START_TOKEN >> 8) & 0xFF)
+        && Serial1.read() == ((PACKET_ESP32_START_TOKEN >> 8) & 0xFF)
+    )
+    {
+
+        struct PacketESP32 payload = {};
+
+        Serial1.readBytes((char*) &payload, sizeof(payload));
+
+        process_payload(&payload);
+
+    }
+
+
+
+    // For testing purposes, the ESP32 will make up payloads
+    // so an external MCU with UART connection isn't necessary.
+
+    #if GENERATE_DUMMY_PACKETS
+    {
+
+        // ESP-NOW will have higher throughput than LoRa,
+        // so to prevent excessive overruns, we generate a
+        // dummy payload whenever the ESP-NOW buffer can handle it.
+
+        if (packet_esp32_writer - packet_esp32_reader < countof(packet_esp32_buffer))
+        {
+            struct PacketESP32 payload = {};
+
+            payload.nonredundant.timestamp_ms = millis();
+
+            static typeof(payload.nonredundant.sequence_number) dummy_sequence_number = 0;
+            payload.nonredundant.sequence_number   = dummy_sequence_number;
+            dummy_sequence_number                += 1;
+
+            payload.nonredundant.crc = ESP32_calculate_crc((u8*) &payload, sizeof(payload) - sizeof(payload.nonredundant.crc));
+
+            process_payload(&payload);
+        }
+
+    }
+    #endif
 
 
 
