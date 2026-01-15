@@ -778,8 +778,14 @@ def debug(parameters):
 
 @main_interface.new_verb(
     {
-        'description' : 'Open the COM serial port of the ST-Link.',
+        'description' : 'Open the COM serial port of the ST-Link (or SWO).',
         'more_help'   : True,
+    },
+    {
+        'name'        : 'swo',
+        'description' : 'Display the received SWO instead',
+        'type'        : bool,
+        'default'     : False,
     },
 )
 def talk(parameters):
@@ -795,51 +801,106 @@ def talk(parameters):
 
 
 
-    if sys.platform == 'linux':
-        make_sure_shell_command_exists('picocom')
-
     stlink = request_stlinks(specific_one = True)
 
-    try:
-
-        pxd.execute_shell_command(
-
-            # Picocom's pretty good!
-
-            bash = f'''
-                picocom --baud={STLINK_BAUD} --quiet --imap=lfcrlf {stlink.comport.device}
-            ''',
 
 
+    # Listen for SWO data.
 
-            # The only reason why PowerShell is used here is
-            # because there's no convenient way in Python to
-            # read a single character from STDIN with no blocking
-            # and buffering. Furthermore, the serial port on
-            # Windows seem to be buffered up, so data before the
-            # port is opened for reading is available to fetch;
-            # PySerial only returns data sent after the port is opened.
+    if parameters.swo:
 
-            powershell = f'''
-                $port = new-Object System.IO.Ports.SerialPort {stlink.comport.device},{STLINK_BAUD},None,8,one;
-                $port.Open();
-                try {{
-                    while ($true) {{
-                        Write-Host -NoNewline $port.ReadExisting();
-                        if ([System.Console]::KeyAvailable) {{
-                            $port.Write([System.Console]::ReadKey($true).KeyChar);
-                        }}
-                        Start-Sleep -Milliseconds 1;
-                    }}
-                }} finally {{
-                    $port.Close();
-                }}
-            '''
+        make_sure_shell_command_exists('STM32_Programmer_CLI')
 
+        LOG_FILE_PATH = pxd.make_main_relative_path('./build/swo.log')
+
+
+
+        # Create the file and empty it.
+
+        LOG_FILE_PATH.write_bytes(b'')
+
+
+
+        # Listen for the SWO data in the background.
+
+        command = f'STM32_Programmer_CLI --connect port=SWD index={stlink.probe_index} -startswv freq=150 portnumber=all {LOG_FILE_PATH.as_posix()}'
+
+        pxd.pxd_logger.info(f'$ {command}')
+
+        process = subprocess.Popen(
+            command,
+            shell  = True,
+            stdout = subprocess.PIPE,
+            stderr = subprocess.PIPE,
         )
 
-    except KeyboardInterrupt:
-        pass
+
+
+        # Get the data and process it.
+
+        log_file_handle = open(LOG_FILE_PATH, 'rb')
+
+        try:
+
+            while True:
+
+                data = log_file_handle.read()
+
+                if data:
+                    print(data.decode('UTF-8'), end = '')
+
+        except KeyboardInterrupt:
+            pass
+
+
+
+    # Transmit and receive data over the serial port.
+
+    else:
+
+        if sys.platform == 'linux':
+            make_sure_shell_command_exists('picocom')
+
+        try:
+
+            pxd.execute_shell_command(
+
+                # Picocom's pretty good!
+
+                bash = f'''
+                    picocom --baud={STLINK_BAUD} --quiet --imap=lfcrlf {stlink.comport.device}
+                ''',
+
+
+
+                # The only reason why PowerShell is used here is
+                # because there's no convenient way in Python to
+                # read a single character from STDIN with no blocking
+                # and buffering. Furthermore, the serial port on
+                # Windows seem to be buffered up, so data before the
+                # port is opened for reading is available to fetch;
+                # PySerial only returns data sent after the port is opened.
+
+                powershell = f'''
+                    $port = new-Object System.IO.Ports.SerialPort {stlink.comport.device},{STLINK_BAUD},None,8,one;
+                    $port.Open();
+                    try {{
+                        while ($true) {{
+                            Write-Host -NoNewline $port.ReadExisting();
+                            if ([System.Console]::KeyAvailable) {{
+                                $port.Write([System.Console]::ReadKey($true).KeyChar);
+                            }}
+                            Start-Sleep -Milliseconds 1;
+                        }}
+                    }} finally {{
+                        $port.Close();
+                    }}
+                '''
+
+            )
+
+        except KeyboardInterrupt:
+            pass
 
 
 
