@@ -1,6 +1,3 @@
-#if TARGET_NAME_IS_SandboxNucleoH7S3L8
-    #error Target 'SandboxNucleoH7S3L8' defines no handle for the 'SPI' driver.
-#endif
 #if TARGET_NAME_IS_SandboxNucleoH533RE
     #error Target 'SandboxNucleoH533RE' defines no handle for the 'SPI' driver.
 #endif
@@ -24,7 +21,7 @@
         };
     static void
     _SPI_driver_interrupt(enum SPIHandle handle);
-    INTERRUPT_SPI2
+    INTERRUPT_SPI2(void)
     {
         _SPI_driver_interrupt(SPIHandle_primary);
     }

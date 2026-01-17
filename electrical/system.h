@@ -80,156 +80,6 @@ typedef double             f64; static_assert(sizeof(f64) == 8);
 
 
 
-#ifndef COMPILING_FREERTOS_SOURCE_FILE
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-//
-// ESP32 related stuff.
-//
-
-
-
-#define PACKET_ESP32_START_TOKEN 0xBABE
-#define PACKET_LORA_START_TOKEN  0xCAFE
-
-pack_push
-
-    struct PacketLoRa
-    {
-        f32 quaternion_i;
-        f32 quaternion_j;
-        f32 quaternion_k;
-        f32 quaternion_r;
-        f32 accelerometer_x;
-        f32 accelerometer_y;
-        f32 accelerometer_z;
-        f32 gyro_x;
-        f32 gyro_y;
-        f32 gyro_z;
-        f32 computer_vision_confidence;
-        u16 timestamp_ms;
-        u8  sequence_number;
-        u8  crc;
-    };
-
-    struct PacketESP32
-    {
-        f32               magnetometer_x;
-        f32               magnetometer_y;
-        f32               magnetometer_z;
-        u8                image_chunk[190];
-        struct PacketLoRa nonredundant;
-    };
-
-pack_pop
-
-static_assert(sizeof(struct PacketESP32) <= 250);
-
-
-
-// TODO Document.
-// TODO Have look-up table.
-extern useret u8
-ESP32_calculate_crc(u8* data, i32 length)
-{
-    u8 crc = 0xFF;
-
-    for (i32 i = 0; i < length; i += 1)
-    {
-        crc ^= data[i];
-
-        for (i32 j = 0; j < 8; j += 1)
-        {
-            crc = (crc & (1 << 7))
-                ? (crc << 1) ^ 0x2F
-                : (crc << 1);
-        }
-    }
-
-    return crc;
-}
-
-
-
-#endif
-
-
-
-#if COMPILING_ESP32
-
-    #include <WiFi.h>
-    #include <esp_wifi.h>
-    #include <esp_now.h>
-    #include <RadioLib.h>
-
-
-
-    extern void
-    common_init_uart(void)
-    {
-        Serial1.setRxBufferSize(1024); // TODO Look into more?
-        Serial1.begin(400'000, SERIAL_8N1, D7, D6);
-        while (!Serial1);
-    }
-
-
-
-    // TODO Look more into the specs.
-    // TODO Make robust.
-    extern void
-    common_init_esp_now(void)
-    {
-
-        WiFi.mode(WIFI_STA);
-        esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE);
-
-        if (esp_now_init() != ESP_OK)
-        {
-            Serial.printf("Error initializing ESP-NOW.\n");
-            ESP.restart();
-            return;
-        }
-
-    }
-
-
-
-    static SX1262 packet_lora_radio = new Module(41, 39, 42, 40);
-
-
-
-    // TODO Look more into the specs.
-    // TODO Make robust.
-    extern void
-    common_init_lora()
-    {
-
-        if (packet_lora_radio.begin() != RADIOLIB_ERR_NONE)
-        {
-            Serial.printf("Failed to initialize radio.\n");
-            ESP.restart();
-            return;
-        }
-
-        packet_lora_radio.setFrequency(915.0);
-        packet_lora_radio.setBandwidth(7.8);
-        packet_lora_radio.setSpreadingFactor(6);
-        packet_lora_radio.setCodingRate(5);
-        packet_lora_radio.setOutputPower(22);
-        packet_lora_radio.setPreambleLength(8);
-        packet_lora_radio.setSyncWord(0x34);
-        packet_lora_radio.setCRC(true);
-
-        extern void packet_lora_callback(void);
-
-        packet_lora_radio.setDio1Action(packet_lora_callback);
-
-    }
-
-#endif
-
 #if !COMPILING_ESP32
 
 
@@ -263,10 +113,6 @@ halt_(b32 panicking);
 
 
 
-#if TARGET_MCU_IS_STM32H7S3L8H6
-    #include <deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h>
-#endif
-
 #if TARGET_MCU_IS_STM32H533RET6 || TARGET_MCU_IS_STM32H533VET6
     #include <deps/cmsis-device-h5/Include/stm32h533xx.h>
 #endif
@@ -289,12 +135,7 @@ extern nullptr_t INITIAL_STACK_ADDRESS[];
 
 // @/`STPY`.
 
-#ifndef COMPILING_FREERTOS_SOURCE_FILE
-    #define COMPILING_FREERTOS_SOURCE_FILE false
-#endif
-
 #include "deps/stpy/stpy.h"
-#define STPY_IMPLEMENTATION !COMPILING_FREERTOS_SOURCE_FILE
 #include "STPY_init.meta"
 /* #meta
 
@@ -358,10 +199,6 @@ static_assert(configMAX_SYSCALL_INTERRUPT_PRIORITY <= 255);
 
 
 
-#if !COMPILING_FREERTOS_SOURCE_FILE
-
-
-
 ////////////////////////////////////////////////////////////////////////////////
 //
 // FreeRTOS Support.
@@ -372,6 +209,16 @@ static_assert(configMAX_SYSCALL_INTERRUPT_PRIORITY <= 255);
 #include <deps/FreeRTOS_Kernel/include/FreeRTOS.h>
 #include <deps/FreeRTOS_Kernel/include/task.h>
 #include <deps/FreeRTOS_Kernel/include/semphr.h>
+
+#if TARGET_USES_FREERTOS
+    #if TARGET_MCU_IS_STM32H533RET6
+        #include <deps/FreeRTOS_Kernel/tasks.c>
+        #include <deps/FreeRTOS_Kernel/queue.c>
+        #include <deps/FreeRTOS_Kernel/list.c>
+        #include <deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure/port.c>
+        #include <deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure/portasm.c>
+    #endif
+#endif
 
 
 
@@ -533,7 +380,7 @@ static_assert(configMAX_SYSCALL_INTERRUPT_PRIORITY <= 255);
 
 
 __attribute__((naked))
-INTERRUPT_Reset
+INTERRUPT_Reset(void)
 {
     __asm volatile
     (R"(
@@ -597,7 +444,7 @@ INTERRUPT_Reset
 
 
 
-INTERRUPT_UsageFault
+INTERRUPT_UsageFault(void)
 {
 
     // @/pg 611/sec B3.2.15/`Armv7-M`.
@@ -611,7 +458,7 @@ INTERRUPT_UsageFault
 
 
 
-INTERRUPT_BusFault
+INTERRUPT_BusFault(void)
 {
 
     // @/pg 611/sec B3.2.15/`Armv7-M`.
@@ -632,7 +479,7 @@ INTERRUPT_BusFault
 
 
 
-INTERRUPT_Default
+INTERRUPT_Default(void)
 {
 
     // @/pg 599/sec B3.2.4/`Armv7-M`.
@@ -695,59 +542,22 @@ halt_(b32 panicking) // @/`Halting`.
 
     __disable_irq();
 
-    #if TARGET_NAME_IS_SandboxNucleoH7S3L8
+    for (;;)
+    {
+        u32 i = 10'000'000;
 
-        if (panicking)
+        for (; i > 1'000; i /= 2)
         {
-            GPIO_HIGH(led_red);
-        }
-        else
-        {
-            GPIO_HIGH(led_yellow);
-        }
-
-        for (;;)
-        {
-            u32 i = 10'000'000;
-
-            for (; i > 1'000; i /= 2)
+            for (u32 j = 0; j < 4; j += 1)
             {
-                for (u32 j = 0; j < 8; j += 1)
-                {
-                    spinlock_nop(i);
+                GPIO_HIGH(led_green);
+                spinlock_nop(i);
 
-                    if (panicking)
-                    {
-                        GPIO_TOGGLE(led_red);
-                    }
-                    else
-                    {
-                        GPIO_TOGGLE(led_yellow);
-                    }
-                }
+                GPIO_LOW(led_green);
+                spinlock_nop(i * (panicking ? 1 : 4));
             }
         }
-
-    #else // We're going to assume there's an LED we can toggle.
-
-        for (;;)
-        {
-            u32 i = 10'000'000;
-
-            for (; i > 1'000; i /= 2)
-            {
-                for (u32 j = 0; j < 4; j += 1)
-                {
-                    GPIO_HIGH(led_green);
-                    spinlock_nop(i);
-
-                    GPIO_LOW(led_green);
-                    spinlock_nop(i * (panicking ? 1 : 4));
-                }
-            }
-        }
-
-    #endif
+    }
 
 }
 
@@ -922,7 +732,7 @@ halt_(b32 panicking) // @/`Halting`.
                 for driver_interrupt_name in driver_interrupt_names:
 
                     Meta.line(f'''
-                        INTERRUPT_{driver_interrupt_name}
+                        INTERRUPT_{driver_interrupt_name}(void)
                         {{
                             _{driver_type.upper()}_driver_interrupt({driver_type}Handle_{driver_handle});
                         }}
@@ -954,6 +764,148 @@ halt_(b32 panicking) // @/`Halting`.
 
 
 #endif
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// ESP32 related stuff.
+//
+
+
+
+#define PACKET_ESP32_START_TOKEN 0xBABE
+#define PACKET_LORA_START_TOKEN  0xCAFE
+
+pack_push
+
+    struct PacketLoRa
+    {
+        f32 quaternion_i;
+        f32 quaternion_j;
+        f32 quaternion_k;
+        f32 quaternion_r;
+        f32 accelerometer_x;
+        f32 accelerometer_y;
+        f32 accelerometer_z;
+        f32 gyro_x;
+        f32 gyro_y;
+        f32 gyro_z;
+        f32 computer_vision_confidence;
+        u16 timestamp_ms;
+        u8  sequence_number;
+        u8  crc;
+    };
+
+    struct PacketESP32
+    {
+        f32               magnetometer_x;
+        f32               magnetometer_y;
+        f32               magnetometer_z;
+        u8                image_chunk[190];
+        struct PacketLoRa nonredundant;
+    };
+
+pack_pop
+
+static_assert(sizeof(struct PacketESP32) <= 250);
+
+
+
+// TODO Document.
+// TODO Have look-up table.
+extern useret u8
+ESP32_calculate_crc(u8* data, i32 length)
+{
+    u8 crc = 0xFF;
+
+    for (i32 i = 0; i < length; i += 1)
+    {
+        crc ^= data[i];
+
+        for (i32 j = 0; j < 8; j += 1)
+        {
+            crc = (crc & (1 << 7))
+                ? (crc << 1) ^ 0x2F
+                : (crc << 1);
+        }
+    }
+
+    return crc;
+}
+
+
+
+#if COMPILING_ESP32
+
+    #include <WiFi.h>
+    #include <esp_wifi.h>
+    #include <esp_now.h>
+    #include <RadioLib.h>
+
+
+
+    extern void
+    common_init_uart(void)
+    {
+        Serial1.setRxBufferSize(1024); // TODO Look into more?
+        Serial1.begin(400'000, SERIAL_8N1, D7, D6);
+        while (!Serial1);
+    }
+
+
+
+    // TODO Look more into the specs.
+    // TODO Make robust.
+    extern void
+    common_init_esp_now(void)
+    {
+
+        WiFi.mode(WIFI_STA);
+        esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE);
+
+        if (esp_now_init() != ESP_OK)
+        {
+            Serial.printf("Error initializing ESP-NOW.\n");
+            ESP.restart();
+            return;
+        }
+
+    }
+
+
+
+    static SX1262 packet_lora_radio = new Module(41, 39, 42, 40);
+
+
+
+    // TODO Look more into the specs.
+    // TODO Make robust.
+    extern void
+    common_init_lora()
+    {
+
+        if (packet_lora_radio.begin() != RADIOLIB_ERR_NONE)
+        {
+            Serial.printf("Failed to initialize radio.\n");
+            ESP.restart();
+            return;
+        }
+
+        packet_lora_radio.setFrequency(915.0);
+        packet_lora_radio.setBandwidth(7.8);
+        packet_lora_radio.setSpreadingFactor(6);
+        packet_lora_radio.setCodingRate(5);
+        packet_lora_radio.setOutputPower(22);
+        packet_lora_radio.setPreambleLength(8);
+        packet_lora_radio.setSyncWord(0x34);
+        packet_lora_radio.setCRC(true);
+
+        extern void packet_lora_callback(void);
+
+        packet_lora_radio.setDio1Action(packet_lora_callback);
+
+    }
 
 #endif
 
@@ -1112,9 +1064,3 @@ halt_(b32 panicking) // @/`Halting`.
 // All it is just a set of Python scripts that generate C code
 // to initialize the STM32 MCU easily. This includes brute-forcing
 // the clock-tree and configuring GPIOs and interrupts.
-//
-// Due to unfortunate design of how FreeRTOS is structured,
-// there's some weird order-of-inclusion we have to take care
-// of, but besides that, the Python scripts will generate all
-// the code essentially make our MCU ready to use in a plug-and-play
-// style. @/`FreeRTOS File Inclusion Behavior`.

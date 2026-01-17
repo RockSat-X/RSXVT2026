@@ -46,8 +46,6 @@ static constexpr u32 SDCmd_COUNT = 18;
 #endif
 #if TARGET_MCU_IS_STM32H533VET6
 #endif
-#if TARGET_MCU_IS_STM32H7S3L8H6
-#endif
 static const struct { u8 code; b32 acmd; enum SDWaitRespType waitresp_type; enum SDWaitRespCode waitresp_code; b32 receiving; } SD_CMDS[] =
     {
         { .code = 0 , .acmd = false, .waitresp_type = SDWaitRespType_none, .waitresp_code = SDWaitRespCode_none, .receiving = false },

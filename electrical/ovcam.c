@@ -672,7 +672,7 @@ OVCAM_init(void)
 
 
 
-INTERRUPT_GPDMA1_Channel7
+INTERRUPT_GPDMA1_Channel7(void)
 {
 
     enum DMAInterruptEvent : u32
@@ -826,7 +826,7 @@ INTERRUPT_GPDMA1_Channel7
 
 
 
-INTERRUPT_DCMI_PSSI
+INTERRUPT_DCMI_PSSI(void)
 {
 
     enum DCMIInterruptEvent : u32

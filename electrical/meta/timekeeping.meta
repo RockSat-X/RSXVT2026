@@ -1,5 +1,3 @@
-#if TARGET_NAME_IS_SandboxNucleoH7S3L8
-#endif
 #if TARGET_NAME_IS_SandboxNucleoH533RE
 #endif
 #if TARGET_NAME_IS_DemoI2C

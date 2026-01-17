@@ -5,7 +5,7 @@
 
 
 
-INTERRUPT_EXTIx_lis2mdl_data_ready
+INTERRUPT_EXTIx_lis2mdl_data_ready(void)
 {
     NVIC_SET_PENDING(I2Cx_EV_primary);
 }
