@@ -60,13 +60,6 @@ MCU_SUPPORT = {
         'include_paths' : (
             pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
         ),
-        'freertos_source_file_paths' : (
-            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/tasks.c'),
-            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/queue.c'),
-            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/list.c'),
-            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure/port.c'),
-            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure/portasm.c'),
-        ),
         'freertos_interrupts' : (
             ('SysTick', None, { 'symbol' : 'SysTick_Handler' }),
             ('SVCall' , None, { 'symbol' : 'SVC_Handler'     }),
@@ -78,13 +71,6 @@ MCU_SUPPORT = {
         'cpu' : 'cortex-m33',
         'include_paths' : (
             pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure'),
-        ),
-        'freertos_source_file_paths' : (
-            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/tasks.c'),
-            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/queue.c'),
-            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/list.c'),
-            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure/port.c'),
-            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure/portasm.c'),
         ),
         'freertos_interrupts' : (
             ('SysTick', None, { 'symbol' : 'SysTick_Handler' }),
@@ -1042,15 +1028,6 @@ for target in TARGETS:
             *(MCU_SUPPORT[target.mcu]['freertos_interrupts'] if target.use_freertos else ()),
             *target.interrupts
         )
-
-
-
-    # Some additional source files.
-
-    target.source_file_paths = (
-        *(MCU_SUPPORT[target.mcu]['freertos_source_file_paths'] if target.use_freertos else ()),
-        *target.source_file_paths
-    )
 
 
 
