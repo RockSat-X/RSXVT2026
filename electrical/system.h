@@ -136,7 +136,6 @@ extern nullptr_t INITIAL_STACK_ADDRESS[];
 // @/`STPY`.
 
 #include "deps/stpy/stpy.h"
-#define STPY_IMPLEMENTATION true
 #include "STPY_init.meta"
 /* #meta
 
