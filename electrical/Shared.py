@@ -55,24 +55,6 @@ STLINK_BAUD = 1_000_000
 
 MCU_SUPPORT = {
 
-    'STM32H7S3L8H6' : {
-        'cpu' : 'cortex-m7',
-        'include_paths' : (
-            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1'),
-        ),
-        'freertos_source_file_paths' : (
-            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/tasks.c'),
-            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/queue.c'),
-            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/list.c'),
-            pxd.make_main_relative_path('./deps/FreeRTOS_Kernel/portable/GCC/ARM_CM7/r0p1/port.c'),
-        ),
-        'freertos_interrupts' : (
-            ('SysTick', None, { 'symbol' : 'xPortSysTickHandler' }),
-            ('SVCall' , None, { 'symbol' : 'vPortSVCHandler'     }),
-            ('PendSV' , None, { 'symbol' : 'xPortPendSVHandler'  }),
-        ),
-    },
-
     'STM32H533RET6' : {
         'cpu' : 'cortex-m33',
         'include_paths' : (
@@ -114,66 +96,6 @@ MCU_SUPPORT = {
 }
 
 TARGETS = (
-
-
-
-    ########################################
-
-
-
-    types.SimpleNamespace(
-
-        name              = 'SandboxNucleoH7S3L8',
-        mcu               = 'STM32H7S3L8H6',
-        source_file_paths = (
-            pxd.make_main_relative_path('./electrical/SandboxNucleoBoard.c'),
-        ),
-
-        kicad_project = None,
-
-        gpios = (
-            ('led_red'   , 'B7' , 'OUTPUT'    , { 'initlvl' : False               }),
-            ('led_yellow', 'D13', 'OUTPUT'    , { 'initlvl' : False               }),
-            ('led_green' , 'D10', 'OUTPUT'    , { 'initlvl' : False               }),
-            ('stlink_tx' , 'D8' , 'ALTERNATE' , { 'altfunc' : 'USART3_TX'         }),
-            ('stlink_rx' , 'D9' , 'ALTERNATE' , { 'altfunc' : 'USART3_RX'         }),
-            ('swdio'     , 'A13', None        , {                                 }),
-            ('swclk'     , 'A14', None        , {                                 }),
-            ('button'    , 'C13', 'INPUT'     , { 'pull' : 'UP', 'active' : False }),
-        ),
-
-        interrupts = (
-            ('USART3', 0),
-        ),
-
-        drivers = (
-            {
-                'type'       : 'UXART',
-                'peripheral' : 'USART3',
-                'handle'     : 'stlink',
-                'mode'       : 'full_duplex',
-            },
-        ),
-
-        use_freertos    = False,
-        main_stack_size = 8192,
-        schema          = {
-            'HSI_ENABLE'              : True,
-            'HSI48_ENABLE'            : True,
-            'CSI_ENABLE'              : True,
-            'PERIPHERAL_CLOCK_OPTION' : 'HSI_CK',
-            'PLL1P_CK'                : 600_000_000,
-            'PLL2S_CK'                : 200_000_000,
-            'CPU_CK'                  : 600_000_000,
-            'AXI_AHB_CK'              : 300_000_000,
-            'APB1_CK'                 : 150_000_000,
-            'APB2_CK'                 : 150_000_000,
-            'APB4_CK'                 : 150_000_000,
-            'APB5_CK'                 : 150_000_000,
-            'USART3_BAUD'             : STLINK_BAUD,
-        },
-
-    ),
 
 
 

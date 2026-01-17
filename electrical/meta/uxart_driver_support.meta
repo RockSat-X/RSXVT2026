@@ -1,22 +1,3 @@
-#if TARGET_NAME_IS_SandboxNucleoH7S3L8
-    enum UXARTHandle : u32
-    {
-        UXARTHandle_stlink,
-    };
-    static constexpr u32 UXARTHandle_COUNT = 1;
-    #define UXARTx_ USART_
-    #define NVICInterrupt_UXARTx_stlink NVICInterrupt_USART3
-    static const struct { typeof(USART3) UXARTx; typeof(NVICInterrupt_USART3) NVICInterrupt_UXARTx; typeof(STPY_USART3_KERNEL_SOURCE) STPY_UXARTx_KERNEL_SOURCE; typeof(STPY_USART3_BAUD_DIVIDER) STPY_UXARTx_BAUD_DIVIDER; typeof((struct CMSISTuple) { &RCC->APB1RSTR1, CONCAT(RCC_, APB1RSTR1_USART3RST_Pos), CONCAT(RCC_, APB1RSTR1_USART3RST_Msk) }) UXARTx_RESET; typeof((struct CMSISTuple) { &RCC->APB1ENR1, CONCAT(RCC_, APB1ENR1_USART3EN_Pos), CONCAT(RCC_, APB1ENR1_USART3EN_Msk) }) UXARTx_ENABLE; typeof((struct CMSISTuple) { &RCC->CCIPR2, CONCAT(RCC_, CCIPR2_UART234578SEL_Pos), CONCAT(RCC_, CCIPR2_UART234578SEL_Msk) }) UXARTx_KERNEL_SOURCE; typeof(UXARTMode_full_duplex) UXARTx_MODE; } UXART_TABLE[] =
-        {
-            [UXARTHandle_stlink] = { .UXARTx = USART3, .NVICInterrupt_UXARTx = NVICInterrupt_USART3, .STPY_UXARTx_KERNEL_SOURCE = STPY_USART3_KERNEL_SOURCE, .STPY_UXARTx_BAUD_DIVIDER = STPY_USART3_BAUD_DIVIDER, .UXARTx_RESET = (struct CMSISTuple) { &RCC->APB1RSTR1, CONCAT(RCC_, APB1RSTR1_USART3RST_Pos), CONCAT(RCC_, APB1RSTR1_USART3RST_Msk) }, .UXARTx_ENABLE = (struct CMSISTuple) { &RCC->APB1ENR1, CONCAT(RCC_, APB1ENR1_USART3EN_Pos), CONCAT(RCC_, APB1ENR1_USART3EN_Msk) }, .UXARTx_KERNEL_SOURCE = (struct CMSISTuple) { &RCC->CCIPR2, CONCAT(RCC_, CCIPR2_UART234578SEL_Pos), CONCAT(RCC_, CCIPR2_UART234578SEL_Msk) }, .UXARTx_MODE = UXARTMode_full_duplex },
-        };
-    static void
-    _UXART_driver_interrupt(enum UXARTHandle handle);
-    INTERRUPT_USART3
-    {
-        _UXART_driver_interrupt(UXARTHandle_stlink);
-    }
-#endif
 #if TARGET_NAME_IS_SandboxNucleoH533RE
     enum UXARTHandle : u32
     {

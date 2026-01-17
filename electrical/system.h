@@ -263,10 +263,6 @@ halt_(b32 panicking);
 
 
 
-#if TARGET_MCU_IS_STM32H7S3L8H6
-    #include <deps/cmsis_device_h7s3l8/Include/stm32h7s3xx.h>
-#endif
-
 #if TARGET_MCU_IS_STM32H533RET6 || TARGET_MCU_IS_STM32H533VET6
     #include <deps/cmsis-device-h5/Include/stm32h533xx.h>
 #endif
@@ -695,59 +691,22 @@ halt_(b32 panicking) // @/`Halting`.
 
     __disable_irq();
 
-    #if TARGET_NAME_IS_SandboxNucleoH7S3L8
+    for (;;)
+    {
+        u32 i = 10'000'000;
 
-        if (panicking)
+        for (; i > 1'000; i /= 2)
         {
-            GPIO_HIGH(led_red);
-        }
-        else
-        {
-            GPIO_HIGH(led_yellow);
-        }
-
-        for (;;)
-        {
-            u32 i = 10'000'000;
-
-            for (; i > 1'000; i /= 2)
+            for (u32 j = 0; j < 4; j += 1)
             {
-                for (u32 j = 0; j < 8; j += 1)
-                {
-                    spinlock_nop(i);
+                GPIO_HIGH(led_green);
+                spinlock_nop(i);
 
-                    if (panicking)
-                    {
-                        GPIO_TOGGLE(led_red);
-                    }
-                    else
-                    {
-                        GPIO_TOGGLE(led_yellow);
-                    }
-                }
+                GPIO_LOW(led_green);
+                spinlock_nop(i * (panicking ? 1 : 4));
             }
         }
-
-    #else // We're going to assume there's an LED we can toggle.
-
-        for (;;)
-        {
-            u32 i = 10'000'000;
-
-            for (; i > 1'000; i /= 2)
-            {
-                for (u32 j = 0; j < 4; j += 1)
-                {
-                    GPIO_HIGH(led_green);
-                    spinlock_nop(i);
-
-                    GPIO_LOW(led_green);
-                    spinlock_nop(i * (panicking ? 1 : 4));
-                }
-            }
-        }
-
-    #endif
+    }
 
 }
 
