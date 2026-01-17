@@ -251,6 +251,7 @@ def request_stlinks(
     *,
     specific_one         = False,
     specific_probe_index = None,
+    stlink_error_ok      = False,
 ):
 
 
@@ -271,12 +272,16 @@ def request_stlinks(
 
         pxd.pxd_logger.error(
             f'There seems to be an error with an ST-Link; '
-            f'see the output of STM32_Programmer_CLI below:' '\n'
+            f'this could be because another program is using the ST-Link. '
+            f'See the output of STM32_Programmer_CLI below:' '\n'
             f'\n'
             f'{'\n'.join(listing_lines)}'
         )
 
-        sys.exit(1)
+        if stlink_error_ok:
+            return None
+        else:
+            sys.exit(1)
 
 
 
@@ -781,6 +786,12 @@ def debug(parameters):
         'description' : 'Open the COM serial port of the ST-Link.',
         'more_help'   : True,
     },
+    {
+        'name'        : 'port',
+        'description' : "The serial port to open; otherwise, automatically find the ST-Link's serial port.",
+        'type'        : str,
+        'default'     : None,
+    },
 )
 def talk(parameters):
 
@@ -798,7 +809,41 @@ def talk(parameters):
     if sys.platform == 'linux':
         make_sure_shell_command_exists('picocom')
 
-    stlink = request_stlinks(specific_one = True)
+
+
+    if parameters.port is None:
+
+        stlink = request_stlinks(
+            specific_one    = True,
+            stlink_error_ok = True,
+        )
+
+        if stlink is None:
+
+            serial, list_ports = import_pyserial()
+
+            comports = list_ports.comports()
+
+            pxd.pxd_logger.info(
+                'The ST-Link might be in use (e.g. due to an attached debugger); '
+                'if so, explicitly name the serial port with the flag `--port`.',
+                extra = {
+                    'table' : (
+                        (f'> {comport.name}', comport.description)
+                        for comport in comports
+                    )
+                }
+            )
+
+            sys.exit(1)
+
+        device = stlink.comport.device
+
+    else:
+
+        device = parameters.port
+
+
 
     try:
 
@@ -807,7 +852,7 @@ def talk(parameters):
             # Picocom's pretty good!
 
             bash = f'''
-                picocom --baud={STLINK_BAUD} --quiet --imap=lfcrlf {stlink.comport.device}
+                picocom --baud={STLINK_BAUD} --quiet --imap=lfcrlf {device}
             ''',
 
 
@@ -821,7 +866,7 @@ def talk(parameters):
             # PySerial only returns data sent after the port is opened.
 
             powershell = f'''
-                $port = new-Object System.IO.Ports.SerialPort {stlink.comport.device},{STLINK_BAUD},None,8,one;
+                $port = new-Object System.IO.Ports.SerialPort {device},{STLINK_BAUD},None,8,one;
                 $port.Open();
                 try {{
                     while ($true) {{
