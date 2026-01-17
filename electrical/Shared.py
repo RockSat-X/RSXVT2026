@@ -1125,6 +1125,7 @@ for target in TARGETS:
             -fno-eliminate-unused-debug-types
             -ffunction-sections
             -fcompare-debug-second
+            -fdiagnostics-color=always
             {'\n'.join(f'-D {name}="{pxd.c_repr(value)}"' for name, value in defines                  )}
             {'\n'.join(f'-W{name}'                        for name        in enabled_warnings .split())}
             {'\n'.join(f'-Wno-{name}'                     for name        in disabled_warnings.split())}
