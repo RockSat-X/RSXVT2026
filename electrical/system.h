@@ -380,7 +380,7 @@ static_assert(configMAX_SYSCALL_INTERRUPT_PRIORITY <= 255);
 
 
 __attribute__((naked))
-INTERRUPT_Reset
+INTERRUPT_Reset(void)
 {
     __asm volatile
     (R"(
@@ -444,7 +444,7 @@ INTERRUPT_Reset
 
 
 
-INTERRUPT_UsageFault
+INTERRUPT_UsageFault(void)
 {
 
     // @/pg 611/sec B3.2.15/`Armv7-M`.
@@ -458,7 +458,7 @@ INTERRUPT_UsageFault
 
 
 
-INTERRUPT_BusFault
+INTERRUPT_BusFault(void)
 {
 
     // @/pg 611/sec B3.2.15/`Armv7-M`.
@@ -479,7 +479,7 @@ INTERRUPT_BusFault
 
 
 
-INTERRUPT_Default
+INTERRUPT_Default(void)
 {
 
     // @/pg 599/sec B3.2.4/`Armv7-M`.
@@ -732,7 +732,7 @@ halt_(b32 panicking) // @/`Halting`.
                 for driver_interrupt_name in driver_interrupt_names:
 
                     Meta.line(f'''
-                        INTERRUPT_{driver_interrupt_name}
+                        INTERRUPT_{driver_interrupt_name}(void)
                         {{
                             _{driver_type.upper()}_driver_interrupt({driver_type}Handle_{driver_handle});
                         }}

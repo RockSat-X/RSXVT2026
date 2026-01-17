@@ -50,19 +50,19 @@
         };
     static void
     _I2C_driver_interrupt(enum I2CHandle handle);
-    INTERRUPT_I2C1_EV
+    INTERRUPT_I2C1_EV(void)
     {
         _I2C_driver_interrupt(I2CHandle_queen);
     }
-    INTERRUPT_I2C1_ER
+    INTERRUPT_I2C1_ER(void)
     {
         _I2C_driver_interrupt(I2CHandle_queen);
     }
-    INTERRUPT_I2C2_EV
+    INTERRUPT_I2C2_EV(void)
     {
         _I2C_driver_interrupt(I2CHandle_bee);
     }
-    INTERRUPT_I2C2_ER
+    INTERRUPT_I2C2_ER(void)
     {
         _I2C_driver_interrupt(I2CHandle_bee);
     }
@@ -94,11 +94,11 @@
         };
     static void
     _I2C_driver_interrupt(enum I2CHandle handle);
-    INTERRUPT_I2C1_EV
+    INTERRUPT_I2C1_EV(void)
     {
         _I2C_driver_interrupt(I2CHandle_primary);
     }
-    INTERRUPT_I2C1_ER
+    INTERRUPT_I2C1_ER(void)
     {
         _I2C_driver_interrupt(I2CHandle_primary);
     }
@@ -130,11 +130,11 @@
         };
     static void
     _I2C_driver_interrupt(enum I2CHandle handle);
-    INTERRUPT_I2C2_EV
+    INTERRUPT_I2C2_EV(void)
     {
         _I2C_driver_interrupt(I2CHandle_ovcam_sccb);
     }
-    INTERRUPT_I2C2_ER
+    INTERRUPT_I2C2_ER(void)
     {
         _I2C_driver_interrupt(I2CHandle_ovcam_sccb);
     }

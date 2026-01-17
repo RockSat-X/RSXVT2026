@@ -21,7 +21,7 @@
         };
     static void
     _SPI_driver_interrupt(enum SPIHandle handle);
-    INTERRUPT_SPI2
+    INTERRUPT_SPI2(void)
     {
         _SPI_driver_interrupt(SPIHandle_primary);
     }

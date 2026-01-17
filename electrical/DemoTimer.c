@@ -129,7 +129,7 @@ main(void)
 
 // This interrupt routine executes every time the timer's counter gets reset.
 
-INTERRUPT_TIM1_UP
+INTERRUPT_TIM1_UP(void)
 {
 
     CMSIS_SET(TIM1, SR, UIF, false); // Clear the update flag.

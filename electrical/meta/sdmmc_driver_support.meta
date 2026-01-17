@@ -27,7 +27,7 @@
         };
     static void
     _SD_driver_interrupt(enum SDHandle handle);
-    INTERRUPT_SDMMC1
+    INTERRUPT_SDMMC1(void)
     {
         _SD_driver_interrupt(SDHandle_primary);
     }

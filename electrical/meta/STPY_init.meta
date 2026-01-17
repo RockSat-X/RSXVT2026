@@ -168,11 +168,11 @@
             INTERRUPT_Default            , // [131] I3C2_EV
             INTERRUPT_Default            , // [132] I3C2_ER
         };
-    #define INTERRUPT_BusFault extern void INTERRUPT_BusFault(void)
-    #define INTERRUPT_Default extern void INTERRUPT_Default(void)
-    #define INTERRUPT_Reset extern void INTERRUPT_Reset(void)
-    #define INTERRUPT_USART2 extern void INTERRUPT_USART2(void)
-    #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
+    #define INTERRUPT_BusFault(...) extern void INTERRUPT_BusFault(__VA_ARGS__)
+    #define INTERRUPT_Default(...) extern void INTERRUPT_Default(__VA_ARGS__)
+    #define INTERRUPT_Reset(...) extern void INTERRUPT_Reset(__VA_ARGS__)
+    #define INTERRUPT_USART2(...) extern void INTERRUPT_USART2(__VA_ARGS__)
+    #define INTERRUPT_UsageFault(...) extern void INTERRUPT_UsageFault(__VA_ARGS__)
     extern void
     STPY_init(void)
     {
@@ -517,15 +517,15 @@
             INTERRUPT_Default            , // [131] I3C2_EV
             INTERRUPT_Default            , // [132] I3C2_ER
         };
-    #define INTERRUPT_BusFault extern void INTERRUPT_BusFault(void)
-    #define INTERRUPT_Default extern void INTERRUPT_Default(void)
-    #define INTERRUPT_I2C1_ER extern void INTERRUPT_I2C1_ER(void)
-    #define INTERRUPT_I2C1_EV extern void INTERRUPT_I2C1_EV(void)
-    #define INTERRUPT_I2C2_ER extern void INTERRUPT_I2C2_ER(void)
-    #define INTERRUPT_I2C2_EV extern void INTERRUPT_I2C2_EV(void)
-    #define INTERRUPT_Reset extern void INTERRUPT_Reset(void)
-    #define INTERRUPT_USART2 extern void INTERRUPT_USART2(void)
-    #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
+    #define INTERRUPT_BusFault(...) extern void INTERRUPT_BusFault(__VA_ARGS__)
+    #define INTERRUPT_Default(...) extern void INTERRUPT_Default(__VA_ARGS__)
+    #define INTERRUPT_I2C1_ER(...) extern void INTERRUPT_I2C1_ER(__VA_ARGS__)
+    #define INTERRUPT_I2C1_EV(...) extern void INTERRUPT_I2C1_EV(__VA_ARGS__)
+    #define INTERRUPT_I2C2_ER(...) extern void INTERRUPT_I2C2_ER(__VA_ARGS__)
+    #define INTERRUPT_I2C2_EV(...) extern void INTERRUPT_I2C2_EV(__VA_ARGS__)
+    #define INTERRUPT_Reset(...) extern void INTERRUPT_Reset(__VA_ARGS__)
+    #define INTERRUPT_USART2(...) extern void INTERRUPT_USART2(__VA_ARGS__)
+    #define INTERRUPT_UsageFault(...) extern void INTERRUPT_UsageFault(__VA_ARGS__)
     extern void
     STPY_init(void)
     {
@@ -943,12 +943,12 @@
             INTERRUPT_Default            , // [131] I3C2_EV
             INTERRUPT_Default            , // [132] I3C2_ER
         };
-    #define INTERRUPT_BusFault extern void INTERRUPT_BusFault(void)
-    #define INTERRUPT_Default extern void INTERRUPT_Default(void)
-    #define INTERRUPT_Reset extern void INTERRUPT_Reset(void)
-    #define INTERRUPT_TIM1_UP extern void INTERRUPT_TIM1_UP(void)
-    #define INTERRUPT_USART2 extern void INTERRUPT_USART2(void)
-    #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
+    #define INTERRUPT_BusFault(...) extern void INTERRUPT_BusFault(__VA_ARGS__)
+    #define INTERRUPT_Default(...) extern void INTERRUPT_Default(__VA_ARGS__)
+    #define INTERRUPT_Reset(...) extern void INTERRUPT_Reset(__VA_ARGS__)
+    #define INTERRUPT_TIM1_UP(...) extern void INTERRUPT_TIM1_UP(__VA_ARGS__)
+    #define INTERRUPT_USART2(...) extern void INTERRUPT_USART2(__VA_ARGS__)
+    #define INTERRUPT_UsageFault(...) extern void INTERRUPT_UsageFault(__VA_ARGS__)
     extern void
     STPY_init(void)
     {
@@ -1309,12 +1309,12 @@
             INTERRUPT_Default            , // [131] I3C2_EV
             INTERRUPT_Default            , // [132] I3C2_ER
         };
-    #define INTERRUPT_BusFault extern void INTERRUPT_BusFault(void)
-    #define INTERRUPT_Default extern void INTERRUPT_Default(void)
-    #define INTERRUPT_Reset extern void INTERRUPT_Reset(void)
-    #define INTERRUPT_SPI2 extern void INTERRUPT_SPI2(void)
-    #define INTERRUPT_USART2 extern void INTERRUPT_USART2(void)
-    #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
+    #define INTERRUPT_BusFault(...) extern void INTERRUPT_BusFault(__VA_ARGS__)
+    #define INTERRUPT_Default(...) extern void INTERRUPT_Default(__VA_ARGS__)
+    #define INTERRUPT_Reset(...) extern void INTERRUPT_Reset(__VA_ARGS__)
+    #define INTERRUPT_SPI2(...) extern void INTERRUPT_SPI2(__VA_ARGS__)
+    #define INTERRUPT_USART2(...) extern void INTERRUPT_USART2(__VA_ARGS__)
+    #define INTERRUPT_UsageFault(...) extern void INTERRUPT_UsageFault(__VA_ARGS__)
     extern void
     STPY_init(void)
     {
@@ -1718,11 +1718,11 @@
             INTERRUPT_Default            , // [131] I3C2_EV
             INTERRUPT_Default            , // [132] I3C2_ER
         };
-    #define INTERRUPT_BusFault extern void INTERRUPT_BusFault(void)
-    #define INTERRUPT_Default extern void INTERRUPT_Default(void)
-    #define INTERRUPT_Reset extern void INTERRUPT_Reset(void)
-    #define INTERRUPT_USART2 extern void INTERRUPT_USART2(void)
-    #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
+    #define INTERRUPT_BusFault(...) extern void INTERRUPT_BusFault(__VA_ARGS__)
+    #define INTERRUPT_Default(...) extern void INTERRUPT_Default(__VA_ARGS__)
+    #define INTERRUPT_Reset(...) extern void INTERRUPT_Reset(__VA_ARGS__)
+    #define INTERRUPT_USART2(...) extern void INTERRUPT_USART2(__VA_ARGS__)
+    #define INTERRUPT_UsageFault(...) extern void INTERRUPT_UsageFault(__VA_ARGS__)
     extern void
     STPY_init(void)
     {
@@ -2070,12 +2070,12 @@
             INTERRUPT_Default            , // [131] I3C2_EV
             INTERRUPT_Default            , // [132] I3C2_ER
         };
-    #define INTERRUPT_BusFault extern void INTERRUPT_BusFault(void)
-    #define INTERRUPT_Default extern void INTERRUPT_Default(void)
-    #define INTERRUPT_Reset extern void INTERRUPT_Reset(void)
-    #define INTERRUPT_SDMMC1 extern void INTERRUPT_SDMMC1(void)
-    #define INTERRUPT_USART2 extern void INTERRUPT_USART2(void)
-    #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
+    #define INTERRUPT_BusFault(...) extern void INTERRUPT_BusFault(__VA_ARGS__)
+    #define INTERRUPT_Default(...) extern void INTERRUPT_Default(__VA_ARGS__)
+    #define INTERRUPT_Reset(...) extern void INTERRUPT_Reset(__VA_ARGS__)
+    #define INTERRUPT_SDMMC1(...) extern void INTERRUPT_SDMMC1(__VA_ARGS__)
+    #define INTERRUPT_USART2(...) extern void INTERRUPT_USART2(__VA_ARGS__)
+    #define INTERRUPT_UsageFault(...) extern void INTERRUPT_UsageFault(__VA_ARGS__)
     extern void
     STPY_init(void)
     {
@@ -2478,17 +2478,17 @@
             INTERRUPT_Default            , // [131] I3C2_EV
             INTERRUPT_Default            , // [132] I3C2_ER
         };
-    #define INTERRUPT_BusFault extern void INTERRUPT_BusFault(void)
-    #define INTERRUPT_Default extern void INTERRUPT_Default(void)
-    #define INTERRUPT_EXTI1 extern void INTERRUPT_EXTI1(void)
-    #define INTERRUPT_I2C1_ER extern void INTERRUPT_I2C1_ER(void)
-    #define INTERRUPT_I2C1_EV extern void INTERRUPT_I2C1_EV(void)
-    #define INTERRUPT_Reset extern void INTERRUPT_Reset(void)
-    #define INTERRUPT_USART2 extern void INTERRUPT_USART2(void)
-    #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
+    #define INTERRUPT_BusFault(...) extern void INTERRUPT_BusFault(__VA_ARGS__)
+    #define INTERRUPT_Default(...) extern void INTERRUPT_Default(__VA_ARGS__)
+    #define INTERRUPT_EXTI1(...) extern void INTERRUPT_EXTI1(__VA_ARGS__)
+    #define INTERRUPT_I2C1_ER(...) extern void INTERRUPT_I2C1_ER(__VA_ARGS__)
+    #define INTERRUPT_I2C1_EV(...) extern void INTERRUPT_I2C1_EV(__VA_ARGS__)
+    #define INTERRUPT_Reset(...) extern void INTERRUPT_Reset(__VA_ARGS__)
+    #define INTERRUPT_USART2(...) extern void INTERRUPT_USART2(__VA_ARGS__)
+    #define INTERRUPT_UsageFault(...) extern void INTERRUPT_UsageFault(__VA_ARGS__)
     static void
     INTERRUPT_EXTIx_lis2mdl_data_ready(void);
-    INTERRUPT_EXTI1
+    INTERRUPT_EXTI1(void)
     {
         if (CMSIS_GET(EXTI, RPR1, RPIF1))
         {
@@ -2496,7 +2496,7 @@
             INTERRUPT_EXTIx_lis2mdl_data_ready();
         }
     }
-    #define INTERRUPT_EXTIx_lis2mdl_data_ready static void INTERRUPT_EXTIx_lis2mdl_data_ready(void)
+    #define INTERRUPT_EXTIx_lis2mdl_data_ready(...) static void INTERRUPT_EXTIx_lis2mdl_data_ready(__VA_ARGS__)
     extern void
     STPY_init(void)
     {
@@ -2909,13 +2909,13 @@
             INTERRUPT_Default            , // [131] I3C2_EV
             INTERRUPT_Default            , // [132] I3C2_ER
         };
-    #define INTERRUPT_BusFault extern void INTERRUPT_BusFault(void)
-    #define INTERRUPT_Default extern void INTERRUPT_Default(void)
-    #define INTERRUPT_Reset extern void INTERRUPT_Reset(void)
-    #define INTERRUPT_TIM1_UP extern void INTERRUPT_TIM1_UP(void)
-    #define INTERRUPT_USART2 extern void INTERRUPT_USART2(void)
-    #define INTERRUPT_USART3 extern void INTERRUPT_USART3(void)
-    #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
+    #define INTERRUPT_BusFault(...) extern void INTERRUPT_BusFault(__VA_ARGS__)
+    #define INTERRUPT_Default(...) extern void INTERRUPT_Default(__VA_ARGS__)
+    #define INTERRUPT_Reset(...) extern void INTERRUPT_Reset(__VA_ARGS__)
+    #define INTERRUPT_TIM1_UP(...) extern void INTERRUPT_TIM1_UP(__VA_ARGS__)
+    #define INTERRUPT_USART2(...) extern void INTERRUPT_USART2(__VA_ARGS__)
+    #define INTERRUPT_USART3(...) extern void INTERRUPT_USART3(__VA_ARGS__)
+    #define INTERRUPT_UsageFault(...) extern void INTERRUPT_UsageFault(__VA_ARGS__)
     extern void
     STPY_init(void)
     {
@@ -3314,15 +3314,15 @@
             INTERRUPT_Default            , // [131] I3C2_EV
             INTERRUPT_Default            , // [132] I3C2_ER
         };
-    #define INTERRUPT_BusFault extern void INTERRUPT_BusFault(void)
-    #define INTERRUPT_DCMI_PSSI extern void INTERRUPT_DCMI_PSSI(void)
-    #define INTERRUPT_Default extern void INTERRUPT_Default(void)
-    #define INTERRUPT_GPDMA1_Channel7 extern void INTERRUPT_GPDMA1_Channel7(void)
-    #define INTERRUPT_I2C2_ER extern void INTERRUPT_I2C2_ER(void)
-    #define INTERRUPT_I2C2_EV extern void INTERRUPT_I2C2_EV(void)
-    #define INTERRUPT_Reset extern void INTERRUPT_Reset(void)
-    #define INTERRUPT_USART2 extern void INTERRUPT_USART2(void)
-    #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
+    #define INTERRUPT_BusFault(...) extern void INTERRUPT_BusFault(__VA_ARGS__)
+    #define INTERRUPT_DCMI_PSSI(...) extern void INTERRUPT_DCMI_PSSI(__VA_ARGS__)
+    #define INTERRUPT_Default(...) extern void INTERRUPT_Default(__VA_ARGS__)
+    #define INTERRUPT_GPDMA1_Channel7(...) extern void INTERRUPT_GPDMA1_Channel7(__VA_ARGS__)
+    #define INTERRUPT_I2C2_ER(...) extern void INTERRUPT_I2C2_ER(__VA_ARGS__)
+    #define INTERRUPT_I2C2_EV(...) extern void INTERRUPT_I2C2_EV(__VA_ARGS__)
+    #define INTERRUPT_Reset(...) extern void INTERRUPT_Reset(__VA_ARGS__)
+    #define INTERRUPT_USART2(...) extern void INTERRUPT_USART2(__VA_ARGS__)
+    #define INTERRUPT_UsageFault(...) extern void INTERRUPT_UsageFault(__VA_ARGS__)
     extern void
     STPY_init(void)
     {
@@ -3798,12 +3798,12 @@
             INTERRUPT_Default            , // [131] I3C2_EV
             INTERRUPT_Default            , // [132] I3C2_ER
         };
-    #define INTERRUPT_BusFault extern void INTERRUPT_BusFault(void)
-    #define INTERRUPT_Default extern void INTERRUPT_Default(void)
-    #define INTERRUPT_Reset extern void INTERRUPT_Reset(void)
-    #define INTERRUPT_USART2 extern void INTERRUPT_USART2(void)
-    #define INTERRUPT_USART3 extern void INTERRUPT_USART3(void)
-    #define INTERRUPT_UsageFault extern void INTERRUPT_UsageFault(void)
+    #define INTERRUPT_BusFault(...) extern void INTERRUPT_BusFault(__VA_ARGS__)
+    #define INTERRUPT_Default(...) extern void INTERRUPT_Default(__VA_ARGS__)
+    #define INTERRUPT_Reset(...) extern void INTERRUPT_Reset(__VA_ARGS__)
+    #define INTERRUPT_USART2(...) extern void INTERRUPT_USART2(__VA_ARGS__)
+    #define INTERRUPT_USART3(...) extern void INTERRUPT_USART3(__VA_ARGS__)
+    #define INTERRUPT_UsageFault(...) extern void INTERRUPT_UsageFault(__VA_ARGS__)
     extern void
     STPY_init(void)
     {

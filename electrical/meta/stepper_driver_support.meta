@@ -42,7 +42,7 @@
         };
     static void
     _STEPPER_driver_interrupt(enum StepperHandle handle);
-    INTERRUPT_TIM1_UP
+    INTERRUPT_TIM1_UP(void)
     {
         _STEPPER_driver_interrupt(StepperHandle_primary);
     }
