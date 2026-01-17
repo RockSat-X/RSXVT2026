@@ -5,7 +5,7 @@
 
 
 
-/* #meta CMSIS_SET, CMSIS_WRITE, CMSIS_SPINLOCK, CMSIS_TUPLE :
+/* #meta global CMSIS_SET, CMSIS_WRITE, CMSIS_SPINLOCK, CMSIS_TUPLE
 
     from deps.stpy.cmsis_tools import get_cmsis_tools
 
@@ -46,7 +46,6 @@
 #define pack_pop                _Pragma("pack(pop)")
 #define memeq(X, Y)             (static_assert_expr(sizeof(X) == sizeof(Y)), !memcmp(&(X), &(Y), sizeof(Y)))
 #define memzero(X)              memset((X), 0, sizeof(*(X)))
-#define static_assert(...)      _Static_assert(__VA_ARGS__, #__VA_ARGS__)
 #define static_assert_expr(...) ((void) sizeof(struct { static_assert(__VA_ARGS__, #__VA_ARGS__); }))
 #ifndef offsetof
 #define offsetof __builtin_offsetof
@@ -78,6 +77,160 @@ typedef signed             b32; static_assert(sizeof(b32) == 4);
 typedef signed   long long b64; static_assert(sizeof(b64) == 8);
 typedef float              f32; static_assert(sizeof(f32) == 4);
 typedef double             f64; static_assert(sizeof(f64) == 8);
+
+
+
+#ifndef COMPILING_FREERTOS_SOURCE_FILE
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// ESP32 related stuff.
+//
+
+
+
+#define PACKET_ESP32_START_TOKEN 0xBABE
+#define PACKET_LORA_START_TOKEN  0xCAFE
+
+pack_push
+
+    struct PacketLoRa
+    {
+        f32 quaternion_i;
+        f32 quaternion_j;
+        f32 quaternion_k;
+        f32 quaternion_r;
+        f32 accelerometer_x;
+        f32 accelerometer_y;
+        f32 accelerometer_z;
+        f32 gyro_x;
+        f32 gyro_y;
+        f32 gyro_z;
+        f32 computer_vision_confidence;
+        u16 timestamp_ms;
+        u8  sequence_number;
+        u8  crc;
+    };
+
+    struct PacketESP32
+    {
+        f32               magnetometer_x;
+        f32               magnetometer_y;
+        f32               magnetometer_z;
+        u8                image_chunk[190];
+        struct PacketLoRa nonredundant;
+    };
+
+pack_pop
+
+static_assert(sizeof(struct PacketESP32) <= 250);
+
+
+
+// TODO Document.
+// TODO Have look-up table.
+extern useret u8
+ESP32_calculate_crc(u8* data, i32 length)
+{
+    u8 crc = 0xFF;
+
+    for (i32 i = 0; i < length; i += 1)
+    {
+        crc ^= data[i];
+
+        for (i32 j = 0; j < 8; j += 1)
+        {
+            crc = (crc & (1 << 7))
+                ? (crc << 1) ^ 0x2F
+                : (crc << 1);
+        }
+    }
+
+    return crc;
+}
+
+
+
+#endif
+
+
+
+#if COMPILING_ESP32
+
+    #include <WiFi.h>
+    #include <esp_wifi.h>
+    #include <esp_now.h>
+    #include <RadioLib.h>
+
+
+
+    extern void
+    common_init_uart(void)
+    {
+        Serial1.setRxBufferSize(1024); // TODO Look into more?
+        Serial1.begin(400'000, SERIAL_8N1, D7, D6);
+        while (!Serial1);
+    }
+
+
+
+    // TODO Look more into the specs.
+    // TODO Make robust.
+    extern void
+    common_init_esp_now(void)
+    {
+
+        WiFi.mode(WIFI_STA);
+        esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE);
+
+        if (esp_now_init() != ESP_OK)
+        {
+            Serial.printf("Error initializing ESP-NOW.\n");
+            ESP.restart();
+            return;
+        }
+
+    }
+
+
+
+    static SX1262 packet_lora_radio = new Module(41, 39, 42, 40);
+
+
+
+    // TODO Look more into the specs.
+    // TODO Make robust.
+    extern void
+    common_init_lora()
+    {
+
+        if (packet_lora_radio.begin() != RADIOLIB_ERR_NONE)
+        {
+            Serial.printf("Failed to initialize radio.\n");
+            ESP.restart();
+            return;
+        }
+
+        packet_lora_radio.setFrequency(915.0);
+        packet_lora_radio.setBandwidth(7.8);
+        packet_lora_radio.setSpreadingFactor(6);
+        packet_lora_radio.setCodingRate(5);
+        packet_lora_radio.setOutputPower(22);
+        packet_lora_radio.setPreambleLength(8);
+        packet_lora_radio.setSyncWord(0x34);
+        packet_lora_radio.setCRC(true);
+
+        extern void packet_lora_callback(void);
+
+        packet_lora_radio.setDio1Action(packet_lora_callback);
+
+    }
+
+#endif
+
+#if !COMPILING_ESP32
 
 
 
@@ -600,23 +753,23 @@ halt_(b32 panicking) // @/`Halting`.
 
 
 
-/* #meta IMPLEMENT_DRIVER_SUPPORT
+/* #meta export IMPLEMENT_DRIVER_SUPPORT
 
-    import types
+    import types, collections
 
     def IMPLEMENT_DRIVER_SUPPORT(
         *,
         driver_type,
         cmsis_name,
         common_name,
-        entries,
+        terms,
     ):
 
         for target in PER_TARGET():
 
 
 
-            # e.g: Get all of the I2C drivers for the current target.
+            # Get all of the target's drivers.
 
             drivers = [
                 driver
@@ -635,7 +788,7 @@ halt_(b32 panicking) // @/`Halting`.
 
 
 
-            # e.g: Make enumeration of all I2C driver handles defined by the target.
+            # Make an enumeration for driver handles.
 
             Meta.enums(
                 f'{driver_type}Handle',
@@ -655,108 +808,130 @@ halt_(b32 panicking) // @/`Halting`.
 
 
 
-            # e.g: Make a look-up table for the I2C driver so we can
-            #      read/write to registers based on an arbitrary I2C handle.
+            # Process each driver term; some are about adding a field to
+            # the look-up table while others are about interrupt routines.
 
-            fields = []
+            lookup_table_fields = collections.defaultdict(lambda: [])
+            interrupt_routines  = collections.defaultdict(lambda: [])
+            nvic_mappings       = []
 
-            for entry in entries:
+            for driver in drivers:
 
-                field = types.SimpleNamespace(
-                    identifier = None,
-                    values     = None,
+                for term_name, term_type, *term_value in terms(**driver):
+
+                    if term_value:
+                        term_value, = term_value
+                    else:
+                        term_value = term_name.format(driver['peripheral'])
+
+                    match term_type:
+
+
+
+                        # e.g:
+                        # >
+                        # >                  NVICInterrupt_{}_EV
+                        # >                           |
+                        # >                           v
+                        # >    NVICInterrupt_I2Cx_EV <-> NVICInterrupt_I2C3_EV
+                        # >
+
+                        case 'expression':
+
+                            field_identifier                       = term_name.format(common_name)
+                            lookup_table_fields[field_identifier] += [term_value]
+
+
+
+                        # e.g:
+                        # >
+                        # >                {}_KERNEL_SOURCE
+                        # >                        |
+                        # >                        v
+                        # >    I2Cx_KERNEL_SOURCE <-> I2C3_KERNEL_SOURCE
+                        # >                                   |
+                        # >                                   v
+                        # >                          RCC_CCIPR4_I2C3SEL
+                        # >
+
+                        case 'cmsis_tuple':
+
+                            field_identifier                       = term_name.format(common_name)
+                            lookup_table_fields[field_identifier] += [CMSIS_TUPLE(target.mcu, term_value)]
+
+
+
+                        # e.g:
+                        # >
+                        # >     INTERRUPT_{}_UP
+                        # >             |
+                        # >             v
+                        # >    INTERRUPT_TIM5_UP
+                        # >
+
+                        case 'interrupt':
+
+                            nvic_mappings += [(
+                                f'{term_name.format(common_name)}_{driver['handle']}',
+                                f'{term_value}',
+                            )]
+
+                            interrupt_routines[driver['handle']] += [term_value]
+
+
+
+                        case idk: raise ValueError(f'Unknown term type: {repr(idk)}.')
+
+
+
+            # Create macros to map NVIC interrupts using the driver handle name.
+
+            for nvic_driver_handle, nvic_peripheral in nvic_mappings:
+
+                Meta.define(
+                    f'NVICInterrupt_{nvic_driver_handle}',
+                    f'NVICInterrupt_{nvic_peripheral}'
                 )
-
-                match entry:
-
-
-
-                    # The entry's value will be determined by a function given the driver.
-                    # If the function is not given, then it's assumed that the value
-                    # is the same as the entry's name but mapped with the driver's peripheral.
-
-                    case { 'name' : name, 'value' : function, **rest } if not rest:
-
-                        field.identifier = name.format(common_name)
-                        field.values     = [
-                            name.format(driver['peripheral']) if function is ... else function(driver)
-                            for driver in drivers
-                        ]
-
-
-
-                    # The entry's value has to be constructed as a CMSIS tuple.
-
-                    case { 'name' : name, 'cmsis_tuple' : Ellipses, **rest } if not rest:
-
-                        field.identifier = name.format(common_name)
-                        field.values     = [
-                            CMSIS_TUPLE(target.mcu, name.format(driver['peripheral']))
-                            for driver in drivers
-                        ]
-
-
-
-                    # This entry isn't part of the look-up table.
-
-                    case { 'interrupt' : name, **rest } if not rest:
-
-                        continue
-
-
-
-                    # Something else entirely...
-
-                    case unknown:
-
-                        raise ValueError(f'Unknown entry format: {repr(unknown)}.')
-
-
-
-                fields += [field]
 
 
 
             # TODO Rework `Meta.lut`...
 
-            Meta.lut(f'{driver_type}_TABLE', (
+            Meta.lut(f'{driver_type.upper()}_TABLE', (
                 (
                     f'{driver_type}Handle_{driver['handle']}',
                     *(
-                        (field.identifier, field.values[driver_i])
-                        for field in fields
+                        (identifier, values[driver_i])
+                        for identifier, values in lookup_table_fields.items()
                     ),
                 ) for driver_i, driver in enumerate(drivers)
             ))
 
 
 
-            # e.g: All of the I2C interrupt routines will be redirected
-            #      to a common procedure of `_I2C_driver_interrupt`.
+            # All of the interrupt routines will be redirected
+            # to a common procedure of `_XYZ_driver_interrupt`.
 
             Meta.line(f'''
                 static void
-                _{driver_type}_driver_interrupt(enum {driver_type}Handle handle);
+                _{driver_type.upper()}_driver_interrupt(enum {driver_type}Handle handle);
             ''')
 
-            for driver in drivers:
+            for driver_handle, driver_interrupt_names in interrupt_routines.items():
 
-                for entry in entries:
+                for driver_interrupt_name in driver_interrupt_names:
 
-                    if (interrupt := entry.get('interrupt', None)) is not None:
-
-                        Meta.line(f'''
-                            {interrupt.format(driver['peripheral'])}
-                            {{
-                                _{driver_type}_driver_interrupt({driver_type}Handle_{driver['handle']});
-                            }}
-                        ''')
+                    Meta.line(f'''
+                        INTERRUPT_{driver_interrupt_name}
+                        {{
+                            _{driver_type.upper()}_driver_interrupt({driver_type}Handle_{driver_handle});
+                        }}
+                    ''')
 
 
 
-        # e.g: Make a macro to bring all of the fields
-        #      in the look-up table into the local stack
-        #      given a I2C handle.
+        # Make a macro to bring all of the fields
+        # in the look-up table into the local stack.
 
         Meta.line('#undef _EXPAND_HANDLE')
 
@@ -765,23 +940,20 @@ halt_(b32 panicking) // @/`Halting`.
             Meta.line(f'''
                 if (!(0 <= handle && handle < {driver_type}Handle_COUNT))
                     panic;
-                auto const driver = &_{driver_type}_drivers[handle];
+                auto const driver = &_{driver_type.upper()}_drivers[handle];
             ''')
 
-            for entry in entries:
-
-                if 'name' not in entry:
-                    continue
-
-                field = entry['name'].format(common_name)
+            for field_identifier in lookup_table_fields:
 
                 Meta.line(f'''
-                    auto const {field} = {driver_type}_TABLE[handle].{field};
+                    auto const {field_identifier} = {driver_type.upper()}_TABLE[handle].{field_identifier};
                 ''')
 
 */
 
 
+
+#endif
 
 #endif
 
@@ -875,13 +1047,13 @@ halt_(b32 panicking) // @/`Halting`.
 // >               ~~~~~~~~~~~~~~~~~~~~
 // >    Niceness      |
 // >          vv     ~~~~
-// >          15 : 0b1111'xxxx \
+// >          15 : 0b1111'xxxx ~
 // >          14 : 0b1110'xxxx |--- These interrupt priorities are nicer.
 // >          13 : 0b1101'xxxx |    Any interrupt routine can execute
 // >          12 : 0b1100'xxxx |    FreeRTOS API functions from here.
 // >          11 : 0b1011'xxxx |
-// >          10 : 0b1010'xxxx / <- configMAX_SYSCALL_INTERRUPT_PRIORITY = 0b1010'xxxx
-// >           9 : 0b1001'xxxx \
+// >          10 : 0b1010'xxxx ~ <- configMAX_SYSCALL_INTERRUPT_PRIORITY = 0b1010'xxxx
+// >           9 : 0b1001'xxxx ~
 // >           8 : 0b1000'xxxx |
 // >           7 : 0b0111'xxxx |
 // >           6 : 0b0110'xxxx |
@@ -890,7 +1062,7 @@ halt_(b32 panicking) // @/`Halting`.
 // >           3 : 0b0011'xxxx |    FreeRTOS API functions from here.
 // >           2 : 0b0010'xxxx |
 // >           1 : 0b0001'xxxx |
-// >           0 : 0b0000'xxxx /
+// >           0 : 0b0000'xxxx ~
 // >
 
 

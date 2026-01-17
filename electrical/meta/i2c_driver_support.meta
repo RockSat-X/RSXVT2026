@@ -1,4 +1,36 @@
 #if TARGET_NAME_IS_SandboxNucleoH7S3L8
+#endif
+#if TARGET_NAME_IS_SandboxNucleoH533RE
+#endif
+#if TARGET_NAME_IS_DemoI2C
+    static I2CSlaveCallback INTERRUPT_I2Cx_bee;
+    #define INTERRUPT_I2Cx_bee(...) static void INTERRUPT_I2Cx_bee(__VA_ARGS__)
+#endif
+#if TARGET_NAME_IS_DemoTimer
+#endif
+#if TARGET_NAME_IS_DemoSPI
+#endif
+#if TARGET_NAME_IS_DemoTimekeeping
+#endif
+#if TARGET_NAME_IS_DemoSDMMC
+#endif
+#if TARGET_NAME_IS_SensorShield
+    static I2CMasterCallback INTERRUPT_I2Cx_primary;
+    #define INTERRUPT_I2Cx_primary(...) static void INTERRUPT_I2Cx_primary(__VA_ARGS__)
+#endif
+#if TARGET_NAME_IS_MainFlightComputer
+#endif
+#if TARGET_NAME_IS_VehicleFlightComputer
+#endif
+#if TARGET_NAME_IS_MainCameraSystem
+#endif
+#if TARGET_NAME_IS_DemoStepper
+#endif
+#if TARGET_NAME_IS_DemoOVCAM
+#endif
+#if TARGET_NAME_IS_TestESP32s
+#endif
+#if TARGET_NAME_IS_SandboxNucleoH7S3L8
     #error Target 'SandboxNucleoH7S3L8' defines no handle for the 'I2C' driver.
 #endif
 #if TARGET_NAME_IS_SandboxNucleoH533RE
@@ -12,10 +44,14 @@
     };
     static constexpr u32 I2CHandle_COUNT = 2;
     #define I2Cx_ I2C_
-    static const struct { typeof(I2CDriverRole_master) I2Cx_DRIVER_ROLE; typeof(((u16) 0x000)) I2Cx_SLAVE_ADDRESS; typeof(I2C1) I2Cx; typeof(NVICInterrupt_I2C1_EV) NVICInterrupt_I2Cx_EV; typeof(NVICInterrupt_I2C1_ER) NVICInterrupt_I2Cx_ER; typeof(STPY_I2C1_KERNEL_SOURCE) STPY_I2Cx_KERNEL_SOURCE; typeof(STPY_I2C1_PRESC) STPY_I2Cx_PRESC; typeof(STPY_I2C1_SCLH) STPY_I2Cx_SCLH; typeof(STPY_I2C1_SCLL) STPY_I2Cx_SCLL; typeof((struct CMSISTuple) { &RCC->APB1LRSTR, CONCAT(RCC_, APB1LRSTR_I2C1RST_Pos), CONCAT(RCC_, APB1LRSTR_I2C1RST_Msk) }) I2Cx_RESET; typeof((struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_I2C1EN_Pos), CONCAT(RCC_, APB1LENR_I2C1EN_Msk) }) I2Cx_ENABLE; typeof((struct CMSISTuple) { &RCC->CCIPR4, CONCAT(RCC_, CCIPR4_I2C1SEL_Pos), CONCAT(RCC_, CCIPR4_I2C1SEL_Msk) }) I2Cx_KERNEL_SOURCE; } I2C_TABLE[] =
+    #define NVICInterrupt_I2Cx_EV_queen NVICInterrupt_I2C1_EV
+    #define NVICInterrupt_I2Cx_ER_queen NVICInterrupt_I2C1_ER
+    #define NVICInterrupt_I2Cx_EV_bee NVICInterrupt_I2C2_EV
+    #define NVICInterrupt_I2Cx_ER_bee NVICInterrupt_I2C2_ER
+    static const struct { typeof(I2CDriverRole_master_blocking) I2Cx_DRIVER_ROLE; typeof(((u16) 0x000)) I2Cx_SLAVE_ADDRESS; typeof(I2C1) I2Cx; typeof(NVICInterrupt_I2C1_EV) NVICInterrupt_I2Cx_EV; typeof(NVICInterrupt_I2C1_ER) NVICInterrupt_I2Cx_ER; typeof(STPY_I2C1_KERNEL_SOURCE) STPY_I2Cx_KERNEL_SOURCE; typeof(STPY_I2C1_PRESC) STPY_I2Cx_PRESC; typeof(STPY_I2C1_SCLH) STPY_I2Cx_SCLH; typeof(STPY_I2C1_SCLL) STPY_I2Cx_SCLL; typeof((struct CMSISTuple) { &RCC->APB1LRSTR, CONCAT(RCC_, APB1LRSTR_I2C1RST_Pos), CONCAT(RCC_, APB1LRSTR_I2C1RST_Msk) }) I2Cx_RESET; typeof((struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_I2C1EN_Pos), CONCAT(RCC_, APB1LENR_I2C1EN_Msk) }) I2Cx_ENABLE; typeof((struct CMSISTuple) { &RCC->CCIPR4, CONCAT(RCC_, CCIPR4_I2C1SEL_Pos), CONCAT(RCC_, CCIPR4_I2C1SEL_Msk) }) I2Cx_KERNEL_SOURCE; typeof((void*) nullptr) INTERRUPT_I2Cx_CALLBACK; } I2C_TABLE[] =
         {
-            [I2CHandle_queen] = { .I2Cx_DRIVER_ROLE = I2CDriverRole_master, .I2Cx_SLAVE_ADDRESS = ((u16) 0x000), .I2Cx = I2C1, .NVICInterrupt_I2Cx_EV = NVICInterrupt_I2C1_EV, .NVICInterrupt_I2Cx_ER = NVICInterrupt_I2C1_ER, .STPY_I2Cx_KERNEL_SOURCE = STPY_I2C1_KERNEL_SOURCE, .STPY_I2Cx_PRESC = STPY_I2C1_PRESC, .STPY_I2Cx_SCLH = STPY_I2C1_SCLH, .STPY_I2Cx_SCLL = STPY_I2C1_SCLL, .I2Cx_RESET = (struct CMSISTuple) { &RCC->APB1LRSTR, CONCAT(RCC_, APB1LRSTR_I2C1RST_Pos), CONCAT(RCC_, APB1LRSTR_I2C1RST_Msk) }, .I2Cx_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_I2C1EN_Pos), CONCAT(RCC_, APB1LENR_I2C1EN_Msk) }, .I2Cx_KERNEL_SOURCE = (struct CMSISTuple) { &RCC->CCIPR4, CONCAT(RCC_, CCIPR4_I2C1SEL_Pos), CONCAT(RCC_, CCIPR4_I2C1SEL_Msk) } },
-            [I2CHandle_bee] =   { .I2Cx_DRIVER_ROLE = I2CDriverRole_slave , .I2Cx_SLAVE_ADDRESS = ((u16) 0x01E), .I2Cx = I2C2, .NVICInterrupt_I2Cx_EV = NVICInterrupt_I2C2_EV, .NVICInterrupt_I2Cx_ER = NVICInterrupt_I2C2_ER, .STPY_I2Cx_KERNEL_SOURCE = STPY_I2C2_KERNEL_SOURCE, .STPY_I2Cx_PRESC = STPY_I2C2_PRESC, .STPY_I2Cx_SCLH = STPY_I2C2_SCLH, .STPY_I2Cx_SCLL = STPY_I2C2_SCLL, .I2Cx_RESET = (struct CMSISTuple) { &RCC->APB1LRSTR, CONCAT(RCC_, APB1LRSTR_I2C2RST_Pos), CONCAT(RCC_, APB1LRSTR_I2C2RST_Msk) }, .I2Cx_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_I2C2EN_Pos), CONCAT(RCC_, APB1LENR_I2C2EN_Msk) }, .I2Cx_KERNEL_SOURCE = (struct CMSISTuple) { &RCC->CCIPR4, CONCAT(RCC_, CCIPR4_I2C2SEL_Pos), CONCAT(RCC_, CCIPR4_I2C2SEL_Msk) } },
+            [I2CHandle_queen] = { .I2Cx_DRIVER_ROLE = I2CDriverRole_master_blocking, .I2Cx_SLAVE_ADDRESS = ((u16) 0x000), .I2Cx = I2C1, .NVICInterrupt_I2Cx_EV = NVICInterrupt_I2C1_EV, .NVICInterrupt_I2Cx_ER = NVICInterrupt_I2C1_ER, .STPY_I2Cx_KERNEL_SOURCE = STPY_I2C1_KERNEL_SOURCE, .STPY_I2Cx_PRESC = STPY_I2C1_PRESC, .STPY_I2Cx_SCLH = STPY_I2C1_SCLH, .STPY_I2Cx_SCLL = STPY_I2C1_SCLL, .I2Cx_RESET = (struct CMSISTuple) { &RCC->APB1LRSTR, CONCAT(RCC_, APB1LRSTR_I2C1RST_Pos), CONCAT(RCC_, APB1LRSTR_I2C1RST_Msk) }, .I2Cx_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_I2C1EN_Pos), CONCAT(RCC_, APB1LENR_I2C1EN_Msk) }, .I2Cx_KERNEL_SOURCE = (struct CMSISTuple) { &RCC->CCIPR4, CONCAT(RCC_, CCIPR4_I2C1SEL_Pos), CONCAT(RCC_, CCIPR4_I2C1SEL_Msk) }, .INTERRUPT_I2Cx_CALLBACK = (void*) nullptr             },
+            [I2CHandle_bee] =   { .I2Cx_DRIVER_ROLE = I2CDriverRole_slave          , .I2Cx_SLAVE_ADDRESS = ((u16) 0x01E), .I2Cx = I2C2, .NVICInterrupt_I2Cx_EV = NVICInterrupt_I2C2_EV, .NVICInterrupt_I2Cx_ER = NVICInterrupt_I2C2_ER, .STPY_I2Cx_KERNEL_SOURCE = STPY_I2C2_KERNEL_SOURCE, .STPY_I2Cx_PRESC = STPY_I2C2_PRESC, .STPY_I2Cx_SCLH = STPY_I2C2_SCLH, .STPY_I2Cx_SCLL = STPY_I2C2_SCLL, .I2Cx_RESET = (struct CMSISTuple) { &RCC->APB1LRSTR, CONCAT(RCC_, APB1LRSTR_I2C2RST_Pos), CONCAT(RCC_, APB1LRSTR_I2C2RST_Msk) }, .I2Cx_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_I2C2EN_Pos), CONCAT(RCC_, APB1LENR_I2C2EN_Msk) }, .I2Cx_KERNEL_SOURCE = (struct CMSISTuple) { &RCC->CCIPR4, CONCAT(RCC_, CCIPR4_I2C2SEL_Pos), CONCAT(RCC_, CCIPR4_I2C2SEL_Msk) }, .INTERRUPT_I2Cx_CALLBACK = (void*) &INTERRUPT_I2Cx_bee },
         };
     static void
     _I2C_driver_interrupt(enum I2CHandle handle);
@@ -55,9 +91,11 @@
     };
     static constexpr u32 I2CHandle_COUNT = 1;
     #define I2Cx_ I2C_
-    static const struct { typeof(I2CDriverRole_master) I2Cx_DRIVER_ROLE; typeof(((u16) 0x000)) I2Cx_SLAVE_ADDRESS; typeof(I2C1) I2Cx; typeof(NVICInterrupt_I2C1_EV) NVICInterrupt_I2Cx_EV; typeof(NVICInterrupt_I2C1_ER) NVICInterrupt_I2Cx_ER; typeof(STPY_I2C1_KERNEL_SOURCE) STPY_I2Cx_KERNEL_SOURCE; typeof(STPY_I2C1_PRESC) STPY_I2Cx_PRESC; typeof(STPY_I2C1_SCLH) STPY_I2Cx_SCLH; typeof(STPY_I2C1_SCLL) STPY_I2Cx_SCLL; typeof((struct CMSISTuple) { &RCC->APB1LRSTR, CONCAT(RCC_, APB1LRSTR_I2C1RST_Pos), CONCAT(RCC_, APB1LRSTR_I2C1RST_Msk) }) I2Cx_RESET; typeof((struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_I2C1EN_Pos), CONCAT(RCC_, APB1LENR_I2C1EN_Msk) }) I2Cx_ENABLE; typeof((struct CMSISTuple) { &RCC->CCIPR4, CONCAT(RCC_, CCIPR4_I2C1SEL_Pos), CONCAT(RCC_, CCIPR4_I2C1SEL_Msk) }) I2Cx_KERNEL_SOURCE; } I2C_TABLE[] =
+    #define NVICInterrupt_I2Cx_EV_primary NVICInterrupt_I2C1_EV
+    #define NVICInterrupt_I2Cx_ER_primary NVICInterrupt_I2C1_ER
+    static const struct { typeof(I2CDriverRole_master_callback) I2Cx_DRIVER_ROLE; typeof(((u16) 0x000)) I2Cx_SLAVE_ADDRESS; typeof(I2C1) I2Cx; typeof(NVICInterrupt_I2C1_EV) NVICInterrupt_I2Cx_EV; typeof(NVICInterrupt_I2C1_ER) NVICInterrupt_I2Cx_ER; typeof(STPY_I2C1_KERNEL_SOURCE) STPY_I2Cx_KERNEL_SOURCE; typeof(STPY_I2C1_PRESC) STPY_I2Cx_PRESC; typeof(STPY_I2C1_SCLH) STPY_I2Cx_SCLH; typeof(STPY_I2C1_SCLL) STPY_I2Cx_SCLL; typeof((struct CMSISTuple) { &RCC->APB1LRSTR, CONCAT(RCC_, APB1LRSTR_I2C1RST_Pos), CONCAT(RCC_, APB1LRSTR_I2C1RST_Msk) }) I2Cx_RESET; typeof((struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_I2C1EN_Pos), CONCAT(RCC_, APB1LENR_I2C1EN_Msk) }) I2Cx_ENABLE; typeof((struct CMSISTuple) { &RCC->CCIPR4, CONCAT(RCC_, CCIPR4_I2C1SEL_Pos), CONCAT(RCC_, CCIPR4_I2C1SEL_Msk) }) I2Cx_KERNEL_SOURCE; typeof((void*) &INTERRUPT_I2Cx_primary) INTERRUPT_I2Cx_CALLBACK; } I2C_TABLE[] =
         {
-            [I2CHandle_primary] = { .I2Cx_DRIVER_ROLE = I2CDriverRole_master, .I2Cx_SLAVE_ADDRESS = ((u16) 0x000), .I2Cx = I2C1, .NVICInterrupt_I2Cx_EV = NVICInterrupt_I2C1_EV, .NVICInterrupt_I2Cx_ER = NVICInterrupt_I2C1_ER, .STPY_I2Cx_KERNEL_SOURCE = STPY_I2C1_KERNEL_SOURCE, .STPY_I2Cx_PRESC = STPY_I2C1_PRESC, .STPY_I2Cx_SCLH = STPY_I2C1_SCLH, .STPY_I2Cx_SCLL = STPY_I2C1_SCLL, .I2Cx_RESET = (struct CMSISTuple) { &RCC->APB1LRSTR, CONCAT(RCC_, APB1LRSTR_I2C1RST_Pos), CONCAT(RCC_, APB1LRSTR_I2C1RST_Msk) }, .I2Cx_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_I2C1EN_Pos), CONCAT(RCC_, APB1LENR_I2C1EN_Msk) }, .I2Cx_KERNEL_SOURCE = (struct CMSISTuple) { &RCC->CCIPR4, CONCAT(RCC_, CCIPR4_I2C1SEL_Pos), CONCAT(RCC_, CCIPR4_I2C1SEL_Msk) } },
+            [I2CHandle_primary] = { .I2Cx_DRIVER_ROLE = I2CDriverRole_master_callback, .I2Cx_SLAVE_ADDRESS = ((u16) 0x000), .I2Cx = I2C1, .NVICInterrupt_I2Cx_EV = NVICInterrupt_I2C1_EV, .NVICInterrupt_I2Cx_ER = NVICInterrupt_I2C1_ER, .STPY_I2Cx_KERNEL_SOURCE = STPY_I2C1_KERNEL_SOURCE, .STPY_I2Cx_PRESC = STPY_I2C1_PRESC, .STPY_I2Cx_SCLH = STPY_I2C1_SCLH, .STPY_I2Cx_SCLL = STPY_I2C1_SCLL, .I2Cx_RESET = (struct CMSISTuple) { &RCC->APB1LRSTR, CONCAT(RCC_, APB1LRSTR_I2C1RST_Pos), CONCAT(RCC_, APB1LRSTR_I2C1RST_Msk) }, .I2Cx_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_I2C1EN_Pos), CONCAT(RCC_, APB1LENR_I2C1EN_Msk) }, .I2Cx_KERNEL_SOURCE = (struct CMSISTuple) { &RCC->CCIPR4, CONCAT(RCC_, CCIPR4_I2C1SEL_Pos), CONCAT(RCC_, CCIPR4_I2C1SEL_Msk) }, .INTERRUPT_I2Cx_CALLBACK = (void*) &INTERRUPT_I2Cx_primary },
         };
     static void
     _I2C_driver_interrupt(enum I2CHandle handle);
@@ -72,6 +110,42 @@
 #endif
 #if TARGET_NAME_IS_MainFlightComputer
     #error Target 'MainFlightComputer' defines no handle for the 'I2C' driver.
+#endif
+#if TARGET_NAME_IS_VehicleFlightComputer
+    #error Target 'VehicleFlightComputer' defines no handle for the 'I2C' driver.
+#endif
+#if TARGET_NAME_IS_MainCameraSystem
+    #error Target 'MainCameraSystem' defines no handle for the 'I2C' driver.
+#endif
+#if TARGET_NAME_IS_DemoStepper
+    #error Target 'DemoStepper' defines no handle for the 'I2C' driver.
+#endif
+#if TARGET_NAME_IS_DemoOVCAM
+    enum I2CHandle : u32
+    {
+        I2CHandle_ovcam_sccb,
+    };
+    static constexpr u32 I2CHandle_COUNT = 1;
+    #define I2Cx_ I2C_
+    #define NVICInterrupt_I2Cx_EV_ovcam_sccb NVICInterrupt_I2C2_EV
+    #define NVICInterrupt_I2Cx_ER_ovcam_sccb NVICInterrupt_I2C2_ER
+    static const struct { typeof(I2CDriverRole_master_blocking) I2Cx_DRIVER_ROLE; typeof(((u16) 0x000)) I2Cx_SLAVE_ADDRESS; typeof(I2C2) I2Cx; typeof(NVICInterrupt_I2C2_EV) NVICInterrupt_I2Cx_EV; typeof(NVICInterrupt_I2C2_ER) NVICInterrupt_I2Cx_ER; typeof(STPY_I2C2_KERNEL_SOURCE) STPY_I2Cx_KERNEL_SOURCE; typeof(STPY_I2C2_PRESC) STPY_I2Cx_PRESC; typeof(STPY_I2C2_SCLH) STPY_I2Cx_SCLH; typeof(STPY_I2C2_SCLL) STPY_I2Cx_SCLL; typeof((struct CMSISTuple) { &RCC->APB1LRSTR, CONCAT(RCC_, APB1LRSTR_I2C2RST_Pos), CONCAT(RCC_, APB1LRSTR_I2C2RST_Msk) }) I2Cx_RESET; typeof((struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_I2C2EN_Pos), CONCAT(RCC_, APB1LENR_I2C2EN_Msk) }) I2Cx_ENABLE; typeof((struct CMSISTuple) { &RCC->CCIPR4, CONCAT(RCC_, CCIPR4_I2C2SEL_Pos), CONCAT(RCC_, CCIPR4_I2C2SEL_Msk) }) I2Cx_KERNEL_SOURCE; typeof((void*) nullptr) INTERRUPT_I2Cx_CALLBACK; } I2C_TABLE[] =
+        {
+            [I2CHandle_ovcam_sccb] = { .I2Cx_DRIVER_ROLE = I2CDriverRole_master_blocking, .I2Cx_SLAVE_ADDRESS = ((u16) 0x000), .I2Cx = I2C2, .NVICInterrupt_I2Cx_EV = NVICInterrupt_I2C2_EV, .NVICInterrupt_I2Cx_ER = NVICInterrupt_I2C2_ER, .STPY_I2Cx_KERNEL_SOURCE = STPY_I2C2_KERNEL_SOURCE, .STPY_I2Cx_PRESC = STPY_I2C2_PRESC, .STPY_I2Cx_SCLH = STPY_I2C2_SCLH, .STPY_I2Cx_SCLL = STPY_I2C2_SCLL, .I2Cx_RESET = (struct CMSISTuple) { &RCC->APB1LRSTR, CONCAT(RCC_, APB1LRSTR_I2C2RST_Pos), CONCAT(RCC_, APB1LRSTR_I2C2RST_Msk) }, .I2Cx_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_I2C2EN_Pos), CONCAT(RCC_, APB1LENR_I2C2EN_Msk) }, .I2Cx_KERNEL_SOURCE = (struct CMSISTuple) { &RCC->CCIPR4, CONCAT(RCC_, CCIPR4_I2C2SEL_Pos), CONCAT(RCC_, CCIPR4_I2C2SEL_Msk) }, .INTERRUPT_I2Cx_CALLBACK = (void*) nullptr },
+        };
+    static void
+    _I2C_driver_interrupt(enum I2CHandle handle);
+    INTERRUPT_I2C2_EV
+    {
+        _I2C_driver_interrupt(I2CHandle_ovcam_sccb);
+    }
+    INTERRUPT_I2C2_ER
+    {
+        _I2C_driver_interrupt(I2CHandle_ovcam_sccb);
+    }
+#endif
+#if TARGET_NAME_IS_TestESP32s
+    #error Target 'TestESP32s' defines no handle for the 'I2C' driver.
 #endif
 #undef _EXPAND_HANDLE
 #define _EXPAND_HANDLE\
@@ -90,55 +164,33 @@
     auto const I2Cx_RESET = I2C_TABLE[handle].I2Cx_RESET;\
     auto const I2Cx_ENABLE = I2C_TABLE[handle].I2Cx_ENABLE;\
     auto const I2Cx_KERNEL_SOURCE = I2C_TABLE[handle].I2Cx_KERNEL_SOURCE;\
+    auto const INTERRUPT_I2Cx_CALLBACK = I2C_TABLE[handle].INTERRUPT_I2Cx_CALLBACK;\
 
 #if TARGET_NAME_IS_SandboxNucleoH7S3L8
-    static void INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
-    {
-        panic;
-    }
 #endif
 #if TARGET_NAME_IS_SandboxNucleoH533RE
-    static void INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
-    {
-        panic;
-    }
 #endif
 #if TARGET_NAME_IS_DemoI2C
-    static void INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data);
 #endif
 #if TARGET_NAME_IS_DemoTimer
-    static void INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
-    {
-        panic;
-    }
 #endif
 #if TARGET_NAME_IS_DemoSPI
-    static void INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
-    {
-        panic;
-    }
 #endif
 #if TARGET_NAME_IS_DemoTimekeeping
-    static void INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
-    {
-        panic;
-    }
 #endif
 #if TARGET_NAME_IS_DemoSDMMC
-    static void INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
-    {
-        panic;
-    }
 #endif
 #if TARGET_NAME_IS_SensorShield
-    static void INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
-    {
-        panic;
-    }
 #endif
 #if TARGET_NAME_IS_MainFlightComputer
-    static void INTERRUPT_i2c_slave_callback(enum I2CHandle handle, enum I2CSlaveEvent event, u8* data)
-    {
-        panic;
-    }
+#endif
+#if TARGET_NAME_IS_VehicleFlightComputer
+#endif
+#if TARGET_NAME_IS_MainCameraSystem
+#endif
+#if TARGET_NAME_IS_DemoStepper
+#endif
+#if TARGET_NAME_IS_DemoOVCAM
+#endif
+#if TARGET_NAME_IS_TestESP32s
 #endif

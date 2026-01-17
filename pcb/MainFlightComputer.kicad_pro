@@ -463,7 +463,10 @@
     "pinned_footprint_libs": [
       "pcb"
     ],
-    "pinned_symbol_libs": []
+    "pinned_symbol_libs": [
+      "MainStackConnector",
+      "12401598E4_2A"
+    ]
   },
   "meta": {
     "filename": "MainFlightComputer.kicad_pro",
@@ -505,11 +508,11 @@
       "plot": "",
       "pos_files": "",
       "specctra_dsn": "",
-      "step": "",
+      "step": "models/MainFlightComputer.step",
       "svg": "",
       "vrml": ""
     },
-    "page_layout_descr_file": ""
+    "page_layout_descr_file": "kicad-embed://sheet.kicad_wks"
   },
   "schematic": {
     "annotate_start_num": 0,
@@ -648,8 +651,8 @@
       "Root"
     ],
     [
-      "26010726-051c-4ced-a554-8639b9084513",
-      "Main Stack Pin-Outs"
+      "d6d791b4-6a15-48a1-8b16-290665bcc58d",
+      "uSD Connector"
     ]
   ],
   "text_variables": {}

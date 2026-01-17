@@ -1,9 +1,9 @@
 #include "sd.meta"
-#meta SD_CMDS, SD_REGISTERS
+#meta export SD_CMDS, SD_REGISTERS
 
 import types
-from deps.stpy.mcus      import MCUS
-from deps.stpy.pxd.utils import SimpleNamespaceTable, justify
+import deps.stpy.pxd.pxd as pxd
+from deps.stpy.mcus import MCUS
 
 
 
@@ -15,7 +15,7 @@ from deps.stpy.pxd.utils import SimpleNamespaceTable, justify
 
 
 
-SD_CMDS = SimpleNamespaceTable(
+SD_CMDS = pxd.SimpleNamespaceTable(
     ('name'                   , 'code', 'acmd', 'waitresp', 'receiving'),
     ('GO_IDLE_STATE'          , 0     , False , 'none'    , False      ),
     ('ALL_SEND_CID'           , 2     , False , 'r2'      , False      ),
@@ -458,7 +458,7 @@ for register in SD_REGISTERS:
                 indented = True
             ):
 
-                for columns in justify(
+                for columns in pxd.justify(
                     (
                         ('<', name),
                         ('<', bits),
@@ -471,7 +471,7 @@ for register in SD_REGISTERS:
 
             # Assert the fields.
 
-            for columns in justify(
+            for columns in pxd.justify(
                 (
                     ('<', name    ),
                     ('<', expected),

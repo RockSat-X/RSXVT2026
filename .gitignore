@@ -6,6 +6,7 @@ data/
 .~lock*
 *.pdb
 *.exe
+__META_MAIN__.py
 
 # KiCAD.
 *-backups/
@@ -18,3 +19,6 @@ fp-info-cache
 
 # SolidWorks.
 ~$*
+
+# Misc.
+MAIN_ESP32_MAC_ADDRESS.txt

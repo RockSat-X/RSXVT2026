@@ -2,7 +2,7 @@
 	(version 20250114)
 	(generator "eeschema")
 	(generator_version "9.0")
-	(uuid "672ccd4a-3c0e-4232-96db-288059d49464")
+	(uuid "355cef7a-3b49-4880-8327-022933ad1984")
 	(paper "A4")
 	(lib_symbols
 		(symbol "Device:LED_ABRG"
@@ -759,8 +759,8 @@
 		)
 	)
 	(rectangle
-		(start 450.977 226.568)
-		(end 542.29 279.4)
+		(start 461.137 167.64)
+		(end 557.53 209.55)
 		(stroke
 			(width 0.8128)
 			(type solid)
@@ -771,37 +771,9 @@
 		)
 		(uuid cf1e410d-b6f6-4829-b50a-09d0cdd16830)
 	)
-	(text "TODO: @/url:`https://github.com/RockSat-X/RSXVT2026/issues/97`."
+	(text "Debug LED (V5 : Removed local nets)."
 		(exclude_from_sim no)
-		(at 494.792 276.098 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-				(thickness 0.254)
-				(bold yes)
-				(italic yes)
-				(color 255 0 255 1)
-			)
-		)
-		(uuid "483af249-d55a-4c60-9135-188204a114e2")
-	)
-	(text "TODO: Multiple debug LEDs?"
-		(exclude_from_sim no)
-		(at 467.614 229.87 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-				(thickness 0.254)
-				(bold yes)
-				(italic yes)
-				(color 255 0 255 1)
-			)
-		)
-		(uuid "9561bb8a-046a-4054-bc7a-72f35823a6f4")
-	)
-	(text "Debug LED (V4 : Updated resistors)."
-		(exclude_from_sim no)
-		(at 450.85 224.79 0)
+		(at 461.01 165.608 0)
 		(effects
 			(font
 				(size 3.2512 3.2512)
@@ -816,7 +788,7 @@
 	)
 	(wire
 		(pts
-			(xy 485.14 250.19) (xy 494.03 250.19)
+			(xy 497.84 187.96) (xy 506.73 187.96)
 		)
 		(stroke
 			(width 0)
@@ -826,7 +798,7 @@
 	)
 	(wire
 		(pts
-			(xy 499.11 248.92) (xy 499.11 252.73)
+			(xy 511.81 186.69) (xy 511.81 190.5)
 		)
 		(stroke
 			(width 0)
@@ -836,7 +808,7 @@
 	)
 	(wire
 		(pts
-			(xy 499.11 265.43) (xy 499.11 260.35)
+			(xy 511.81 203.2) (xy 511.81 198.12)
 		)
 		(stroke
 			(width 0)
@@ -846,7 +818,7 @@
 	)
 	(wire
 		(pts
-			(xy 485.14 250.19) (xy 485.14 252.73)
+			(xy 497.84 187.96) (xy 497.84 190.5)
 		)
 		(stroke
 			(width 0)
@@ -856,7 +828,7 @@
 	)
 	(wire
 		(pts
-			(xy 504.19 248.92) (xy 504.19 250.19)
+			(xy 516.89 186.69) (xy 516.89 187.96)
 		)
 		(stroke
 			(width 0)
@@ -866,7 +838,7 @@
 	)
 	(wire
 		(pts
-			(xy 482.6 262.89) (xy 485.14 262.89)
+			(xy 495.3 200.66) (xy 497.84 200.66)
 		)
 		(stroke
 			(width 0)
@@ -876,7 +848,7 @@
 	)
 	(wire
 		(pts
-			(xy 494.03 250.19) (xy 494.03 248.92)
+			(xy 506.73 187.96) (xy 506.73 186.69)
 		)
 		(stroke
 			(width 0)
@@ -886,7 +858,7 @@
 	)
 	(wire
 		(pts
-			(xy 482.6 265.43) (xy 499.11 265.43)
+			(xy 495.3 203.2) (xy 511.81 203.2)
 		)
 		(stroke
 			(width 0)
@@ -896,7 +868,7 @@
 	)
 	(wire
 		(pts
-			(xy 513.08 250.19) (xy 513.08 252.73)
+			(xy 525.78 187.96) (xy 525.78 190.5)
 		)
 		(stroke
 			(width 0)
@@ -906,7 +878,7 @@
 	)
 	(wire
 		(pts
-			(xy 482.6 267.97) (xy 513.08 267.97)
+			(xy 495.3 205.74) (xy 525.78 205.74)
 		)
 		(stroke
 			(width 0)
@@ -916,7 +888,7 @@
 	)
 	(wire
 		(pts
-			(xy 504.19 250.19) (xy 513.08 250.19)
+			(xy 516.89 187.96) (xy 525.78 187.96)
 		)
 		(stroke
 			(width 0)
@@ -926,7 +898,7 @@
 	)
 	(wire
 		(pts
-			(xy 513.08 267.97) (xy 513.08 260.35)
+			(xy 525.78 205.74) (xy 525.78 198.12)
 		)
 		(stroke
 			(width 0)
@@ -936,7 +908,7 @@
 	)
 	(wire
 		(pts
-			(xy 485.14 262.89) (xy 485.14 260.35)
+			(xy 497.84 200.66) (xy 497.84 198.12)
 		)
 		(stroke
 			(width 0)
@@ -944,39 +916,9 @@
 		)
 		(uuid "ce1c80e4-5a1b-411c-bf3d-ba209634ebd4")
 	)
-	(label "DEBUG_LED_B_CATHODE"
-		(at 513.08 252.73 180)
-		(effects
-			(font
-				(size 0.635 0.635)
-			)
-			(justify right bottom)
-		)
-		(uuid "21743eb4-4999-4e7f-88c0-d6a28819d48e")
-	)
-	(label "DEBUG_LED_G_CATHODE"
-		(at 499.11 252.73 180)
-		(effects
-			(font
-				(size 0.635 0.635)
-			)
-			(justify right bottom)
-		)
-		(uuid "e91e3f96-517a-43ad-b9bb-80dc2285ce98")
-	)
-	(label "DEBUG_LED_R_CATHODE"
-		(at 485.14 252.73 180)
-		(effects
-			(font
-				(size 0.635 0.635)
-			)
-			(justify right bottom)
-		)
-		(uuid "fcb61e42-c160-4500-897c-443ff8097563")
-	)
 	(global_label "led_channel_green"
 		(shape bidirectional)
-		(at 482.6 265.43 180)
+		(at 495.3 203.2 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -986,7 +928,7 @@
 		)
 		(uuid "430bafee-98a4-4714-996f-3c5bc5719015")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 460.9657 265.43 0)
+			(at 473.6657 203.2 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -998,7 +940,7 @@
 	)
 	(global_label "led_channel_red"
 		(shape bidirectional)
-		(at 482.6 262.89 180)
+		(at 495.3 200.66 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1008,7 +950,7 @@
 		)
 		(uuid "a3dac1f6-5bb5-480b-be03-c08156cf3247")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 463.2033 262.89 0)
+			(at 475.9033 200.66 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1020,7 +962,7 @@
 	)
 	(global_label "led_channel_blue"
 		(shape bidirectional)
-		(at 482.6 267.97 180)
+		(at 495.3 205.74 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1030,7 +972,7 @@
 		)
 		(uuid "f19453a7-bff5-4eb6-a2e7-2949e9214937")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 462.1753 267.97 0)
+			(at 474.8753 205.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1042,15 +984,15 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 499.11 256.54 0)
+		(at 511.81 194.31 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
 		(uuid "3a1945a1-9791-426f-8f40-c82072f7c55f")
-		(property "Reference" "R12"
-			(at 496.57 255.2699 0)
+		(property "Reference" "R31"
+			(at 509.27 193.0399 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1058,8 +1000,8 @@
 				(justify right)
 			)
 		)
-		(property "Value" "100"
-			(at 496.57 257.8099 0)
+		(property "Value" "2K"
+			(at 509.27 195.5799 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1068,7 +1010,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
-			(at 497.332 256.54 90)
+			(at 510.032 194.31 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1077,7 +1019,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 499.11 256.54 0)
+			(at 511.81 194.31 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1086,7 +1028,7 @@
 			)
 		)
 		(property "Description" "Resistor"
-			(at 499.11 256.54 0)
+			(at 511.81 194.31 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1103,7 +1045,7 @@
 		(instances
 			(project "MainFlightComputer"
 				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
-					(reference "R12")
+					(reference "R31")
 					(unit 1)
 				)
 			)
@@ -1111,7 +1053,7 @@
 	)
 	(symbol
 		(lib_id "Device:LED_ABRG")
-		(at 499.11 243.84 90)
+		(at 511.81 181.61 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -1119,8 +1061,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "70afc40a-9521-47d7-9c0c-84eb21c3ecf2")
-		(property "Reference" "D4"
-			(at 508 242.5699 90)
+		(property "Reference" "D5"
+			(at 520.7 180.3399 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1129,7 +1071,7 @@
 			)
 		)
 		(property "Value" "150141M173100"
-			(at 508 245.1099 90)
+			(at 520.7 182.8799 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1138,7 +1080,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_RGB_Wuerth-PLCC4_3.2x2.8mm_150141M173100"
-			(at 500.38 243.84 0)
+			(at 513.08 181.61 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1147,7 +1089,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 500.38 243.84 0)
+			(at 513.08 181.61 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1156,7 +1098,7 @@
 			)
 		)
 		(property "Description" "RGB LED, anode/blue/red/green"
-			(at 499.11 243.84 0)
+			(at 511.81 181.61 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1179,7 +1121,7 @@
 		(instances
 			(project ""
 				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
-					(reference "D4")
+					(reference "D5")
 					(unit 1)
 				)
 			)
@@ -1187,7 +1129,7 @@
 	)
 	(symbol
 		(lib_id "power:+3.3V")
-		(at 499.11 238.76 0)
+		(at 511.81 176.53 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -1195,8 +1137,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "b8fecc59-1ab6-4c30-94a8-1741e8ff3788")
-		(property "Reference" "#PWR039"
-			(at 499.11 242.57 0)
+		(property "Reference" "#PWR062"
+			(at 511.81 180.34 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1205,7 +1147,7 @@
 			)
 		)
 		(property "Value" "+3.3V"
-			(at 499.11 233.68 0)
+			(at 511.81 171.45 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1213,7 +1155,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 499.11 238.76 0)
+			(at 511.81 176.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1222,7 +1164,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 499.11 238.76 0)
+			(at 511.81 176.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1231,7 +1173,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-			(at 499.11 238.76 0)
+			(at 511.81 176.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1245,7 +1187,7 @@
 		(instances
 			(project "MainFlightComputer"
 				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
-					(reference "#PWR039")
+					(reference "#PWR062")
 					(unit 1)
 				)
 			)
@@ -1253,15 +1195,15 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 513.08 256.54 0)
+		(at 525.78 194.31 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
 		(uuid "bf22d91a-ccdd-4258-a9de-d0120a481ae4")
-		(property "Reference" "R13"
-			(at 510.54 255.2699 0)
+		(property "Reference" "R32"
+			(at 523.24 193.0399 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1269,8 +1211,8 @@
 				(justify right)
 			)
 		)
-		(property "Value" "100"
-			(at 510.54 257.8099 0)
+		(property "Value" "2K"
+			(at 523.24 195.5799 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1279,7 +1221,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
-			(at 511.302 256.54 90)
+			(at 524.002 194.31 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1288,7 +1230,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 513.08 256.54 0)
+			(at 525.78 194.31 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1297,7 +1239,7 @@
 			)
 		)
 		(property "Description" "Resistor"
-			(at 513.08 256.54 0)
+			(at 525.78 194.31 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1314,7 +1256,7 @@
 		(instances
 			(project "MainFlightComputer"
 				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
-					(reference "R13")
+					(reference "R32")
 					(unit 1)
 				)
 			)
@@ -1322,15 +1264,15 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 485.14 256.54 0)
+		(at 497.84 194.31 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
 		(uuid "df3c8aee-13f1-4eba-87ee-618f28e9f30d")
-		(property "Reference" "R11"
-			(at 482.6 255.2699 0)
+		(property "Reference" "R30"
+			(at 495.3 193.0399 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1338,8 +1280,8 @@
 				(justify right)
 			)
 		)
-		(property "Value" "300"
-			(at 482.6 257.8099 0)
+		(property "Value" "2K"
+			(at 495.3 195.5799 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1348,7 +1290,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
-			(at 483.362 256.54 90)
+			(at 496.062 194.31 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1357,7 +1299,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 485.14 256.54 0)
+			(at 497.84 194.31 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1366,7 +1308,7 @@
 			)
 		)
 		(property "Description" "Resistor"
-			(at 485.14 256.54 0)
+			(at 497.84 194.31 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1383,7 +1325,7 @@
 		(instances
 			(project "MainFlightComputer"
 				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6"
-					(reference "R11")
+					(reference "R30")
 					(unit 1)
 				)
 			)
