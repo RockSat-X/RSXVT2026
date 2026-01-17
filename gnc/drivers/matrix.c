@@ -52,6 +52,8 @@ MATRIX_multiply(struct Matrix* dst, struct Matrix* lhs, struct Matrix* rhs)
     assert(dst);
     assert(lhs);
     assert(rhs);
+    assert(dst != lhs);
+    assert(dst != rhs);
     assert(dst->rows    == lhs->rows   );
     assert(dst->columns == rhs->columns);
     assert(lhs->columns == rhs->rows   );
