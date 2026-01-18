@@ -2170,4 +2170,50 @@ def parseESP32(parameters):
 
 
 
+@main_interface.new_verb(
+    {
+        'description' : 'Find citations used throughout the project.',
+    },
+    {
+        'name'        : 'find',
+        'description' : 'Name of the reference to search for.',
+        'type'        : str,
+        'default'     : None,
+    },
+    {
+        'name'        : 'replace',
+        'description' : 'After finding citations of a specific reference, replace it with a new one.',
+        'type'        : str,
+        'default'     : None,
+    },
+)
+def cite(parameters):
+
+    pxd.process_citations(
+        file_paths = [
+            pathlib.Path(root, file_name)
+            for root, directories, file_names in pxd.make_main_relative_path('./').walk()
+            if not any(
+                root.is_relative_to(excluded_directory_path)
+                for excluded_directory_path in (
+                    pxd.make_main_relative_path('./build'),
+                    pxd.make_main_relative_path('./deps'),
+                    pxd.make_main_relative_path('./pcb/models'),
+                    pxd.make_main_relative_path('./mechanical'),
+                    pxd.make_main_relative_path('./electrical/meta'),
+                    pxd.make_main_relative_path('./.git'),
+                )
+            )
+            for file_name in file_names
+        ],
+        reference_text_to_find     = parameters.find,
+        replacement_reference_text = parameters.replace,
+    )
+
+
+
+################################################################################
+
+
+
 main_interface.invoke()
