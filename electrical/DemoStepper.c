@@ -35,8 +35,6 @@ main(void)
 
 
 
-    GPIO_LOW(driver_enable);
-
     for (;;)
     {
 
@@ -45,10 +43,45 @@ main(void)
 
             import math
 
+            STEPS_PER_REVOLUTION = 1600
+
             with Meta.enter(f'static const i8 STEPS[] ='):
-                for i in range(4000):
+
+
+
+                # Sequence of complicated movements...
+
+                pattern = [
+                    round(math.sin(math.sin(i / 500 * 2 * math.pi) * i / 125 * 2 * math.pi * 16) * 127)
+                    for i in range(500)
+                ]
+
+                for step in pattern:
                     Meta.line(f'''
-                        {round(math.sin(i / 4000 * 2 * math.pi * 16) * 127)},
+                        {step},
+                    ''')
+
+
+
+                # Home back to original position to see if any steps were lost.
+
+                for i in range(-sum(pattern) % STEPS_PER_REVOLUTION // 100):
+                    Meta.line(f'''
+                        100,
+                    ''')
+
+                for i in range(-sum(pattern) % STEPS_PER_REVOLUTION % 100):
+                    Meta.line(f'''
+                        1,
+                    ''')
+
+
+
+                # Pause...
+
+                for i in range(100):
+                    Meta.line(f'''
+                        0,
                     ''')
 
         */

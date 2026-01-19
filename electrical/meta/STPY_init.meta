@@ -2952,10 +2952,10 @@
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__driver_step A
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__driver_step 9
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__driver_step
-        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_HIGH__driver_enable GPIO_BSRR_BS
-        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_LOW__driver_enable GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__driver_enable B
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__driver_enable 0
+        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_HIGH__driver_disable GPIO_BSRR_BS
+        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_LOW__driver_disable GPIO_BSRR_BR
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__driver_disable B
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__driver_disable 0
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__driver_uart B
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__driver_uart 10
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__driver_uart
