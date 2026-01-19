@@ -35,8 +35,6 @@ main(void)
 
 
 
-    GPIO_LOW(driver_enable);
-
     for (;;)
     {
 

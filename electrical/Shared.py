@@ -778,7 +778,7 @@ TARGETS = (
             ('button'          , 'C13', 'INPUT'     , { 'pull'    : None, 'active' : True            }),
             ('driver_direction', 'C3' , 'OUTPUT'    , { 'initlvl' : True                             }),
             ('driver_step'     , 'A9' , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH2'                       }),
-            ('driver_enable'   , 'B0' , 'OUTPUT'    , { 'initlvl' : True                             }),
+            ('driver_disable'  , 'B0' , 'OUTPUT'    , { 'initlvl' : True                             }),
             ('driver_uart'     , 'B10', 'ALTERNATE' , { 'altfunc' : 'USART3_TX', 'open_drain' : True }),
         ),
 

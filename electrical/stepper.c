@@ -2,8 +2,9 @@
 
 
 
-#define STEPPER_PERIOD_US     25'000
-#define STEPPER_WINDOW_LENGTH 32
+#define STEPPER_ENABLE_DELAY_US 250'000
+#define STEPPER_PERIOD_US        25'000
+#define STEPPER_WINDOW_LENGTH    32
 
 
 
@@ -93,11 +94,15 @@ static const struct { u8 register_address; u32 data; } STEPPER_INITIALIZATION_SE
             (15 << 8) // "SENDDELAY" : Amount of delay before the read response is sent back.
         },
         {
+            0x10,
+            (12 << 8) // "IRUN" : Current scaling (out of 32) for when the motor is running. TODO Subject to change?
+        },
+        {
             0x6C,
               (0                            << 31) // "diss2vs" : "0: Short protection low side is on".
             | (0                            << 30) // "diss2g"  : "0: Short to GND protection is on".
             | (1                            << 28) // "intpol"  : The actual microstep resolution is "extrapolated to 256 microsteps for smoothest motor operation".
-            | (StepperMicrostepResolution_8 << 24) // "MRES"    : Microstep resolution.
+            | (StepperMicrostepResolution_8 << 24) // "MRES"    : Microstep resolution. TODO Subject to change?
             | (5                            <<  4) // "HSTRT"   : Addend to "hysteresis low value HEND".
             | (3                            <<  0) // "TOFF"    : "Off time setting controls duration of slow decay phase".
         },
@@ -122,6 +127,7 @@ enum StepperDriverState : u32
 {
     StepperDriverState_setting_uart_write_sequence_number,
     StepperDriverState_doing_initialization_sequence,
+    StepperDriverState_enable_delay,
     StepperDriverState_inited,
 };
 
@@ -132,7 +138,7 @@ struct StepperDriver
 
     volatile enum StepperDriverState state;
     i32                              initialization_sequence_index;
-
+    i32                              enable_delay_counter;
     i8                               deltas[STEPPER_WINDOW_LENGTH];
     volatile u32                     reader;
     volatile u32                     writer;
@@ -465,6 +471,9 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
                     case StepperDriverState_doing_initialization_sequence:
                     {
+
+                        GPIO_HIGH(driver_disable); // Ensure the motor can't draw current.
+
                         driver->uart_transfer =
                             (struct StepperDriverUARTTransfer)
                             {
@@ -472,6 +481,33 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
                                 .register_address = STEPPER_INITIALIZATION_SEQUENCE[driver->initialization_sequence_index].register_address,
                                 .data             = STEPPER_INITIALIZATION_SEQUENCE[driver->initialization_sequence_index].data,
                             };
+
+                    } break;
+
+
+
+                    // It seems like when the TMC2209 is first initialized (especially after a power-cycle)
+                    // the motor will induce a large current draw after it is enabled. It quickly settles
+                    // down, but it's probably not nice to do to the batteries. It seems like by delaying
+                    // the enabling of the motor that the current spike can be avoided. I can tell this works
+                    // by the fact that the power supply not going into current-limiting mode after the
+                    // power-cycle.
+
+                    case StepperDriverState_enable_delay:
+                    {
+
+                        driver->enable_delay_counter += 1;
+
+                        if (driver->enable_delay_counter < STEPPER_ENABLE_DELAY_US / STEPPER_PERIOD_US)
+                        {
+                            yield = true;
+                        }
+                        else
+                        {
+                            GPIO_LOW(driver_disable); // The motor can draw current now.
+                            driver->state = StepperDriverState_inited;
+                        }
+
                     } break;
 
 
@@ -527,15 +563,16 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
                             }
                             else
                             {
-                                driver->state = StepperDriverState_inited;
+                                driver->state = StepperDriverState_enable_delay;
                             }
 
                         } break;
 
 
 
-                        case StepperDriverState_inited : panic;
-                        default                        : panic;
+                        case StepperDriverState_enable_delay : panic;
+                        case StepperDriverState_inited       : panic;
+                        default                              : panic;
 
                     }
 
