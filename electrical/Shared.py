@@ -81,7 +81,7 @@ MCU_SUPPORT = {
 
 }
 
-TARGETS = (
+TARGETS = ( # @/`Defining Targets`.
 
 
 
@@ -1193,3 +1193,134 @@ def PER_MCU():
 # that end up being garbage-collected when we debug. This isn't a big
 # deal, but it is annoying when it happens, so we'll skip out on GC'ing
 # data and only do functions.
+
+
+
+# @/`Defining Targets`:
+#
+# Targets are defined in this file in the tuple `TARGETS`.
+# The easiest way to create a new target is to copy-paste
+# an existing one and insert it at the end of the tuple.
+#
+# There are several settings that configure a target:
+#
+#   - `name`
+#       The name of the target; one example of
+#       where this is used this would be `./cli.py build <name>`.
+#
+#   - `mcu`
+#       The full commerical part number of the STM32 microcontroller
+#       being used. The valid options are the keys of `MCU_SUPPORT`.
+#       An example of why this information is needed is for GPIO reasons;
+#       different MCUs have different sets of GPIOs available and
+#       functionalities assigned to them.
+#
+#   - `source_file_paths`
+#       The list of sources that the build system will call the compiler
+#       to make object files for. Because a jumbo build approach is used
+#       throughout the codebase, this is typically just a single file path
+#       to the file that has your `main` function.
+#       If no source file paths are given, then the target will not be built.
+#       This is useful if there's no code for the target yet, but you still
+#       want to do things like verify the GPIOs.
+#
+#   - `kicad_project`
+#       If `None`, does nothing.
+#       Otherwise, the target will be associated with `<kicad_project>.kicad_pro`.
+#       This is so PCB cross-verification can be done (e.g. checking GPIOs are consistent).
+#
+#   - `gpios`
+#       A table where each row describes a GPIO associated with the target.
+#       The format is as follows: (<name>, <pin>, <type>, { <options>... }).
+#
+#           - <name>
+#               The unique name of the GPIO.
+#               If the target is associated with a Kicad project,
+#               then the GPIO name must match the name of the net
+#               that the pin is connected to in the schematic.
+#
+#           - <pin>
+#               The port and number of the GPIO.
+#               The pin can also be just `None`;
+#               this is useful for when the location of the pin
+#               is not yet determined, but you still want to reserve it
+#               so no other GPIO can conflict with it.
+#
+#           - <type>
+#               Can be 'INPUT', 'OUTPUT', 'ANALOG', 'ALTERNATE', or `None`.
+#               The GPIO type being `None` is useful for when the
+#               purpose of the pin is reserved and you don't want any
+#               other GPIO to use that specific pin.
+#               The types 'INPUT', 'OUTPUT', and 'ANALOG' are self-explanatory;
+#               the type 'ALTERNATE' refers to peripheral functionalities like UART.
+#
+#           - { <options>... }
+#               A dictionary of additional configurations for the GPIO.
+#
+#               - 'initlvl'
+#                   The initial logic level after the GPIO is initialized.
+#
+#               - 'active'
+#                   The polarity of an GPIO's logic level.
+#                   For example, if `True`, then `GPIO_READ(<name>)` be truthy if the pin is reading +3.3V;
+#                   otherwise if `False`, then `GPIO_READ(<name>)` be truthy if the pin is reading +0V.
+#                   This also applies to the other GPIO macros like `GPIO_SET`.
+#
+#               - 'altfunc'
+#                   When the GPIO is 'ALTERNATE', this field states the alternate functionality.
+#                   See `./deps/stpy/databases/<mcu>.csv` for a spreadsheet of all GPIOs and
+#                   their available alternate functionalities.
+#
+#               - 'pull'
+#                   Either 'DOWN', 'UP', or None for having a pull-down, pull-up, or no pull resistor.
+#
+#               - 'open_drain'
+#                   Literally whether or not the GPIO is open-drained.
+#
+#               - 'interrupt'
+#                   When the GPIO is 'INPUT', this field defines whether or not an interrupt will be
+#                   configured to have triggered when an edge transition happens;
+#                   the value of 'RISING' or 'FALLING' determining which.
+#                   This is useful for something like processing a button press
+#                   using an interrupt-based approach rather than polling.
+#
+#   - `interrupts`
+#       Table of interrupts defined for the target where each row is (<name>, <priority>).
+#       Note that priority levels are where lower numbers are higher priority.
+#       You'd only typically interact with this field whenever
+#       you're working with a peripheral (e.g. UXART) that is
+#       implemented using interrupts somewhere.
+#       The priority of the interrupt is only subtly important,
+#       where you just have to make sure that peripherals that
+#       invoke other peripherals have the priorities set in such
+#       a way that a dead-lock does not happen.
+#
+#   - `drivers`
+#       List of driver information that is used so that code can be generated
+#       to have the target be supported for that particular driver.
+#       For instance, if the target firmware needs to use a UART peripheral,
+#       a UXART driver would be defined in the `drivers` list with information
+#       like the handle name of the peripheral, which peripheral is being used,
+#       and so on.
+#       The exact list of available drivers and their corresponding settings
+#       can be found elsewhere (e.g. `./electrical/uxart.c`).
+#
+#   - `use_freertos`
+#       Whether or not the FreeRTOS task scheduler is compiled as a part
+#       of the firmware binary and is enabled.
+#       Example usage on FreeRTOS can be found elsewhere.
+#
+#   - `main_stack_size`
+#       Amount of bytes reserved for the stack for the `main` function.
+#       Without FreeRTOS, this stack size is all there is for the entire program.
+#       With FreeRTOS, each task will have their own stack size defined,
+#       so this configuration matters slightly less.
+#
+#   - `schema`
+#       Essentially a set of configurations for defining the clock-tree of the MCU.
+#       Most settings are, as of right now, pretty obscure.
+#       Most of the time, the reason you're modifying this target
+#       configuration is because a new peripheral has as a clock
+#       frequency associated with it (e.g. baud). I will not go into
+#       much detail about it here, as this setting is pretty experimental,
+#       and the other existing targets should give good enough examples to infer from.
