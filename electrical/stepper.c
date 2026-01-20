@@ -2,19 +2,13 @@
 
 
 
-#define STEPPER_ENABLE_DELAY_US 250'000
-#define STEPPER_PERIOD_US        25'000
-#define STEPPER_WINDOW_LENGTH    32
+#define STEPPER_ENABLE_DELAY_US    250'000 // @/`Stepper Enable Delay`.
+#define STEPPER_UPDATE_PERIOD_US    25'000 // @/`Stepper Update Mechanism`.
+#define STEPPER_RING_BUFFER_LENGTH      32 // @/`Stepper Ring-Buffer Length`.
 
-
-
-static_assert(IS_POWER_OF_TWO(STEPPER_WINDOW_LENGTH));
-
-
+static_assert(IS_POWER_OF_TWO(STEPPER_RING_BUFFER_LENGTH));
 
 #define TMC2209_IFCNT_ADDRESS 0x02
-
-
 
 #include "stepper_driver_support.meta"
 /* #meta
@@ -139,7 +133,7 @@ struct StepperDriver
     volatile enum StepperDriverState state;
     i32                              initialization_sequence_index;
     i32                              enable_delay_counter;
-    i8                               deltas[STEPPER_WINDOW_LENGTH];
+    i8                               deltas[STEPPER_RING_BUFFER_LENGTH];
     volatile u32                     reader;
     volatile u32                     writer;
 
@@ -343,10 +337,7 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
     // See if the timer has finished pulsing steps;
     // if so, the next sequence of steps can be queued up now.
-    // We will also carry out any UART transfers as needed,
-    // as this timer update interrupt is a convenient way to
-    // ensure the timing of the half-duplex transfer is done
-    // in a reliable manner.
+    // We will also carry out any UART transfers.
 
     if (CMSIS_GET(TIMx, SR, UIF))
     {
@@ -414,7 +405,7 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
         // the direction and rate of stepping at fixed
         // intervals.
 
-        CMSIS_SET(TIMx, ARR, ARR, (STEPPER_PERIOD_US - 1) / (abs_steps ? abs_steps : 1));
+        CMSIS_SET(TIMx, ARR, ARR, (STEPPER_UPDATE_PERIOD_US - 1) / (abs_steps ? abs_steps : 1));
 
 
 
@@ -432,7 +423,7 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
 
 
-        // Handle UART transfers.
+        // Handle UART transfers. @/`Why Stepper UART is tied to step update timer`.
 
         for (b32 yield = false; !yield;)
         {
@@ -486,19 +477,14 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
 
 
-                    // It seems like when the TMC2209 is first initialized (especially after a power-cycle)
-                    // the motor will induce a large current draw after it is enabled. It quickly settles
-                    // down, but it's probably not nice to do to the batteries. It seems like by delaying
-                    // the enabling of the motor that the current spike can be avoided. I can tell this works
-                    // by the fact that the power supply not going into current-limiting mode after the
-                    // power-cycle.
+                    // @/`Stepper Enable Delay`.
 
                     case StepperDriverState_enable_delay:
                     {
 
                         driver->enable_delay_counter += 1;
 
-                        if (driver->enable_delay_counter < STEPPER_ENABLE_DELAY_US / STEPPER_PERIOD_US)
+                        if (driver->enable_delay_counter < STEPPER_ENABLE_DELAY_US / STEPPER_UPDATE_PERIOD_US)
                         {
                             yield = true;
                         }
@@ -816,3 +802,83 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
     }
 
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+// @/`Stepper Enable Delay`:
+//
+// It seems like when the TMC2209 is first
+// initialized (especially after a power-cycle)
+// the motor will induce a large current draw
+// after it is enabled. It quickly settles down,
+// but it's probably not nice to do to the batteries.
+// It seems like by delaying the enabling of the motor
+// that the current spike can be avoided. I can tell
+// this works by the fact that the power supply not
+// going into current-limiting mode after the power-cycle.
+
+
+
+// @/`Stepper Update Mechanism`:
+//
+// The stepper motor driver is periodically updated
+// based on the value `STEPPER_UPDATE_PERIOD_US`.
+//
+// On each update, a value is popped from the ring-buffer
+// which determines how many step pulses will be generated
+// leading up to the next update event.
+//
+// For example, if the popped value from the ring-buffer is 13
+// and the update period is 25ms, then 13 equally spaced pulses
+// will be generated on the STEP pin of the TMC2209 during the
+// next 25ms. If after that the next value from the ring-buffer
+// is 0, then no steps will be generated for the next 25ms.
+//
+// It should be noted that the UART initialization of the TMC2209
+// is also tied to this periodic update too; that is to say,
+// during the initialization of the TMC2209, a UART transfer is
+// done based on the rate of the `STEPPER_UPDATE_PERIOD_US`.
+// (@/`Why Stepper UART is tied to step update timer`).
+//
+// If the update period is too large, then fine motor control
+// is harder to achieve. If the update period is too small,
+// then there is a greater risk of ring-buffer underrun
+// (@/`Stepper Ring-Buffer Length`) and could also complicate
+// the UART communication (@/`Why Stepper UART is tied to step update timer`).
+
+
+
+// @/`Stepper Ring-Buffer Length`:
+//
+// The length of the ring-buffer should be set to a reasonable
+// size such that steps can be queued up but without implying
+// large latency.
+//
+// For example, if the window length is 256 and the update period
+// is 25ms, then if the ring-buffer were to be completely filled,
+// then it'd take 6.4 seconds for the entire ring-buffer to be
+// processed; this is an impractical size.
+//
+// However, if the ring-buffer is too small, then there's a risk
+// of an underrun where the driver has no value to pop from the
+// ring-buffer and doesn't know how many pulses to send out to
+// the TMC2209. This is unlikely given that the update period is
+// on the order of milliseconds, and a lot can be done during that
+// time, but it's something to consider.
+
+
+
+// @/`Why Stepper UART is tied to step update timer`:
+//
+// The reasoning is beyond more than just convenience: because
+// the TMC2209 uses a half-duplex UART line and things like CRC
+// errors can happen, resynchronizing the communication is done
+// by having the TMC2209 detect an idle UART line for certain
+// amount of bit-times. Since this delay is needed anyways for
+// the upmost reliable communication, a periodic update event
+// (with a very long period in comparison to the UART data transfer)
+// is a good way to achieve this without imposing more dependencies.
