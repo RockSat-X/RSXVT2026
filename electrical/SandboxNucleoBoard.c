@@ -1,5 +1,3 @@
-// Welcome to the sandbox! Please read the comments at the end of the file.
-
 #include "system.h"
 #include "uxart.c"
 
