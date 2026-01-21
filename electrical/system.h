@@ -561,10 +561,10 @@ halt_(b32 panicking) // @/`Halting`.
 
                 #if TARGET_MCU_IS_STM32H533RET6
 
-                    GPIO_HIGH(led_green);
+                    GPIO_ACTIVE(led_green);
                     spinlock_nop(i);
 
-                    GPIO_LOW(led_green);
+                    GPIO_INACTIVE(led_green);
                     spinlock_nop(i * (panicking ? 1 : 4));
 
                 #else
@@ -574,9 +574,9 @@ halt_(b32 panicking) // @/`Halting`.
                     GPIO_SET(led_channel_blue , !panicking);
                     spinlock_nop(i);
 
-                    GPIO_LOW(led_channel_red  );
-                    GPIO_LOW(led_channel_green);
-                    GPIO_LOW(led_channel_blue );
+                    GPIO_INACTIVE(led_channel_red  );
+                    GPIO_INACTIVE(led_channel_green);
+                    GPIO_INACTIVE(led_channel_blue );
                     spinlock_nop(i * (panicking ? 1 : 4));
 
                 #endif
