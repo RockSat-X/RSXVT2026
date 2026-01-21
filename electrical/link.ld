@@ -5,7 +5,7 @@ ENTRY(INTERRUPT_Reset) /* Just to indicate where program execution would begin f
 
 MEMORY
 {
-    #if TARGET_MCU_IS_STM32H533RET6 /* @/pg 117/fig 3/`H533rm`. */
+    #if TARGET_MCU_IS_STM32H533RET6 || TARGET_MCU_IS_STM32H533VET6 /* @/pg 117/fig 3/`H533rm`. */
         SRAM     (rw) : ORIGIN = 0x0A000000, LENGTH = 256K /* TODO Verify that we have this much memory. */
         FLASH    (rx) : ORIGIN = 0x08000000, LENGTH = 64K
     #endif
@@ -46,6 +46,7 @@ SECTIONS
         INITIAL_STACK_ADDRESS  = .;
 
         #define STACK_LOCATION_STM32H533RET6 SRAM
+        #define STACK_LOCATION_STM32H533VET6 SRAM
     } > CONCAT(STACK_LOCATION_, TARGET_MCU)
 
     .data_output_section : ALIGN(4)
@@ -57,6 +58,7 @@ SECTIONS
         LINK_data_virt_addr_end = .;
 
         #define DATA_LOCATION_STM32H533RET6 SRAM
+        #define DATA_LOCATION_STM32H533VET6 SRAM
     } > CONCAT(DATA_LOCATION_, TARGET_MCU) AT > FLASH
 
     .bss_output_section : ALIGN(4)
@@ -67,6 +69,7 @@ SECTIONS
         LINK_bss_addr_end = .;
 
         #define BSS_LOCATION_STM32H533RET6 SRAM
+        #define BSS_LOCATION_STM32H533VET6 SRAM
     } > CONCAT(BSS_LOCATION_, TARGET_MCU)
 }
 

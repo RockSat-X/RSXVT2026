@@ -463,7 +463,7 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
                     case StepperDriverState_doing_initialization_sequence:
                     {
 
-                        GPIO_HIGH(driver_disable); // Ensure the motor can't draw current.
+                        GPIO_ACTIVE(driver_disable); // Ensure the motor can't draw current.
 
                         driver->uart_transfer =
                             (struct StepperDriverUARTTransfer)
@@ -490,7 +490,7 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
                         }
                         else
                         {
-                            GPIO_LOW(driver_disable); // The motor can draw current now.
+                            GPIO_INACTIVE(driver_disable); // The motor can draw current now.
                             driver->state = StepperDriverState_inited;
                         }
 
