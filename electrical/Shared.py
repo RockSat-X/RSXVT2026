@@ -885,8 +885,8 @@ TARGETS = ( # @/`Defining Targets`.
             ('ovcam_pixel_clock', 'A6' , 'ALTERNATE', { 'altfunc' : 'DCMI_PIXCLK'                                  }),
             ('ovcam_vsync'      , 'B7' , 'ALTERNATE', { 'altfunc' : 'DCMI_VSYNC'                                   }),
             ('ovcam_hsync'      , 'A4' , 'ALTERNATE', { 'altfunc' : 'DCMI_HSYNC'                                   }), # Note that SB22 should be shorted, SB3 and SB7 open.
-            ('ovcam_power_down' , 'A10', 'OUTPUT'   , { 'initlvl' : True                                           }),
-            ('ovcam_reset'      , 'C5' , 'OUTPUT'   , { 'initlvl' : False                                          }),
+            ('ovcam_power_down' , 'A10', 'OUTPUT'   , { 'initlvl' : True      , 'active'     : True,               }),
+            ('ovcam_reset'      , 'C5' , 'OUTPUT'   , { 'initlvl' : True      , 'active'     : False,              }),
             ('ovcam_i2c_clock'  , 'B10', 'ALTERNATE', { 'altfunc' : 'I2C2_SCL', 'open_drain' : True, 'pull' : 'UP' }),
             ('ovcam_i2c_data'   , 'B12', 'ALTERNATE', { 'altfunc' : 'I2C2_SDA', 'open_drain' : True, 'pull' : 'UP' }),
         ),
@@ -1279,13 +1279,16 @@ def PER_MCU():
 #               A dictionary of additional configurations for the GPIO.
 #
 #               - 'initlvl'
-#                   The initial logic level after the GPIO is initialized.
+#                   The initial logic level after the GPIO is initialized;
+#                   that is, if the GPIO is active-low and 'initlvl' is `True`,
+#                   then the GPIO will be initialized to 0V.
 #
 #               - 'active'
 #                   The polarity of an GPIO's logic level.
 #                   For example, if `True`, then `GPIO_READ(<name>)` be truthy if the pin is reading +3.3V;
 #                   otherwise if `False`, then `GPIO_READ(<name>)` be truthy if the pin is reading +0V.
 #                   This also applies to the other GPIO macros like `GPIO_SET`.
+#                   Active-high is assumed by default.
 #
 #               - 'altfunc'
 #                   When the GPIO is 'ALTERNATE', this field states the alternate functionality.

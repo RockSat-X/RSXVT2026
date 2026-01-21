@@ -208,7 +208,13 @@
             GPIOAEN, true   ,
             GPIOCEN, true   ,
         );
-        CMSIS_SET(GPIOA, ODR, OD5, false);
+        CMSIS_SET
+        (
+            GPIOA, ODR  ,
+            OD5  , false,
+            OD13 , true ,
+            OD14 , true ,
+        );
         CMSIS_WRITE
         (
             GPIO_AFRL, GPIOA->AFR[0],
@@ -581,7 +587,13 @@
             OT10 , true  ,
             OT12 , true  ,
         );
-        CMSIS_SET(GPIOA, ODR, OD5, false);
+        CMSIS_SET
+        (
+            GPIOA, ODR  ,
+            OD5  , false,
+            OD13 , true ,
+            OD14 , true ,
+        );
         CMSIS_SET
         (
             GPIOB , PUPDR,
@@ -988,7 +1000,13 @@
             GPIOAEN, true   ,
             GPIOCEN, true   ,
         );
-        CMSIS_SET(GPIOA, ODR, OD5, false);
+        CMSIS_SET
+        (
+            GPIOA, ODR  ,
+            OD5  , false,
+            OD13 , true ,
+            OD14 , true ,
+        );
         CMSIS_WRITE
         (
             GPIO_AFRL, GPIOA->AFR[0],
@@ -1360,7 +1378,13 @@
             GPIOBEN, true   ,
             GPIOCEN, true   ,
         );
-        CMSIS_SET(GPIOA, ODR, OD5, false);
+        CMSIS_SET
+        (
+            GPIOA, ODR  ,
+            OD5  , false,
+            OD13 , true ,
+            OD14 , true ,
+        );
         CMSIS_WRITE
         (
             GPIO_AFRL, GPIOA->AFR[0],
@@ -1754,7 +1778,13 @@
             GPIOAEN, true   ,
             GPIOCEN, true   ,
         );
-        CMSIS_SET(GPIOA, ODR, OD5, false);
+        CMSIS_SET
+        (
+            GPIOA, ODR  ,
+            OD5  , false,
+            OD13 , true ,
+            OD14 , true ,
+        );
         CMSIS_WRITE
         (
             GPIO_AFRL, GPIOA->AFR[0],
@@ -2125,7 +2155,13 @@
             GPIOBEN, true   ,
             GPIOCEN, true   ,
         );
-        CMSIS_SET(GPIOA, ODR, OD5, false);
+        CMSIS_SET
+        (
+            GPIOA, ODR  ,
+            OD5  , false,
+            OD13 , true ,
+            OD14 , true ,
+        );
         CMSIS_WRITE
         (
             GPIO_AFRL, GPIOA->AFR[0],
@@ -2546,7 +2582,13 @@
             OT6  , true  ,
             OT7  , true  ,
         );
-        CMSIS_SET(GPIOA, ODR, OD5, false);
+        CMSIS_SET
+        (
+            GPIOA, ODR  ,
+            OD5  , false,
+            OD13 , true ,
+            OD14 , true ,
+        );
         CMSIS_SET(GPIOC, ODR, OD12, false);
         CMSIS_SET
         (
@@ -3072,23 +3114,37 @@
         CMSIS_SET
         (
             GPIOA, ODR  ,
-            OD0  , false,
+            OD0  , true ,
             OD4  , true ,
             OD8  , false,
             OD9  , false,
             OD10 , false,
+            OD13 , true ,
+            OD14 , true ,
         );
-        CMSIS_SET(GPIOB, ODR, OD2, false);
         CMSIS_SET
         (
-            GPIOC, ODR  ,
-            OD0  , false,
-            OD1  , false,
+            GPIOB, ODR  ,
+            OD2  , false,
+            OD3  , true ,
+            OD4  , true ,
+        );
+        CMSIS_SET
+        (
+            GPIOC, ODR ,
+            OD0  , true,
+            OD1  , true,
+            OD5  , true,
+            OD13 , true,
+            OD15 , true,
         );
         CMSIS_SET
         (
             GPIOD, ODR  ,
             OD0  , false,
+            OD1  , true ,
+            OD13 , true ,
+            OD14 , true ,
             OD15 , true ,
         );
         CMSIS_SET
@@ -3097,6 +3153,7 @@
             OD8  , false,
             OD10 , true ,
         );
+        CMSIS_SET(GPIOH, ODR, OD0, true);
         CMSIS_WRITE
         (
             GPIO_AFRL, GPIOA->AFR[0],
@@ -3574,7 +3631,13 @@
             GPIOCEN, true   ,
         );
         CMSIS_SET(GPIOB, OTYPER, OT10, true);
-        CMSIS_SET(GPIOA, ODR, OD5, false);
+        CMSIS_SET
+        (
+            GPIOA, ODR  ,
+            OD5  , false,
+            OD13 , true ,
+            OD14 , true ,
+        );
         CMSIS_SET(GPIOB, ODR, OD0, true);
         CMSIS_SET(GPIOC, ODR, OD3, true);
         CMSIS_WRITE
@@ -3995,8 +4058,8 @@
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__ovcam_power_down GPIO_BSRR_BR
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__ovcam_power_down A
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__ovcam_power_down 10
-        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__ovcam_reset GPIO_BSRR_BS
-        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__ovcam_reset GPIO_BSRR_BR
+        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__ovcam_reset GPIO_BSRR_BR
+        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__ovcam_reset GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__ovcam_reset C
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__ovcam_reset 5
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__ovcam_i2c_clock B
@@ -4023,6 +4086,8 @@
             GPIOA, ODR  ,
             OD5  , false,
             OD10 , true ,
+            OD13 , true ,
+            OD14 , true ,
         );
         CMSIS_SET(GPIOC, ODR, OD5, false);
         CMSIS_SET
@@ -4455,7 +4520,13 @@
             GPIOBEN, true   ,
             GPIOCEN, true   ,
         );
-        CMSIS_SET(GPIOA, ODR, OD5, false);
+        CMSIS_SET
+        (
+            GPIOA, ODR  ,
+            OD5  , false,
+            OD13 , true ,
+            OD14 , true ,
+        );
         CMSIS_SET(GPIOC, ODR, OD2, false);
         CMSIS_WRITE
         (
