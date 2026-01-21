@@ -45,6 +45,28 @@ static constexpr u32 SDCmd_COUNT = 18;
     static constexpr u32 SDWaitRespCode_COUNT = 7;
 #endif
 #if TARGET_MCU_IS_STM32H533VET6
+    enum SDWaitRespType : u32
+    {
+        SDWaitRespType_none,
+        SDWaitRespType_r1,
+        SDWaitRespType_r1b,
+        SDWaitRespType_r6,
+        SDWaitRespType_r7,
+        SDWaitRespType_r3,
+        SDWaitRespType_r2,
+    };
+    static constexpr u32 SDWaitRespType_COUNT = 7;
+    enum SDWaitRespCode : u32
+    {
+        SDWaitRespCode_none = 0b00,
+        SDWaitRespCode_r1   = 0b01,
+        SDWaitRespCode_r1b  = 0b01,
+        SDWaitRespCode_r6   = 0b01,
+        SDWaitRespCode_r7   = 0b01,
+        SDWaitRespCode_r3   = 0b10,
+        SDWaitRespCode_r2   = 0b11,
+    };
+    static constexpr u32 SDWaitRespCode_COUNT = 7;
 #endif
 static const struct { u8 code; b32 acmd; enum SDWaitRespType waitresp_type; enum SDWaitRespCode waitresp_code; b32 receiving; } SD_CMDS[] =
     {

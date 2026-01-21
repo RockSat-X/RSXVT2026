@@ -550,11 +550,37 @@ halt_(b32 panicking) // @/`Halting`.
         {
             for (u32 j = 0; j < 4; j += 1)
             {
-                GPIO_HIGH(led_green);
-                spinlock_nop(i);
 
-                GPIO_LOW(led_green);
-                spinlock_nop(i * (panicking ? 1 : 4));
+                // TODO For now, the way we're telling that we're on
+                //      a Nucleo-H533RE board is if we're working with
+                //      a STM32H533RET6 MCU; if it's a STM32H533VET6,
+                //      then we assume we're on a PCB with an RGB led.
+                //      The better way to do actually do this is just
+                //      have the target definition be able to specify
+                //      the method to which a halt is indicated.
+
+                #if TARGET_MCU_IS_STM32H533RET6
+
+                    GPIO_HIGH(led_green);
+                    spinlock_nop(i);
+
+                    GPIO_LOW(led_green);
+                    spinlock_nop(i * (panicking ? 1 : 4));
+
+                #else
+
+                    GPIO_SET(led_channel_red  , panicking );
+                    GPIO_SET(led_channel_green, false     );
+                    GPIO_SET(led_channel_blue , !panicking);
+                    spinlock_nop(i);
+
+                    GPIO_LOW(led_channel_red  );
+                    GPIO_LOW(led_channel_green);
+                    GPIO_LOW(led_channel_blue );
+                    spinlock_nop(i * (panicking ? 1 : 4));
+
+                #endif
+
             }
         }
     }

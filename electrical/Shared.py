@@ -625,7 +625,9 @@ TARGETS = ( # @/`Defining Targets`.
 
         name              = 'VehicleFlightComputer',
         mcu               = 'STM32H533VET6',
-        source_file_paths = (),
+        source_file_paths = (
+            pxd.make_main_relative_path('./electrical/VehicleFlightComputer.c'),
+        ),
 
         kicad_project = 'VehicleFlightComputer',
 
@@ -687,13 +689,32 @@ TARGETS = ( # @/`Defining Targets`.
             ('vn100_sync_in'              , 'C5'  , None        , {                                     }),
         ),
 
-        interrupts = None,
+        interrupts = (
+            ('USART2', 0),
+        ),
 
-        drivers = (),
+        drivers = (
+            {
+                'type'       : 'UXART',
+                'peripheral' : 'USART2',
+                'handle'     : 'stlink',
+                'mode'       : 'full_duplex',
+            },
+        ),
 
         use_freertos    = False,
         main_stack_size = 8192,
-        schema          = None,
+        schema          = {
+            'HSI_ENABLE'   : True,
+            'HSI48_ENABLE' : True,
+            'CSI_ENABLE'   : True,
+            'PLL1P_CK'     : 250_000_000,
+            'CPU_CK'       : 250_000_000,
+            'APB1_CK'      : 250_000_000,
+            'APB2_CK'      : 250_000_000,
+            'APB3_CK'      : 250_000_000,
+            'USART2_BAUD'  : STLINK_BAUD,
+        },
 
     ),
 
