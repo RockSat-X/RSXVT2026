@@ -2783,11 +2783,13 @@
     enum NVICInterrupt : u32
     {
         NVICInterrupt_USART2 = USART2_IRQn,
+        NVICInterrupt_SDMMC1 = SDMMC1_IRQn,
     };
-    static constexpr u32 NVICInterrupt_COUNT = 1;
+    static constexpr u32 NVICInterrupt_COUNT = 2;
     extern void INTERRUPT_BusFault(void);
     extern void INTERRUPT_Default(void);
     extern void INTERRUPT_Reset(void);
+    extern void INTERRUPT_SDMMC1(void);
     extern void INTERRUPT_USART2(void);
     extern void INTERRUPT_UsageFault(void);
     void (* const INTERRUPT_VECTOR_TABLE[])(void) __attribute__((used, section(".INTERRUPT_VECTOR_TABLE"))) =
@@ -2887,7 +2889,7 @@
             INTERRUPT_Default            , // [ 76] UCPD1
             INTERRUPT_Default            , // [ 77] FMC
             INTERRUPT_Default            , // [ 78] OCTOSPI1
-            INTERRUPT_Default            , // [ 79] SDMMC1
+            INTERRUPT_SDMMC1             , // [ 79] SDMMC1
             INTERRUPT_Default            , // [ 80] I2C3_EV
             INTERRUPT_Default            , // [ 81] I2C3_ER
             INTERRUPT_Default            , // [ 82] SPI4
@@ -2945,6 +2947,7 @@
     #define INTERRUPT_BusFault(...) extern void INTERRUPT_BusFault(__VA_ARGS__)
     #define INTERRUPT_Default(...) extern void INTERRUPT_Default(__VA_ARGS__)
     #define INTERRUPT_Reset(...) extern void INTERRUPT_Reset(__VA_ARGS__)
+    #define INTERRUPT_SDMMC1(...) extern void INTERRUPT_SDMMC1(__VA_ARGS__)
     #define INTERRUPT_USART2(...) extern void INTERRUPT_USART2(__VA_ARGS__)
     #define INTERRUPT_UsageFault(...) extern void INTERRUPT_UsageFault(__VA_ARGS__)
     extern void
@@ -3154,6 +3157,16 @@
             OD10 , true ,
         );
         CMSIS_SET(GPIOH, ODR, OD0, true);
+        CMSIS_SET
+        (
+            GPIOC , PUPDR,
+            PUPD8 , 0b01 ,
+            PUPD9 , 0b01 ,
+            PUPD10, 0b01 ,
+            PUPD11, 0b01 ,
+            PUPD12, 0b01 ,
+        );
+        CMSIS_SET(GPIOD, PUPDR, PUPD2, 0b01);
         CMSIS_WRITE
         (
             GPIO_AFRL, GPIOA->AFR[0],
@@ -3291,6 +3304,8 @@
 
         static_assert(0 <= 0 && 0 < (1 << __NVIC_PRIO_BITS));
         NVIC->IPR[NVICInterrupt_USART2] = 0 << __NVIC_PRIO_BITS;
+        static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
+        NVIC->IPR[NVICInterrupt_SDMMC1] = 1 << __NVIC_PRIO_BITS;
         CMSIS_SET
         (
             SCB        , SHCSR,
@@ -3361,12 +3376,14 @@
             PLL1M  , 8       ,
             PLL1RGE, 2       ,
             PLL1PEN, true    ,
+            PLL1QEN, true    ,
         );
         CMSIS_SET
         (
             RCC  , PLL1DIVR,
             PLL1N, 125 - 1 ,
             PLL1P, 2 - 1   ,
+            PLL1Q, 50 - 1  ,
         );
         CMSIS_SET(RCC, CR, PLL1ON, true);
         while (!CMSIS_GET(RCC, CR, PLL1RDY));
@@ -3397,6 +3414,18 @@
         #define STPY_USART2_KERNEL_SOURCE 0b000
         #define STPY_USART2_BAUD_DIVIDER 250
 
+
+
+        /////////////////////////////////// SDMMC1 ///////////////////////////////////
+
+
+
+        #define STPY_SDMMC1_KERNEL_SOURCE 0b0
+        #define STPY_SDMMC1_INITIAL_DIVIDER 0x032
+        #define STPY_SDMMC1_INITIAL_DATATIME 1000
+        #define STPY_SDMMC1_FULL_DIVIDER 0x005
+        #define STPY_SDMMC1_FULL_DATATIME 10000
+
     }
     #define STPY_0             (          0)
     #define STPY_CPU_CK        (250'000'000)
@@ -3405,6 +3434,7 @@
     #define STPY_CSI_CK        (  4'000'000)
     #define STPY_AXI_AHB_CK    (250'000'000)
     #define STPY_PLL1P_CK      (250'000'000)
+    #define STPY_PLL1Q_CK      ( 10'000'000)
     #define STPY_PLL1_VCO_FREQ (500'000'000)
     #define STPY_APB1_CK       (250'000'000)
     #define STPY_APB2_CK       (250'000'000)

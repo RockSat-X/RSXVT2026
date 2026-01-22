@@ -39,7 +39,23 @@
     #error Target 'MainFlightComputer' defines no handle for the 'SD' driver.
 #endif
 #if TARGET_NAME_IS_VehicleFlightComputer
-    #error Target 'VehicleFlightComputer' defines no handle for the 'SD' driver.
+    enum SDHandle : u32
+    {
+        SDHandle_primary,
+    };
+    static constexpr u32 SDHandle_COUNT = 1;
+    #define SDx_ SDMMC_
+    #define NVICInterrupt_SDx_primary NVICInterrupt_SDMMC1
+    static const struct { typeof(SDMMC1) SDx; typeof(NVICInterrupt_SDMMC1) NVICInterrupt_SDx; typeof(STPY_SDMMC1_KERNEL_SOURCE) STPY_SDx_KERNEL_SOURCE; typeof(STPY_SDMMC1_INITIAL_DIVIDER) STPY_SDx_INITIAL_DIVIDER; typeof(STPY_SDMMC1_INITIAL_DATATIME) STPY_SDx_INITIAL_DATATIME; typeof(STPY_SDMMC1_FULL_DIVIDER) STPY_SDx_FULL_DIVIDER; typeof(STPY_SDMMC1_FULL_DATATIME) STPY_SDx_FULL_DATATIME; typeof((struct CMSISTuple) { &RCC->AHB4RSTR, CONCAT(RCC_, AHB4RSTR_SDMMC1RST_Pos), CONCAT(RCC_, AHB4RSTR_SDMMC1RST_Msk) }) SDx_RESET; typeof((struct CMSISTuple) { &RCC->AHB4ENR, CONCAT(RCC_, AHB4ENR_SDMMC1EN_Pos), CONCAT(RCC_, AHB4ENR_SDMMC1EN_Msk) }) SDx_ENABLE; typeof((struct CMSISTuple) { &RCC->CCIPR4, CONCAT(RCC_, CCIPR4_SDMMC1SEL_Pos), CONCAT(RCC_, CCIPR4_SDMMC1SEL_Msk) }) SDx_KERNEL_SOURCE; } SD_TABLE[] =
+        {
+            [SDHandle_primary] = { .SDx = SDMMC1, .NVICInterrupt_SDx = NVICInterrupt_SDMMC1, .STPY_SDx_KERNEL_SOURCE = STPY_SDMMC1_KERNEL_SOURCE, .STPY_SDx_INITIAL_DIVIDER = STPY_SDMMC1_INITIAL_DIVIDER, .STPY_SDx_INITIAL_DATATIME = STPY_SDMMC1_INITIAL_DATATIME, .STPY_SDx_FULL_DIVIDER = STPY_SDMMC1_FULL_DIVIDER, .STPY_SDx_FULL_DATATIME = STPY_SDMMC1_FULL_DATATIME, .SDx_RESET = (struct CMSISTuple) { &RCC->AHB4RSTR, CONCAT(RCC_, AHB4RSTR_SDMMC1RST_Pos), CONCAT(RCC_, AHB4RSTR_SDMMC1RST_Msk) }, .SDx_ENABLE = (struct CMSISTuple) { &RCC->AHB4ENR, CONCAT(RCC_, AHB4ENR_SDMMC1EN_Pos), CONCAT(RCC_, AHB4ENR_SDMMC1EN_Msk) }, .SDx_KERNEL_SOURCE = (struct CMSISTuple) { &RCC->CCIPR4, CONCAT(RCC_, CCIPR4_SDMMC1SEL_Pos), CONCAT(RCC_, CCIPR4_SDMMC1SEL_Msk) } },
+        };
+    static void
+    _SD_driver_interrupt(enum SDHandle handle);
+    INTERRUPT_SDMMC1(void)
+    {
+        _SD_driver_interrupt(SDHandle_primary);
+    }
 #endif
 #if TARGET_NAME_IS_MainCameraSystem
     #error Target 'MainCameraSystem' defines no handle for the 'SD' driver.
