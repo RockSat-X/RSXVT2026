@@ -27,7 +27,7 @@ main(void)
     // The stepper driver relies on other timer
     // and UART initializations to be done first.
 
-    STEPPER_partial_init(StepperHandle_primary);
+    STEPPER_partial_init_all();
 
 
 
@@ -38,60 +38,29 @@ main(void)
     for (;;)
     {
 
-        #include "DemoStepper_STEPS.meta"
+        #include "DemoStepper_STEP_FREQUENCIES.meta"
         /* #meta
 
             import math
 
-            STEPS_PER_REVOLUTION = 1600
+            with Meta.enter(f'static const i32 STEP_FREQUENCIES[] ='):
 
-            with Meta.enter(f'static const i32 STEPS[] ='):
-
-
-
-                # Sequence of complicated movements...
-
-                pattern = [
-                    round(math.sin(math.sin(i / 500 * 2 * math.pi) * i / 125 * 2 * math.pi * 16) * 255)
-                    for i in range(500)
-                ]
-
-                for step in pattern:
+                for frequency in [
+                    round(math.sin(i / 10000 * 2 * math.pi) * 500_000)
+                    for i in range(10000)
+                ]:
                     Meta.line(f'''
-                        {step},
-                    ''')
-
-
-
-                # Home back to original position to see if any steps were lost.
-
-                for i in range(-sum(pattern) % STEPS_PER_REVOLUTION // 100):
-                    Meta.line(f'''
-                        100,
-                    ''')
-
-                for i in range(-sum(pattern) % STEPS_PER_REVOLUTION % 100):
-                    Meta.line(f'''
-                        1,
-                    ''')
-
-
-
-                # Pause...
-
-                for i in range(100):
-                    Meta.line(f'''
-                        0,
+                        {frequency},
                     ''')
 
         */
 
         static i32 index = 0;
 
-        while (!STEPPER_push_delta(StepperHandle_primary, STEPS[index]));
+        while (!STEPPER_push_step_frequency(StepperHandle_primary, STEP_FREQUENCIES[index]));
 
         index += 1;
-        index %= countof(STEPS);
+        index %= countof(STEP_FREQUENCIES);
 
     }
 
