@@ -133,7 +133,7 @@ struct StepperDriver
     volatile enum StepperDriverState state;
     i32                              initialization_sequence_index;
     i32                              enable_delay_counter;
-    i8                               deltas[STEPPER_RING_BUFFER_LENGTH];
+    i32                              deltas[STEPPER_RING_BUFFER_LENGTH];
     volatile u32                     reader;
     volatile u32                     writer;
 
@@ -306,10 +306,13 @@ STEPPER_partial_init(enum StepperHandle handle)
 
 
 static useret b32
-STEPPER_push_delta(enum StepperHandle handle, i8 delta)
+STEPPER_push_delta(enum StepperHandle handle, i32 delta)
 {
 
     _EXPAND_HANDLE
+
+    if (!(-255 <= delta && delta <= 255))
+        sorry
 
     b32 delta_can_be_pushed =
         driver->state == StepperDriverState_inited &&
