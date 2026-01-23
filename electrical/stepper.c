@@ -3,7 +3,6 @@
 
 
 #define STEPPER_ENABLE_DELAY_US    500'000 // @/`Stepper Enable Delay`.
-#define STEPPER_UPDATE_PERIOD_US    25'000 // @/`Stepper Update Mechanism`.
 #define STEPPER_RING_BUFFER_LENGTH      32 // @/`Stepper Ring-Buffer Length`.
 
 static_assert(IS_POWER_OF_TWO(STEPPER_RING_BUFFER_LENGTH));
@@ -13,28 +12,6 @@ static_assert(IS_POWER_OF_TWO(STEPPER_RING_BUFFER_LENGTH));
 #include "stepper_driver_support.meta"
 /* #meta
 
-    # As of writing, the timer's counter
-    # frequency must be 1 MHz; this is mostly
-    # arbitrary can be subject to customization.
-
-    for target in TARGETS:
-
-        for driver in target.drivers:
-            if driver['type'] != 'Stepper':
-                continue
-
-            timer = driver['peripheral']
-
-            if target.schema.get(property := f'{timer}_COUNTER_RATE', None) != 1_000_000:
-                raise ValueError(
-                    f'The stepper driver '
-                    f'for target {repr(target.name)} '
-                    f'requires {repr(property)} '
-                    f'in the schema with value of {1_000_000}.'
-                )
-
-
-
     IMPLEMENT_DRIVER_SUPPORT(
         driver_type = 'Stepper',
         cmsis_name  = 'TIM',
@@ -43,10 +20,8 @@ static_assert(IS_POWER_OF_TWO(STEPPER_RING_BUFFER_LENGTH));
             ('{}'                           , 'expression' ,                                                 ),
             ('NVICInterrupt_{}_update_event', 'expression' , f'NVICInterrupt_{interrupt}'                    ),
             ('STPY_{}_DIVIDER'              , 'expression' ,                                                 ),
+            ('STPY_{}_MODULATION'           , 'expression' ,                                                 ),
             ('{}_ENABLE'                    , 'cmsis_tuple',                                                 ),
-            ('{}_CAPTURE_COMPARE_ENABLE_y'  , 'cmsis_tuple', f'{peripheral}_CAPTURE_COMPARE_ENABLE_{channel}'),
-            ('{}_CAPTURE_COMPARE_VALUE_y'   , 'cmsis_tuple', f'{peripheral}_CAPTURE_COMPARE_VALUE_{channel}' ),
-            ('{}_CAPTURE_COMPARE_MODE_y'    , 'cmsis_tuple', f'{peripheral}_CAPTURE_COMPARE_MODE_{channel}'  ),
             ('{}_update_event'              , 'interrupt'  , interrupt                                       ),
             ('STEPPER_NODE_ADDRESS'         , 'expression' , node_address                                    ),
             ('STEPPER_UXART_HANDLE'         , 'expression' , f'UXARTHandle_{uxart_handle}'                   ),
@@ -133,7 +108,7 @@ struct StepperDriver
     volatile enum StepperDriverState state;
     i32                              initialization_sequence_index;
     i32                              enable_delay_counter;
-    i8                               deltas[STEPPER_RING_BUFFER_LENGTH];
+    i32                              velocities[STEPPER_RING_BUFFER_LENGTH];
     volatile u32                     reader;
     volatile u32                     writer;
 
@@ -246,35 +221,18 @@ STEPPER_partial_init(enum StepperHandle handle)
 
 
 
-    // Channel output in PWM mode so we can generate a pulse.
-
-    CMSIS_PUT(TIMx_CAPTURE_COMPARE_MODE_y, 0b0111);
-
-
-
-    // The comparison channel output is inactive
-    // when the counter is below this value.
-
-    CMSIS_PUT(TIMx_CAPTURE_COMPARE_VALUE_y, 1);
-
-
-
-    // Enable the comparison channel output.
-
-    CMSIS_PUT(TIMx_CAPTURE_COMPARE_ENABLE_y, true);
-
-
-
-    // Master enable for the timer's outputs.
-
-    CMSIS_SET(TIMx, BDTR, MOE, true);
-
-
-
     // Configure the divider to set the rate at
     // which the timer's counter will increment.
 
     CMSIS_SET(TIMx, PSC, PSC, STPY_TIMx_DIVIDER);
+
+
+
+    // Set the value at which the timer's counter
+    // will reach and then reset; this is when an
+    // update event happens.
+
+    CMSIS_SET(TIMx, ARR, ARR, STPY_TIMx_MODULATION);
 
 
 
@@ -287,12 +245,9 @@ STEPPER_partial_init(enum StepperHandle handle)
 
 
 
-    CMSIS_SET
-    (
-        TIMx, CR1 ,
-        URS , 0b1 , // So that the UG bit doesn't set the update event interrupt.
-        OPM , true, // Timer's counter stops incrementing after an update event.
-    );
+    // Enable the timer's counter.
+
+    CMSIS_SET(TIM1, CR1, CEN, true);
 
 
 
@@ -306,29 +261,29 @@ STEPPER_partial_init(enum StepperHandle handle)
 
 
 static useret b32
-STEPPER_push_delta(enum StepperHandle handle, i8 delta)
+STEPPER_push_velocity(enum StepperHandle handle, i32 velocity)
 {
 
     _EXPAND_HANDLE
 
-    b32 delta_can_be_pushed =
+    b32 can_be_pushed =
         driver->state == StepperDriverState_inited &&
-        (driver->writer - driver->reader < countof(driver->deltas));
+        (driver->writer - driver->reader < countof(driver->velocities));
 
-    if (delta_can_be_pushed)
+    if (can_be_pushed)
     {
-        driver->deltas[driver->writer % countof(driver->deltas)]  = delta;
-        driver->writer                                           += 1;
+        driver->velocities[driver->writer % countof(driver->velocities)] = velocity;
+        driver->writer += 1;
     }
 
-    return delta_can_be_pushed;
+    return can_be_pushed;
 
 }
 
 
 
 static void
-_STEPPER_driver_interrupt(enum StepperHandle handle)
+_STEPPER_driver_interrupt(enum StepperHandle handle) // TODO Factor out.
 {
 
     _EXPAND_HANDLE
@@ -349,7 +304,7 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
         // Determine the amount of steps we'll
         // need to take now and the direction.
 
-        i32 steps = {0};
+        i32 velocity = {0};
 
         if (driver->reader == driver->writer)
         {
@@ -357,69 +312,16 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
             // The step ring-buffer was exhausted and
             // no steps will be taken during this period.
             // TODO Indicate this situation somehow.
-            steps = 0;
+            velocity = 0;
         }
         else
         {
             // Pop from the ring-buffer the next
             // signed amount of steps to take.
-            i32 read_index  = driver->reader % countof(driver->deltas);
-            steps           = driver->deltas[read_index];
+            i32 read_index  = driver->reader % countof(driver->velocities);
+            velocity        = driver->velocities[read_index];
             driver->reader += 1;
         }
-
-        i32 abs_steps = steps < 0 ? -steps : steps;
-
-
-
-        // Set the direction arbitrarily.
-
-        GPIO_SET(driver_direction, steps > 0);
-
-
-
-        // Set the amount of step pulses to be done.
-        // Note that this field has it so a value of
-        // 0 encodes a repetition of 1, so in the event
-        // of no steps to be done, there still needs to
-        // be a repetition.
-
-        CMSIS_SET(TIMx, RCR, REP, abs_steps ? (abs_steps - 1) : 0);
-
-
-
-        // So to prevent a pulse in the case of zero steps,
-        // the comparison value is changed to the largest
-        // value so the pulse won't occur.
-        // In any other case, the comparison value is non-zero
-        // so that the waveform has its rising edge slighly
-        // delayed from when the DIR signal is updated.
-
-        CMSIS_PUT(TIMx_CAPTURE_COMPARE_VALUE_y, (abs_steps ? 1 : -1));
-
-
-
-        // The amount of time between each step pulse
-        // is set so that after N steps, a fixed amount
-        // of time has passed. This allows us to update
-        // the direction and rate of stepping at fixed
-        // intervals.
-
-        CMSIS_SET(TIMx, ARR, ARR, (STEPPER_UPDATE_PERIOD_US - 1) / (abs_steps ? abs_steps : 1));
-
-
-
-        // Generate an update event so the above configuration
-        // will be loaded into the timer's shadow registers.
-
-        CMSIS_SET(TIMx, EGR, UG, true);
-
-
-
-        // Enable the timer's counter; the counter will
-        // become disabled after the end of step repetitions.
-
-        CMSIS_SET(TIMx, CR1, CEN, true);
 
 
 
@@ -484,7 +386,7 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
                         driver->enable_delay_counter += 1;
 
-                        if (driver->enable_delay_counter < STEPPER_ENABLE_DELAY_US / STEPPER_UPDATE_PERIOD_US)
+                        if (driver->enable_delay_counter < STEPPER_ENABLE_DELAY_US / 25'000) // TODO Coupled.
                         {
                             yield = true;
                         }
@@ -498,12 +400,17 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
 
 
-                    // The TMC2209 is done being configured;
-                    // nothing else to do.
+                    // TODO.
 
                     case StepperDriverState_inited:
                     {
-                        yield = true;
+                        driver->uart_transfer =
+                            (struct StepperDriverUARTTransfer)
+                            {
+                                .state            = StepperDriverUARTTransferState_write_scheduled,
+                                .register_address = 0x22, // TODO.
+                                .data             = velocity,
+                            };
                     } break;
 
 
@@ -556,8 +463,14 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
 
 
+                        case StepperDriverState_inited:
+                        {
+                            // Don't care.
+                        } break;
+
+
+
                         case StepperDriverState_enable_delay : panic;
-                        case StepperDriverState_inited       : panic;
                         default                              : panic;
 
                     }
@@ -809,7 +722,7 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
 
 
-// @/`Stepper Enable Delay`:
+// @/`Stepper Enable Delay`: TODO.
 //
 // It seems like when the TMC2209 is first
 // initialized (especially after a power-cycle)
@@ -823,36 +736,7 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
 
 
-// @/`Stepper Update Mechanism`:
-//
-// The stepper motor driver is periodically updated
-// based on the value `STEPPER_UPDATE_PERIOD_US`.
-//
-// On each update, a value is popped from the ring-buffer
-// which determines how many step pulses will be generated
-// leading up to the next update event.
-//
-// For example, if the popped value from the ring-buffer is 13
-// and the update period is 25ms, then 13 equally spaced pulses
-// will be generated on the STEP pin of the TMC2209 during the
-// next 25ms. If after that the next value from the ring-buffer
-// is 0, then no steps will be generated for the next 25ms.
-//
-// It should be noted that the UART initialization of the TMC2209
-// is also tied to this periodic update too; that is to say,
-// during the initialization of the TMC2209, a UART transfer is
-// done based on the rate of the `STEPPER_UPDATE_PERIOD_US`.
-// (@/`Why Stepper UART is tied to step update timer`).
-//
-// If the update period is too large, then fine motor control
-// is harder to achieve. If the update period is too small,
-// then there is a greater risk of ring-buffer underrun
-// (@/`Stepper Ring-Buffer Length`) and could also complicate
-// the UART communication (@/`Why Stepper UART is tied to step update timer`).
-
-
-
-// @/`Stepper Ring-Buffer Length`:
+// @/`Stepper Ring-Buffer Length`: TODO.
 //
 // The length of the ring-buffer should be set to a reasonable
 // size such that steps can be queued up but without implying
@@ -869,16 +753,3 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 // the TMC2209. This is unlikely given that the update period is
 // on the order of milliseconds, and a lot can be done during that
 // time, but it's something to consider.
-
-
-
-// @/`Why Stepper UART is tied to step update timer`:
-//
-// The reasoning is beyond more than just convenience: because
-// the TMC2209 uses a half-duplex UART line and things like CRC
-// errors can happen, resynchronizing the communication is done
-// by having the TMC2209 detect an idle UART line for certain
-// amount of bit-times. Since this delay is needed anyways for
-// the upmost reliable communication, a periodic update event
-// (with a very long period in comparison to the UART data transfer)
-// is a good way to achieve this without imposing more dependencies.

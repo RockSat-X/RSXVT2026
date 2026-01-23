@@ -30,9 +30,9 @@
     static constexpr u32 StepperHandle_COUNT = 1;
     #define TIMx_ TIM_
     #define NVICInterrupt_TIMx_update_event_axis_x NVICInterrupt_TIM1_UP
-    static const struct { typeof(TIM1) TIMx; typeof(NVICInterrupt_TIM1_UP) NVICInterrupt_TIMx_update_event; typeof(STPY_TIM1_DIVIDER) STPY_TIMx_DIVIDER; typeof((struct CMSISTuple) { &RCC->APB2ENR, CONCAT(RCC_, APB2ENR_TIM1EN_Pos), CONCAT(RCC_, APB2ENR_TIM1EN_Msk) }) TIMx_ENABLE; typeof((struct CMSISTuple) { &TIM1->CCER, CONCAT(TIM1_, CCER_CC1E_Pos), CONCAT(TIM1_, CCER_CC1E_Msk) }) TIMx_CAPTURE_COMPARE_ENABLE_y; typeof((struct CMSISTuple) { &TIM1->CCR1, CONCAT(TIM1_, CCR1_CCR1_Pos), CONCAT(TIM1_, CCR1_CCR1_Msk) }) TIMx_CAPTURE_COMPARE_VALUE_y; typeof((struct CMSISTuple) { &TIM1->CCMR1, CONCAT(TIM1_, CCMR1_OC1M_Pos), CONCAT(TIM1_, CCMR1_OC1M_Msk) }) TIMx_CAPTURE_COMPARE_MODE_y; typeof(0) STEPPER_NODE_ADDRESS; typeof(UXARTHandle_stepper_uart) STEPPER_UXART_HANDLE; } STEPPER_TABLE[] =
+    static const struct { typeof(TIM1) TIMx; typeof(NVICInterrupt_TIM1_UP) NVICInterrupt_TIMx_update_event; typeof(STPY_TIM1_DIVIDER) STPY_TIMx_DIVIDER; typeof(STPY_TIM1_MODULATION) STPY_TIMx_MODULATION; typeof((struct CMSISTuple) { &RCC->APB2ENR, CONCAT(RCC_, APB2ENR_TIM1EN_Pos), CONCAT(RCC_, APB2ENR_TIM1EN_Msk) }) TIMx_ENABLE; typeof(0) STEPPER_NODE_ADDRESS; typeof(UXARTHandle_stepper_uart) STEPPER_UXART_HANDLE; } STEPPER_TABLE[] =
         {
-            [StepperHandle_axis_x] = { .TIMx = TIM1, .NVICInterrupt_TIMx_update_event = NVICInterrupt_TIM1_UP, .STPY_TIMx_DIVIDER = STPY_TIM1_DIVIDER, .TIMx_ENABLE = (struct CMSISTuple) { &RCC->APB2ENR, CONCAT(RCC_, APB2ENR_TIM1EN_Pos), CONCAT(RCC_, APB2ENR_TIM1EN_Msk) }, .TIMx_CAPTURE_COMPARE_ENABLE_y = (struct CMSISTuple) { &TIM1->CCER, CONCAT(TIM1_, CCER_CC1E_Pos), CONCAT(TIM1_, CCER_CC1E_Msk) }, .TIMx_CAPTURE_COMPARE_VALUE_y = (struct CMSISTuple) { &TIM1->CCR1, CONCAT(TIM1_, CCR1_CCR1_Pos), CONCAT(TIM1_, CCR1_CCR1_Msk) }, .TIMx_CAPTURE_COMPARE_MODE_y = (struct CMSISTuple) { &TIM1->CCMR1, CONCAT(TIM1_, CCMR1_OC1M_Pos), CONCAT(TIM1_, CCMR1_OC1M_Msk) }, .STEPPER_NODE_ADDRESS = 0, .STEPPER_UXART_HANDLE = UXARTHandle_stepper_uart },
+            [StepperHandle_axis_x] = { .TIMx = TIM1, .NVICInterrupt_TIMx_update_event = NVICInterrupt_TIM1_UP, .STPY_TIMx_DIVIDER = STPY_TIM1_DIVIDER, .STPY_TIMx_MODULATION = STPY_TIM1_MODULATION, .TIMx_ENABLE = (struct CMSISTuple) { &RCC->APB2ENR, CONCAT(RCC_, APB2ENR_TIM1EN_Pos), CONCAT(RCC_, APB2ENR_TIM1EN_Msk) }, .STEPPER_NODE_ADDRESS = 0, .STEPPER_UXART_HANDLE = UXARTHandle_stepper_uart },
         };
     static void
     _STEPPER_driver_interrupt(enum StepperHandle handle);
@@ -58,10 +58,8 @@
     auto const TIMx = STEPPER_TABLE[handle].TIMx;\
     auto const NVICInterrupt_TIMx_update_event = STEPPER_TABLE[handle].NVICInterrupt_TIMx_update_event;\
     auto const STPY_TIMx_DIVIDER = STEPPER_TABLE[handle].STPY_TIMx_DIVIDER;\
+    auto const STPY_TIMx_MODULATION = STEPPER_TABLE[handle].STPY_TIMx_MODULATION;\
     auto const TIMx_ENABLE = STEPPER_TABLE[handle].TIMx_ENABLE;\
-    auto const TIMx_CAPTURE_COMPARE_ENABLE_y = STEPPER_TABLE[handle].TIMx_CAPTURE_COMPARE_ENABLE_y;\
-    auto const TIMx_CAPTURE_COMPARE_VALUE_y = STEPPER_TABLE[handle].TIMx_CAPTURE_COMPARE_VALUE_y;\
-    auto const TIMx_CAPTURE_COMPARE_MODE_y = STEPPER_TABLE[handle].TIMx_CAPTURE_COMPARE_MODE_y;\
     auto const STEPPER_NODE_ADDRESS = STEPPER_TABLE[handle].STEPPER_NODE_ADDRESS;\
     auto const STEPPER_UXART_HANDLE = STEPPER_TABLE[handle].STEPPER_UXART_HANDLE;\
 

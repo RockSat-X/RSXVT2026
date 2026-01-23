@@ -742,7 +742,7 @@ TARGETS = ( # @/`Defining Targets`.
             'SDMMC1_INITIAL_BAUD' :   100_000,
             'SDMMC1_FULL_BAUD'    : 1_000_000,
             'USART1_BAUD'         :   100_000,
-            'TIM1_COUNTER_RATE'   : 1_000_000,
+            'TIM1_UPDATE_RATE'    : 1 / 0.025,
         },
 
     ),

@@ -3436,7 +3436,8 @@
 
 
         #define STPY_GLOBAL_TIMER_PRESCALER false
-        #define STPY_TIM1_DIVIDER (250 - 1)
+        #define STPY_TIM1_DIVIDER (96 - 1)
+        #define STPY_TIM1_MODULATION (65104 - 1)
 
 
 
