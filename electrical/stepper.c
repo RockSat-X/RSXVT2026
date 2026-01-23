@@ -2,7 +2,7 @@
 
 
 
-#define STEPPER_ENABLE_DELAY_US    250'000 // @/`Stepper Enable Delay`.
+#define STEPPER_ENABLE_DELAY_US    500'000 // @/`Stepper Enable Delay`.
 #define STEPPER_UPDATE_PERIOD_US    25'000 // @/`Stepper Update Mechanism`.
 #define STEPPER_RING_BUFFER_LENGTH      32 // @/`Stepper Ring-Buffer Length`.
 
