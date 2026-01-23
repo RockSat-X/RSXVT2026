@@ -23,7 +23,23 @@
     #error Target 'MainFlightComputer' defines no handle for the 'Stepper' driver.
 #endif
 #if TARGET_NAME_IS_VehicleFlightComputer
-    #error Target 'VehicleFlightComputer' defines no handle for the 'Stepper' driver.
+    enum StepperHandle : u32
+    {
+        StepperHandle_axis_x,
+    };
+    static constexpr u32 StepperHandle_COUNT = 1;
+    #define TIMx_ TIM_
+    #define NVICInterrupt_TIMx_update_event_axis_x NVICInterrupt_TIM1_UP
+    static const struct { typeof(TIM1) TIMx; typeof(NVICInterrupt_TIM1_UP) NVICInterrupt_TIMx_update_event; typeof(STPY_TIM1_DIVIDER) STPY_TIMx_DIVIDER; typeof((struct CMSISTuple) { &RCC->APB2ENR, CONCAT(RCC_, APB2ENR_TIM1EN_Pos), CONCAT(RCC_, APB2ENR_TIM1EN_Msk) }) TIMx_ENABLE; typeof((struct CMSISTuple) { &TIM1->CCER, CONCAT(TIM1_, CCER_CC1E_Pos), CONCAT(TIM1_, CCER_CC1E_Msk) }) TIMx_CAPTURE_COMPARE_ENABLE_y; typeof((struct CMSISTuple) { &TIM1->CCR1, CONCAT(TIM1_, CCR1_CCR1_Pos), CONCAT(TIM1_, CCR1_CCR1_Msk) }) TIMx_CAPTURE_COMPARE_VALUE_y; typeof((struct CMSISTuple) { &TIM1->CCMR1, CONCAT(TIM1_, CCMR1_OC1M_Pos), CONCAT(TIM1_, CCMR1_OC1M_Msk) }) TIMx_CAPTURE_COMPARE_MODE_y; typeof(0) STEPPER_NODE_ADDRESS; typeof(UXARTHandle_stepper_uart) STEPPER_UXART_HANDLE; } STEPPER_TABLE[] =
+        {
+            [StepperHandle_axis_x] = { .TIMx = TIM1, .NVICInterrupt_TIMx_update_event = NVICInterrupt_TIM1_UP, .STPY_TIMx_DIVIDER = STPY_TIM1_DIVIDER, .TIMx_ENABLE = (struct CMSISTuple) { &RCC->APB2ENR, CONCAT(RCC_, APB2ENR_TIM1EN_Pos), CONCAT(RCC_, APB2ENR_TIM1EN_Msk) }, .TIMx_CAPTURE_COMPARE_ENABLE_y = (struct CMSISTuple) { &TIM1->CCER, CONCAT(TIM1_, CCER_CC1E_Pos), CONCAT(TIM1_, CCER_CC1E_Msk) }, .TIMx_CAPTURE_COMPARE_VALUE_y = (struct CMSISTuple) { &TIM1->CCR1, CONCAT(TIM1_, CCR1_CCR1_Pos), CONCAT(TIM1_, CCR1_CCR1_Msk) }, .TIMx_CAPTURE_COMPARE_MODE_y = (struct CMSISTuple) { &TIM1->CCMR1, CONCAT(TIM1_, CCMR1_OC1M_Pos), CONCAT(TIM1_, CCMR1_OC1M_Msk) }, .STEPPER_NODE_ADDRESS = 0, .STEPPER_UXART_HANDLE = UXARTHandle_stepper_uart },
+        };
+    static void
+    _STEPPER_driver_interrupt(enum StepperHandle handle);
+    INTERRUPT_TIM1_UP(void)
+    {
+        _STEPPER_driver_interrupt(StepperHandle_axis_x);
+    }
 #endif
 #if TARGET_NAME_IS_MainCameraSystem
     #error Target 'MainCameraSystem' defines no handle for the 'Stepper' driver.

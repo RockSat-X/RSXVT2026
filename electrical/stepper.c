@@ -76,8 +76,7 @@ static const struct { u8 register_address; u32 data; } STEPPER_INITIALIZATION_SE
     {
         {
             0x00,
-              (0 << 0) // "I_scale_analog"   : Whether or not to use VREF as current reference.
-            | (0 << 1) // "internal_Rsense"  : Whether or not to use internal sense resistors. TODO Look into trying?
+              (1 << 0) // "I_scale_analog"   : Whether or not to use VREF as current reference.
             | (0 << 2) // "en_SpreadCycle"   : Whether or not to only use SpreadCycle (louder and more power, but more torque); otherwise, a mix of StealthChop and SpreadCycle is done.
             | (1 << 6) // "pdn_disable"      : The power-down and UART functionality both share the same pin, so we disable the former.
             | (1 << 7) // "mstep_reg_select" : Microstep resolution determined by a register field rather than the MS1/MS2 pins.
@@ -89,7 +88,8 @@ static const struct { u8 register_address; u32 data; } STEPPER_INITIALIZATION_SE
         },
         {
             0x10,
-            (12 << 8) // "IRUN" : Current scaling (out of 32) for when the motor is running. TODO Subject to change?
+              ((5 - 1) << 0) // "IHOLD" : Standstill current (out of 32) for when the motor is not turning.
+            | ((5 - 1) << 8) // "IRUN"  : Current scaling (out of 32) for when the motor is turning.
         },
         {
             0x6C,

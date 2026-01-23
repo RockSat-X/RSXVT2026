@@ -665,16 +665,16 @@ TARGETS = ( # @/`Defining Targets`.
             ('esp32_spi_ready'            , 'E0'  , 'ALTERNATE' , { 'altfunc' : 'SPI3_RDY'                  }),
             ('esp32_reset'                , 'E8'  , 'OUTPUT'    , { 'initlvl' : False                       }),
             ('motor_uart_tx'              , 'B14' , 'ALTERNATE' , { 'altfunc' : 'USART1_TX'                 }),
-            ('motor_uart_rx'              , 'B15' , 'ALTERNATE' , { 'altfunc' : 'USART1_RX'                 }),
+            ('motor_uart_rx'              , 'B15' , None        , {                                         }),
             ('sensor_i2c_data'            , 'B7'  , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA'                  }),
             ('sensor_i2c_clock'           , 'B6'  , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL'                  }),
             ('vehicle_interface_i2c_data' , 'D7'  , 'ALTERNATE' , { 'altfunc' : 'I2C3_SDA'                  }),
             ('vehicle_interface_i2c_clock', 'D6'  , 'ALTERNATE' , { 'altfunc' : 'I2C3_SCL'                  }),
-            ('motor_disable'              , 'A4'  , 'OUTPUT'    , { 'initlvl' : True                        }),
+            ('driver_disable'             , 'A4'  , 'OUTPUT'    , { 'initlvl' : True                        }), # TODO Decouple from `stepper.c`.
             ('motor_step_x'               , 'E9'  , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH1'                  }),
             ('motor_step_y'               , 'C6'  , 'ALTERNATE' , { 'altfunc' : 'TIM8_CH1'                  }),
             ('motor_step_z'               , 'E5'  , 'ALTERNATE' , { 'altfunc' : 'TIM15_CH1'                 }),
-            ('motor_direction_x'          , 'A9'  , 'OUTPUT'    , { 'initlvl' : False                       }),
+            ('driver_direction'           , 'A9'  , 'OUTPUT'    , { 'initlvl' : False                       }), # TODO Decouple from `stepper.c`.
             ('motor_direction_y'          , 'A8'  , 'OUTPUT'    , { 'initlvl' : False                       }),
             ('motor_direction_z'          , 'A10' , 'OUTPUT'    , { 'initlvl' : False                       }),
             ('lsm6dsv32x_interrupt_1'     , 'D13' , None        , {                                         }),
@@ -690,8 +690,10 @@ TARGETS = ( # @/`Defining Targets`.
         ),
 
         interrupts = (
-            ('USART2', 0),
-            ('SDMMC1', 1),
+            ('USART2' , 0),
+            ('SDMMC1' , 1),
+            ('USART1' , 1),
+            ('TIM1_UP', 2),
         ),
 
         drivers = (
@@ -705,6 +707,21 @@ TARGETS = ( # @/`Defining Targets`.
                 'type'       : 'SD',
                 'peripheral' : 'SDMMC1',
                 'handle'     : 'primary',
+            },
+            {
+                'type'       : 'UXART',
+                'peripheral' : 'USART1',
+                'handle'     : 'stepper_uart',
+                'mode'       : 'half_duplex',
+            },
+            {
+                'type'         : 'Stepper',
+                'peripheral'   : 'TIM1',
+                'interrupt'    : 'TIM1_UP',
+                'channel'      : 1,
+                'handle'       : 'axis_x',
+                'node_address' : 0,
+                'uxart_handle' : 'stepper_uart',
             },
         ),
 
@@ -724,6 +741,8 @@ TARGETS = ( # @/`Defining Targets`.
             'SDMMC1_TIMEOUT'      : 0.010,
             'SDMMC1_INITIAL_BAUD' :   100_000,
             'SDMMC1_FULL_BAUD'    : 1_000_000,
+            'USART1_BAUD'         :   100_000,
+            'TIM1_COUNTER_RATE'   : 1_000_000,
         },
 
     ),

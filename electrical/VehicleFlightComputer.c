@@ -2,6 +2,7 @@
 #include "uxart.c"
 #include "sd.c"
 #include "filesystem.c"
+#include "stepper.c"
 
 
 
@@ -11,7 +12,6 @@ main(void)
 
     STPY_init();
     UXART_init(UXARTHandle_stlink);
-    SD_reinit(SDHandle_primary);
 
     #if 1
     {
@@ -43,6 +43,9 @@ main(void)
 
     #if 1 // TODO Copy-pasta from DemoSDMMC, which will be improved upon soon...
     {
+
+        SD_reinit(SDHandle_primary);
+
         i32 driver_error_count = 0;
         i32 task_error_count   = 0;
 
@@ -165,7 +168,51 @@ main(void)
             spinlock_nop(50'000'000);
 
         }
+
     }
+    #endif
+
+    #if 1
+
+        UXART_init(UXARTHandle_stepper_uart);
+
+        GPIO_ACTIVE(battery_allowed);
+
+        spinlock_nop(1'000'000); // TODO
+
+
+
+        ////////////////////////////////////////////////////////////////////////////////
+
+
+
+        // Set the prescaler that'll affect all timers' kernel frequency.
+
+        CMSIS_SET(RCC, CFGR1, TIMPRE, STPY_GLOBAL_TIMER_PRESCALER);
+
+
+
+        // The stepper driver relies on other timer
+        // and UART initializations to be done first.
+
+        STEPPER_partial_init(StepperHandle_axis_x);
+
+
+
+        ////////////////////////////////////////////////////////////////////////////////
+
+        for (;;)
+        {
+            #include "DemoStepper_STEPS.meta"
+
+            static i32 index = 0;
+
+            while (!STEPPER_push_delta(StepperHandle_axis_x, STEPS[index]));
+
+            index += 1;
+            index %= countof(STEPS);
+        }
+
     #endif
 
 }
