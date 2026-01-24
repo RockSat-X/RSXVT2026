@@ -208,13 +208,7 @@
             GPIOAEN, true   ,
             GPIOCEN, true   ,
         );
-        CMSIS_SET
-        (
-            GPIOA, ODR  ,
-            OD5  , false,
-            OD13 , true ,
-            OD14 , true ,
-        );
+        CMSIS_SET(GPIOA, ODR, OD5, false);
         CMSIS_WRITE
         (
             GPIO_AFRL, GPIOA->AFR[0],
@@ -587,13 +581,7 @@
             OT10 , true  ,
             OT12 , true  ,
         );
-        CMSIS_SET
-        (
-            GPIOA, ODR  ,
-            OD5  , false,
-            OD13 , true ,
-            OD14 , true ,
-        );
+        CMSIS_SET(GPIOA, ODR, OD5, false);
         CMSIS_SET
         (
             GPIOB , PUPDR,
@@ -1000,13 +988,7 @@
             GPIOAEN, true   ,
             GPIOCEN, true   ,
         );
-        CMSIS_SET
-        (
-            GPIOA, ODR  ,
-            OD5  , false,
-            OD13 , true ,
-            OD14 , true ,
-        );
+        CMSIS_SET(GPIOA, ODR, OD5, false);
         CMSIS_WRITE
         (
             GPIO_AFRL, GPIOA->AFR[0],
@@ -1378,13 +1360,7 @@
             GPIOBEN, true   ,
             GPIOCEN, true   ,
         );
-        CMSIS_SET
-        (
-            GPIOA, ODR  ,
-            OD5  , false,
-            OD13 , true ,
-            OD14 , true ,
-        );
+        CMSIS_SET(GPIOA, ODR, OD5, false);
         CMSIS_WRITE
         (
             GPIO_AFRL, GPIOA->AFR[0],
@@ -1778,13 +1754,7 @@
             GPIOAEN, true   ,
             GPIOCEN, true   ,
         );
-        CMSIS_SET
-        (
-            GPIOA, ODR  ,
-            OD5  , false,
-            OD13 , true ,
-            OD14 , true ,
-        );
+        CMSIS_SET(GPIOA, ODR, OD5, false);
         CMSIS_WRITE
         (
             GPIO_AFRL, GPIOA->AFR[0],
@@ -2155,13 +2125,7 @@
             GPIOBEN, true   ,
             GPIOCEN, true   ,
         );
-        CMSIS_SET
-        (
-            GPIOA, ODR  ,
-            OD5  , false,
-            OD13 , true ,
-            OD14 , true ,
-        );
+        CMSIS_SET(GPIOA, ODR, OD5, false);
         CMSIS_WRITE
         (
             GPIO_AFRL, GPIOA->AFR[0],
@@ -2582,13 +2546,7 @@
             OT6  , true  ,
             OT7  , true  ,
         );
-        CMSIS_SET
-        (
-            GPIOA, ODR  ,
-            OD5  , false,
-            OD13 , true ,
-            OD14 , true ,
-        );
+        CMSIS_SET(GPIOA, ODR, OD5, false);
         CMSIS_SET(GPIOC, ODR, OD12, false);
         CMSIS_SET
         (
@@ -3126,34 +3084,19 @@
             OD8  , false,
             OD9  , false,
             OD10 , false,
-            OD13 , true ,
-            OD14 , true ,
         );
-        CMSIS_SET
-        (
-            GPIOB, ODR  ,
-            OD2  , false,
-            OD3  , true ,
-            OD4  , true ,
-            OD15 , true ,
-        );
+        CMSIS_SET(GPIOB, ODR, OD2, false);
         CMSIS_SET
         (
             GPIOC, ODR ,
             OD0  , true,
             OD1  , true,
-            OD5  , true,
-            OD13 , true,
-            OD15 , true,
         );
         CMSIS_SET
         (
             GPIOD, ODR  ,
             OD0  , false,
-            OD1  , true ,
             OD6  , false,
-            OD13 , true ,
-            OD14 , true ,
             OD15 , true ,
         );
         CMSIS_SET
@@ -3162,7 +3105,6 @@
             OD8  , false,
             OD10 , true ,
         );
-        CMSIS_SET(GPIOH, ODR, OD0, true);
         CMSIS_SET
         (
             GPIOC , PUPDR,
@@ -3736,8 +3678,6 @@
             GPIOA, ODR  ,
             OD5  , false,
             OD10 , true ,
-            OD13 , true ,
-            OD14 , true ,
         );
         CMSIS_SET(GPIOC, ODR, OD5, false);
         CMSIS_SET
@@ -4170,13 +4110,7 @@
             GPIOBEN, true   ,
             GPIOCEN, true   ,
         );
-        CMSIS_SET
-        (
-            GPIOA, ODR  ,
-            OD5  , false,
-            OD13 , true ,
-            OD14 , true ,
-        );
+        CMSIS_SET(GPIOA, ODR, OD5, false);
         CMSIS_SET(GPIOC, ODR, OD2, false);
         CMSIS_WRITE
         (
