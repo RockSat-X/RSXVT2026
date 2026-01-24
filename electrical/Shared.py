@@ -672,7 +672,7 @@ TARGETS = ( # @/`Defining Targets`.
             # ('vehicle_interface_i2c_clock', 'D6'  , 'ALTERNATE' , { 'altfunc' : 'I2C3_SCL'                  }),
             # TMP:
             ('debug', 'D6'  , 'OUTPUT' , { 'initlvl' : False                       }),
-            ('driver_disable'             , 'A4'  , 'OUTPUT'    , { 'initlvl' : True                        }), # TODO Decouple from `stepper.c`.
+            ('driver_enable'              , 'A4'  , 'OUTPUT'    , { 'initlvl' : False, 'active' : False     }), # TODO Decouple from `stepper.c`.
             ('motor_step_x'               , 'E9'  , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH1'                  }),
             ('motor_step_y'               , 'C6'  , 'ALTERNATE' , { 'altfunc' : 'TIM8_CH1'                  }),
             ('motor_step_z'               , 'E5'  , 'ALTERNATE' , { 'altfunc' : 'TIM15_CH1'                 }),
