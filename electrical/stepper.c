@@ -43,6 +43,8 @@ static_assert(IS_POWER_OF_TWO(STEPPER_RING_BUFFER_LENGTH));
             ('address', address),
         ) for name, address in driver['instances']))
 
+        Meta.define('STEPPER_MOTOR_ENABLE_GPIO_NAME', driver['enable_gpio'])
+
 */
 
 
@@ -793,7 +795,7 @@ STEPPER_update_all(enum UXARTHandle uxart_handle, u32 current_timestamp_ms)
         }
     }
 
-    GPIO_SET(motor_enable, all_motors_ready); // TODO Coupled.
+    GPIO_SET(STEPPER_MOTOR_ENABLE_GPIO_NAME, all_motors_ready);
 
     GPIO_SET(debug, result == StepperUpdateResult_busy);
 

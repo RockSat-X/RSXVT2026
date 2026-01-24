@@ -36,6 +36,7 @@
             { .address = 1 },
             { .address = 2 },
         };
+    #define STEPPER_MOTOR_ENABLE_GPIO_NAME motor_enable
 #endif
 #if TARGET_NAME_IS_MainCameraSystem
     #error Target 'MainCameraSystem' needs to define a unique 'Stepper' driver.

@@ -672,11 +672,11 @@ TARGETS = ( # @/`Defining Targets`.
             # ('vehicle_interface_i2c_clock', 'D6'  , 'ALTERNATE' , { 'altfunc' : 'I2C3_SCL'                  }),
             # TMP:
             ('debug', 'D6'  , 'OUTPUT' , { 'initlvl' : False                       }),
-            ('motor_enable'               , 'A4'  , 'OUTPUT'    , { 'initlvl' : False, 'active' : False     }), # TODO Decouple from `stepper.c`.
+            ('motor_enable'               , 'A4'  , 'OUTPUT'    , { 'initlvl' : False, 'active' : False     }),
             ('motor_step_x'               , 'E9'  , None        , { 'altfunc' : 'TIM1_CH1'                  }),
             ('motor_step_y'               , 'C6'  , None        , { 'altfunc' : 'TIM8_CH1'                  }),
             ('motor_step_z'               , 'E5'  , None        , { 'altfunc' : 'TIM15_CH1'                 }),
-            ('motor_direction_x'          , 'A9'  , None        , { 'initlvl' : False                       }), # TODO Decouple from `stepper.c`.
+            ('motor_direction_x'          , 'A9'  , None        , { 'initlvl' : False                       }),
             ('motor_direction_y'          , 'A8'  , None        , { 'initlvl' : False                       }),
             ('motor_direction_z'          , 'A10' , None        , { 'initlvl' : False                       }),
             ('lsm6dsv32x_interrupt_1'     , 'D13' , None        , {                                         }),
@@ -719,6 +719,7 @@ TARGETS = ( # @/`Defining Targets`.
             {
                 'type'         : 'Stepper',
                 'uxart_handle' : 'stepper_uart',
+                'enable_gpio'  : 'motor_enable',
                 'instances'    : (
                     ('axis_x', 0),
                     ('axis_y', 1),
