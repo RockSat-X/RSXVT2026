@@ -254,12 +254,12 @@ STEPPER_push_velocity(enum StepperInstanceHandle handle, i32 velocity)
 
 
 
-static useret enum StepperUpdateResult : u32
+static useret enum StepperUpdateInstanceResult : u32
 {
-    StepperUpdateResult_relinquished,
-    StepperUpdateResult_busy,
+    StepperUpdateInstanceResult_relinquished,
+    StepperUpdateInstanceResult_busy,
 }
-_STEPPER_update_single(enum StepperInstanceHandle handle, u32 current_timestamp_ms)
+_STEPPER_update_instance(enum StepperInstanceHandle handle, u32 current_timestamp_ms)
 {
 
     struct StepperInstance* instance = &_STEPPER_driver.instances[handle];
@@ -334,7 +334,7 @@ _STEPPER_update_single(enum StepperInstanceHandle handle, u32 current_timestamp_
 
                     if (delaying)
                     {
-                        return StepperUpdateResult_relinquished;
+                        return StepperUpdateInstanceResult_relinquished;
                     }
                     else
                     {
@@ -395,7 +395,7 @@ _STEPPER_update_single(enum StepperInstanceHandle handle, u32 current_timestamp_
                     }
                     else
                     {
-                        return StepperUpdateResult_relinquished;
+                        return StepperUpdateInstanceResult_relinquished;
                     }
 
                 } break;
@@ -488,7 +488,7 @@ _STEPPER_update_single(enum StepperInstanceHandle handle, u32 current_timestamp_
 
                 if (current_timestamp_ms - instance->uart_previous_transfer_timestamp_ms < STEPPER_UART_TIME_BUFFER_MS)
                 {
-                    return StepperUpdateResult_busy; // @/`Stepper UART Time Buffer Window`.
+                    return StepperUpdateInstanceResult_busy; // @/`Stepper UART Time Buffer Window`.
                 }
                 else
                 {
@@ -551,7 +551,7 @@ _STEPPER_update_single(enum StepperInstanceHandle handle, u32 current_timestamp_
 
                     instance->uart_previous_transfer_timestamp_ms = current_timestamp_ms;
 
-                    return StepperUpdateResult_busy;
+                    return StepperUpdateInstanceResult_busy;
 
                 }
 
@@ -573,7 +573,7 @@ _STEPPER_update_single(enum StepperInstanceHandle handle, u32 current_timestamp_
 
                 if (current_timestamp_ms - instance->uart_previous_transfer_timestamp_ms < STEPPER_UART_TIME_BUFFER_MS)
                 {
-                    return StepperUpdateResult_busy; // @/`Stepper UART Time Buffer Window`.
+                    return StepperUpdateInstanceResult_busy; // @/`Stepper UART Time Buffer Window`.
                 }
                 else
                 {
@@ -673,7 +673,7 @@ _STEPPER_update_single(enum StepperInstanceHandle handle, u32 current_timestamp_
 
                 if (current_timestamp_ms - instance->uart_previous_transfer_timestamp_ms < STEPPER_UART_TIME_BUFFER_MS)
                 {
-                    return StepperUpdateResult_busy; // @/`Stepper UART Time Buffer Window`.
+                    return StepperUpdateInstanceResult_busy; // @/`Stepper UART Time Buffer Window`.
                 }
                 else
                 {
@@ -727,7 +727,7 @@ _STEPPER_update_single(enum StepperInstanceHandle handle, u32 current_timestamp_
 
                     instance->uart_previous_transfer_timestamp_ms = current_timestamp_ms;
 
-                    return StepperUpdateResult_busy;
+                    return StepperUpdateInstanceResult_busy;
 
                 }
 
@@ -750,8 +750,8 @@ STEPPER_update_all(u32 current_timestamp_ms)
 
     // Update the motor that's currently in control of the UXART handle.
 
-    enum StepperUpdateResult result =
-        _STEPPER_update_single
+    enum StepperUpdateInstanceResult result =
+        _STEPPER_update_instance
         (
             _STEPPER_driver.current_instance_handle,
             current_timestamp_ms
@@ -760,7 +760,7 @@ STEPPER_update_all(u32 current_timestamp_ms)
     switch (result)
     {
 
-        case StepperUpdateResult_relinquished:
+        case StepperUpdateInstanceResult_relinquished:
         {
 
             // Move onto the next motor round-robin style.
@@ -770,7 +770,7 @@ STEPPER_update_all(u32 current_timestamp_ms)
 
         } break;
 
-        case StepperUpdateResult_busy:
+        case StepperUpdateInstanceResult_busy:
         {
             // TMC2209 is currently in control of the UXART handle.
         } break;
@@ -797,7 +797,7 @@ STEPPER_update_all(u32 current_timestamp_ms)
 
     GPIO_SET(STEPPER_MOTOR_ENABLE_GPIO_NAME, all_motors_ready);
 
-    GPIO_SET(debug, result == StepperUpdateResult_busy);
+    GPIO_SET(debug, result == StepperUpdateInstanceResult_busy);
 
 }
 
