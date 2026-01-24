@@ -2,10 +2,10 @@
 
 
 
-#define STEPPER_ENABLE_DELAY_MS    500 // @/`Stepper Enable Delay`.
-#define STEPPER_VELOCITY_UPDATE_MS  25 // @/`Stepper Updating Velocity`.
-#define STEPPER_UART_TIME_BUFFER_MS  2 // @/`Stepper UART Time Buffer Window`.
-#define STEPPER_RING_BUFFER_LENGTH  32 // @/`Stepper Ring-Buffer Length`.
+#define STEPPER_ENABLE_DELAY_MS     500 // @/`Stepper Enable Delay`.
+#define STEPPER_VELOCITY_UPDATE_MS   25 // @/`Stepper Updating Velocity`.
+#define STEPPER_UART_TIME_BUFFER_MS   2 // @/`Stepper UART Time Buffer Window`.
+#define STEPPER_RING_BUFFER_LENGTH   32 // @/`Stepper Ring-Buffer Length`.
 
 static_assert(IS_POWER_OF_TWO(STEPPER_RING_BUFFER_LENGTH));
 
@@ -43,8 +43,16 @@ static_assert(IS_POWER_OF_TWO(STEPPER_RING_BUFFER_LENGTH));
             ('address', address),
         ) for name, address in driver['instances']))
 
-        Meta.define('STEPPER_UXART_HANDLE'          , f'UXARTHandle_{driver['uxart_handle']}')
-        Meta.define('STEPPER_MOTOR_ENABLE_GPIO_NAME', driver['enable_gpio'])
+        # TODO Inconvenient:
+        Meta.define('STEPPER_UXART_HANDLE'                   , f'UXARTHandle_{driver['uxart_handle']}')
+        Meta.define('STEPPER_MOTOR_ENABLE_GPIO_NAME'         , driver['enable_gpio'])
+        Meta.define('STEPPER_TIMx'                           ,                         f'{driver['timer_peripheral']}'           )
+        Meta.define('STEPPER_TIMx_'                          ,                         f'{driver['timer_peripheral']}_'          )
+        Meta.define('STEPPER_TIMx_ENABLE'                    , CMSIS_TUPLE(target.mcu, f'{driver['timer_peripheral']}_ENABLE' )  )
+        Meta.define('STEPPER_STPY_TIMx_DIVIDER'              ,                    f'STPY_{driver['timer_peripheral']}_DIVIDER'   )
+        Meta.define('STEPPER_STPY_TIMx_MODULATION'           ,                    f'STPY_{driver['timer_peripheral']}_MODULATION')
+        Meta.define('NVICInterrupt_STEPPER_TIMx_update_event',          f'NVICInterrupt_{driver['timer_update_event_interrupt']}')
+        Meta.define('INTERRUPT_STEPPER_TIMx_update_event'    ,              f'INTERRUPT_{driver['timer_update_event_interrupt']}')
 
 */
 
@@ -799,6 +807,72 @@ STEPPER_update_all(u32 current_timestamp_ms)
 
     GPIO_SET(debug, result == StepperUpdateInstanceResult_busy);
 
+}
+
+
+
+static void
+STEPPER_partial_init(void)
+{
+
+    // Enable the peripheral.
+
+    CMSIS_PUT(STEPPER_TIMx_ENABLE, true);
+
+
+
+    // Configure the divider to set the rate at
+    // which the timer's counter will increment.
+
+    CMSIS_SET(STEPPER_TIMx, PSC, PSC, STEPPER_STPY_TIMx_DIVIDER);
+
+
+
+    // Set the value at which the timer's counter
+    // will reach and then reset; this is when an
+    // update event happens.
+
+    CMSIS_SET(STEPPER_TIMx, ARR, ARR, STEPPER_STPY_TIMx_MODULATION);
+
+
+
+    // Trigger an update event so that the shadow registers
+    // ARR, PSC, and CCRx are what we initialize them to be.
+    // The hardware uses shadow registers in order for updates
+    // to these registers not result in a corrupt timer output.
+
+    CMSIS_SET(STEPPER_TIMx, EGR, UG, true);
+
+
+
+    // Enable the timer's counter.
+
+    CMSIS_SET(STEPPER_TIMx, CR1, CEN, true);
+
+
+
+    // Enable interrupt on update events.
+
+    CMSIS_SET(STEPPER_TIMx, DIER, UIE, true);
+    NVIC_ENABLE(STEPPER_TIMx_update_event);
+
+}
+
+
+
+INTERRUPT_STEPPER_TIMx_update_event(void)
+{
+    if (CMSIS_GET(STEPPER_TIMx, SR, UIF))
+    {
+
+        CMSIS_SET(STEPPER_TIMx, SR, UIF, false); // Acknowledge timer's update flag.
+
+        static u32 current_timestamp_ms = 0;
+        current_timestamp_ms += 1;
+
+        STEPPER_update_all(current_timestamp_ms);
+
+    }
 }
 
 

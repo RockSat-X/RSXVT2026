@@ -6,23 +6,6 @@
 
 
 
-INTERRUPT_TIM1_UP(void)
-{
-    if (CMSIS_GET(TIM1, SR, UIF))
-    {
-
-        CMSIS_SET(TIM1, SR, UIF, false); // Acknowledge timer's update flag.
-
-        static u32 current_timestamp_ms = 0;
-        current_timestamp_ms += 1;
-
-        STEPPER_update_all(current_timestamp_ms);
-
-    }
-}
-
-
-
 extern noret void
 main(void)
 {
@@ -209,50 +192,15 @@ main(void)
 
 
 
-        // Enable the peripheral.
+        // TODO.
 
-        CMSIS_SET(RCC, APB2ENR, TIM1EN, true);
-
-
-
-        // Configure the divider to set the rate at
-        // which the timer's counter will increment.
-
-        CMSIS_SET(TIM1, PSC, PSC, STPY_TIM1_DIVIDER);
-
-
-
-        // Set the value at which the timer's counter
-        // will reach and then reset; this is when an
-        // update event happens.
-
-        CMSIS_SET(TIM1, ARR, ARR, STPY_TIM1_MODULATION);
-
-
-
-        // Trigger an update event so that the shadow registers
-        // ARR, PSC, and CCRx are what we initialize them to be.
-        // The hardware uses shadow registers in order for updates
-        // to these registers not result in a corrupt timer output.
-
-        CMSIS_SET(TIM1, EGR, UG, true);
-
-
-
-        // Enable the timer's counter.
-
-        CMSIS_SET(TIM1, CR1, CEN, true);
-
-
-
-        // Enable interrupt on update events.
-
-        CMSIS_SET(TIM1, DIER, UIE, true);
-        NVIC_ENABLE(TIM1_UP);
+        STEPPER_partial_init();
 
 
 
         ////////////////////////////////////////////////////////////////////////////////
+
+
 
         for (;;)
         {

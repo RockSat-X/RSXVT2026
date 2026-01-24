@@ -717,10 +717,12 @@ TARGETS = ( # @/`Defining Targets`.
                 'mode'       : 'half_duplex',
             },
             {
-                'type'         : 'Stepper',
-                'uxart_handle' : 'stepper_uart',
-                'enable_gpio'  : 'motor_enable',
-                'instances'    : (
+                'type'                         : 'Stepper',
+                'uxart_handle'                 : 'stepper_uart',
+                'enable_gpio'                  : 'motor_enable',
+                'timer_peripheral'             : 'TIM1',
+                'timer_update_event_interrupt' : 'TIM1_UP',
+                'instances'                    : (
                     ('axis_x', 0),
                     ('axis_y', 1),
                     ('axis_z', 2),

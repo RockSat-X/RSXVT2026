@@ -38,6 +38,13 @@
         };
     #define STEPPER_UXART_HANDLE UXARTHandle_stepper_uart
     #define STEPPER_MOTOR_ENABLE_GPIO_NAME motor_enable
+    #define STEPPER_TIMx TIM1
+    #define STEPPER_TIMx_ TIM1_
+    #define STEPPER_TIMx_ENABLE (struct CMSISTuple) { &RCC->APB2ENR, CONCAT(RCC_, APB2ENR_TIM1EN_Pos), CONCAT(RCC_, APB2ENR_TIM1EN_Msk) }
+    #define STEPPER_STPY_TIMx_DIVIDER STPY_TIM1_DIVIDER
+    #define STEPPER_STPY_TIMx_MODULATION STPY_TIM1_MODULATION
+    #define NVICInterrupt_STEPPER_TIMx_update_event NVICInterrupt_TIM1_UP
+    #define INTERRUPT_STEPPER_TIMx_update_event INTERRUPT_TIM1_UP
 #endif
 #if TARGET_NAME_IS_MainCameraSystem
     #error Target 'MainCameraSystem' needs to define a unique 'Stepper' driver.
