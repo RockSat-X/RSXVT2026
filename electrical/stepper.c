@@ -49,7 +49,8 @@ static_assert(IS_POWER_OF_TWO(STEPPER_RING_BUFFER_LENGTH));
         Meta.define('STEPPER_MOTOR_ENABLE_GPIO_NAME'         , driver['enable_gpio'])
         Meta.define('STEPPER_TIMx'                           ,                         f'{driver['timer_peripheral']}'           )
         Meta.define('STEPPER_TIMx_'                          ,                         f'{driver['timer_peripheral']}_'          )
-        Meta.define('STEPPER_TIMx_ENABLE'                    , CMSIS_TUPLE(target.mcu, f'{driver['timer_peripheral']}_ENABLE' )  )
+        Meta.define('STEPPER_TIMx_RESET'                     , CMSIS_TUPLE(target.mcu, f'{driver['timer_peripheral']}_RESET' )   )
+        Meta.define('STEPPER_TIMx_ENABLE'                    , CMSIS_TUPLE(target.mcu, f'{driver['timer_peripheral']}_ENABLE')   )
         Meta.define('STEPPER_STPY_TIMx_DIVIDER'              ,                    f'STPY_{driver['timer_peripheral']}_DIVIDER'   )
         Meta.define('STEPPER_STPY_TIMx_MODULATION'           ,                    f'STPY_{driver['timer_peripheral']}_MODULATION')
         Meta.define('NVICInterrupt_STEPPER_TIMx_update_event',          f'NVICInterrupt_{driver['timer_update_event_interrupt']}')
@@ -295,8 +296,19 @@ STEPPER_push_velocities(i32 (*velocities)[StepperInstanceHandle_COUNT])
 
 
 static void
-STEPPER_partial_init(void)
+STEPPER_partial_reinit(void)
 {
+
+    // Reset stuff.
+
+    _STEPPER_driver = (struct StepperDriver) {0};
+
+    CMSIS_PUT(STEPPER_TIMx_RESET, true );
+    CMSIS_PUT(STEPPER_TIMx_RESET, false);
+
+    GPIO_INACTIVE(STEPPER_MOTOR_ENABLE_GPIO_NAME);
+
+
 
     // Enable the peripheral.
 
@@ -343,6 +355,538 @@ STEPPER_partial_init(void)
 
 
 
+static useret enum StepperUpdateUARTTransferResult : u32
+{
+    StepperUpdateUARTTransferResult_relinquished,
+    StepperUpdateUARTTransferResult_busy,
+    StepperUpdateUARTTransferResult_error,
+}
+_STEPPER_update_uart_transfer(void)
+{
+
+    struct StepperInstance* instance = &_STEPPER_driver.instances[_STEPPER_driver.current_instance_handle];
+
+    while (true)
+    {
+        switch (_STEPPER_driver.uart_transfer.state)
+        {
+
+
+
+            ////////////////////////////////////////////////////////////////////////////////
+            //
+            // The next UART transfer can be scheduled.
+            //
+
+            case StepperDriverUARTTransferState_standby: switch (instance->state)
+            {
+
+
+
+                // This has to be the first thing we do
+                // for the configuration of the TMC2209
+                // so that we can know whether or not the
+                // first write request is successful.
+
+                case StepperInstanceState_setting_uart_write_sequence_number:
+                {
+
+                    _STEPPER_driver.uart_transfer =
+                        (struct StepperDriverUARTTransfer)
+                        {
+                            .state            = StepperDriverUARTTransferState_read_scheduled,
+                            .register_address = TMC2209_IFCNT_ADDRESS,
+                        };
+
+                } break;
+
+
+
+                // We then do a series of register writes to configure the TMC2209.
+
+                case StepperInstanceState_doing_initialization_sequence:
+                {
+
+                    _STEPPER_driver.uart_transfer =
+                        (struct StepperDriverUARTTransfer)
+                        {
+                            .state            = StepperDriverUARTTransferState_write_scheduled,
+                            .register_address = STEPPER_INITIALIZATION_SEQUENCE[instance->initialization_sequence_index].register_address,
+                            .data             = STEPPER_INITIALIZATION_SEQUENCE[instance->initialization_sequence_index].data,
+                        };
+
+                } break;
+
+
+
+                // @/`Stepper Enable Delay`:
+                //
+                // It seems like when the TMC2209 is first
+                // initialized (especially after a power-cycle)
+                // the motor will induce a large current draw
+                // after it is enabled. It quickly settles down,
+                // but it's probably not nice to do to the batteries.
+                // It seems like by delaying the enabling of the motor
+                // that the current spike can be avoided. I can tell
+                // this works by the fact that the power supply not
+                // going into current-limiting mode after the power-cycle.
+
+                case StepperInstanceState_delaying_enable:
+                {
+
+                    b32 delaying = (_STEPPER_driver.current_timestamp_us - instance->incremental_timestamp_us) < STEPPER_ENABLE_DELAY_US;
+
+                    if (delaying)
+                    {
+                        return StepperUpdateUARTTransferResult_relinquished;
+                    }
+                    else
+                    {
+                        instance->state                    = StepperInstanceState_working;
+                        instance->incremental_timestamp_us = _STEPPER_driver.current_timestamp_us;
+                    }
+
+                } break;
+
+
+
+                // @/`Stepper Updating Velocity`:
+                //
+                // The TMC2209 is fully configured now and step
+                // velocities can be set. We try our best to
+                // update the step velocity as consistently as
+                // possible based on how much time has passed
+                // since the previous velocity update.
+                //
+                // The user should also try their best to have
+                // the velocity ring-buffer as full as possible
+                // to avoid an underrun situation.
+
+                case StepperInstanceState_working:
+                {
+
+                    b32 should_update = (_STEPPER_driver.current_timestamp_us - instance->incremental_timestamp_us) >= STEPPER_VELOCITY_UPDATE_US;
+
+                    if (should_update)
+                    {
+
+                        instance->incremental_timestamp_us += STEPPER_VELOCITY_UPDATE_US;
+
+                        i32 velocity = {0};
+
+                        if (instance->velocity_reader == instance->velocity_writer)
+                        {
+                            // Underflow condition.
+                            // TODO Indicate this situation somehow?
+                            // TODO Perhaps keep the same velocity instead.
+                            velocity = 0;
+                        }
+                        else
+                        {
+                            i32 read_index             = instance->velocity_reader % countof(instance->velocities);
+                            velocity                   = instance->velocities[read_index];
+                            instance->velocity_reader += 1;
+                        }
+
+                        _STEPPER_driver.uart_transfer =
+                            (struct StepperDriverUARTTransfer)
+                            {
+                                .state            = StepperDriverUARTTransferState_write_scheduled,
+                                .register_address = TMC2209_VACTUAL_ADDRESS,
+                                .data             = velocity,
+                            };
+
+                    }
+                    else
+                    {
+                        return StepperUpdateUARTTransferResult_relinquished;
+                    }
+
+                } break;
+
+
+
+                default: panic;
+
+            } break;
+
+
+
+            ////////////////////////////////////////////////////////////////////////////////
+            //
+            // We just finished a UART transfer.
+            //
+
+            case StepperDriverUARTTransferState_done:
+            {
+
+                switch (instance->state)
+                {
+
+
+
+                    // We now know what the first write
+                    // request's sequence number will be.
+
+                    case StepperInstanceState_setting_uart_write_sequence_number:
+                    {
+                        instance->uart_write_sequence_number = _STEPPER_driver.uart_transfer.data + 1;
+                        instance->state                      = StepperInstanceState_doing_initialization_sequence;
+                    } break;
+
+
+
+                    // See if we're done doing the series of
+                    // register writes to configure the TMC2209.
+
+                    case StepperInstanceState_doing_initialization_sequence:
+                    {
+
+                        instance->initialization_sequence_index += 1;
+
+                        if (instance->initialization_sequence_index < countof(STEPPER_INITIALIZATION_SEQUENCE))
+                        {
+                            // We still have more registers to write to.
+                        }
+                        else
+                        {
+                            instance->state                    = StepperInstanceState_delaying_enable;
+                            instance->incremental_timestamp_us = _STEPPER_driver.current_timestamp_us;
+                        }
+
+                    } break;
+
+
+
+                    // We're done updating the motor's step velocity.
+
+                    case StepperInstanceState_working:
+                    {
+                        // Don't care.
+                    } break;
+
+
+
+                    case StepperInstanceState_delaying_enable : panic;
+                    default                                   : panic;
+
+                }
+
+                _STEPPER_driver.uart_transfer.state = StepperDriverUARTTransferState_standby;
+
+            } break;
+
+
+
+            ////////////////////////////////////////////////////////////////////////////////
+            //
+            // We send a read request packet to the TMC2209.
+            //
+
+            case StepperDriverUARTTransferState_read_scheduled:
+            case StepperDriverUARTTransferState_write_verification_read_scheduled:
+            {
+
+                if (_STEPPER_driver.uart_transfer.register_address & (1 << 7))
+                    panic;
+
+                if (_STEPPER_driver.current_timestamp_us - _STEPPER_driver.uart_previous_transfer_timestamp_us < STEPPER_UART_TIME_BUFFER_US)
+                {
+                    return StepperUpdateUARTTransferResult_busy; // @/`Stepper UART Time Buffer Window`.
+                }
+                else
+                {
+
+                    // Set up the request.
+
+                    pack_push
+                        struct StepperReadRequest
+                        {
+                            u8 sync;
+                            u8 node_address;
+                            u8 register_address;
+                            u8 crc;
+                        };
+                    pack_pop
+
+                    struct StepperReadRequest request =
+                        {
+                            .sync             = 0b0000'0101,
+                            .node_address     = STEPPER_INSTANCE_TABLE[_STEPPER_driver.current_instance_handle].address,
+                            .register_address =
+                                _STEPPER_driver.uart_transfer.state == StepperDriverUARTTransferState_write_verification_read_scheduled
+                                    ? TMC2209_IFCNT_ADDRESS
+                                    : _STEPPER_driver.uart_transfer.register_address,
+                        };
+
+                    request.crc =
+                        _STEPPER_calculate_crc
+                        (
+                            (u8*) &request,
+                            sizeof(request) - sizeof(request.crc)
+                        );
+
+
+
+                    // Send the request.
+
+                    _UXART_tx_raw_nonreentrant
+                    (
+                        STEPPER_UXART_HANDLE,
+                        (u8*) &request,
+                        sizeof(request)
+                    );
+
+
+
+                    // Flush the RX-FIFO.
+                    // TODO Don't use char.
+
+                    while (UXART_rx(STEPPER_UXART_HANDLE, &(char) {0}));
+
+
+
+                    // We now wait for the response.
+
+                    _STEPPER_driver.uart_transfer.state =
+                        _STEPPER_driver.uart_transfer.state == StepperDriverUARTTransferState_write_verification_read_scheduled
+                            ? StepperDriverUARTTransferState_write_verification_read_requested
+                            : StepperDriverUARTTransferState_read_requested;
+
+                    _STEPPER_driver.uart_previous_transfer_timestamp_us = _STEPPER_driver.current_timestamp_us;
+
+                    return StepperUpdateUARTTransferResult_busy;
+
+                }
+
+            } break;
+
+
+
+            ////////////////////////////////////////////////////////////////////////////////
+            //
+            // See if the TMC2209 replied back to the read request.
+            //
+
+            case StepperDriverUARTTransferState_read_requested:
+            case StepperDriverUARTTransferState_write_verification_read_requested:
+            {
+
+                if (_STEPPER_driver.uart_transfer.register_address & (1 << 7))
+                    panic;
+
+                if (_STEPPER_driver.current_timestamp_us - _STEPPER_driver.uart_previous_transfer_timestamp_us < STEPPER_UART_TIME_BUFFER_US)
+                {
+                    return StepperUpdateUARTTransferResult_busy; // @/`Stepper UART Time Buffer Window`.
+                }
+                else
+                {
+
+                    // Get the response.
+
+                    pack_push
+                        struct StepperReadResponse
+                        {
+                            u8  sync;
+                            u8  master_address;
+                            u8  register_address;
+                            u32 data; // Big-endian.
+                            u8  crc;
+                        };
+                    pack_pop
+
+                    struct StepperReadResponse response       = {0};
+                    i32                        bytes_received = 0;
+
+                    while (true)
+                    {
+
+                        u8  byte     = {0};
+                        b32 got_byte = UXART_rx(STEPPER_UXART_HANDLE, (char*) &byte);
+
+
+                        if (got_byte)
+                        {
+
+                            if (bytes_received < sizeof(response))
+                            {
+                                ((u8*) &response)[bytes_received] = byte;
+                            }
+
+                            bytes_received += 1;
+
+                        }
+                        else
+                        {
+                            break;
+                        }
+
+                    }
+
+
+
+                    // Verify integrity of response.
+
+                    if (bytes_received != sizeof(response))
+                    {
+                        return StepperUpdateUARTTransferResult_error;
+                    }
+
+                    u8 digest =
+                        _STEPPER_calculate_crc
+                        (
+                            (u8*) &response,
+                            sizeof(response) - sizeof(response.crc)
+                        );
+
+                    if (digest != response.crc)
+                    {
+                        return StepperUpdateUARTTransferResult_error;
+                    }
+
+                    if (response.sync != 0b0000'0101)
+                    {
+                        return StepperUpdateUARTTransferResult_error;
+                    }
+
+                    if (response.master_address != 0xFF)
+                    {
+                        return StepperUpdateUARTTransferResult_error;
+                    }
+
+                    u8 expected_register_address =
+                        _STEPPER_driver.uart_transfer.state == StepperDriverUARTTransferState_write_verification_read_requested
+                            ? TMC2209_IFCNT_ADDRESS
+                            : _STEPPER_driver.uart_transfer.register_address;
+
+                    if (response.register_address != expected_register_address)
+                    {
+                        return StepperUpdateUARTTransferResult_error;
+                    }
+
+
+
+                    // Got the register data intact!
+
+                    u32 data = __builtin_bswap32(response.data);
+
+
+
+                    // Handle the data.
+
+                    if (_STEPPER_driver.uart_transfer.state == StepperDriverUARTTransferState_write_verification_read_requested)
+                    {
+
+                        if (instance->uart_write_sequence_number != data)
+                        {
+                            return StepperUpdateUARTTransferResult_error; // TODO Too aggresive?
+                        }
+
+                        instance->uart_write_sequence_number = data + 1;
+
+                    }
+                    else
+                    {
+                        _STEPPER_driver.uart_transfer.data = data;
+                    }
+
+
+
+                    // We're now done reading the register
+                    // (or maybe verifying that the write request was successful).
+
+                    _STEPPER_driver.uart_transfer.state = StepperDriverUARTTransferState_done;
+
+                }
+
+            } break;
+
+
+
+            ////////////////////////////////////////////////////////////////////////////////
+            //
+            // We send a write request packet to the TMC2209.
+            //
+
+            case StepperDriverUARTTransferState_write_scheduled:
+            {
+
+                if (_STEPPER_driver.uart_transfer.register_address & (1 << 7))
+                    panic;
+
+                if (_STEPPER_driver.current_timestamp_us - _STEPPER_driver.uart_previous_transfer_timestamp_us < STEPPER_UART_TIME_BUFFER_US)
+                {
+                    return StepperUpdateUARTTransferResult_busy; // @/`Stepper UART Time Buffer Window`.
+                }
+                else
+                {
+
+                    // Set up the request.
+
+                    pack_push
+                        struct StepperWriteRequest
+                        {
+                            u8  sync;
+                            u8  node_address;
+                            u8  register_address;
+                            u32 data; // Big-endian.
+                            u8  crc;
+                        };
+                    pack_pop
+
+                    struct StepperWriteRequest request =
+                        {
+                            .sync             = 0b0000'0101,
+                            .node_address     = STEPPER_INSTANCE_TABLE[_STEPPER_driver.current_instance_handle].address,
+                            .register_address = _STEPPER_driver.uart_transfer.register_address | (1 << 7),
+                            .data             = __builtin_bswap32(_STEPPER_driver.uart_transfer.data),
+                        };
+
+                    request.crc =
+                        _STEPPER_calculate_crc
+                        (
+                            (u8*) &request,
+                            sizeof(request) - sizeof(request.crc)
+                        );
+
+
+
+                    // Send the request.
+
+                    _UXART_tx_raw_nonreentrant
+                    (
+                        STEPPER_UXART_HANDLE,
+                        (u8*) &request,
+                        sizeof(request)
+                    );
+
+
+
+                    // After the write transfer, we read the
+                    // interface transmission counter register
+                    // to ensure the write request went through.
+
+                    _STEPPER_driver.uart_transfer.state = StepperDriverUARTTransferState_write_verification_read_scheduled;
+
+                    _STEPPER_driver.uart_previous_transfer_timestamp_us = _STEPPER_driver.current_timestamp_us;
+
+                    return StepperUpdateUARTTransferResult_busy;
+
+                }
+
+            } break;
+
+
+
+            default: panic;
+
+        }
+    }
+
+}
+
+
+
 INTERRUPT_STEPPER_TIMx_update_event(void)
 {
     if (CMSIS_GET(STEPPER_TIMx, SR, UIF))
@@ -365,534 +909,12 @@ INTERRUPT_STEPPER_TIMx_update_event(void)
         // and update the UXART transfer so far.
         //
 
-        struct StepperInstance* instance = &_STEPPER_driver.instances[_STEPPER_driver.current_instance_handle];
+        enum StepperUpdateUARTTransferResult result = _STEPPER_update_uart_transfer();
 
-        enum Yield : u32
-        {
-            Yield_null,
-            Yield_relinquished,
-            Yield_busy,
-        };
-
-        enum Yield yield = {0};
-
-        while (!yield)
-        {
-            switch (_STEPPER_driver.uart_transfer.state)
-            {
-
-
-
-                ////////////////////////////////////////////////////////////////////////////////
-                //
-                // The next UART transfer can be scheduled.
-                //
-
-                case StepperDriverUARTTransferState_standby: switch (instance->state)
-                {
-
-
-
-                    // This has to be the first thing we do
-                    // for the configuration of the TMC2209
-                    // so that we can know whether or not the
-                    // first write request is successful.
-
-                    case StepperInstanceState_setting_uart_write_sequence_number:
-                    {
-
-                        _STEPPER_driver.uart_transfer =
-                            (struct StepperDriverUARTTransfer)
-                            {
-                                .state            = StepperDriverUARTTransferState_read_scheduled,
-                                .register_address = TMC2209_IFCNT_ADDRESS,
-                            };
-
-                    } break;
-
-
-
-                    // We then do a series of register writes to configure the TMC2209.
-
-                    case StepperInstanceState_doing_initialization_sequence:
-                    {
-
-                        _STEPPER_driver.uart_transfer =
-                            (struct StepperDriverUARTTransfer)
-                            {
-                                .state            = StepperDriverUARTTransferState_write_scheduled,
-                                .register_address = STEPPER_INITIALIZATION_SEQUENCE[instance->initialization_sequence_index].register_address,
-                                .data             = STEPPER_INITIALIZATION_SEQUENCE[instance->initialization_sequence_index].data,
-                            };
-
-                    } break;
-
-
-
-                    // @/`Stepper Enable Delay`:
-                    //
-                    // It seems like when the TMC2209 is first
-                    // initialized (especially after a power-cycle)
-                    // the motor will induce a large current draw
-                    // after it is enabled. It quickly settles down,
-                    // but it's probably not nice to do to the batteries.
-                    // It seems like by delaying the enabling of the motor
-                    // that the current spike can be avoided. I can tell
-                    // this works by the fact that the power supply not
-                    // going into current-limiting mode after the power-cycle.
-
-                    case StepperInstanceState_delaying_enable:
-                    {
-
-                        b32 delaying = (_STEPPER_driver.current_timestamp_us - instance->incremental_timestamp_us) < STEPPER_ENABLE_DELAY_US;
-
-                        if (delaying)
-                        {
-                            yield = Yield_relinquished;
-                        }
-                        else
-                        {
-                            instance->state                    = StepperInstanceState_working;
-                            instance->incremental_timestamp_us = _STEPPER_driver.current_timestamp_us;
-                        }
-
-                    } break;
-
-
-
-                    // @/`Stepper Updating Velocity`:
-                    //
-                    // The TMC2209 is fully configured now and step
-                    // velocities can be set. We try our best to
-                    // update the step velocity as consistently as
-                    // possible based on how much time has passed
-                    // since the previous velocity update.
-                    //
-                    // The user should also try their best to have
-                    // the velocity ring-buffer as full as possible
-                    // to avoid an underrun situation.
-
-                    case StepperInstanceState_working:
-                    {
-
-                        b32 should_update = (_STEPPER_driver.current_timestamp_us - instance->incremental_timestamp_us) >= STEPPER_VELOCITY_UPDATE_US;
-
-                        if (should_update)
-                        {
-
-                            instance->incremental_timestamp_us += STEPPER_VELOCITY_UPDATE_US;
-
-                            i32 velocity = {0};
-
-                            if (instance->velocity_reader == instance->velocity_writer)
-                            {
-                                // Underflow condition.
-                                // TODO Indicate this situation somehow?
-                                // TODO Perhaps keep the same velocity instead.
-                                velocity = 0;
-                            }
-                            else
-                            {
-                                i32 read_index             = instance->velocity_reader % countof(instance->velocities);
-                                velocity                   = instance->velocities[read_index];
-                                instance->velocity_reader += 1;
-                            }
-
-                            _STEPPER_driver.uart_transfer =
-                                (struct StepperDriverUARTTransfer)
-                                {
-                                    .state            = StepperDriverUARTTransferState_write_scheduled,
-                                    .register_address = TMC2209_VACTUAL_ADDRESS,
-                                    .data             = velocity,
-                                };
-
-                        }
-                        else
-                        {
-                            yield = Yield_relinquished;
-                        }
-
-                    } break;
-
-
-
-                    default: panic;
-
-                } break;
-
-
-
-                ////////////////////////////////////////////////////////////////////////////////
-                //
-                // We just finished a UART transfer.
-                //
-
-                case StepperDriverUARTTransferState_done:
-                {
-
-                    switch (instance->state)
-                    {
-
-
-
-                        // We now know what the first write
-                        // request's sequence number will be.
-
-                        case StepperInstanceState_setting_uart_write_sequence_number:
-                        {
-                            instance->uart_write_sequence_number = _STEPPER_driver.uart_transfer.data + 1;
-                            instance->state                      = StepperInstanceState_doing_initialization_sequence;
-                        } break;
-
-
-
-                        // See if we're done doing the series of
-                        // register writes to configure the TMC2209.
-
-                        case StepperInstanceState_doing_initialization_sequence:
-                        {
-
-                            instance->initialization_sequence_index += 1;
-
-                            if (instance->initialization_sequence_index < countof(STEPPER_INITIALIZATION_SEQUENCE))
-                            {
-                                // We still have more registers to write to.
-                            }
-                            else
-                            {
-                                instance->state                    = StepperInstanceState_delaying_enable;
-                                instance->incremental_timestamp_us = _STEPPER_driver.current_timestamp_us;
-                            }
-
-                        } break;
-
-
-
-                        // We're done updating the motor's step velocity.
-
-                        case StepperInstanceState_working:
-                        {
-                            // Don't care.
-                        } break;
-
-
-
-                        case StepperInstanceState_delaying_enable : panic;
-                        default                                   : panic;
-
-                    }
-
-                    _STEPPER_driver.uart_transfer.state = StepperDriverUARTTransferState_standby;
-
-                } break;
-
-
-
-                ////////////////////////////////////////////////////////////////////////////////
-                //
-                // We send a read request packet to the TMC2209.
-                //
-
-                case StepperDriverUARTTransferState_read_scheduled:
-                case StepperDriverUARTTransferState_write_verification_read_scheduled:
-                {
-
-                    if (_STEPPER_driver.uart_transfer.register_address & (1 << 7))
-                        panic;
-
-                    if (_STEPPER_driver.current_timestamp_us - _STEPPER_driver.uart_previous_transfer_timestamp_us < STEPPER_UART_TIME_BUFFER_US)
-                    {
-                        yield = Yield_busy; // @/`Stepper UART Time Buffer Window`.
-                    }
-                    else
-                    {
-
-                        // Set up the request.
-
-                        pack_push
-                            struct StepperReadRequest
-                            {
-                                u8 sync;
-                                u8 node_address;
-                                u8 register_address;
-                                u8 crc;
-                            };
-                        pack_pop
-
-                        struct StepperReadRequest request =
-                            {
-                                .sync             = 0b0000'0101,
-                                .node_address     = STEPPER_INSTANCE_TABLE[_STEPPER_driver.current_instance_handle].address,
-                                .register_address =
-                                    _STEPPER_driver.uart_transfer.state == StepperDriverUARTTransferState_write_verification_read_scheduled
-                                        ? TMC2209_IFCNT_ADDRESS
-                                        : _STEPPER_driver.uart_transfer.register_address,
-                            };
-
-                        request.crc =
-                            _STEPPER_calculate_crc
-                            (
-                                (u8*) &request,
-                                sizeof(request) - sizeof(request.crc)
-                            );
-
-
-
-                        // Send the request.
-
-                        _UXART_tx_raw_nonreentrant
-                        (
-                            STEPPER_UXART_HANDLE,
-                            (u8*) &request,
-                            sizeof(request)
-                        );
-
-
-
-                        // Flush the RX-FIFO.
-                        // TODO Don't use char.
-
-                        while (UXART_rx(STEPPER_UXART_HANDLE, &(char) {0}));
-
-
-
-                        // We now wait for the response.
-
-                        _STEPPER_driver.uart_transfer.state =
-                            _STEPPER_driver.uart_transfer.state == StepperDriverUARTTransferState_write_verification_read_scheduled
-                                ? StepperDriverUARTTransferState_write_verification_read_requested
-                                : StepperDriverUARTTransferState_read_requested;
-
-                        _STEPPER_driver.uart_previous_transfer_timestamp_us = _STEPPER_driver.current_timestamp_us;
-
-                        yield = Yield_busy;
-
-                    }
-
-                } break;
-
-
-
-                ////////////////////////////////////////////////////////////////////////////////
-                //
-                // See if the TMC2209 replied back to the read request.
-                //
-
-                case StepperDriverUARTTransferState_read_requested:
-                case StepperDriverUARTTransferState_write_verification_read_requested:
-                {
-
-                    if (_STEPPER_driver.uart_transfer.register_address & (1 << 7))
-                        panic;
-
-                    if (_STEPPER_driver.current_timestamp_us - _STEPPER_driver.uart_previous_transfer_timestamp_us < STEPPER_UART_TIME_BUFFER_US)
-                    {
-                        yield = Yield_busy; // @/`Stepper UART Time Buffer Window`.
-                    }
-                    else
-                    {
-
-                        // Get the response.
-
-                        pack_push
-                            struct StepperReadResponse
-                            {
-                                u8  sync;
-                                u8  master_address;
-                                u8  register_address;
-                                u32 data; // Big-endian.
-                                u8  crc;
-                            };
-                        pack_pop
-
-                        struct StepperReadResponse response       = {0};
-                        i32                        bytes_received = 0;
-
-                        while (true)
-                        {
-
-                            u8  byte     = {0};
-                            b32 got_byte = UXART_rx(STEPPER_UXART_HANDLE, (char*) &byte);
-
-
-                            if (got_byte)
-                            {
-
-                                if (bytes_received < sizeof(response))
-                                {
-                                    ((u8*) &response)[bytes_received] = byte;
-                                }
-
-                                bytes_received += 1;
-
-                            }
-                            else
-                            {
-                                break;
-                            }
-
-                        }
-
-
-
-                        // Verify integrity of response.
-
-                        if (bytes_received != sizeof(response))
-                            sorry
-
-                        u8 digest =
-                            _STEPPER_calculate_crc
-                            (
-                                (u8*) &response,
-                                sizeof(response) - sizeof(response.crc)
-                            );
-
-                        if (digest != response.crc)
-                            sorry
-
-                        if (response.sync != 0b0000'0101)
-                            sorry
-
-                        if (response.master_address != 0xFF)
-                            sorry
-
-                        u8 expected_register_address =
-                            _STEPPER_driver.uart_transfer.state == StepperDriverUARTTransferState_write_verification_read_requested
-                                ? TMC2209_IFCNT_ADDRESS
-                                : _STEPPER_driver.uart_transfer.register_address;
-
-                        if (response.register_address != expected_register_address)
-                            sorry
-
-
-
-                        // Got the register data intact!
-
-                        u32 data = __builtin_bswap32(response.data);
-
-
-
-                        // Handle the data.
-
-                        if (_STEPPER_driver.uart_transfer.state == StepperDriverUARTTransferState_write_verification_read_requested)
-                        {
-
-                            if (instance->uart_write_sequence_number != data)
-                                sorry
-
-                            instance->uart_write_sequence_number = data + 1;
-
-                        }
-                        else
-                        {
-                            _STEPPER_driver.uart_transfer.data = data;
-                        }
-
-
-
-                        // We're now done reading the register
-                        // (or maybe verifying that the write request was successful).
-
-                        _STEPPER_driver.uart_transfer.state = StepperDriverUARTTransferState_done;
-
-                    }
-
-                } break;
-
-
-
-                ////////////////////////////////////////////////////////////////////////////////
-                //
-                // We send a write request packet to the TMC2209.
-                //
-
-                case StepperDriverUARTTransferState_write_scheduled:
-                {
-
-                    if (_STEPPER_driver.uart_transfer.register_address & (1 << 7))
-                        panic;
-
-                    if (_STEPPER_driver.current_timestamp_us - _STEPPER_driver.uart_previous_transfer_timestamp_us < STEPPER_UART_TIME_BUFFER_US)
-                    {
-                        yield = Yield_busy; // @/`Stepper UART Time Buffer Window`.
-                    }
-                    else
-                    {
-
-                        // Set up the request.
-
-                        pack_push
-                            struct StepperWriteRequest
-                            {
-                                u8  sync;
-                                u8  node_address;
-                                u8  register_address;
-                                u32 data; // Big-endian.
-                                u8  crc;
-                            };
-                        pack_pop
-
-                        struct StepperWriteRequest request =
-                            {
-                                .sync             = 0b0000'0101,
-                                .node_address     = STEPPER_INSTANCE_TABLE[_STEPPER_driver.current_instance_handle].address,
-                                .register_address = _STEPPER_driver.uart_transfer.register_address | (1 << 7),
-                                .data             = __builtin_bswap32(_STEPPER_driver.uart_transfer.data),
-                            };
-
-                        request.crc =
-                            _STEPPER_calculate_crc
-                            (
-                                (u8*) &request,
-                                sizeof(request) - sizeof(request.crc)
-                            );
-
-
-
-                        // Send the request.
-
-                        _UXART_tx_raw_nonreentrant
-                        (
-                            STEPPER_UXART_HANDLE,
-                            (u8*) &request,
-                            sizeof(request)
-                        );
-
-
-
-                        // After the write transfer, we read the
-                        // interface transmission counter register
-                        // to ensure the write request went through.
-
-                        _STEPPER_driver.uart_transfer.state = StepperDriverUARTTransferState_write_verification_read_scheduled;
-
-                        _STEPPER_driver.uart_previous_transfer_timestamp_us = _STEPPER_driver.current_timestamp_us;
-
-                        yield = Yield_busy;
-
-                    }
-
-                } break;
-
-
-
-                default: panic;
-
-            }
-        }
-
-
-
-        ////////////////////////////////////////////////////////////////////////////////
-        //
-        // Determine the next stepper instance
-        // to have control of the UXART handle.
-        //
-
-        switch (yield)
+        switch (result)
         {
 
-            case Yield_relinquished:
+            case StepperUpdateUARTTransferResult_relinquished:
             {
 
                 // Move onto the next motor round-robin style.
@@ -902,15 +924,20 @@ INTERRUPT_STEPPER_TIMx_update_event(void)
 
             } break;
 
-            case Yield_busy:
+            case StepperUpdateUARTTransferResult_busy:
             {
                 // @/`Stepper UART Time Buffer Window`.
             } break;
 
-            case Yield_null : panic;
-            default         : panic;
+            case StepperUpdateUARTTransferResult_error:
+            {
+                STEPPER_partial_reinit(); // Something bad happened, so let's restart everything!
+            } break;
+
+            default: panic;
 
         }
+
 
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -932,7 +959,7 @@ INTERRUPT_STEPPER_TIMx_update_event(void)
 
         GPIO_SET(STEPPER_MOTOR_ENABLE_GPIO_NAME, all_motors_ready);
 
-        GPIO_SET(debug, yield == Yield_busy);
+        GPIO_SET(debug, result == StepperUpdateUARTTransferResult_busy);
 
     }
 }

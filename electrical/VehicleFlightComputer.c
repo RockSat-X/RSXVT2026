@@ -176,9 +176,6 @@ main(void)
 
         UXART_init(UXARTHandle_stepper_uart);
 
-        GPIO_ACTIVE(battery_allowed);
-
-        spinlock_nop(1'000'000); // TODO
 
 
 
@@ -194,12 +191,15 @@ main(void)
 
         // TODO.
 
-        STEPPER_partial_init();
+        STEPPER_partial_reinit();
 
 
 
         ////////////////////////////////////////////////////////////////////////////////
 
+
+        spinlock_nop(500'000'000);
+        GPIO_ACTIVE(battery_allowed);
 
 
         for (;;)
