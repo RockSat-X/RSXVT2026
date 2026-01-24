@@ -243,20 +243,49 @@ _STEPPER_calculate_crc(u8* data, u8 length)
 
 
 static useret b32
-STEPPER_push_velocity(enum StepperInstanceHandle handle, i32 velocity)
+STEPPER_push_velocities(i32 (*velocities)[StepperInstanceHandle_COUNT])
 {
 
-    struct StepperInstance* instance = &_STEPPER_driver.instances[handle];
+    // See if all of the instances' ring-buffers have space available.
 
-    b32 can_be_pushed =
-        instance->state == StepperInstanceState_working &&
-        (instance->velocity_writer - instance->velocity_reader < countof(instance->velocities));
+    b32 can_be_pushed = true;
+
+    for (enum StepperInstanceHandle handle = {0}; handle < StepperInstanceHandle_COUNT; handle += 1)
+    {
+        struct StepperInstance* instance = &_STEPPER_driver.instances[handle];
+
+        if
+        (
+            instance->state != StepperInstanceState_working ||
+            (instance->velocity_writer - instance->velocity_reader >= countof(instance->velocities))
+        )
+        {
+            can_be_pushed = false;
+            break;
+        }
+
+    }
+
+
+
+    // If so, push all of the new velocities together at once.
+    // It's done like this so that velocities between motors
+    // don't desync to an arbitrary amount.
 
     if (can_be_pushed)
     {
-        instance->velocities[instance->velocity_writer % countof(instance->velocities)] = velocity;
-        instance->velocity_writer += 1;
+        for (enum StepperInstanceHandle handle = {0}; handle < StepperInstanceHandle_COUNT; handle += 1)
+        {
+
+            struct StepperInstance* instance = &_STEPPER_driver.instances[handle];
+
+            instance->velocities[instance->velocity_writer % countof(instance->velocities)] = (*velocities)[handle];
+            instance->velocity_writer += 1;
+
+        }
     }
+
+
 
     return can_be_pushed;
 

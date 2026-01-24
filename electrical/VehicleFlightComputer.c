@@ -220,7 +220,18 @@ main(void)
 
             static i32 index = 0;
 
-            while (!STEPPER_push_velocity(StepperInstanceHandle_axis_x, VELOCITIES[index]));
+            while
+            (
+                !STEPPER_push_velocities
+                (
+                    &(i32[])
+                    {
+                        [StepperInstanceHandle_axis_x] = VELOCITIES[index],
+                        [StepperInstanceHandle_axis_y] = VELOCITIES[index],
+                        [StepperInstanceHandle_axis_z] = VELOCITIES[index],
+                    }
+                )
+            );
 
             index += 1;
             index %= countof(VELOCITIES);
