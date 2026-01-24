@@ -1,56 +1,48 @@
 #if TARGET_NAME_IS_SandboxNucleoH533RE
-    #error Target 'SandboxNucleoH533RE' defines no handle for the 'Stepper' driver.
+    #error Target 'SandboxNucleoH533RE' needs to define a unique 'Stepper' driver.
 #endif
 #if TARGET_NAME_IS_DemoI2C
-    #error Target 'DemoI2C' defines no handle for the 'Stepper' driver.
+    #error Target 'DemoI2C' needs to define a unique 'Stepper' driver.
 #endif
 #if TARGET_NAME_IS_DemoTimer
-    #error Target 'DemoTimer' defines no handle for the 'Stepper' driver.
+    #error Target 'DemoTimer' needs to define a unique 'Stepper' driver.
 #endif
 #if TARGET_NAME_IS_DemoSPI
-    #error Target 'DemoSPI' defines no handle for the 'Stepper' driver.
+    #error Target 'DemoSPI' needs to define a unique 'Stepper' driver.
 #endif
 #if TARGET_NAME_IS_DemoTimekeeping
-    #error Target 'DemoTimekeeping' defines no handle for the 'Stepper' driver.
+    #error Target 'DemoTimekeeping' needs to define a unique 'Stepper' driver.
 #endif
 #if TARGET_NAME_IS_DemoSDMMC
-    #error Target 'DemoSDMMC' defines no handle for the 'Stepper' driver.
+    #error Target 'DemoSDMMC' needs to define a unique 'Stepper' driver.
 #endif
 #if TARGET_NAME_IS_SensorShield
-    #error Target 'SensorShield' defines no handle for the 'Stepper' driver.
+    #error Target 'SensorShield' needs to define a unique 'Stepper' driver.
 #endif
 #if TARGET_NAME_IS_MainFlightComputer
-    #error Target 'MainFlightComputer' defines no handle for the 'Stepper' driver.
+    #error Target 'MainFlightComputer' needs to define a unique 'Stepper' driver.
 #endif
 #if TARGET_NAME_IS_VehicleFlightComputer
-    enum StepperHandle : u32
+    enum StepperInstanceHandle : u32
     {
-        StepperHandle_axis_x,
-        StepperHandle_axis_y,
-        StepperHandle_axis_z,
+        StepperInstanceHandle_axis_x,
+        StepperInstanceHandle_axis_y,
+        StepperInstanceHandle_axis_z,
     };
-    static constexpr u32 StepperHandle_COUNT = 3;
-    #define TIMx_ TIM_
-    static const struct { typeof(0) STEPPER_NODE_ADDRESS; } STEPPER_TABLE[] =
+    static constexpr u32 StepperInstanceHandle_COUNT = 3;
+    static const struct { typeof(0) address; } STEPPER_INSTANCE_TABLE[] =
         {
-            [StepperHandle_axis_x] = { .STEPPER_NODE_ADDRESS = 0 },
-            [StepperHandle_axis_y] = { .STEPPER_NODE_ADDRESS = 1 },
-            [StepperHandle_axis_z] = { .STEPPER_NODE_ADDRESS = 2 },
+            { .address = 0 },
+            { .address = 1 },
+            { .address = 2 },
         };
 #endif
 #if TARGET_NAME_IS_MainCameraSystem
-    #error Target 'MainCameraSystem' defines no handle for the 'Stepper' driver.
+    #error Target 'MainCameraSystem' needs to define a unique 'Stepper' driver.
 #endif
 #if TARGET_NAME_IS_DemoOVCAM
-    #error Target 'DemoOVCAM' defines no handle for the 'Stepper' driver.
+    #error Target 'DemoOVCAM' needs to define a unique 'Stepper' driver.
 #endif
 #if TARGET_NAME_IS_TestESP32s
-    #error Target 'TestESP32s' defines no handle for the 'Stepper' driver.
+    #error Target 'TestESP32s' needs to define a unique 'Stepper' driver.
 #endif
-#undef _EXPAND_HANDLE
-#define _EXPAND_HANDLE\
-    if (!(0 <= handle && handle < StepperHandle_COUNT))\
-        panic;\
-    auto const driver = &_STEPPER_drivers[handle];\
-    auto const STEPPER_NODE_ADDRESS = STEPPER_TABLE[handle].STEPPER_NODE_ADDRESS;\
-

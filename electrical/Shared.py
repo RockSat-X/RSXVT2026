@@ -718,18 +718,12 @@ TARGETS = ( # @/`Defining Targets`.
             },
             {
                 'type'         : 'Stepper',
-                'handle'       : 'axis_x',
-                'node_address' : 0,
-            },
-            {
-                'type'         : 'Stepper',
-                'handle'       : 'axis_y',
-                'node_address' : 1,
-            },
-            {
-                'type'         : 'Stepper',
-                'handle'       : 'axis_z',
-                'node_address' : 2,
+                'uxart_handle' : 'stepper_uart',
+                'instances'    : (
+                    ('axis_x', 0),
+                    ('axis_y', 1),
+                    ('axis_z', 2),
+                ),
             },
         ),
 
