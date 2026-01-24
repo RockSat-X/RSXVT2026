@@ -142,7 +142,8 @@ struct StepperInstance
 
 struct StepperDriver
 {
-    struct StepperInstance instances[StepperInstanceHandle_COUNT];
+    struct StepperInstance     instances[StepperInstanceHandle_COUNT];
+    enum StepperInstanceHandle current_instance_handle;
 };
 
 static struct StepperDriver _STEPPER_driver = {0};
@@ -746,12 +747,10 @@ STEPPER_update_all(enum UXARTHandle uxart_handle, u32 current_timestamp_ms)
 
     // Update the motor that's currently in control of the UXART handle.
 
-    static enum StepperInstanceHandle current_handle = {0};
-
     enum StepperUpdateResult result =
         _STEPPER_update_single
         (
-            current_handle,
+            _STEPPER_driver.current_instance_handle,
             UXARTHandle_stepper_uart,
             current_timestamp_ms
         );
@@ -764,8 +763,8 @@ STEPPER_update_all(enum UXARTHandle uxart_handle, u32 current_timestamp_ms)
 
             // Move onto the next motor round-robin style.
 
-            current_handle += 1;
-            current_handle %= StepperInstanceHandle_COUNT;
+            _STEPPER_driver.current_instance_handle += 1;
+            _STEPPER_driver.current_instance_handle %= StepperInstanceHandle_COUNT;
 
         } break;
 
