@@ -29,9 +29,9 @@
     };
     static constexpr u32 StepperHandle_COUNT = 1;
     #define TIMx_ TIM_
-    static const struct { typeof(0) STEPPER_NODE_ADDRESS; typeof(UXARTHandle_stepper_uart) STEPPER_UXART_HANDLE; } STEPPER_TABLE[] =
+    static const struct { typeof(0) STEPPER_NODE_ADDRESS; } STEPPER_TABLE[] =
         {
-            [StepperHandle_axis_x] = { .STEPPER_NODE_ADDRESS = 0, .STEPPER_UXART_HANDLE = UXARTHandle_stepper_uart },
+            [StepperHandle_axis_x] = { .STEPPER_NODE_ADDRESS = 0 },
         };
 #endif
 #if TARGET_NAME_IS_MainCameraSystem
@@ -49,5 +49,4 @@
         panic;\
     auto const driver = &_STEPPER_drivers[handle];\
     auto const STEPPER_NODE_ADDRESS = STEPPER_TABLE[handle].STEPPER_NODE_ADDRESS;\
-    auto const STEPPER_UXART_HANDLE = STEPPER_TABLE[handle].STEPPER_UXART_HANDLE;\
 

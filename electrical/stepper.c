@@ -16,9 +16,8 @@ static_assert(IS_POWER_OF_TWO(STEPPER_RING_BUFFER_LENGTH));
         driver_type = 'Stepper',
         cmsis_name  = 'TIM',
         common_name = 'TIMx',
-        terms       = lambda type, handle, node_address, uxart_handle: (
-            ('STEPPER_NODE_ADDRESS', 'expression' , node_address                 ),
-            ('STEPPER_UXART_HANDLE', 'expression' , f'UXARTHandle_{uxart_handle}'),
+        terms       = lambda type, handle, node_address: (
+            ('STEPPER_NODE_ADDRESS', 'expression', node_address),
         ),
     )
 
@@ -224,7 +223,7 @@ STEPPER_push_velocity(enum StepperHandle handle, i32 velocity)
 
 
 static void
-_STEPPER_driver_interrupt(enum StepperHandle handle)
+_STEPPER_update(enum StepperHandle handle, enum UXARTHandle uxart_handle)
 {
 
     _EXPAND_HANDLE
@@ -457,7 +456,7 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
                 _UXART_tx_raw_nonreentrant
                 (
-                    STEPPER_UXART_HANDLE,
+                    uxart_handle,
                     (u8*) &request,
                     sizeof(request)
                 );
@@ -467,7 +466,7 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
                 // Flush the RX-FIFO.
                 // TODO Don't use char.
 
-                while (UXART_rx(STEPPER_UXART_HANDLE, &(char) {0}));
+                while (UXART_rx(uxart_handle, &(char) {0}));
 
 
 
@@ -512,7 +511,7 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
                 for (i32 i = 0; i < sizeof(response); i += 1)
                 {
-                    if (!UXART_rx(STEPPER_UXART_HANDLE, &((char*) &response)[i])) // TODO Not use char.
+                    if (!UXART_rx(uxart_handle, &((char*) &response)[i])) // TODO Not use char.
                         sorry
                 }
 
@@ -618,7 +617,7 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
                 _UXART_tx_raw_nonreentrant
                 (
-                    STEPPER_UXART_HANDLE,
+                    uxart_handle,
                     (u8*) &request,
                     sizeof(request)
                 );
@@ -642,17 +641,6 @@ _STEPPER_driver_interrupt(enum StepperHandle handle)
 
     }
 
-}
-
-
-
-INTERRUPT_TIM1_UP(void) // TODO Coupled.
-{
-    if (CMSIS_GET(TIM1, SR, UIF))
-    {
-        CMSIS_SET(TIM1, SR, UIF, false); // Acknowledge timer's update flag.
-        _STEPPER_driver_interrupt(StepperHandle_axis_x);
-    }
 }
 
 

@@ -718,7 +718,6 @@ TARGETS = ( # @/`Defining Targets`.
                 'type'         : 'Stepper',
                 'handle'       : 'axis_x',
                 'node_address' : 0,
-                'uxart_handle' : 'stepper_uart',
             },
         ),
 

@@ -6,6 +6,17 @@
 
 
 
+INTERRUPT_TIM1_UP(void)
+{
+    if (CMSIS_GET(TIM1, SR, UIF))
+    {
+        CMSIS_SET(TIM1, SR, UIF, false); // Acknowledge timer's update flag.
+        _STEPPER_update(StepperHandle_axis_x, UXARTHandle_stepper_uart);
+    }
+}
+
+
+
 extern noret void
 main(void)
 {
