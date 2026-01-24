@@ -16,7 +16,7 @@ INTERRUPT_TIM1_UP(void)
         static u32 current_timestamp_ms = 0;
         current_timestamp_ms += 1;
 
-        STEPPER_update_all(UXARTHandle_stepper_uart, current_timestamp_ms);
+        STEPPER_update_all(current_timestamp_ms);
 
     }
 }

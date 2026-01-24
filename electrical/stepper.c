@@ -43,6 +43,7 @@ static_assert(IS_POWER_OF_TWO(STEPPER_RING_BUFFER_LENGTH));
             ('address', address),
         ) for name, address in driver['instances']))
 
+        Meta.define('STEPPER_UXART_HANDLE'          , f'UXARTHandle_{driver['uxart_handle']}')
         Meta.define('STEPPER_MOTOR_ENABLE_GPIO_NAME', driver['enable_gpio'])
 
 */
@@ -258,7 +259,7 @@ static useret enum StepperUpdateResult : u32
     StepperUpdateResult_relinquished,
     StepperUpdateResult_busy,
 }
-_STEPPER_update_single(enum StepperInstanceHandle handle, enum UXARTHandle uxart_handle, u32 current_timestamp_ms)
+_STEPPER_update_single(enum StepperInstanceHandle handle, u32 current_timestamp_ms)
 {
 
     struct StepperInstance* instance = &_STEPPER_driver.instances[handle];
@@ -527,7 +528,7 @@ _STEPPER_update_single(enum StepperInstanceHandle handle, enum UXARTHandle uxart
 
                     _UXART_tx_raw_nonreentrant
                     (
-                        uxart_handle,
+                        STEPPER_UXART_HANDLE,
                         (u8*) &request,
                         sizeof(request)
                     );
@@ -537,7 +538,7 @@ _STEPPER_update_single(enum StepperInstanceHandle handle, enum UXARTHandle uxart
                     // Flush the RX-FIFO.
                     // TODO Don't use char.
 
-                    while (UXART_rx(uxart_handle, &(char) {0}));
+                    while (UXART_rx(STEPPER_UXART_HANDLE, &(char) {0}));
 
 
 
@@ -594,7 +595,7 @@ _STEPPER_update_single(enum StepperInstanceHandle handle, enum UXARTHandle uxart
 
                     for (i32 i = 0; i < sizeof(response); i += 1)
                     {
-                        if (!UXART_rx(uxart_handle, &((char*) &response)[i])) // TODO Not use char.
+                        if (!UXART_rx(STEPPER_UXART_HANDLE, &((char*) &response)[i])) // TODO Not use char.
                             sorry
                     }
 
@@ -711,7 +712,7 @@ _STEPPER_update_single(enum StepperInstanceHandle handle, enum UXARTHandle uxart
 
                     _UXART_tx_raw_nonreentrant
                     (
-                        uxart_handle,
+                        STEPPER_UXART_HANDLE,
                         (u8*) &request,
                         sizeof(request)
                     );
@@ -744,7 +745,7 @@ _STEPPER_update_single(enum StepperInstanceHandle handle, enum UXARTHandle uxart
 
 
 static void
-STEPPER_update_all(enum UXARTHandle uxart_handle, u32 current_timestamp_ms)
+STEPPER_update_all(u32 current_timestamp_ms)
 {
 
     // Update the motor that's currently in control of the UXART handle.
@@ -753,7 +754,6 @@ STEPPER_update_all(enum UXARTHandle uxart_handle, u32 current_timestamp_ms)
         _STEPPER_update_single
         (
             _STEPPER_driver.current_instance_handle,
-            UXARTHandle_stepper_uart,
             current_timestamp_ms
         );
 
