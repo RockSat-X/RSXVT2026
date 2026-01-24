@@ -959,8 +959,6 @@ INTERRUPT_STEPPER_TIMx_update_event(void)
 
         GPIO_SET(STEPPER_MOTOR_ENABLE_GPIO_NAME, all_motors_ready);
 
-        GPIO_SET(debug, result == StepperUpdateUARTTransferResult_busy);
-
     }
 }
 

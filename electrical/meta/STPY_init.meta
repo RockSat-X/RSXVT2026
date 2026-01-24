@@ -3027,10 +3027,9 @@
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__vehicle_interface_i2c_data D
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__vehicle_interface_i2c_data 7
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__vehicle_interface_i2c_data
-        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__debug GPIO_BSRR_BS
-        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__debug GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__debug D
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__debug 6
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__vehicle_interface_i2c_clock D
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__vehicle_interface_i2c_clock 6
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__vehicle_interface_i2c_clock
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__motor_enable GPIO_BSRR_BR
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__motor_enable GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__motor_enable A
@@ -3072,7 +3071,6 @@
         (
             GPIOD, ODR  ,
             OD0  , false,
-            OD6  , false,
             OD15 , true ,
         );
         CMSIS_SET
@@ -3135,6 +3133,7 @@
             GPIO_AFRL, GPIOD->AFR[0],
             AFSEL2   , 12           ,
             AFSEL5   , 5            ,
+            AFSEL6   , 4            ,
             AFSEL7   , 4            ,
         );
         CMSIS_WRITE
@@ -3188,7 +3187,7 @@
             MODE0 , 0b01 ,
             MODE2 , 0b10 ,
             MODE5 , 0b10 ,
-            MODE6 , 0b01 ,
+            MODE6 , 0b10 ,
             MODE7 , 0b10 ,
             MODE8 , 0b10 ,
             MODE9 , 0b10 ,
