@@ -156,6 +156,7 @@ struct StepperDriver
 {
     struct StepperInstance     instances[StepperInstanceHandle_COUNT];
     enum StepperInstanceHandle current_instance_handle;
+    u32                        current_timestamp_us;
 };
 
 static struct StepperDriver _STEPPER_driver = {0};
@@ -268,7 +269,7 @@ static useret enum StepperUpdateInstanceResult : u32
     StepperUpdateInstanceResult_relinquished,
     StepperUpdateInstanceResult_busy,
 }
-_STEPPER_update_instance(enum StepperInstanceHandle handle, u32 current_timestamp_us)
+_STEPPER_update_instance(enum StepperInstanceHandle handle)
 {
 
     struct StepperInstance* instance = &_STEPPER_driver.instances[handle];
@@ -339,7 +340,7 @@ _STEPPER_update_instance(enum StepperInstanceHandle handle, u32 current_timestam
                 case StepperInstanceState_delaying_enable:
                 {
 
-                    b32 delaying = (current_timestamp_us - instance->incremental_timestamp_us) < STEPPER_ENABLE_DELAY_US;
+                    b32 delaying = (_STEPPER_driver.current_timestamp_us - instance->incremental_timestamp_us) < STEPPER_ENABLE_DELAY_US;
 
                     if (delaying)
                     {
@@ -348,7 +349,7 @@ _STEPPER_update_instance(enum StepperInstanceHandle handle, u32 current_timestam
                     else
                     {
                         instance->state                    = StepperInstanceState_working;
-                        instance->incremental_timestamp_us = current_timestamp_us;
+                        instance->incremental_timestamp_us = _STEPPER_driver.current_timestamp_us;
                     }
 
                 } break;
@@ -370,7 +371,7 @@ _STEPPER_update_instance(enum StepperInstanceHandle handle, u32 current_timestam
                 case StepperInstanceState_working:
                 {
 
-                    b32 should_update = (current_timestamp_us - instance->incremental_timestamp_us) >= STEPPER_VELOCITY_UPDATE_US;
+                    b32 should_update = (_STEPPER_driver.current_timestamp_us - instance->incremental_timestamp_us) >= STEPPER_VELOCITY_UPDATE_US;
 
                     if (should_update)
                     {
@@ -456,7 +457,7 @@ _STEPPER_update_instance(enum StepperInstanceHandle handle, u32 current_timestam
                         else
                         {
                             instance->state                    = StepperInstanceState_delaying_enable;
-                            instance->incremental_timestamp_us = current_timestamp_us;
+                            instance->incremental_timestamp_us = _STEPPER_driver.current_timestamp_us;
                         }
 
                     } break;
@@ -495,7 +496,7 @@ _STEPPER_update_instance(enum StepperInstanceHandle handle, u32 current_timestam
                 if (instance->uart_transfer.register_address & (1 << 7))
                     panic;
 
-                if (current_timestamp_us - instance->uart_previous_transfer_timestamp_us < STEPPER_UART_TIME_BUFFER_US)
+                if (_STEPPER_driver.current_timestamp_us - instance->uart_previous_transfer_timestamp_us < STEPPER_UART_TIME_BUFFER_US)
                 {
                     return StepperUpdateInstanceResult_busy; // @/`Stepper UART Time Buffer Window`.
                 }
@@ -558,7 +559,7 @@ _STEPPER_update_instance(enum StepperInstanceHandle handle, u32 current_timestam
                             ? StepperInstanceUARTTransferState_write_verification_read_requested
                             : StepperInstanceUARTTransferState_read_requested;
 
-                    instance->uart_previous_transfer_timestamp_us = current_timestamp_us;
+                    instance->uart_previous_transfer_timestamp_us = _STEPPER_driver.current_timestamp_us;
 
                     return StepperUpdateInstanceResult_busy;
 
@@ -580,7 +581,7 @@ _STEPPER_update_instance(enum StepperInstanceHandle handle, u32 current_timestam
                 if (instance->uart_transfer.register_address & (1 << 7))
                     panic;
 
-                if (current_timestamp_us - instance->uart_previous_transfer_timestamp_us < STEPPER_UART_TIME_BUFFER_US)
+                if (_STEPPER_driver.current_timestamp_us - instance->uart_previous_transfer_timestamp_us < STEPPER_UART_TIME_BUFFER_US)
                 {
                     return StepperUpdateInstanceResult_busy; // @/`Stepper UART Time Buffer Window`.
                 }
@@ -680,7 +681,7 @@ _STEPPER_update_instance(enum StepperInstanceHandle handle, u32 current_timestam
                     panic;
 
 
-                if (current_timestamp_us - instance->uart_previous_transfer_timestamp_us < STEPPER_UART_TIME_BUFFER_US)
+                if (_STEPPER_driver.current_timestamp_us - instance->uart_previous_transfer_timestamp_us < STEPPER_UART_TIME_BUFFER_US)
                 {
                     return StepperUpdateInstanceResult_busy; // @/`Stepper UART Time Buffer Window`.
                 }
@@ -734,7 +735,7 @@ _STEPPER_update_instance(enum StepperInstanceHandle handle, u32 current_timestam
 
                     instance->uart_transfer.state = StepperInstanceUARTTransferState_write_verification_read_scheduled;
 
-                    instance->uart_previous_transfer_timestamp_us = current_timestamp_us;
+                    instance->uart_previous_transfer_timestamp_us = _STEPPER_driver.current_timestamp_us;
 
                     return StepperUpdateInstanceResult_busy;
 
@@ -754,17 +755,12 @@ _STEPPER_update_instance(enum StepperInstanceHandle handle, u32 current_timestam
 
 
 static void
-STEPPER_update_all(u32 current_timestamp_us)
+STEPPER_update_all(void)
 {
 
     // Update the motor that's currently in control of the UXART handle.
 
-    enum StepperUpdateInstanceResult result =
-        _STEPPER_update_instance
-        (
-            _STEPPER_driver.current_instance_handle,
-            current_timestamp_us
-        );
+    enum StepperUpdateInstanceResult result = _STEPPER_update_instance(_STEPPER_driver.current_instance_handle);
 
     switch (result)
     {
@@ -868,10 +864,9 @@ INTERRUPT_STEPPER_TIMx_update_event(void)
 
         CMSIS_SET(STEPPER_TIMx, SR, UIF, false); // Acknowledge timer's update flag.
 
-        static u32 current_timestamp_us = 0;
-        current_timestamp_us += STEPPER_UPDATE_EVENT_PERIOD_US;
+        _STEPPER_driver.current_timestamp_us += STEPPER_UPDATE_EVENT_PERIOD_US;
 
-        STEPPER_update_all(current_timestamp_us);
+        STEPPER_update_all();
 
     }
 }
