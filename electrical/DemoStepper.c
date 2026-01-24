@@ -27,7 +27,7 @@ main(void)
     // The stepper driver relies on other timer
     // and UART initializations to be done first.
 
-    STEPPER_partial_init(StepperHandle_primary);
+    STEPPER_partial_reinit();
 
 
 
@@ -38,60 +38,55 @@ main(void)
     for (;;)
     {
 
-        #include "DemoStepper_STEPS.meta"
+        #include "DemoStepper_VELOCITIES.meta"
         /* #meta
 
             import math
 
-            STEPS_PER_REVOLUTION = 1600
+            with Meta.enter(f'static const i32 VELOCITIES[] ='):
 
-            with Meta.enter(f'static const i8 STEPS[] ='):
-
-
-
-                # Sequence of complicated movements...
-
-                pattern = [
-                    round(math.sin(math.sin(i / 500 * 2 * math.pi) * i / 125 * 2 * math.pi * 16) * 127)
-                    for i in range(500)
-                ]
-
-                for step in pattern:
+                for i in range(500):
                     Meta.line(f'''
-                        {step},
-                    ''')
-
-
-
-                # Home back to original position to see if any steps were lost.
-
-                for i in range(-sum(pattern) % STEPS_PER_REVOLUTION // 100):
-                    Meta.line(f'''
-                        100,
-                    ''')
-
-                for i in range(-sum(pattern) % STEPS_PER_REVOLUTION % 100):
-                    Meta.line(f'''
-                        1,
-                    ''')
-
-
-
-                # Pause...
-
-                for i in range(100):
-                    Meta.line(f'''
-                        0,
+                        {round(math.sin(math.sin(i / 500 * 2 * math.pi) * i / 125 * 2 * math.pi * 16) * 10_000)},
                     ''')
 
         */
 
         static i32 index = 0;
 
-        while (!STEPPER_push_delta(StepperHandle_primary, STEPS[index]));
+        while (true)
+        {
+
+            // If there are multiple motors involved,
+            // a new step velocity must be pushed for
+            // all of them at the same time.
+            // This demo however only has one motor involved,
+            // that is the primary motor.
+
+            b32 was_pushed =
+                STEPPER_push_velocities
+                (
+                    &(i32[])
+                    {
+                        [StepperInstanceHandle_primary] = VELOCITIES[index],
+                    }
+                );
+
+            if (was_pushed)
+            {
+                break; // The step velocity was sucessfully queued up.
+            }
+            else
+            {
+                // The stepper driver's ring-buffer is full;
+                // wait until there's space to queue the next
+                // step velocity.
+            }
+
+        }
 
         index += 1;
-        index %= countof(STEPS);
+        index %= countof(VELOCITIES);
 
     }
 

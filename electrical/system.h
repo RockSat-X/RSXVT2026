@@ -748,21 +748,23 @@ halt_(b32 panicking) // @/`Halting`.
             # All of the interrupt routines will be redirected
             # to a common procedure of `_XYZ_driver_interrupt`.
 
-            Meta.line(f'''
-                static void
-                _{driver_type.upper()}_driver_interrupt(enum {driver_type}Handle handle);
-            ''')
+            if interrupt_routines:
 
-            for driver_handle, driver_interrupt_names in interrupt_routines.items():
+                Meta.line(f'''
+                    static void
+                    _{driver_type.upper()}_driver_interrupt(enum {driver_type}Handle handle);
+                ''')
 
-                for driver_interrupt_name in driver_interrupt_names:
+                for driver_handle, driver_interrupt_names in interrupt_routines.items():
 
-                    Meta.line(f'''
-                        INTERRUPT_{driver_interrupt_name}(void)
-                        {{
-                            _{driver_type.upper()}_driver_interrupt({driver_type}Handle_{driver_handle});
-                        }}
-                    ''')
+                    for driver_interrupt_name in driver_interrupt_names:
+
+                        Meta.line(f'''
+                            INTERRUPT_{driver_interrupt_name}(void)
+                            {{
+                                _{driver_type.upper()}_driver_interrupt({driver_type}Handle_{driver_handle});
+                            }}
+                        ''')
 
 
 
