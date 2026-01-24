@@ -1,4 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
+// TODO make driver_disable be active-low instead.
 
 
 
@@ -90,7 +91,7 @@ enum StepperDriverState : u32
     StepperDriverState_setting_uart_write_sequence_number,
     StepperDriverState_doing_initialization_sequence,
     StepperDriverState_enable_delay,
-    StepperDriverState_inited,
+    StepperDriverState_working,
 };
 
 
@@ -207,7 +208,7 @@ STEPPER_push_velocity(enum StepperHandle handle, i32 velocity)
     _EXPAND_HANDLE
 
     b32 can_be_pushed =
-        driver->state == StepperDriverState_inited &&
+        driver->state == StepperDriverState_working &&
         (driver->writer - driver->reader < countof(driver->velocities));
 
     if (can_be_pushed)
@@ -222,49 +223,25 @@ STEPPER_push_velocity(enum StepperHandle handle, i32 velocity)
 
 
 
-static void
+static useret enum StepperUpdateResult : u32
+{
+    StepperUpdateResult_relinquished,
+    StepperUpdateResult_busy,
+}
 _STEPPER_update(enum StepperHandle handle, enum UXARTHandle uxart_handle)
 {
 
     _EXPAND_HANDLE
 
-
-
-    // Determine the amount of steps we'll
-    // need to take now and the direction.
-
-    i32 velocity = {0};
-
-    if (driver->reader == driver->writer)
+    while (true)
     {
-        // Underflow condition.
-        // The step ring-buffer was exhausted and
-        // no steps will be taken during this period.
-        // TODO Indicate this situation somehow.
-        velocity = 0;
-    }
-    else
-    {
-        // Pop from the ring-buffer the next
-        // signed amount of steps to take.
-        i32 read_index  = driver->reader % countof(driver->velocities);
-        velocity        = driver->velocities[read_index];
-        driver->reader += 1;
-    }
-
-
-
-    // Handle UART transfers. @/`Why Stepper UART is tied to step update timer`.
-
-    for (b32 yield = false; !yield;)
-    {
-
         switch (driver->uart_transfer.state)
         {
 
-
-
+            ////////////////////////////////////////////////////////////////////////////////
+            //
             // The next UART transfer can be scheduled.
+            //
 
             case StepperDriverUARTTransferState_standby: switch (driver->state)
             {
@@ -278,23 +255,24 @@ _STEPPER_update(enum StepperHandle handle, enum UXARTHandle uxart_handle)
 
                 case StepperDriverState_setting_uart_write_sequence_number:
                 {
+
+                    GPIO_ACTIVE(driver_disable); // Ensure the motor can't draw current.
+
                     driver->uart_transfer =
                         (struct StepperDriverUARTTransfer)
                         {
                             .state            = StepperDriverUARTTransferState_read_scheduled,
                             .register_address = TMC2209_IFCNT_ADDRESS,
                         };
+
                 } break;
 
 
 
-                // We do a series of register
-                // writes to configure the TMC2209.
+                // We then do a series of register writes to configure the TMC2209.
 
                 case StepperDriverState_doing_initialization_sequence:
                 {
-
-                    GPIO_ACTIVE(driver_disable); // Ensure the motor can't draw current.
 
                     driver->uart_transfer =
                         (struct StepperDriverUARTTransfer)
@@ -308,7 +286,17 @@ _STEPPER_update(enum StepperHandle handle, enum UXARTHandle uxart_handle)
 
 
 
-                // @/`Stepper Enable Delay`.
+                // @/`Stepper Enable Delay`:
+                //
+                // It seems like when the TMC2209 is first
+                // initialized (especially after a power-cycle)
+                // the motor will induce a large current draw
+                // after it is enabled. It quickly settles down,
+                // but it's probably not nice to do to the batteries.
+                // It seems like by delaying the enabling of the motor
+                // that the current spike can be avoided. I can tell
+                // this works by the fact that the power supply not
+                // going into current-limiting mode after the power-cycle.
 
                 case StepperDriverState_enable_delay:
                 {
@@ -317,22 +305,39 @@ _STEPPER_update(enum StepperHandle handle, enum UXARTHandle uxart_handle)
 
                     if (driver->enable_delay_counter < STEPPER_ENABLE_DELAY_US / 25'000) // TODO Coupled.
                     {
-                        yield = true;
+                        return StepperUpdateResult_relinquished;
                     }
                     else
                     {
                         GPIO_INACTIVE(driver_disable); // The motor can draw current now.
-                        driver->state = StepperDriverState_inited;
+                        driver->state = StepperDriverState_working;
                     }
 
                 } break;
 
 
 
-                // TODO.
+                // The TMC2209 is all ready; let's update the step velocity now.
 
-                case StepperDriverState_inited:
+                case StepperDriverState_working:
                 {
+
+                    i32 velocity = {0};
+
+                    if (driver->reader == driver->writer)
+                    {
+                        // Underflow condition.
+                        // TODO Indicate this situation somehow?
+                        // TODO Perhaps keep the same velocity instead.
+                        velocity = 0;
+                    }
+                    else
+                    {
+                        i32 read_index  = driver->reader % countof(driver->velocities);
+                        velocity        = driver->velocities[read_index];
+                        driver->reader += 1;
+                    }
+
                     driver->uart_transfer =
                         (struct StepperDriverUARTTransfer)
                         {
@@ -340,6 +345,7 @@ _STEPPER_update(enum StepperHandle handle, enum UXARTHandle uxart_handle)
                             .register_address = 0x22, // TODO.
                             .data             = velocity,
                         };
+
                 } break;
 
 
@@ -350,7 +356,10 @@ _STEPPER_update(enum StepperHandle handle, enum UXARTHandle uxart_handle)
 
 
 
+            ////////////////////////////////////////////////////////////////////////////////
+            //
             // We just finished a UART transfer.
+            //
 
             case StepperDriverUARTTransferState_done:
             {
@@ -392,7 +401,9 @@ _STEPPER_update(enum StepperHandle handle, enum UXARTHandle uxart_handle)
 
 
 
-                    case StepperDriverState_inited:
+                    // We're done updating the motor's step velocity.
+
+                    case StepperDriverState_working:
                     {
                         // Don't care.
                     } break;
@@ -410,7 +421,10 @@ _STEPPER_update(enum StepperHandle handle, enum UXARTHandle uxart_handle)
 
 
 
+            ////////////////////////////////////////////////////////////////////////////////
+            //
             // We send a read request packet to the TMC2209.
+            //
 
             case StepperDriverUARTTransferState_read_scheduled:
             case StepperDriverUARTTransferState_write_verification_read_scheduled:
@@ -477,13 +491,16 @@ _STEPPER_update(enum StepperHandle handle, enum UXARTHandle uxart_handle)
                         ? StepperDriverUARTTransferState_write_verification_read_requested
                         : StepperDriverUARTTransferState_read_requested;
 
-                yield = true;
+                return StepperUpdateResult_busy;
 
             } break;
 
 
 
+            ////////////////////////////////////////////////////////////////////////////////
+            //
             // See if the TMC2209 replied back to the read request.
+            //
 
             case StepperDriverUARTTransferState_read_requested:
             case StepperDriverUARTTransferState_write_verification_read_requested:
@@ -573,7 +590,10 @@ _STEPPER_update(enum StepperHandle handle, enum UXARTHandle uxart_handle)
 
 
 
+            ////////////////////////////////////////////////////////////////////////////////
+            //
             // We send a write request packet to the TMC2209.
+            //
 
             case StepperDriverUARTTransferState_write_scheduled:
             {
@@ -629,7 +649,8 @@ _STEPPER_update(enum StepperHandle handle, enum UXARTHandle uxart_handle)
                 // to ensure the write request went through.
 
                 driver->uart_transfer.state = StepperDriverUARTTransferState_write_verification_read_scheduled;
-                yield                       = true;
+
+                return StepperUpdateResult_busy;
 
             } break;
 
@@ -638,7 +659,6 @@ _STEPPER_update(enum StepperHandle handle, enum UXARTHandle uxart_handle)
             default: panic;
 
         }
-
     }
 
 }
@@ -649,17 +669,6 @@ _STEPPER_update(enum StepperHandle handle, enum UXARTHandle uxart_handle)
 
 
 
-// @/`Stepper Enable Delay`: TODO.
-//
-// It seems like when the TMC2209 is first
-// initialized (especially after a power-cycle)
-// the motor will induce a large current draw
-// after it is enabled. It quickly settles down,
-// but it's probably not nice to do to the batteries.
-// It seems like by delaying the enabling of the motor
-// that the current spike can be avoided. I can tell
-// this works by the fact that the power supply not
-// going into current-limiting mode after the power-cycle.
 
 
 
