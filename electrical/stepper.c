@@ -2,10 +2,10 @@
 
 
 
-#define STEPPER_ENABLE_DELAY_MS     500 // @/`Stepper Enable Delay`.
-#define STEPPER_VELOCITY_UPDATE_MS   25 // @/`Stepper Updating Velocity`.
-#define STEPPER_UART_TIME_BUFFER_MS   2 // @/`Stepper UART Time Buffer Window`.
-#define STEPPER_RING_BUFFER_LENGTH   32 // @/`Stepper Ring-Buffer Length`.
+#define STEPPER_ENABLE_DELAY_US     500'000 // @/`Stepper Enable Delay`.
+#define STEPPER_VELOCITY_UPDATE_US   25'000 // @/`Stepper Updating Velocity`.
+#define STEPPER_UART_TIME_BUFFER_US   2'000 // @/`Stepper UART Time Buffer Window`.
+#define STEPPER_RING_BUFFER_LENGTH       32 // @/`Stepper Ring-Buffer Length`.
 
 static_assert(IS_POWER_OF_TWO(STEPPER_RING_BUFFER_LENGTH));
 
@@ -132,7 +132,7 @@ struct StepperInstance
 {
 
     volatile enum StepperInstanceState state;
-    u32                                incremental_timestamp_ms;
+    u32                                incremental_timestamp_us;
     i32                                initialization_sequence_index;
     i32                                velocities[STEPPER_RING_BUFFER_LENGTH];
     volatile u32                       velocity_reader;
@@ -145,7 +145,7 @@ struct StepperInstance
         u32                                 data;
     }   uart_transfer;
     u8  uart_write_sequence_number;
-    u32 uart_previous_transfer_timestamp_ms;
+    u32 uart_previous_transfer_timestamp_us;
 
 };
 
@@ -267,7 +267,7 @@ static useret enum StepperUpdateInstanceResult : u32
     StepperUpdateInstanceResult_relinquished,
     StepperUpdateInstanceResult_busy,
 }
-_STEPPER_update_instance(enum StepperInstanceHandle handle, u32 current_timestamp_ms)
+_STEPPER_update_instance(enum StepperInstanceHandle handle, u32 current_timestamp_us)
 {
 
     struct StepperInstance* instance = &_STEPPER_driver.instances[handle];
@@ -338,7 +338,7 @@ _STEPPER_update_instance(enum StepperInstanceHandle handle, u32 current_timestam
                 case StepperInstanceState_delaying_enable:
                 {
 
-                    b32 delaying = (current_timestamp_ms - instance->incremental_timestamp_ms) < STEPPER_ENABLE_DELAY_MS;
+                    b32 delaying = (current_timestamp_us - instance->incremental_timestamp_us) < STEPPER_ENABLE_DELAY_US;
 
                     if (delaying)
                     {
@@ -347,7 +347,7 @@ _STEPPER_update_instance(enum StepperInstanceHandle handle, u32 current_timestam
                     else
                     {
                         instance->state                    = StepperInstanceState_working;
-                        instance->incremental_timestamp_ms = current_timestamp_ms;
+                        instance->incremental_timestamp_us = current_timestamp_us;
                     }
 
                 } break;
@@ -369,12 +369,12 @@ _STEPPER_update_instance(enum StepperInstanceHandle handle, u32 current_timestam
                 case StepperInstanceState_working:
                 {
 
-                    b32 should_update = (current_timestamp_ms - instance->incremental_timestamp_ms) >= STEPPER_VELOCITY_UPDATE_MS;
+                    b32 should_update = (current_timestamp_us - instance->incremental_timestamp_us) >= STEPPER_VELOCITY_UPDATE_US;
 
                     if (should_update)
                     {
 
-                        instance->incremental_timestamp_ms += STEPPER_VELOCITY_UPDATE_MS;
+                        instance->incremental_timestamp_us += STEPPER_VELOCITY_UPDATE_US;
 
                         i32 velocity = {0};
 
@@ -455,7 +455,7 @@ _STEPPER_update_instance(enum StepperInstanceHandle handle, u32 current_timestam
                         else
                         {
                             instance->state                    = StepperInstanceState_delaying_enable;
-                            instance->incremental_timestamp_ms = current_timestamp_ms;
+                            instance->incremental_timestamp_us = current_timestamp_us;
                         }
 
                     } break;
@@ -494,7 +494,7 @@ _STEPPER_update_instance(enum StepperInstanceHandle handle, u32 current_timestam
                 if (instance->uart_transfer.register_address & (1 << 7))
                     panic;
 
-                if (current_timestamp_ms - instance->uart_previous_transfer_timestamp_ms < STEPPER_UART_TIME_BUFFER_MS)
+                if (current_timestamp_us - instance->uart_previous_transfer_timestamp_us < STEPPER_UART_TIME_BUFFER_US)
                 {
                     return StepperUpdateInstanceResult_busy; // @/`Stepper UART Time Buffer Window`.
                 }
@@ -557,7 +557,7 @@ _STEPPER_update_instance(enum StepperInstanceHandle handle, u32 current_timestam
                             ? StepperInstanceUARTTransferState_write_verification_read_requested
                             : StepperInstanceUARTTransferState_read_requested;
 
-                    instance->uart_previous_transfer_timestamp_ms = current_timestamp_ms;
+                    instance->uart_previous_transfer_timestamp_us = current_timestamp_us;
 
                     return StepperUpdateInstanceResult_busy;
 
@@ -579,7 +579,7 @@ _STEPPER_update_instance(enum StepperInstanceHandle handle, u32 current_timestam
                 if (instance->uart_transfer.register_address & (1 << 7))
                     panic;
 
-                if (current_timestamp_ms - instance->uart_previous_transfer_timestamp_ms < STEPPER_UART_TIME_BUFFER_MS)
+                if (current_timestamp_us - instance->uart_previous_transfer_timestamp_us < STEPPER_UART_TIME_BUFFER_US)
                 {
                     return StepperUpdateInstanceResult_busy; // @/`Stepper UART Time Buffer Window`.
                 }
@@ -679,7 +679,7 @@ _STEPPER_update_instance(enum StepperInstanceHandle handle, u32 current_timestam
                     panic;
 
 
-                if (current_timestamp_ms - instance->uart_previous_transfer_timestamp_ms < STEPPER_UART_TIME_BUFFER_MS)
+                if (current_timestamp_us - instance->uart_previous_transfer_timestamp_us < STEPPER_UART_TIME_BUFFER_US)
                 {
                     return StepperUpdateInstanceResult_busy; // @/`Stepper UART Time Buffer Window`.
                 }
@@ -733,7 +733,7 @@ _STEPPER_update_instance(enum StepperInstanceHandle handle, u32 current_timestam
 
                     instance->uart_transfer.state = StepperInstanceUARTTransferState_write_verification_read_scheduled;
 
-                    instance->uart_previous_transfer_timestamp_ms = current_timestamp_ms;
+                    instance->uart_previous_transfer_timestamp_us = current_timestamp_us;
 
                     return StepperUpdateInstanceResult_busy;
 
@@ -753,7 +753,7 @@ _STEPPER_update_instance(enum StepperInstanceHandle handle, u32 current_timestam
 
 
 static void
-STEPPER_update_all(u32 current_timestamp_ms)
+STEPPER_update_all(u32 current_timestamp_us)
 {
 
     // Update the motor that's currently in control of the UXART handle.
@@ -762,7 +762,7 @@ STEPPER_update_all(u32 current_timestamp_ms)
         _STEPPER_update_instance
         (
             _STEPPER_driver.current_instance_handle,
-            current_timestamp_ms
+            current_timestamp_us
         );
 
     switch (result)
@@ -867,10 +867,10 @@ INTERRUPT_STEPPER_TIMx_update_event(void)
 
         CMSIS_SET(STEPPER_TIMx, SR, UIF, false); // Acknowledge timer's update flag.
 
-        static u32 current_timestamp_ms = 0;
-        current_timestamp_ms += 1;
+        static u32 current_timestamp_us = 0;
+        current_timestamp_us += 1'000;
 
-        STEPPER_update_all(current_timestamp_ms);
+        STEPPER_update_all(current_timestamp_us);
 
     }
 }
