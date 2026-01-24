@@ -716,9 +716,6 @@ TARGETS = ( # @/`Defining Targets`.
             },
             {
                 'type'         : 'Stepper',
-                'peripheral'   : 'TIM1',
-                'interrupt'    : 'TIM1_UP',
-                'channel'      : 1,
                 'handle'       : 'axis_x',
                 'node_address' : 0,
                 'uxart_handle' : 'stepper_uart',
