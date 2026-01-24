@@ -33,8 +33,6 @@
         {
             [StepperHandle_axis_x] = { .STEPPER_NODE_ADDRESS = 0, .STEPPER_UXART_HANDLE = UXARTHandle_stepper_uart },
         };
-    static void
-    _STEPPER_driver_interrupt(enum StepperHandle handle);
 #endif
 #if TARGET_NAME_IS_MainCameraSystem
     #error Target 'MainCameraSystem' defines no handle for the 'Stepper' driver.
