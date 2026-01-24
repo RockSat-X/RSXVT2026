@@ -230,7 +230,7 @@ static useret enum StepperUpdateResult : u32
     StepperUpdateResult_relinquished,
     StepperUpdateResult_busy,
 }
-_STEPPER_update(enum StepperHandle handle, enum UXARTHandle uxart_handle, u32 current_timestamp_ms)
+_STEPPER_update_single(enum StepperHandle handle, enum UXARTHandle uxart_handle, u32 current_timestamp_ms)
 {
 
     _EXPAND_HANDLE
@@ -710,6 +710,68 @@ _STEPPER_update(enum StepperHandle handle, enum UXARTHandle uxart_handle, u32 cu
 
         }
     }
+
+}
+
+
+
+static void
+STEPPER_update_all(enum UXARTHandle uxart_handle, u32 current_timestamp_ms)
+{
+
+    // Update the motor that's currently in control of the UXART handle.
+
+    static enum StepperHandle current_handle = {0};
+
+    enum StepperUpdateResult result =
+        _STEPPER_update_single
+        (
+            current_handle,
+            UXARTHandle_stepper_uart,
+            current_timestamp_ms
+        );
+
+    switch (result)
+    {
+
+        case StepperUpdateResult_relinquished:
+        {
+
+            // Move onto the next motor round-robin style.
+
+            current_handle += 1;
+            current_handle %= StepperHandle_COUNT;
+
+        } break;
+
+        case StepperUpdateResult_busy:
+        {
+            // TMC2209 is currently in control of the UXART handle.
+        } break;
+
+        default: panic;
+
+    }
+
+
+
+    // We'll only enable the motors once all
+    // of the TMC2209s are done initializing.
+
+    b32 all_motors_ready = true;
+
+    for (enum StepperHandle handle = {0}; handle < StepperHandle_COUNT; handle += 1)
+    {
+        if (_STEPPER_drivers[handle].state != StepperDriverState_working)
+        {
+            all_motors_ready = false;
+            break;
+        }
+    }
+
+    GPIO_SET(motor_enable, all_motors_ready); // TODO Coupled.
+
+    GPIO_SET(debug, result == StepperUpdateResult_busy);
 
 }
 

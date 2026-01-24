@@ -13,48 +13,10 @@ INTERRUPT_TIM1_UP(void)
 
         CMSIS_SET(TIM1, SR, UIF, false); // Acknowledge timer's update flag.
 
-        static u32 timestamp_ms = 0;
-        timestamp_ms += 1;
+        static u32 current_timestamp_ms = 0;
+        current_timestamp_ms += 1;
 
-
-
-        static enum StepperHandle current_handle = {0};
-
-        enum StepperUpdateResult result =
-            _STEPPER_update
-            (
-                current_handle,
-                UXARTHandle_stepper_uart,
-                timestamp_ms
-            );
-
-        switch (result)
-        {
-
-            case StepperUpdateResult_relinquished:
-            {
-                current_handle += 1;
-                current_handle %= StepperHandle_COUNT;
-            } break;
-
-            case StepperUpdateResult_busy:
-            {
-            } break;
-
-            default: panic;
-
-        }
-
-
-
-        GPIO_SET(debug, result == StepperUpdateResult_busy);
-        GPIO_SET
-        (
-            motor_enable,
-            _STEPPER_drivers[StepperHandle_axis_x].state == StepperDriverState_working &&
-            _STEPPER_drivers[StepperHandle_axis_y].state == StepperDriverState_working &&
-            _STEPPER_drivers[StepperHandle_axis_z].state == StepperDriverState_working
-        );
+        STEPPER_update_all(UXARTHandle_stepper_uart, current_timestamp_ms);
 
     }
 }
