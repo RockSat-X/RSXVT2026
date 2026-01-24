@@ -2782,12 +2782,18 @@
 #if TARGET_NAME_IS_VehicleFlightComputer
     enum NVICInterrupt : u32
     {
-        NVICInterrupt_USART2 = USART2_IRQn,
+        NVICInterrupt_USART2  = USART2_IRQn,
+        NVICInterrupt_SDMMC1  = SDMMC1_IRQn,
+        NVICInterrupt_USART1  = USART1_IRQn,
+        NVICInterrupt_TIM1_UP = TIM1_UP_IRQn,
     };
-    static constexpr u32 NVICInterrupt_COUNT = 1;
+    static constexpr u32 NVICInterrupt_COUNT = 4;
     extern void INTERRUPT_BusFault(void);
     extern void INTERRUPT_Default(void);
     extern void INTERRUPT_Reset(void);
+    extern void INTERRUPT_SDMMC1(void);
+    extern void INTERRUPT_TIM1_UP(void);
+    extern void INTERRUPT_USART1(void);
     extern void INTERRUPT_USART2(void);
     extern void INTERRUPT_UsageFault(void);
     void (* const INTERRUPT_VECTOR_TABLE[])(void) __attribute__((used, section(".INTERRUPT_VECTOR_TABLE"))) =
@@ -2850,7 +2856,7 @@
             INTERRUPT_Default            , // [ 39] FDCAN1_IT0
             INTERRUPT_Default            , // [ 40] FDCAN1_IT1
             INTERRUPT_Default            , // [ 41] TIM1_BRK
-            INTERRUPT_Default            , // [ 42] TIM1_UP
+            INTERRUPT_TIM1_UP            , // [ 42] TIM1_UP
             INTERRUPT_Default            , // [ 43] TIM1_TRG_COM
             INTERRUPT_Default            , // [ 44] TIM1_CC
             INTERRUPT_Default            , // [ 45] TIM2
@@ -2866,7 +2872,7 @@
             INTERRUPT_Default            , // [ 55] SPI1
             INTERRUPT_Default            , // [ 56] SPI2
             INTERRUPT_Default            , // [ 57] SPI3
-            INTERRUPT_Default            , // [ 58] USART1
+            INTERRUPT_USART1             , // [ 58] USART1
             INTERRUPT_USART2             , // [ 59] USART2
             INTERRUPT_Default            , // [ 60] USART3
             INTERRUPT_Default            , // [ 61] UART4
@@ -2887,7 +2893,7 @@
             INTERRUPT_Default            , // [ 76] UCPD1
             INTERRUPT_Default            , // [ 77] FMC
             INTERRUPT_Default            , // [ 78] OCTOSPI1
-            INTERRUPT_Default            , // [ 79] SDMMC1
+            INTERRUPT_SDMMC1             , // [ 79] SDMMC1
             INTERRUPT_Default            , // [ 80] I2C3_EV
             INTERRUPT_Default            , // [ 81] I2C3_ER
             INTERRUPT_Default            , // [ 82] SPI4
@@ -2945,6 +2951,9 @@
     #define INTERRUPT_BusFault(...) extern void INTERRUPT_BusFault(__VA_ARGS__)
     #define INTERRUPT_Default(...) extern void INTERRUPT_Default(__VA_ARGS__)
     #define INTERRUPT_Reset(...) extern void INTERRUPT_Reset(__VA_ARGS__)
+    #define INTERRUPT_SDMMC1(...) extern void INTERRUPT_SDMMC1(__VA_ARGS__)
+    #define INTERRUPT_TIM1_UP(...) extern void INTERRUPT_TIM1_UP(__VA_ARGS__)
+    #define INTERRUPT_USART1(...) extern void INTERRUPT_USART1(__VA_ARGS__)
     #define INTERRUPT_USART2(...) extern void INTERRUPT_USART2(__VA_ARGS__)
     #define INTERRUPT_UsageFault(...) extern void INTERRUPT_UsageFault(__VA_ARGS__)
     extern void
@@ -3051,9 +3060,6 @@
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__motor_uart_tx B
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__motor_uart_tx 14
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__motor_uart_tx
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__motor_uart_rx B
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__motor_uart_rx 15
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__motor_uart_rx
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__sensor_i2c_data B
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__sensor_i2c_data 7
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__sensor_i2c_data
@@ -3066,10 +3072,10 @@
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__vehicle_interface_i2c_clock D
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__vehicle_interface_i2c_clock 6
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__vehicle_interface_i2c_clock
-        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__motor_disable GPIO_BSRR_BS
-        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__motor_disable GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__motor_disable A
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__motor_disable 4
+        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__driver_disable GPIO_BSRR_BS
+        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__driver_disable GPIO_BSRR_BR
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__driver_disable A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__driver_disable 4
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__motor_step_x E
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__motor_step_x 9
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__motor_step_x
@@ -3079,10 +3085,10 @@
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__motor_step_z E
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__motor_step_z 5
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__motor_step_z
-        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__motor_direction_x GPIO_BSRR_BS
-        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__motor_direction_x GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__motor_direction_x A
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__motor_direction_x 9
+        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__driver_direction GPIO_BSRR_BS
+        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__driver_direction GPIO_BSRR_BR
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__driver_direction A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__driver_direction 9
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__motor_direction_y GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__motor_direction_y GPIO_BSRR_BR
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__motor_direction_y A
@@ -3128,6 +3134,7 @@
             OD2  , false,
             OD3  , true ,
             OD4  , true ,
+            OD15 , true ,
         );
         CMSIS_SET
         (
@@ -3154,6 +3161,16 @@
             OD10 , true ,
         );
         CMSIS_SET(GPIOH, ODR, OD0, true);
+        CMSIS_SET
+        (
+            GPIOC , PUPDR,
+            PUPD8 , 0b01 ,
+            PUPD9 , 0b01 ,
+            PUPD10, 0b01 ,
+            PUPD11, 0b01 ,
+            PUPD12, 0b01 ,
+        );
+        CMSIS_SET(GPIOD, PUPDR, PUPD2, 0b01);
         CMSIS_WRITE
         (
             GPIO_AFRL, GPIOA->AFR[0],
@@ -3177,7 +3194,6 @@
             AFSEL10  , 5            ,
             AFSEL12  , 5            ,
             AFSEL14  , 4            ,
-            AFSEL15  , 4            ,
         );
         CMSIS_WRITE
         (
@@ -3243,7 +3259,6 @@
             MODE10, 0b10 ,
             MODE12, 0b10 ,
             MODE14, 0b10 ,
-            MODE15, 0b10 ,
         );
         CMSIS_SET
         (
@@ -3291,394 +3306,10 @@
 
         static_assert(0 <= 0 && 0 < (1 << __NVIC_PRIO_BITS));
         NVIC->IPR[NVICInterrupt_USART2] = 0 << __NVIC_PRIO_BITS;
-        CMSIS_SET
-        (
-            SCB        , SHCSR,
-            BUSFAULTENA, true ,
-            MEMFAULTENA, true ,
-            USGFAULTENA, true ,
-        );
-
-
-
-        /////////////////////////////////// Flash ////////////////////////////////////
-
-
-
-        CMSIS_SET
-        (
-            FLASH     , ACR ,
-            LATENCY   , 5   ,
-            WRHIGHFREQ, 0b10,
-        );
-        while (CMSIS_GET(FLASH, ACR, LATENCY) != 5);
-        while (CMSIS_GET(FLASH, ACR, WRHIGHFREQ) != 0b10);
-
-
-
-        //////////////////////////////// Power Supply ////////////////////////////////
-
-
-
-        CMSIS_SET
-        (
-            PWR   , SCCR ,
-            LDOEN , true ,
-            BYPASS, false,
-        );
-        CMSIS_SET(PWR, VOSCR, VOS, 0b11);
-        while (CMSIS_GET(PWR, VOSSR, ACTVOS) != 0b11);
-        while (!CMSIS_GET(PWR, VOSSR, ACTVOSRDY));
-
-
-
-        //////////////////////// High-Speed-Internal (48MHz) /////////////////////////
-
-
-
-        CMSIS_SET(RCC, CR, HSI48ON, true);
-        while (!CMSIS_GET(RCC, CR, HSI48RDY));
-
-
-
-        ////////////////////////// Clock-Security-Internal ///////////////////////////
-
-
-
-        CMSIS_SET(RCC, CR, CSION, true);
-        while (!CMSIS_GET(RCC, CR, CSIRDY));
-
-
-
-        //////////////////////////////////// PLLs ////////////////////////////////////
-
-
-
-        CMSIS_SET
-        (
-            RCC    , PLL1CFGR,
-            PLL1SRC, 0b01    ,
-            PLL1M  , 8       ,
-            PLL1RGE, 2       ,
-            PLL1PEN, true    ,
-        );
-        CMSIS_SET
-        (
-            RCC  , PLL1DIVR,
-            PLL1N, 125 - 1 ,
-            PLL1P, 2 - 1   ,
-        );
-        CMSIS_SET(RCC, CR, PLL1ON, true);
-        while (!CMSIS_GET(RCC, CR, PLL1RDY));
-
-
-
-        //////////////////////// System Clock Generation Unit ////////////////////////
-
-
-
-        CMSIS_SET
-        (
-            RCC  , CFGR2 ,
-            HPRE , 0b0000,
-            PPRE1, 0b000 ,
-            PPRE2, 0b000 ,
-            PPRE3, 0b000 ,
-        );
-        CMSIS_SET(RCC, CFGR1, SW, 0b011);
-        while (CMSIS_GET(RCC, CFGR1, SWS) != 0b011);
-
-
-
-        /////////////////////////////////// USART2 ///////////////////////////////////
-
-
-
-        #define STPY_USART2_KERNEL_SOURCE 0b000
-        #define STPY_USART2_BAUD_DIVIDER 250
-
-    }
-    #define STPY_0             (          0)
-    #define STPY_CPU_CK        (250'000'000)
-    #define STPY_HSI_CK        ( 32'000'000)
-    #define STPY_HSI48_CK      ( 48'000'000)
-    #define STPY_CSI_CK        (  4'000'000)
-    #define STPY_AXI_AHB_CK    (250'000'000)
-    #define STPY_PLL1P_CK      (250'000'000)
-    #define STPY_PLL1_VCO_FREQ (500'000'000)
-    #define STPY_APB1_CK       (250'000'000)
-    #define STPY_APB2_CK       (250'000'000)
-    #define STPY_APB3_CK       (250'000'000)
-#endif
-#if TARGET_NAME_IS_MainCameraSystem
-#endif
-#if TARGET_NAME_IS_DemoStepper
-    enum NVICInterrupt : u32
-    {
-        NVICInterrupt_USART2  = USART2_IRQn,
-        NVICInterrupt_USART3  = USART3_IRQn,
-        NVICInterrupt_TIM1_UP = TIM1_UP_IRQn,
-    };
-    static constexpr u32 NVICInterrupt_COUNT = 3;
-    extern void INTERRUPT_BusFault(void);
-    extern void INTERRUPT_Default(void);
-    extern void INTERRUPT_Reset(void);
-    extern void INTERRUPT_TIM1_UP(void);
-    extern void INTERRUPT_USART2(void);
-    extern void INTERRUPT_USART3(void);
-    extern void INTERRUPT_UsageFault(void);
-    void (* const INTERRUPT_VECTOR_TABLE[])(void) __attribute__((used, section(".INTERRUPT_VECTOR_TABLE"))) =
-        {
-            (void*) INITIAL_STACK_ADDRESS, // [-16] Initial Stack Address
-            INTERRUPT_Reset              , // [-15] Reset
-            INTERRUPT_Default            , // [-14] NonMaskableInt
-            INTERRUPT_Default            , // [-13] HardFault
-            INTERRUPT_Default            , // [-12] MemoryManagement
-            INTERRUPT_BusFault           , // [-11] BusFault
-            INTERRUPT_UsageFault         , // [-10] UsageFault
-            INTERRUPT_Default            , // [ -9] SecureFault
-            INTERRUPT_Default            , // [ -8] Reserved
-            INTERRUPT_Default            , // [ -7] Reserved
-            INTERRUPT_Default            , // [ -6] Reserved
-            INTERRUPT_Default            , // [ -5] SVCall
-            INTERRUPT_Default            , // [ -4] DebugMonitor
-            INTERRUPT_Default            , // [ -3] Reserved
-            INTERRUPT_Default            , // [ -2] PendSV
-            INTERRUPT_Default            , // [ -1] SysTick
-            INTERRUPT_Default            , // [  0] WWDG
-            INTERRUPT_Default            , // [  1] PVD_AVD
-            INTERRUPT_Default            , // [  2] RTC
-            INTERRUPT_Default            , // [  3] RTC_S
-            INTERRUPT_Default            , // [  4] TAMP
-            INTERRUPT_Default            , // [  5] RAMCFG
-            INTERRUPT_Default            , // [  6] FLASH
-            INTERRUPT_Default            , // [  7] FLASH_S
-            INTERRUPT_Default            , // [  8] GTZC
-            INTERRUPT_Default            , // [  9] RCC
-            INTERRUPT_Default            , // [ 10] RCC_S
-            INTERRUPT_Default            , // [ 11] EXTI0
-            INTERRUPT_Default            , // [ 12] EXTI1
-            INTERRUPT_Default            , // [ 13] EXTI2
-            INTERRUPT_Default            , // [ 14] EXTI3
-            INTERRUPT_Default            , // [ 15] EXTI4
-            INTERRUPT_Default            , // [ 16] EXTI5
-            INTERRUPT_Default            , // [ 17] EXTI6
-            INTERRUPT_Default            , // [ 18] EXTI7
-            INTERRUPT_Default            , // [ 19] EXTI8
-            INTERRUPT_Default            , // [ 20] EXTI9
-            INTERRUPT_Default            , // [ 21] EXTI10
-            INTERRUPT_Default            , // [ 22] EXTI11
-            INTERRUPT_Default            , // [ 23] EXTI12
-            INTERRUPT_Default            , // [ 24] EXTI13
-            INTERRUPT_Default            , // [ 25] EXTI14
-            INTERRUPT_Default            , // [ 26] EXTI15
-            INTERRUPT_Default            , // [ 27] GPDMA1_Channel0
-            INTERRUPT_Default            , // [ 28] GPDMA1_Channel1
-            INTERRUPT_Default            , // [ 29] GPDMA1_Channel2
-            INTERRUPT_Default            , // [ 30] GPDMA1_Channel3
-            INTERRUPT_Default            , // [ 31] GPDMA1_Channel4
-            INTERRUPT_Default            , // [ 32] GPDMA1_Channel5
-            INTERRUPT_Default            , // [ 33] GPDMA1_Channel6
-            INTERRUPT_Default            , // [ 34] GPDMA1_Channel7
-            INTERRUPT_Default            , // [ 35] IWDG
-            INTERRUPT_Default            , // [ 36] SAES
-            INTERRUPT_Default            , // [ 37] ADC1
-            INTERRUPT_Default            , // [ 38] DAC1
-            INTERRUPT_Default            , // [ 39] FDCAN1_IT0
-            INTERRUPT_Default            , // [ 40] FDCAN1_IT1
-            INTERRUPT_Default            , // [ 41] TIM1_BRK
-            INTERRUPT_TIM1_UP            , // [ 42] TIM1_UP
-            INTERRUPT_Default            , // [ 43] TIM1_TRG_COM
-            INTERRUPT_Default            , // [ 44] TIM1_CC
-            INTERRUPT_Default            , // [ 45] TIM2
-            INTERRUPT_Default            , // [ 46] TIM3
-            INTERRUPT_Default            , // [ 47] TIM4
-            INTERRUPT_Default            , // [ 48] TIM5
-            INTERRUPT_Default            , // [ 49] TIM6
-            INTERRUPT_Default            , // [ 50] TIM7
-            INTERRUPT_Default            , // [ 51] I2C1_EV
-            INTERRUPT_Default            , // [ 52] I2C1_ER
-            INTERRUPT_Default            , // [ 53] I2C2_EV
-            INTERRUPT_Default            , // [ 54] I2C2_ER
-            INTERRUPT_Default            , // [ 55] SPI1
-            INTERRUPT_Default            , // [ 56] SPI2
-            INTERRUPT_Default            , // [ 57] SPI3
-            INTERRUPT_Default            , // [ 58] USART1
-            INTERRUPT_USART2             , // [ 59] USART2
-            INTERRUPT_USART3             , // [ 60] USART3
-            INTERRUPT_Default            , // [ 61] UART4
-            INTERRUPT_Default            , // [ 62] UART5
-            INTERRUPT_Default            , // [ 63] LPUART1
-            INTERRUPT_Default            , // [ 64] LPTIM1
-            INTERRUPT_Default            , // [ 65] TIM8_BRK
-            INTERRUPT_Default            , // [ 66] TIM8_UP
-            INTERRUPT_Default            , // [ 67] TIM8_TRG_COM
-            INTERRUPT_Default            , // [ 68] TIM8_CC
-            INTERRUPT_Default            , // [ 69] ADC2
-            INTERRUPT_Default            , // [ 70] LPTIM2
-            INTERRUPT_Default            , // [ 71] TIM15
-            INTERRUPT_Default            , // [ 72] Reserved
-            INTERRUPT_Default            , // [ 73] Reserved
-            INTERRUPT_Default            , // [ 74] USB_DRD_FS
-            INTERRUPT_Default            , // [ 75] CRS
-            INTERRUPT_Default            , // [ 76] UCPD1
-            INTERRUPT_Default            , // [ 77] FMC
-            INTERRUPT_Default            , // [ 78] OCTOSPI1
-            INTERRUPT_Default            , // [ 79] SDMMC1
-            INTERRUPT_Default            , // [ 80] I2C3_EV
-            INTERRUPT_Default            , // [ 81] I2C3_ER
-            INTERRUPT_Default            , // [ 82] SPI4
-            INTERRUPT_Default            , // [ 83] Reserved
-            INTERRUPT_Default            , // [ 84] Reserved
-            INTERRUPT_Default            , // [ 85] USART6
-            INTERRUPT_Default            , // [ 86] Reserved
-            INTERRUPT_Default            , // [ 87] Reserved
-            INTERRUPT_Default            , // [ 88] Reserved
-            INTERRUPT_Default            , // [ 89] Reserved
-            INTERRUPT_Default            , // [ 90] GPDMA2_Channel0
-            INTERRUPT_Default            , // [ 91] GPDMA2_Channel1
-            INTERRUPT_Default            , // [ 92] GPDMA2_Channel2
-            INTERRUPT_Default            , // [ 93] GPDMA2_Channel3
-            INTERRUPT_Default            , // [ 94] GPDMA2_Channel4
-            INTERRUPT_Default            , // [ 95] GPDMA2_Channel5
-            INTERRUPT_Default            , // [ 96] GPDMA2_Channel6
-            INTERRUPT_Default            , // [ 97] GPDMA2_Channel7
-            INTERRUPT_Default            , // [ 98] Reserved
-            INTERRUPT_Default            , // [ 99] Reserved
-            INTERRUPT_Default            , // [100] Reserved
-            INTERRUPT_Default            , // [101] Reserved
-            INTERRUPT_Default            , // [102] Reserved
-            INTERRUPT_Default            , // [103] FPU
-            INTERRUPT_Default            , // [104] ICACHE
-            INTERRUPT_Default            , // [105] DCACHE1
-            INTERRUPT_Default            , // [106] Reserved
-            INTERRUPT_Default            , // [107] Reserved
-            INTERRUPT_Default            , // [108] DCMI_PSSI
-            INTERRUPT_Default            , // [109] FDCAN2_IT0
-            INTERRUPT_Default            , // [110] FDCAN2_IT1
-            INTERRUPT_Default            , // [111] Reserved
-            INTERRUPT_Default            , // [112] Reserved
-            INTERRUPT_Default            , // [113] DTS
-            INTERRUPT_Default            , // [114] RNG
-            INTERRUPT_Default            , // [115] OTFDEC1
-            INTERRUPT_Default            , // [116] AES
-            INTERRUPT_Default            , // [117] HASH
-            INTERRUPT_Default            , // [118] PKA
-            INTERRUPT_Default            , // [119] CEC
-            INTERRUPT_Default            , // [120] TIM12
-            INTERRUPT_Default            , // [121] Reserved
-            INTERRUPT_Default            , // [122] Reserved
-            INTERRUPT_Default            , // [123] I3C1_EV
-            INTERRUPT_Default            , // [124] I3C1_ER
-            INTERRUPT_Default            , // [125] Reserved
-            INTERRUPT_Default            , // [126] Reserved
-            INTERRUPT_Default            , // [127] Reserved
-            INTERRUPT_Default            , // [128] Reserved
-            INTERRUPT_Default            , // [129] Reserved
-            INTERRUPT_Default            , // [130] Reserved
-            INTERRUPT_Default            , // [131] I3C2_EV
-            INTERRUPT_Default            , // [132] I3C2_ER
-        };
-    #define INTERRUPT_BusFault(...) extern void INTERRUPT_BusFault(__VA_ARGS__)
-    #define INTERRUPT_Default(...) extern void INTERRUPT_Default(__VA_ARGS__)
-    #define INTERRUPT_Reset(...) extern void INTERRUPT_Reset(__VA_ARGS__)
-    #define INTERRUPT_TIM1_UP(...) extern void INTERRUPT_TIM1_UP(__VA_ARGS__)
-    #define INTERRUPT_USART2(...) extern void INTERRUPT_USART2(__VA_ARGS__)
-    #define INTERRUPT_USART3(...) extern void INTERRUPT_USART3(__VA_ARGS__)
-    #define INTERRUPT_UsageFault(...) extern void INTERRUPT_UsageFault(__VA_ARGS__)
-    extern void
-    STPY_init(void)
-    {
-
-
-
-        /////////////////////////////////// GPIOS ////////////////////////////////////
-
-
-
-        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__led_green GPIO_BSRR_BS
-        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__led_green GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__led_green A
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__led_green 5
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__stlink_tx A
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_tx 2
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__stlink_tx
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__stlink_rx A
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_rx 3
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__stlink_rx
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__button C
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__button 13
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__button
-        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__driver_direction GPIO_BSRR_BS
-        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__driver_direction GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__driver_direction C
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__driver_direction 3
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__driver_step A
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__driver_step 9
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__driver_step
-        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__driver_disable GPIO_BSRR_BS
-        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__driver_disable GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__driver_disable B
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__driver_disable 0
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__driver_uart B
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__driver_uart 10
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__driver_uart
-        CMSIS_SET
-        (
-            RCC    , AHB2ENR,
-            GPIOAEN, true   ,
-            GPIOBEN, true   ,
-            GPIOCEN, true   ,
-        );
-        CMSIS_SET(GPIOB, OTYPER, OT10, true);
-        CMSIS_SET
-        (
-            GPIOA, ODR  ,
-            OD5  , false,
-            OD13 , true ,
-            OD14 , true ,
-        );
-        CMSIS_SET(GPIOB, ODR, OD0, true);
-        CMSIS_SET(GPIOC, ODR, OD3, true);
-        CMSIS_WRITE
-        (
-            GPIO_AFRL, GPIOA->AFR[0],
-            AFSEL2   , 7            ,
-            AFSEL3   , 7            ,
-        );
-        CMSIS_WRITE(GPIO_AFRH, GPIOA->AFR[1], AFSEL9, 1);
-        CMSIS_WRITE(GPIO_AFRH, GPIOB->AFR[1], AFSEL10, 7);
-        CMSIS_SET
-        (
-            GPIOA, MODER,
-            MODE2, 0b10 ,
-            MODE3, 0b10 ,
-            MODE5, 0b01 ,
-            MODE9, 0b10 ,
-        );
-        CMSIS_SET
-        (
-            GPIOB , MODER,
-            MODE0 , 0b01 ,
-            MODE10, 0b10 ,
-        );
-        CMSIS_SET
-        (
-            GPIOC , MODER,
-            MODE3 , 0b01 ,
-            MODE13, 0b00 ,
-        );
-
-
-
-        ///////////////////////////////// Interrupts /////////////////////////////////
-
-
-
-        static_assert(0 <= 0 && 0 < (1 << __NVIC_PRIO_BITS));
-        NVIC->IPR[NVICInterrupt_USART2] = 0 << __NVIC_PRIO_BITS;
         static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
-        NVIC->IPR[NVICInterrupt_USART3] = 1 << __NVIC_PRIO_BITS;
+        NVIC->IPR[NVICInterrupt_SDMMC1] = 1 << __NVIC_PRIO_BITS;
+        static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
+        NVIC->IPR[NVICInterrupt_USART1] = 1 << __NVIC_PRIO_BITS;
         static_assert(0 <= 2 && 2 < (1 << __NVIC_PRIO_BITS));
         NVIC->IPR[NVICInterrupt_TIM1_UP] = 2 << __NVIC_PRIO_BITS;
         CMSIS_SET
@@ -3751,12 +3382,14 @@
             PLL1M  , 8       ,
             PLL1RGE, 2       ,
             PLL1PEN, true    ,
+            PLL1QEN, true    ,
         );
         CMSIS_SET
         (
             RCC  , PLL1DIVR,
             PLL1N, 125 - 1 ,
             PLL1P, 2 - 1   ,
+            PLL1Q, 50 - 1  ,
         );
         CMSIS_SET(RCC, CR, PLL1ON, true);
         while (!CMSIS_GET(RCC, CR, PLL1RDY));
@@ -3780,6 +3413,15 @@
 
 
 
+        /////////////////////////////////// USART1 ///////////////////////////////////
+
+
+
+        #define STPY_USART1_KERNEL_SOURCE 0b000
+        #define STPY_USART1_BAUD_DIVIDER 2500
+
+
+
         /////////////////////////////////// USART2 ///////////////////////////////////
 
 
@@ -3789,21 +3431,25 @@
 
 
 
-        /////////////////////////////////// USART3 ///////////////////////////////////
-
-
-
-        #define STPY_USART3_KERNEL_SOURCE 0b000
-        #define STPY_USART3_BAUD_DIVIDER 2500
-
-
-
         /////////////////////////////////// Timers ///////////////////////////////////
 
 
 
         #define STPY_GLOBAL_TIMER_PRESCALER false
-        #define STPY_TIM1_DIVIDER (250 - 1)
+        #define STPY_TIM1_DIVIDER (96 - 1)
+        #define STPY_TIM1_MODULATION (65104 - 1)
+
+
+
+        /////////////////////////////////// SDMMC1 ///////////////////////////////////
+
+
+
+        #define STPY_SDMMC1_KERNEL_SOURCE 0b0
+        #define STPY_SDMMC1_INITIAL_DIVIDER 0x032
+        #define STPY_SDMMC1_INITIAL_DATATIME 1000
+        #define STPY_SDMMC1_FULL_DIVIDER 0x005
+        #define STPY_SDMMC1_FULL_DATATIME 10000
 
     }
     #define STPY_0             (          0)
@@ -3813,10 +3459,13 @@
     #define STPY_CSI_CK        (  4'000'000)
     #define STPY_AXI_AHB_CK    (250'000'000)
     #define STPY_PLL1P_CK      (250'000'000)
+    #define STPY_PLL1Q_CK      ( 10'000'000)
     #define STPY_PLL1_VCO_FREQ (500'000'000)
     #define STPY_APB1_CK       (250'000'000)
     #define STPY_APB2_CK       (250'000'000)
     #define STPY_APB3_CK       (250'000'000)
+#endif
+#if TARGET_NAME_IS_MainCameraSystem
 #endif
 #if TARGET_NAME_IS_DemoOVCAM
     enum NVICInterrupt : u32
