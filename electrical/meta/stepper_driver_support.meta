@@ -26,12 +26,16 @@
     enum StepperHandle : u32
     {
         StepperHandle_axis_x,
+        StepperHandle_axis_y,
+        StepperHandle_axis_z,
     };
-    static constexpr u32 StepperHandle_COUNT = 1;
+    static constexpr u32 StepperHandle_COUNT = 3;
     #define TIMx_ TIM_
     static const struct { typeof(0) STEPPER_NODE_ADDRESS; } STEPPER_TABLE[] =
         {
             [StepperHandle_axis_x] = { .STEPPER_NODE_ADDRESS = 0 },
+            [StepperHandle_axis_y] = { .STEPPER_NODE_ADDRESS = 1 },
+            [StepperHandle_axis_z] = { .STEPPER_NODE_ADDRESS = 2 },
         };
 #endif
 #if TARGET_NAME_IS_MainCameraSystem

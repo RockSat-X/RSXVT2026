@@ -3324,7 +3324,7 @@
 
 
         #define STPY_USART1_KERNEL_SOURCE 0b000
-        #define STPY_USART1_BAUD_DIVIDER 2500
+        #define STPY_USART1_BAUD_DIVIDER 1250
 
 
 

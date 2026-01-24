@@ -721,6 +721,16 @@ TARGETS = ( # @/`Defining Targets`.
                 'handle'       : 'axis_x',
                 'node_address' : 0,
             },
+            {
+                'type'         : 'Stepper',
+                'handle'       : 'axis_y',
+                'node_address' : 1,
+            },
+            {
+                'type'         : 'Stepper',
+                'handle'       : 'axis_z',
+                'node_address' : 2,
+            },
         ),
 
         use_freertos    = False,
@@ -739,7 +749,7 @@ TARGETS = ( # @/`Defining Targets`.
             'SDMMC1_TIMEOUT'      : 0.010,
             'SDMMC1_INITIAL_BAUD' :   100_000,
             'SDMMC1_FULL_BAUD'    : 1_000_000,
-            'USART1_BAUD'         :   100_000,
+            'USART1_BAUD'         :   200_000,
             'TIM1_UPDATE_RATE'    : 1 / 0.001,
         },
 

@@ -4,7 +4,7 @@
 
 #define STEPPER_ENABLE_DELAY_MS    500 // @/`Stepper Enable Delay`.
 #define STEPPER_VELOCITY_UPDATE_MS  25 // @/`Stepper Updating Velocity`.
-#define STEPPER_UART_TIME_BUFFER_MS  5 // @/`Stepper UART Time Buffer Window`.
+#define STEPPER_UART_TIME_BUFFER_MS  2 // @/`Stepper UART Time Buffer Window`.
 #define STEPPER_RING_BUFFER_LENGTH  32 // @/`Stepper Ring-Buffer Length`.
 
 static_assert(IS_POWER_OF_TWO(STEPPER_RING_BUFFER_LENGTH));
@@ -54,7 +54,7 @@ static const struct { u8 register_address; u32 data; } STEPPER_INITIALIZATION_SE
         },
         {
             0x03,
-            (15 << 8) // "SENDDELAY" : Amount of delay before the read response is sent back.
+            (2 << 8) // "SENDDELAY" : Amount of delay before the read response is sent back.
         },
         {
             0x10,
