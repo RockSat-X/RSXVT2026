@@ -669,7 +669,9 @@ TARGETS = ( # @/`Defining Targets`.
             ('sensor_i2c_data'            , 'B7'  , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA'                  }),
             ('sensor_i2c_clock'           , 'B6'  , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL'                  }),
             ('vehicle_interface_i2c_data' , 'D7'  , 'ALTERNATE' , { 'altfunc' : 'I2C3_SDA'                  }),
-            ('vehicle_interface_i2c_clock', 'D6'  , 'ALTERNATE' , { 'altfunc' : 'I2C3_SCL'                  }),
+            # ('vehicle_interface_i2c_clock', 'D6'  , 'ALTERNATE' , { 'altfunc' : 'I2C3_SCL'                  }),
+            # TMP:
+            ('debug', 'D6'  , 'OUTPUT' , { 'initlvl' : False                       }),
             ('driver_disable'             , 'A4'  , 'OUTPUT'    , { 'initlvl' : True                        }), # TODO Decouple from `stepper.c`.
             ('motor_step_x'               , 'E9'  , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH1'                  }),
             ('motor_step_y'               , 'C6'  , 'ALTERNATE' , { 'altfunc' : 'TIM8_CH1'                  }),
@@ -738,7 +740,7 @@ TARGETS = ( # @/`Defining Targets`.
             'SDMMC1_INITIAL_BAUD' :   100_000,
             'SDMMC1_FULL_BAUD'    : 1_000_000,
             'USART1_BAUD'         :   100_000,
-            'TIM1_UPDATE_RATE'    : 1 / 0.025,
+            'TIM1_UPDATE_RATE'    : 1 / 0.005,
         },
 
     ),

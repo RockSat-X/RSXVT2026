@@ -3,8 +3,9 @@
 
 
 
-#define STEPPER_ENABLE_DELAY_US    500'000 // @/`Stepper Enable Delay`.
-#define STEPPER_RING_BUFFER_LENGTH      32 // @/`Stepper Ring-Buffer Length`.
+#define STEPPER_ENABLE_DELAY_MS    500 // @/`Stepper Enable Delay`.
+#define STEPPER_VELOCITY_UPDATE_MS  25 // @/`Stepper Updating Velocity`.
+#define STEPPER_RING_BUFFER_LENGTH  32 // @/`Stepper Ring-Buffer Length`.
 
 static_assert(IS_POWER_OF_TWO(STEPPER_RING_BUFFER_LENGTH));
 
@@ -90,7 +91,7 @@ enum StepperDriverState : u32
 {
     StepperDriverState_setting_uart_write_sequence_number,
     StepperDriverState_doing_initialization_sequence,
-    StepperDriverState_enable_delay,
+    StepperDriverState_delaying_enable,
     StepperDriverState_working,
 };
 
@@ -100,8 +101,8 @@ struct StepperDriver
 {
 
     volatile enum StepperDriverState state;
+    u32                              incremental_timestamp_ms;
     i32                              initialization_sequence_index;
-    i32                              enable_delay_counter;
     i32                              velocities[STEPPER_RING_BUFFER_LENGTH];
     volatile u32                     reader;
     volatile u32                     writer;
@@ -228,7 +229,7 @@ static useret enum StepperUpdateResult : u32
     StepperUpdateResult_relinquished,
     StepperUpdateResult_busy,
 }
-_STEPPER_update(enum StepperHandle handle, enum UXARTHandle uxart_handle)
+_STEPPER_update(enum StepperHandle handle, enum UXARTHandle uxart_handle, u32 current_timestamp_ms)
 {
 
     _EXPAND_HANDLE
@@ -298,53 +299,77 @@ _STEPPER_update(enum StepperHandle handle, enum UXARTHandle uxart_handle)
                 // this works by the fact that the power supply not
                 // going into current-limiting mode after the power-cycle.
 
-                case StepperDriverState_enable_delay:
+                case StepperDriverState_delaying_enable:
                 {
 
-                    driver->enable_delay_counter += 1;
+                    b32 delaying = (current_timestamp_ms - driver->incremental_timestamp_ms) < STEPPER_ENABLE_DELAY_MS;
 
-                    if (driver->enable_delay_counter < STEPPER_ENABLE_DELAY_US / 25'000) // TODO Coupled.
+                    if (delaying)
                     {
                         return StepperUpdateResult_relinquished;
                     }
                     else
                     {
                         GPIO_INACTIVE(driver_disable); // The motor can draw current now.
-                        driver->state = StepperDriverState_working;
+                        driver->state                    = StepperDriverState_working;
+                        driver->incremental_timestamp_ms = current_timestamp_ms;
                     }
 
                 } break;
 
 
 
-                // The TMC2209 is all ready; let's update the step velocity now.
+                // @/`Stepper Updating Velocity`:
+                //
+                // The TMC2209 is fully configured now and step
+                // velocities can be set. We try our best to
+                // update the step velocity as consistently as
+                // possible based on how much time has passed
+                // since the previous velocity update.
+                //
+                // The user should also try their best to have
+                // the velocity ring buffer as full as possible
+                // to avoid an underrun situation.
 
                 case StepperDriverState_working:
                 {
 
-                    i32 velocity = {0};
+                    b32 should_update = (current_timestamp_ms - driver->incremental_timestamp_ms) >= STEPPER_VELOCITY_UPDATE_MS;
 
-                    if (driver->reader == driver->writer)
+                    if (should_update)
                     {
-                        // Underflow condition.
-                        // TODO Indicate this situation somehow?
-                        // TODO Perhaps keep the same velocity instead.
-                        velocity = 0;
+
+                        driver->incremental_timestamp_ms += STEPPER_VELOCITY_UPDATE_MS;
+
+                        i32 velocity = {0};
+
+                        if (driver->reader == driver->writer)
+                        {
+                            // Underflow condition.
+                            // TODO Indicate this situation somehow?
+                            // TODO Perhaps keep the same velocity instead.
+                            velocity = 0;
+                        }
+                        else
+                        {
+                            i32 read_index  = driver->reader % countof(driver->velocities);
+                            velocity        = driver->velocities[read_index];
+                            driver->reader += 1;
+                        }
+
+                        driver->uart_transfer =
+                            (struct StepperDriverUARTTransfer)
+                            {
+                                .state            = StepperDriverUARTTransferState_write_scheduled,
+                                .register_address = 0x22, // TODO.
+                                .data             = velocity,
+                            };
+
                     }
                     else
                     {
-                        i32 read_index  = driver->reader % countof(driver->velocities);
-                        velocity        = driver->velocities[read_index];
-                        driver->reader += 1;
+                        return StepperUpdateResult_relinquished;
                     }
-
-                    driver->uart_transfer =
-                        (struct StepperDriverUARTTransfer)
-                        {
-                            .state            = StepperDriverUARTTransferState_write_scheduled,
-                            .register_address = 0x22, // TODO.
-                            .data             = velocity,
-                        };
 
                 } break;
 
@@ -394,7 +419,8 @@ _STEPPER_update(enum StepperHandle handle, enum UXARTHandle uxart_handle)
                         }
                         else
                         {
-                            driver->state = StepperDriverState_enable_delay;
+                            driver->state                    = StepperDriverState_delaying_enable;
+                            driver->incremental_timestamp_ms = current_timestamp_ms;
                         }
 
                     } break;
@@ -410,8 +436,8 @@ _STEPPER_update(enum StepperHandle handle, enum UXARTHandle uxart_handle)
 
 
 
-                    case StepperDriverState_enable_delay : panic;
-                    default                              : panic;
+                    case StepperDriverState_delaying_enable : panic;
+                    default                                 : panic;
 
                 }
 
@@ -666,9 +692,6 @@ _STEPPER_update(enum StepperHandle handle, enum UXARTHandle uxart_handle)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-
-
-
 
 
 

@@ -11,7 +11,16 @@ INTERRUPT_TIM1_UP(void)
     if (CMSIS_GET(TIM1, SR, UIF))
     {
         CMSIS_SET(TIM1, SR, UIF, false); // Acknowledge timer's update flag.
-        enum StepperUpdateResult result = _STEPPER_update(StepperHandle_axis_x, UXARTHandle_stepper_uart);
+        static u32 timestamp_ms = 0;
+        timestamp_ms += 5;
+        enum StepperUpdateResult result =
+            _STEPPER_update
+            (
+                StepperHandle_axis_x,
+                UXARTHandle_stepper_uart,
+                timestamp_ms
+            );
+        GPIO_SET(debug, result == StepperUpdateResult_busy);
     }
 }
 
@@ -24,7 +33,7 @@ main(void)
     STPY_init();
     UXART_init(UXARTHandle_stlink);
 
-    #if 1
+    #if 0
     {
         for (i32 iteration = 0;; iteration += 1)
         {
@@ -52,7 +61,7 @@ main(void)
     }
     #endif
 
-    #if 1 // TODO Copy-pasta from DemoSDMMC, which will be improved upon soon...
+    #if 0 // TODO Copy-pasta from DemoSDMMC, which will be improved upon soon...
     {
 
         SD_reinit(SDHandle_primary);
