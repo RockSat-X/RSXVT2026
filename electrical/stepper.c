@@ -53,6 +53,7 @@ static_assert(IS_POWER_OF_TWO(STEPPER_RING_BUFFER_LENGTH));
         Meta.define('STEPPER_STPY_TIMx_MODULATION'           ,                    f'STPY_{driver['timer_peripheral']}_MODULATION')
         Meta.define('NVICInterrupt_STEPPER_TIMx_update_event',          f'NVICInterrupt_{driver['timer_update_event_interrupt']}')
         Meta.define('INTERRUPT_STEPPER_TIMx_update_event'    ,              f'INTERRUPT_{driver['timer_update_event_interrupt']}')
+        Meta.define('STEPPER_UPDATE_EVENT_PERIOD_US'         , round(1_000_000 / target.schema[f'{driver['timer_peripheral']}_UPDATE_RATE']))
 
 */
 
@@ -868,7 +869,7 @@ INTERRUPT_STEPPER_TIMx_update_event(void)
         CMSIS_SET(STEPPER_TIMx, SR, UIF, false); // Acknowledge timer's update flag.
 
         static u32 current_timestamp_us = 0;
-        current_timestamp_us += 1'000;
+        current_timestamp_us += STEPPER_UPDATE_EVENT_PERIOD_US;
 
         STEPPER_update_all(current_timestamp_us);
 
