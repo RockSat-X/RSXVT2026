@@ -801,13 +801,12 @@ TARGETS = ( # @/`Defining Targets`.
             ('driver_step'     , 'A9' , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH2'                       }),
             ('driver_disable'  , 'B0' , 'OUTPUT'    , { 'initlvl' : True                             }),
             ('driver_uart'     , 'B10', 'ALTERNATE' , { 'altfunc' : 'USART3_TX', 'open_drain' : True }),
-            ('debug'           , 'C10', 'OUTPUT'    , { 'initlvl' : False                            }),
         ),
 
         interrupts = (
-            ('USART2', 0),
-            ('USART3', 1),
-            ('TIM2'  , 2),
+            ('USART2' , 0),
+            ('USART3' , 1),
+            ('TIM1_UP', 2),
         ),
 
         drivers = (
@@ -826,6 +825,7 @@ TARGETS = ( # @/`Defining Targets`.
             {
                 'type'         : 'Stepper',
                 'peripheral'   : 'TIM1',
+                'interrupt'    : 'TIM1_UP',
                 'channel'      : 2,
                 'handle'       : 'primary',
                 'node_address' : 0,
@@ -845,9 +845,8 @@ TARGETS = ( # @/`Defining Targets`.
             'APB2_CK'           : 250_000_000,
             'APB3_CK'           : 250_000_000,
             'USART2_BAUD'       : STLINK_BAUD,
-            'USART3_BAUD'       :     100_000,
-            'TIM1_COUNTER_RATE' :   1_000_000,
-            'TIM2_UPDATE_RATE'  :   1 / 0.025,
+            'USART3_BAUD'       : 100_000,
+            'TIM1_COUNTER_RATE' : 1_000_000,
         },
 
     ),
