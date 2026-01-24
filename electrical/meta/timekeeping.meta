@@ -24,6 +24,8 @@
 #endif
 #if TARGET_NAME_IS_MainCameraSystem
 #endif
+#if TARGET_NAME_IS_DemoStepper
+#endif
 #if TARGET_NAME_IS_DemoOVCAM
 #endif
 #if TARGET_NAME_IS_TestESP32s

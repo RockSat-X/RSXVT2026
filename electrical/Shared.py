@@ -814,6 +814,84 @@ TARGETS = ( # @/`Defining Targets`.
 
     types.SimpleNamespace(
 
+        name              = 'DemoStepper',
+        mcu               = 'STM32H533RET6',
+        source_file_paths = (
+            pxd.make_main_relative_path('./electrical/DemoStepper.c'),
+        ),
+
+        kicad_project = None,
+
+        gpios = (
+            ('led_green'       , 'A5' , 'OUTPUT'    , { 'initlvl' : False                            }),
+            ('stlink_tx'       , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'                      }),
+            ('stlink_rx'       , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'                      }),
+            ('swdio'           , 'A13', None        , {                                              }),
+            ('swclk'           , 'A14', None        , {                                              }),
+            ('button'          , 'C13', 'INPUT'     , { 'pull'    : None, 'active' : True            }),
+            ('driver_direction', 'C3' , 'OUTPUT'    , { 'initlvl' : True                             }),
+            ('driver_step'     , 'A9' , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH2'                       }),
+            ('driver_enable'   , 'B0' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False          }),
+            ('driver_uart'     , 'B10', 'ALTERNATE' , { 'altfunc' : 'USART3_TX', 'open_drain' : True }),
+        ),
+
+        interrupts = (
+            ('USART2' , 0),
+            ('USART3' , 1),
+            ('TIM1_UP', 2),
+        ),
+
+        drivers = (
+            {
+                'type'       : 'UXART',
+                'peripheral' : 'USART2',
+                'handle'     : 'stlink',
+                'mode'       : 'full_duplex',
+            },
+            {
+                'type'       : 'UXART',
+                'peripheral' : 'USART3',
+                'handle'     : 'stepper_uart',
+                'mode'       : 'half_duplex',
+            },
+            {
+                'type'                         : 'Stepper',
+                'uxart_handle'                 : 'stepper_uart',
+                'enable_gpio'                  : 'driver_enable',
+                'timer_peripheral'             : 'TIM1',
+                'timer_update_event_interrupt' : 'TIM1_UP',
+                'instances'                    : (
+                    ('primary', 0),
+                ),
+            },
+        ),
+
+        use_freertos    = False,
+        main_stack_size = 8192,
+        schema          = {
+            'HSI_ENABLE'       : True,
+            'HSI48_ENABLE'     : True,
+            'CSI_ENABLE'       : True,
+            'PLL1P_CK'         : 250_000_000,
+            'CPU_CK'           : 250_000_000,
+            'APB1_CK'          : 250_000_000,
+            'APB2_CK'          : 250_000_000,
+            'APB3_CK'          : 250_000_000,
+            'USART2_BAUD'      : STLINK_BAUD,
+            'USART3_BAUD'      : 200_000,
+            'TIM1_UPDATE_RATE' : 1 / 0.001,
+        },
+
+    ),
+
+
+
+    ########################################
+
+
+
+    types.SimpleNamespace(
+
         name              = 'DemoOVCAM',
         mcu               = 'STM32H533RET6',
         source_file_paths = (
