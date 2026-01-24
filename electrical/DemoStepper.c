@@ -45,14 +45,14 @@ main(void)
 
             STEPS_PER_REVOLUTION = 1600
 
-            with Meta.enter(f'static const i32 STEPS[] ='):
+            with Meta.enter(f'static const i8 STEPS[] ='):
 
 
 
                 # Sequence of complicated movements...
 
                 pattern = [
-                    round(math.sin(math.sin(i / 500 * 2 * math.pi) * i / 125 * 2 * math.pi * 16) * 255)
+                    round(math.sin(math.sin(i / 500 * 2 * math.pi) * i / 125 * 2 * math.pi * 16) * 127)
                     for i in range(500)
                 ]
 
