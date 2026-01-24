@@ -12,7 +12,7 @@ INTERRUPT_TIM1_UP(void)
     {
         CMSIS_SET(TIM1, SR, UIF, false); // Acknowledge timer's update flag.
         static u32 timestamp_ms = 0;
-        timestamp_ms += 5;
+        timestamp_ms += 1;
         enum StepperUpdateResult result =
             _STEPPER_update
             (

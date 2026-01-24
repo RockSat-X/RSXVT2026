@@ -3342,7 +3342,7 @@
 
 
         #define STPY_GLOBAL_TIMER_PRESCALER false
-        #define STPY_TIM1_DIVIDER (20 - 1)
+        #define STPY_TIM1_DIVIDER (4 - 1)
         #define STPY_TIM1_MODULATION (62500 - 1)
 
 
