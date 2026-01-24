@@ -673,12 +673,12 @@ TARGETS = ( # @/`Defining Targets`.
             # TMP:
             ('debug', 'D6'  , 'OUTPUT' , { 'initlvl' : False                       }),
             ('driver_enable'              , 'A4'  , 'OUTPUT'    , { 'initlvl' : False, 'active' : False     }), # TODO Decouple from `stepper.c`.
-            ('motor_step_x'               , 'E9'  , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH1'                  }),
-            ('motor_step_y'               , 'C6'  , 'ALTERNATE' , { 'altfunc' : 'TIM8_CH1'                  }),
-            ('motor_step_z'               , 'E5'  , 'ALTERNATE' , { 'altfunc' : 'TIM15_CH1'                 }),
-            ('driver_direction'           , 'A9'  , 'OUTPUT'    , { 'initlvl' : False                       }), # TODO Decouple from `stepper.c`.
-            ('motor_direction_y'          , 'A8'  , 'OUTPUT'    , { 'initlvl' : False                       }),
-            ('motor_direction_z'          , 'A10' , 'OUTPUT'    , { 'initlvl' : False                       }),
+            ('motor_step_x'               , 'E9'  , None        , { 'altfunc' : 'TIM1_CH1'                  }),
+            ('motor_step_y'               , 'C6'  , None        , { 'altfunc' : 'TIM8_CH1'                  }),
+            ('motor_step_z'               , 'E5'  , None        , { 'altfunc' : 'TIM15_CH1'                 }),
+            ('motor_direction_x'          , 'A9'  , None        , { 'initlvl' : False                       }), # TODO Decouple from `stepper.c`.
+            ('motor_direction_y'          , 'A8'  , None        , { 'initlvl' : False                       }),
+            ('motor_direction_z'          , 'A10' , None        , { 'initlvl' : False                       }),
             ('lsm6dsv32x_interrupt_1'     , 'D13' , None        , {                                         }),
             ('lsm6dsv32x_interrupt_2'     , 'D14' , None        , {                                         }),
             ('lsm6dsv32x_chip_select'     , 'D15' , 'OUTPUT'    , { 'initlvl': True                         }),
