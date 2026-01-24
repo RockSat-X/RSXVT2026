@@ -705,17 +705,40 @@ INTERRUPT_STEPPER_TIMx_update_event(void)
                             };
                         pack_pop
 
-                        struct StepperReadResponse response = {0};
+                        struct StepperReadResponse response       = {0};
+                        i32                        bytes_received = 0;
 
-                        for (i32 i = 0; i < sizeof(response); i += 1)
+                        while (true)
                         {
-                            if (!UXART_rx(STEPPER_UXART_HANDLE, &((char*) &response)[i])) // TODO Not use char.
-                                sorry
+
+                            u8  byte     = {0};
+                            b32 got_byte = UXART_rx(STEPPER_UXART_HANDLE, (char*) &byte);
+
+
+                            if (got_byte)
+                            {
+
+                                if (bytes_received < sizeof(response))
+                                {
+                                    ((u8*) &response)[bytes_received] = byte;
+                                }
+
+                                bytes_received += 1;
+
+                            }
+                            else
+                            {
+                                break;
+                            }
+
                         }
 
 
 
                         // Verify integrity of response.
+
+                        if (bytes_received != sizeof(response))
+                            sorry
 
                         u8 digest =
                             _STEPPER_calculate_crc
