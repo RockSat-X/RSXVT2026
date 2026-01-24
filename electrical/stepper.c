@@ -9,7 +9,8 @@
 
 static_assert(IS_POWER_OF_TWO(STEPPER_RING_BUFFER_LENGTH));
 
-#define TMC2209_IFCNT_ADDRESS 0x02
+#define TMC2209_IFCNT_ADDRESS   0x02 // @/pg 24/tbl 5.1/`TMC2209`.
+#define TMC2209_VACTUAL_ADDRESS 0x22 // @/pg 28/tbl 5.2/`TMC2209`.
 
 #include "stepper_driver_support.meta"
 /* #meta
@@ -501,7 +502,7 @@ INTERRUPT_STEPPER_TIMx_update_event(void)
                                 (struct StepperDriverUARTTransfer)
                                 {
                                     .state            = StepperDriverUARTTransferState_write_scheduled,
-                                    .register_address = 0x22, // TODO.
+                                    .register_address = TMC2209_VACTUAL_ADDRESS,
                                     .data             = velocity,
                                 };
 
