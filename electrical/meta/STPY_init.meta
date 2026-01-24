@@ -3031,10 +3031,10 @@
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__debug GPIO_BSRR_BR
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__debug D
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__debug 6
-        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__driver_enable GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__driver_enable GPIO_BSRR_BS
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__driver_enable A
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__driver_enable 4
+        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__motor_enable GPIO_BSRR_BR
+        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__motor_enable GPIO_BSRR_BS
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__motor_enable A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__motor_enable 4
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__lsm6dsv32x_chip_select GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__lsm6dsv32x_chip_select GPIO_BSRR_BR
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__lsm6dsv32x_chip_select D

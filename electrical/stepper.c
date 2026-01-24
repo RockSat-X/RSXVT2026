@@ -256,8 +256,6 @@ _STEPPER_update(enum StepperHandle handle, enum UXARTHandle uxart_handle, u32 cu
                 case StepperDriverState_setting_uart_write_sequence_number:
                 {
 
-                    GPIO_INACTIVE(driver_enable); // Ensure the motor can't draw current.
-
                     driver->uart_transfer =
                         (struct StepperDriverUARTTransfer)
                         {
@@ -309,7 +307,6 @@ _STEPPER_update(enum StepperHandle handle, enum UXARTHandle uxart_handle, u32 cu
                     }
                     else
                     {
-                        GPIO_ACTIVE(driver_enable);
                         driver->state                    = StepperDriverState_working;
                         driver->incremental_timestamp_ms = current_timestamp_ms;
                     }

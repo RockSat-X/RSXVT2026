@@ -21,6 +21,7 @@ INTERRUPT_TIM1_UP(void)
                 timestamp_ms
             );
         GPIO_SET(debug, result == StepperUpdateResult_busy);
+        GPIO_SET(motor_enable, _STEPPER_drivers[StepperHandle_axis_x].state == StepperDriverState_working);
     }
 }
 
