@@ -780,6 +780,8 @@ TARGETS = ( # @/`Defining Targets`.
             ('swdio'            , 'A13', None       , {                                              }),
             ('swclk'            , 'A14', None       , {                                              }),
             ('swo'              , 'B3' , None       , {                                              }),
+            ('debug_testpoint_a', 'D8' , None       , {                                              }),
+            ('debug_testpoint_b', 'D9' , None       , {                                              }),
             ('sd_cmd'           , 'D2' , 'ALTERNATE', { 'altfunc' : 'SDMMC1_CMD'                     }),
             ('sd_data_0'        , 'C8' , 'ALTERNATE', { 'altfunc' : 'SDMMC1_D0'                      }),
             ('sd_data_1'        , 'C9' , 'ALTERNATE', { 'altfunc' : 'SDMMC1_D1'                      }),

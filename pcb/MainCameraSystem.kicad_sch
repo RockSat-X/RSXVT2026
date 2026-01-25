@@ -5,6 +5,113 @@
 	(uuid "caaf0100-eb77-4215-a2d5-ab172094720c")
 	(paper "A2")
 	(lib_symbols
+		(symbol "Connector:TestPoint"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0.762)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "TP"
+				(at 0 6.858 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "TestPoint"
+				(at 0 5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 5.08 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 5.08 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "test point"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "test point tp"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "Pin* Test*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "TestPoint_0_1"
+				(circle
+					(center 0 3.302)
+					(radius 0.762)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "TestPoint_1_1"
+				(pin passive line
+					(at 0 0 90)
+					(length 2.54)
+					(name "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "Connector_Generic:Conn_01x04"
 			(pin_names
 				(offset 1.016)
@@ -6790,10 +6897,6 @@
 		(uuid "4d33ad86-ada2-47ed-b9ad-03e15b462a43")
 	)
 	(no_connect
-		(at 189.23 265.43)
-		(uuid "50bdbdb8-b43c-47de-ac24-7a6464dc62d1")
-	)
-	(no_connect
 		(at 250.19 232.41)
 		(uuid "5c41a3b1-6657-4de9-9f97-73786aba6567")
 	)
@@ -6852,10 +6955,6 @@
 	(no_connect
 		(at 189.23 232.41)
 		(uuid "92fd5956-0e59-4f99-bd65-40c8a2f62994")
-	)
-	(no_connect
-		(at 189.23 262.89)
-		(uuid "9a05611d-2d3b-459d-bde7-7e3f3e38429e")
 	)
 	(no_connect
 		(at 250.19 194.31)
@@ -7305,6 +7404,16 @@
 	)
 	(wire
 		(pts
+			(xy 180.34 265.43) (xy 189.23 265.43)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4e2248eb-3973-40ad-b819-e20a6e37eaf7")
+	)
+	(wire
+		(pts
 			(xy 306.07 97.79) (xy 306.07 99.06)
 		)
 		(stroke
@@ -7582,6 +7691,16 @@
 			(type default)
 		)
 		(uuid "918d9cd0-67c0-4a82-b7a6-e18101fb8649")
+	)
+	(wire
+		(pts
+			(xy 180.34 262.89) (xy 189.23 262.89)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "92d27ce9-7b64-476e-b851-b485065ad5e2")
 	)
 	(wire
 		(pts
@@ -8052,6 +8171,30 @@
 			(type default)
 		)
 		(uuid "ff2563e9-6a85-405f-a269-6d4fab02bd83")
+	)
+	(label "debug_testpoint_b"
+		(at 189.23 265.43 180)
+		(effects
+			(font
+				(size 0.635 0.635)
+				(thickness 0.127)
+				(bold yes)
+			)
+			(justify right bottom)
+		)
+		(uuid "b7b2f527-da50-4d55-a3dd-10d7d5e6e5e1")
+	)
+	(label "debug_testpoint_a"
+		(at 189.23 262.89 180)
+		(effects
+			(font
+				(size 0.635 0.635)
+				(thickness 0.127)
+				(bold yes)
+			)
+			(justify right bottom)
+		)
+		(uuid "e3a094f3-0bc4-4698-a3ce-3032bec33743")
 	)
 	(global_label "swo"
 		(shape bidirectional)
@@ -12334,6 +12477,73 @@
 		)
 	)
 	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 180.34 262.89 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "538ea3a2-bcab-46b7-babc-7ebcbe3b2558")
+		(property "Reference" "TP1"
+			(at 175.26 262.8899 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "TestPoint"
+			(at 177.038 260.35 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "TestPoint:TestPoint_Bridge_Pitch2.0mm_Drill0.7mm"
+			(at 180.34 257.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 180.34 257.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "test point"
+			(at 180.34 262.89 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "c43f53bd-3a33-4658-89a0-ebbc371277fd")
+		)
+		(instances
+			(project "MainCameraSystem"
+				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
+					(reference "TP1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:+3.3V")
 		(at 201.93 87.63 0)
 		(unit 1)
@@ -15106,6 +15316,74 @@
 			(project ""
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
 					(reference "C17")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 180.34 265.43 90)
+		(mirror x)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "b879e1b1-e9f5-4cf4-956a-a5bdb885ba7b")
+		(property "Reference" "TP2"
+			(at 175.26 265.4299 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "TestPoint"
+			(at 177.038 267.97 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "TestPoint:TestPoint_Bridge_Pitch2.0mm_Drill0.7mm"
+			(at 180.34 270.51 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 180.34 270.51 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "test point"
+			(at 180.34 265.43 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "ce748f33-7ef5-4b7a-862b-4b017ceab256")
+		)
+		(instances
+			(project "MainCameraSystem"
+				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
+					(reference "TP2")
 					(unit 1)
 				)
 			)
