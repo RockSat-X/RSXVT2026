@@ -1,0 +1,250 @@
+#if TARGET_NAME_IS_SandboxNucleoH533RE
+    #error Target 'SandboxNucleoH533RE' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
+#endif
+#if TARGET_NAME_IS_DemoI2C
+    #error Target 'DemoI2C' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
+#endif
+#if TARGET_NAME_IS_DemoTimer
+    #error Target 'DemoTimer' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
+#endif
+#if TARGET_NAME_IS_DemoSPI
+    #error Target 'DemoSPI' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
+#endif
+#if TARGET_NAME_IS_DemoTimekeeping
+    #error Target 'DemoTimekeeping' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
+#endif
+#if TARGET_NAME_IS_DemoSDMMC
+    #error Target 'DemoSDMMC' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
+#endif
+#if TARGET_NAME_IS_SensorShield
+    #error Target 'SensorShield' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
+#endif
+#if TARGET_NAME_IS_MainFlightComputer
+    #error Target 'MainFlightComputer' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
+#endif
+#if TARGET_NAME_IS_VehicleFlightComputer
+#endif
+#if TARGET_NAME_IS_MainCameraSystem
+    #error Target 'MainCameraSystem' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
+#endif
+#if TARGET_NAME_IS_DemoStepper
+    #error Target 'DemoStepper' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
+#endif
+#if TARGET_NAME_IS_DemoOVCAM
+    #error Target 'DemoOVCAM' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
+#endif
+#if TARGET_NAME_IS_TestESP32s
+    #error Target 'TestESP32s' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
+#endif
+enum BuzzerTune : u32
+{
+    BuzzerTune_null,
+    BuzzerTune_ambulance,
+    BuzzerTune_up_and_down,
+    BuzzerTune_deep_beep,
+    BuzzerTune_heartbeat,
+    BuzzerTune_three_tone,
+    BuzzerTune_tetris,
+    BuzzerTune_mario,
+    BuzzerTune_birthday,
+    BuzzerTune_starwars,
+    BuzzerTune_nokia,
+};
+static constexpr u32 BuzzerTune_COUNT = 11;
+static const struct BuzzerNote BUZZER_TUNE_null[] =
+    {
+    };
+static const struct BuzzerNote BUZZER_TUNE_ambulance[] =
+    {
+        { 1248, 400 },
+        { 1664, 300 },
+        { 1248, 400 },
+        { 1664, 300 },
+        { 1248, 400 },
+        { 1664, 300 },
+    };
+static const struct BuzzerNote BUZZER_TUNE_up_and_down[] =
+    {
+        { 2494, 40 },
+        { 2217, 45 },
+        { 1996, 50 },
+        { 1815, 55 },
+        { 1664, 60 },
+        { 1536, 65 },
+        { 1427, 70 },
+        { 1332, 75 },
+        { 1248, 80 },
+        { 1332, 75 },
+        { 1427, 70 },
+        { 1536, 65 },
+        { 1664, 60 },
+        { 1815, 55 },
+        { 1996, 50 },
+        { 2217, 45 },
+        { 2494, 40 },
+    };
+static const struct BuzzerNote BUZZER_TUNE_deep_beep[] =
+    {
+        { 999, 150 },
+        { 65535, 2 },
+        { 999, 150 },
+        { 65535, 2 },
+        { 999, 150 },
+        { 65535, 2 },
+        { 999, 150 },
+        { 65535, 2 },
+    };
+static const struct BuzzerNote BUZZER_TUNE_heartbeat[] =
+    {
+        { 833, 120 },
+        { 65535, 1 },
+        { 833, 120 },
+        { 65535, 7 },
+        { 833, 120 },
+        { 65535, 1 },
+        { 833, 120 },
+        { 65535, 7 },
+    };
+static const struct BuzzerNote BUZZER_TUNE_three_tone[] =
+    {
+        { 1427, 210 },
+        { 1110, 270 },
+        { 908, 330 },
+        { 65535, 7 },
+    };
+static const struct BuzzerNote BUZZER_TUNE_tetris[] =
+    {
+        { 1515, 264 },
+        { 2020, 99 },
+        { 1908, 104 },
+        { 1701, 235 },
+        { 1908, 104 },
+        { 2020, 99 },
+        { 2268, 176 },
+        { 2268, 88 },
+        { 1908, 104 },
+        { 1515, 264 },
+        { 1701, 117 },
+        { 1908, 104 },
+        { 2020, 297 },
+        { 1908, 104 },
+        { 1701, 235 },
+        { 1515, 264 },
+        { 1908, 209 },
+        { 2268, 176 },
+        { 2268, 176 },
+        { 65535, 3 },
+        { 1701, 235 },
+        { 1431, 139 },
+        { 1135, 352 },
+        { 1274, 156 },
+        { 1431, 139 },
+        { 1515, 396 },
+        { 1908, 104 },
+        { 1515, 264 },
+        { 1701, 117 },
+        { 1908, 104 },
+        { 2020, 198 },
+        { 2020, 99 },
+        { 1908, 104 },
+        { 1701, 235 },
+        { 1515, 264 },
+        { 1908, 209 },
+        { 2268, 176 },
+        { 2268, 176 },
+        { 65535, 6 },
+    };
+static const struct BuzzerNote BUZZER_TUNE_mario[] =
+    {
+        { 1515, 99 },
+        { 1515, 99 },
+        { 65535, 2 },
+        { 1515, 99 },
+        { 65535, 2 },
+        { 1908, 78 },
+        { 1515, 99 },
+        { 65535, 2 },
+        { 1274, 117 },
+        { 65535, 6 },
+        { 2545, 58 },
+        { 65535, 6 },
+    };
+static const struct BuzzerNote BUZZER_TUNE_birthday[] =
+    {
+        { 3802, 52 },
+        { 3802, 52 },
+        { 3390, 117 },
+        { 3802, 105 },
+        { 2857, 140 },
+        { 3021, 264 },
+        { 3802, 52 },
+        { 3802, 52 },
+        { 3390, 117 },
+        { 3802, 105 },
+        { 2545, 157 },
+        { 2857, 280 },
+        { 3802, 52 },
+        { 3802, 52 },
+        { 1908, 209 },
+        { 2268, 176 },
+        { 2857, 140 },
+        { 3021, 132 },
+        { 3390, 117 },
+        { 2141, 93 },
+        { 2141, 93 },
+        { 2268, 176 },
+        { 2857, 140 },
+        { 2545, 157 },
+        { 2857, 280 },
+    };
+static const struct BuzzerNote BUZZER_TUNE_starwars[] =
+    {
+        { 2545, 196 },
+        { 2545, 196 },
+        { 2545, 196 },
+        { 3205, 109 },
+        { 2141, 70 },
+        { 2545, 196 },
+        { 3205, 109 },
+        { 2141, 70 },
+        { 2545, 392 },
+        { 1701, 293 },
+        { 1701, 293 },
+        { 1701, 293 },
+        { 1605, 218 },
+        { 2141, 70 },
+        { 2695, 185 },
+        { 3205, 109 },
+        { 2141, 70 },
+        { 2545, 392 },
+    };
+static const struct BuzzerNote BUZZER_TUNE_nokia[] =
+    {
+        { 1515, 82 },
+        { 1701, 73 },
+        { 2695, 92 },
+        { 2404, 103 },
+        { 1802, 69 },
+        { 2020, 61 },
+        { 3390, 73 },
+        { 3021, 82 },
+        { 2020, 61 },
+        { 2268, 55 },
+        { 3597, 69 },
+        { 3021, 82 },
+        { 2268, 220 },
+    };
+static const struct { struct BuzzerNote* notes; i32 count; } BUZZER_TUNES[] =
+    {
+        { (struct BuzzerNote*) BUZZER_TUNE_null, 0 },
+        { (struct BuzzerNote*) BUZZER_TUNE_ambulance, 6 },
+        { (struct BuzzerNote*) BUZZER_TUNE_up_and_down, 17 },
+        { (struct BuzzerNote*) BUZZER_TUNE_deep_beep, 8 },
+        { (struct BuzzerNote*) BUZZER_TUNE_heartbeat, 8 },
+        { (struct BuzzerNote*) BUZZER_TUNE_three_tone, 4 },
+        { (struct BuzzerNote*) BUZZER_TUNE_tetris, 39 },
+        { (struct BuzzerNote*) BUZZER_TUNE_mario, 12 },
+        { (struct BuzzerNote*) BUZZER_TUNE_birthday, 25 },
+        { (struct BuzzerNote*) BUZZER_TUNE_starwars, 18 },
+        { (struct BuzzerNote*) BUZZER_TUNE_nokia, 13 },
+    };

@@ -3,6 +3,8 @@
 #include "sd.c"
 #include "filesystem.c"
 #include "stepper.c"
+#include "buzzer.c"
+
 
 
 
@@ -12,6 +14,37 @@ main(void)
 
     STPY_init();
     UXART_init(UXARTHandle_stlink);
+
+    #if 0
+    {
+
+        // Set the prescaler that'll affect all timers' kernel frequency.
+
+        CMSIS_SET(RCC, CFGR1, TIMPRE, STPY_GLOBAL_TIMER_PRESCALER);
+
+
+        BUZZER_partial_init();
+
+        for (;;)
+        {
+            char input = {0};
+
+            if (stlink_rx(&input))
+            {
+
+                stlink_tx("%c", input);
+
+                if ((enum BuzzerTune) (input - 'a') < BuzzerTune_COUNT)
+                {
+                    BUZZER_play(input - 'a');
+                }
+
+            }
+        }
+
+
+    }
+    #endif
 
     #if 0
     {
@@ -194,6 +227,8 @@ main(void)
         STEPPER_partial_reinit();
 
 
+        BUZZER_partial_init();
+
 
         ////////////////////////////////////////////////////////////////////////////////
 
@@ -235,6 +270,21 @@ main(void)
 
             index += 1;
             index %= countof(VELOCITIES);
+
+            char input = {0};
+
+            if (stlink_rx(&input))
+            {
+
+                stlink_tx("%c", input);
+
+                if ((enum BuzzerTune) (input - 'a') < BuzzerTune_COUNT)
+                {
+                    BUZZER_play(input - 'a');
+                }
+
+            }
+
         }
 
     #endif

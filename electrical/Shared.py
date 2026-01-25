@@ -643,7 +643,7 @@ TARGETS = ( # @/`Defining Targets`.
             ('serial_reset'               , 'E10' , 'OUTPUT'    , { 'initlvl' : True                        }),
             ('serial_rx'                  , 'D11' , 'ALTERNATE' , { 'altfunc' : 'UART4_RX'                  }),
             ('serial_tx'                  , 'D12' , 'ALTERNATE' , { 'altfunc' : 'UART4_TX'                  }),
-            ('buzzer'                     , 'A5'  , 'ALTERNATE' , { 'altfunc' : 'TIM2_CH1'                  }),
+            ('buzzer'                     , 'A5'  , 'ALTERNATE' , { 'altfunc' : 'TIM8_CH1N'                 }),
             ('sd_cmd'                     , 'D2'  , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CMD', 'pull' : 'UP' }),
             ('sd_data_0'                  , 'C8'  , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D0' , 'pull' : 'UP' }),
             ('sd_data_1'                  , 'C9'  , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D1' , 'pull' : 'UP' }),
@@ -694,6 +694,7 @@ TARGETS = ( # @/`Defining Targets`.
             ('SDMMC1' , 1),
             ('USART1' , 1),
             ('TIM1_UP', 2),
+            ('TIM8_UP', 3),
         ),
 
         drivers = (
@@ -746,6 +747,7 @@ TARGETS = ( # @/`Defining Targets`.
             'SDMMC1_FULL_BAUD'    : 1_000_000,
             'USART1_BAUD'         :   200_000,
             'TIM1_UPDATE_RATE'    : 1 / 0.001,
+            'TIM8_COUNTER_RATE'   : 1_000_000,
         },
 
     ),

@@ -2744,13 +2744,15 @@
         NVICInterrupt_SDMMC1  = SDMMC1_IRQn,
         NVICInterrupt_USART1  = USART1_IRQn,
         NVICInterrupt_TIM1_UP = TIM1_UP_IRQn,
+        NVICInterrupt_TIM8_UP = TIM8_UP_IRQn,
     };
-    static constexpr u32 NVICInterrupt_COUNT = 4;
+    static constexpr u32 NVICInterrupt_COUNT = 5;
     extern void INTERRUPT_BusFault(void);
     extern void INTERRUPT_Default(void);
     extern void INTERRUPT_Reset(void);
     extern void INTERRUPT_SDMMC1(void);
     extern void INTERRUPT_TIM1_UP(void);
+    extern void INTERRUPT_TIM8_UP(void);
     extern void INTERRUPT_USART1(void);
     extern void INTERRUPT_USART2(void);
     extern void INTERRUPT_UsageFault(void);
@@ -2838,7 +2840,7 @@
             INTERRUPT_Default            , // [ 63] LPUART1
             INTERRUPT_Default            , // [ 64] LPTIM1
             INTERRUPT_Default            , // [ 65] TIM8_BRK
-            INTERRUPT_Default            , // [ 66] TIM8_UP
+            INTERRUPT_TIM8_UP            , // [ 66] TIM8_UP
             INTERRUPT_Default            , // [ 67] TIM8_TRG_COM
             INTERRUPT_Default            , // [ 68] TIM8_CC
             INTERRUPT_Default            , // [ 69] ADC2
@@ -2911,6 +2913,7 @@
     #define INTERRUPT_Reset(...) extern void INTERRUPT_Reset(__VA_ARGS__)
     #define INTERRUPT_SDMMC1(...) extern void INTERRUPT_SDMMC1(__VA_ARGS__)
     #define INTERRUPT_TIM1_UP(...) extern void INTERRUPT_TIM1_UP(__VA_ARGS__)
+    #define INTERRUPT_TIM8_UP(...) extern void INTERRUPT_TIM8_UP(__VA_ARGS__)
     #define INTERRUPT_USART1(...) extern void INTERRUPT_USART1(__VA_ARGS__)
     #define INTERRUPT_USART2(...) extern void INTERRUPT_USART2(__VA_ARGS__)
     #define INTERRUPT_UsageFault(...) extern void INTERRUPT_UsageFault(__VA_ARGS__)
@@ -3094,7 +3097,7 @@
             GPIO_AFRL, GPIOA->AFR[0],
             AFSEL2   , 7            ,
             AFSEL3   , 7            ,
-            AFSEL5   , 1            ,
+            AFSEL5   , 3            ,
         );
         CMSIS_WRITE
         (
@@ -3217,6 +3220,8 @@
         NVIC->IPR[NVICInterrupt_USART1] = 1 << __NVIC_PRIO_BITS;
         static_assert(0 <= 2 && 2 < (1 << __NVIC_PRIO_BITS));
         NVIC->IPR[NVICInterrupt_TIM1_UP] = 2 << __NVIC_PRIO_BITS;
+        static_assert(0 <= 3 && 3 < (1 << __NVIC_PRIO_BITS));
+        NVIC->IPR[NVICInterrupt_TIM8_UP] = 3 << __NVIC_PRIO_BITS;
         CMSIS_SET
         (
             SCB        , SHCSR,
@@ -3343,6 +3348,7 @@
         #define STPY_GLOBAL_TIMER_PRESCALER false
         #define STPY_TIM1_DIVIDER (4 - 1)
         #define STPY_TIM1_MODULATION (62500 - 1)
+        #define STPY_TIM8_DIVIDER (250 - 1)
 
 
 
