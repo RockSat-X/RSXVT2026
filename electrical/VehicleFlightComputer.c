@@ -52,11 +52,11 @@ main(void)
 
             while
             (
-                !STEPPER_push_velocities
+                !STEPPER_push_angular_velocities
                 (
-                    &(i32[])
+                    &(f32[])
                     {
-                        [StepperInstanceHandle_axis_x] = (i32) STEPPER_STEPS_PER_REVOLUTION,
+                        [StepperInstanceHandle_axis_x] = 2 * M_PI,
                         [StepperInstanceHandle_axis_y] = 0,
                         [StepperInstanceHandle_axis_z] = 0,
                     }
@@ -291,37 +291,6 @@ main(void)
 
         for (;;)
         {
-            #include "VehicleFlightComputer_VELOCITIES.meta"
-            /* #meta
-
-                import math
-
-                with Meta.enter(f'static const i32 VELOCITIES[] ='):
-
-                    for i in range(500):
-                        Meta.line(f'''
-                            {round(math.sin(math.sin(i / 500 * 2 * math.pi) * i / 125 * 2 * math.pi * 16) * 10_000)},
-                        ''')
-
-            */
-
-            static i32 index = 0;
-
-            while
-            (
-                !STEPPER_push_velocities
-                (
-                    &(i32[])
-                    {
-                        [StepperInstanceHandle_axis_x] = VELOCITIES[index],
-                        [StepperInstanceHandle_axis_y] = VELOCITIES[index],
-                        [StepperInstanceHandle_axis_z] = VELOCITIES[index],
-                    }
-                )
-            );
-
-            index += 1;
-            index %= countof(VELOCITIES);
 
             char input = {0};
 

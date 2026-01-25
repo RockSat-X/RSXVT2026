@@ -1,3 +1,5 @@
+#include <math.h>
+
 #define STEPPER_ENABLE_DELAY_US     500'000 // @/`Stepper Enable Delay`.
 #define STEPPER_VELOCITY_UPDATE_US   25'000 // @/`Stepper Updating Velocity`.
 #define STEPPER_UART_TIME_BUFFER_US   2'000 // @/`Stepper UART Time Buffer Window`.
@@ -121,9 +123,9 @@ struct StepperInstance
     volatile enum StepperInstanceState state;
     u32                                incremental_timestamp_us;
     i32                                initialization_sequence_index;
-    i32                                velocities[STEPPER_RING_BUFFER_LENGTH];
-    volatile u32                       velocity_reader;
-    volatile u32                       velocity_writer;
+    i32                                angular_velocities[STEPPER_RING_BUFFER_LENGTH];
+    volatile u32                       angular_velocity_reader;
+    volatile u32                       angular_velocity_writer;
     u8                                 uart_write_sequence_number;
 };
 
@@ -247,7 +249,7 @@ _STEPPER_calculate_crc(u8* data, u8 length)
 
 
 static useret b32
-STEPPER_push_velocities(i32 (*velocities)[StepperInstanceHandle_COUNT])
+STEPPER_push_angular_velocities(f32 (*angular_velocities)[StepperInstanceHandle_COUNT])
 {
 
     // See if all of the instances' ring-buffers have space available.
@@ -262,7 +264,7 @@ STEPPER_push_velocities(i32 (*velocities)[StepperInstanceHandle_COUNT])
         b32 this_motor_can_take_new_velocity =
             (
                 instance->state == StepperInstanceState_working &&
-                instance->velocity_writer - instance->velocity_reader < countof(instance->velocities)
+                instance->angular_velocity_writer - instance->angular_velocity_reader < countof(instance->angular_velocities)
             );
 
         if (!this_motor_can_take_new_velocity)
@@ -283,10 +285,10 @@ STEPPER_push_velocities(i32 (*velocities)[StepperInstanceHandle_COUNT])
     {
         for (enum StepperInstanceHandle handle = {0}; handle < StepperInstanceHandle_COUNT; handle += 1)
         {
-            struct StepperInstance* instance     = &_STEPPER_driver.instances[handle];
-            i32                     write_index  = instance->velocity_writer % countof(instance->velocities);
-            instance->velocities[write_index]    = (*velocities)[handle];
-            instance->velocity_writer           += 1;
+            struct StepperInstance* instance    = &_STEPPER_driver.instances[handle];
+            i32                     write_index = instance->angular_velocity_writer % countof(instance->angular_velocities);
+            instance->angular_velocities[write_index]  = (i32) (*angular_velocities)[handle];
+            instance->angular_velocity_writer         += 1;
         }
     }
 
@@ -474,14 +476,15 @@ _STEPPER_update_uart(void)
                 // @/`Stepper Updating Velocity`:
                 //
                 // The TMC2209 is fully configured now and step
-                // velocities can be set. We try our best to
-                // update the step velocity as consistently as
-                // possible based on how much time has passed
-                // since the previous velocity update.
+                // velocities (derived from angular velocity)
+                // can be set. We try our best to update the step
+                // velocity as consistently as possible based on
+                // how much time has passed since the previous
+                // velocity update.
                 //
                 // The user should also try their best to have
-                // the velocity ring-buffer as full as possible
-                // to avoid an underrun situation.
+                // the angular velocity ring-buffer as full as
+                // possible to avoid an underrun situation.
 
                 case StepperInstanceState_working:
                 {
@@ -494,28 +497,31 @@ _STEPPER_update_uart(void)
 
                         instance->incremental_timestamp_us += STEPPER_VELOCITY_UPDATE_US;
 
-                        i32 velocity = {0};
+                        i32 angular_velocity = {0};
 
-                        if (instance->velocity_reader == instance->velocity_writer)
+                        if (instance->angular_velocity_reader == instance->angular_velocity_writer)
                         {
                             // Underflow condition.
                             // TODO Indicate this situation somehow?
                             // TODO Perhaps keep the same velocity instead.
-                            velocity = 0;
+                            angular_velocity = 0;
                         }
                         else
                         {
-                            i32 read_index             = instance->velocity_reader % countof(instance->velocities);
-                            velocity                   = instance->velocities[read_index];
-                            instance->velocity_reader += 1;
+                            i32 read_index                     = instance->angular_velocity_reader % countof(instance->angular_velocities);
+                            angular_velocity                   = instance->angular_velocities[read_index];
+                            instance->angular_velocity_reader += 1;
                         }
+
+                        // @/`Stepper Microstepping and Step Velocity`.
+                        i32 vactual_value = (i32) (angular_velocity / (2.0f * M_PI) * STEPPER_STEPS_PER_REVOLUTION);
 
                         _STEPPER_driver.uart =
                             (struct StepperUART)
                             {
                                 .state            = StepperUARTState_write_scheduled,
                                 .register_address = TMC2209_VACTUAL_ADDRESS,
-                                .data             = velocity, // @/`Stepper Microstepping and Step Velocity`.
+                                .data             = vactual_value,
                             };
 
                     }
@@ -723,7 +729,6 @@ _STEPPER_update_uart(void)
 
                         u8  byte     = {0};
                         b32 got_byte = UXART_rx(STEPPER_UXART_HANDLE, (char*) &byte);
-
 
                         if (got_byte)
                         {
@@ -991,7 +996,7 @@ INTERRUPT_STEPPER_TIMx_update_event(void)
 // @/`Stepper Ring-Buffer Length`:
 //
 // The length of the ring-buffer should be set to a reasonable
-// size such that steps can be queued up but without implying
+// size such that velocities can be queued up but without implying
 // large latency.
 //
 // For example, if the window length is 256 and the update period
