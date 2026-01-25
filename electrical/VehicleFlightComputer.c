@@ -5,6 +5,7 @@
 #include "stepper.c"
 #include "buzzer.c"
 #include "timekeeping.c"
+#include "matrix.c"
 
 
 
@@ -71,6 +72,49 @@ main(void)
 
     BUZZER_partial_init();
     STEPPER_partial_reinit();
+
+
+
+    // TODO Dumb demo of matrix stuff.
+
+    {
+
+        struct Matrix* gain =
+            Matrix
+            (
+                3, 6,
+                1, 0, 0, 1, 0, 0,
+                0, 1, 0, 0, 1, 0,
+                0, 0, 1, 0, 0, 1,
+            );
+
+        struct Matrix* state =
+            Matrix
+            (
+                6, 1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+            );
+
+        struct Matrix* control_output = Matrix(3, 1);
+
+
+
+        MATRIX_multiply(control_output, gain, state);
+
+        MATRIX_multiply_add(control_output, control_output, -2);
+
+
+
+        stlink_tx("Resultant Matrix is:\n");
+
+        MATRIX_stlink_tx(control_output);
+
+    }
 
 
 
