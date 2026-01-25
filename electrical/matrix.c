@@ -12,22 +12,22 @@
 // are initialized to zero (but too many and the compiler
 // will complain, so that's okay).
 
-#define Matrix(ROWS, COLUMNS, VALUES...)    \
-    (                                       \
-        (struct Matrix*)                    \
-        (float[2 + (ROWS) * (COLUMNS)])     \
-        {                                   \
-            *(float*) &(int) { (ROWS   ) }, \
-            *(float*) &(int) { (COLUMNS) }, \
-            VALUES                          \
-        }                                   \
+#define Matrix(ROWS, COLUMNS, VALUES...)  \
+    (                                     \
+        (struct Matrix*)                  \
+        (f32[2 + (ROWS) * (COLUMNS)])     \
+        {                                 \
+            *(f32*) &(i32) { (ROWS   ) }, \
+            *(f32*) &(i32) { (COLUMNS) }, \
+            VALUES                        \
+        }                                 \
     )
 
 struct Matrix
 {
-    int   rows;
-    int   columns;
-    float values[];
+    i32 rows;
+    i32 columns;
+    f32 values[];
 };
 
 
@@ -49,23 +49,38 @@ static void
 MATRIX_multiply(struct Matrix* dst, struct Matrix* lhs, struct Matrix* rhs)
 {
 
-    assert(dst);
-    assert(lhs);
-    assert(rhs);
-    assert(dst != lhs);
-    assert(dst != rhs);
-    assert(dst->rows    == lhs->rows   );
-    assert(dst->columns == rhs->columns);
-    assert(lhs->columns == rhs->rows   );
+    if (!dst)
+        panic;
 
-    for (int i = 0; i < lhs->rows; i += 1)
+    if (!lhs)
+        panic;
+
+    if (!rhs)
+        panic;
+
+    if (dst == lhs)
+        panic;
+
+    if (dst == rhs)
+        panic;
+
+    if (dst->rows != lhs->rows)
+        panic;
+
+    if (dst->columns != rhs->columns)
+        panic;
+
+    if (lhs->columns != rhs->rows)
+        panic;
+
+    for (i32 i = 0; i < lhs->rows; i += 1)
     {
-        for (int j = 0; j < rhs->columns; j += 1)
+        for (i32 j = 0; j < rhs->columns; j += 1)
         {
 
             dst->values[i * dst->columns + j] = 0;
 
-            for (int k = 0; k < rhs->rows; k += 1)
+            for (i32 k = 0; k < rhs->rows; k += 1)
             {
                 AT(dst, i, j) += AT(lhs, i, k) * AT(rhs, k, j);
             }
@@ -83,17 +98,24 @@ MATRIX_multiply(struct Matrix* dst, struct Matrix* lhs, struct Matrix* rhs)
 // modifies one of the given matrices.
 
 static void
-MATRIX_multiply_add(struct Matrix* accumulator, struct Matrix* addend, float factor)
+MATRIX_multiply_add(struct Matrix* accumulator, struct Matrix* addend, f32 factor)
 {
 
-    assert(accumulator);
-    assert(addend);
-    assert(accumulator->rows    == addend->rows   );
-    assert(accumulator->columns == addend->columns);
+    if (!accumulator)
+        panic;
 
-    for (int i = 0; i < accumulator->rows; i += 1)
+    if (!addend)
+        panic;
+
+    if (accumulator->rows != addend->rows)
+        panic;
+
+    if (accumulator->columns != addend->columns)
+        panic;
+
+    for (i32 i = 0; i < accumulator->rows; i += 1)
     {
-        for (int j = 0; j < accumulator->columns; j += 1)
+        for (i32 j = 0; j < accumulator->columns; j += 1)
         {
             AT(accumulator, i, j) += AT(addend, i, j) * factor;
         }
@@ -108,11 +130,15 @@ MATRIX_multiply_add(struct Matrix* accumulator, struct Matrix* addend, float fac
 // if the values are to be analyzed seriously.
 
 static void
-MATRIX_print(struct Matrix* matrix)
+MATRIX_stlink_tx(struct Matrix* matrix)
 {
-    for (int i = 0; i < matrix->rows; i += 1)
+
+    if (!matrix)
+        panic;
+
+    for (i32 i = 0; i < matrix->rows; i += 1)
     {
-        printf
+        stlink_tx
         (
             "%c ",
             matrix->rows == 1     ? '<'  :
@@ -120,12 +146,12 @@ MATRIX_print(struct Matrix* matrix)
             i == matrix->rows - 1 ? '\\' : '|'
         );
 
-        for (int j = 0; j < matrix->columns; j += 1)
+        for (i32 j = 0; j < matrix->columns; j += 1)
         {
-            printf("%9.5g ", AT(matrix, i, j));
+            stlink_tx("%9.5g ", AT(matrix, i, j));
         }
 
-        printf
+        stlink_tx
         (
             "%c\n",
             matrix->rows == 1     ? '>'  :
@@ -133,4 +159,5 @@ MATRIX_print(struct Matrix* matrix)
             i == matrix->rows - 1 ? '/'  : '|'
         );
     }
+
 }
