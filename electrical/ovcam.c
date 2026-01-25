@@ -407,7 +407,7 @@ struct OVCAMSwapchain
     struct OVCAMFramebuffer
     {
 
-        volatile u32 length;
+        volatile i32 length;
 
         // The framebuffer has alignment requirements due to DMA.
         // Furthermore, the DCMI peripheral organizes its FIFO to
@@ -461,7 +461,7 @@ OVCAM_free_framebuffer(void)
     if (!CMSIS_GET(DCMI, CR, ENABLE))
         panic;
 
-    i32 framebuffers_filled = _OVCAM_swapchain.writer - _OVCAM_swapchain.reader;
+    i32 framebuffers_filled = (i32) (_OVCAM_swapchain.writer - _OVCAM_swapchain.reader);
 
     if (!(1 <= framebuffers_filled && framebuffers_filled <= countof(_OVCAM_swapchain.framebuffers)))
         panic;

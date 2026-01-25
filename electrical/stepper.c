@@ -1,5 +1,3 @@
-#include <math.h>
-
 #define STEPPER_ENABLE_DELAY_US     500'000 // @/`Stepper Enable Delay`.
 #define STEPPER_VELOCITY_UPDATE_US   25'000 // @/`Stepper Updating Velocity`.
 #define STEPPER_UART_TIME_BUFFER_US   2'000 // @/`Stepper UART Time Buffer Window`.
@@ -88,7 +86,7 @@ static const struct { u8 register_address; u32 data; } STEPPER_INITIALIZATION_SE
         ))
 
         Meta.lut('STEPPER_INSTANCE_TABLE', ((
-            ('address', address),
+            ('u8', 'address', address),
         ) for name, address in driver['instances']))
 
         # TODO Inconvenient:
@@ -123,7 +121,7 @@ struct StepperInstance
     volatile enum StepperInstanceState state;
     u32                                incremental_timestamp_us;
     i32                                initialization_sequence_index;
-    i32                                angular_velocities[STEPPER_RING_BUFFER_LENGTH];
+    f32                                angular_velocities[STEPPER_RING_BUFFER_LENGTH];
     volatile u32                       angular_velocity_reader;
     volatile u32                       angular_velocity_writer;
     u8                                 uart_write_sequence_number;
@@ -497,7 +495,7 @@ _STEPPER_update_uart(void)
 
                         instance->incremental_timestamp_us += STEPPER_VELOCITY_UPDATE_US;
 
-                        i32 angular_velocity = {0};
+                        f32 angular_velocity = {0};
 
                         if (instance->angular_velocity_reader == instance->angular_velocity_writer)
                         {
@@ -514,14 +512,14 @@ _STEPPER_update_uart(void)
                         }
 
                         // @/`Stepper Microstepping and Step Velocity`.
-                        i32 vactual_value = (i32) (angular_velocity / (2.0f * M_PI) * STEPPER_STEPS_PER_REVOLUTION);
+                        i32 vactual_value = (i32) (angular_velocity / (2.0f * PI) * STEPPER_STEPS_PER_REVOLUTION);
 
                         _STEPPER_driver.uart =
                             (struct StepperUART)
                             {
                                 .state            = StepperUARTState_write_scheduled,
                                 .register_address = TMC2209_VACTUAL_ADDRESS,
-                                .data             = vactual_value,
+                                .data             = (u32) vactual_value,
                             };
 
                     }
@@ -556,7 +554,7 @@ _STEPPER_update_uart(void)
 
                     case StepperInstanceState_setting_uart_write_sequence_number:
                     {
-                        instance->uart_write_sequence_number = _STEPPER_driver.uart.data + 1;
+                        instance->uart_write_sequence_number = (u8) (_STEPPER_driver.uart.data + 1);
                         instance->state                      = StepperInstanceState_doing_initialization_sequence;
                     } break;
 
@@ -807,7 +805,7 @@ _STEPPER_update_uart(void)
                             return StepperUpdateUARTTransferResult_error; // TODO Too aggresive?
                         }
 
-                        instance->uart_write_sequence_number = data + 1;
+                        instance->uart_write_sequence_number = (u8) (data + 1);
 
                     }
                     else

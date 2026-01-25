@@ -1122,19 +1122,17 @@ for target in TARGETS:
         strict-prototypes
         shadow
         switch-default
+        conversion
     '''
 
     disabled_warnings = '''
         unused-function
         main
-        double-promotion
-        conversion
         unused-variable
         unused-parameter
         comment
         unused-but-set-variable
         format-zero-length
-        unused-label
     '''
 
 

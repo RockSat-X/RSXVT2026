@@ -79,7 +79,7 @@ main(void)
                     .nonredundant.gyro_y                     = 2.2f,
                     .nonredundant.gyro_z                     = 2.3f,
                     .nonredundant.computer_vision_confidence = -1.0f,
-                    .nonredundant.timestamp_ms               = CMSIS_GET(TIM1, CNT, CNT),
+                    .nonredundant.timestamp_ms               = (u16) CMSIS_GET(TIM1, CNT, CNT),
                     .nonredundant.sequence_number            = 0,
                     .nonredundant.crc                        = 0x00,
                 };

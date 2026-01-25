@@ -280,7 +280,7 @@ _UXART_driver_interrupt(enum UXARTHandle handle)
 
         // Pop from the hardware RX-buffer even if we don't have
         // a place to save the data in our software buffer right now.
-        u8 data = UXARTx->RDR;
+        u8 data = (u8) UXARTx->RDR;
 
         u32 reader_index =
             driver->reception_reader
