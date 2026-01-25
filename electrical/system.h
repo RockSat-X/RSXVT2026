@@ -330,50 +330,6 @@ static_assert(configMAX_SYSCALL_INTERRUPT_PRIORITY <= 255);
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// FreeRTOS Helpers.
-//
-
-
-
-#if TARGET_USES_FREERTOS
-
-    #define MUTEX_TAKE(MUTEX)                                          \
-        do                                                             \
-        {                                                              \
-            if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) \
-            {                                                          \
-                if (!xSemaphoreTake((MUTEX), portMAX_DELAY))           \
-                {                                                      \
-                    panic;                                             \
-                }                                                      \
-            }                                                          \
-        }                                                              \
-        while (false)
-
-    #define MUTEX_GIVE(MUTEX)                                          \
-        do                                                             \
-        {                                                              \
-            if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) \
-            {                                                          \
-                if (!xSemaphoreGive((MUTEX)))                          \
-                {                                                      \
-                    panic;                                             \
-                }                                                      \
-            }                                                          \
-        }                                                              \
-        while (false)
-
-#else
-
-    #define MUTEX_TAKE(MUTEX)
-    #define MUTEX_GIVE(MUTEX)
-
-#endif
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-//
 // System Interrupts.
 //
 

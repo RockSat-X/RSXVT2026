@@ -52,13 +52,6 @@ struct UXARTDriver
     volatile u32  reception_reader;
     volatile u32  reception_writer;
     volatile char reception_buffer[1 << 8]; // TODO Consider being able to be set.
-
-    #if TARGET_USES_FREERTOS
-        StaticSemaphore_t transmission_mutex_data;
-        SemaphoreHandle_t transmission_mutex;
-        StaticSemaphore_t reception_mutex_data;
-        SemaphoreHandle_t reception_mutex;
-    #endif
 };
 
 
@@ -131,17 +124,13 @@ UXART_tx(enum UXARTHandle handle, char* format, ...)
     va_list arguments = {0};
     va_start(arguments);
 
-    MUTEX_TAKE(driver->transmission_mutex);
-    {
-        vfctprintf
-        (
-            &_UXART_fctprintf_callback,
-            (void*) handle,
-            format,
-            arguments
-        );
-    }
-    MUTEX_GIVE(driver->transmission_mutex);
+    vfctprintf
+    (
+        &_UXART_fctprintf_callback,
+        (void*) handle,
+        format,
+        arguments
+    );
 
     va_end(arguments);
 
@@ -162,26 +151,20 @@ UXART_rx(enum UXARTHandle handle, char* destination)
 
     b32 data_available = {0};
 
-    // TODO Fix:
-    // MUTEX_TAKE(driver->reception_mutex);
+    data_available = driver->reception_reader != driver->reception_writer;
+
+    if (data_available && destination)
     {
-        data_available = driver->reception_reader != driver->reception_writer;
+        static_assert(IS_POWER_OF_TWO(countof(driver->reception_buffer)));
 
-        if (data_available && destination)
-        {
-            static_assert(IS_POWER_OF_TWO(countof(driver->reception_buffer)));
+        u32 reader_index =
+            driver->reception_reader
+                & (countof(driver->reception_buffer) - 1);
 
-            u32 reader_index =
-                driver->reception_reader
-                    & (countof(driver->reception_buffer) - 1);
+        *destination = driver->reception_buffer[reader_index];
 
-            *destination = driver->reception_buffer[reader_index];
-
-            driver->reception_reader += 1;
-        }
+        driver->reception_reader += 1;
     }
-    // TODO Fix:
-    // MUTEX_GIVE(driver->reception_mutex);
 
     return data_available;
 
@@ -246,24 +229,11 @@ UXART_init(enum UXARTHandle handle)
         UE    , true, // Enable the peripheral.
     );
 
-
-
-    // Initialize the driver.
-
-    #if TARGET_USES_FREERTOS
-        // TODO A quick Google search didn't determine whether or
-        //      not it's okay to recreate a static semaphore in FreeRTOS
-        //      without manually deleting it first. Until this is figured
-        //      out, we will assume that the UXART driver cannot be
-        //      reinitialized.
-        driver->transmission_mutex = xSemaphoreCreateMutexStatic(&driver->transmission_mutex_data);
-        driver->reception_mutex    = xSemaphoreCreateMutexStatic(&driver->reception_mutex_data   );
-    #endif
-
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
+
 
 
 static void
