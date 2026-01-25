@@ -727,9 +727,13 @@ TARGETS = ( # @/`Defining Targets`.
                     ('axis_z', 2),
                 ),
             },
+            {
+                'type'       : 'TIMEKEEPING',
+                'peripheral' : 'TIM2',
+            },
         ),
 
-        use_freertos    = False,
+        use_freertos    = True,
         main_stack_size = 8192,
         schema          = {
             'HSI_ENABLE'          : True,
@@ -747,6 +751,7 @@ TARGETS = ( # @/`Defining Targets`.
             'SDMMC1_FULL_BAUD'    : 1_000_000,
             'USART1_BAUD'         :   200_000,
             'TIM1_UPDATE_RATE'    : 1 / 0.001,
+            'TIM2_COUNTER_RATE'   : 1_000_000,
             'TIM8_COUNTER_RATE'   : 1_000_000,
         },
 
@@ -1122,19 +1127,17 @@ for target in TARGETS:
         strict-prototypes
         shadow
         switch-default
+        conversion
     '''
 
     disabled_warnings = '''
         unused-function
         main
-        double-promotion
-        conversion
         unused-variable
         unused-parameter
         comment
         unused-but-set-variable
         format-zero-length
-        unused-label
     '''
 
 

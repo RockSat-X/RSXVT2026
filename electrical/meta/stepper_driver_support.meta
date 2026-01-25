@@ -30,7 +30,7 @@
         StepperInstanceHandle_axis_z,
     };
     static constexpr u32 StepperInstanceHandle_COUNT = 3;
-    static const struct { typeof(0) address; } STEPPER_INSTANCE_TABLE[] =
+    static const struct { u8 address; } STEPPER_INSTANCE_TABLE[] =
         {
             { .address = 0 },
             { .address = 1 },
@@ -57,7 +57,7 @@
         StepperInstanceHandle_primary,
     };
     static constexpr u32 StepperInstanceHandle_COUNT = 1;
-    static const struct { typeof(0) address; } STEPPER_INSTANCE_TABLE[] =
+    static const struct { u8 address; } STEPPER_INSTANCE_TABLE[] =
         {
             { .address = 0 },
         };

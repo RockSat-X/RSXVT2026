@@ -304,7 +304,7 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             {
 
                 // Get size of the data-block.
-                i32 block_size_pow2 = __builtin_ctz(cmder->block_size);
+                i32 block_size_pow2 = __builtin_ctz((u32) cmder->block_size);
 
                 if (IS_POWER_OF_TWO(cmder->block_size) && block_size_pow2 > 14)
                     // Must be a power of two no

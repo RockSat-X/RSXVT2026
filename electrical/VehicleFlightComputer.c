@@ -4,7 +4,14 @@
 #include "filesystem.c"
 #include "stepper.c"
 #include "buzzer.c"
+#include "timekeeping.c"
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// Pre-scheduler initialization.
+//
 
 
 
@@ -12,281 +19,205 @@ extern noret void
 main(void)
 {
 
+    // General peripheral initializations.
+
     STPY_init();
     UXART_init(UXARTHandle_stlink);
+    UXART_init(UXARTHandle_stepper_uart);
 
-    #if 0
+
+
+    // Set the prescaler that'll affect all timers' kernel frequency.
+
+    CMSIS_SET(RCC, CFGR1, TIMPRE, STPY_GLOBAL_TIMER_PRESCALER);
+
+
+
+    // Initialize timekeeping.
+
     {
 
-        // Set the prescaler that'll affect all timers' kernel frequency.
+        // Enable the timekeeping's timer peripheral.
 
-        CMSIS_SET(RCC, CFGR1, TIMPRE, STPY_GLOBAL_TIMER_PRESCALER);
+        CMSIS_PUT(TIMEKEEPING_TIMER_ENABLE, true);
 
 
-        BUZZER_partial_init();
 
-        for (;;)
+        // Configure the divider to set the rate at
+        // which the timer's counter will increment.
+
+        CMSIS_SET(TIMEKEEPING_TIMER, PSC, PSC, TIMEKEEPING_DIVIDER);
+
+
+
+        // Trigger an update event so that the shadow registers
+        // are what we initialize them to be.
+        // The hardware uses shadow registers in order for updates
+        // to these registers not result in a corrupt timer output.
+
+        CMSIS_SET(TIMEKEEPING_TIMER, EGR, UG, true);
+
+
+
+        // Enable the timekeeping timer's counter.
+
+        CMSIS_SET(TIMEKEEPING_TIMER, CR1, CEN, true);
+
+    }
+
+
+
+    // More peripheral initializations that depend on the above initializations.
+
+    BUZZER_partial_init();
+    STEPPER_partial_reinit();
+
+
+
+    // When the vehicle becomes powered on,
+    // it's typically because of the external
+    // power suplly through the vehicle interface.
+    //
+    // TODO Add a delay before we enable the battery?
+    // TODO Check if there's actually external power?
+
+    BUZZER_play(BuzzerTune_three_tone);
+    BUZZER_spinlock_to_completion();
+
+    GPIO_ACTIVE(battery_allowed);
+
+
+
+    // Begin the FreeRTOS task scheduler.
+
+    FREERTOS_init();
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// Update motor angular velocities.
+//
+
+
+
+static volatile f32 current_angular_acceleration = 0.0f;
+
+FREERTOS_TASK(stepper_motor_controller, 1024, 0)
+{
+
+    static f32 current_angular_velocity = 1.0f;
+
+    for (;;)
+    {
+
+        #define MAX_ANGULAR_VELOCITY (2.0f * PI * 8.0f)
+
+        b32 max_angular_velocity_has_already_been_reached =
+            current_angular_velocity >=  MAX_ANGULAR_VELOCITY ||
+            current_angular_velocity <= -MAX_ANGULAR_VELOCITY;
+
+
+
+        // Find new angular velocity.
+
+        current_angular_velocity += current_angular_acceleration * (STEPPER_VELOCITY_UPDATE_US / 100'000.0f);
+
+
+
+        // Limit the angular velocity.
+
+        b32 max_angular_velocity_reached = false;
+
+        if (current_angular_velocity >= MAX_ANGULAR_VELOCITY)
         {
-            char input = {0};
-
-            if (stlink_rx(&input))
-            {
-
-                stlink_tx("%c", input);
-
-                if ((enum BuzzerTune) (input - 'a') < BuzzerTune_COUNT)
-                {
-                    BUZZER_play(input - 'a');
-                }
-
-            }
+            current_angular_velocity     = MAX_ANGULAR_VELOCITY;
+            max_angular_velocity_reached = true;
+        }
+        else if (current_angular_velocity <= -MAX_ANGULAR_VELOCITY)
+        {
+            current_angular_velocity     = -MAX_ANGULAR_VELOCITY;
+            max_angular_velocity_reached = true;
         }
 
 
-    }
-    #endif
 
-    #if 0
-    {
-        for (i32 iteration = 0;; iteration += 1)
+        // Indicate that the max angular velocity has been reached.
+
+        GPIO_SET(led_channel_red, max_angular_velocity_reached);
+
+        if (!max_angular_velocity_has_already_been_reached && max_angular_velocity_reached)
         {
-
-            for (i32 index = 0; index < 8; index += 1)
-            {
-
-                GPIO_SET(led_channel_red  , (index >> 0) & 1);
-                GPIO_SET(led_channel_green, (index >> 1) & 1);
-                GPIO_SET(led_channel_blue , (index >> 2) & 1);
-
-                stlink_tx("Color index: %d\n", index);
-
-                char input = {0};
-                if (stlink_rx(&input))
-                {
-                    stlink_tx("Got '%c'!\n", input);
-                }
-
-                spinlock_nop(100'000'000);
-
-            }
-
+            BUZZER_play(BuzzerTune_heartbeat);
         }
-    }
-    #endif
-
-    #if 0 // TODO Copy-pasta from DemoSDMMC, which will be improved upon soon...
-    {
-
-        SD_reinit(SDHandle_primary);
-
-        i32 driver_error_count = 0;
-        i32 task_error_count   = 0;
-
-        for (u32 address = 0;; address += 1)
-        {
-
-            // Schedule a sector-read and block on it until it's done.
-
-            struct Sector sector    = {0};
-            enum SDDo     do_result = {0};
-
-            do
-            {
-                do_result =
-                    SD_do
-                    (
-                        SDHandle_primary,
-                        SDOperation_single_read,
-                        &sector,
-                        address
-                    );
-            }
-            while (do_result == SDDo_task_in_progress);
 
 
 
-            // Handle the results of the sector-read.
+        // Queue up the angular velocity.
 
-            switch (do_result)
-            {
-
-                case SDDo_task_completed:
-                {
-                    // The sector-read was a success!
-                } break;
-
-                case SDDo_task_error:
-                {
-
-                    // The sector-read failed for some reason.
-                    // To clear the error condition, we do a poll.
-
-                    task_error_count += 1;
-
-                    enum SDPoll poll_result = SD_poll(SDHandle_primary);
-
-                    if (poll_result != SDPoll_cleared_task_error)
-                        panic;
-
-
-
-                    // Although not necessary, we'll
-                    // reinitialize the SD driver.
-                    // TODO A better approach here would
-                    //      be to count back-to-back task errors
-                    //      and reinitialize based on that.
-                    //      The SD driver could also handle detecting
-                    //      when to reinitialize the SD card on its own.
-
-                    SD_reinit(SDHandle_primary);
-
-                } break;
-
-                case SDDo_driver_error:
-                {
-
-                    // Something unexpected happened for the SD driver,
-                    // so we'll have to reinitialize the entire driver
-                    // to clear the error condition.
-
-                    driver_error_count += 1;
-
-                    SD_reinit(SDHandle_primary);
-
-                } break;
-
-                case SDDo_task_in_progress : panic;
-                case SDDo_bug              : panic;
-                default                    : panic;
-
-            }
-
-
-
-            // Output the results.
-
-            stlink_tx
+        while
+        (
+            !STEPPER_push_angular_velocities
             (
-                "[Sector 0x%08X] Driver errors: %d | Task errors: %d.\n",
-                address,
-                driver_error_count,
-                task_error_count
-            );
-
-            if (do_result == SDDo_task_completed)
-            {
-                for (i32 byte_i = 0; byte_i < 512; byte_i += 1)
+                &(f32[])
                 {
-                    if (byte_i % 32 == 0)
-                    {
-                        stlink_tx("%03d | ", byte_i);
-                    }
-
-                    stlink_tx
-                    (
-                        "%02X%c",
-                        sector.data[byte_i],
-                        (byte_i % 32 == 31) ? '\n' : ' '
-                    );
+                    [StepperInstanceHandle_axis_x] = current_angular_velocity,
+                    [StepperInstanceHandle_axis_y] = 0,
+                    [StepperInstanceHandle_axis_z] = 0,
                 }
+            )
+        );
 
-                stlink_tx("\n");
-            }
+    }
+
+}
 
 
 
-            // Bit of breather...
+////////////////////////////////////////////////////////////////////////////////
+//
+// Take user input and do stuff.
+//
 
-            GPIO_TOGGLE(led_channel_green);
-            spinlock_nop(50'000'000);
 
+
+FREERTOS_TASK(user_inputter, 1024, 0)
+{
+    for (;;)
+    {
+
+        char input = {0};
+        while (!stlink_rx(&input));
+
+        switch (input)
+        {
+            case 'j': current_angular_acceleration += -0.1f; break;
+            case 'J': current_angular_acceleration += -1.0f; break;
+            case 'k': current_angular_acceleration +=  0.1f; break;
+            case 'K': current_angular_acceleration +=  1.0f; break;
+            case '0': current_angular_acceleration  =  0.0f; break;
+            default: break;
         }
 
     }
-    #endif
-
-    #if 1
-
-        UXART_init(UXARTHandle_stepper_uart);
+}
 
 
 
-
-        ////////////////////////////////////////////////////////////////////////////////
-
-
-
-        // Set the prescaler that'll affect all timers' kernel frequency.
-
-        CMSIS_SET(RCC, CFGR1, TIMPRE, STPY_GLOBAL_TIMER_PRESCALER);
+////////////////////////////////////////////////////////////////////////////////
+//
+// Periodically log out stuff.
+//
 
 
 
-        // TODO.
-
-        STEPPER_partial_reinit();
-
-
-        BUZZER_partial_init();
-
-
-        ////////////////////////////////////////////////////////////////////////////////
-
-
-        spinlock_nop(500'000'000);
-        GPIO_ACTIVE(battery_allowed);
-
-
-        for (;;)
-        {
-            #include "VehicleFlightComputer_VELOCITIES.meta"
-            /* #meta
-
-                import math
-
-                with Meta.enter(f'static const i32 VELOCITIES[] ='):
-
-                    for i in range(500):
-                        Meta.line(f'''
-                            {round(math.sin(math.sin(i / 500 * 2 * math.pi) * i / 125 * 2 * math.pi * 16) * 10_000)},
-                        ''')
-
-            */
-
-            static i32 index = 0;
-
-            while
-            (
-                !STEPPER_push_velocities
-                (
-                    &(i32[])
-                    {
-                        [StepperInstanceHandle_axis_x] = VELOCITIES[index],
-                        [StepperInstanceHandle_axis_y] = VELOCITIES[index],
-                        [StepperInstanceHandle_axis_z] = VELOCITIES[index],
-                    }
-                )
-            );
-
-            index += 1;
-            index %= countof(VELOCITIES);
-
-            char input = {0};
-
-            if (stlink_rx(&input))
-            {
-
-                stlink_tx("%c", input);
-
-                if ((enum BuzzerTune) (input - 'a') < BuzzerTune_COUNT)
-                {
-                    BUZZER_play(input - 'a');
-                }
-
-            }
-
-        }
-
-    #endif
-
+FREERTOS_TASK(logger, 1024, 0)
+{
+    for (;;)
+    {
+        stlink_tx("Angular acceleration: %.6f\n", current_angular_acceleration);
+        spinlock_us(10'000);
+    }
 }

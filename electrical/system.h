@@ -47,6 +47,7 @@
 #define memeq(X, Y)             (static_assert_expr(sizeof(X) == sizeof(Y)), !memcmp(&(X), &(Y), sizeof(Y)))
 #define memzero(X)              memset((X), 0, sizeof(*(X)))
 #define static_assert_expr(...) ((void) sizeof(struct { static_assert(__VA_ARGS__, #__VA_ARGS__); }))
+#define PI                      3.14159265359f
 #ifndef offsetof
 #define offsetof __builtin_offsetof
 #endif
@@ -71,10 +72,10 @@ typedef signed   char      i8;  static_assert(sizeof(i8 ) == 1);
 typedef signed   short     i16; static_assert(sizeof(i16) == 2);
 typedef signed             i32; static_assert(sizeof(i32) == 4);
 typedef signed   long long i64; static_assert(sizeof(i64) == 8);
-typedef signed   char      b8;  static_assert(sizeof(b8 ) == 1);
-typedef signed   short     b16; static_assert(sizeof(b16) == 2);
-typedef signed             b32; static_assert(sizeof(b32) == 4);
-typedef signed   long long b64; static_assert(sizeof(b64) == 8);
+typedef unsigned char      b8;  static_assert(sizeof(b8 ) == 1);
+typedef unsigned short     b16; static_assert(sizeof(b16) == 2);
+typedef unsigned           b32; static_assert(sizeof(b32) == 4);
+typedef unsigned long long b64; static_assert(sizeof(b64) == 8);
 typedef float              f32; static_assert(sizeof(f32) == 4);
 typedef double             f64; static_assert(sizeof(f64) == 8);
 
@@ -211,7 +212,7 @@ static_assert(configMAX_SYSCALL_INTERRUPT_PRIORITY <= 255);
 #include <deps/FreeRTOS_Kernel/include/semphr.h>
 
 #if TARGET_USES_FREERTOS
-    #if TARGET_MCU_IS_STM32H533RET6
+    #if TARGET_MCU_IS_STM32H533RET6 || TARGET_MCU_IS_STM32H533VET6
         #include <deps/FreeRTOS_Kernel/tasks.c>
         #include <deps/FreeRTOS_Kernel/queue.c>
         #include <deps/FreeRTOS_Kernel/list.c>
@@ -330,50 +331,6 @@ static_assert(configMAX_SYSCALL_INTERRUPT_PRIORITY <= 255);
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// FreeRTOS Helpers.
-//
-
-
-
-#if TARGET_USES_FREERTOS
-
-    #define MUTEX_TAKE(MUTEX)                                          \
-        do                                                             \
-        {                                                              \
-            if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) \
-            {                                                          \
-                if (!xSemaphoreTake((MUTEX), portMAX_DELAY))           \
-                {                                                      \
-                    panic;                                             \
-                }                                                      \
-            }                                                          \
-        }                                                              \
-        while (false)
-
-    #define MUTEX_GIVE(MUTEX)                                          \
-        do                                                             \
-        {                                                              \
-            if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) \
-            {                                                          \
-                if (!xSemaphoreGive((MUTEX)))                          \
-                {                                                      \
-                    panic;                                             \
-                }                                                      \
-            }                                                          \
-        }                                                              \
-        while (false)
-
-#else
-
-    #define MUTEX_TAKE(MUTEX)
-    #define MUTEX_GIVE(MUTEX)
-
-#endif
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-//
 // System Interrupts.
 //
 
@@ -484,7 +441,7 @@ INTERRUPT_Default(void)
 
     // @/pg 599/sec B3.2.4/`Armv7-M`.
     // @/pg 1680/sec D1.2.125/`Armv8-M`.
-    i32 interrupt_number = CMSIS_GET(SCB, ICSR, VECTACTIVE) - 16;
+    i32 interrupt_number = (i32) CMSIS_GET(SCB, ICSR, VECTACTIVE) - 16;
 
     switch (interrupt_number)
     {

@@ -68,7 +68,7 @@ spinlock_us(i32 microseconds)
         // but things are implicitly upcasted to 32-bit, and this does
         // break things. So to fix that edge case, we perform the
         // appropriate cast.
-        elapsed_us += (TIMEKEEPING_COUNTER_TYPE) (present_us - past_us);
+        elapsed_us += (i32) (TIMEKEEPING_COUNTER_TYPE) (present_us - past_us);
 
         past_us = present_us;
 

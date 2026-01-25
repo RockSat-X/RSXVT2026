@@ -38,16 +38,16 @@ main(void)
     for (;;)
     {
 
-        #include "DemoStepper_VELOCITIES.meta"
+        #include "DemoStepper_ANGULAR_VELOCITIES.meta"
         /* #meta
 
             import math
 
-            with Meta.enter(f'static const i32 VELOCITIES[] ='):
+            with Meta.enter(f'static const f32 ANGULAR_VELOCITIES[] ='):
 
-                for i in range(500):
+                for i in range(125):
                     Meta.line(f'''
-                        {round(math.sin(math.sin(i / 500 * 2 * math.pi) * i / 125 * 2 * math.pi * 16) * 10_000)},
+                        {math.sin(i / 125 * 2 * math.pi) * 55 :.03f}f,
                     ''')
 
         */
@@ -58,35 +58,35 @@ main(void)
         {
 
             // If there are multiple motors involved,
-            // a new step velocity must be pushed for
+            // a new angular velocity must be pushed for
             // all of them at the same time.
             // This demo however only has one motor involved,
             // that is the primary motor.
 
             b32 was_pushed =
-                STEPPER_push_velocities
+                STEPPER_push_angular_velocities
                 (
-                    &(i32[])
+                    &(f32[])
                     {
-                        [StepperInstanceHandle_primary] = VELOCITIES[index],
+                        [StepperInstanceHandle_primary] = ANGULAR_VELOCITIES[index],
                     }
                 );
 
             if (was_pushed)
             {
-                break; // The step velocity was sucessfully queued up.
+                break; // The angular velocity was sucessfully queued up.
             }
             else
             {
                 // The stepper driver's ring-buffer is full;
                 // wait until there's space to queue the next
-                // step velocity.
+                // angular velocity.
             }
 
         }
 
         index += 1;
-        index %= countof(VELOCITIES);
+        index %= countof(ANGULAR_VELOCITIES);
 
     }
 

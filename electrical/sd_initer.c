@@ -203,7 +203,7 @@ _SDIniter_handle_feedback(struct SDIniter* initer)
         {
 
             u32 ocr        = initer->feedback.response[0]; // @/pg 71/fig 4-4/`SD`.
-            b32 powered_up = ocr & (1 << 31);              // @/pg 249/tbl 5-1/`SD`.
+            b32 powered_up = ocr & (1U << 31);             // @/pg 249/tbl 5-1/`SD`.
 
             if (initer->feedback.cmd_failed || !powered_up) // Couldn't ready the card?
             {
@@ -275,7 +275,7 @@ _SDIniter_handle_feedback(struct SDIniter* initer)
 
             // The RCA is needed for some commands.
             // @/pg 144/sec 4.9.5/`SD`.
-            initer->rca   = initer->feedback.response[0] >> 16;
+            initer->rca   = (u16) (initer->feedback.response[0] >> 16);
             initer->state = SDIniterState_SEND_CSD;
 
         } break;
@@ -333,7 +333,7 @@ _SDIniter_handle_feedback(struct SDIniter* initer)
                     // in units of 512-byte sectors.
                     // @/pg 260/sec 5.3.3/`SD`.
 
-                    initer->capacity_sector_count = (csd.v2_C_SIZE + 1) * 1024;
+                    initer->capacity_sector_count = ((i32) csd.v2_C_SIZE + 1) * 1024;
 
                 } break;
 
@@ -747,7 +747,7 @@ SDIniter_update(struct SDIniter* initer)
                     .cmd = SDCmd_SWITCH_FUNC,
                     .arg =
                         (
-                            (1   << 31) | // We're going to change some functions around... @/pg 136/tbl 4-32/`SD`.
+                            (1U  << 31) | // We're going to change some functions around... @/pg 136/tbl 4-32/`SD`.
                             (0xF << 12) | // No influence on power-limit group. @/pg 107/tbl 4-11/`SD`.
                             (0xF <<  8) | // No influence on driver-strength group.
                             (0x1 <<  0)   // We want high-speed! @/pg 115/sec 4.3.11/`SD`.

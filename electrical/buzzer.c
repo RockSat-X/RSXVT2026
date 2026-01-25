@@ -134,7 +134,7 @@ struct BuzzerNote
 
 struct BuzzerDriver
 {
-    enum BuzzerTune          current_tune;
+    volatile enum BuzzerTune current_tune;
     volatile enum BuzzerTune desired_tune;
     i32                      note_index;
 };
@@ -221,6 +221,14 @@ BUZZER_play(enum BuzzerTune tune)
         NVIC_SET_PENDING(TIM8_UP);
     }
 
+}
+
+
+
+static void
+BUZZER_spinlock_to_completion(void)
+{
+    while (_BUZZER_driver.current_tune);
 }
 
 
