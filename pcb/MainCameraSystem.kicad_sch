@@ -5358,7 +5358,7 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "Regulator_Linear:AP2127N-1.8"
+		(symbol "Regulator_Linear:AP2127N-1.5"
 			(pin_names
 				(offset 0.254)
 			)
@@ -5373,7 +5373,7 @@
 					)
 				)
 			)
-			(property "Value" "AP2127N-1.8"
+			(property "Value" "AP2127N-1.5"
 				(at 0 3.175 0)
 				(effects
 					(font
@@ -5401,7 +5401,7 @@
 					(hide yes)
 				)
 			)
-			(property "Description" "300mA low dropout linear regulator, shutdown pin, 2.5V-6V input voltage, 1.8V fixed positive output, SOT-23 package"
+			(property "Description" "300mA low dropout linear regulator, shutdown pin, 2.5V-6V input voltage, 1.5V fixed positive output, SOT-23 package"
 				(at 0 0 0)
 				(effects
 					(font
@@ -5428,7 +5428,7 @@
 					(hide yes)
 				)
 			)
-			(symbol "AP2127N-1.8_0_1"
+			(symbol "AP2127N-1.5_0_1"
 				(rectangle
 					(start -5.08 1.905)
 					(end 5.08 -5.08)
@@ -5441,7 +5441,7 @@
 					)
 				)
 			)
-			(symbol "AP2127N-1.8_1_1"
+			(symbol "AP2127N-1.5_1_1"
 				(pin power_in line
 					(at -7.62 0 0)
 					(length 2.54)
@@ -15168,78 +15168,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Regulator_Linear:AP2127N-1.8")
-		(at 350.52 97.79 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "b01399d7-777c-4c79-a343-06148a366c69")
-		(property "Reference" "U3"
-			(at 350.52 91.44 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "AP2127N-1.8"
-			(at 350.52 93.98 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-3"
-			(at 350.52 92.075 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-					(italic yes)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "https://www.diodes.com/assets/Datasheets/AP2127.pdf"
-			(at 350.52 97.79 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "300mA low dropout linear regulator, shutdown pin, 2.5V-6V input voltage, 1.8V fixed positive output, SOT-23 package"
-			(at 350.52 97.79 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "e007147c-2aeb-4889-9992-cae638e80505")
-		)
-		(pin "3"
-			(uuid "ed7fc237-1fe3-4577-869b-72d7d29f3224")
-		)
-		(pin "1"
-			(uuid "c4227290-20ce-4cac-9f3a-5424c31cf26b")
-		)
-		(instances
-			(project ""
-				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "U3")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:C_Small")
 		(at 389.89 353.06 0)
 		(mirror y)
@@ -17232,6 +17160,78 @@
 			(project "MainCameraSystem"
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
 					(reference "#PWR016")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Regulator_Linear:AP2127N-1.5")
+		(at 350.52 97.79 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "fdf7c5af-ca02-4849-a57c-8a26e9b6b226")
+		(property "Reference" "U4"
+			(at 350.52 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "AP2127N-1.5TRG1"
+			(at 350.52 93.98 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23"
+			(at 350.52 92.075 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+					(italic yes)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.diodes.com/assets/Datasheets/AP2127.pdf"
+			(at 350.52 97.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "300mA low dropout linear regulator, shutdown pin, 2.5V-6V input voltage, 1.5V fixed positive output, SOT-23 package"
+			(at 350.52 97.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "988a0e72-968b-453b-94b9-95c8764e6b0f")
+		)
+		(pin "3"
+			(uuid "ff9f48e9-7910-4c0a-980e-311df70e4c0f")
+		)
+		(pin "2"
+			(uuid "d5206508-4252-4f7f-9a57-962b76c4875b")
+		)
+		(instances
+			(project "MainCameraSystem"
+				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
+					(reference "U4")
 					(unit 1)
 				)
 			)
