@@ -7,7 +7,6 @@
 
 
 
-
 extern noret void
 main(void)
 {
@@ -15,7 +14,60 @@ main(void)
     STPY_init();
     UXART_init(UXARTHandle_stlink);
 
-    #if 0
+    #if 1
+
+        UXART_init(UXARTHandle_stepper_uart);
+
+
+
+
+        ////////////////////////////////////////////////////////////////////////////////
+
+
+
+        // Set the prescaler that'll affect all timers' kernel frequency.
+
+        CMSIS_SET(RCC, CFGR1, TIMPRE, STPY_GLOBAL_TIMER_PRESCALER);
+
+
+
+        // TODO.
+
+        STEPPER_partial_reinit();
+
+
+        BUZZER_partial_init();
+
+
+        ////////////////////////////////////////////////////////////////////////////////
+
+
+        GPIO_ACTIVE(battery_allowed);
+
+
+        for (;;)
+        {
+
+            static i32 index = 0;
+
+            while
+            (
+                !STEPPER_push_velocities
+                (
+                    &(i32[])
+                    {
+                        [StepperInstanceHandle_axis_x] = (i32) STEPPER_STEPS_PER_REVOLUTION,
+                        [StepperInstanceHandle_axis_y] = 0,
+                        [StepperInstanceHandle_axis_z] = 0,
+                    }
+                )
+            );
+
+        }
+
+    #endif
+
+    #if 1
     {
 
         // Set the prescaler that'll affect all timers' kernel frequency.
@@ -46,7 +98,7 @@ main(void)
     }
     #endif
 
-    #if 0
+    #if 1
     {
         for (i32 iteration = 0;; iteration += 1)
         {
@@ -74,7 +126,7 @@ main(void)
     }
     #endif
 
-    #if 0 // TODO Copy-pasta from DemoSDMMC, which will be improved upon soon...
+    #if 1 // TODO Copy-pasta from DemoSDMMC, which will be improved upon soon...
     {
 
         SD_reinit(SDHandle_primary);
