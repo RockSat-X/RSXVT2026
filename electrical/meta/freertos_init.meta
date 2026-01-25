@@ -132,11 +132,19 @@
     enum FreeRTOSTask : u32
     {
         FreeRTOSTask_stepper_motor_controller,
+        FreeRTOSTask_user_inputter,
+        FreeRTOSTask_logger,
     };
-    static constexpr u32 FreeRTOSTask_COUNT = 1;
+    static constexpr u32 FreeRTOSTask_COUNT = 3;
     static noret void   stepper_motor_controller(void*);
     static StackType_t  stepper_motor_controller_stack[1024 / sizeof(StackType_t)] = {0};
     static StaticTask_t stepper_motor_controller_buffer = {0};
+    static noret void   user_inputter(void*);
+    static StackType_t  user_inputter_stack[1024 / sizeof(StackType_t)] = {0};
+    static StaticTask_t user_inputter_buffer = {0};
+    static noret void   logger(void*);
+    static StackType_t  logger_stack[1024 / sizeof(StackType_t)] = {0};
+    static StaticTask_t logger_buffer = {0};
     static noret void
     FREERTOS_init(void)
     {
@@ -150,6 +158,28 @@
                 0,
                 stepper_motor_controller_stack,
                 &stepper_motor_controller_buffer
+            );
+        TaskHandle_t user_inputter_handle =
+            xTaskCreateStatic
+            (
+                user_inputter,
+                "user_inputter",
+                countof(user_inputter_stack),
+                nullptr,
+                0,
+                user_inputter_stack,
+                &user_inputter_buffer
+            );
+        TaskHandle_t logger_handle =
+            xTaskCreateStatic
+            (
+                logger,
+                "logger",
+                countof(logger_stack),
+                nullptr,
+                0,
+                logger_stack,
+                &logger_buffer
             );
         vTaskStartScheduler();
         panic;

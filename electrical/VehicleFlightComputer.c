@@ -7,13 +7,13 @@
 
 
 
+////////////////////////////////////////////////////////////////////////////////
+
+
+
 extern noret void
 main(void)
 {
-
-    ////////////////////////////////////////////////////////////////////////////////
-
-
 
     // General peripheral initializations.
 
@@ -55,50 +55,94 @@ main(void)
 
 
 
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+static volatile f32 current_angular_acceleration = 0.0f;
+
 FREERTOS_TASK(stepper_motor_controller, 1024, 0)
+{
+
+    static f32 current_angular_velocity = 1.0f;
+
+    for (;;)
+    {
+
+        while
+        (
+            !STEPPER_push_angular_velocities
+            (
+                &(f32[])
+                {
+                    [StepperInstanceHandle_axis_x] = current_angular_velocity,
+                    [StepperInstanceHandle_axis_y] = 0,
+                    [StepperInstanceHandle_axis_z] = 0,
+                }
+            )
+        );
+
+        current_angular_velocity += current_angular_acceleration * (STEPPER_VELOCITY_UPDATE_US / 100'000.0f);
+
+        f32 limit = 2.0f * PI * 8.0f;
+
+        if (current_angular_velocity > limit)
+        {
+            current_angular_velocity = limit;
+            GPIO_ACTIVE(led_channel_red);
+        }
+        else if (current_angular_velocity < -limit)
+        {
+            current_angular_velocity = -limit;
+            GPIO_ACTIVE(led_channel_red);
+        }
+        else
+        {
+            GPIO_INACTIVE(led_channel_red);
+        }
+
+    }
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+FREERTOS_TASK(user_inputter, 1024, 0)
 {
     for (;;)
     {
 
-        #include "DemoStepper_ANGULAR_VELOCITIES.meta"
+        char input = {0};
+        while (!stlink_rx(&input));
 
-        static i32 index = 0;
-
-        while (true)
+        switch (input)
         {
-
-            // If there are multiple motors involved,
-            // a new angular velocity must be pushed for
-            // all of them at the same time.
-            // This demo however only has one motor involved,
-            // that is the primary motor.
-
-            b32 was_pushed =
-                STEPPER_push_angular_velocities
-                (
-                    &(f32[])
-                    {
-                        [StepperInstanceHandle_axis_x] = ANGULAR_VELOCITIES[index],
-                        [StepperInstanceHandle_axis_y] = 0,
-                        [StepperInstanceHandle_axis_z] = 0,
-                    }
-                );
-
-            if (was_pushed)
-            {
-                break; // The angular velocity was sucessfully queued up.
-            }
-            else
-            {
-                // The stepper driver's ring-buffer is full;
-                // wait until there's space to queue the next
-                // angular velocity.
-            }
-
+            case 'j': current_angular_acceleration += -0.1f; break;
+            case 'J': current_angular_acceleration += -1.0f; break;
+            case 'k': current_angular_acceleration +=  0.1f; break;
+            case 'K': current_angular_acceleration +=  1.0f; break;
+            case '0': current_angular_acceleration  =  0.0f; break;
+            default: break;
         }
 
-        index += 1;
-        index %= countof(ANGULAR_VELOCITIES);
+    }
+}
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+FREERTOS_TASK(logger, 1024, 0)
+{
+    for (;;)
+    {
+        stlink_tx("Angular acceleration: %.6f\n", current_angular_acceleration);
+        spinlock_nop(1'000'000);
     }
 }
