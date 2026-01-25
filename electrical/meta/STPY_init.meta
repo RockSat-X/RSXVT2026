@@ -3981,30 +3981,30 @@
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__button C
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__button 13
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__button
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__ovcam_data_0 C
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__ovcam_data_0 6
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__ovcam_data_0
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__ovcam_data_1 C
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__ovcam_data_1 7
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__ovcam_data_1
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__ovcam_data_2 B
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__ovcam_data_2 15
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__ovcam_data_2
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__ovcam_data_3 C
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__ovcam_data_3 9
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__ovcam_data_3
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__ovcam_data_4 C
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__ovcam_data_4 11
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__ovcam_data_4
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__ovcam_data_5 B
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__ovcam_data_5 6
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__ovcam_data_5
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__ovcam_data_6 B
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__ovcam_data_6 8
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__ovcam_data_6
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__ovcam_data_7 B
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__ovcam_data_7 4
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__ovcam_data_7
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__ovcam_y2 C
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__ovcam_y2 6
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__ovcam_y2
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__ovcam_y3 C
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__ovcam_y3 7
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__ovcam_y3
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__ovcam_y4 B
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__ovcam_y4 15
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__ovcam_y4
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__ovcam_y5 C
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__ovcam_y5 9
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__ovcam_y5
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__ovcam_y6 C
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__ovcam_y6 11
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__ovcam_y6
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__ovcam_y7 B
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__ovcam_y7 6
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__ovcam_y7
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__ovcam_y8 B
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__ovcam_y8 8
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__ovcam_y8
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__ovcam_y9 B
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__ovcam_y9 4
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__ovcam_y9
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__ovcam_pixel_clock A
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__ovcam_pixel_clock 6
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__ovcam_pixel_clock
