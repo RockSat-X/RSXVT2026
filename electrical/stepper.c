@@ -285,7 +285,7 @@ STEPPER_push_angular_velocities(f32 (*angular_velocities)[StepperInstanceHandle_
         {
             struct StepperInstance* instance    = &_STEPPER_driver.instances[handle];
             i32                     write_index = instance->angular_velocity_writer % countof(instance->angular_velocities);
-            instance->angular_velocities[write_index]  = (i32) (*angular_velocities)[handle];
+            instance->angular_velocities[write_index] = (*angular_velocities)[handle];
             instance->angular_velocity_writer         += 1;
         }
     }
