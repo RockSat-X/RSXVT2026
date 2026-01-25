@@ -211,7 +211,7 @@ static_assert(configMAX_SYSCALL_INTERRUPT_PRIORITY <= 255);
 #include <deps/FreeRTOS_Kernel/include/semphr.h>
 
 #if TARGET_USES_FREERTOS
-    #if TARGET_MCU_IS_STM32H533RET6
+    #if TARGET_MCU_IS_STM32H533RET6 || TARGET_MCU_IS_STM32H533VET6
         #include <deps/FreeRTOS_Kernel/tasks.c>
         #include <deps/FreeRTOS_Kernel/queue.c>
         #include <deps/FreeRTOS_Kernel/list.c>

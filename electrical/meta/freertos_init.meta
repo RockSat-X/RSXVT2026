@@ -129,8 +129,31 @@
     static constexpr u32 FreeRTOSTask_COUNT = 0;
 #endif
 #if TARGET_NAME_IS_VehicleFlightComputer
-    enum FreeRTOSTask : u32;
-    static constexpr u32 FreeRTOSTask_COUNT = 0;
+    enum FreeRTOSTask : u32
+    {
+        FreeRTOSTask_stepper_motor_controller,
+    };
+    static constexpr u32 FreeRTOSTask_COUNT = 1;
+    static noret void   stepper_motor_controller(void*);
+    static StackType_t  stepper_motor_controller_stack[1024 / sizeof(StackType_t)] = {0};
+    static StaticTask_t stepper_motor_controller_buffer = {0};
+    static noret void
+    FREERTOS_init(void)
+    {
+        TaskHandle_t stepper_motor_controller_handle =
+            xTaskCreateStatic
+            (
+                stepper_motor_controller,
+                "stepper_motor_controller",
+                countof(stepper_motor_controller_stack),
+                nullptr,
+                0,
+                stepper_motor_controller_stack,
+                &stepper_motor_controller_buffer
+            );
+        vTaskStartScheduler();
+        panic;
+    }
 #endif
 #if TARGET_NAME_IS_MainCameraSystem
     enum FreeRTOSTask : u32;

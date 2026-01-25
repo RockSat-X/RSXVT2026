@@ -162,7 +162,8 @@ UXART_rx(enum UXARTHandle handle, char* destination)
 
     b32 data_available = {0};
 
-    MUTEX_TAKE(driver->reception_mutex);
+    // TODO Fix:
+    // MUTEX_TAKE(driver->reception_mutex);
     {
         data_available = driver->reception_reader != driver->reception_writer;
 
@@ -179,7 +180,8 @@ UXART_rx(enum UXARTHandle handle, char* destination)
             driver->reception_reader += 1;
         }
     }
-    MUTEX_GIVE(driver->reception_mutex);
+    // TODO Fix:
+    // MUTEX_GIVE(driver->reception_mutex);
 
     return data_available;
 
