@@ -727,6 +727,10 @@ TARGETS = ( # @/`Defining Targets`.
                     ('axis_z', 2),
                 ),
             },
+            {
+                'type'       : 'TIMEKEEPING',
+                'peripheral' : 'TIM2',
+            },
         ),
 
         use_freertos    = True,
@@ -747,6 +751,7 @@ TARGETS = ( # @/`Defining Targets`.
             'SDMMC1_FULL_BAUD'    : 1_000_000,
             'USART1_BAUD'         :   200_000,
             'TIM1_UPDATE_RATE'    : 1 / 0.001,
+            'TIM2_COUNTER_RATE'   : 1_000_000,
             'TIM8_COUNTER_RATE'   : 1_000_000,
         },
 

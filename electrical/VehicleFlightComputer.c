@@ -4,10 +4,14 @@
 #include "filesystem.c"
 #include "stepper.c"
 #include "buzzer.c"
+#include "timekeeping.c"
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
+//
+// Pre-scheduler initialization.
+//
 
 
 
@@ -29,6 +33,40 @@ main(void)
 
 
 
+    // Initialize timekeeping.
+
+    {
+
+        // Enable the timekeeping's timer peripheral.
+
+        CMSIS_PUT(TIMEKEEPING_TIMER_ENABLE, true);
+
+
+
+        // Configure the divider to set the rate at
+        // which the timer's counter will increment.
+
+        CMSIS_SET(TIMEKEEPING_TIMER, PSC, PSC, TIMEKEEPING_DIVIDER);
+
+
+
+        // Trigger an update event so that the shadow registers
+        // are what we initialize them to be.
+        // The hardware uses shadow registers in order for updates
+        // to these registers not result in a corrupt timer output.
+
+        CMSIS_SET(TIMEKEEPING_TIMER, EGR, UG, true);
+
+
+
+        // Enable the timekeeping timer's counter.
+
+        CMSIS_SET(TIMEKEEPING_TIMER, CR1, CEN, true);
+
+    }
+
+
+
     // More peripheral initializations that depend on the above initializations.
 
     BUZZER_partial_init();
@@ -36,12 +74,15 @@ main(void)
 
 
 
-    // Whent the vehicle becomes powered on,
+    // When the vehicle becomes powered on,
     // it's typically because of the external
     // power suplly through the vehicle interface.
     //
     // TODO Add a delay before we enable the battery?
     // TODO Check if there's actually external power?
+
+    BUZZER_play(BuzzerTune_three_tone);
+    BUZZER_spinlock_to_completion();
 
     GPIO_ACTIVE(battery_allowed);
 
@@ -56,6 +97,9 @@ main(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
+//
+// Update motor angular velocities.
+//
 
 
 
@@ -68,6 +112,50 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 
     for (;;)
     {
+
+        #define MAX_ANGULAR_VELOCITY (2.0f * PI * 8.0f)
+
+        b32 max_angular_velocity_has_already_been_reached =
+            current_angular_velocity >=  MAX_ANGULAR_VELOCITY ||
+            current_angular_velocity <= -MAX_ANGULAR_VELOCITY;
+
+
+
+        // Find new angular velocity.
+
+        current_angular_velocity += current_angular_acceleration * (STEPPER_VELOCITY_UPDATE_US / 100'000.0f);
+
+
+
+        // Limit the angular velocity.
+
+        b32 max_angular_velocity_reached = false;
+
+        if (current_angular_velocity >= MAX_ANGULAR_VELOCITY)
+        {
+            current_angular_velocity     = MAX_ANGULAR_VELOCITY;
+            max_angular_velocity_reached = true;
+        }
+        else if (current_angular_velocity <= -MAX_ANGULAR_VELOCITY)
+        {
+            current_angular_velocity     = -MAX_ANGULAR_VELOCITY;
+            max_angular_velocity_reached = true;
+        }
+
+
+
+        // Indicate that the max angular velocity has been reached.
+
+        GPIO_SET(led_channel_red, max_angular_velocity_reached);
+
+        if (!max_angular_velocity_has_already_been_reached && max_angular_velocity_reached)
+        {
+            BUZZER_play(BuzzerTune_heartbeat);
+        }
+
+
+
+        // Queue up the angular velocity.
 
         while
         (
@@ -82,25 +170,6 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
             )
         );
 
-        current_angular_velocity += current_angular_acceleration * (STEPPER_VELOCITY_UPDATE_US / 100'000.0f);
-
-        f32 limit = 2.0f * PI * 8.0f;
-
-        if (current_angular_velocity > limit)
-        {
-            current_angular_velocity = limit;
-            GPIO_ACTIVE(led_channel_red);
-        }
-        else if (current_angular_velocity < -limit)
-        {
-            current_angular_velocity = -limit;
-            GPIO_ACTIVE(led_channel_red);
-        }
-        else
-        {
-            GPIO_INACTIVE(led_channel_red);
-        }
-
     }
 
 }
@@ -108,6 +177,9 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 
 
 ////////////////////////////////////////////////////////////////////////////////
+//
+// Take user input and do stuff.
+//
 
 
 
@@ -135,6 +207,9 @@ FREERTOS_TASK(user_inputter, 1024, 0)
 
 
 ////////////////////////////////////////////////////////////////////////////////
+//
+// Periodically log out stuff.
+//
 
 
 
@@ -143,6 +218,6 @@ FREERTOS_TASK(logger, 1024, 0)
     for (;;)
     {
         stlink_tx("Angular acceleration: %.6f\n", current_angular_acceleration);
-        spinlock_nop(1'000'000);
+        spinlock_us(10'000);
     }
 }
