@@ -275,15 +275,19 @@ _UXART_driver_interrupt(enum UXARTHandle handle)
     // side of the UXART peripheral or else the data the
     // transmitter sends will be interpreted as incoming data.
 
-    if (UXARTx_MODE == UXARTMode_half_duplex && !CMSIS_GET(UXARTx, ISR, TC))
-    {
-        CMSIS_SET
+    b32 enable_receiver =
+        implies
         (
-            UXARTx, CR1  ,
-            RE    , false, // Receiver will ignore the transmitter's output.
-            TCIE  , true , // We'll reenable the receiver once the transmitter is done.
+            UXARTx_MODE == UXARTMode_half_duplex,
+            CMSIS_GET(UXARTx, ISR, TC) && driver->transmission_reader == driver->transmission_writer
         );
-    }
+
+    CMSIS_SET
+    (
+        UXARTx, CR1             ,
+        RE    , enable_receiver , // Selectively disable the receiver during half-duplex transmissions.
+        TCIE  , !enable_receiver, // The receiver once the transmitter is done.
+    );
 
 
 
@@ -316,22 +320,6 @@ _UXART_driver_interrupt(enum UXARTHandle handle)
     // the TX-FIFO is empty again.
 
     CMSIS_SET(UXARTx, CR1, TXFEIE, driver->transmission_reader != driver->transmission_writer);
-
-
-
-    // In half-duplex mode, the receiver will be enabled whenever the
-    // transmitter is not doing stuff; otherwise, data we send out is
-    // interpreted as incoming data.
-
-    if (UXARTx_MODE == UXARTMode_half_duplex && CMSIS_GET(UXARTx, ISR, TC))
-    {
-        CMSIS_SET
-        (
-            UXARTx, CR1  ,
-            RE    , true , // Receiver is now allowed to read for data.
-            TCIE  , false, // No need for transmission-complete interrupts for now.
-        );
-    }
 
 
 
