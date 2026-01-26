@@ -14,6 +14,18 @@ main(void)
 
         FREERTOS_init(); // @/`Using FreeRTOS`.
 
+    #elif 1
+    {
+
+        for (;;)
+        {
+            GPIO_ACTIVE(debug);
+            stlink_tx("Meow!");
+            GPIO_INACTIVE(debug);
+            spinlock_nop(1'000'000);
+        }
+
+    }
     #else
 
         for (i32 iteration = 0;; iteration += 1)
@@ -44,7 +56,7 @@ main(void)
 
             // Check if we got any data from the ST-Link and echo it back if so.
 
-            for (char received_data = {0}; stlink_rx(&received_data);)
+            for (u8 received_data = {0}; stlink_rx(&received_data);)
             {
                 stlink_tx("Got '%c'!\n", received_data);
             }
@@ -206,7 +218,7 @@ FREERTOS_TASK(captain_allears, 1024, 0)
     for (;;)
     {
 
-        char input = {0};
+        u8 input = {0};
 
         if (stlink_rx(&input)) // Check if we got data from the ST-Link.
         {

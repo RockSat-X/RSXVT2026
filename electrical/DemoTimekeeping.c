@@ -90,7 +90,7 @@ main(void)
     for (;;)
     {
 
-        if (stlink_rx(&(char) {0}))
+        if (stlink_rx(&(u8) {0}))
         {
 
             halfperiod_i += 1;

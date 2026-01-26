@@ -106,6 +106,7 @@ TARGETS = ( # @/`Defining Targets`.
             ('swdio'    , 'A13', None        , {                                }),
             ('swclk'    , 'A14', None        , {                                }),
             ('button'   , 'C13', 'INPUT'     , { 'pull' : None, 'active' : True }),
+            ('debug'    , 'C10', 'OUTPUT'    , { 'initlvl' : False              }),
         ),
 
         interrupts = (
@@ -121,7 +122,7 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = True,
+        use_freertos    = False,
         main_stack_size = 8192,
         schema          = {
             'HSI_ENABLE'   : True,

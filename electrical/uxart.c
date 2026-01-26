@@ -3,8 +3,8 @@
 
 
 // Useful shorthand marcos.
-#define stlink_tx(...) UXART_tx(UXARTHandle_stlink, __VA_ARGS__)
-#define stlink_rx(...) UXART_rx(UXARTHandle_stlink, __VA_ARGS__)
+#define stlink_tx(...) UXART_tx_format(UXARTHandle_stlink, __VA_ARGS__)
+#define stlink_rx(...) UXART_rx       (UXARTHandle_stlink, __VA_ARGS__)
 
 
 
@@ -49,10 +49,12 @@ enum UXARTMode : u32
 
 struct UXARTDriver
 {
-    volatile u32  reception_reader;
-    volatile u32  reception_writer;
-    volatile char reception_buffer[1 << 8]; // TODO Consider being able to be set.
+    volatile u32 reception_reader;
+    volatile u32 reception_writer;
+    volatile u8  reception_buffer[1 << 8]; // TODO Consider being able to be set.
 };
+
+static_assert(IS_POWER_OF_TWO(countof(((struct UXARTDriver*) 0)->reception_buffer)));
 
 
 
@@ -65,10 +67,21 @@ static struct UXARTDriver _UXART_drivers[UXARTHandle_COUNT] = {0};
 
 
 static void
-_UXART_tx_raw_nonreentrant(enum UXARTHandle handle, u8* data, i32 length)
+UXART_tx_bytes(enum UXARTHandle handle, u8* data, i32 length)
 {
 
     _EXPAND_HANDLE
+
+    if (!data)
+        panic;
+
+    if (length < 0)
+        panic;
+
+    if (!CMSIS_GET(UXARTx, CR1, TE))
+        panic;
+
+
 
     for (i32 i = 0; i < length; i += 1)
     {
@@ -89,6 +102,8 @@ _UXART_tx_raw_nonreentrant(enum UXARTHandle handle, u8* data, i32 length)
 
     }
 
+
+
     // Wait until the transfer is completely done.
     // This isn't necessary for most calls,
     // but for certain situations like with half-duplex,
@@ -105,7 +120,7 @@ _UXART_tx_raw_nonreentrant(enum UXARTHandle handle, u8* data, i32 length)
 static void
 _UXART_fctprintf_callback(char character, void* void_handle)
 {
-    _UXART_tx_raw_nonreentrant
+    UXART_tx_bytes
     (
         (enum UXARTHandle) void_handle,
         &(u8) { character },
@@ -116,7 +131,7 @@ _UXART_fctprintf_callback(char character, void* void_handle)
 
 
 static void __attribute__((format(printf, 2, 3)))
-UXART_tx(enum UXARTHandle handle, char* format, ...)
+UXART_tx_format(enum UXARTHandle handle, char* format, ...)
 {
 
     _EXPAND_HANDLE
@@ -144,25 +159,17 @@ UXART_tx(enum UXARTHandle handle, char* format, ...)
 // sent as a multi-byte sequence.
 
 static useret b32 // Received character?
-UXART_rx(enum UXARTHandle handle, char* destination)
+UXART_rx(enum UXARTHandle handle, u8* destination)
 {
 
     _EXPAND_HANDLE
 
-    b32 data_available = {0};
-
-    data_available = driver->reception_reader != driver->reception_writer;
+    b32 data_available = driver->reception_reader != driver->reception_writer;
 
     if (data_available && destination)
     {
-        static_assert(IS_POWER_OF_TWO(countof(driver->reception_buffer)));
-
-        u32 reader_index =
-            driver->reception_reader
-                & (countof(driver->reception_buffer) - 1);
-
-        *destination = driver->reception_buffer[reader_index];
-
+        i32 reader_index = driver->reception_reader % countof(driver->reception_buffer);
+        *destination              = driver->reception_buffer[reader_index];
         driver->reception_reader += 1;
     }
 
@@ -232,6 +239,7 @@ UXART_init(enum UXARTHandle handle)
 }
 
 
+
 ////////////////////////////////////////////////////////////////////////////////
 
 
@@ -265,7 +273,7 @@ _UXART_driver_interrupt(enum UXARTHandle handle)
                 UXARTx, ICR , // We ignore the reception error.
                 FECF  , true, // Frame error.
                 NECF  , true, // Noise error.
-                PECF  , true, // Parity error (put here for completeness).
+                PECF  , true, // Parity error (here for completeness).
                 ORECF , true, // Overrun error.
             );
         #endif
@@ -273,23 +281,30 @@ _UXART_driver_interrupt(enum UXARTHandle handle)
 
 
 
-    // Handle received data.
+    // Handle any received data.
 
-    if (CMSIS_GET(UXARTx, ISR, RXNE)) // We got a byte of data?
+    if (CMSIS_GET(UXARTx, ISR, RXNE))
     {
 
-        // Pop from the hardware RX-buffer even if we don't have
-        // a place to save the data in our software buffer right now.
+        // Pop from the hardware RX-buffer
+        // even if we don't have a place to
+        // save the data in our software
+        // buffer right now.
+
         u8 data = (u8) UXARTx->RDR;
 
-        u32 reader_index =
-            driver->reception_reader
-                + countof(driver->reception_buffer);
 
-        b32 reception_buffer_full =
-            (driver->reception_writer == reader_index);
 
-        if (reception_buffer_full)
+        // See if we can push the data into
+        // the reception ring-buffer.
+
+        if (driver->reception_writer - driver->reception_reader < countof(driver->reception_buffer))
+        {
+            u32 writer_index = driver->reception_writer % countof(driver->reception_buffer);
+            driver->reception_buffer[writer_index]  = data;
+            driver->reception_writer               += 1;
+        }
+        else
         {
             #if 0
                 sorry // RX-buffer overflow!
@@ -298,17 +313,6 @@ _UXART_driver_interrupt(enum UXARTHandle handle)
                 // but this isn't a critical thing,
                 // so we'll just silently ignore it.
             #endif
-        }
-        else // Push received byte into the ring-buffer.
-        {
-            static_assert(IS_POWER_OF_TWO(countof(driver->reception_buffer)));
-
-            u32 writer_index =
-                driver->reception_writer
-                    & (countof(driver->reception_buffer) - 1);
-
-            driver->reception_buffer[writer_index]  = data;
-            driver->reception_writer               += 1;
         }
 
     }

@@ -28,7 +28,7 @@ main(void)
 
         u8 code = {0};
 
-        if (stlink_rx((char*) &code) && code == TV_WRITE_BYTE)
+        if (stlink_rx(&code) && code == TV_WRITE_BYTE)
         {
 
             // Update one of the camera module's register.
@@ -43,7 +43,7 @@ main(void)
 
             for (i32 i = 0; i < sizeof(command); i += 1)
             {
-                while (!stlink_rx((char*) &command + i));
+                while (!stlink_rx((u8*) &command + i));
             }
 
             enum I2CMasterError error =
@@ -86,7 +86,7 @@ main(void)
 
             stlink_tx(TV_TOKEN_START);
 
-            _UXART_tx_raw_nonreentrant
+            UXART_tx_bytes
             (
                 UXARTHandle_stlink,
                 (u8*) framebuffer->data,
