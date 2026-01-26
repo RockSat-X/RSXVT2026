@@ -654,19 +654,7 @@ _STEPPER_update_uart(void)
 
                     // Send the request.
 
-                    _UXART_tx_raw_nonreentrant
-                    (
-                        STEPPER_UXART_HANDLE,
-                        (u8*) &request,
-                        sizeof(request)
-                    );
-
-
-
-                    // Flush the RX-FIFO.
-                    // TODO Don't use char.
-
-                    while (UXART_rx(STEPPER_UXART_HANDLE, &(char) {0}));
+                    UXART_tx_bytes(STEPPER_UXART_HANDLE, (u8*) &request, sizeof(request));
 
 
 
@@ -726,7 +714,7 @@ _STEPPER_update_uart(void)
                     {
 
                         u8  byte     = {0};
-                        b32 got_byte = UXART_rx(STEPPER_UXART_HANDLE, (char*) &byte);
+                        b32 got_byte = UXART_rx(STEPPER_UXART_HANDLE, &byte);
 
                         if (got_byte)
                         {
@@ -876,12 +864,7 @@ _STEPPER_update_uart(void)
 
                     // Send the request.
 
-                    _UXART_tx_raw_nonreentrant
-                    (
-                        STEPPER_UXART_HANDLE,
-                        (u8*) &request,
-                        sizeof(request)
-                    );
+                    UXART_tx_bytes(STEPPER_UXART_HANDLE, (u8*) &request, sizeof(request));
 
 
 

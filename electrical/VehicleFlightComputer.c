@@ -232,7 +232,7 @@ FREERTOS_TASK(user_inputter, 1024, 0)
     for (;;)
     {
 
-        char input = {0};
+        u8 input = {0};
         while (!stlink_rx(&input));
 
         switch (input)

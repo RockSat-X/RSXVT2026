@@ -87,8 +87,8 @@ main(void)
             payload.nonredundant.crc = ESP32_calculate_crc((u8*) &payload, sizeof(payload) - sizeof(payload.nonredundant.crc));
 
             GPIO_ACTIVE(debug);
-            _UXART_tx_raw_nonreentrant(UXARTHandle_esp32, (u8*) &(u16) { PACKET_ESP32_START_TOKEN }, sizeof(u16));
-            _UXART_tx_raw_nonreentrant(UXARTHandle_esp32, (u8*) &payload, sizeof(payload));
+            UXART_tx_bytes(UXARTHandle_esp32, (u8*) &(u16) { PACKET_ESP32_START_TOKEN }, sizeof(u16));
+            UXART_tx_bytes(UXARTHandle_esp32, (u8*) &payload, sizeof(payload));
             GPIO_INACTIVE(debug);
 
         }
@@ -102,9 +102,9 @@ main(void)
 
             u8 data = {0};
 
-            if (UXART_rx(UXARTHandle_esp32, (char*) &data))
+            if (UXART_rx(UXARTHandle_esp32, &data))
             {
-                _UXART_tx_raw_nonreentrant(UXARTHandle_stlink, &data, sizeof(data));
+                UXART_tx_bytes(UXARTHandle_stlink, &data, sizeof(data));
             }
 
         }
