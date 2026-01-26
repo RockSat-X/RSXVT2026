@@ -8,7 +8,9 @@ main(void)
 {
 
     STPY_init();
+    spinlock_nop(100'000'000);
     UXART_init(UXARTHandle_stlink);
+    spinlock_nop(100'000'000);
 
     #if TARGET_USES_FREERTOS
 
@@ -19,9 +21,16 @@ main(void)
 
         for (;;)
         {
-            GPIO_ACTIVE(debug);
-            stlink_tx("Meow!");
-            GPIO_INACTIVE(debug);
+            #if TARGET_NAME_IS_SandboxNucleoH533RE
+                GPIO_ACTIVE(debug_2);
+            #endif
+
+            stlink_tx("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+
+            #if TARGET_NAME_IS_SandboxNucleoH533RE
+                GPIO_INACTIVE(debug_2);
+            #endif
+
             spinlock_nop(1'000'000);
         }
 

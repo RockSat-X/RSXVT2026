@@ -200,6 +200,10 @@
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__debug GPIO_BSRR_BR
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__debug C
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__debug 10
+        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__debug_2 GPIO_BSRR_BS
+        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__debug_2 GPIO_BSRR_BR
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__debug_2 C
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__debug_2 11
         CMSIS_SET
         (
             RCC    , AHB2ENR,
@@ -207,7 +211,12 @@
             GPIOCEN, true   ,
         );
         CMSIS_SET(GPIOA, ODR, OD5, false);
-        CMSIS_SET(GPIOC, ODR, OD10, false);
+        CMSIS_SET
+        (
+            GPIOC, ODR  ,
+            OD10 , false,
+            OD11 , false,
+        );
         CMSIS_WRITE
         (
             GPIO_AFRL, GPIOA->AFR[0],
@@ -225,6 +234,7 @@
         (
             GPIOC , MODER,
             MODE10, 0b01 ,
+            MODE11, 0b01 ,
             MODE13, 0b00 ,
         );
 
