@@ -106,8 +106,6 @@ TARGETS = ( # @/`Defining Targets`.
             ('swdio'    , 'A13', None        , {                                }),
             ('swclk'    , 'A14', None        , {                                }),
             ('button'   , 'C13', 'INPUT'     , { 'pull' : None, 'active' : True }),
-            ('debug'    , 'C10', 'OUTPUT'    , { 'initlvl' : False              }),
-            ('debug_2'  , 'C11', 'OUTPUT'    , { 'initlvl' : False              }),
         ),
 
         interrupts = (

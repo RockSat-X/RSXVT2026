@@ -136,7 +136,7 @@ _UXART_push_byte_for_transmission(char byte, void* void_handle)
 
     _EXPAND_HANDLE
 
-    if (!CMSIS_GET(UXARTx, CR1, TE))
+    if (!CMSIS_GET(UXARTx, CR1, UE))
         panic;
 
 
@@ -245,6 +245,9 @@ UXART_rx(enum UXARTHandle handle, u8* destination)
 
     _EXPAND_HANDLE
 
+    if (!CMSIS_GET(UXARTx, CR1, UE))
+        panic;
+
     b32 data_available = driver->reception_reader != driver->reception_writer;
 
     if (data_available && destination)
@@ -263,11 +266,24 @@ UXART_rx(enum UXARTHandle handle, u8* destination)
 static void
 _UXART_driver_interrupt(enum UXARTHandle handle)
 {
-    #if TARGET_NAME_IS_SandboxNucleoH533RE
-        GPIO_ACTIVE(debug);
-    #endif
 
     _EXPAND_HANDLE
+
+
+
+    // In half-duplex mode, we need to disable the receiver
+    // side of the UXART peripheral or else the data the
+    // transmitter sends will be interpreted as incoming data.
+
+    if (UXARTx_MODE == UXARTMode_half_duplex && !CMSIS_GET(UXARTx, ISR, TC))
+    {
+        CMSIS_SET
+        (
+            UXARTx, CR1  ,
+            RE    , false, // Receiver will ignore the transmitter's output.
+            TCIE  , true , // We'll reenable the receiver once the transmitter is done.
+        );
+    }
 
 
 
@@ -303,72 +319,96 @@ _UXART_driver_interrupt(enum UXARTHandle handle)
 
 
 
-    // Handle reception errors.
+    // In half-duplex mode, the receiver will be enabled whenever the
+    // transmitter is not doing stuff; otherwise, data we send out is
+    // interpreted as incoming data.
 
-    b32 reception_errors =
-        UXARTx->ISR &
-        (
-            USART_ISR_FE  | // Frame error.
-            USART_ISR_NE  | // Noise error.
-            USART_ISR_PE  | // Parity error (put here for completeness).
-            USART_ISR_ORE   // Overrun error.
-        );
-
-    if (reception_errors)
+    if (UXARTx_MODE == UXARTMode_half_duplex && CMSIS_GET(UXARTx, ISR, TC))
     {
-        #if 0
-            sorry // Reception error!
-        #else
-            CMSIS_SET
-            (
-                UXARTx, ICR , // We ignore the reception error.
-                FECF  , true, // Frame error.
-                NECF  , true, // Noise error.
-                PECF  , true, // Parity error (here for completeness).
-                ORECF , true, // Overrun error.
-            );
-        #endif
+        CMSIS_SET
+        (
+            UXARTx, CR1  ,
+            RE    , true , // Receiver is now allowed to read for data.
+            TCIE  , false, // No need for transmission-complete interrupts for now.
+        );
     }
 
 
 
     // Handle any received data.
 
-    if (CMSIS_GET(UXARTx, ISR, RXNE))
+    while (true)
     {
 
-        // Pop from the hardware RX-buffer
-        // even if we don't have a place to
-        // save the data in our software
-        // buffer right now.
+        // Handle reception errors.
 
-        u8 data = (u8) UXARTx->RDR;
+        b32 reception_errors =
+            UXARTx->ISR &
+            (
+                USART_ISR_FE  | // Frame error.
+                USART_ISR_NE  | // Noise error.
+                USART_ISR_PE  | // Parity error (put here for completeness).
+                USART_ISR_ORE   // Overrun error.
+            );
 
-
-
-        // See if we can push the data into
-        // the reception ring-buffer.
-
-        if (driver->reception_writer - driver->reception_reader < countof(driver->reception_buffer))
+        if (reception_errors)
         {
-            u32 writer_index = driver->reception_writer % countof(driver->reception_buffer);
-            driver->reception_buffer[writer_index]  = data;
-            driver->reception_writer               += 1;
+            #if 0
+                sorry // Reception error!
+            #else
+                CMSIS_SET
+                (
+                    UXARTx, ICR , // We ignore the reception error.
+                    FECF  , true, // Frame error.
+                    NECF  , true, // Noise error.
+                    PECF  , true, // Parity error (here for completeness).
+                    ORECF , true, // Overrun error.
+                );
+            #endif
+        }
+
+
+
+        // Handle any received data.
+
+        if (CMSIS_GET(UXARTx, ISR, RXNE))
+        {
+
+            // Pop from the hardware RX-buffer
+            // even if we don't have a place to
+            // save the data in our software
+            // buffer right now.
+
+            u8 data = (u8) UXARTx->RDR;
+
+
+
+            // See if we can push the data into
+            // the reception ring-buffer.
+
+            if (driver->reception_writer - driver->reception_reader < countof(driver->reception_buffer))
+            {
+                u32 writer_index = driver->reception_writer % countof(driver->reception_buffer);
+                driver->reception_buffer[writer_index]  = data;
+                driver->reception_writer               += 1;
+            }
+            else
+            {
+                #if 0
+                    sorry // RX-buffer overflow!
+                #else
+                    // We got an overflow,
+                    // but this isn't a critical thing,
+                    // so we'll just silently ignore it.
+                #endif
+            }
+
         }
         else
         {
-            #if 0
-                sorry // RX-buffer overflow!
-            #else
-                // We got an overflow,
-                // but this isn't a critical thing,
-                // so we'll just silently ignore it.
-            #endif
+            break;
         }
 
     }
 
-    #if TARGET_NAME_IS_SandboxNucleoH533RE
-        GPIO_INACTIVE(debug);
-    #endif
 }

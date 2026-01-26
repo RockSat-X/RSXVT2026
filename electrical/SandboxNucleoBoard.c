@@ -8,33 +8,12 @@ main(void)
 {
 
     STPY_init();
-    spinlock_nop(100'000'000);
     UXART_init(UXARTHandle_stlink);
-    spinlock_nop(100'000'000);
 
     #if TARGET_USES_FREERTOS
 
         FREERTOS_init(); // @/`Using FreeRTOS`.
 
-    #elif 1
-    {
-
-        for (;;)
-        {
-            #if TARGET_NAME_IS_SandboxNucleoH533RE
-                GPIO_ACTIVE(debug_2);
-            #endif
-
-            stlink_tx("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
-
-            #if TARGET_NAME_IS_SandboxNucleoH533RE
-                GPIO_INACTIVE(debug_2);
-            #endif
-
-            spinlock_nop(1'000'000);
-        }
-
-    }
     #else
 
         for (i32 iteration = 0;; iteration += 1)
