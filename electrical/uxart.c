@@ -107,7 +107,6 @@ UXART_init(enum UXARTHandle handle)
         UXARTx , CR3                                 ,
         EIE    , true                                , // Trigger interrupt upon error.
         HDSEL  , UXARTx_MODE == UXARTMode_half_duplex, // Whether or not to use half-duplex.
-        TXFTCFG, 0b101                               , // Set TX-FIFO threshold for when it becomes completely empty.
     );
     CMSIS_SET
     (
@@ -298,10 +297,9 @@ _UXART_driver_interrupt(enum UXARTHandle handle)
 
     // If there's still stuff left to transmit,
     // set the interrupt to trigger for whenever
-    // the TX-FIFO is empty again (as we had
-    // specified for the threshold).
+    // the TX-FIFO is empty again.
 
-    CMSIS_SET(UXARTx, CR3, TXFTIE, driver->transmission_reader != driver->transmission_writer);
+    CMSIS_SET(UXARTx, CR1, TXFEIE, driver->transmission_reader != driver->transmission_writer);
 
 
 
