@@ -85,14 +85,7 @@ main(void)
             // Send the data over.
 
             stlink_tx(TV_TOKEN_START);
-
-            UXART_tx_bytes
-            (
-                UXARTHandle_stlink,
-                (u8*) framebuffer->data,
-                framebuffer->length
-            );
-
+            UXART_tx_bytes(UXARTHandle_stlink, framebuffer->data, framebuffer->length);
             stlink_tx(TV_TOKEN_END);
 
 

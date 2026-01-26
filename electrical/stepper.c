@@ -654,19 +654,7 @@ _STEPPER_update_uart(void)
 
                     // Send the request.
 
-                    UXART_tx_bytes
-                    (
-                        STEPPER_UXART_HANDLE,
-                        (u8*) &request,
-                        sizeof(request)
-                    );
-
-
-
-                    // Flush the RX-FIFO.
-                    // TODO Don't use char.
-
-                    while (UXART_rx(STEPPER_UXART_HANDLE, &(u8) {0}));
+                    UXART_tx_bytes(STEPPER_UXART_HANDLE, (u8*) &request, sizeof(request));
 
 
 
@@ -876,12 +864,7 @@ _STEPPER_update_uart(void)
 
                     // Send the request.
 
-                    UXART_tx_bytes
-                    (
-                        STEPPER_UXART_HANDLE,
-                        (u8*) &request,
-                        sizeof(request)
-                    );
+                    UXART_tx_bytes(STEPPER_UXART_HANDLE, (u8*) &request, sizeof(request));
 
 
 
