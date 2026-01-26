@@ -5,7 +5,114 @@
 	(uuid "caaf0100-eb77-4215-a2d5-ab172094720c")
 	(paper "A2")
 	(lib_symbols
-		(symbol "Connector_Generic:Conn_01x04"
+		(symbol "Connector:TestPoint"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0.762)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "TP"
+				(at 0 6.858 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "TestPoint"
+				(at 0 5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 5.08 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 5.08 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "test point"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "test point tp"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "Pin* Test*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "TestPoint_0_1"
+				(circle
+					(center 0 3.302)
+					(radius 0.762)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "TestPoint_1_1"
+				(pin passive line
+					(at 0 0 90)
+					(length 2.54)
+					(name "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Connector_Generic:Conn_01x08"
 			(pin_names
 				(offset 1.016)
 				(hide yes)
@@ -14,15 +121,15 @@
 			(in_bom yes)
 			(on_board yes)
 			(property "Reference" "J"
-				(at 0 5.08 0)
+				(at 0 10.16 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
 				)
 			)
-			(property "Value" "Conn_01x04"
-				(at 0 -7.62 0)
+			(property "Value" "Conn_01x08"
+				(at 0 -12.7 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -47,7 +154,7 @@
 					(hide yes)
 				)
 			)
-			(property "Description" "Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(property "Description" "Generic connector, single row, 01x08, script generated (kicad-library-utils/schlib/autogen/connector/)"
 				(at 0 0 0)
 				(effects
 					(font
@@ -74,16 +181,38 @@
 					(hide yes)
 				)
 			)
-			(symbol "Conn_01x04_1_1"
+			(symbol "Conn_01x08_1_1"
 				(rectangle
-					(start -1.27 3.81)
-					(end 1.27 -6.35)
+					(start -1.27 8.89)
+					(end 1.27 -11.43)
 					(stroke
 						(width 0.254)
 						(type default)
 					)
 					(fill
 						(type background)
+					)
+				)
+				(rectangle
+					(start -1.27 7.747)
+					(end 0 7.493)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 5.207)
+					(end 0 4.953)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
 					)
 				)
 				(rectangle
@@ -130,8 +259,30 @@
 						(type none)
 					)
 				)
+				(rectangle
+					(start -1.27 -7.493)
+					(end 0 -7.747)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 -10.033)
+					(end 0 -10.287)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
 				(pin passive line
-					(at -5.08 2.54 0)
+					(at -5.08 7.62 0)
 					(length 3.81)
 					(name "Pin_1"
 						(effects
@@ -149,7 +300,7 @@
 					)
 				)
 				(pin passive line
-					(at -5.08 0 0)
+					(at -5.08 5.08 0)
 					(length 3.81)
 					(name "Pin_2"
 						(effects
@@ -167,7 +318,7 @@
 					)
 				)
 				(pin passive line
-					(at -5.08 -2.54 0)
+					(at -5.08 2.54 0)
 					(length 3.81)
 					(name "Pin_3"
 						(effects
@@ -185,7 +336,7 @@
 					)
 				)
 				(pin passive line
-					(at -5.08 -5.08 0)
+					(at -5.08 0 0)
 					(length 3.81)
 					(name "Pin_4"
 						(effects
@@ -195,6 +346,78 @@
 						)
 					)
 					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -2.54 0)
+					(length 3.81)
+					(name "Pin_5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -5.08 0)
+					(length 3.81)
+					(name "Pin_6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -7.62 0)
+					(length 3.81)
+					(name "Pin_7"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "7"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -10.16 0)
+					(length 3.81)
+					(name "Pin_8"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "8"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -5251,7 +5474,7 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "Regulator_Linear:AP2127N-1.8"
+		(symbol "Regulator_Linear:AP2127N-1.5"
 			(pin_names
 				(offset 0.254)
 			)
@@ -5266,7 +5489,7 @@
 					)
 				)
 			)
-			(property "Value" "AP2127N-1.8"
+			(property "Value" "AP2127N-1.5"
 				(at 0 3.175 0)
 				(effects
 					(font
@@ -5294,7 +5517,7 @@
 					(hide yes)
 				)
 			)
-			(property "Description" "300mA low dropout linear regulator, shutdown pin, 2.5V-6V input voltage, 1.8V fixed positive output, SOT-23 package"
+			(property "Description" "300mA low dropout linear regulator, shutdown pin, 2.5V-6V input voltage, 1.5V fixed positive output, SOT-23 package"
 				(at 0 0 0)
 				(effects
 					(font
@@ -5321,7 +5544,7 @@
 					(hide yes)
 				)
 			)
-			(symbol "AP2127N-1.8_0_1"
+			(symbol "AP2127N-1.5_0_1"
 				(rectangle
 					(start -5.08 1.905)
 					(end 5.08 -5.08)
@@ -5334,7 +5557,7 @@
 					)
 				)
 			)
-			(symbol "AP2127N-1.8_1_1"
+			(symbol "AP2127N-1.5_1_1"
 				(pin power_in line
 					(at -7.62 0 0)
 					(length 2.54)
@@ -6662,12 +6885,6 @@
 		(uuid "ad4404df-879a-4af3-804f-ef1bb2d22810")
 	)
 	(junction
-		(at 323.85 72.39)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "b55086e2-3b51-4ede-8398-9be8cad4be3a")
-	)
-	(junction
 		(at 389.89 349.25)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -6710,10 +6927,6 @@
 		(uuid "ffd35cf8-c97d-466e-8f80-1e31ea255312")
 	)
 	(no_connect
-		(at 250.19 189.23)
-		(uuid "0146502b-a95b-47ed-b07d-10fd72782485")
-	)
-	(no_connect
 		(at 189.23 267.97)
 		(uuid "03dc05c7-9a20-41e5-8d53-9828efd1805f")
 	)
@@ -6738,16 +6951,12 @@
 		(uuid "20876b7a-b6ef-43c8-bfe2-a87b31c15b65")
 	)
 	(no_connect
-		(at 250.19 199.39)
-		(uuid "2c7c35dd-c3ac-42fd-9846-e10f425ae946")
-	)
-	(no_connect
 		(at 250.19 196.85)
 		(uuid "2fc9bf9a-c147-493f-9e37-1107c0cec85d")
 	)
 	(no_connect
-		(at 250.19 270.51)
-		(uuid "393dd482-9298-4e92-9ca7-66d801488fb4")
+		(at 189.23 201.93)
+		(uuid "34cfc054-de15-4950-b26d-491772ae8d25")
 	)
 	(no_connect
 		(at 189.23 229.87)
@@ -6770,12 +6979,12 @@
 		(uuid "42e4438b-c885-4bc8-a0e0-bbe522fe717d")
 	)
 	(no_connect
-		(at 189.23 255.27)
-		(uuid "443214fa-1ae2-4540-9d59-6849875d839a")
+		(at 250.19 194.31)
+		(uuid "430d3776-9486-4f9b-b64c-f880d37e452c")
 	)
 	(no_connect
-		(at 250.19 222.25)
-		(uuid "45e0857a-507d-45a7-936f-1d99ec81f485")
+		(at 189.23 255.27)
+		(uuid "443214fa-1ae2-4540-9d59-6849875d839a")
 	)
 	(no_connect
 		(at 189.23 234.95)
@@ -6788,10 +6997,6 @@
 	(no_connect
 		(at 189.23 242.57)
 		(uuid "4d33ad86-ada2-47ed-b9ad-03e15b462a43")
-	)
-	(no_connect
-		(at 189.23 265.43)
-		(uuid "50bdbdb8-b43c-47de-ac24-7a6464dc62d1")
 	)
 	(no_connect
 		(at 250.19 232.41)
@@ -6810,10 +7015,6 @@
 		(uuid "6a04eaa8-a177-486b-a1ec-e7487985d08b")
 	)
 	(no_connect
-		(at 189.23 217.17)
-		(uuid "6af7d6c0-aafc-4e8f-9f35-a408bbaf280a")
-	)
-	(no_connect
 		(at 250.19 293.37)
 		(uuid "6f35a4a7-9803-4d63-b160-35db86daa8f2")
 	)
@@ -6828,14 +7029,6 @@
 	(no_connect
 		(at 250.19 214.63)
 		(uuid "80d4aee8-780d-40c2-93cf-b2291c30db51")
-	)
-	(no_connect
-		(at 222.25 146.05)
-		(uuid "821af009-b651-4c66-ae61-2688507b421b")
-	)
-	(no_connect
-		(at 250.19 224.79)
-		(uuid "869bb663-fcea-46bc-b10f-6442cda059a5")
 	)
 	(no_connect
 		(at 250.19 176.53)
@@ -6854,12 +7047,12 @@
 		(uuid "92fd5956-0e59-4f99-bd65-40c8a2f62994")
 	)
 	(no_connect
-		(at 189.23 262.89)
-		(uuid "9a05611d-2d3b-459d-bde7-7e3f3e38429e")
+		(at 189.23 212.09)
+		(uuid "9b3613d4-42c5-4c0d-ad1a-7202b027e7ce")
 	)
 	(no_connect
-		(at 250.19 194.31)
-		(uuid "9fc3d147-7bb8-4121-8d7a-cf440c606195")
+		(at 189.23 265.43)
+		(uuid "a9da1020-08d4-45d0-9262-a427b8537216")
 	)
 	(no_connect
 		(at 189.23 222.25)
@@ -6870,8 +7063,8 @@
 		(uuid "ad89e715-908d-49b2-b80d-e8e6e6037b3c")
 	)
 	(no_connect
-		(at 222.25 143.51)
-		(uuid "afd6bb3f-69f7-4aca-970a-c271350addc2")
+		(at 189.23 207.01)
+		(uuid "ae3d1b1f-d672-4c2e-83f1-87ebe90a8c48")
 	)
 	(no_connect
 		(at 171.45 60.96)
@@ -6888,6 +7081,10 @@
 	(no_connect
 		(at 189.23 227.33)
 		(uuid "c5adb965-60e2-45b8-b935-cc7ba6a348d5")
+	)
+	(no_connect
+		(at 250.19 270.51)
+		(uuid "c7c5cd85-407e-4e78-9218-83a0b723d985")
 	)
 	(no_connect
 		(at 189.23 196.85)
@@ -6926,8 +7123,12 @@
 		(uuid "dad2e94e-e78c-44da-ac50-1ee242d2cbb0")
 	)
 	(no_connect
-		(at 189.23 260.35)
-		(uuid "e1a8c662-e3f8-48a7-91b8-6c100f2d7f67")
+		(at 250.19 262.89)
+		(uuid "df4b164f-9008-4376-9a44-339e958ea74e")
+	)
+	(no_connect
+		(at 189.23 262.89)
+		(uuid "e302d2e4-ae7b-4b8a-b917-e3188ed9dbd8")
 	)
 	(no_connect
 		(at 171.45 119.38)
@@ -6942,26 +7143,6 @@
 			(type default)
 		)
 		(uuid "009ce259-1159-49dd-830e-77e9f479672f")
-	)
-	(wire
-		(pts
-			(xy 309.88 81.28) (xy 309.88 82.55)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "015b7348-8771-44bc-a77e-74af48b596e9")
-	)
-	(wire
-		(pts
-			(xy 393.7 73.66) (xy 393.7 72.39)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "0231d376-4650-4223-983b-8a01a1e77f01")
 	)
 	(wire
 		(pts
@@ -7085,16 +7266,6 @@
 	)
 	(wire
 		(pts
-			(xy 323.85 73.66) (xy 323.85 72.39)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "1cf07abb-d808-4949-9c2d-d9692cdd068e")
-	)
-	(wire
-		(pts
 			(xy 276.86 97.79) (xy 275.59 97.79)
 		)
 		(stroke
@@ -7112,16 +7283,6 @@
 			(type default)
 		)
 		(uuid "20018a86-47c7-429c-9c20-2fe8c77cb060")
-	)
-	(wire
-		(pts
-			(xy 323.85 72.39) (xy 337.82 72.39)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "202f665f-e0f1-4838-910f-cd74e25b699a")
 	)
 	(wire
 		(pts
@@ -7262,16 +7423,6 @@
 			(type default)
 		)
 		(uuid "3968009f-386a-4898-a761-eba905f9ff34")
-	)
-	(wire
-		(pts
-			(xy 323.85 81.28) (xy 323.85 82.55)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "3b075879-eaac-45d2-ab51-b479e113c0f9")
 	)
 	(wire
 		(pts
@@ -7675,16 +7826,6 @@
 	)
 	(wire
 		(pts
-			(xy 379.73 97.79) (xy 393.7 97.79)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "aeb9d3aa-edb1-4139-8c29-4b2efb5e2bf7")
-	)
-	(wire
-		(pts
 			(xy 247.65 87.63) (xy 247.65 88.9)
 		)
 		(stroke
@@ -7745,16 +7886,6 @@
 	)
 	(wire
 		(pts
-			(xy 309.88 73.66) (xy 309.88 72.39)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "c390d042-4fe1-417d-9341-aeb51a9558b9")
-	)
-	(wire
-		(pts
 			(xy 355.6 350.52) (xy 355.6 349.25)
 		)
 		(stroke
@@ -7772,16 +7903,6 @@
 			(type default)
 		)
 		(uuid "c7e527f4-e37b-45b5-bf24-8d7fd2d8cfb4")
-	)
-	(wire
-		(pts
-			(xy 379.73 106.68) (xy 393.7 106.68)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "c9769873-0e77-4553-b654-8f515af2f01a")
 	)
 	(wire
 		(pts
@@ -7815,6 +7936,16 @@
 	)
 	(wire
 		(pts
+			(xy 180.34 260.35) (xy 189.23 260.35)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "cc45c435-0a96-46a1-970f-daa574045228")
+	)
+	(wire
+		(pts
 			(xy 379.73 96.52) (xy 379.73 97.79)
 		)
 		(stroke
@@ -7845,16 +7976,6 @@
 	)
 	(wire
 		(pts
-			(xy 379.73 72.39) (xy 393.7 72.39)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "d4c98d6a-b134-495a-82eb-a5090091b7b7")
-	)
-	(wire
-		(pts
 			(xy 344.17 349.25) (xy 344.17 350.52)
 		)
 		(stroke
@@ -7862,16 +7983,6 @@
 			(type default)
 		)
 		(uuid "d85c5479-278a-4d50-98a6-0de2ba2fb7f2")
-	)
-	(wire
-		(pts
-			(xy 309.88 72.39) (xy 323.85 72.39)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "d93d4043-aa31-44f4-95cb-c6b06270171a")
 	)
 	(wire
 		(pts
@@ -7925,13 +8036,13 @@
 	)
 	(wire
 		(pts
-			(xy 393.7 99.06) (xy 393.7 97.79)
+			(xy 259.08 199.39) (xy 250.19 199.39)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "e7829a22-0e68-4468-8474-c024be07b577")
+		(uuid "e6b4701f-1c7e-4dfc-a759-8c75c2939a73")
 	)
 	(wire
 		(pts
@@ -8035,16 +8146,6 @@
 	)
 	(wire
 		(pts
-			(xy 379.73 81.28) (xy 393.7 81.28)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "fc5fea2a-1f32-4994-9bf4-624f84319101")
-	)
-	(wire
-		(pts
 			(xy 379.73 97.79) (xy 379.73 99.06)
 		)
 		(stroke
@@ -8052,6 +8153,30 @@
 			(type default)
 		)
 		(uuid "ff2563e9-6a85-405f-a269-6d4fab02bd83")
+	)
+	(label "debug_testpoint_a"
+		(at 189.23 260.35 180)
+		(effects
+			(font
+				(size 0.635 0.635)
+				(thickness 0.127)
+				(bold yes)
+			)
+			(justify right bottom)
+		)
+		(uuid "2975e66a-05bc-4790-92a8-a59528aa91b6")
+	)
+	(label "debug_testpoint_b"
+		(at 250.19 199.39 0)
+		(effects
+			(font
+				(size 0.635 0.635)
+				(thickness 0.127)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+		(uuid "700d778a-d83d-4106-a376-14445cb3570d")
 	)
 	(global_label "swo"
 		(shape bidirectional)
@@ -8449,6 +8574,28 @@
 			)
 		)
 	)
+	(global_label "sd_cmd"
+		(shape bidirectional)
+		(at 280.67 346.71 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "3d64d070-d3bf-41e9-a291-80f61ed64e84")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 269.4979 346.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "ovcam_y8"
 		(shape bidirectional)
 		(at 171.45 93.98 180)
@@ -8550,28 +8697,6 @@
 		(uuid "430bafee-98a4-4714-996f-3c5bc5719015")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 346.6657 287.02 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "led_channel_blue"
-		(shape bidirectional)
-		(at 189.23 207.01 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "46037398-fa0c-4dae-8897-b5ecedaf2ec8")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 168.8053 207.01 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8691,28 +8816,6 @@
 			)
 		)
 	)
-	(global_label "ovcam_power_down"
-		(shape bidirectional)
-		(at 189.23 212.09 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "5bcd9900-4d9d-47ae-b981-900fbbe1ce4e")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 166.87 212.09 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "VCAP"
 		(shape bidirectional)
 		(at 455.93 328.93 180)
@@ -8753,6 +8856,28 @@
 					(size 1.27 1.27)
 				)
 				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "led_channel_blue"
+		(shape bidirectional)
+		(at 250.19 224.79 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "673febb8-10e5-471f-bc38-8fae3869913e")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 270.6147 224.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
 				(hide yes)
 			)
 		)
@@ -8946,6 +9071,28 @@
 		(uuid "7fbc4df4-b979-48bb-a1df-df48d3a17131")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 158.887 81.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "sd_clock"
+		(shape bidirectional)
+		(at 280.67 344.17 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "8149e6d0-5224-4965-bf8e-9d698a949bea")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 268.4093 344.17 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9285,6 +9432,28 @@
 			)
 		)
 	)
+	(global_label "sd_data_3"
+		(shape bidirectional)
+		(at 280.67 341.63 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "cb2fd2b6-9a15-43cd-881f-bf5cd7abdff0")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 267.079 341.63 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "sd_data_1"
 		(shape bidirectional)
 		(at 250.19 283.21 0)
@@ -9373,6 +9542,50 @@
 			)
 		)
 	)
+	(global_label "sd_data_0"
+		(shape bidirectional)
+		(at 280.67 351.79 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "d5ca2862-eea8-4e68-949e-8a80e63b058b")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 267.079 351.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "ovcam_power_down"
+		(shape bidirectional)
+		(at 250.19 189.23 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "d73d1c60-9e7d-45d1-98dc-ff8e97817eb3")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 272.55 189.23 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "VCAP"
 		(shape bidirectional)
 		(at 189.23 285.75 180)
@@ -9413,6 +9626,28 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "sd_data_1"
+		(shape bidirectional)
+		(at 280.67 349.25 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "dd7db97f-da6d-4707-b4e9-9cb0a342c3ac")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 267.079 349.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
 				(hide yes)
 			)
 		)
@@ -9527,6 +9762,28 @@
 			)
 		)
 	)
+	(global_label "led_channel_green"
+		(shape bidirectional)
+		(at 250.19 222.25 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "e73229b0-4ce4-47fa-97f9-364168b470a1")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 271.8243 222.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "ovcam_power_down"
 		(shape bidirectional)
 		(at 276.86 97.79 0)
@@ -9545,6 +9802,50 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "sd_data_2"
+		(shape bidirectional)
+		(at 280.67 339.09 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "ee317740-3583-4752-8545-0cba18cf1b30")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 267.079 339.09 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "led_channel_red"
+		(shape bidirectional)
+		(at 189.23 217.17 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "eff32032-9702-4d91-89de-7ca117fc5ef0")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 169.8333 217.17 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
 				(hide yes)
 			)
 		)
@@ -9593,28 +9894,6 @@
 			)
 		)
 	)
-	(global_label "led_channel_red"
-		(shape bidirectional)
-		(at 189.23 201.93 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "f52dfd9a-6b76-4b37-8df7-833c783ee0e8")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 169.8333 201.93 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "ovcam_i2c_data"
 		(shape bidirectional)
 		(at 250.19 247.65 0)
@@ -9637,95 +9916,6 @@
 			)
 		)
 	)
-	(global_label "led_channel_green"
-		(shape bidirectional)
-		(at 250.19 262.89 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "fd7d926c-158b-44ee-b6a6-37ee8def215c")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 271.8243 262.89 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:GND")
-		(at 323.85 82.55 0)
-		(mirror y)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "00d95511-bea1-43cc-84a1-e4787c39cbdd")
-		(property "Reference" "#PWR020"
-			(at 323.85 88.9 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "GND"
-			(at 323.85 87.63 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Footprint" ""
-			(at 323.85 82.55 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 323.85 82.55 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 323.85 82.55 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "5b5a5629-fb76-4e97-b3ad-3703159b329f")
-		)
-		(instances
-			(project "MainCameraSystem"
-				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "#PWR020")
-					(unit 1)
-				)
-			)
-		)
-	)
 	(symbol
 		(lib_id "Device:R")
 		(at 359.41 332.74 0)
@@ -9737,7 +9927,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "0291b913-1482-4405-9ff5-277844d932d6")
-		(property "Reference" "R5"
+		(property "Reference" "R3"
 			(at 356.87 331.4699 0)
 			(effects
 				(font
@@ -9797,7 +9987,7 @@
 			)
 			(project ""
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "R5")
+					(reference "R3")
 					(unit 1)
 				)
 			)
@@ -9960,7 +10150,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "08a150b6-618e-4ade-8ee2-84330e57946b")
-		(property "Reference" "R10"
+		(property "Reference" "R7"
 			(at 406.4 218.4399 0)
 			(effects
 				(font
@@ -10020,7 +10210,7 @@
 			)
 			(project ""
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "R10")
+					(reference "R7")
 					(unit 1)
 				)
 			)
@@ -10100,7 +10290,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "0d0c5384-f78d-40db-adf7-49571407a0dc")
-		(property "Reference" "C14"
+		(property "Reference" "C11"
 			(at 383.54 76.1999 0)
 			(effects
 				(font
@@ -10154,7 +10344,7 @@
 		(instances
 			(project "MainCameraSystem"
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "C14")
+					(reference "C11")
 					(unit 1)
 				)
 			)
@@ -10237,7 +10427,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "100e0467-9689-48fc-8c09-1382d6aa5b05")
-		(property "Reference" "SW1"
+		(property "Reference" "SW2"
 			(at 354.33 321.31 0)
 			(effects
 				(font
@@ -10295,7 +10485,7 @@
 			)
 			(project ""
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "SW1")
+					(reference "SW2")
 					(unit 1)
 				)
 			)
@@ -10311,7 +10501,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "13559ca5-c95a-45ab-9bf3-16338b054fa5")
-		(property "Reference" "C12"
+		(property "Reference" "C5"
 			(at 364.49 351.7962 0)
 			(effects
 				(font
@@ -10377,7 +10567,7 @@
 			)
 			(project ""
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "C12")
+					(reference "C5")
 					(unit 1)
 				)
 			)
@@ -10460,7 +10650,7 @@
 		(on_board yes)
 		(dnp yes)
 		(uuid "168310b9-c513-49d6-8774-34d50dcec344")
-		(property "Reference" "C16"
+		(property "Reference" "C4"
 			(at 379.73 218.4462 0)
 			(effects
 				(font
@@ -10520,7 +10710,7 @@
 			)
 			(project ""
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "C16")
+					(reference "C4")
 					(unit 1)
 				)
 			)
@@ -10601,7 +10791,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "1a399ff5-cfbb-483c-82f8-b07a594137bc")
-		(property "Reference" "C8"
+		(property "Reference" "C9"
 			(at 341.63 351.7962 0)
 			(effects
 				(font
@@ -10667,7 +10857,7 @@
 			)
 			(project ""
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "C8")
+					(reference "C9")
 					(unit 1)
 				)
 			)
@@ -10683,7 +10873,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "1cf03f26-d0ee-47b0-9f55-d82e1afa8407")
-		(property "Reference" "R2"
+		(property "Reference" "R11"
 			(at 226.06 91.4399 0)
 			(effects
 				(font
@@ -10737,7 +10927,7 @@
 		(instances
 			(project "MainCameraSystem"
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "R2")
+					(reference "R11")
 					(unit 1)
 				)
 			)
@@ -10877,73 +11067,6 @@
 		)
 	)
 	(symbol
-		(lib_id "power:+3.3V")
-		(at 222.25 138.43 270)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "1f3a7079-8108-4570-9c7c-969065a437b6")
-		(property "Reference" "#PWR051"
-			(at 218.44 138.43 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "+3.3V"
-			(at 226.06 138.4299 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" ""
-			(at 222.25 138.43 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 222.25 138.43 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-			(at 222.25 138.43 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "6b9536dd-22db-4ec1-84ec-def723b5e3d4")
-		)
-		(instances
-			(project "MainCameraSystem"
-				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "#PWR051")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Connector_Generic:Conn_01x10")
 		(at 388.62 160.02 0)
 		(unit 1)
@@ -10953,7 +11076,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "1fe51366-b968-4d92-83ec-62acb1ae453d")
-		(property "Reference" "J2"
+		(property "Reference" "J1"
 			(at 391.16 160.0199 0)
 			(effects
 				(font
@@ -11037,7 +11160,7 @@
 			)
 			(project ""
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "J2")
+					(reference "J1")
 					(unit 1)
 				)
 			)
@@ -11124,7 +11247,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "247441cb-d0d2-4d02-9be3-0ba00f6941dc")
-		(property "Reference" "C10"
+		(property "Reference" "C16"
 			(at 368.3 76.1999 0)
 			(effects
 				(font
@@ -11178,7 +11301,93 @@
 		(instances
 			(project "MainCameraSystem"
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "C10")
+					(reference "C16")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector_Generic:Conn_01x08")
+		(at 285.75 349.25 0)
+		(mirror x)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "285fee45-2a96-4d4a-b097-f91f1cfad0f3")
+		(property "Reference" "J2"
+			(at 285.75 332.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "B8B-XH-A"
+			(at 285.75 335.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Connector_JST:JST_XH_B8B-XH-A_1x08_P2.50mm_Vertical"
+			(at 285.75 349.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 285.75 349.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Generic connector, single row, 01x08, script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(at 285.75 349.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "5"
+			(uuid "f2ad4407-07e1-41da-9e1d-555b17d66c79")
+		)
+		(pin "8"
+			(uuid "b1fc91e1-69a1-4c5d-b145-3a06d6add8dc")
+		)
+		(pin "6"
+			(uuid "21fd363c-651b-4993-b9fd-084d46c1e5a7")
+		)
+		(pin "1"
+			(uuid "284c657b-a593-4793-9711-aab63f7ba7e2")
+		)
+		(pin "2"
+			(uuid "c2a0a713-4af1-4ba4-8279-f0104872aff0")
+		)
+		(pin "7"
+			(uuid "7b912129-523d-4813-ad9a-4f698dbec1a6")
+		)
+		(pin "3"
+			(uuid "8dffceba-006a-45b8-8af4-31648cf46e26")
+		)
+		(pin "4"
+			(uuid "024c6a3a-353e-49c3-988e-a73821cc62c8")
+		)
+		(instances
+			(project "MainCameraSystem"
+				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
+					(reference "J2")
 					(unit 1)
 				)
 			)
@@ -11394,7 +11603,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "3a1945a1-9791-426f-8f40-c82072f7c55f")
-		(property "Reference" "R8"
+		(property "Reference" "R9"
 			(at 382.27 276.8599 0)
 			(effects
 				(font
@@ -11454,7 +11663,7 @@
 			)
 			(project ""
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "R8")
+					(reference "R9")
 					(unit 1)
 				)
 			)
@@ -11470,7 +11679,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "442a0b14-e1c9-4f57-bb69-fbcb896f0b0e")
-		(property "Reference" "C21"
+		(property "Reference" "C7"
 			(at 419.1 351.7962 0)
 			(effects
 				(font
@@ -11536,7 +11745,7 @@
 			)
 			(project ""
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "C21")
+					(reference "C7")
 					(unit 1)
 				)
 			)
@@ -11984,7 +12193,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "4e9c94f2-f2e0-496f-9fa4-1e4415cd5a0c")
-		(property "Reference" "J1"
+		(property "Reference" "J3"
 			(at 179.07 88.8999 0)
 			(effects
 				(font
@@ -11993,7 +12202,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "FFC2B28-24-G"
+		(property "Value" "XF3M_2415_1B"
 			(at 179.07 91.4399 0)
 			(effects
 				(font
@@ -12002,7 +12211,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "pcb:Flat Flexible Cable 24-Pin 0.5mm Connector - REVERSED"
+		(property "Footprint" "pcb:XF3M_2415_1B - REVERSED"
 			(at 176.53 88.9 0)
 			(effects
 				(font
@@ -12113,7 +12322,7 @@
 		(instances
 			(project "MainCameraSystem"
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "J1")
+					(reference "J3")
 					(unit 1)
 				)
 			)
@@ -12204,7 +12413,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "50592430-5102-4b16-96f4-4e32f0b26d0a")
-		(property "Reference" "C2"
+		(property "Reference" "C22"
 			(at 309.88 101.5999 0)
 			(effects
 				(font
@@ -12258,7 +12467,7 @@
 		(instances
 			(project "MainCameraSystem"
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "C2")
+					(reference "C22")
 					(unit 1)
 				)
 			)
@@ -12273,7 +12482,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "508eca2f-8557-4b14-8fe5-1d503b6be8b4")
-		(property "Reference" "C15"
+		(property "Reference" "C21"
 			(at 383.54 101.5999 0)
 			(effects
 				(font
@@ -12327,7 +12536,74 @@
 		(instances
 			(project "MainCameraSystem"
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "C15")
+					(reference "C21")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 180.34 260.35 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "538ea3a2-bcab-46b7-babc-7ebcbe3b2558")
+		(property "Reference" "TP1"
+			(at 175.26 260.3499 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "TestPoint"
+			(at 177.038 257.81 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "TestPoint:TestPoint_Bridge_Pitch2.0mm_Drill0.7mm"
+			(at 180.34 255.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 180.34 255.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "test point"
+			(at 180.34 260.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "c43f53bd-3a33-4658-89a0-ebbc371277fd")
+		)
+		(instances
+			(project "MainCameraSystem"
+				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
+					(reference "TP1")
 					(unit 1)
 				)
 			)
@@ -12400,76 +12676,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:C")
-		(at 309.88 77.47 0)
-		(mirror y)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "559c2246-ac6a-48e7-bc9e-e063ec62c99b")
-		(property "Reference" "C3"
-			(at 306.07 76.1999 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "10u"
-			(at 306.07 78.7399 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder"
-			(at 308.9148 81.28 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 309.88 77.47 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Unpolarized capacitor"
-			(at 309.88 77.47 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "31d7bf1e-6b7a-44d3-8328-db89b1b87bae")
-		)
-		(pin "2"
-			(uuid "e6bc12fa-3167-44fa-b421-e5676ae1d1f3")
-		)
-		(instances
-			(project "MainCameraSystem"
-				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "C3")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Switch:SW_Push")
 		(at 393.7 215.9 0)
 		(unit 1)
@@ -12479,7 +12685,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "59a97cdc-3f89-4e34-8607-8a9c9d6ff420")
-		(property "Reference" "SW2"
+		(property "Reference" "SW1"
 			(at 393.7 208.28 0)
 			(effects
 				(font
@@ -12537,7 +12743,7 @@
 			)
 			(project ""
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "SW2")
+					(reference "SW1")
 					(unit 1)
 				)
 			)
@@ -12616,6 +12822,72 @@
 			(project ""
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
 					(reference "#PWR026")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3.3V")
+		(at 280.67 354.33 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5bfe48ba-589f-428d-b489-3c399143a85b")
+		(property "Reference" "#PWR019"
+			(at 284.48 354.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3.3V"
+			(at 276.86 354.3301 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 280.67 354.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 280.67 354.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 280.67 354.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "389c236a-e7fc-4aa3-bb54-9aa22160dfba")
+		)
+		(instances
+			(project "MainCameraSystem"
+				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
+					(reference "#PWR019")
 					(unit 1)
 				)
 			)
@@ -12970,7 +13242,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "69694175-986f-4d0c-b0dc-f084d68f4121")
-		(property "Reference" "R4"
+		(property "Reference" "R12"
 			(at 278.13 101.5999 0)
 			(effects
 				(font
@@ -13024,7 +13296,7 @@
 		(instances
 			(project "MainCameraSystem"
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "R4")
+					(reference "R12")
 					(unit 1)
 				)
 			)
@@ -13323,7 +13595,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "76651bbd-eb47-4b9b-b037-fe5b2d92fb7a")
-		(property "Reference" "Y1"
+		(property "Reference" "Y0"
 			(at 368.3 43.1098 0)
 			(effects
 				(font
@@ -13381,7 +13653,7 @@
 		(instances
 			(project ""
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "Y1")
+					(reference "Y0")
 					(unit 1)
 				)
 			)
@@ -13397,7 +13669,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "7a3a661d-d455-45ee-9a7b-a795f0fc473c")
-		(property "Reference" "C20"
+		(property "Reference" "C14"
 			(at 398.78 351.7962 0)
 			(effects
 				(font
@@ -13463,7 +13735,7 @@
 			)
 			(project ""
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "C20")
+					(reference "C14")
 					(unit 1)
 				)
 			)
@@ -13531,6 +13803,72 @@
 			(project "MainCameraSystem"
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
 					(reference "#PWR015")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 280.67 356.87 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "7c471a25-3074-4d41-a930-584c72312175")
+		(property "Reference" "#PWR020"
+			(at 274.32 356.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 275.59 356.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 280.67 356.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 280.67 356.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 280.67 356.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "4937c67a-9c54-4b3e-a9bf-155575e61c27")
+		)
+		(instances
+			(project "MainCameraSystem"
+				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
+					(reference "#PWR020")
 					(unit 1)
 				)
 			)
@@ -13671,140 +14009,6 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 222.25 140.97 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "84905b26-b0cf-4d32-9dda-3b6acb75ce64")
-		(property "Reference" "#PWR052"
-			(at 228.6 140.97 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "GND"
-			(at 227.33 140.97 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Footprint" ""
-			(at 222.25 140.97 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 222.25 140.97 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 222.25 140.97 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "2ca87555-a370-4af8-a1e1-d758a1f26081")
-		)
-		(instances
-			(project "MainCameraSystem"
-				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "#PWR052")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:GND")
-		(at 309.88 82.55 0)
-		(mirror y)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "858dd036-6e59-435a-a82e-2be38c1e5eff")
-		(property "Reference" "#PWR019"
-			(at 309.88 88.9 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "GND"
-			(at 309.88 87.63 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Footprint" ""
-			(at 309.88 82.55 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 309.88 82.55 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 309.88 82.55 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "97ecdd68-ddc0-4962-ab77-a6554ad0269a")
-		)
-		(instances
-			(project "MainCameraSystem"
-				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "#PWR019")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:GND")
 		(at 350.52 107.95 0)
 		(mirror y)
 		(unit 1)
@@ -13880,7 +14084,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "89e03380-6152-41d4-a5ad-0b982398aff9")
-		(property "Reference" "C1"
+		(property "Reference" "C17"
 			(at 251.46 101.5999 0)
 			(effects
 				(font
@@ -13934,76 +14138,7 @@
 		(instances
 			(project ""
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "C1")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:C")
-		(at 393.7 102.87 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "8cb40e1f-bec1-4794-b4bc-ec8357534418")
-		(property "Reference" "C19"
-			(at 397.51 101.5999 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "10u"
-			(at 397.51 104.1399 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder"
-			(at 394.6652 106.68 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 393.7 102.87 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Unpolarized capacitor"
-			(at 393.7 102.87 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "6a2efcc0-5a7b-444a-a44f-3eae33e34859")
-		)
-		(pin "2"
-			(uuid "dbb07477-ebf3-4efd-958c-4d55feb0d74a")
-		)
-		(instances
-			(project "MainCameraSystem"
-				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "C19")
+					(reference "C17")
 					(unit 1)
 				)
 			)
@@ -14019,7 +14154,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "8d7764fe-751f-4f34-ada5-7af4c8ccebe6")
-		(property "Reference" "R3"
+		(property "Reference" "R8"
 			(at 250.19 91.4399 0)
 			(effects
 				(font
@@ -14073,7 +14208,7 @@
 		(instances
 			(project "MainCameraSystem"
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "R3")
+					(reference "R8")
 					(unit 1)
 				)
 			)
@@ -14372,7 +14507,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "99d1f1af-b5a4-47bf-8f54-564392941241")
-		(property "Reference" "C23"
+		(property "Reference" "C12"
 			(at 472.44 330.2062 0)
 			(effects
 				(font
@@ -14438,7 +14573,7 @@
 			)
 			(project ""
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "C23")
+					(reference "C12")
 					(unit 1)
 				)
 			)
@@ -14453,7 +14588,7 @@
 		(on_board yes)
 		(dnp yes)
 		(uuid "9ba2ccb3-f586-45bf-95c5-d3236ff6ba31")
-		(property "Reference" "R7"
+		(property "Reference" "R4"
 			(at 379.73 210.8199 0)
 			(effects
 				(font
@@ -14513,222 +14648,7 @@
 			)
 			(project ""
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "R7")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Connector_Generic:Conn_01x04")
-		(at 217.17 140.97 0)
-		(mirror y)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "9becb7e6-07bf-47e9-a228-de2504f0d032")
-		(property "Reference" "J4"
-			(at 214.63 140.9699 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "B4B-XH-A"
-			(at 214.63 143.5099 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Connector_JST:JST_XH_B4B-XH-A_1x04_P2.50mm_Vertical"
-			(at 217.17 140.97 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 217.17 140.97 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"
-			(at 217.17 140.97 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "2068ab27-bb0c-407b-920f-1f54f97eda49")
-		)
-		(pin "2"
-			(uuid "3d4de106-c7a5-47f4-86cc-0c795c1490fb")
-		)
-		(pin "3"
-			(uuid "ef3cb07f-ef4b-4ad5-b816-6e4ca1913ad5")
-		)
-		(pin "4"
-			(uuid "5a27af4a-1d46-4741-8c57-480175d176af")
-		)
-		(instances
-			(project "MainCameraSystem"
-				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "J4")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:C")
-		(at 323.85 77.47 0)
-		(mirror y)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "a1656f3c-e3a0-49dc-870d-3c296a675349")
-		(property "Reference" "C4"
-			(at 320.04 76.1999 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "10u"
-			(at 320.04 78.7399 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder"
-			(at 322.8848 81.28 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 323.85 77.47 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Unpolarized capacitor"
-			(at 323.85 77.47 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "cb024dfb-c768-4b9e-8136-45a8f1369197")
-		)
-		(pin "2"
-			(uuid "3b1852af-4191-44ca-8d7d-e1fe401b7e46")
-		)
-		(instances
-			(project "MainCameraSystem"
-				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "C4")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:C")
-		(at 393.7 77.47 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "a1c03a5a-e7dd-4293-bea8-296397efe06c")
-		(property "Reference" "C18"
-			(at 397.51 76.1999 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "10u"
-			(at 397.51 78.7399 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder"
-			(at 394.6652 81.28 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 393.7 77.47 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Unpolarized capacitor"
-			(at 393.7 77.47 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "eb69c6ea-b76b-44a9-89c3-1e71c2503d55")
-		)
-		(pin "2"
-			(uuid "8d0b0278-7020-47f8-8084-b6c991f4bb6b")
-		)
-		(instances
-			(project "MainCameraSystem"
-				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "C18")
+					(reference "R4")
 					(unit 1)
 				)
 			)
@@ -14744,7 +14664,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "a6657709-22b0-48bc-af1d-5b73660f391c")
-		(property "Reference" "C9"
+		(property "Reference" "C13"
 			(at 353.06 351.7962 0)
 			(effects
 				(font
@@ -14810,7 +14730,7 @@
 			)
 			(project ""
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "C9")
+					(reference "C13")
 					(unit 1)
 				)
 			)
@@ -14899,7 +14819,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "a8feb874-3ad5-4eca-9b6e-d1748a056098")
-		(property "Reference" "FB1"
+		(property "Reference" "FB0"
 			(at 251.4219 58.42 90)
 			(effects
 				(font
@@ -14915,7 +14835,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Inductor_SMD:L_1206_3216Metric_Pad1.42x1.75mm_HandSolder"
+		(property "Footprint" "Inductor_SMD:L_1206_3216Metric_Pad1.22x1.90mm_HandSolder"
 			(at 251.46 66.548 90)
 			(effects
 				(font
@@ -14951,79 +14871,7 @@
 		(instances
 			(project ""
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "FB1")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Regulator_Linear:AP2127N-1.8")
-		(at 350.52 97.79 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "b01399d7-777c-4c79-a343-06148a366c69")
-		(property "Reference" "U3"
-			(at 350.52 91.44 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "AP2127N-1.8"
-			(at 350.52 93.98 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-3"
-			(at 350.52 92.075 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-					(italic yes)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "https://www.diodes.com/assets/Datasheets/AP2127.pdf"
-			(at 350.52 97.79 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "300mA low dropout linear regulator, shutdown pin, 2.5V-6V input voltage, 1.8V fixed positive output, SOT-23 package"
-			(at 350.52 97.79 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "e007147c-2aeb-4889-9992-cae638e80505")
-		)
-		(pin "3"
-			(uuid "ed7fc237-1fe3-4577-869b-72d7d29f3224")
-		)
-		(pin "1"
-			(uuid "c4227290-20ce-4cac-9f3a-5424c31cf26b")
-		)
-		(instances
-			(project ""
-				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "U3")
+					(reference "FB0")
 					(unit 1)
 				)
 			)
@@ -15039,7 +14887,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "b37009af-39b3-4930-9242-268dc3e5563a")
-		(property "Reference" "C17"
+		(property "Reference" "C6"
 			(at 387.35 351.7962 0)
 			(effects
 				(font
@@ -15105,7 +14953,74 @@
 			)
 			(project ""
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "C17")
+					(reference "C6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 259.08 199.39 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "b879e1b1-e9f5-4cf4-956a-a5bdb885ba7b")
+		(property "Reference" "TP2"
+			(at 264.16 199.3899 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "TestPoint"
+			(at 262.382 201.93 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "TestPoint:TestPoint_Bridge_Pitch2.0mm_Drill0.7mm"
+			(at 259.08 204.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 259.08 204.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "test point"
+			(at 259.08 199.39 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "ce748f33-7ef5-4b7a-862b-4b017ceab256")
+		)
+		(instances
+			(project "MainCameraSystem"
+				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
+					(reference "TP2")
 					(unit 1)
 				)
 			)
@@ -15192,7 +15107,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "ba8b3b10-8935-48ac-a4bd-63df711eb720")
-		(property "Reference" "C11"
+		(property "Reference" "C20"
 			(at 368.3 101.5999 0)
 			(effects
 				(font
@@ -15246,7 +15161,7 @@
 		(instances
 			(project "MainCameraSystem"
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "C11")
+					(reference "C20")
 					(unit 1)
 				)
 			)
@@ -15328,7 +15243,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "bc7f71c2-7125-48f4-ab2e-307c19bfc925")
-		(property "Reference" "C5"
+		(property "Reference" "C19"
 			(at 325.12 48.2599 0)
 			(effects
 				(font
@@ -15382,7 +15297,7 @@
 		(instances
 			(project "MainCameraSystem"
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "C5")
+					(reference "C19")
 					(unit 1)
 				)
 			)
@@ -15397,7 +15312,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "bf22d91a-ccdd-4258-a9de-d0120a481ae4")
-		(property "Reference" "R9"
+		(property "Reference" "R2"
 			(at 396.24 276.8599 0)
 			(effects
 				(font
@@ -15457,7 +15372,7 @@
 			)
 			(project ""
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "R9")
+					(reference "R2")
 					(unit 1)
 				)
 			)
@@ -15538,7 +15453,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "c3e39650-ae0f-4536-8b02-fec6ec714295")
-		(property "Reference" "C6"
+		(property "Reference" "C10"
 			(at 334.01 76.1999 0)
 			(effects
 				(font
@@ -15592,7 +15507,7 @@
 		(instances
 			(project "MainCameraSystem"
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "C6")
+					(reference "C10")
 					(unit 1)
 				)
 			)
@@ -15823,7 +15738,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "d38fde4a-6b3c-46d9-bff9-ee50459ea7d9")
-		(property "Reference" "C22"
+		(property "Reference" "C15"
 			(at 461.01 330.2062 0)
 			(effects
 				(font
@@ -15889,7 +15804,7 @@
 			)
 			(project ""
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "C22")
+					(reference "C15")
 					(unit 1)
 				)
 			)
@@ -16173,7 +16088,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "dd132cfc-3664-4f0b-b7ed-ad09403bf908")
-		(property "Reference" "C7"
+		(property "Reference" "C18"
 			(at 334.01 101.5999 0)
 			(effects
 				(font
@@ -16227,7 +16142,7 @@
 		(instances
 			(project "MainCameraSystem"
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "C7")
+					(reference "C18")
 					(unit 1)
 				)
 			)
@@ -16242,7 +16157,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "df3c8aee-13f1-4eba-87ee-618f28e9f30d")
-		(property "Reference" "R6"
+		(property "Reference" "R1"
 			(at 368.3 276.8599 0)
 			(effects
 				(font
@@ -16302,7 +16217,7 @@
 			)
 			(project ""
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "R6")
+					(reference "R1")
 					(unit 1)
 				)
 			)
@@ -16384,7 +16299,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "edd007e1-b4d5-4401-8c6d-376f41a9cc05")
-		(property "Reference" "R1"
+		(property "Reference" "R10"
 			(at 204.47 91.4399 0)
 			(effects
 				(font
@@ -16438,7 +16353,7 @@
 		(instances
 			(project "MainCameraSystem"
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "R1")
+					(reference "R10")
 					(unit 1)
 				)
 			)
@@ -16821,7 +16736,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "fba9fad5-9ece-4cf6-a2ff-c36f46f8d37e")
-		(property "Reference" "C13"
+		(property "Reference" "C8"
 			(at 375.92 351.7962 0)
 			(effects
 				(font
@@ -16887,7 +16802,7 @@
 			)
 			(project ""
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "C13")
+					(reference "C8")
 					(unit 1)
 				)
 			)
@@ -16954,6 +16869,78 @@
 			(project "MainCameraSystem"
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
 					(reference "#PWR016")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Regulator_Linear:AP2127N-1.5")
+		(at 350.52 97.79 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "fdf7c5af-ca02-4849-a57c-8a26e9b6b226")
+		(property "Reference" "U3"
+			(at 350.52 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "AP2127N-1.5TRG1"
+			(at 350.52 93.98 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23"
+			(at 350.52 92.075 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+					(italic yes)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.diodes.com/assets/Datasheets/AP2127.pdf"
+			(at 350.52 97.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "300mA low dropout linear regulator, shutdown pin, 2.5V-6V input voltage, 1.5V fixed positive output, SOT-23 package"
+			(at 350.52 97.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "988a0e72-968b-453b-94b9-95c8764e6b0f")
+		)
+		(pin "3"
+			(uuid "ff9f48e9-7910-4c0a-980e-311df70e4c0f")
+		)
+		(pin "2"
+			(uuid "d5206508-4252-4f7f-9a57-962b76c4875b")
+		)
+		(instances
+			(project "MainCameraSystem"
+				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
+					(reference "U3")
 					(unit 1)
 				)
 			)

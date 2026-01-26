@@ -495,6 +495,130 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Device:R"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "R"
+				(at 2.032 0 90)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "R"
+				(at 0 0 90)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at -1.778 0 90)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Resistor"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "R res resistor"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "R_*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "R_0_1"
+				(rectangle
+					(start -1.016 -2.54)
+					(end 1.016 2.54)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "R_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 1.27)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 1.27)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "power:+3.3V"
 			(power)
 			(pin_numbers
@@ -724,7 +848,7 @@
 	)
 	(rectangle
 		(start 44.577 53.848)
-		(end 160.02 99.06)
+		(end 187.96 99.06)
 		(stroke
 			(width 0.8128)
 			(type solid)
@@ -735,7 +859,7 @@
 		)
 		(uuid b291b4cd-116f-478f-a040-ee00e27729c8)
 	)
-	(text "uSD Connector (V7 : Removed series resistor)."
+	(text "uSD Connector (V8 : Pull-up resistors)."
 		(exclude_from_sim no)
 		(at 44.45 52.07 0)
 		(effects
@@ -751,52 +875,20 @@
 		(uuid "ddbe5ec6-ccc2-4de4-9215-163e98d32952")
 	)
 	(junction
-		(at 66.04 77.47)
+		(at 69.85 76.2)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "325290bf-6c8d-49bb-abfa-327eaa3b0a47")
 	)
 	(junction
-		(at 66.04 82.55)
+		(at 69.85 81.28)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "44c52405-bbd7-416f-b42b-b3bea06101c8")
 	)
-	(junction
-		(at 77.47 82.55)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "b532c819-d298-4d7f-8dfc-e9702845a746")
-	)
-	(junction
-		(at 77.47 77.47)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "d2be1c2d-b80c-48d0-9cc1-a5181ec11b04")
-	)
 	(wire
 		(pts
-			(xy 88.9 85.09) (xy 106.68 85.09)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "14cf12ec-3976-4644-bb66-f50b10828c03")
-	)
-	(wire
-		(pts
-			(xy 88.9 72.39) (xy 106.68 72.39)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "17ca9136-7fe6-458f-b466-13ac6f61d3f2")
-	)
-	(wire
-		(pts
-			(xy 66.04 82.55) (xy 54.61 82.55)
+			(xy 69.85 81.28) (xy 58.42 81.28)
 		)
 		(stroke
 			(width 0)
@@ -806,27 +898,7 @@
 	)
 	(wire
 		(pts
-			(xy 77.47 77.47) (xy 106.68 77.47)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "378d3bd0-4e34-4956-b3f1-ba45d2bf8991")
-	)
-	(wire
-		(pts
-			(xy 88.9 74.93) (xy 106.68 74.93)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "5402c4ac-aac5-44c4-9b64-d9791f2bfd1c")
-	)
-	(wire
-		(pts
-			(xy 66.04 77.47) (xy 77.47 77.47)
+			(xy 69.85 76.2) (xy 81.28 76.2)
 		)
 		(stroke
 			(width 0)
@@ -836,7 +908,7 @@
 	)
 	(wire
 		(pts
-			(xy 66.04 82.55) (xy 77.47 82.55)
+			(xy 69.85 81.28) (xy 81.28 81.28)
 		)
 		(stroke
 			(width 0)
@@ -846,37 +918,47 @@
 	)
 	(wire
 		(pts
-			(xy 88.9 69.85) (xy 106.68 69.85)
+			(xy 96.52 73.66) (xy 96.52 74.93)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "a88c1a34-e70f-48ba-a32a-dda087aae06b")
+		(uuid "7bd222c6-7344-4cfb-85aa-32ddd8f108f4")
 	)
 	(wire
 		(pts
-			(xy 88.9 80.01) (xy 106.68 80.01)
+			(xy 111.76 82.55) (xy 111.76 83.82)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "ade6149a-daaf-4877-881d-91a86766a460")
+		(uuid "80e703d8-827f-4365-afcb-3bafe3975f7b")
 	)
 	(wire
 		(pts
-			(xy 77.47 82.55) (xy 106.68 82.55)
+			(xy 111.76 73.66) (xy 111.76 74.93)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "b87f4dc6-66f1-45f6-97ee-ff797f27495d")
+		(uuid "863eff8c-9a70-4171-8a93-837eaad92758")
 	)
 	(wire
 		(pts
-			(xy 54.61 77.47) (xy 66.04 77.47)
+			(xy 96.52 82.55) (xy 96.52 83.82)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9956a19b-26a9-4641-adb7-b59b4100a0c9")
+	)
+	(wire
+		(pts
+			(xy 58.42 76.2) (xy 69.85 76.2)
 		)
 		(stroke
 			(width 0)
@@ -886,17 +968,27 @@
 	)
 	(wire
 		(pts
-			(xy 88.9 87.63) (xy 106.68 87.63)
+			(xy 95.25 83.82) (xy 96.52 83.82)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "fb6edbeb-306d-4a91-8ba5-9116318e07ce")
+		(uuid "d37ecfb3-5829-43bd-a3e5-8fa457666f19")
+	)
+	(wire
+		(pts
+			(xy 110.49 83.82) (xy 111.76 83.82)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "da23150d-9a4b-4b8b-b9b0-363ff4c660a0")
 	)
 	(hierarchical_label "data_2"
 		(shape input)
-		(at 88.9 69.85 180)
+		(at 135.89 69.85 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -907,7 +999,7 @@
 	)
 	(hierarchical_label "clock"
 		(shape input)
-		(at 88.9 80.01 180)
+		(at 135.89 80.01 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -918,7 +1010,7 @@
 	)
 	(hierarchical_label "data_1"
 		(shape input)
-		(at 88.9 87.63 180)
+		(at 135.89 87.63 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -929,7 +1021,7 @@
 	)
 	(hierarchical_label "cmd"
 		(shape input)
-		(at 88.9 74.93 180)
+		(at 135.89 74.93 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -940,7 +1032,7 @@
 	)
 	(hierarchical_label "data_0"
 		(shape input)
-		(at 88.9 85.09 180)
+		(at 135.89 85.09 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -949,9 +1041,31 @@
 		)
 		(uuid "5aaab0a9-3188-4790-9d99-9bd5cc230bfb")
 	)
+	(hierarchical_label "cmd"
+		(shape input)
+		(at 110.49 83.82 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "c0a9a407-254b-4067-96a4-6c0ac0347195")
+	)
+	(hierarchical_label "data_0"
+		(shape input)
+		(at 95.25 83.82 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "ee047086-a30d-46a0-b5fa-c00543573c0c")
+	)
 	(hierarchical_label "data_3"
 		(shape input)
-		(at 88.9 72.39 180)
+		(at 135.89 72.39 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -961,35 +1075,168 @@
 		(uuid "fd353dca-6fbb-42f3-a16d-5de87119f857")
 	)
 	(symbol
-		(lib_id "Device:C_Small")
-		(at 54.61 80.01 0)
+		(lib_id "power:+3.3V")
+		(at 135.89 77.47 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "2055a0c7-3f06-4eb3-9207-f35ebbf1585f")
+		(property "Reference" "#PWR054"
+			(at 139.7 77.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3.3V"
+			(at 132.08 77.4699 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 135.89 77.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 135.89 77.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 135.89 77.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "3ff7a9e3-fb21-4216-a7b9-5613220d4da2")
+		)
+		(instances
+			(project "MainCameraSystem"
+				(path "/caaf0100-eb77-4215-a2d5-ab172094720c/de6c6d71-2289-4145-9b43-d67662a46a31"
+					(reference "#PWR054")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3.3V")
+		(at 111.76 73.66 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "284eeccb-5fe7-4313-8a9a-17b6cbaf5e2b")
+		(property "Reference" "#PWR056"
+			(at 111.76 77.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3.3V"
+			(at 111.76 68.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 111.76 73.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 111.76 73.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 111.76 73.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "92045db1-94a4-4fce-98e0-5c223968ba6d")
+		)
+		(instances
+			(project "MainCameraSystem"
+				(path "/caaf0100-eb77-4215-a2d5-ab172094720c/de6c6d71-2289-4145-9b43-d67662a46a31"
+					(reference "#PWR056")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 111.76 78.74 0)
 		(mirror y)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "741be1c4-8290-4f49-a792-4fe99d4ee95c")
-		(property "Reference" "C24"
-			(at 52.07 78.7462 0)
+		(uuid "5bbc849a-e783-4ee9-84dc-5d8826aa0d91")
+		(property "Reference" "R5"
+			(at 114.3 77.4699 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 			)
 		)
-		(property "Value" "1u"
-			(at 52.07 81.2862 0)
+		(property "Value" "10k"
+			(at 114.3 80.0099 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder"
-			(at 54.61 80.01 0)
+		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
+			(at 113.538 78.74 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -998,7 +1245,77 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 54.61 80.01 0)
+			(at 111.76 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 111.76 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "07ebad8b-23ee-41a8-aeca-8997118fe8b7")
+		)
+		(pin "2"
+			(uuid "6eb06e20-2167-4979-a540-2fa51680a968")
+		)
+		(instances
+			(project "MainCameraSystem"
+				(path "/caaf0100-eb77-4215-a2d5-ab172094720c/de6c6d71-2289-4145-9b43-d67662a46a31"
+					(reference "R5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C_Small")
+		(at 58.42 78.74 0)
+		(mirror y)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "741be1c4-8290-4f49-a792-4fe99d4ee95c")
+		(property "Reference" "C1"
+			(at 55.88 77.4762 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "1u"
+			(at 55.88 80.0162 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder"
+			(at 58.42 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 58.42 78.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1007,7 +1324,7 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor, small symbol"
-			(at 54.61 80.01 0)
+			(at 58.42 78.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1024,7 +1341,7 @@
 		(instances
 			(project "MainCameraSystem"
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c/de6c6d71-2289-4145-9b43-d67662a46a31"
-					(reference "C24")
+					(reference "C1")
 					(unit 1)
 				)
 			)
@@ -1032,7 +1349,7 @@
 	)
 	(symbol
 		(lib_id "Device:C_Small")
-		(at 66.04 80.01 0)
+		(at 69.85 78.74 0)
 		(mirror y)
 		(unit 1)
 		(exclude_from_sim no)
@@ -1040,8 +1357,8 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "90b0adea-1d96-4634-86f6-f9a4a18ac2a0")
-		(property "Reference" "C25"
-			(at 63.5 78.7462 0)
+		(property "Reference" "C2"
+			(at 67.31 77.4762 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1050,7 +1367,7 @@
 			)
 		)
 		(property "Value" "100n"
-			(at 63.5 81.2862 0)
+			(at 67.31 80.0162 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1059,7 +1376,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder"
-			(at 66.04 80.01 0)
+			(at 69.85 78.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1068,7 +1385,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 66.04 80.01 0)
+			(at 69.85 78.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1077,7 +1394,7 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor, small symbol"
-			(at 66.04 80.01 0)
+			(at 69.85 78.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1094,7 +1411,7 @@
 		(instances
 			(project "MainCameraSystem"
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c/de6c6d71-2289-4145-9b43-d67662a46a31"
-					(reference "C25")
+					(reference "C2")
 					(unit 1)
 				)
 			)
@@ -1102,15 +1419,15 @@
 	)
 	(symbol
 		(lib_id "Connector:Micro_SD_Card")
-		(at 129.54 77.47 0)
+		(at 158.75 77.47 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
 		(uuid "961ac9ca-4a3c-48bb-b7fa-06ce0c23d6e9")
-		(property "Reference" "J3"
-			(at 129.413 58.928 0)
+		(property "Reference" "J4"
+			(at 158.623 58.928 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1118,7 +1435,7 @@
 			)
 		)
 		(property "Value" "0472192001"
-			(at 129.54 61.468 0)
+			(at 158.75 61.468 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1126,7 +1443,7 @@
 			)
 		)
 		(property "Footprint" "pcb:microSD_HC_Molex_47219-2001"
-			(at 158.75 69.85 0)
+			(at 187.96 69.85 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1135,7 +1452,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.we-online.com/components/products/datasheet/693072010801.pdf"
-			(at 129.54 77.47 0)
+			(at 158.75 77.47 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1144,7 +1461,7 @@
 			)
 		)
 		(property "Description" "Micro SD Card Socket"
-			(at 129.54 77.47 0)
+			(at 158.75 77.47 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1182,7 +1499,7 @@
 		(instances
 			(project "MainCameraSystem"
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c/de6c6d71-2289-4145-9b43-d67662a46a31"
-					(reference "J3")
+					(reference "J4")
 					(unit 1)
 				)
 			)
@@ -1190,7 +1507,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 66.04 82.55 0)
+		(at 69.85 81.28 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -1199,7 +1516,7 @@
 		(fields_autoplaced yes)
 		(uuid "9f92e1b5-6190-4408-a4f7-bf9465150b85")
 		(property "Reference" "#PWR049"
-			(at 66.04 88.9 0)
+			(at 69.85 87.63 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1208,7 +1525,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 66.0401 86.36 90)
+			(at 69.8501 85.09 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1218,7 +1535,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 66.04 82.55 0)
+			(at 69.85 81.28 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1227,7 +1544,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 66.04 82.55 0)
+			(at 69.85 81.28 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1236,7 +1553,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 66.04 82.55 0)
+			(at 69.85 81.28 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1258,7 +1575,7 @@
 	)
 	(symbol
 		(lib_id "power:+3.3V")
-		(at 66.04 77.47 0)
+		(at 69.85 76.2 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -1267,7 +1584,7 @@
 		(fields_autoplaced yes)
 		(uuid "a915b051-6d41-4de7-8493-d20d55d0d1ac")
 		(property "Reference" "#PWR048"
-			(at 66.04 81.28 0)
+			(at 69.85 80.01 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1276,7 +1593,7 @@
 			)
 		)
 		(property "Value" "+3.3V"
-			(at 66.04 72.39 0)
+			(at 69.85 71.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1284,7 +1601,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 66.04 77.47 0)
+			(at 69.85 76.2 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1293,7 +1610,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 66.04 77.47 0)
+			(at 69.85 76.2 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1302,7 +1619,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-			(at 66.04 77.47 0)
+			(at 69.85 76.2 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1324,16 +1641,16 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 149.86 92.71 90)
+		(at 135.89 82.55 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
 		(fields_autoplaced yes)
-		(uuid "eed4bcad-4845-4e2c-98a6-e742ffee0523")
-		(property "Reference" "#PWR050"
-			(at 156.21 92.71 0)
+		(uuid "bb0dfa2c-e7ee-44a5-afef-1923ad44cf23")
+		(property "Reference" "#PWR053"
+			(at 129.54 82.55 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1342,7 +1659,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 153.67 92.7099 90)
+			(at 132.08 82.5501 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1352,7 +1669,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 149.86 92.71 0)
+			(at 135.89 82.55 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1361,7 +1678,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 149.86 92.71 0)
+			(at 135.89 82.55 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1370,7 +1687,141 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 149.86 92.71 0)
+			(at 135.89 82.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "75099075-e2a7-4013-89cf-7ff0f2f781ca")
+		)
+		(instances
+			(project "MainCameraSystem"
+				(path "/caaf0100-eb77-4215-a2d5-ab172094720c/de6c6d71-2289-4145-9b43-d67662a46a31"
+					(reference "#PWR053")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3.3V")
+		(at 96.52 73.66 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "c40aba28-952e-4107-9113-f96eb158beb4")
+		(property "Reference" "#PWR055"
+			(at 96.52 77.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3.3V"
+			(at 96.52 68.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 96.52 73.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 96.52 73.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 96.52 73.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "44292221-b78d-412b-98e4-04f7e6348cc2")
+		)
+		(instances
+			(project "MainCameraSystem"
+				(path "/caaf0100-eb77-4215-a2d5-ab172094720c/de6c6d71-2289-4145-9b43-d67662a46a31"
+					(reference "#PWR055")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 179.07 92.71 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "eed4bcad-4845-4e2c-98a6-e742ffee0523")
+		(property "Reference" "#PWR050"
+			(at 185.42 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 182.88 92.7099 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 179.07 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 179.07 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 179.07 92.71 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1391,35 +1842,35 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:C_Small")
-		(at 77.47 80.01 0)
+		(lib_id "Device:R")
+		(at 96.52 78.74 0)
 		(mirror y)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "fe2fcf4f-f837-4d19-8156-bba9b71418ed")
-		(property "Reference" "C26"
-			(at 74.93 78.7462 0)
+		(uuid "f9760cd4-a32a-4040-84d0-e12aa8edb72f")
+		(property "Reference" "R6"
+			(at 99.06 77.4699 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 			)
 		)
-		(property "Value" "10n"
-			(at 74.93 81.2862 0)
+		(property "Value" "10k"
+			(at 99.06 80.0099 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder"
-			(at 77.47 80.01 0)
+		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
+			(at 98.298 78.74 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1428,7 +1879,77 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 77.47 80.01 0)
+			(at 96.52 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 96.52 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "841ddf34-4864-4e5c-b08f-74ca927a2bd4")
+		)
+		(pin "2"
+			(uuid "bf5a8236-e8e1-43ff-be1e-aea4da2e0a23")
+		)
+		(instances
+			(project "MainCameraSystem"
+				(path "/caaf0100-eb77-4215-a2d5-ab172094720c/de6c6d71-2289-4145-9b43-d67662a46a31"
+					(reference "R6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C_Small")
+		(at 81.28 78.74 0)
+		(mirror y)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "fe2fcf4f-f837-4d19-8156-bba9b71418ed")
+		(property "Reference" "C3"
+			(at 78.74 77.4762 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "10n"
+			(at 78.74 80.0162 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder"
+			(at 81.28 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 81.28 78.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1437,7 +1958,7 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor, small symbol"
-			(at 77.47 80.01 0)
+			(at 81.28 78.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1454,7 +1975,7 @@
 		(instances
 			(project "MainCameraSystem"
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c/de6c6d71-2289-4145-9b43-d67662a46a31"
-					(reference "C26")
+					(reference "C3")
 					(unit 1)
 				)
 			)
