@@ -26,6 +26,8 @@
 #endif
 #if TARGET_NAME_IS_DemoOVCAM
 #endif
+#if TARGET_NAME_IS_DemoAnalog
+#endif
 #if TARGET_NAME_IS_TestESP32s
 #endif
 #if TARGET_NAME_IS_SandboxNucleoH533RE
@@ -139,6 +141,9 @@
         _I2C_driver_interrupt(I2CHandle_ovcam_sccb);
     }
 #endif
+#if TARGET_NAME_IS_DemoAnalog
+    #error Target 'DemoAnalog' defines no handle for the 'I2C' driver.
+#endif
 #if TARGET_NAME_IS_TestESP32s
     #error Target 'TestESP32s' defines no handle for the 'I2C' driver.
 #endif
@@ -184,6 +189,8 @@
 #if TARGET_NAME_IS_DemoStepper
 #endif
 #if TARGET_NAME_IS_DemoOVCAM
+#endif
+#if TARGET_NAME_IS_DemoAnalog
 #endif
 #if TARGET_NAME_IS_TestESP32s
 #endif

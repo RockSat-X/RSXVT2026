@@ -33,6 +33,9 @@
 #if TARGET_NAME_IS_DemoOVCAM
     #error Target 'DemoOVCAM' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
 #endif
+#if TARGET_NAME_IS_DemoAnalog
+    #error Target 'DemoAnalog' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
+#endif
 #if TARGET_NAME_IS_TestESP32s
     #error Target 'TestESP32s' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
 #endif
