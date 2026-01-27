@@ -14,21 +14,6 @@ main(void)
 
         FREERTOS_init(); // @/`Using FreeRTOS`.
 
-    #elif 1
-    {
-
-        for (;;)
-        {
-            GPIO_TOGGLE(led_green);
-
-            i32 result = GPIO_SPINLOCK_ANALOG_READ(input);
-
-            stlink_tx("%6d | %f\n", result, (f32) result / (1 << 12));
-            spinlock_nop(10'000'000);
-
-        }
-
-    }
     #else
 
         for (i32 iteration = 0;; iteration += 1)

@@ -106,7 +106,6 @@ TARGETS = ( # @/`Defining Targets`.
             ('swdio'    , 'A13', None        , {                                }),
             ('swclk'    , 'A14', None        , {                                }),
             ('button'   , 'C13', 'INPUT'     , { 'pull' : None, 'active' : True }),
-            ('input'    , 'A6' , 'ANALOG'    , {                                }),
         ),
 
         interrupts = (
@@ -122,7 +121,7 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = False,
+        use_freertos    = True,
         main_stack_size = 8192,
         schema          = {
             'HSI_ENABLE'   : True,
@@ -134,9 +133,6 @@ TARGETS = ( # @/`Defining Targets`.
             'APB2_CK'      : 250_000_000,
             'APB3_CK'      : 250_000_000,
             'USART2_BAUD'  : STLINK_BAUD,
-
-            'PLL2R_CK'                     : 50_000_000,
-            'ANALOG_POSTDIVIDER_KERNEL_CK' : 50_000_000,
         },
 
     ),

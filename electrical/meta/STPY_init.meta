@@ -5,8 +5,6 @@
 #define _PORT_FOR_GPIO_READ(NAME) __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__##NAME
 #define _NUMBER_FOR_GPIO_READ(NAME) __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__##NAME
 #define _ACTIVE_FOR_GPIO_READ(NAME) __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__##NAME
-#define _ADC_FOR_GPIO_ANALOG(NAME) __MACRO_OVERLOAD___ADC_FOR_GPIO_ANALOG__##NAME
-#define _CHANNEL_NUMBER_FOR_GPIO_ANALOG(NAME) __MACRO_OVERLOAD___CHANNEL_NUMBER_FOR_GPIO_ANALOG__##NAME
 #if TARGET_NAME_IS_SandboxNucleoH533RE
     enum NVICInterrupt : u32
     {
@@ -18,6 +16,9 @@
     extern void INTERRUPT_Reset(void);
     extern void INTERRUPT_USART2(void);
     extern void INTERRUPT_UsageFault(void);
+    extern void PendSV_Handler(void);
+    extern void SVC_Handler(void);
+    extern void SysTick_Handler(void);
     void (* const INTERRUPT_VECTOR_TABLE[])(void) __attribute__((used, section(".INTERRUPT_VECTOR_TABLE"))) =
         {
             (void*) INITIAL_STACK_ADDRESS, // [-16] Initial Stack Address
@@ -31,11 +32,11 @@
             INTERRUPT_Default            , // [ -8] Reserved
             INTERRUPT_Default            , // [ -7] Reserved
             INTERRUPT_Default            , // [ -6] Reserved
-            INTERRUPT_Default            , // [ -5] SVCall
+            SVC_Handler                  , // [ -5] SVCall
             INTERRUPT_Default            , // [ -4] DebugMonitor
             INTERRUPT_Default            , // [ -3] Reserved
-            INTERRUPT_Default            , // [ -2] PendSV
-            INTERRUPT_Default            , // [ -1] SysTick
+            PendSV_Handler               , // [ -2] PendSV
+            SysTick_Handler              , // [ -1] SysTick
             INTERRUPT_Default            , // [  0] WWDG
             INTERRUPT_Default            , // [  1] PVD_AVD
             INTERRUPT_Default            , // [  2] RTC
@@ -172,7 +173,10 @@
         };
     #define INTERRUPT_BusFault(...) extern void INTERRUPT_BusFault(__VA_ARGS__)
     #define INTERRUPT_Default(...) extern void INTERRUPT_Default(__VA_ARGS__)
+    #define INTERRUPT_PendSV(...) extern void INTERRUPT_PendSV(__VA_ARGS__)
     #define INTERRUPT_Reset(...) extern void INTERRUPT_Reset(__VA_ARGS__)
+    #define INTERRUPT_SVCall(...) extern void INTERRUPT_SVCall(__VA_ARGS__)
+    #define INTERRUPT_SysTick(...) extern void INTERRUPT_SysTick(__VA_ARGS__)
     #define INTERRUPT_USART2(...) extern void INTERRUPT_USART2(__VA_ARGS__)
     #define INTERRUPT_UsageFault(...) extern void INTERRUPT_UsageFault(__VA_ARGS__)
     extern void
@@ -198,8 +202,6 @@
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__button C
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__button 13
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__button
-        #define __MACRO_OVERLOAD___ADC_FOR_GPIO_ANALOG__input ADC1
-        #define __MACRO_OVERLOAD___CHANNEL_NUMBER_FOR_GPIO_ANALOG__input 3
         CMSIS_SET
         (
             RCC    , AHB2ENR,
@@ -219,7 +221,6 @@
             MODE2, 0b10 ,
             MODE3, 0b10 ,
             MODE5, 0b01 ,
-            MODE6, 0b11 ,
         );
         CMSIS_SET(GPIOC, MODER, MODE13, 0b00);
 
@@ -308,28 +309,8 @@
             PLL1N, 125 - 1 ,
             PLL1P, 2 - 1   ,
         );
-        CMSIS_SET
-        (
-            RCC    , PLL2CFGR,
-            PLL2SRC, 0b01    ,
-            PLL2M  , 4       ,
-            PLL2RGE, 3       ,
-            PLL2REN, true    ,
-        );
-        CMSIS_SET
-        (
-            RCC  , PLL2DIVR,
-            PLL2N, 25 - 1  ,
-            PLL2R, 4 - 1   ,
-        );
-        CMSIS_SET
-        (
-            RCC   , CR  ,
-            PLL1ON, true,
-            PLL2ON, true,
-        );
+        CMSIS_SET(RCC, CR, PLL1ON, true);
         while (!CMSIS_GET(RCC, CR, PLL1RDY));
-        while (!CMSIS_GET(RCC, CR, PLL2RDY));
 
 
 
@@ -357,43 +338,19 @@
         #define STPY_USART2_KERNEL_SOURCE 0b000
         #define STPY_USART2_BAUD_DIVIDER 250
 
-
-
-        /////////////////////////////////// Analog ///////////////////////////////////
-
-
-
-        CMSIS_SET(RCC, CCIPR5, ADCDACSEL, 0b010);
-        CMSIS_SET(RCC, AHB2ENR, ADCEN, true);
-        CMSIS_SET(ADC12_COMMON, CCR, PRESC, 0b0000);
-        CMSIS_SET
-        (
-            ADC1    , CR   ,
-            DEEPPWD , false,
-            ADVREGEN, true ,
-            ADEN    , true ,
-        );
-        while (!CMSIS_GET(ADC1, ISR, ADRDY));
-        CMSIS_SET(ADC1, CR, ADCAL, true);
-        while (!CMSIS_GET(ADC1, CR, ADCAL));
-
     }
-    #define STPY_0                            (          0)
-    #define STPY_CPU_CK                       (250'000'000)
-    #define STPY_HSI_CK                       ( 32'000'000)
-    #define STPY_HSI48_CK                     ( 48'000'000)
-    #define STPY_CSI_CK                       (  4'000'000)
-    #define STPY_AXI_AHB_CK                   (250'000'000)
-    #define STPY_PLL1P_CK                     (250'000'000)
-    #define STPY_PLL2R_CK                     ( 50'000'000)
-    #define STPY_PLL1_VCO_FREQ                (500'000'000)
-    #define STPY_PLL2_VCO_FREQ                (200'000'000)
-    #define STPY_APB1_CK                      (250'000'000)
-    #define STPY_APB2_CK                      (250'000'000)
-    #define STPY_APB3_CK                      (250'000'000)
-    #define STPY_SYS_CK                       (250'000'000)
-    #define STPY_ANALOG_PREDIVIDER_KERNEL_CK  ( 50'000'000)
-    #define STPY_ANALOG_POSTDIVIDER_KERNEL_CK ( 50'000'000)
+    #define STPY_0             (          0)
+    #define STPY_CPU_CK        (250'000'000)
+    #define STPY_HSI_CK        ( 32'000'000)
+    #define STPY_HSI48_CK      ( 48'000'000)
+    #define STPY_CSI_CK        (  4'000'000)
+    #define STPY_AXI_AHB_CK    (250'000'000)
+    #define STPY_PLL1P_CK      (250'000'000)
+    #define STPY_PLL1_VCO_FREQ (500'000'000)
+    #define STPY_APB1_CK       (250'000'000)
+    #define STPY_APB2_CK       (250'000'000)
+    #define STPY_APB3_CK       (250'000'000)
+    #define STPY_SYS_CK        (250'000'000)
 #endif
 #if TARGET_NAME_IS_DemoI2C
     enum NVICInterrupt : u32
