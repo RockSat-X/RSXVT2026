@@ -17,29 +17,14 @@ main(void)
     #elif 1
     {
 
-        {
-            CMSIS_SET(ADC1, SQR1, L, 1 - 1);
-            CMSIS_SET(ADC1, SQR1, SQ1, 3);
-        }
-
-
         for (;;)
         {
             GPIO_TOGGLE(led_green);
 
+            i32 result = GPIO_SPINLOCK_ANALOG_READ(input);
 
-            if (CMSIS_GET(ADC1, CR, ADSTART))
-                panic;
-
-            CMSIS_SET(ADC1, CR, ADSTART, true);
-
-            while (!CMSIS_GET(ADC1, ISR, EOC));
-
-            i32 result = CMSIS_GET(ADC1, DR, RDATA);
             stlink_tx("%6d | %f\n", result, (f32) result / (1 << 12));
             spinlock_nop(10'000'000);
-
-            CMSIS_SET(ADC1, ISR, EOC, true);
 
         }
 

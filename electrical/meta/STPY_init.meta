@@ -5,6 +5,8 @@
 #define _PORT_FOR_GPIO_READ(NAME) __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__##NAME
 #define _NUMBER_FOR_GPIO_READ(NAME) __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__##NAME
 #define _ACTIVE_FOR_GPIO_READ(NAME) __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__##NAME
+#define _ADC_FOR_GPIO_ANALOG(NAME) __MACRO_OVERLOAD___ADC_FOR_GPIO_ANALOG__##NAME
+#define _CHANNEL_NUMBER_FOR_GPIO_ANALOG(NAME) __MACRO_OVERLOAD___CHANNEL_NUMBER_FOR_GPIO_ANALOG__##NAME
 #if TARGET_NAME_IS_SandboxNucleoH533RE
     enum NVICInterrupt : u32
     {
@@ -196,12 +198,13 @@
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__button C
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__button 13
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__button
+        #define __MACRO_OVERLOAD___ADC_FOR_GPIO_ANALOG__input ADC1
+        #define __MACRO_OVERLOAD___CHANNEL_NUMBER_FOR_GPIO_ANALOG__input 3
         CMSIS_SET
         (
             RCC    , AHB2ENR,
             GPIOAEN, true   ,
             GPIOCEN, true   ,
-            GPIODEN, true   ,
         );
         CMSIS_SET(GPIOA, ODR, OD5, false);
         CMSIS_WRITE
@@ -216,9 +219,9 @@
             MODE2, 0b10 ,
             MODE3, 0b10 ,
             MODE5, 0b01 ,
+            MODE6, 0b11 ,
         );
         CMSIS_SET(GPIOC, MODER, MODE13, 0b00);
-        CMSIS_SET(GPIOD, MODER, MODE2, 0b11);
 
 
 
