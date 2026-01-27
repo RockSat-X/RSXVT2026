@@ -34,5 +34,7 @@
 #endif
 #if TARGET_NAME_IS_DemoOVCAM
 #endif
+#if TARGET_NAME_IS_DemoAnalog
+#endif
 #if TARGET_NAME_IS_TestESP32s
 #endif

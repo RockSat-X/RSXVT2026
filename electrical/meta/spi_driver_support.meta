@@ -50,6 +50,9 @@
 #if TARGET_NAME_IS_DemoOVCAM
     #error Target 'DemoOVCAM' defines no handle for the 'SPI' driver.
 #endif
+#if TARGET_NAME_IS_DemoAnalog
+    #error Target 'DemoAnalog' defines no handle for the 'SPI' driver.
+#endif
 #if TARGET_NAME_IS_TestESP32s
     #error Target 'TestESP32s' defines no handle for the 'SPI' driver.
 #endif
