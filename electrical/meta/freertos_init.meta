@@ -185,6 +185,16 @@
         panic;
     }
 #endif
+#if TARGET_NAME_IS_DebugBoard
+    enum FreeRTOSTask : u32;
+    static constexpr u32 FreeRTOSTask_COUNT = 0;
+    static noret void
+    FREERTOS_init(void)
+    {
+        vTaskStartScheduler();
+        panic;
+    }
+#endif
 #if TARGET_NAME_IS_MainCameraSystem
     enum FreeRTOSTask : u32;
     static constexpr u32 FreeRTOSTask_COUNT = 0;

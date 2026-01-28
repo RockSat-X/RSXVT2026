@@ -765,6 +765,66 @@ TARGETS = ( # @/`Defining Targets`.
 
     types.SimpleNamespace(
 
+        name              = 'DebugBoard',
+        mcu               = 'STM32H533VET6',
+        source_file_paths = (),
+
+        kicad_project = 'DebugBoard',
+
+        gpios = (
+            ('stlink_tx'                  , 'A2'  , 'ALTERNATE', { 'altfunc' : 'USART2_TX'                     }),
+            ('stlink_rx'                  , 'A3'  , 'ALTERNATE', { 'altfunc' : 'USART2_RX'                     }),
+            ('swdio'                      , 'A13' , None       , {                                             }),
+            ('swclk'                      , 'A14' , None       , {                                             }),
+            ('swo'                        , 'B3'  , None       , {                                             }),
+            ('led_channel_red_A'          , None  , 'OUTPUT'   , { 'initlvl' : False, 'active' : False         }),
+            ('led_channel_green_A'        , None  , 'OUTPUT'   , { 'initlvl' : False, 'active' : False         }),
+            ('led_channel_blue_A'         , None  , 'OUTPUT'   , { 'initlvl' : False, 'active' : False         }),
+            ('led_channel_red_B'          , None  , 'OUTPUT'   , { 'initlvl' : False, 'active' : False         }),
+            ('led_channel_green_B'        , None  , 'OUTPUT'   , { 'initlvl' : False, 'active' : False         }),
+            ('led_channel_blue_B'         , None  , 'OUTPUT'   , { 'initlvl' : False, 'active' : False         }),
+            ('led_channel_red_C'          , None  , 'OUTPUT'   , { 'initlvl' : False, 'active' : False         }),
+            ('led_channel_green_C'        , None  , 'OUTPUT'   , { 'initlvl' : False, 'active' : False         }),
+            ('led_channel_blue_C'         , None  , 'OUTPUT'   , { 'initlvl' : False, 'active' : False         }),
+            ('led_channel_red_D'          , None  , 'OUTPUT'   , { 'initlvl' : False, 'active' : False         }),
+            ('led_channel_green_D'        , None  , 'OUTPUT'   , { 'initlvl' : False, 'active' : False         }),
+            ('led_channel_blue_D'         , None  , 'OUTPUT'   , { 'initlvl' : False, 'active' : False         }),
+            ('button_A'                   , None  , 'INPUT'    , { 'pull' : 'UP'                               }),
+            ('button_B'                   , None  , 'INPUT'    , { 'pull' : 'UP'                               }),
+            ('sd_cmd'                     , 'D2'  , 'ALTERNATE', { 'altfunc' : 'SDMMC1_CMD'                    }),
+            ('sd_data_0'                  , 'C8'  , 'ALTERNATE', { 'altfunc' : 'SDMMC1_D0'                     }),
+            ('sd_data_1'                  , 'C9'  , 'ALTERNATE', { 'altfunc' : 'SDMMC1_D1'                     }),
+            ('sd_data_2'                  , 'C10' , 'ALTERNATE', { 'altfunc' : 'SDMMC1_D2'                     }),
+            ('sd_data_3'                  , 'C11' , 'ALTERNATE', { 'altfunc' : 'SDMMC1_D3'                     }),
+            ('sd_clock'                   , 'C12' , 'ALTERNATE', { 'altfunc' : 'SDMMC1_CK'                     }),
+            ('buzzer'                     , 'A5'  , 'ALTERNATE', { 'altfunc' : 'TIM8_CH1N'                     }),
+            ('communication_i2c_clock'    , 'B6'  , 'ALTERNATE', { 'altfunc' : 'I2C1_SCL', 'open_drain' : True }),
+            ('communication_i2c_data'     , 'B7'  , 'ALTERNATE', { 'altfunc' : 'I2C1_SDA', 'open_drain' : True }),
+            ('display_i2c_clock'          , 'B10' , 'ALTERNATE', { 'altfunc' : 'I2C2_SCL', 'open_drain' : True }),
+            ('display_i2c_data'           , 'B12' , 'ALTERNATE', { 'altfunc' : 'I2C2_SDA', 'open_drain' : True }),
+            ('testpoint_A'                , 'C0'  , None       , {                                             }),
+            ('testpoint_B'                , 'C1'  , None       , {                                             }),
+        ),
+
+        interrupts = None,
+
+        drivers = (
+        ),
+
+        use_freertos    = True,
+        main_stack_size = 8192,
+        schema          = None,
+
+    ),
+
+
+
+    ########################################
+
+
+
+    types.SimpleNamespace(
+
         name              = 'MainCameraSystem',
         mcu               = 'STM32H533VET6',
         source_file_paths = (),

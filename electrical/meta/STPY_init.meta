@@ -3385,6 +3385,8 @@
     #define STPY_APB3_CK       (250'000'000)
     #define STPY_SYS_CK        (250'000'000)
 #endif
+#if TARGET_NAME_IS_DebugBoard
+#endif
 #if TARGET_NAME_IS_MainCameraSystem
 #endif
 #if TARGET_NAME_IS_DemoStepper
