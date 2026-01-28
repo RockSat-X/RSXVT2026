@@ -57,6 +57,9 @@
         _SD_driver_interrupt(SDHandle_primary);
     }
 #endif
+#if TARGET_NAME_IS_DebugBoard
+    #error Target 'DebugBoard' defines no handle for the 'SD' driver.
+#endif
 #if TARGET_NAME_IS_MainCameraSystem
     #error Target 'MainCameraSystem' defines no handle for the 'SD' driver.
 #endif
