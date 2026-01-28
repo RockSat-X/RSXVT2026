@@ -18,7 +18,10 @@ static volatile u32       packet_esp32_reader               = 0;
 static volatile i32       packet_esp32_invalid_length_count = 0;
 static volatile i32       packet_esp32_overrun_count        = 0;
 static i32                packet_esp32_crc_error_count      = 0;
-
+//added to make rf profiler more robust//////////////
+b32 is_lora_active = false;
+b32 is_esp_now_active = false;
+////////////////////////////////////////////////////
 
 
 extern void
@@ -92,24 +95,25 @@ setup(void)
 
 
     // Initialize ESP-NOW stuff.
-
+///////restart present here  ///////////////////////////
     common_init_esp_now();
-
+////////////////////////////////////////////////////
     esp_now_register_recv_cb(packet_esp32_reception_callback);
 
 
 
     // Initialize LoRa stuff.
-
+///////restart present here  ///////////////////////////
     common_init_lora();
-
+//////////////////////////////////////////////
+///////restart present here  ///////////////////////////
     if (packet_lora_radio.startReceive() != RADIOLIB_ERR_NONE)
     {
         Serial.printf("Failed to start receiving.\n");
         ESP.restart();
         return;
     }
-
+///////////////////////////////////////////////////////
 }
 
 

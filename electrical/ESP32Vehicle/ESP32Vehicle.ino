@@ -39,6 +39,10 @@ static i32                packet_esp32_overrun_count     = 0;
 static i32                packet_lora_packet_count       = 0;
 static i32                packet_lora_overrun_count      = 0;
 
+//added to make rf profiler more robust//////////////
+b32 is_lora_active = false;
+b32 is_esp_now_active = false;
+////////////////////////////////////////////////////
 
 
 // TODO There seems to be a bug where the ring-buffer reader
@@ -131,9 +135,9 @@ setup(void)
 
 
     // Initialize ESP-NOW stuff.
-
+///////restart present here  ///////////////////////////
     common_init_esp_now();
-
+///////////////////////////////////////////////
     esp_now_register_send_cb(packet_esp32_transmission_callback);
 
     esp_now_peer_info_t info = {};
@@ -145,20 +149,20 @@ setup(void)
     info.peer_addr[5] = MAIN_ESP32_MAC_ADDRESS[5];
     info.channel      = 1;
     info.encrypt      = false;
-
+///////restart present here  ///////////////////////////
     if (esp_now_add_peer(&info) != ESP_OK)
     {
         Serial.printf("Failed to add peer.\n");
         ESP.restart();
         return;
     }
-
+/////////////////////////////////////////////////////
 
 
     // Initialize LoRa stuff.
-
+///////restart present here  ///////////////////////////
     common_init_lora();
-
+/////////////////////////////////////////////////
 }
 
 
