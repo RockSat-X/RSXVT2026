@@ -5,7 +5,6 @@ import pathlib, sys
 # Current most effective version:
 import cv2 as cv
 
-"""  
 if len(sys.argv) != 2:
     print(f'Please provide a single argument that is the file path to the video; got {sys.argv[1:]}.')
     sys.exit(1)
@@ -15,8 +14,7 @@ video_path = pathlib.Path(sys.argv[1])
 if not video_path.is_file():
     print(f'{video_path} is not a file.')
     sys.exit(1)
-"""
-video_path = pathlib.Path("C:/Users/RyanS/moonYOLO/assets/Videos/wvu24_launch.mov")
+
 # Open the video file
 cap = cv.VideoCapture(video_path)
 

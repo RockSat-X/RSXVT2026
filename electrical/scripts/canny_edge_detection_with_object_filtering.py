@@ -5,7 +5,6 @@ import pathlib, sys
 # Current most effective version:
 import cv2 as cv
 
-"""  
 if len(sys.argv) != 2:
     print(f'Please provide a single argument that is the file path to the video; got {sys.argv[1:]}.')
     sys.exit(1)
@@ -15,8 +14,7 @@ video_path = pathlib.Path(sys.argv[1])
 if not video_path.is_file():
     print(f'{video_path} is not a file.')
     sys.exit(1)
-"""
-video_path = pathlib.Path("C:/Users/RyanS/moonYOLO/assets/Videos/wvu24_launch.mov")
+
 # Open the video file
 cap = cv.VideoCapture(video_path)
 
@@ -43,18 +41,18 @@ while True:
     edges = cv.dilate(edges, None)
 
      # Find contours using founds edges
-    
+
     curves, _ = cv.findContours(edges, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
 
     # Calculate longest curve
     def is_valid_contour(curves):
         valid = []
-        for i in curves: 
+        for i in curves:
             length = cv.arcLength(i, False) > 300 # Minimum length
             if (i[0] - i[-1]).astype(int).sum() > 20 and length:
                 valid.append(i)
         return valid
-    
+
     curves, _ = cv.findContours(edges, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
     valid_curves = is_valid_contour(curves)
 
@@ -77,8 +75,3 @@ while True:
 
 cap.release()
 cv.destroyAllWindows()
-
-
-
-        
-
