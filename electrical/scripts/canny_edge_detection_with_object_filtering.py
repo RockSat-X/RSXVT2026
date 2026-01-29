@@ -34,33 +34,51 @@ while True:
     adjusted = cv.convertScaleAbs(frame, alpha=alpha, beta=beta)
 
     # Initial images processing. Makes it easier to find edges
-    blur = cv.GaussianBlur(adjusted, (5, 5), 0)
+    blur = cv.GaussianBlur(frame, (5, 5), 0)
+    gray = cv.cvtColor(blur, cv.COLOR_BGR2GRAY)
 
     # Those last two values are also adjustable. Lower gets more edges
     # Higher gets less edges
-    edges = cv.Canny(blur, 150, 250)
+    edges = cv.Canny(gray, 50, 150)
     edges = cv.dilate(edges, None)
 
      # Find contours using founds edges
+    
     curves, _ = cv.findContours(edges, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
 
     # Calculate longest curve
+    def is_valid_contour(curves):
+        valid = []
+        for i in curves: 
+            length = cv.arcLength(i, False) > 300 # Minimum length
+            if (i[0] - i[-1]).astype(int).sum() > 20 and length:
+                valid.append(i)
+        return valid
+    
     curves, _ = cv.findContours(edges, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
-    if curves:
-        longest_curve = max(curves, key=lambda c: cv.arcLength(c, False))
+    valid_curves = is_valid_contour(curves)
+
+    if valid_curves:
+        longest_curve = max(valid_curves, key=lambda c: cv.arcLength(c, False))
     else:
         longest_curve = None
 
     # Draw longest curve on original frame
+    print(len(valid_curves))
     if longest_curve is not None and cv.arcLength(longest_curve, False) > 300:
         cv.drawContours(frame, [longest_curve], -1, (0, 0, 255), 2)
 
     cv.imshow("Edges", edges)
-    cv.imshow("Adjusted Frame", adjusted)
+    cv.imshow("Gray", gray)
     cv.imshow("Original Frame", frame)
 
-    if cv.waitKey(20) & 0xFF == ord('q'):  # Exit on 'q' key
+    if cv.waitKey(10) & 0xFF == ord('q'):  # Exit on 'q' key
         break
 
 cap.release()
 cv.destroyAllWindows()
+
+
+
+        
+
