@@ -1,5 +1,6 @@
 #include "system.h"
 #include "uxart.c"
+#include "i2c.c"
 #include "sd.c"
 #include "filesystem.c"
 #include "stepper.c"
@@ -25,6 +26,7 @@ main(void)
     STPY_init();
     UXART_init(UXARTHandle_stlink);
     UXART_init(UXARTHandle_stepper_uart);
+    I2C_reinit(I2CHandle_vehicle_interface);
 
 
 
@@ -264,4 +266,97 @@ FREERTOS_TASK(logger, 1024, 0)
         stlink_tx("Angular acceleration: %.6f\n", current_angular_acceleration);
         spinlock_us(10'000);
     }
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// Handle vehicle interface.
+//
+
+
+
+INTERRUPT_I2Cx_vehicle_interface(enum I2CSlaveCallbackEvent event, u8* data)
+{
+
+    static b32 payload_has_valid_data = false;
+
+    switch (event)
+    {
+
+        // No sense in having main send data to the vehicle.
+
+        case I2CSlaveCallbackEvent_data_available_to_read:
+        {
+            // Don't care.
+        } break;
+
+
+
+        // Send next byte of the vehicle interface payload over.
+
+        case I2CSlaveCallbackEvent_ready_to_transmit_data:
+        {
+
+            // Prepare the payload.
+
+            static i32                            byte_index = 0;
+            static struct VehicleInterfacePayload payload    = {0};
+
+            if (!payload_has_valid_data)
+            {
+
+                byte_index = 0;
+
+                payload =
+                    (struct VehicleInterfacePayload)
+                    {
+                        .timestamp_us = (u16) TIMEKEEPING_COUNTER(),
+                        .flags        = 0, // TODO.
+                    };
+
+                payload.crc =
+                    VEHICLE_INTERFACE_calculate_crc
+                    (
+                        (u8*) &payload,
+                        sizeof(payload) - sizeof(payload.crc)
+                    );
+
+                payload_has_valid_data = true;
+
+            }
+
+
+
+            // Prepare next byte.
+
+            if (byte_index < sizeof(payload))
+            {
+                *data = ((u8*) &payload)[byte_index];
+            }
+            else
+            {
+                *data = 0xFF; // Garbage.
+            }
+
+            byte_index += 1;
+
+        } break;
+
+
+
+        // End of a transfer.
+
+        case I2CSlaveCallbackEvent_stop_signaled:
+        {
+            payload_has_valid_data = false;
+        } break;
+
+
+
+        default: panic;
+
+    }
+
 }

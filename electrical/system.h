@@ -896,6 +896,61 @@ ESP32_calculate_crc(u8* data, i32 length)
 
 
 
+////////////////////////////////////////////////////////////////////////////////
+//
+// Vehicle interface.
+//
+
+
+
+// TODO Document.
+// TODO Have look-up table.
+extern useret u8
+VEHICLE_INTERFACE_calculate_crc(u8* data, i32 length)
+{
+    u8 crc = 0xFF;
+
+    for (i32 i = 0; i < length; i += 1)
+    {
+        crc ^= data[i];
+
+        for (i32 j = 0; j < 8; j += 1)
+        {
+            crc = (crc & (1 << 7))
+                ? (crc << 1) ^ 0x2F
+                : (crc << 1);
+        }
+    }
+
+    return crc;
+}
+
+
+
+pack_push
+
+    enum VehicleInterfacePayloadFlag : u16
+    {
+        VehicleInterfacePayloadFlag_stepper_motor_axis_x_okay,
+        VehicleInterfacePayloadFlag_stepper_motor_axis_y_okay,
+        VehicleInterfacePayloadFlag_stepper_motor_axis_z_okay,
+        VehicleInterfacePayloadFlag_wifi_okay,
+        VehicleInterfacePayloadFlag_lora_okay,
+        VehicleInterfacePayloadFlag_openmv_okay,
+        VehicleInterfacePayloadFlag_vn100_okay,
+    };
+
+    struct VehicleInterfacePayload
+    {
+        u16                              timestamp_us;
+        enum VehicleInterfacePayloadFlag flags;
+        u8                               crc;
+    };
+
+pack_pop
+
+
+
 //////////////////////////////////////// Notes ////////////////////////////////////////
 
 

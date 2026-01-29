@@ -22,6 +22,9 @@
 #if TARGET_NAME_IS_MainFlightComputer
     #error Target 'MainFlightComputer' needs to define a unique 'Stepper' driver.
 #endif
+#if TARGET_NAME_IS_MainFlightComputer_NUCLEO
+    #error Target 'MainFlightComputer_NUCLEO' needs to define a unique 'Stepper' driver.
+#endif
 #if TARGET_NAME_IS_VehicleFlightComputer
     enum StepperInstanceHandle : u32
     {

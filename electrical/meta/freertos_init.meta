@@ -128,6 +128,33 @@
     enum FreeRTOSTask : u32;
     static constexpr u32 FreeRTOSTask_COUNT = 0;
 #endif
+#if TARGET_NAME_IS_MainFlightComputer_NUCLEO
+    enum FreeRTOSTask : u32
+    {
+        FreeRTOSTask_vehicle_interface,
+    };
+    static constexpr u32 FreeRTOSTask_COUNT = 1;
+    static noret void   vehicle_interface(void*);
+    static StackType_t  vehicle_interface_stack[1024 / sizeof(StackType_t)] = {0};
+    static StaticTask_t vehicle_interface_buffer = {0};
+    static noret void
+    FREERTOS_init(void)
+    {
+        TaskHandle_t vehicle_interface_handle =
+            xTaskCreateStatic
+            (
+                vehicle_interface,
+                "vehicle_interface",
+                countof(vehicle_interface_stack),
+                nullptr,
+                0,
+                vehicle_interface_stack,
+                &vehicle_interface_buffer
+            );
+        vTaskStartScheduler();
+        panic;
+    }
+#endif
 #if TARGET_NAME_IS_VehicleFlightComputer
     enum FreeRTOSTask : u32
     {
