@@ -6161,7 +6161,7 @@
 		)
 		(uuid "8ad21461-d091-4f28-82e2-a34ad30c9ea7")
 	)
-	(text "Vehicle PDS I/O (V4 : New connector)."
+	(text "Vehicle PDS I/O (V5 : No motor step+dir)."
 		(exclude_from_sim no)
 		(at 427.99 241.3 0)
 		(effects
@@ -6377,12 +6377,24 @@
 		(uuid "ffd35cf8-c97d-466e-8f80-1e31ea255312")
 	)
 	(no_connect
+		(at 83.82 144.78)
+		(uuid "01259e0f-6827-48d9-8450-f10c8550d538")
+	)
+	(no_connect
 		(at 144.78 210.82)
 		(uuid "050f35d3-ebb1-4f5c-9027-9564546106ca")
 	)
 	(no_connect
 		(at 83.82 142.24)
 		(uuid "08d96965-8b31-4ee2-96cf-b3f4bc601dc6")
+	)
+	(no_connect
+		(at 83.82 154.94)
+		(uuid "0ec481f2-8e52-42d0-b6c0-7f64a544bf06")
+	)
+	(no_connect
+		(at 144.78 132.08)
+		(uuid "1a6a94c1-4b7e-4ff9-9502-103dad508d6e")
 	)
 	(no_connect
 		(at 144.78 147.32)
@@ -6397,6 +6409,10 @@
 		(uuid "2a870778-4ef8-4be6-bd1e-76fbac0ce7e2")
 	)
 	(no_connect
+		(at 485.14 262.89)
+		(uuid "2bddc11c-8ab1-4055-9837-de1d33e190ab")
+	)
+	(no_connect
 		(at 144.78 182.88)
 		(uuid "31d18091-0910-401e-bda0-7ab16ccdd6ab")
 	)
@@ -6409,12 +6425,28 @@
 		(uuid "366c5006-eb77-4153-9f17-e39d76c77840")
 	)
 	(no_connect
+		(at 485.14 303.53)
+		(uuid "435e13a6-8c54-43ff-82a9-cc7481c6af53")
+	)
+	(no_connect
+		(at 485.14 260.35)
+		(uuid "45bb3a0d-993e-470a-934f-6539c5aed4c8")
+	)
+	(no_connect
 		(at 144.78 111.76)
 		(uuid "49ff59a8-1983-4895-a0bc-1a946f0db8b9")
 	)
 	(no_connect
+		(at 485.14 300.99)
+		(uuid "579cfd35-f4ad-48e3-b080-da5ab19102c5")
+	)
+	(no_connect
 		(at 83.82 213.36)
 		(uuid "5ca0ae39-6b7c-483b-9dfc-44033b3c37a8")
+	)
+	(no_connect
+		(at 144.78 134.62)
+		(uuid "5ca7a553-b6d1-4f95-a3c0-9eb427a20758")
 	)
 	(no_connect
 		(at 144.78 175.26)
@@ -6445,6 +6477,10 @@
 		(uuid "7bba8863-679f-43f4-a10e-1019e3e6239f")
 	)
 	(no_connect
+		(at 485.14 306.07)
+		(uuid "7e23a8df-ed50-4602-ac0f-61e3ba7ffac2")
+	)
+	(no_connect
 		(at 144.78 137.16)
 		(uuid "81b31893-86f5-4657-8bcb-db6f281c8aae")
 	)
@@ -6453,12 +6489,20 @@
 		(uuid "8b37fd40-473c-4d53-8a1d-c5d092153fdf")
 	)
 	(no_connect
+		(at 144.78 129.54)
+		(uuid "8c7ff612-a627-46da-89ab-9c95c08f0f51")
+	)
+	(no_connect
 		(at 83.82 205.74)
 		(uuid "964621dc-8b6f-4167-8e4f-9bb72b916792")
 	)
 	(no_connect
 		(at 83.82 203.2)
 		(uuid "9f79bdc4-7381-4aa1-a80d-3c6646481be3")
+	)
+	(no_connect
+		(at 144.78 208.28)
+		(uuid "a15c835a-910e-4167-af3a-6c5d48078315")
 	)
 	(no_connect
 		(at 83.82 129.54)
@@ -6499,6 +6543,10 @@
 	(no_connect
 		(at 144.78 231.14)
 		(uuid "f36e98bb-7b03-45c0-9aea-0addec87458b")
+	)
+	(no_connect
+		(at 485.14 257.81)
+		(uuid "f5e8fc19-3b5a-4401-9846-91eed8533a98")
 	)
 	(no_connect
 		(at 144.78 139.7)
@@ -7362,28 +7410,6 @@
 			)
 		)
 	)
-	(global_label "motor_direction_x"
-		(shape bidirectional)
-		(at 485.14 306.07 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "0f4eacb1-a15b-4271-bd7d-253eb4b862e8")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 464.2313 306.07 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "motor_uart_rx"
 		(shape bidirectional)
 		(at 144.78 187.96 0)
@@ -7758,28 +7784,6 @@
 			)
 		)
 	)
-	(global_label "motor_direction_y"
-		(shape bidirectional)
-		(at 485.14 303.53 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "38e8e564-66c6-43b8-bad3-b5d16ebda9db")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 464.2918 303.53 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "swclk"
 		(shape bidirectional)
 		(at 326.39 152.4 180)
@@ -7815,28 +7819,6 @@
 		(uuid "430bafee-98a4-4714-996f-3c5bc5719015")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 408.8957 165.1 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "motor_step_x"
-		(shape bidirectional)
-		(at 485.14 257.81 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "44cbaa7a-bd75-4f3c-8f2e-bcf51be26a41")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 468.5856 257.81 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8242,28 +8224,6 @@
 			)
 		)
 	)
-	(global_label "motor_direction_z"
-		(shape bidirectional)
-		(at 485.14 300.99 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "6a69bbab-7f62-4ca4-a498-18354e3e1c33")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 464.2313 300.99 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "openmv_spi_miso"
 		(shape bidirectional)
 		(at 144.78 198.12 0)
@@ -8277,28 +8237,6 @@
 		(uuid "6fc03c19-de15-40d9-8def-575d1c380076")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 165.2653 198.12 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "motor_direction_z"
-		(shape bidirectional)
-		(at 144.78 134.62 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "75259809-4870-4bdb-a374-47aa3bf1be2f")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 165.6887 134.62 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8396,28 +8334,6 @@
 			)
 		)
 	)
-	(global_label "motor_step_y"
-		(shape bidirectional)
-		(at 144.78 208.28 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "84013f5a-6379-4c65-9cf9-923822e0948e")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 161.2739 208.28 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "esp32_reset"
 		(shape bidirectional)
 		(at 86.36 304.8 180)
@@ -8502,50 +8418,6 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "motor_direction_x"
-		(shape bidirectional)
-		(at 144.78 132.08 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "8ee068e1-d8f5-4597-bd29-6b9026ac3fdf")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 165.6887 132.08 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "motor_step_y"
-		(shape bidirectional)
-		(at 485.14 260.35 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "903b5852-17ba-445f-9ad0-3d31e58a5cd7")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 468.6461 260.35 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
 				(hide yes)
 			)
 		)
@@ -8651,50 +8523,6 @@
 		(uuid "9ebfcffd-2bbc-4603-b667-4fb0fa76b157")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 64.7862 127 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "motor_step_x"
-		(shape bidirectional)
-		(at 83.82 154.94 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "9f0c9f74-04ac-497a-882e-0cb93dcec4f3")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 67.2656 154.94 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "motor_step_z"
-		(shape bidirectional)
-		(at 83.82 144.78 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "a3388e6b-734a-4181-9968-0a99c2edb246")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 67.2656 144.78 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8959,28 +8787,6 @@
 		(uuid "d54399b8-8117-4d9f-b70e-79aa0d47031f")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 155.1055 121.92 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "motor_direction_y"
-		(shape bidirectional)
-		(at 144.78 129.54 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "d620a3a5-fe24-4a49-8164-9b8cc264fc72")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 165.6282 129.54 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9294,28 +9100,6 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "motor_step_z"
-		(shape bidirectional)
-		(at 485.14 262.89 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "fd5f69a6-215a-4043-9d44-ebb9f17ffc5b")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 468.5856 262.89 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
 				(hide yes)
 			)
 		)
