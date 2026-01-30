@@ -132,11 +132,19 @@
     enum FreeRTOSTask : u32
     {
         FreeRTOSTask_vehicle_interface,
+        FreeRTOSTask_vn100_uart,
+        FreeRTOSTask_heartbeat,
     };
-    static constexpr u32 FreeRTOSTask_COUNT = 1;
+    static constexpr u32 FreeRTOSTask_COUNT = 3;
     static noret void   vehicle_interface(void*);
     static StackType_t  vehicle_interface_stack[1024 / sizeof(StackType_t)] = {0};
     static StaticTask_t vehicle_interface_buffer = {0};
+    static noret void   vn100_uart(void*);
+    static StackType_t  vn100_uart_stack[1024 / sizeof(StackType_t)] = {0};
+    static StaticTask_t vn100_uart_buffer = {0};
+    static noret void   heartbeat(void*);
+    static StackType_t  heartbeat_stack[1024 / sizeof(StackType_t)] = {0};
+    static StaticTask_t heartbeat_buffer = {0};
     static noret void
     FREERTOS_init(void)
     {
@@ -151,6 +159,28 @@
                 vehicle_interface_stack,
                 &vehicle_interface_buffer
             );
+        TaskHandle_t vn100_uart_handle =
+            xTaskCreateStatic
+            (
+                vn100_uart,
+                "vn100_uart",
+                countof(vn100_uart_stack),
+                nullptr,
+                0,
+                vn100_uart_stack,
+                &vn100_uart_buffer
+            );
+        TaskHandle_t heartbeat_handle =
+            xTaskCreateStatic
+            (
+                heartbeat,
+                "heartbeat",
+                countof(heartbeat_stack),
+                nullptr,
+                0,
+                heartbeat_stack,
+                &heartbeat_buffer
+            );
         vTaskStartScheduler();
         panic;
     }
@@ -161,8 +191,9 @@
         FreeRTOSTask_stepper_motor_controller,
         FreeRTOSTask_user_inputter,
         FreeRTOSTask_logger,
+        FreeRTOSTask_vn100,
     };
-    static constexpr u32 FreeRTOSTask_COUNT = 3;
+    static constexpr u32 FreeRTOSTask_COUNT = 4;
     static noret void   stepper_motor_controller(void*);
     static StackType_t  stepper_motor_controller_stack[1024 / sizeof(StackType_t)] = {0};
     static StaticTask_t stepper_motor_controller_buffer = {0};
@@ -170,8 +201,11 @@
     static StackType_t  user_inputter_stack[1024 / sizeof(StackType_t)] = {0};
     static StaticTask_t user_inputter_buffer = {0};
     static noret void   logger(void*);
-    static StackType_t  logger_stack[1024 / sizeof(StackType_t)] = {0};
+    static StackType_t  logger_stack[2048 / sizeof(StackType_t)] = {0};
     static StaticTask_t logger_buffer = {0};
+    static noret void   vn100(void*);
+    static StackType_t  vn100_stack[2048 / sizeof(StackType_t)] = {0};
+    static StaticTask_t vn100_buffer = {0};
     static noret void
     FREERTOS_init(void)
     {
@@ -207,6 +241,17 @@
                 0,
                 logger_stack,
                 &logger_buffer
+            );
+        TaskHandle_t vn100_handle =
+            xTaskCreateStatic
+            (
+                vn100,
+                "vn100",
+                countof(vn100_stack),
+                nullptr,
+                0,
+                vn100_stack,
+                &vn100_buffer
             );
         vTaskStartScheduler();
         panic;
