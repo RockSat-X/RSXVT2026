@@ -6405,6 +6405,10 @@
 		(uuid "2180afa2-fddc-4168-ac28-b93250987d7e")
 	)
 	(no_connect
+		(at 144.78 172.72)
+		(uuid "2435566c-a226-43a4-bbca-c2cdce8d85a8")
+	)
+	(no_connect
 		(at 83.82 200.66)
 		(uuid "2a870778-4ef8-4be6-bd1e-76fbac0ce7e2")
 	)
@@ -6415,6 +6419,10 @@
 	(no_connect
 		(at 144.78 182.88)
 		(uuid "31d18091-0910-401e-bda0-7ab16ccdd6ab")
+	)
+	(no_connect
+		(at 144.78 154.94)
+		(uuid "32415998-8c88-4e47-8f1f-43c6299f0cc1")
 	)
 	(no_connect
 		(at 83.82 208.28)
@@ -6433,6 +6441,10 @@
 		(uuid "45bb3a0d-993e-470a-934f-6539c5aed4c8")
 	)
 	(no_connect
+		(at 138.43 284.48)
+		(uuid "49b7126a-fa1b-4387-9c55-90724e11b031")
+	)
+	(no_connect
 		(at 144.78 111.76)
 		(uuid "49ff59a8-1983-4895-a0bc-1a946f0db8b9")
 	)
@@ -6447,6 +6459,18 @@
 	(no_connect
 		(at 144.78 134.62)
 		(uuid "5ca7a553-b6d1-4f95-a3c0-9eb427a20758")
+	)
+	(no_connect
+		(at 86.36 292.1)
+		(uuid "62eb88be-bbc0-49a0-9c4e-0a01b7ce46d1")
+	)
+	(no_connect
+		(at 138.43 281.94)
+		(uuid "644d790b-6990-4bc9-acb8-f4e716832915")
+	)
+	(no_connect
+		(at 83.82 134.62)
+		(uuid "647458e7-b58b-4a34-80d7-476034e121ca")
 	)
 	(no_connect
 		(at 144.78 175.26)
@@ -6493,6 +6517,10 @@
 		(uuid "8c7ff612-a627-46da-89ab-9c95c08f0f51")
 	)
 	(no_connect
+		(at 144.78 165.1)
+		(uuid "8ced9926-9765-4fd8-8741-31a4ccd1995c")
+	)
+	(no_connect
 		(at 83.82 205.74)
 		(uuid "964621dc-8b6f-4167-8e4f-9bb72b916792")
 	)
@@ -6525,6 +6553,10 @@
 		(uuid "c43dc1b4-a651-4f03-9f28-0f91be0bff11")
 	)
 	(no_connect
+		(at 138.43 289.56)
+		(uuid "cc7d9203-cf01-42b2-99b4-4d832c205a8b")
+	)
+	(no_connect
 		(at 83.82 162.56)
 		(uuid "cf5d099e-d36a-4749-a658-9a5af73e904b")
 	)
@@ -6535,6 +6567,10 @@
 	(no_connect
 		(at 144.78 124.46)
 		(uuid "e3e0cfbb-5803-4875-88fb-81f81a235361")
+	)
+	(no_connect
+		(at 144.78 152.4)
+		(uuid "e534fe45-1c2c-4f60-9809-521382a01aee")
 	)
 	(no_connect
 		(at 83.82 182.88)
@@ -6563,6 +6599,10 @@
 	(no_connect
 		(at 83.82 160.02)
 		(uuid "fe9a9aad-3e6b-4eb6-acd2-15fa90367e3d")
+	)
+	(no_connect
+		(at 138.43 287.02)
+		(uuid "ff8f2965-b605-4af2-891e-3d83ca3bbf13")
 	)
 	(wire
 		(pts
@@ -7586,28 +7626,6 @@
 			)
 		)
 	)
-	(global_label "esp32_spi_clock"
-		(shape bidirectional)
-		(at 138.43 281.94 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "279ca27d-c01e-4e9d-846b-6ebce0600158")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 157.9478 281.94 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "RESET"
 		(shape bidirectional)
 		(at 326.39 139.7 180)
@@ -7740,28 +7758,6 @@
 			)
 		)
 	)
-	(global_label "esp32_spi_ready"
-		(shape bidirectional)
-		(at 83.82 134.62 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "36295dde-670b-4a57-8b53-b46b3dc52b08")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 64.1813 134.62 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "openmv_spi_clock"
 		(shape bidirectional)
 		(at 138.43 269.24 0)
@@ -7828,28 +7824,6 @@
 			)
 		)
 	)
-	(global_label "esp32_spi_mosi"
-		(shape bidirectional)
-		(at 144.78 165.1 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "4a2ddcc1-c19d-4d1a-ab7c-6df2719a5492")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 163.7535 165.1 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "sd_data_0"
 		(shape bidirectional)
 		(at 203.2 273.05 180)
@@ -7885,28 +7859,6 @@
 		(uuid "4ccd62f1-b639-480c-8914-d897f44c8235")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 468.2833 267.97 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "esp32_spi_ready"
-		(shape bidirectional)
-		(at 86.36 292.1 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "52418dc5-7e2e-42c7-9680-6a2afb9ce342")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 66.7213 292.1 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8198,28 +8150,6 @@
 					(size 1.27 1.27)
 				)
 				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "esp32_spi_mosi"
-		(shape bidirectional)
-		(at 138.43 284.48 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "69a5e64f-a0f3-4a26-8aa2-80b5b54a34ab")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 157.4035 284.48 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
 				(hide yes)
 			)
 		)
@@ -8620,28 +8550,6 @@
 			)
 		)
 	)
-	(global_label "esp32_spi_nss"
-		(shape bidirectional)
-		(at 138.43 289.56 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "b38291e2-80fe-4005-b8f1-459611aa95f9")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 156.1335 289.56 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "swo"
 		(shape bidirectional)
 		(at 144.78 160.02 0)
@@ -8818,28 +8726,6 @@
 			)
 		)
 	)
-	(global_label "esp32_spi_clock"
-		(shape bidirectional)
-		(at 144.78 154.94 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "d81492cb-ae5f-475d-9703-9a374c59a214")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 164.2978 154.94 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "led_channel_red"
 		(shape bidirectional)
 		(at 144.78 193.04 0)
@@ -8902,28 +8788,6 @@
 					(size 1.27 1.27)
 				)
 				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "esp32_spi_nss"
-		(shape bidirectional)
-		(at 144.78 172.72 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "e16769fe-cf77-484b-a27e-e2dec0ecfc26")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 162.4835 172.72 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
 				(hide yes)
 			)
 		)
@@ -9082,28 +8946,6 @@
 			)
 		)
 	)
-	(global_label "esp32_spi_miso"
-		(shape bidirectional)
-		(at 138.43 287.02 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "fb639f1f-adec-4d84-aad1-8088aba148eb")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 157.4035 287.02 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "openmv_reset"
 		(shape bidirectional)
 		(at 144.78 157.48 0)
@@ -9139,28 +8981,6 @@
 		(uuid "fef06165-e07f-49e3-8fa9-33f169c17094")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 161.6367 119.38 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "esp32_spi_miso"
-		(shape bidirectional)
-		(at 144.78 152.4 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "ff9e803c-fd11-41e3-9422-d2b6efeb2080")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 163.7535 152.4 0)
 			(effects
 				(font
 					(size 1.27 1.27)
