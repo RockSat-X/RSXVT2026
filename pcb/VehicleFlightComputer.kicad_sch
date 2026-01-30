@@ -6357,7 +6357,7 @@
 		)
 		(uuid "8ad21461-d091-4f28-82e2-a34ad30c9ea7")
 	)
-	(text "Vehicle PDS I/O (V2 : Updated net-names)."
+	(text "Vehicle PDS I/O (V3 : Disabled to enabled)."
 		(exclude_from_sim no)
 		(at 463.55 297.18 0)
 		(effects
@@ -8106,7 +8106,7 @@
 			)
 		)
 	)
-	(global_label "motor_disable"
+	(global_label "motor_enable"
 		(shape bidirectional)
 		(at 520.7 323.85 180)
 		(fields_autoplaced yes)
@@ -8118,7 +8118,7 @@
 		)
 		(uuid "4ccd62f1-b639-480c-8914-d897f44c8235")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 503.299 323.85 0)
+			(at 503.8433 323.85 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9558,7 +9558,7 @@
 			)
 		)
 	)
-	(global_label "motor_disable"
+	(global_label "motor_enable"
 		(shape bidirectional)
 		(at 102.87 78.74 0)
 		(fields_autoplaced yes)
@@ -9570,7 +9570,7 @@
 		)
 		(uuid "fef06165-e07f-49e3-8fa9-33f169c17094")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 120.271 78.74 0)
+			(at 119.7267 78.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
