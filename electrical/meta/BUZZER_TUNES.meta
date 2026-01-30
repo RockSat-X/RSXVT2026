@@ -22,6 +22,9 @@
 #if TARGET_NAME_IS_MainFlightComputer
     #error Target 'MainFlightComputer' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
 #endif
+#if TARGET_NAME_IS_MainFlightComputer_NUCLEO
+    #error Target 'MainFlightComputer_NUCLEO' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
+#endif
 #if TARGET_NAME_IS_VehicleFlightComputer
 #endif
 #if TARGET_NAME_IS_DebugBoard

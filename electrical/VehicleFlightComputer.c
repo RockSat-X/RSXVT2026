@@ -1,11 +1,74 @@
 #include "system.h"
 #include "uxart.c"
+#include "i2c.c"
 #include "sd.c"
 #include "filesystem.c"
 #include "stepper.c"
 #include "buzzer.c"
 #include "timekeeping.c"
 #include "matrix.c"
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// VN-100 stuff.
+//
+
+
+
+struct VN100Packet
+{
+    f32 QuatX;
+    f32 QuatY;
+    f32 QuatZ;
+    f32 QuatS;
+    f32 MagX;
+    f32 MagY;
+    f32 MagZ;
+    f32 AccelX;
+    f32 AccelY;
+    f32 AccelZ;
+    f32 GyroX;
+    f32 GyroY;
+    f32 GyroZ;
+};
+
+static struct VN100Packet VN100_buffer[4] = {0};
+static volatile u32       VN100_reader    = 0;
+static volatile u32       VN100_writer    = 0;
+
+static_assert(IS_POWER_OF_TWO(countof(VN100_buffer)));
+
+static useret b32
+VN100_get_latest_reading(struct VN100Packet* dst)
+{
+
+    if (!dst)
+        panic;
+
+    b32 data_available = VN100_reader != VN100_writer;
+
+    if (data_available)
+    {
+        *dst = VN100_buffer[VN100_reader % countof(VN100_buffer)];
+
+        // Flush all buffered packets except the latest one,
+        // so that on the next call that there's still something
+        // to at least give back.
+        VN100_reader = VN100_writer - 1;
+
+    }
+    else
+    {
+        // There's no data available right now,
+        // which means we haven't gotten the
+        // first (valid) packet from the VN-100 yet...
+    }
+
+    return data_available;
+
+}
 
 
 
@@ -25,6 +88,8 @@ main(void)
     STPY_init();
     UXART_init(UXARTHandle_stlink);
     UXART_init(UXARTHandle_stepper_uart);
+    UXART_init(UXARTHandle_vn100_esp32);
+    I2C_reinit(I2CHandle_vehicle_interface);
 
 
 
@@ -257,11 +322,434 @@ FREERTOS_TASK(user_inputter, 1024, 0)
 
 
 
-FREERTOS_TASK(logger, 1024, 0)
+FREERTOS_TASK(logger, 2048, 0)
 {
     for (;;)
     {
         stlink_tx("Angular acceleration: %.6f\n", current_angular_acceleration);
-        spinlock_us(10'000);
+
+        struct VN100Packet packet = {0};
+        if (VN100_get_latest_reading(&packet))
+        {
+            stlink_tx
+            (
+                "QuatX  : %f" "\n"
+                "QuatY  : %f" "\n"
+                "QuatZ  : %f" "\n"
+                "QuatS  : %f" "\n"
+                "MagX   : %f" "\n"
+                "MagY   : %f" "\n"
+                "MagZ   : %f" "\n"
+                "AccelX : %f" "\n"
+                "AccelY : %f" "\n"
+                "AccelZ : %f" "\n"
+                "GyroX  : %f" "\n"
+                "GyroY  : %f" "\n"
+                "GyroZ  : %f" "\n"
+                "\n",
+                packet.QuatX,
+                packet.QuatY,
+                packet.QuatZ,
+                packet.QuatS,
+                packet.MagX,
+                packet.MagY,
+                packet.MagZ,
+                packet.AccelX,
+                packet.AccelY,
+                packet.AccelZ,
+                packet.GyroX,
+                packet.GyroY,
+                packet.GyroZ
+            );
+        }
+
+        spinlock_us(100'000);
     }
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// Handle VN-100.
+//
+
+
+
+FREERTOS_TASK(vn100, 2048, 0)
+{
+    for (;;)
+    {
+
+        // Get the payload.
+
+        u8  payload_buffer[256]      = {0};
+        i32 payload_length           = 0;
+        i32 checksum_indicator_index = 0;
+
+        while (true)
+        {
+
+            u8 data = {0};
+            while (!UXART_rx(UXARTHandle_vn100_esp32, &data));
+
+            if (implies(payload_length == 0, data == '$'))
+            {
+                payload_buffer[payload_length]  = data;
+                payload_length                 += 1;
+
+                if (payload_length == countof(payload_buffer))
+                {
+
+                    // Ran out of buffer space.
+                    // Could be due to corrupt message
+                    // where we didn't find the checksum indicator.
+
+                    checksum_indicator_index = 0; // It'll be invalid to try to read the checksum.
+
+                    break;
+
+                }
+                else if (checksum_indicator_index && payload_length == checksum_indicator_index + 3)
+                {
+                    break; // We reached the end of the VN-100 register read payload.
+                }
+                else if (data == '*')
+                {
+                    checksum_indicator_index = payload_length - 1;
+                }
+            }
+
+        }
+
+
+
+        // Verify payload integrity. TODO Cite.
+
+        u8 expected_checksum = 0;
+        for
+        (
+            i32 i = 1;
+            i < checksum_indicator_index;
+            i += 1
+        )
+        {
+            expected_checksum ^= payload_buffer[i];
+        }
+
+        u32 received_checksum =
+            ((payload_buffer[checksum_indicator_index + 1] - (u32) '0') << 4) |
+            ((payload_buffer[checksum_indicator_index + 2] - (u32) '0') << 0);
+
+        b32 checksum_valid = expected_checksum == received_checksum;
+
+        if (!checksum_valid)
+        {
+            stlink_tx("Bad checksum! `%.*s` (expected 0x%02X)\n", countof(payload_buffer), payload_buffer, expected_checksum);
+        }
+
+
+
+        // Parse the VN-100 payload.
+
+        else
+        {
+
+            struct VN100Packet packet               = {0};
+            b32                valid_packet         = true;
+            i32                field_position_index = 0;
+            i32                field_start_index    = 0;
+            i32                field_length         = 0;
+
+            while (true)
+            {
+
+                b32 found_comma = payload_buffer[field_start_index + field_length] == ',';
+                b32 reached_end = field_start_index + field_length >= checksum_indicator_index;
+
+                if (found_comma || reached_end)
+                {
+
+                    // Magic starting token.
+
+                    if (field_position_index == 0)
+                    {
+                        valid_packet =
+                            !strncmp
+                            (
+                                (char*) (payload_buffer + field_start_index),
+                                "$VNRRG",
+                                (u32) field_length
+                            );
+                    }
+
+
+
+                    // Register ID.
+
+                    else if (field_position_index == 1)
+                    {
+                        valid_packet =
+                            !strncmp
+                            (
+                                (char*) (payload_buffer + field_start_index),
+                                "15",
+                                (u32) field_length
+                            );
+                    }
+
+
+
+                    // Field values of the register.
+
+                    else if (field_position_index - 2 < sizeof(struct VN100Packet) / sizeof(f32))
+                    {
+
+                        // Parse the field as a float, if possible.
+
+                        f32 parsed_value   = 0.0f;
+                        b32 negative       = false;
+                        f32 decimal_factor = {0};
+
+                        for
+                        (
+                            i32 index = 0;
+                            index < field_length && valid_packet;
+                            index += 1
+                        )
+                        {
+                            if (payload_buffer[field_start_index + index] == '+' && index == 0)
+                            {
+                                negative = false;
+                            }
+                            else if (payload_buffer[field_start_index + index] == '-' && index == 0)
+                            {
+                                negative = true;
+                            }
+                            else if (payload_buffer[field_start_index + index] == '.' && !decimal_factor)
+                            {
+                                decimal_factor = 0.1f;
+                            }
+                            else if ('0' <= payload_buffer[field_start_index + index] && payload_buffer[field_start_index + index] <= '9')
+                            {
+                                f32 digit = (f32) (payload_buffer[field_start_index + index] - '0');
+
+                                if (decimal_factor)
+                                {
+                                    parsed_value   += decimal_factor * digit;
+                                    decimal_factor *= 0.1f;
+                                }
+                                else
+                                {
+                                    parsed_value = parsed_value * 10.0f + digit;
+                                }
+                            }
+                            else
+                            {
+                                valid_packet = false;
+                            }
+                        }
+
+                        if (valid_packet)
+                        {
+
+                            if (negative)
+                            {
+                                parsed_value = -parsed_value;
+                            }
+
+                            ((f32*) &packet)[field_position_index - 2] = parsed_value;
+
+                        }
+
+                    }
+
+
+
+                    // Extraneous fields...
+
+                    else
+                    {
+                        valid_packet = false;
+                    }
+
+
+
+                    if (!valid_packet)
+                    {
+                        break; // Abort parsing the received data.
+                    }
+                    else if (reached_end)
+                    {
+                        break; // No more data to process.
+                    }
+                    else // Move onto next field.
+                    {
+                        field_position_index += 1;
+                        field_start_index    += field_length + 1; // +1 to skip the comma.
+                        field_length          = 0;
+                    }
+
+                }
+                else
+                {
+                    field_length += 1;
+                }
+
+            }
+
+            if (!valid_packet)
+            {
+                // Something was wrong with the received VN-100 payload...
+            }
+            else if (VN100_writer - VN100_reader < countof(VN100_buffer))
+            {
+                VN100_buffer[VN100_writer % countof(VN100_buffer)] = packet;
+                VN100_writer += 1;
+            }
+            else
+            {
+                // VN-100 data overrun!
+            }
+
+        }
+
+    }
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// Handle ESP32 payload transmission.
+//
+
+
+
+FREERTOS_TASK(esp32, 2048, 0)
+{
+    for (;;)
+    {
+
+        struct PacketESP32 payload =
+            {
+                .magnetometer_x                          = 3.1f,
+                .magnetometer_y                          = 3.2f,
+                .magnetometer_z                          = 3.3f,
+                .image_chunk                             = { 'M', 'E', 'O', 'W', '!', '?' },
+                .nonredundant.quaternion_i               = 0.1f,
+                .nonredundant.quaternion_j               = 0.2f,
+                .nonredundant.quaternion_k               = 0.3f,
+                .nonredundant.quaternion_r               = 0.4f,
+                .nonredundant.accelerometer_x            = 1.1f,
+                .nonredundant.accelerometer_y            = 1.2f,
+                .nonredundant.accelerometer_z            = 1.3f,
+                .nonredundant.gyro_x                     = 2.1f,
+                .nonredundant.gyro_y                     = 2.2f,
+                .nonredundant.gyro_z                     = 2.3f,
+                .nonredundant.computer_vision_confidence = -1.0f,
+                .nonredundant.timestamp_ms               = 0,
+                .nonredundant.sequence_number            = 0,
+                .nonredundant.crc                        = 0x00,
+            };
+
+        payload.nonredundant.crc = ESP32_calculate_crc((u8*) &payload, sizeof(payload) - sizeof(payload.nonredundant.crc));
+
+        UXART_tx_bytes(UXARTHandle_vn100_esp32, (u8*) &(u16) { PACKET_ESP32_START_TOKEN }, sizeof(u16));
+        UXART_tx_bytes(UXARTHandle_vn100_esp32, (u8*) &payload, sizeof(payload));
+
+    }
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// Handle vehicle interface.
+//
+
+
+
+INTERRUPT_I2Cx_vehicle_interface(enum I2CSlaveCallbackEvent event, u8* data)
+{
+
+    static b32 payload_has_valid_data = false;
+
+    switch (event)
+    {
+
+        // No sense in having main send data to the vehicle.
+
+        case I2CSlaveCallbackEvent_data_available_to_read:
+        {
+            // Don't care.
+        } break;
+
+
+
+        // Send next byte of the vehicle interface payload over.
+
+        case I2CSlaveCallbackEvent_ready_to_transmit_data:
+        {
+
+            // Prepare the payload.
+
+            static i32                            byte_index = 0;
+            static struct VehicleInterfacePayload payload    = {0};
+
+            if (!payload_has_valid_data)
+            {
+
+                byte_index = 0;
+
+                payload =
+                    (struct VehicleInterfacePayload)
+                    {
+                        .timestamp_us = (u16) TIMEKEEPING_COUNTER(),
+                        .flags        = 0, // TODO.
+                    };
+
+                payload.crc =
+                    VEHICLE_INTERFACE_calculate_crc
+                    (
+                        (u8*) &payload,
+                        sizeof(payload) - sizeof(payload.crc)
+                    );
+
+                payload_has_valid_data = true;
+
+            }
+
+
+
+            // Prepare next byte.
+
+            if (byte_index < sizeof(payload))
+            {
+                *data = ((u8*) &payload)[byte_index];
+            }
+            else
+            {
+                *data = 0xFF; // Garbage.
+            }
+
+            byte_index += 1;
+
+        } break;
+
+
+
+        // End of a transfer.
+
+        case I2CSlaveCallbackEvent_stop_signaled:
+        {
+            payload_has_valid_data = false;
+        } break;
+
+
+
+        default: panic;
+
+    }
+
 }
