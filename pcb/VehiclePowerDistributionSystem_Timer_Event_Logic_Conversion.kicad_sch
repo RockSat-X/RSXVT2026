@@ -878,7 +878,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "0486685a-1100-4a71-9d86-d3952ae92015")
-		(property "Reference" "C1"
+		(property "Reference" "C25"
 			(at 138.43 91.4399 0)
 			(effects
 				(font
@@ -932,7 +932,7 @@
 		(instances
 			(project "VehiclePowerDistributionSystem"
 				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/54620fe3-2093-4758-a776-838cd07d45c6"
-					(reference "C1")
+					(reference "C25")
 					(unit 1)
 				)
 			)
@@ -948,7 +948,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "1ce204b0-632a-4b87-a634-19f2f6e12561")
-		(property "Reference" "#PWR014"
+		(property "Reference" "#PWR080"
 			(at 114.3 106.68 0)
 			(effects
 				(font
@@ -999,7 +999,7 @@
 		(instances
 			(project "VehiclePowerDistributionSystem"
 				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/54620fe3-2093-4758-a776-838cd07d45c6"
-					(reference "#PWR014")
+					(reference "#PWR080")
 					(unit 1)
 				)
 			)
@@ -1015,7 +1015,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "47ca0805-3ef8-46f9-9226-a167b5d979c8")
-		(property "Reference" "D1"
+		(property "Reference" "D7"
 			(at 118.11 65.0874 90)
 			(effects
 				(font
@@ -1078,7 +1078,7 @@
 		(instances
 			(project "VehiclePowerDistributionSystem"
 				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/54620fe3-2093-4758-a776-838cd07d45c6"
-					(reference "D1")
+					(reference "D7")
 					(unit 1)
 				)
 			)
@@ -1094,7 +1094,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "8404fa5e-050c-4960-a21c-653c303e3e11")
-		(property "Reference" "R1"
+		(property "Reference" "R16"
 			(at 116.84 76.1999 0)
 			(effects
 				(font
@@ -1148,7 +1148,7 @@
 		(instances
 			(project "VehiclePowerDistributionSystem"
 				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/54620fe3-2093-4758-a776-838cd07d45c6"
-					(reference "R1")
+					(reference "R16")
 					(unit 1)
 				)
 			)
@@ -1164,7 +1164,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "8a84e190-8619-43e2-9cbf-5aec959f50e3")
-		(property "Reference" "#PWR015"
+		(property "Reference" "#PWR081"
 			(at 134.62 106.68 0)
 			(effects
 				(font
@@ -1215,7 +1215,7 @@
 		(instances
 			(project "VehiclePowerDistributionSystem"
 				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/54620fe3-2093-4758-a776-838cd07d45c6"
-					(reference "#PWR015")
+					(reference "#PWR081")
 					(unit 1)
 				)
 			)

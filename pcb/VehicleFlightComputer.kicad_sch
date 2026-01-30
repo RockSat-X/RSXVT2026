@@ -6161,7 +6161,7 @@
 		)
 		(uuid "8ad21461-d091-4f28-82e2-a34ad30c9ea7")
 	)
-	(text "Vehicle PDS I/O (V5 : No motor step+dir)."
+	(text "Vehicle PDS I/O (V6 : No motor UART-RX)."
 		(exclude_from_sim no)
 		(at 427.99 241.3 0)
 		(effects
@@ -6417,6 +6417,10 @@
 		(uuid "2bddc11c-8ab1-4055-9837-de1d33e190ab")
 	)
 	(no_connect
+		(at 485.14 270.51)
+		(uuid "316c7378-78cc-4df9-ac49-dbb363df7496")
+	)
+	(no_connect
 		(at 144.78 182.88)
 		(uuid "31d18091-0910-401e-bda0-7ab16ccdd6ab")
 	)
@@ -6483,6 +6487,10 @@
 	(no_connect
 		(at 144.78 175.26)
 		(uuid "65a8f412-da27-4cc4-9e4e-67ff6ebe5a61")
+	)
+	(no_connect
+		(at 144.78 187.96)
+		(uuid "662800a2-62ba-4330-8d76-82b820743c5f")
 	)
 	(no_connect
 		(at 83.82 157.48)
@@ -7482,28 +7490,6 @@
 			)
 		)
 	)
-	(global_label "motor_uart_rx"
-		(shape bidirectional)
-		(at 144.78 187.96 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "10679216-9f73-48b0-84cc-080c15c965df")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 161.9391 187.96 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "led_channel_green"
 		(shape bidirectional)
 		(at 144.78 195.58 0)
@@ -8419,28 +8405,6 @@
 		(uuid "a3dac1f6-5bb5-480b-be03-c08156cf3247")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 411.1333 162.56 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "motor_uart_rx"
-		(shape bidirectional)
-		(at 485.14 270.51 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "b27c9f1a-1118-43a9-a6c8-6a127576e59e")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 467.9809 270.51 0)
 			(effects
 				(font
 					(size 1.27 1.27)

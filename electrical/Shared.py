@@ -736,7 +736,6 @@ TARGETS = ( # @/`Defining Targets`.
             ('openmv_reset'               , 'B2'  , 'OUTPUT'    , { 'initlvl' : False                           }),
             ('esp32_reset'                , 'E8'  , 'OUTPUT'    , { 'initlvl' : False                           }),
             ('motor_uart_tx'              , 'B14' , 'ALTERNATE' , { 'altfunc' : 'USART1_TX'                     }),
-            ('motor_uart_rx'              , 'B15' , None        , {                                             }),
             ('vehicle_interface_i2c_data' , 'D7'  , 'ALTERNATE' , { 'altfunc' : 'I2C3_SDA', 'open_drain' : True }),
             ('vehicle_interface_i2c_clock', 'D6'  , 'ALTERNATE' , { 'altfunc' : 'I2C3_SCL', 'open_drain' : True }),
             ('motor_enable'               , 'A4'  , 'OUTPUT'    , { 'initlvl' : False, 'active' : False         }),
