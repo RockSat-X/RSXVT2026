@@ -4987,7 +4987,7 @@
 				)
 			)
 		)
-		(property "Value" "SK34A"
+		(property "Value" "SS24"
 			(at 333.0575 127 0)
 			(effects
 				(font
@@ -9257,7 +9257,7 @@
 				)
 			)
 		)
-		(property "Value" "SK34A"
+		(property "Value" "SS24"
 			(at 333.0575 143.51 0)
 			(effects
 				(font
