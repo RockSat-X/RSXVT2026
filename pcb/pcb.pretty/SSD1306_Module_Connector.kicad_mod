@@ -148,21 +148,9 @@
 		(uuid "57a3fbd8-0a75-4880-af79-bf3d5a8d27ec")
 	)
 	(embedded_fonts no)
-	(model "${KICAD9_3DMODEL_DIR}/Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x04_P2.54mm_Vertical.step"
-		(offset
-			(xyz 0 0 0)
-		)
-		(scale
-			(xyz 1 1 1)
-		)
-		(rotate
-			(xyz -0 -0 -90)
-		)
-	)
 	(model "${KIPRJMOD}/models/SSD1306_pin.stp"
-		(opacity 0.2800)
 		(offset
-			(xyz 3.9 -11.75 11.1)
+			(xyz 3.9 -11.75 2.6)
 		)
 		(scale
 			(xyz 1 1 1)

@@ -821,6 +821,8 @@ ESP32_calculate_crc(u8* data, i32 length)
 
 
 
+#define VN100_ESP32_BAUD 400000 // @/`Coupled Baud Rate between STM32 and ESP32`.
+
 #if COMPILING_ESP32
 
     #include <WiFi.h>
@@ -834,7 +836,7 @@ ESP32_calculate_crc(u8* data, i32 length)
     common_init_uart(void)
     {
         Serial1.setRxBufferSize(1024); // TODO Look into more?
-        Serial1.begin(400'000, SERIAL_8N1, D7, D6);
+        Serial1.begin(VN100_ESP32_BAUD, SERIAL_8N1, D7, D6);
         while (!Serial1);
     }
 
@@ -893,6 +895,61 @@ ESP32_calculate_crc(u8* data, i32 length)
     }
 
 #endif
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// Vehicle interface.
+//
+
+
+
+// TODO Document.
+// TODO Have look-up table.
+extern useret u8
+VEHICLE_INTERFACE_calculate_crc(u8* data, i32 length)
+{
+    u8 crc = 0xFF;
+
+    for (i32 i = 0; i < length; i += 1)
+    {
+        crc ^= data[i];
+
+        for (i32 j = 0; j < 8; j += 1)
+        {
+            crc = (crc & (1 << 7))
+                ? (crc << 1) ^ 0x2F
+                : (crc << 1);
+        }
+    }
+
+    return crc;
+}
+
+
+
+pack_push
+
+    enum VehicleInterfacePayloadFlag : u16
+    {
+        VehicleInterfacePayloadFlag_stepper_motor_axis_x_okay,
+        VehicleInterfacePayloadFlag_stepper_motor_axis_y_okay,
+        VehicleInterfacePayloadFlag_stepper_motor_axis_z_okay,
+        VehicleInterfacePayloadFlag_wifi_okay,
+        VehicleInterfacePayloadFlag_lora_okay,
+        VehicleInterfacePayloadFlag_openmv_okay,
+        VehicleInterfacePayloadFlag_vn100_okay,
+    };
+
+    struct VehicleInterfacePayload
+    {
+        u16                              timestamp_us;
+        enum VehicleInterfacePayloadFlag flags;
+        u8                               crc;
+    };
+
+pack_pop
 
 
 
@@ -1049,3 +1106,24 @@ ESP32_calculate_crc(u8* data, i32 length)
 // All it is just a set of Python scripts that generate C code
 // to initialize the STM32 MCU easily. This includes brute-forcing
 // the clock-tree and configuring GPIOs and interrupts.
+
+
+
+// @/`Coupled Baud Rate between STM32 and ESP32`:
+//
+// There's two places where the ESP32 UART baud rate
+// is currently defined: in `./electrical/Shared.py` and
+// right here in `./electrical/system.h`. This is because
+// of the mixed development environments between Arduino
+// and the stuff for STM32. To ensure the baud rate is
+// consistent between the two environment, we take advantage
+// of macro redefinition conflicts.
+//
+// If `./electrical/Shared.py` defines the buad rate to be
+// something different than in `./electrical/system.h`,
+// the macro definition will create a compile-time error;
+// if they're the same, nothing happens.
+//
+// In short, to change the UART baud rate, update the value
+// in `./electrical/system.h` and `./electrical/Shared.py`.
+// It can't get better than that.
