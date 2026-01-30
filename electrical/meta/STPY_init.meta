@@ -3438,12 +3438,6 @@
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__motor_uart_tx B
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__motor_uart_tx 14
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__motor_uart_tx
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__sensor_i2c_data B
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__sensor_i2c_data 7
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__sensor_i2c_data
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__sensor_i2c_clock B
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__sensor_i2c_clock 6
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__sensor_i2c_clock
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__vehicle_interface_i2c_data D
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__vehicle_interface_i2c_data 7
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__vehicle_interface_i2c_data
@@ -3454,10 +3448,6 @@
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__motor_enable GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__motor_enable A
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__motor_enable 4
-        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__lsm6dsv32x_chip_select GPIO_BSRR_BS
-        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__lsm6dsv32x_chip_select GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__lsm6dsv32x_chip_select D
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__lsm6dsv32x_chip_select 15
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__vn100_esp32_uart_tx D
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__vn100_esp32_uart_tx 8
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__vn100_esp32_uart_tx
@@ -3493,12 +3483,7 @@
             OD0  , true,
             OD1  , true,
         );
-        CMSIS_SET
-        (
-            GPIOD, ODR  ,
-            OD0  , false,
-            OD15 , true ,
-        );
+        CMSIS_SET(GPIOD, ODR, OD0, false);
         CMSIS_SET(GPIOE, ODR, OD8, false);
         CMSIS_SET(GPIOC, PUPDR, PUPD8, 0b01);
         CMSIS_SET(GPIOD, PUPDR, PUPD2, 0b01);
@@ -3508,12 +3493,6 @@
             AFSEL2   , 7            ,
             AFSEL3   , 7            ,
             AFSEL5   , 3            ,
-        );
-        CMSIS_WRITE
-        (
-            GPIO_AFRL, GPIOB->AFR[0],
-            AFSEL6   , 4            ,
-            AFSEL7   , 4            ,
         );
         CMSIS_WRITE
         (
@@ -3564,8 +3543,6 @@
         (
             GPIOB , MODER,
             MODE2 , 0b01 ,
-            MODE6 , 0b10 ,
-            MODE7 , 0b10 ,
             MODE10, 0b10 ,
             MODE12, 0b10 ,
             MODE14, 0b10 ,
@@ -3585,15 +3562,14 @@
         );
         CMSIS_SET
         (
-            GPIOD , MODER,
-            MODE0 , 0b01 ,
-            MODE2 , 0b10 ,
-            MODE5 , 0b10 ,
-            MODE6 , 0b10 ,
-            MODE7 , 0b10 ,
-            MODE8 , 0b10 ,
-            MODE9 , 0b10 ,
-            MODE15, 0b01 ,
+            GPIOD, MODER,
+            MODE0, 0b01 ,
+            MODE2, 0b10 ,
+            MODE5, 0b10 ,
+            MODE6, 0b10 ,
+            MODE7, 0b10 ,
+            MODE8, 0b10 ,
+            MODE9, 0b10 ,
         );
         CMSIS_SET(GPIOE, MODER, MODE8, 0b01);
 
