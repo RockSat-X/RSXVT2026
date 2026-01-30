@@ -53,7 +53,7 @@ TV_TOKEN = types.SimpleNamespace(
 
 STLINK_BAUD = 1_000_000
 
-VN100_BAUD = 400_000 # TODO Figure out.
+VN100_ESP32_BAUD = 400_000 # TODO Figure out. # @/`Coupled Baud Rate between STM32 and ESP32`.
 
 VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS = 0x12
 VEHICLE_INTERFACE_BAUD              = 10_000
@@ -688,7 +688,7 @@ TARGETS = ( # @/`Defining Targets`.
             'APB2_CK'      : 250_000_000,
             'APB3_CK'      : 250_000_000,
             'USART2_BAUD'  : STLINK_BAUD,
-            'USART3_BAUD'  : VN100_BAUD,
+            'USART3_BAUD'  : VN100_ESP32_BAUD,
             'I2C1_BAUD'    : VEHICLE_INTERFACE_BAUD,
         },
 
@@ -845,7 +845,7 @@ TARGETS = ( # @/`Defining Targets`.
             'SDMMC1_INITIAL_BAUD' :   100_000,
             'SDMMC1_FULL_BAUD'    : 1_000_000,
             'USART1_BAUD'         :   200_000,
-            'USART3_BAUD'         : VN100_BAUD,
+            'USART3_BAUD'         : VN100_ESP32_BAUD,
             'I2C3_BAUD'           : VEHICLE_INTERFACE_BAUD,
             'TIM1_UPDATE_RATE'    : 1 / 0.001,
             'TIM2_COUNTER_RATE'   : 1_000_000,
@@ -1250,7 +1250,7 @@ TARGETS = ( # @/`Defining Targets`.
             'APB2_CK'           : 250_000_000 / 8,
             'APB3_CK'           : 250_000_000,
             'USART2_BAUD'       : STLINK_BAUD,
-            'USART3_BAUD'       : 400_000,
+            'USART3_BAUD'       : VN100_ESP32_BAUD, # @/`Coupled Baud Rate between STM32 and ESP32`.
             'TIM1_COUNTER_RATE' : 1_000,
         },
 
@@ -1370,6 +1370,7 @@ for target in TARGETS:
         ('MAIN_STACK_SIZE'                    , target.main_stack_size             ),
         ('COMPILING_ESP32'                    , False                              ),
         ('VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS', VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS),
+        ('VN100_ESP32_BAUD'                   , VN100_ESP32_BAUD                   ),
     ]
 
     for other_target in TARGETS:
