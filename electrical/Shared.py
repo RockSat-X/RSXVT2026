@@ -53,7 +53,7 @@ TV_TOKEN = types.SimpleNamespace(
 
 STLINK_BAUD = 1_000_000
 
-VN100_BAUD = 100_000 # TODO Figure out.
+VN100_BAUD = 400_000 # TODO Figure out.
 
 VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS = 0x12
 VEHICLE_INTERFACE_BAUD              = 10_000
@@ -737,11 +737,11 @@ TARGETS = ( # @/`Defining Targets`.
             ('openmv_spi_miso'            , 'C2'  , 'ALTERNATE' , { 'altfunc' : 'SPI2_MISO'                     }),
             ('openmv_spi_ready'           , 'D5'  , 'ALTERNATE' , { 'altfunc' : 'SPI2_RDY'                      }),
             ('openmv_reset'               , 'B2'  , 'OUTPUT'    , { 'initlvl' : False                           }),
-            ('esp32_spi_nss'              , 'B8'  , 'ALTERNATE' , { 'altfunc' : 'SPI3_NSS'                      }),
-            ('esp32_spi_clock'            , 'B1'  , 'ALTERNATE' , { 'altfunc' : 'SPI3_SCK'                      }),
-            ('esp32_spi_mosi'             , 'B5'  , 'ALTERNATE' , { 'altfunc' : 'SPI3_MOSI'                     }),
-            ('esp32_spi_miso'             , 'B0'  , 'ALTERNATE' , { 'altfunc' : 'SPI3_MISO'                     }),
-            ('esp32_spi_ready'            , 'E0'  , 'ALTERNATE' , { 'altfunc' : 'SPI3_RDY'                      }),
+            ('esp32_spi_nss'              , 'B8'  , None        , {                                             }),
+            ('esp32_spi_clock'            , 'B1'  , None        , {                                             }),
+            ('esp32_spi_mosi'             , 'B5'  , None        , {                                             }),
+            ('esp32_spi_miso'             , 'B0'  , None        , {                                             }),
+            ('esp32_spi_ready'            , 'E0'  , None        , {                                             }),
             ('esp32_reset'                , 'E8'  , 'OUTPUT'    , { 'initlvl' : False                           }),
             ('motor_uart_tx'              , 'B14' , 'ALTERNATE' , { 'altfunc' : 'USART1_TX'                     }),
             ('motor_uart_rx'              , 'B15' , None        , {                                             }),
@@ -761,8 +761,8 @@ TARGETS = ( # @/`Defining Targets`.
             ('lsm6dsv32x_chip_select'     , 'D15' , 'OUTPUT'    , { 'initlvl': True                             }),
             ('lis2mdl_data_ready'         , 'B4'  , None        , {                                             }),
             ('lis2mdl_chip_select'        , 'C15' , None        , {                                             }),
-            ('vn100_uart_tx'              , 'D8'  , None        , {                                             }),
-            ('vn100_uart_rx'              , 'D9'  , 'ALTERNATE' , { 'altfunc' : 'USART3_RX'                     }),
+            ('vn100_esp32_uart_tx'        , 'D8'  , 'ALTERNATE' , { 'altfunc' : 'USART3_TX'                     }),
+            ('vn100_esp32_uart_rx'        , 'D9'  , 'ALTERNATE' , { 'altfunc' : 'USART3_RX'                     }),
             ('vn100_tare_restore'         , 'C13' , None        , {                                             }),
             ('vn100_sync_out'             , 'H0'  , None        , {                                             }),
             ('vn100_sync_in'              , 'C5'  , None        , {                                             }),
@@ -800,7 +800,7 @@ TARGETS = ( # @/`Defining Targets`.
             {
                 'type'       : 'UXART',
                 'peripheral' : 'USART3',
-                'handle'     : 'vn100',
+                'handle'     : 'vn100_esp32',
                 'mode'       : 'full_duplex',
             },
             {

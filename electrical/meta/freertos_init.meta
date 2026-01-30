@@ -192,8 +192,9 @@
         FreeRTOSTask_user_inputter,
         FreeRTOSTask_logger,
         FreeRTOSTask_vn100,
+        FreeRTOSTask_esp32,
     };
-    static constexpr u32 FreeRTOSTask_COUNT = 4;
+    static constexpr u32 FreeRTOSTask_COUNT = 5;
     static noret void   stepper_motor_controller(void*);
     static StackType_t  stepper_motor_controller_stack[1024 / sizeof(StackType_t)] = {0};
     static StaticTask_t stepper_motor_controller_buffer = {0};
@@ -206,6 +207,9 @@
     static noret void   vn100(void*);
     static StackType_t  vn100_stack[2048 / sizeof(StackType_t)] = {0};
     static StaticTask_t vn100_buffer = {0};
+    static noret void   esp32(void*);
+    static StackType_t  esp32_stack[2048 / sizeof(StackType_t)] = {0};
+    static StaticTask_t esp32_buffer = {0};
     static noret void
     FREERTOS_init(void)
     {
@@ -252,6 +256,17 @@
                 0,
                 vn100_stack,
                 &vn100_buffer
+            );
+        TaskHandle_t esp32_handle =
+            xTaskCreateStatic
+            (
+                esp32,
+                "esp32",
+                countof(esp32_stack),
+                nullptr,
+                0,
+                esp32_stack,
+                &esp32_buffer
             );
         vTaskStartScheduler();
         panic;

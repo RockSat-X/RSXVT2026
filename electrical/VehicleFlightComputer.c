@@ -88,7 +88,7 @@ main(void)
     STPY_init();
     UXART_init(UXARTHandle_stlink);
     UXART_init(UXARTHandle_stepper_uart);
-    UXART_init(UXARTHandle_vn100);
+    UXART_init(UXARTHandle_vn100_esp32);
     I2C_reinit(I2CHandle_vehicle_interface);
 
 
@@ -391,7 +391,7 @@ FREERTOS_TASK(vn100, 2048, 0)
         {
 
             u8 data = {0};
-            while (!UXART_rx(UXARTHandle_vn100, &data));
+            while (!UXART_rx(UXARTHandle_vn100_esp32, &data));
 
             if (implies(payload_length == 0, data == '$'))
             {
@@ -613,6 +613,50 @@ FREERTOS_TASK(vn100, 2048, 0)
             }
 
         }
+
+    }
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// Handle ESP32 payload transmission.
+//
+
+
+
+FREERTOS_TASK(esp32, 2048, 0)
+{
+    for (;;)
+    {
+
+        struct PacketESP32 payload =
+            {
+                .magnetometer_x                          = 3.1f,
+                .magnetometer_y                          = 3.2f,
+                .magnetometer_z                          = 3.3f,
+                .image_chunk                             = { 'M', 'E', 'O', 'W', '!', '?' },
+                .nonredundant.quaternion_i               = 0.1f,
+                .nonredundant.quaternion_j               = 0.2f,
+                .nonredundant.quaternion_k               = 0.3f,
+                .nonredundant.quaternion_r               = 0.4f,
+                .nonredundant.accelerometer_x            = 1.1f,
+                .nonredundant.accelerometer_y            = 1.2f,
+                .nonredundant.accelerometer_z            = 1.3f,
+                .nonredundant.gyro_x                     = 2.1f,
+                .nonredundant.gyro_y                     = 2.2f,
+                .nonredundant.gyro_z                     = 2.3f,
+                .nonredundant.computer_vision_confidence = -1.0f,
+                .nonredundant.timestamp_ms               = 0,
+                .nonredundant.sequence_number            = 0,
+                .nonredundant.crc                        = 0x00,
+            };
+
+        payload.nonredundant.crc = ESP32_calculate_crc((u8*) &payload, sizeof(payload) - sizeof(payload.nonredundant.crc));
+
+        UXART_tx_bytes(UXARTHandle_vn100_esp32, (u8*) &(u16) { PACKET_ESP32_START_TOKEN }, sizeof(u16));
+        UXART_tx_bytes(UXARTHandle_vn100_esp32, (u8*) &payload, sizeof(payload));
 
     }
 }

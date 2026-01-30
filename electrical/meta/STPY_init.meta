@@ -3137,7 +3137,7 @@
 
 
         #define STPY_USART3_KERNEL_SOURCE 0b000
-        #define STPY_USART3_BAUD_DIVIDER 2500
+        #define STPY_USART3_BAUD_DIVIDER 625
 
 
 
@@ -3441,21 +3441,6 @@
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__openmv_reset GPIO_BSRR_BR
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__openmv_reset B
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__openmv_reset 2
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__esp32_spi_nss B
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__esp32_spi_nss 8
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__esp32_spi_nss
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__esp32_spi_clock B
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__esp32_spi_clock 1
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__esp32_spi_clock
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__esp32_spi_mosi B
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__esp32_spi_mosi 5
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__esp32_spi_mosi
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__esp32_spi_miso B
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__esp32_spi_miso 0
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__esp32_spi_miso
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__esp32_spi_ready E
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__esp32_spi_ready 0
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__esp32_spi_ready
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__esp32_reset GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__esp32_reset GPIO_BSRR_BR
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__esp32_reset E
@@ -3483,9 +3468,12 @@
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__lsm6dsv32x_chip_select GPIO_BSRR_BR
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__lsm6dsv32x_chip_select D
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__lsm6dsv32x_chip_select 15
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__vn100_uart_rx D
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__vn100_uart_rx 9
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__vn100_uart_rx
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__vn100_esp32_uart_tx D
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__vn100_esp32_uart_tx 8
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__vn100_esp32_uart_tx
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__vn100_esp32_uart_rx D
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__vn100_esp32_uart_rx 9
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__vn100_esp32_uart_rx
         CMSIS_SET
         (
             RCC    , AHB2ENR,
@@ -3539,16 +3527,12 @@
         CMSIS_WRITE
         (
             GPIO_AFRL, GPIOB->AFR[0],
-            AFSEL0   , 5            ,
-            AFSEL1   , 4            ,
-            AFSEL5   , 7            ,
             AFSEL6   , 4            ,
             AFSEL7   , 4            ,
         );
         CMSIS_WRITE
         (
             GPIO_AFRH, GPIOB->AFR[1],
-            AFSEL8   , 6            ,
             AFSEL10  , 5            ,
             AFSEL12  , 5            ,
             AFSEL14  , 4            ,
@@ -3579,11 +3563,11 @@
         CMSIS_WRITE
         (
             GPIO_AFRH, GPIOD->AFR[1],
+            AFSEL8   , 7            ,
             AFSEL9   , 7            ,
             AFSEL11  , 8            ,
             AFSEL12  , 8            ,
         );
-        CMSIS_WRITE(GPIO_AFRL, GPIOE->AFR[0], AFSEL0, 6);
         CMSIS_SET
         (
             GPIOA, MODER,
@@ -3596,13 +3580,9 @@
         CMSIS_SET
         (
             GPIOB , MODER,
-            MODE0 , 0b10 ,
-            MODE1 , 0b10 ,
             MODE2 , 0b01 ,
-            MODE5 , 0b10 ,
             MODE6 , 0b10 ,
             MODE7 , 0b10 ,
-            MODE8 , 0b10 ,
             MODE10, 0b10 ,
             MODE12, 0b10 ,
             MODE14, 0b10 ,
@@ -3628,6 +3608,7 @@
             MODE5 , 0b10 ,
             MODE6 , 0b10 ,
             MODE7 , 0b10 ,
+            MODE8 , 0b10 ,
             MODE9 , 0b10 ,
             MODE11, 0b10 ,
             MODE12, 0b10 ,
@@ -3636,7 +3617,6 @@
         CMSIS_SET
         (
             GPIOE , MODER,
-            MODE0 , 0b10 ,
             MODE8 , 0b01 ,
             MODE10, 0b01 ,
         );
@@ -3787,7 +3767,7 @@
 
 
         #define STPY_USART3_KERNEL_SOURCE 0b000
-        #define STPY_USART3_BAUD_DIVIDER 2500
+        #define STPY_USART3_BAUD_DIVIDER 625
 
 
 
