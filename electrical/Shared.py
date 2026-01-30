@@ -742,9 +742,6 @@ TARGETS = ( # @/`Defining Targets`.
             ('motor_enable'               , 'A4'  , 'OUTPUT'    , { 'initlvl' : False, 'active' : False         }),
             ('vn100_esp32_uart_tx'        , 'D8'  , 'ALTERNATE' , { 'altfunc' : 'USART3_TX'                     }),
             ('vn100_esp32_uart_rx'        , 'D9'  , 'ALTERNATE' , { 'altfunc' : 'USART3_RX'                     }),
-            ('vn100_tare_restore'         , 'C13' , None        , {                                             }),
-            ('vn100_sync_out'             , 'H0'  , None        , {                                             }),
-            ('vn100_sync_in'              , 'C5'  , None        , {                                             }),
         ),
 
         interrupts = (

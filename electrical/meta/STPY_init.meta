@@ -3462,7 +3462,6 @@
             GPIOCEN, true   ,
             GPIODEN, true   ,
             GPIOEEN, true   ,
-            GPIOHEN, true   ,
         );
         CMSIS_SET
         (
