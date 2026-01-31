@@ -1,5 +1,5 @@
 #define COMPILING_ESP32        true
-#define GENERATE_DUMMY_PACKETS false
+#define GENERATE_DUMMY_PACKETS true //change back to false when done
 #include "../system.h"
 
 
