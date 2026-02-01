@@ -185,7 +185,7 @@
         panic;
     }
 #endif
-#if TARGET_NAME_IS_VehicleFlightComputer
+#if TARGET_NAME_IS_VehicleFlightComputer_R1
     enum FreeRTOSTask : u32
     {
         FreeRTOSTask_stepper_motor_controller,
@@ -268,6 +268,16 @@
                 esp32_stack,
                 &esp32_buffer
             );
+        vTaskStartScheduler();
+        panic;
+    }
+#endif
+#if TARGET_NAME_IS_VehicleFlightComputer_R2
+    enum FreeRTOSTask : u32;
+    static constexpr u32 FreeRTOSTask_COUNT = 0;
+    static noret void
+    FREERTOS_init(void)
+    {
         vTaskStartScheduler();
         panic;
     }

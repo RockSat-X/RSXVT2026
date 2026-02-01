@@ -41,7 +41,7 @@
 #if TARGET_NAME_IS_MainFlightComputer_NUCLEO
     #error Target 'MainFlightComputer_NUCLEO' defines no handle for the 'SD' driver.
 #endif
-#if TARGET_NAME_IS_VehicleFlightComputer
+#if TARGET_NAME_IS_VehicleFlightComputer_R1
     enum SDHandle : u32
     {
         SDHandle_primary,
@@ -59,6 +59,9 @@
     {
         _SD_driver_interrupt(SDHandle_primary);
     }
+#endif
+#if TARGET_NAME_IS_VehicleFlightComputer_R2
+    #error Target 'VehicleFlightComputer_R2' defines no handle for the 'SD' driver.
 #endif
 #if TARGET_NAME_IS_DebugBoard
     #error Target 'DebugBoard' defines no handle for the 'SD' driver.

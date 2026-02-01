@@ -160,7 +160,7 @@
         _UXART_driver_interrupt(UXARTHandle_vn100);
     }
 #endif
-#if TARGET_NAME_IS_VehicleFlightComputer
+#if TARGET_NAME_IS_VehicleFlightComputer_R1
     enum UXARTHandle : u32
     {
         UXARTHandle_stlink,
@@ -192,6 +192,9 @@
     {
         _UXART_driver_interrupt(UXARTHandle_vn100_esp32);
     }
+#endif
+#if TARGET_NAME_IS_VehicleFlightComputer_R2
+    #error Target 'VehicleFlightComputer_R2' defines no handle for the 'UXART' driver.
 #endif
 #if TARGET_NAME_IS_DebugBoard
     #error Target 'DebugBoard' defines no handle for the 'UXART' driver.

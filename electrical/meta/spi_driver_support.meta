@@ -41,8 +41,11 @@
 #if TARGET_NAME_IS_MainFlightComputer_NUCLEO
     #error Target 'MainFlightComputer_NUCLEO' defines no handle for the 'SPI' driver.
 #endif
-#if TARGET_NAME_IS_VehicleFlightComputer
-    #error Target 'VehicleFlightComputer' defines no handle for the 'SPI' driver.
+#if TARGET_NAME_IS_VehicleFlightComputer_R1
+    #error Target 'VehicleFlightComputer_R1' defines no handle for the 'SPI' driver.
+#endif
+#if TARGET_NAME_IS_VehicleFlightComputer_R2
+    #error Target 'VehicleFlightComputer_R2' defines no handle for the 'SPI' driver.
 #endif
 #if TARGET_NAME_IS_DebugBoard
     #error Target 'DebugBoard' defines no handle for the 'SPI' driver.

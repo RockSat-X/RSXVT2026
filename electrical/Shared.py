@@ -707,13 +707,13 @@ TARGETS = ( # @/`Defining Targets`.
 
     types.SimpleNamespace(
 
-        name              = 'VehicleFlightComputer',
+        name              = 'VehicleFlightComputer_R1',
         mcu               = 'STM32H533VET6',
         source_file_paths = (
             pxd.make_main_relative_path('./electrical/VehicleFlightComputer.c'),
         ),
 
-        kicad_project = 'VehicleFlightComputer',
+        kicad_project = None,
 
         gpios = (
             ('led_channel_red'            , 'C0'  , 'OUTPUT'    , { 'initlvl' : False, 'active' : False         }),
@@ -724,6 +724,9 @@ TARGETS = ( # @/`Defining Targets`.
             ('swdio'                      , 'A13' , None        , {                                             }),
             ('swclk'                      , 'A14' , None        , {                                             }),
             ('swo'                        , 'B3'  , None        , {                                             }),
+            ('serial_reset'               , 'E10' , 'OUTPUT'    , { 'initlvl' : True                            }),
+            ('serial_rx'                  , 'D11' , 'ALTERNATE' , { 'altfunc' : 'UART4_RX'                      }),
+            ('serial_tx'                  , 'D12' , 'ALTERNATE' , { 'altfunc' : 'UART4_TX'                      }),
             ('buzzer'                     , 'A5'  , 'ALTERNATE' , { 'altfunc' : 'TIM8_CH1N'                     }),
             ('sd_cmd'                     , 'D2'  , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CMD', 'pull' : 'UP'     }),
             ('sd_data_0'                  , 'C8'  , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D0' , 'pull' : 'UP'     }),
@@ -739,13 +742,35 @@ TARGETS = ( # @/`Defining Targets`.
             ('openmv_spi_miso'            , 'C2'  , 'ALTERNATE' , { 'altfunc' : 'SPI2_MISO'                     }),
             ('openmv_spi_ready'           , 'D5'  , 'ALTERNATE' , { 'altfunc' : 'SPI2_RDY'                      }),
             ('openmv_reset'               , 'B2'  , 'OUTPUT'    , { 'initlvl' : False                           }),
+            ('esp32_spi_nss'              , 'B8'  , 'ALTERNATE' , { 'altfunc' : 'SPI3_NSS'                      }),
+            ('esp32_spi_clock'            , 'B1'  , 'ALTERNATE' , { 'altfunc' : 'SPI3_SCK'                      }),
+            ('esp32_spi_mosi'             , 'B5'  , 'ALTERNATE' , { 'altfunc' : 'SPI3_MOSI'                     }),
+            ('esp32_spi_miso'             , 'B0'  , 'ALTERNATE' , { 'altfunc' : 'SPI3_MISO'                     }),
+            ('esp32_spi_ready'            , 'E0'  , 'ALTERNATE' , { 'altfunc' : 'SPI3_RDY'                      }),
             ('esp32_reset'                , 'E8'  , 'OUTPUT'    , { 'initlvl' : False                           }),
             ('motor_uart_tx'              , 'B14' , 'ALTERNATE' , { 'altfunc' : 'USART1_TX'                     }),
+            ('motor_uart_rx'              , 'B15' , 'ALTERNATE' , { 'altfunc' : 'USART1_RX'                     }),
+            ('sensor_i2c_data'            , 'B7'  , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA'                      }),
+            ('sensor_i2c_clock'           , 'B6'  , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL'                      }),
             ('vehicle_interface_i2c_data' , 'D7'  , 'ALTERNATE' , { 'altfunc' : 'I2C3_SDA', 'open_drain' : True }),
             ('vehicle_interface_i2c_clock', 'D6'  , 'ALTERNATE' , { 'altfunc' : 'I2C3_SCL', 'open_drain' : True }),
-            ('motor_enable'               , 'A4'  , 'OUTPUT'    , { 'initlvl' : False, 'active' : False         }),
-            ('vn100_esp32_uart_tx'        , 'D8'  , 'ALTERNATE' , { 'altfunc' : 'USART3_TX'                     }),
-            ('vn100_esp32_uart_rx'        , 'D9'  , 'ALTERNATE' , { 'altfunc' : 'USART3_RX'                     }),
+            ('motor_disable'              , 'A4'  , 'OUTPUT'    , { 'initlvl' : True, 'active' : False          }),
+            ('motor_step_x'               , 'E9'  , 'ALTERNATE' , { 'altfunc' : 'TIM1_CH1'                      }),
+            ('motor_step_y'               , 'C6'  , 'ALTERNATE' , { 'altfunc' : 'TIM8_CH1'                      }),
+            ('motor_step_z'               , 'E5'  , 'ALTERNATE' , { 'altfunc' : 'TIM15_CH1'                     }),
+            ('motor_direction_x'          , 'A9'  , 'OUTPUT'    , { 'initlvl' : False                           }),
+            ('motor_direction_y'          , 'A8'  , 'OUTPUT'    , { 'initlvl' : False                           }),
+            ('motor_direction_z'          , 'A10' , 'OUTPUT'    , { 'initlvl' : False                           }),
+            ('lsm6dsv32x_interrupt_1'     , 'D13' , None        , {                                             }),
+            ('lsm6dsv32x_interrupt_2'     , 'D14' , None        , {                                             }),
+            ('lsm6dsv32x_chip_select'     , 'D15' , 'OUTPUT'    , { 'initlvl': True                             }),
+            ('lis2mdl_data_ready'         , 'B4'  , None        , {                                             }),
+            ('lis2mdl_chip_select'        , 'C15' , None        , {                                             }),
+            ('vn100_uart_tx'              , 'D8'  , 'ALTERNATE' , { 'altfunc' : 'USART3_TX'                     }),
+            ('vn100_uart_rx'              , 'D9'  , 'ALTERNATE' , { 'altfunc' : 'USART3_RX'                     }),
+            ('vn100_tare_restore'         , 'C13' , None        , {                                             }),
+            ('vn100_sync_out'             , 'H0'  , None        , {                                             }),
+            ('vn100_sync_in'              , 'C5'  , None        , {                                             }),
         ),
 
         interrupts = (
@@ -793,11 +818,11 @@ TARGETS = ( # @/`Defining Targets`.
             {
                 'type'                         : 'Stepper',
                 'uxart_handle'                 : 'stepper_uart',
-                'enable_gpio'                  : 'motor_enable',
+                'enable_gpio'                  : 'motor_disable',
                 'timer_peripheral'             : 'TIM1',
                 'timer_update_event_interrupt' : 'TIM1_UP',
                 'instances'                    : (
-                    ('axis_x', 0),
+                    # TODO: Broken UART line on my PCB. ('axis_x', 0),
                     ('axis_y', 1),
                     ('axis_z', 2),
                 ),
@@ -831,6 +856,63 @@ TARGETS = ( # @/`Defining Targets`.
             'TIM2_COUNTER_RATE'   : 1_000_000,
             'TIM8_COUNTER_RATE'   : 1_000_000,
         },
+
+    ),
+
+
+
+    ################################################################################
+
+
+
+    types.SimpleNamespace(
+
+        name              = 'VehicleFlightComputer_R2',
+        mcu               = 'STM32H533VET6',
+        source_file_paths = (),
+
+        kicad_project = 'VehicleFlightComputer',
+
+        gpios = (
+            ('led_channel_red'            , 'C0'  , 'OUTPUT'    , { 'initlvl' : False, 'active' : False         }),
+            ('led_channel_green'          , 'C1'  , 'OUTPUT'    , { 'initlvl' : False, 'active' : False         }),
+            ('led_channel_blue'           , 'A0'  , 'OUTPUT'    , { 'initlvl' : False, 'active' : False         }),
+            ('stlink_tx'                  , 'A2'  , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'                     }),
+            ('stlink_rx'                  , 'A3'  , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'                     }),
+            ('swdio'                      , 'A13' , None        , {                                             }),
+            ('swclk'                      , 'A14' , None        , {                                             }),
+            ('swo'                        , 'B3'  , None        , {                                             }),
+            ('buzzer'                     , 'A5'  , 'ALTERNATE' , { 'altfunc' : 'TIM8_CH1N'                     }),
+            ('sd_cmd'                     , 'D2'  , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CMD'                    }),
+            ('sd_data_0'                  , 'C8'  , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D0'                     }),
+            ('sd_data_1'                  , 'C9'  , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D1'                     }),
+            ('sd_data_2'                  , 'C10' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D2'                     }),
+            ('sd_data_3'                  , 'C11' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D3'                     }),
+            ('sd_clock'                   , 'C12' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CK'                     }),
+            ('battery_allowed'            , 'D0'  , 'OUTPUT'    , { 'initlvl' : False                           }),
+            ('external_detected'          , 'D1'  , None        , {                                             }),
+            ('openmv_spi_nss'             , 'B12' , 'ALTERNATE' , { 'altfunc' : 'SPI2_NSS'                      }),
+            ('openmv_spi_clock'           , 'B10' , 'ALTERNATE' , { 'altfunc' : 'SPI2_SCK'                      }),
+            ('openmv_spi_mosi'            , 'C3'  , 'ALTERNATE' , { 'altfunc' : 'SPI2_MOSI'                     }),
+            ('openmv_spi_miso'            , 'C2'  , 'ALTERNATE' , { 'altfunc' : 'SPI2_MISO'                     }),
+            ('openmv_spi_ready'           , 'D5'  , 'ALTERNATE' , { 'altfunc' : 'SPI2_RDY'                      }),
+            ('openmv_reset'               , 'B2'  , 'OUTPUT'    , { 'initlvl' : False                           }),
+            ('esp32_reset'                , 'E8'  , 'OUTPUT'    , { 'initlvl' : False                           }),
+            ('motor_uart_tx'              , 'B14' , 'ALTERNATE' , { 'altfunc' : 'USART1_TX'                     }),
+            ('vehicle_interface_i2c_data' , 'D7'  , 'ALTERNATE' , { 'altfunc' : 'I2C3_SDA', 'open_drain' : True }),
+            ('vehicle_interface_i2c_clock', 'D6'  , 'ALTERNATE' , { 'altfunc' : 'I2C3_SCL', 'open_drain' : True }),
+            ('motor_enable'               , 'A4'  , 'OUTPUT'    , { 'initlvl' : False, 'active' : False         }),
+            ('vn100_esp32_uart_tx'        , 'D8'  , 'ALTERNATE' , { 'altfunc' : 'USART3_TX'                     }),
+            ('vn100_esp32_uart_rx'        , 'D9'  , 'ALTERNATE' , { 'altfunc' : 'USART3_RX'                     }),
+        ),
+
+        interrupts = (),
+
+        drivers = (),
+
+        use_freertos    = True,
+        main_stack_size = 8192,
+        schema          = None,
 
     ),
 
