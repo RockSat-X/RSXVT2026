@@ -838,7 +838,7 @@
 			(net 97 "/testpoint_C")
 			(pinfunction "1")
 			(pintype "passive")
-			(uuid "6943142f-87fe-4882-be48-48ece202dfaf")
+			(uuid "71c79386-cacb-40b8-b663-122537557e87")
 		)
 		(embedded_fonts no)
 		(model "${KICAD9_3DMODEL_DIR}/TestPoint.3dshapes/TestPoint_Bridge_Pitch2.0mm_Drill0.7mm.step"
@@ -1034,7 +1034,7 @@
 			(net 77 "/testpoint_B")
 			(pinfunction "1")
 			(pintype "passive")
-			(uuid "9d72fb2d-6b78-41e9-b92f-ab6f2aa5f3e8")
+			(uuid "cf045adc-0f19-475f-b47b-e297322f55b7")
 		)
 		(embedded_fonts no)
 		(model "${KICAD9_3DMODEL_DIR}/TestPoint.3dshapes/TestPoint_Bridge_Pitch2.0mm_Drill0.7mm.step"
@@ -1230,7 +1230,7 @@
 			(net 51 "/testpoint_A")
 			(pinfunction "1")
 			(pintype "passive")
-			(uuid "5a2349fe-6d47-4ddb-a9a3-7c5e9cac56ae")
+			(uuid "07492772-087b-4dee-94b7-a683f679090c")
 		)
 		(embedded_fonts no)
 		(model "${KICAD9_3DMODEL_DIR}/TestPoint.3dshapes/TestPoint_Bridge_Pitch2.0mm_Drill0.7mm.step"
@@ -2179,7 +2179,7 @@
 			(net 99 "/testpoint_D")
 			(pinfunction "1")
 			(pintype "passive")
-			(uuid "260c5677-11df-4485-bb06-a1a6a8cfee39")
+			(uuid "55a9b6c1-fe42-4965-a828-c7c3c0d8e850")
 		)
 		(embedded_fonts no)
 		(model "${KICAD9_3DMODEL_DIR}/TestPoint.3dshapes/TestPoint_Bridge_Pitch2.0mm_Drill0.7mm.step"
@@ -3213,6 +3213,7 @@
 		)
 		(embedded_fonts no)
 		(model "${KIPRJMOD}/models/StackingHeader_2.54mm_1x17.step"
+			(hide yes)
 			(offset
 				(xyz -30.475 19.3 0)
 			)
@@ -3224,6 +3225,7 @@
 			)
 		)
 		(model "${KIPRJMOD}/models/StackingHeader_2.54mm_1x17.step"
+			(hide yes)
 			(offset
 				(xyz -27.95 20.57 0)
 			)
@@ -3235,6 +3237,7 @@
 			)
 		)
 		(model "${KIPRJMOD}/models/StackingHeader_2.54mm_1x17.step"
+			(hide yes)
 			(offset
 				(xyz 27.95 20.57 0)
 			)
@@ -3246,6 +3249,7 @@
 			)
 		)
 		(model "${KIPRJMOD}/models/StackingHeader_2.54mm_1x17.step"
+			(hide yes)
 			(offset
 				(xyz 30.5 19.3 0)
 			)
@@ -3305,7 +3309,6 @@
 			)
 		)
 		(model "${KICAD9_3DMODEL_DIR}/Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x17_P2.54mm_Vertical.step"
-			(hide yes)
 			(offset
 				(xyz -30.475 19.3 0)
 			)
@@ -3317,7 +3320,6 @@
 			)
 		)
 		(model "${KICAD9_3DMODEL_DIR}/Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x17_P2.54mm_Vertical.step"
-			(hide yes)
 			(offset
 				(xyz -27.95 20.57 0)
 			)
@@ -3329,7 +3331,6 @@
 			)
 		)
 		(model "${KICAD9_3DMODEL_DIR}/Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x17_P2.54mm_Vertical.step"
-			(hide yes)
 			(offset
 				(xyz 27.95 20.57 0)
 			)
@@ -3341,7 +3342,6 @@
 			)
 		)
 		(model "${KICAD9_3DMODEL_DIR}/Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x17_P2.54mm_Vertical.step"
-			(hide yes)
 			(offset
 				(xyz 30.5 19.3 0)
 			)
@@ -5713,7 +5713,7 @@
 			(net 1 "GND")
 			(pinfunction "SHIELD")
 			(pintype "passive")
-			(uuid "2f93abab-b9f8-4849-a9b2-798fa401d019")
+			(uuid "d1797e3b-7283-495b-a5f1-5da90fd28d55")
 		)
 		(pad "9" smd roundrect
 			(at 6.875 -4.7)
@@ -5723,7 +5723,7 @@
 			(net 1 "GND")
 			(pinfunction "SHIELD")
 			(pintype "passive")
-			(uuid "2f93abab-b9f8-4849-a9b2-798fa401d019")
+			(uuid "bae8da62-6440-4397-9b62-3b26f4b5728f")
 		)
 		(pad "9" smd roundrect
 			(at 6.875 3.6)
@@ -5733,7 +5733,7 @@
 			(net 1 "GND")
 			(pinfunction "SHIELD")
 			(pintype "passive")
-			(uuid "2f93abab-b9f8-4849-a9b2-798fa401d019")
+			(uuid "8f50a0eb-92e4-4cb7-a9af-f6f102dd8922")
 		)
 		(embedded_fonts no)
 		(model "${KIPRJMOD}/models/uSD_Connector_Molex.step"
@@ -5895,17 +5895,6 @@
 			)
 			(rotate
 				(xyz -90 -0 -0)
-			)
-		)
-		(model "${KIPRJMOD}/models/Main_Stack_Dummy.step"
-			(offset
-				(xyz 0 0 31)
-			)
-			(scale
-				(xyz 1 1 1)
-			)
-			(rotate
-				(xyz -0 -0 -0)
 			)
 		)
 	)
@@ -10775,7 +10764,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 112)
 			(uuid "9ceafa1e-285d-464f-9db5-659c9bfd3b81")
 		)
 		(fp_poly
@@ -10791,7 +10779,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 112)
 			(uuid "45bf47a4-a857-4ccb-a899-93c74d932ab3")
 		)
 		(fp_poly
@@ -10809,7 +10796,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 112)
 			(uuid "4bb27535-b46d-46d8-881d-f4c65687318d")
 		)
 		(fp_poly
@@ -10830,7 +10816,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 112)
 			(uuid "514a44e7-888f-4c37-8ee7-34d7524b9ea6")
 		)
 		(fp_poly
@@ -10851,7 +10836,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 112)
 			(uuid "362d32a1-67a8-4002-ab49-052b9bedb7f0")
 		)
 		(fp_poly
@@ -10873,7 +10857,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 112)
 			(uuid "0032376f-e530-4f96-9cb7-d67fbe5f1f0d")
 		)
 		(fp_poly
@@ -10894,7 +10877,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 112)
 			(uuid "a0accd45-fb8f-4f35-98bf-84ac2129bd98")
 		)
 		(fp_poly
@@ -11057,7 +11039,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 112)
 			(uuid "2602cc8a-16c9-4a30-ac8a-e0d1c0f3d5bd")
 		)
 		(embedded_fonts no)
@@ -12005,7 +11986,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 1105068607)
 			(uuid "c282504c-2f9f-4292-9ae3-46869acdce89")
 		)
 		(fp_poly
@@ -12018,7 +11998,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 1105068607)
 			(uuid "08c06992-8f5d-4323-ada0-a8a215c0201e")
 		)
 		(fp_poly
@@ -12031,7 +12010,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 1105068607)
 			(uuid "cc3cc4dc-cd33-4187-9e34-529868103e48")
 		)
 		(fp_poly
@@ -12044,7 +12022,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 1105068607)
 			(uuid "1b56a201-e468-4ac8-a7c0-694072b1faaa")
 		)
 		(fp_poly
@@ -12058,7 +12035,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 1105068607)
 			(uuid "21503f89-10ab-4c7c-840c-3dc06ba2157d")
 		)
 		(fp_poly
@@ -12072,7 +12048,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 1105068607)
 			(uuid "3ca400a1-db6e-403c-9b55-e2dbebe2c5dc")
 		)
 		(fp_poly
@@ -12086,7 +12061,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 1105068607)
 			(uuid "542dc70a-64cd-4ab6-8a3a-95959523ae0d")
 		)
 		(fp_poly
@@ -12100,7 +12074,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 1105068607)
 			(uuid "c83428ee-db78-487c-8f4f-ba35674fe9a1")
 		)
 		(fp_poly
@@ -12137,7 +12110,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 1105068607)
 			(uuid "9ead4adc-70e7-4001-a69e-123e28540898")
 		)
 		(fp_poly
@@ -12179,7 +12151,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 1105068607)
 			(uuid "a2c7d23a-5d92-4b21-9a68-6fb95aead6d5")
 		)
 		(fp_poly
@@ -12346,7 +12317,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 1105068607)
 			(uuid "cbf0454a-5c55-4173-9a62-81c53617875b")
 		)
 		(embedded_fonts no)
@@ -13593,7 +13563,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 112)
 			(uuid "9b8d0f46-b8a1-4b05-8996-afe9abd94018")
 		)
 		(fp_poly
@@ -13609,7 +13578,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 112)
 			(uuid "51e9197b-5f29-4720-a88c-59d50e6e83c7")
 		)
 		(fp_poly
@@ -13627,7 +13595,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 112)
 			(uuid "64ea3bcf-427c-4a0f-b0fa-2b4399af13d6")
 		)
 		(fp_poly
@@ -13648,7 +13615,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 112)
 			(uuid "764c8acd-9f46-4e9b-ab69-d789d079ea49")
 		)
 		(fp_poly
@@ -13669,7 +13635,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 112)
 			(uuid "402d72cf-2bdf-4faa-8293-5d186aeee105")
 		)
 		(fp_poly
@@ -13690,7 +13655,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 112)
 			(uuid "5aaceee3-05f0-4990-a1ff-9aab2f0b486a")
 		)
 		(fp_poly
@@ -13712,7 +13676,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 112)
 			(uuid "5aa996e5-26ca-419b-baca-b2e6f6f02ef4")
 		)
 		(fp_poly
@@ -13875,7 +13838,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 112)
 			(uuid "d63a2b7d-95d2-40ca-a6b9-733958564a2b")
 		)
 		(embedded_fonts no)
@@ -18377,7 +18339,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 1105068607)
 			(uuid "682b077c-e9ba-4019-9fb3-dfc3c0b80cf4")
 		)
 		(fp_poly
@@ -18390,7 +18351,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 1105068607)
 			(uuid "a20ab193-b5bf-422b-a2f0-2cb3fe4a9e1e")
 		)
 		(fp_poly
@@ -18403,7 +18363,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 1105068607)
 			(uuid "5e7eae4c-b383-4379-8e66-93f9776ca9f2")
 		)
 		(fp_poly
@@ -18416,7 +18375,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 1105068607)
 			(uuid "b62d1663-2495-4a92-adbc-14ae03defd7c")
 		)
 		(fp_poly
@@ -18430,7 +18388,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 1105068607)
 			(uuid "a3f0bbed-da3e-4ac0-8da8-32962ff0329e")
 		)
 		(fp_poly
@@ -18444,7 +18401,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 1105068607)
 			(uuid "3b5a711e-e756-4cd1-92a9-f3f7d62c0d69")
 		)
 		(fp_poly
@@ -18458,7 +18414,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 1105068607)
 			(uuid "de538b63-e90c-4b6d-9493-93765a6a1279")
 		)
 		(fp_poly
@@ -18472,7 +18427,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 1105068607)
 			(uuid "81b8aa1c-2009-4ca2-b285-1ecf0bcd8d9e")
 		)
 		(fp_poly
@@ -18509,7 +18463,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 1105068607)
 			(uuid "8f46d1b7-57dc-4a1c-898c-6c0189c58588")
 		)
 		(fp_poly
@@ -18551,7 +18504,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 1105068607)
 			(uuid "f104f475-a3af-4059-84f3-5f3ae7721a2a")
 		)
 		(fp_poly
@@ -18718,7 +18670,6 @@
 			)
 			(fill yes)
 			(layer "B.SilkS")
-			(net 1105068607)
 			(uuid "92938306-475f-459f-b42f-bcbcd8034227")
 		)
 		(embedded_fonts no)
