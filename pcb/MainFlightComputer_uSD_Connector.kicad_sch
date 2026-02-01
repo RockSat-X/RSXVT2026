@@ -1229,7 +1229,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "5bbc849a-e783-4ee9-84dc-5d8826aa0d91")
-		(property "Reference" "R14"
+		(property "Reference" "R15"
 			(at 100.33 78.7399 0)
 			(effects
 				(font
@@ -1283,7 +1283,7 @@
 		(instances
 			(project ""
 				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/d6d791b4-6a15-48a1-8b16-290665bcc58d"
-					(reference "R14")
+					(reference "R15")
 					(unit 1)
 				)
 			)
@@ -1305,7 +1305,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "741be1c4-8290-4f49-a792-4fe99d4ee95c")
-		(property "Reference" "C11"
+		(property "Reference" "C19"
 			(at 41.91 78.7462 0)
 			(effects
 				(font
@@ -1359,7 +1359,7 @@
 		(instances
 			(project ""
 				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/d6d791b4-6a15-48a1-8b16-290665bcc58d"
-					(reference "C11")
+					(reference "C19")
 					(unit 1)
 				)
 			)
@@ -1381,7 +1381,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "90b0adea-1d96-4634-86f6-f9a4a18ac2a0")
-		(property "Reference" "C12"
+		(property "Reference" "C18"
 			(at 53.34 78.7462 0)
 			(effects
 				(font
@@ -1435,7 +1435,7 @@
 		(instances
 			(project ""
 				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/d6d791b4-6a15-48a1-8b16-290665bcc58d"
-					(reference "C12")
+					(reference "C18")
 					(unit 1)
 				)
 			)
@@ -1456,7 +1456,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "961ac9ca-4a3c-48bb-b7fa-06ce0c23d6e9")
-		(property "Reference" "J3"
+		(property "Reference" "J2"
 			(at 144.653 60.198 0)
 			(effects
 				(font
@@ -1529,7 +1529,7 @@
 		(instances
 			(project ""
 				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/d6d791b4-6a15-48a1-8b16-290665bcc58d"
-					(reference "J3")
+					(reference "J2")
 					(unit 1)
 				)
 			)
@@ -1917,7 +1917,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "f9760cd4-a32a-4040-84d0-e12aa8edb72f")
-		(property "Reference" "R13"
+		(property "Reference" "R14"
 			(at 85.09 78.7399 0)
 			(effects
 				(font
@@ -1971,7 +1971,7 @@
 		(instances
 			(project ""
 				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/d6d791b4-6a15-48a1-8b16-290665bcc58d"
-					(reference "R13")
+					(reference "R14")
 					(unit 1)
 				)
 			)
@@ -1993,7 +1993,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "fe2fcf4f-f837-4d19-8156-bba9b71418ed")
-		(property "Reference" "C13"
+		(property "Reference" "C17"
 			(at 64.77 78.7462 0)
 			(effects
 				(font
@@ -2047,7 +2047,7 @@
 		(instances
 			(project ""
 				(path "/0a179c33-cb18-4019-99e7-0e00d41f97d6/d6d791b4-6a15-48a1-8b16-290665bcc58d"
-					(reference "C13")
+					(reference "C17")
 					(unit 1)
 				)
 			)
