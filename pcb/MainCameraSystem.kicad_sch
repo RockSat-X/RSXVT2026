@@ -7936,7 +7936,7 @@
 	)
 	(wire
 		(pts
-			(xy 180.34 260.35) (xy 189.23 260.35)
+			(xy 182.88 260.35) (xy 189.23 260.35)
 		)
 		(stroke
 			(width 0)
@@ -8036,7 +8036,7 @@
 	)
 	(wire
 		(pts
-			(xy 259.08 199.39) (xy 250.19 199.39)
+			(xy 256.54 199.39) (xy 250.19 199.39)
 		)
 		(stroke
 			(width 0)
@@ -8154,7 +8154,7 @@
 		)
 		(uuid "ff2563e9-6a85-405f-a269-6d4fab02bd83")
 	)
-	(label "debug_testpoint_a"
+	(label "testpoint_A"
 		(at 189.23 260.35 180)
 		(effects
 			(font
@@ -8166,7 +8166,7 @@
 		)
 		(uuid "2975e66a-05bc-4790-92a8-a59528aa91b6")
 	)
-	(label "debug_testpoint_b"
+	(label "testpoint_B"
 		(at 250.19 199.39 0)
 		(effects
 			(font
@@ -12544,7 +12544,7 @@
 	)
 	(symbol
 		(lib_id "Connector:TestPoint")
-		(at 180.34 260.35 90)
+		(at 182.88 260.35 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -12553,7 +12553,7 @@
 		(fields_autoplaced yes)
 		(uuid "538ea3a2-bcab-46b7-babc-7ebcbe3b2558")
 		(property "Reference" "TP1"
-			(at 175.26 260.3499 90)
+			(at 177.8 260.3499 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12562,7 +12562,7 @@
 			)
 		)
 		(property "Value" "TestPoint"
-			(at 177.038 257.81 90)
+			(at 179.578 257.81 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12571,7 +12571,7 @@
 			)
 		)
 		(property "Footprint" "TestPoint:TestPoint_Bridge_Pitch2.0mm_Drill0.7mm"
-			(at 180.34 255.27 0)
+			(at 182.88 255.27 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12580,7 +12580,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 180.34 255.27 0)
+			(at 182.88 255.27 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12589,7 +12589,7 @@
 			)
 		)
 		(property "Description" "test point"
-			(at 180.34 260.35 0)
+			(at 182.88 260.35 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14961,7 +14961,7 @@
 	)
 	(symbol
 		(lib_id "Connector:TestPoint")
-		(at 259.08 199.39 270)
+		(at 256.54 199.39 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -14970,7 +14970,7 @@
 		(fields_autoplaced yes)
 		(uuid "b879e1b1-e9f5-4cf4-956a-a5bdb885ba7b")
 		(property "Reference" "TP2"
-			(at 264.16 199.3899 90)
+			(at 261.62 199.3899 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14979,7 +14979,7 @@
 			)
 		)
 		(property "Value" "TestPoint"
-			(at 262.382 201.93 90)
+			(at 259.842 201.93 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14988,7 +14988,7 @@
 			)
 		)
 		(property "Footprint" "TestPoint:TestPoint_Bridge_Pitch2.0mm_Drill0.7mm"
-			(at 259.08 204.47 0)
+			(at 256.54 204.47 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14997,7 +14997,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 259.08 204.47 0)
+			(at 256.54 204.47 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15006,7 +15006,7 @@
 			)
 		)
 		(property "Description" "test point"
-			(at 259.08 199.39 0)
+			(at 256.54 199.39 0)
 			(effects
 				(font
 					(size 1.27 1.27)

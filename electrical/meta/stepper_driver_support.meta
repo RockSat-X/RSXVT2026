@@ -22,6 +22,9 @@
 #if TARGET_NAME_IS_MainFlightComputer
     #error Target 'MainFlightComputer' needs to define a unique 'Stepper' driver.
 #endif
+#if TARGET_NAME_IS_MainFlightComputer_NUCLEO
+    #error Target 'MainFlightComputer_NUCLEO' needs to define a unique 'Stepper' driver.
+#endif
 #if TARGET_NAME_IS_VehicleFlightComputer
     enum StepperInstanceHandle : u32
     {
@@ -47,6 +50,9 @@
     #define NVICInterrupt_STEPPER_TIMx_update_event NVICInterrupt_TIM1_UP
     #define INTERRUPT_STEPPER_TIMx_update_event INTERRUPT_TIM1_UP
     #define STEPPER_UPDATE_EVENT_PERIOD_US 1000
+#endif
+#if TARGET_NAME_IS_DebugBoard
+    #error Target 'DebugBoard' needs to define a unique 'Stepper' driver.
 #endif
 #if TARGET_NAME_IS_MainCameraSystem
     #error Target 'MainCameraSystem' needs to define a unique 'Stepper' driver.
