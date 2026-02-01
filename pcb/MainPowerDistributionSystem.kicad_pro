@@ -60,11 +60,11 @@
       ],
       "drc_exclusions": [
         [
-          "silk_overlap|159045000|122325000|6e3e5e56-0d1a-4062-8b9f-8665fe75cbc6|fbf2746c-4a23-4d77-89e8-ea69a63cee06",
+          "extra_footprint|150000000|100000000|2481b60a-c9e6-4a40-8434-adc67f161db9|00000000-0000-0000-0000-000000000000",
           ""
         ],
         [
-          "silk_overlap|159045000|122325000|c42a39a4-4f73-4566-9314-f8cb17e6c66d|fbf2746c-4a23-4d77-89e8-ea69a63cee06",
+          "lib_footprint_issues|150000000|100000000|2481b60a-c9e6-4a40-8434-adc67f161db9|00000000-0000-0000-0000-000000000000",
           ""
         ]
       ],
@@ -675,10 +675,6 @@
     [
       "41b9944a-f63d-4ce0-843f-6c1f8b109fe2",
       "Timer Event Logic Conversion - GSE-1"
-    ],
-    [
-      "5cd708ab-f243-4c3d-b9a6-6ef81c5046b4",
-      "Timer Event Logic Conversion - TE-X"
     ]
   ],
   "text_variables": {}
