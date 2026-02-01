@@ -1241,7 +1241,7 @@ def checkPCBs(parameters):
             # it does not match with the coupled pin's name.
 
             if len(net_names := [
-                net_name
+                net_name.removeprefix('/')
                 for schematic_file_path, net_name in coupled_pin.nets
                 if not net_name.startswith('unconnected-')
             ]) == 1 and coupled_pin.name != net_names[0]:
@@ -1263,7 +1263,7 @@ def checkPCBs(parameters):
             # This pin has conflicting nets tied to it.
 
             if len(set(
-                net_name
+                net_name.removeprefix('/')
                 for schematic_file_path, net_name in coupled_pin.nets
                 if not net_name.startswith('unconnected-')
             )) >= 2:
