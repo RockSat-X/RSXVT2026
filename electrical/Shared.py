@@ -896,7 +896,7 @@ TARGETS = ( # @/`Defining Targets`.
             ('openmv_spi_mosi'            , 'C3'  , 'ALTERNATE' , { 'altfunc' : 'SPI2_MOSI'                     }),
             ('openmv_spi_miso'            , 'C2'  , 'ALTERNATE' , { 'altfunc' : 'SPI2_MISO'                     }),
             ('openmv_spi_ready'           , 'D5'  , 'ALTERNATE' , { 'altfunc' : 'SPI2_RDY'                      }),
-            ('openmv_reset'               , 'B2'  , 'OUTPUT'    , { 'initlvl' : False                           }),
+            ('openmv_reset'               , 'C15' , 'OUTPUT'    , { 'initlvl' : False                           }),
             ('motor_uart'                 , 'B14' , 'ALTERNATE' , { 'altfunc' : 'USART1_TX'                     }),
             ('vehicle_interface_i2c_data' , 'D7'  , 'ALTERNATE' , { 'altfunc' : 'I2C3_SDA', 'open_drain' : True }),
             ('vehicle_interface_i2c_clock', 'D6'  , 'ALTERNATE' , { 'altfunc' : 'I2C3_SCL', 'open_drain' : True }),
@@ -906,6 +906,8 @@ TARGETS = ( # @/`Defining Targets`.
             ('esp32_uart_tx'              , 'A0'  , 'ALTERNATE' , { 'altfunc' : 'UART4_TX'                      }),
             ('esp32_uart_rx'              , 'A1'  , 'ALTERNATE' , { 'altfunc' : 'UART4_RX'                      }),
             ('esp32_reset'                , 'E8'  , 'OUTPUT'    , { 'initlvl' : False                           }),
+            ('testpoint_A'                , 'A10' , None        , {                                             }),
+            ('testpoint_B'                , 'A11' , None        , {                                             }),
         ),
 
         interrupts = (),
