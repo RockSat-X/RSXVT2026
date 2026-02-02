@@ -890,7 +890,7 @@ TARGETS = ( # @/`Defining Targets`.
             ('sd_data_3'                  , 'C11' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D3'                     }),
             ('sd_clock'                   , 'C12' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CK'                     }),
             ('battery_allowed'            , 'D0'  , 'OUTPUT'    , { 'initlvl' : False                           }),
-            ('external_detected'          , 'D1'  , None        , {                                             }),
+            ('external_detected'          , 'D1'  , 'INPUT'     , { 'pull'    : 'DOWN'                          }),
             ('openmv_spi_nss'             , 'B12' , 'ALTERNATE' , { 'altfunc' : 'SPI2_NSS'                      }),
             ('openmv_spi_clock'           , 'B10' , 'ALTERNATE' , { 'altfunc' : 'SPI2_SCK'                      }),
             ('openmv_spi_mosi'            , 'C3'  , 'ALTERNATE' , { 'altfunc' : 'SPI2_MOSI'                     }),

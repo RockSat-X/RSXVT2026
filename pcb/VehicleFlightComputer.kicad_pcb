@@ -804,7 +804,7 @@
 			(net 2 "GND")
 			(pinfunction "1")
 			(pintype "passive")
-			(uuid "ccd5e026-3400-4fa1-83ef-d8773fe30e53")
+			(uuid "96e8d44f-68a3-430a-b4f1-15f02ef18db4")
 		)
 		(embedded_fonts no)
 		(model "${KICAD9_3DMODEL_DIR}/TestPoint.3dshapes/TestPoint_Bridge_Pitch2.0mm_Drill0.7mm.step"
@@ -2029,7 +2029,7 @@
 			(net 1 "+3.3V")
 			(pinfunction "1")
 			(pintype "passive")
-			(uuid "6250d725-e6c2-4169-90ca-3e362798b040")
+			(uuid "b066346d-42f4-413f-8e1f-7faccf40404b")
 		)
 		(embedded_fonts no)
 		(model "${KICAD9_3DMODEL_DIR}/TestPoint.3dshapes/TestPoint_Bridge_Pitch2.0mm_Drill0.7mm.step"
@@ -2466,7 +2466,7 @@
 			(net 98 "/testpoint_B")
 			(pinfunction "1")
 			(pintype "passive")
-			(uuid "6972e59d-694e-4d2c-8a8a-c6d76a8e03b2")
+			(uuid "4c878a4b-f565-44f7-b7dc-64e9ddb63718")
 		)
 		(embedded_fonts no)
 		(model "${KICAD9_3DMODEL_DIR}/TestPoint.3dshapes/TestPoint_Bridge_Pitch2.0mm_Drill0.7mm.step"
@@ -2487,7 +2487,7 @@
 		(at 162.9 90.15 -90)
 		(descr "Resistor SMD 1206 (3216 Metric), square (rectangular) end terminal, IPC-7351 nominal with elongated pad for handsoldering. (Body size source: IPC-SM-782 page 72, https://www.pcb-3d.com/wordpress/wp-content/uploads/ipc-sm-782a_amendment_1_and_2.pdf), generated with kicad-footprint-generator")
 		(tags "resistor handsolder")
-		(property "Reference" "R3"
+		(property "Reference" "R4"
 			(at -2.95 0 0)
 			(layer "F.SilkS")
 			(uuid "a559d55e-c738-4055-97b5-7839ea8570e5")
@@ -2944,7 +2944,7 @@
 			(net 99 "/testpoint_A")
 			(pinfunction "1")
 			(pintype "passive")
-			(uuid "fe03dfe7-5660-4954-aff7-ebcefef5b2b0")
+			(uuid "4abc7a70-519a-4bc7-9664-ada77c2b8025")
 		)
 		(embedded_fonts no)
 		(model "${KICAD9_3DMODEL_DIR}/TestPoint.3dshapes/TestPoint_Bridge_Pitch2.0mm_Drill0.7mm.step"
@@ -4034,7 +4034,7 @@
 			(net 2 "GND")
 			(pinfunction "1")
 			(pintype "passive")
-			(uuid "c3df5b31-2b87-4f70-80a7-d335e1b2f859")
+			(uuid "c0aae83e-9f44-4881-b1ab-56198b72d5cd")
 		)
 		(embedded_fonts no)
 		(model "${KICAD9_3DMODEL_DIR}/TestPoint.3dshapes/TestPoint_Bridge_Pitch2.0mm_Drill0.7mm.step"
@@ -4207,7 +4207,7 @@
 				)
 			)
 		)
-		(property "Value" "4K"
+		(property "Value" "10k"
 			(at 0 1.829999 0)
 			(layer "F.Fab")
 			(uuid "37605eac-1c09-4b39-8049-31cc350b3350")
@@ -4512,7 +4512,7 @@
 			(net 1 "+3.3V")
 			(pinfunction "1")
 			(pintype "passive")
-			(uuid "a61e121a-acf7-4919-b33f-4944a9e1a819")
+			(uuid "42433e38-0503-480d-9db4-6cac2b9a66a9")
 		)
 		(embedded_fonts no)
 		(model "${KICAD9_3DMODEL_DIR}/TestPoint.3dshapes/TestPoint_Bridge_Pitch2.0mm_Drill0.7mm.step"
@@ -5912,13 +5912,137 @@
 			)
 		)
 	)
+	(footprint "pcb:VehicleFlightComputerHousing"
+		(locked yes)
+		(layer "F.Cu")
+		(uuid "f417a5ac-183c-4595-abb8-6d5574675cff")
+		(at 150 100)
+		(property "Reference" "N1"
+			(at 0 -0.5 0)
+			(unlocked yes)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "1bf2289f-d756-47d3-afcf-8fb54a372402")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.1)
+				)
+			)
+		)
+		(property "Value" "Housing"
+			(at 0 1 0)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "cc2becd4-ae2f-4288-b2cc-13dafc077704")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 0 0 0)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "600a9d9c-2dc7-4ec2-9564-7c7c2288739a")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 0 0 0)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "b426ca12-6aeb-4043-b00b-04c1335d1eea")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(fp_line
+			(start -1 0)
+			(end 1 0)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(layer "User.1")
+			(uuid "30c3e8b8-19be-4f5c-bf16-9a11f679a3a1")
+		)
+		(fp_line
+			(start 0 -1)
+			(end 0 1)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(layer "User.1")
+			(uuid "f570f53f-a577-4910-93cc-c0dd104e13bd")
+		)
+		(fp_circle
+			(center 0 0)
+			(end 1 0)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(fill no)
+			(layer "User.1")
+			(uuid "bed9eb58-bd87-4ae7-b087-12bba9eca707")
+		)
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/models/CONSat.step"
+			(opacity 0.3300)
+			(offset
+				(xyz 0 0 42.7)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -0 90 90)
+			)
+		)
+		(model "${KIPRJMOD}/models/VehiclePowerDistributionSystem.step"
+			(offset
+				(xyz 28 0 42.5)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -90 -0 90)
+			)
+		)
+		(model "${KIPRJMOD}/models/VehicleMiscellaneousBoard.step"
+			(offset
+				(xyz 0 0 20)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -0 -0 -0)
+			)
+		)
+	)
 	(footprint "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
 		(layer "F.Cu")
 		(uuid "f6f03f57-2ae5-4212-9ae9-b5c8d365f1db")
 		(at 165.2 90.15 -90)
 		(descr "Resistor SMD 1206 (3216 Metric), square (rectangular) end terminal, IPC-7351 nominal with elongated pad for handsoldering. (Body size source: IPC-SM-782 page 72, https://www.pcb-3d.com/wordpress/wp-content/uploads/ipc-sm-782a_amendment_1_and_2.pdf), generated with kicad-footprint-generator")
 		(tags "resistor handsolder")
-		(property "Reference" "R4"
+		(property "Reference" "R3"
 			(at -2.95 0 0)
 			(layer "F.SilkS")
 			(uuid "ac0a8a95-29c1-484f-8a07-36c0bc477323")
@@ -9387,7 +9511,7 @@
 			(net 2 "GND")
 			(pinfunction "SHIELD")
 			(pintype "passive")
-			(uuid "e5bf96aa-6aab-44df-9fd6-f6f182cb0183")
+			(uuid "35059a45-2fd6-4db6-9edb-11adf3d491ae")
 		)
 		(pad "9" smd roundrect
 			(at 6.875 -3.6 90)
@@ -9397,7 +9521,7 @@
 			(net 2 "GND")
 			(pinfunction "SHIELD")
 			(pintype "passive")
-			(uuid "e5bf96aa-6aab-44df-9fd6-f6f182cb0183")
+			(uuid "2d1c6455-67de-4b2a-a9d1-343e5f6c175a")
 		)
 		(pad "9" smd roundrect
 			(at 6.875 4.7 90)
@@ -9407,7 +9531,7 @@
 			(net 2 "GND")
 			(pinfunction "SHIELD")
 			(pintype "passive")
-			(uuid "e5bf96aa-6aab-44df-9fd6-f6f182cb0183")
+			(uuid "0700b041-378e-4716-bdb0-97ccf21211a8")
 		)
 		(embedded_fonts no)
 		(model "${KIPRJMOD}/models/uSD_Connector_Molex.step"
