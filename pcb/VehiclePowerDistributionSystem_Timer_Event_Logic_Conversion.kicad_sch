@@ -816,7 +816,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "47ca0805-3ef8-46f9-9226-a167b5d979c8")
-		(property "Reference" "D7"
+		(property "Reference" "D1"
 			(at 137.16 65.0874 90)
 			(effects
 				(font
@@ -879,7 +879,7 @@
 		(instances
 			(project "VehiclePowerDistributionSystem"
 				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/54620fe3-2093-4758-a776-838cd07d45c6"
-					(reference "D7")
+					(reference "D1")
 					(unit 1)
 				)
 			)
@@ -962,7 +962,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "78128f71-2c11-407b-b4d0-4ccf109ee937")
-		(property "Reference" "R17"
+		(property "Reference" "R3"
 			(at 118.11 76.1999 0)
 			(effects
 				(font
@@ -1016,7 +1016,7 @@
 		(instances
 			(project "VehiclePowerDistributionSystem"
 				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/54620fe3-2093-4758-a776-838cd07d45c6"
-					(reference "R17")
+					(reference "R3")
 					(unit 1)
 				)
 			)
@@ -1032,7 +1032,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "8404fa5e-050c-4960-a21c-653c303e3e11")
-		(property "Reference" "R16"
+		(property "Reference" "R2"
 			(at 135.89 76.1999 0)
 			(effects
 				(font
@@ -1086,7 +1086,7 @@
 		(instances
 			(project "VehiclePowerDistributionSystem"
 				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/54620fe3-2093-4758-a776-838cd07d45c6"
-					(reference "R16")
+					(reference "R2")
 					(unit 1)
 				)
 			)
@@ -1102,7 +1102,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "c958f26c-2686-4647-bb5e-33bc02477f12")
-		(property "Reference" "D8"
+		(property "Reference" "D5"
 			(at 135.89 91.4399 90)
 			(effects
 				(font
@@ -1156,7 +1156,7 @@
 		(instances
 			(project "VehiclePowerDistributionSystem"
 				(path "/92a7a41c-8494-4e4b-ac2d-deb1f1cd8085/54620fe3-2093-4758-a776-838cd07d45c6"
-					(reference "D8")
+					(reference "D5")
 					(unit 1)
 				)
 			)

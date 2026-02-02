@@ -14542,7 +14542,7 @@
 			(justify left)
 		)
 	)
-	(gr_text "Q"
+	(gr_text "L"
 		(at 167.5 92.5 0)
 		(layer "F.SilkS" knockout)
 		(uuid "e31cfeb9-1f53-42e1-a75d-ba1126b2ed10")
@@ -14553,7 +14553,7 @@
 			)
 		)
 	)
-	(gr_text "L"
+	(gr_text "Q"
 		(at 172.6 92.4 0)
 		(layer "F.SilkS" knockout)
 		(uuid "e80ea97f-8e39-49ec-9f5f-dca44edf61b8")

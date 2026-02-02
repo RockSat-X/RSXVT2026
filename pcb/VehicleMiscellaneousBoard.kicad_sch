@@ -5,113 +5,6 @@
 	(uuid "091a7226-d417-4b79-83fb-bb50ff9fd5b7")
 	(paper "A4")
 	(lib_symbols
-		(symbol "Connector:TestPoint"
-			(pin_numbers
-				(hide yes)
-			)
-			(pin_names
-				(offset 0.762)
-				(hide yes)
-			)
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(property "Reference" "TP"
-				(at 0 6.858 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Value" "TestPoint"
-				(at 0 5.08 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Footprint" ""
-				(at 5.08 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" "~"
-				(at 5.08 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Description" "test point"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_keywords" "test point tp"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_fp_filters" "Pin* Test*"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(symbol "TestPoint_0_1"
-				(circle
-					(center 0 3.302)
-					(radius 0.762)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-			)
-			(symbol "TestPoint_1_1"
-				(pin passive line
-					(at 0 0 90)
-					(length 2.54)
-					(name "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(embedded_fonts no)
-		)
 		(symbol "Connector_Generic:Conn_01x08"
 			(pin_names
 				(offset 1.016)
@@ -2692,12 +2585,6 @@
 			(embedded_fonts no)
 		)
 	)
-	(junction
-		(at 198.12 66.04)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "f0166782-7b4f-4d70-af9f-0ce34dbb78c0")
-	)
 	(no_connect
 		(at 125.73 63.5)
 		(uuid "0987f6d5-8c96-440b-88fd-cbc29a5d2581")
@@ -2709,10 +2596,6 @@
 	(no_connect
 		(at 200.66 78.74)
 		(uuid "0e0d0fca-41fc-4e19-82ae-68e20d3269de")
-	)
-	(no_connect
-		(at 200.66 105.41)
-		(uuid "149d4592-6809-41fc-bcc8-d1cdc0f5e8b3")
 	)
 	(no_connect
 		(at 121.92 130.81)
@@ -2741,10 +2624,6 @@
 	(no_connect
 		(at 125.73 93.98)
 		(uuid "3acc12ba-6044-4bfe-9295-e20bc97a98bd")
-	)
-	(no_connect
-		(at 200.66 110.49)
-		(uuid "46180771-6f9b-4b80-83be-f31a9d56beee")
 	)
 	(no_connect
 		(at 121.92 142.24)
@@ -2799,8 +2678,8 @@
 		(uuid "99e32eec-a99e-430d-b334-4c672057d610")
 	)
 	(no_connect
-		(at 200.66 107.95)
-		(uuid "a28ba030-7654-4e31-aa84-1b8eeac815b8")
+		(at 200.66 76.2)
+		(uuid "a4e72db3-443b-4f8d-bd67-25fd284784ec")
 	)
 	(no_connect
 		(at 121.92 138.43)
@@ -2835,10 +2714,6 @@
 		(uuid "e4877779-3b44-44e6-bfb5-5793354032ef")
 	)
 	(no_connect
-		(at 200.66 73.66)
-		(uuid "f14e2ede-cc5e-4b50-b248-546985d1967f")
-	)
-	(no_connect
 		(at 224.79 153.67)
 		(uuid "f2374c60-6254-4fbb-aa76-eefc3a36417a")
 	)
@@ -2857,50 +2732,6 @@
 	(no_connect
 		(at 92.71 93.98)
 		(uuid "fc062f5b-00c2-44f9-b056-f2d6fdef84cb")
-	)
-	(no_connect
-		(at 200.66 113.03)
-		(uuid "fe885082-b745-4c90-8d66-fec9efb2020f")
-	)
-	(wire
-		(pts
-			(xy 195.58 66.04) (xy 198.12 66.04)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "72b1bb20-faac-473a-b591-394c61b82993")
-	)
-	(wire
-		(pts
-			(xy 196.85 68.58) (xy 200.66 68.58)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "83afe6a7-6944-4e25-82e7-22900f17386d")
-	)
-	(wire
-		(pts
-			(xy 198.12 66.04) (xy 200.66 66.04)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "8742aa07-71dc-4772-b2e9-1f582f8f6d40")
-	)
-	(wire
-		(pts
-			(xy 196.85 71.12) (xy 200.66 71.12)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "d847d304-5ad8-4af3-9c23-f34b94213517")
 	)
 	(global_label "vn100_uart_rx"
 		(shape bidirectional)
@@ -3543,35 +3374,17 @@
 		)
 	)
 	(symbol
-		(lib_id "Connector:TestPoint")
-		(at 198.12 66.04 0)
-		(mirror y)
+		(lib_id "power:GND")
+		(at 200.66 68.58 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "16725e99-a657-4530-a524-de0d9c91979c")
-		(property "Reference" "TP8"
-			(at 198.1201 60.96 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "TestPoint"
-			(at 196.8501 60.96 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "TestPoint:TestPoint_Pad_1.0x1.0mm"
-			(at 193.04 66.04 0)
+		(fields_autoplaced yes)
+		(uuid "1a1d2b42-cd9f-4cd1-9d1e-1a21a1f7690b")
+		(property "Reference" "#PWR028"
+			(at 194.31 68.58 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3579,8 +3392,18 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "~"
-			(at 193.04 66.04 0)
+		(property "Value" "GND"
+			(at 196.85 68.5799 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 200.66 68.58 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3588,8 +3411,17 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "test point"
-			(at 198.12 66.04 0)
+		(property "Datasheet" ""
+			(at 200.66 68.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 200.66 68.58 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3598,12 +3430,12 @@
 			)
 		)
 		(pin "1"
-			(uuid "bf9ad20c-8c81-4138-8723-2a76e3cacc17")
+			(uuid "7318d9a2-d167-428e-95de-4c058e51d67a")
 		)
 		(instances
 			(project "VehicleMiscellaneousBoard"
 				(path "/091a7226-d417-4b79-83fb-bb50ff9fd5b7"
-					(reference "TP8")
+					(reference "#PWR028")
 					(unit 1)
 				)
 			)
@@ -3670,6 +3502,207 @@
 			(project "VehicleMiscellaneousBoard"
 				(path "/091a7226-d417-4b79-83fb-bb50ff9fd5b7"
 					(reference "#PWR013")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 200.66 113.03 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "21c858f7-ea4e-4e7f-8d8e-ff9965668e66")
+		(property "Reference" "#PWR027"
+			(at 194.31 113.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 196.85 113.0299 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 200.66 113.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 200.66 113.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 200.66 113.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "06ff7757-8ea3-4d01-95e6-5734cd5d864a")
+		)
+		(instances
+			(project "VehicleMiscellaneousBoard"
+				(path "/091a7226-d417-4b79-83fb-bb50ff9fd5b7"
+					(reference "#PWR027")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 200.66 107.95 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "267ef50e-5050-4424-a510-9d8580e1296b")
+		(property "Reference" "#PWR025"
+			(at 194.31 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 196.85 107.9499 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 200.66 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 200.66 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 200.66 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "4bab7284-4ab4-48a6-8815-4f6e243f9801")
+		)
+		(instances
+			(project "VehicleMiscellaneousBoard"
+				(path "/091a7226-d417-4b79-83fb-bb50ff9fd5b7"
+					(reference "#PWR025")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+5V")
+		(at 200.66 71.12 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "297ef765-ffcc-4ff5-aa1c-ff41e345e4ee")
+		(property "Reference" "#PWR029"
+			(at 204.47 71.12 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+5V"
+			(at 197.485 71.1199 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 200.66 71.12 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 200.66 71.12 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+5V\""
+			(at 200.66 71.12 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "a2459d26-e8a1-4ff2-8f0d-a16eb91c0f87")
+		)
+		(instances
+			(project "VehicleMiscellaneousBoard"
+				(path "/091a7226-d417-4b79-83fb-bb50ff9fd5b7"
+					(reference "#PWR029")
 					(unit 1)
 				)
 			)
@@ -4319,7 +4352,7 @@
 	)
 	(symbol
 		(lib_id "power:+5V")
-		(at 195.58 66.04 90)
+		(at 200.66 66.04 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -4328,7 +4361,7 @@
 		(fields_autoplaced yes)
 		(uuid "67a2038e-3382-46f0-b159-6cb450157eb5")
 		(property "Reference" "#PWR016"
-			(at 199.39 66.04 0)
+			(at 204.47 66.04 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4337,7 +4370,7 @@
 			)
 		)
 		(property "Value" "+5V"
-			(at 192.405 66.0399 90)
+			(at 197.485 66.0399 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4346,7 +4379,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 195.58 66.04 0)
+			(at 200.66 66.04 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4355,7 +4388,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 195.58 66.04 0)
+			(at 200.66 66.04 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4364,7 +4397,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+5V\""
-			(at 195.58 66.04 0)
+			(at 200.66 66.04 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4725,6 +4758,74 @@
 	)
 	(symbol
 		(lib_id "power:GND")
+		(at 200.66 73.66 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "9d390134-f1dd-4770-93e7-9cb3e6cd3a8e")
+		(property "Reference" "#PWR030"
+			(at 194.31 73.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 196.85 73.6599 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 200.66 73.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 200.66 73.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 200.66 73.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "86904ee6-1f5f-457f-a4bc-7491a0a4e19b")
+		)
+		(instances
+			(project "VehicleMiscellaneousBoard"
+				(path "/091a7226-d417-4b79-83fb-bb50ff9fd5b7"
+					(reference "#PWR030")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
 		(at 172.72 143.51 270)
 		(unit 1)
 		(exclude_from_sim no)
@@ -4859,74 +4960,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Connector:TestPoint")
-		(at 196.85 68.58 90)
-		(mirror x)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "ac0feaa0-6508-45ed-9301-9fefa612386c")
-		(property "Reference" "TP6"
-			(at 191.77 68.5799 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "TestPoint"
-			(at 191.77 69.8499 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "TestPoint:TestPoint_Pad_1.0x1.0mm"
-			(at 196.85 73.66 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 196.85 73.66 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "test point"
-			(at 196.85 68.58 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "9c9d4bad-b150-446e-acc8-d1b9225beb3d")
-		)
-		(instances
-			(project "VehicleMiscellaneousBoard"
-				(path "/091a7226-d417-4b79-83fb-bb50ff9fd5b7"
-					(reference "TP6")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Seeed_Studio_XIAO-ESP32-S3-Sense:Seeed_Studio_XIAO-ESP32-S3-Sense")
 		(at 109.22 134.62 0)
 		(unit 1)
@@ -5046,74 +5079,6 @@
 			(project ""
 				(path "/091a7226-d417-4b79-83fb-bb50ff9fd5b7"
 					(reference "U2")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:GND")
-		(at 200.66 76.2 270)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "ae5465df-af12-482e-88b4-58b434cbbe57")
-		(property "Reference" "#PWR017"
-			(at 194.31 76.2 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "GND"
-			(at 196.85 76.1999 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-		(property "Footprint" ""
-			(at 200.66 76.2 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 200.66 76.2 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 200.66 76.2 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "eefa1ff0-bc33-4c43-8bef-0985bf2892d6")
-		)
-		(instances
-			(project "VehicleMiscellaneousBoard"
-				(path "/091a7226-d417-4b79-83fb-bb50ff9fd5b7"
-					(reference "#PWR017")
 					(unit 1)
 				)
 			)
@@ -5592,6 +5557,140 @@
 		)
 	)
 	(symbol
+		(lib_id "power:+3.3V")
+		(at 200.66 105.41 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "cb34e5a4-661a-4bba-8454-6aa28c0a73f3")
+		(property "Reference" "#PWR024"
+			(at 204.47 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3.3V"
+			(at 196.85 105.4099 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 200.66 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 200.66 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 200.66 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "ae6bb431-8d45-46b2-b518-30ec4eda0e01")
+		)
+		(instances
+			(project "VehicleMiscellaneousBoard"
+				(path "/091a7226-d417-4b79-83fb-bb50ff9fd5b7"
+					(reference "#PWR024")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3.3V")
+		(at 200.66 110.49 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "d534c865-4a12-4a21-b829-448bae5f6f23")
+		(property "Reference" "#PWR026"
+			(at 204.47 110.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3.3V"
+			(at 196.85 110.4899 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 200.66 110.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 200.66 110.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 200.66 110.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "d854bc20-f967-4949-9380-93c8631f44a1")
+		)
+		(instances
+			(project "VehicleMiscellaneousBoard"
+				(path "/091a7226-d417-4b79-83fb-bb50ff9fd5b7"
+					(reference "#PWR026")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Connector_Generic:Conn_01x10")
 		(at 205.74 76.2 0)
 		(unit 1)
@@ -5681,74 +5780,6 @@
 			(project "VehicleMiscellaneousBoard"
 				(path "/091a7226-d417-4b79-83fb-bb50ff9fd5b7"
 					(reference "J2")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Connector:TestPoint")
-		(at 196.85 71.12 90)
-		(mirror x)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "fd67f0cc-790e-4c1b-9196-03512e345bb6")
-		(property "Reference" "TP7"
-			(at 191.77 71.1199 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "TestPoint"
-			(at 191.77 72.3899 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "TestPoint:TestPoint_Pad_1.0x1.0mm"
-			(at 196.85 76.2 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 196.85 76.2 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "test point"
-			(at 196.85 71.12 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "90350d94-a79a-4c35-b8ff-ae7f74fdb12a")
-		)
-		(instances
-			(project "VehicleMiscellaneousBoard"
-				(path "/091a7226-d417-4b79-83fb-bb50ff9fd5b7"
-					(reference "TP7")
 					(unit 1)
 				)
 			)

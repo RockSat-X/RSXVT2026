@@ -6713,6 +6713,19 @@
 		)
 		(uuid "cb50ef8d-c064-4d4c-ac87-ab61baedae0a")
 	)
+	(text "The onboard uSD connector is\njust for development purposes."
+		(exclude_from_sim no)
+		(at 217.678 371.348 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.1588)
+				(color 255 0 0 1)
+			)
+			(justify top)
+		)
+		(uuid "cefa8079-000b-477c-8529-a58a181931f7")
+	)
 	(text "Debug LED (V5 : Removed local nets)."
 		(exclude_from_sim no)
 		(at 334.01 249.428 0)
@@ -10290,7 +10303,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "0d0c5384-f78d-40db-adf7-49571407a0dc")
-		(property "Reference" "C11"
+		(property "Reference" "C10"
 			(at 383.54 76.1999 0)
 			(effects
 				(font
@@ -10344,7 +10357,7 @@
 		(instances
 			(project "MainCameraSystem"
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "C11")
+					(reference "C10")
 					(unit 1)
 				)
 			)
@@ -10873,7 +10886,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "1cf03f26-d0ee-47b0-9f55-d82e1afa8407")
-		(property "Reference" "R11"
+		(property "Reference" "R10"
 			(at 226.06 91.4399 0)
 			(effects
 				(font
@@ -10927,7 +10940,7 @@
 		(instances
 			(project "MainCameraSystem"
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "R11")
+					(reference "R10")
 					(unit 1)
 				)
 			)
@@ -11316,9 +11329,10 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
+		(fields_autoplaced yes)
 		(uuid "285fee45-2a96-4d4a-b097-f91f1cfad0f3")
 		(property "Reference" "J2"
-			(at 285.75 332.74 0)
+			(at 285.75 335.28 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11331,6 +11345,7 @@
 				(font
 					(size 1.27 1.27)
 				)
+				(hide yes)
 			)
 		)
 		(property "Footprint" "Connector_JST:JST_XH_B8B-XH-A_1x08_P2.50mm_Vertical"
@@ -11679,7 +11694,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "442a0b14-e1c9-4f57-bb69-fbcb896f0b0e")
-		(property "Reference" "C7"
+		(property "Reference" "C6"
 			(at 419.1 351.7962 0)
 			(effects
 				(font
@@ -11745,7 +11760,7 @@
 			)
 			(project ""
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "C7")
+					(reference "C6")
 					(unit 1)
 				)
 			)
@@ -12194,7 +12209,7 @@
 		(fields_autoplaced yes)
 		(uuid "4e9c94f2-f2e0-496f-9fa4-1e4415cd5a0c")
 		(property "Reference" "J3"
-			(at 179.07 88.8999 0)
+			(at 179.07 90.1699 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12209,6 +12224,7 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
+				(hide yes)
 			)
 		)
 		(property "Footprint" "pcb:XF3M_2415_1B - REVERSED"
@@ -13595,7 +13611,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "76651bbd-eb47-4b9b-b037-fe5b2d92fb7a")
-		(property "Reference" "Y0"
+		(property "Reference" "Y1"
 			(at 368.3 43.1098 0)
 			(effects
 				(font
@@ -13653,7 +13669,7 @@
 		(instances
 			(project ""
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "Y0")
+					(reference "Y1")
 					(unit 1)
 				)
 			)
@@ -14819,7 +14835,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "a8feb874-3ad5-4eca-9b6e-d1748a056098")
-		(property "Reference" "FB0"
+		(property "Reference" "FB1"
 			(at 251.4219 58.42 90)
 			(effects
 				(font
@@ -14871,7 +14887,7 @@
 		(instances
 			(project ""
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "FB0")
+					(reference "FB1")
 					(unit 1)
 				)
 			)
@@ -14887,7 +14903,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "b37009af-39b3-4930-9242-268dc3e5563a")
-		(property "Reference" "C6"
+		(property "Reference" "C7"
 			(at 387.35 351.7962 0)
 			(effects
 				(font
@@ -14953,7 +14969,7 @@
 			)
 			(project ""
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "C6")
+					(reference "C7")
 					(unit 1)
 				)
 			)
@@ -15453,7 +15469,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "c3e39650-ae0f-4536-8b02-fec6ec714295")
-		(property "Reference" "C10"
+		(property "Reference" "C11"
 			(at 334.01 76.1999 0)
 			(effects
 				(font
@@ -15507,7 +15523,7 @@
 		(instances
 			(project "MainCameraSystem"
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "C10")
+					(reference "C11")
 					(unit 1)
 				)
 			)
@@ -16299,7 +16315,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "edd007e1-b4d5-4401-8c6d-376f41a9cc05")
-		(property "Reference" "R10"
+		(property "Reference" "R11"
 			(at 204.47 91.4399 0)
 			(effects
 				(font
@@ -16353,7 +16369,7 @@
 		(instances
 			(project "MainCameraSystem"
 				(path "/caaf0100-eb77-4215-a2d5-ab172094720c"
-					(reference "R10")
+					(reference "R11")
 					(unit 1)
 				)
 			)
