@@ -20,10 +20,11 @@ main(void)
 
     ////////////////////////////////////////////////////////////////////////////////
     //
-    // Initialize the SPI driver for each peripheral used by the target.
+    // Initialize the SPI drivers used by the target.
     //
 
     SPI_reinit(SPIHandle_primary);
+    SPI_reinit(SPIHandle_secondary);
 
 
 
@@ -47,7 +48,7 @@ main(void)
 
         u8 reception[sizeof(transmission)] = {0};
 
-        enum SPIDriverError error =
+        enum SPIDriverMasterError error =
             SPI_blocking_transfer
             (
                 SPIHandle_primary,
@@ -63,7 +64,7 @@ main(void)
         switch (error)
         {
 
-            case SPIDriverError_none:
+            case SPIDriverMasterError_none:
             {
                 // No issues.
             } break;
@@ -74,7 +75,7 @@ main(void)
 
 
 
-        // Output what we received.
+        // Output what the master received.
 
         stlink_tx("%d :", iteration);
 
@@ -87,10 +88,23 @@ main(void)
 
 
 
+        // Output what the slave-receiver got.
+
+        {
+            u8 data = {0};
+            while (SPI_receive_byte(SPIHandle_secondary, &data))
+            {
+                stlink_tx("Got : 0x%02X\n", data);
+            }
+            stlink_tx("\n");
+        }
+
+
+
         // Bit of breather...
 
         GPIO_TOGGLE(led_green);
-        spinlock_nop(10'000'000);
+        spinlock_nop(40'000'000);
 
     }
 

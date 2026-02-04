@@ -294,21 +294,25 @@ TARGETS = ( # @/`Defining Targets`.
         kicad_project = None,
 
         gpios = (
-            ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                 }),
-            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'           }),
-            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'           }),
-            ('swdio'     , 'A13', None        , {                                   }),
-            ('swclk'     , 'A14', None        , {                                   }),
-            ('button'    , 'C13', 'INPUT'     , { 'pull'    : None, 'active' : True }),
-            ('nss'       , 'B1' , 'ALTERNATE' , { 'altfunc' : 'SPI2_NSS'            }),
-            ('sck'       , 'B2' , 'ALTERNATE' , { 'altfunc' : 'SPI2_SCK'            }),
-            ('mosi'      , 'B15', 'ALTERNATE' , { 'altfunc' : 'SPI2_MOSI'           }),
-            ('miso'      , 'C2' , 'ALTERNATE' , { 'altfunc' : 'SPI2_MISO'           }),
+            ('led_green'          , 'A5' , 'OUTPUT'    , { 'initlvl' : False                 }),
+            ('stlink_tx'          , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'           }),
+            ('stlink_rx'          , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'           }),
+            ('swdio'              , 'A13', None        , {                                   }),
+            ('swclk'              , 'A14', None        , {                                   }),
+            ('button'             , 'C13', 'INPUT'     , { 'pull'    : None, 'active' : True }),
+            ('master_nss'         , 'B1' , 'ALTERNATE' , { 'altfunc' : 'SPI2_NSS'            }),
+            ('master_sck'         , 'B2' , 'ALTERNATE' , { 'altfunc' : 'SPI2_SCK'            }),
+            ('master_mosi'        , 'B15', 'ALTERNATE' , { 'altfunc' : 'SPI2_MOSI'           }),
+            ('master_miso'        , 'C2' , 'ALTERNATE' , { 'altfunc' : 'SPI2_MISO'           }),
+            ('slave_receiver_nss' , 'A15', 'ALTERNATE' , { 'altfunc' : 'SPI1_NSS'            }),
+            ('slave_receiver_sck' , 'B3' , 'ALTERNATE' , { 'altfunc' : 'SPI1_SCK'            }),
+            ('slave_receiver_mosi', 'A7' , 'ALTERNATE' , { 'altfunc' : 'SPI1_MOSI'           }),
         ),
 
         interrupts = (
             ('USART2', 0),
             ('SPI2'  , 2),
+            ('SPI1'  , 2),
         ),
 
         drivers = (
@@ -322,6 +326,13 @@ TARGETS = ( # @/`Defining Targets`.
                 'type'       : 'SPI',
                 'peripheral' : 'SPI2',
                 'handle'     : 'primary',
+                'role'       : 'master',
+            },
+            {
+                'type'       : 'SPI',
+                'peripheral' : 'SPI1',
+                'handle'     : 'secondary',
+                'role'       : 'slave_receiver',
             },
         ),
 
@@ -339,6 +350,7 @@ TARGETS = ( # @/`Defining Targets`.
             'APB3_CK'      : 250_000_000,
             'USART2_BAUD'  : STLINK_BAUD,
             'SPI2_BAUD'    : 3_900,
+            'SPI1_BAUD'    : 3_900,
         },
 
     ),
