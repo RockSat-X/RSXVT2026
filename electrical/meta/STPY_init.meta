@@ -1157,11 +1157,13 @@
     {
         NVICInterrupt_USART2 = USART2_IRQn,
         NVICInterrupt_SPI2   = SPI2_IRQn,
+        NVICInterrupt_SPI1   = SPI1_IRQn,
     };
-    static constexpr u32 NVICInterrupt_COUNT = 2;
+    static constexpr u32 NVICInterrupt_COUNT = 3;
     extern void INTERRUPT_BusFault(void);
     extern void INTERRUPT_Default(void);
     extern void INTERRUPT_Reset(void);
+    extern void INTERRUPT_SPI1(void);
     extern void INTERRUPT_SPI2(void);
     extern void INTERRUPT_USART2(void);
     extern void INTERRUPT_UsageFault(void);
@@ -1238,7 +1240,7 @@
             INTERRUPT_Default            , // [ 52] I2C1_ER
             INTERRUPT_Default            , // [ 53] I2C2_EV
             INTERRUPT_Default            , // [ 54] I2C2_ER
-            INTERRUPT_Default            , // [ 55] SPI1
+            INTERRUPT_SPI1               , // [ 55] SPI1
             INTERRUPT_SPI2               , // [ 56] SPI2
             INTERRUPT_Default            , // [ 57] SPI3
             INTERRUPT_Default            , // [ 58] USART1
@@ -1320,6 +1322,7 @@
     #define INTERRUPT_BusFault(...) extern void INTERRUPT_BusFault(__VA_ARGS__)
     #define INTERRUPT_Default(...) extern void INTERRUPT_Default(__VA_ARGS__)
     #define INTERRUPT_Reset(...) extern void INTERRUPT_Reset(__VA_ARGS__)
+    #define INTERRUPT_SPI1(...) extern void INTERRUPT_SPI1(__VA_ARGS__)
     #define INTERRUPT_SPI2(...) extern void INTERRUPT_SPI2(__VA_ARGS__)
     #define INTERRUPT_USART2(...) extern void INTERRUPT_USART2(__VA_ARGS__)
     #define INTERRUPT_UsageFault(...) extern void INTERRUPT_UsageFault(__VA_ARGS__)
@@ -1346,18 +1349,27 @@
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__button C
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__button 13
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__button
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__nss B
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__nss 1
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__nss
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__sck B
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__sck 2
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__sck
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__mosi B
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__mosi 15
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__mosi
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__miso C
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__miso 2
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__miso
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__master_nss B
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__master_nss 1
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__master_nss
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__master_sck B
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__master_sck 2
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__master_sck
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__master_mosi B
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__master_mosi 15
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__master_mosi
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__master_miso C
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__master_miso 2
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__master_miso
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__slave_receiver_nss A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__slave_receiver_nss 15
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__slave_receiver_nss
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__slave_receiver_sck B
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__slave_receiver_sck 3
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__slave_receiver_sck
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__slave_receiver_mosi A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__slave_receiver_mosi 7
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__slave_receiver_mosi
         CMSIS_SET
         (
             RCC    , AHB2ENR,
@@ -1371,27 +1383,33 @@
             GPIO_AFRL, GPIOA->AFR[0],
             AFSEL2   , 7            ,
             AFSEL3   , 7            ,
+            AFSEL7   , 5            ,
         );
+        CMSIS_WRITE(GPIO_AFRH, GPIOA->AFR[1], AFSEL15, 5);
         CMSIS_WRITE
         (
             GPIO_AFRL, GPIOB->AFR[0],
             AFSEL1   , 5            ,
             AFSEL2   , 6            ,
+            AFSEL3   , 5            ,
         );
         CMSIS_WRITE(GPIO_AFRH, GPIOB->AFR[1], AFSEL15, 5);
         CMSIS_WRITE(GPIO_AFRL, GPIOC->AFR[0], AFSEL2, 5);
         CMSIS_SET
         (
-            GPIOA, MODER,
-            MODE2, 0b10 ,
-            MODE3, 0b10 ,
-            MODE5, 0b01 ,
+            GPIOA , MODER,
+            MODE2 , 0b10 ,
+            MODE3 , 0b10 ,
+            MODE5 , 0b01 ,
+            MODE7 , 0b10 ,
+            MODE15, 0b10 ,
         );
         CMSIS_SET
         (
             GPIOB , MODER,
             MODE1 , 0b10 ,
             MODE2 , 0b10 ,
+            MODE3 , 0b10 ,
             MODE15, 0b10 ,
         );
         CMSIS_SET
@@ -1411,6 +1429,8 @@
         NVIC->IPR[NVICInterrupt_USART2] = 0 << __NVIC_PRIO_BITS;
         static_assert(0 <= 2 && 2 < (1 << __NVIC_PRIO_BITS));
         NVIC->IPR[NVICInterrupt_SPI2] = 2 << __NVIC_PRIO_BITS;
+        static_assert(0 <= 2 && 2 < (1 << __NVIC_PRIO_BITS));
+        NVIC->IPR[NVICInterrupt_SPI1] = 2 << __NVIC_PRIO_BITS;
         CMSIS_SET
         (
             SCB        , SHCSR,
@@ -1536,6 +1556,16 @@
 
         #define STPY_USART2_KERNEL_SOURCE 0b000
         #define STPY_USART2_BAUD_DIVIDER 250
+
+
+
+        //////////////////////////////////// SPI1 ////////////////////////////////////
+
+
+
+        #define STPY_SPI1_KERNEL_SOURCE 0b001
+        #define STPY_SPI1_BYPASS_DIVIDER false
+        #define STPY_SPI1_DIVIDER 0b111
 
 
 
