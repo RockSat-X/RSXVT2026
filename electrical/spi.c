@@ -18,48 +18,13 @@
 
 */
 
+static u8 _SPI_drivers[SPIHandle_COUNT] = {0}; // TODO Remove.
 
-
-struct SPIDriver
-{
-    u8  buffer[1 << 8];
-    u32 reader;
-    u32 writer;
-};
-
-
-
-static struct SPIDriver _SPI_drivers[SPIHandle_COUNT] = {0};
+static RingBuffer(u8, 256) SPI_ring_buffers[SPIHandle_COUNT] = {0};
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
-
-
-
-static useret b32
-SPI_receive_byte(enum SPIHandle handle, u8* dst)
-{
-
-    _EXPAND_HANDLE
-
-    b32 data_available = driver->writer != driver->reader;
-
-    if (dst && data_available)
-    {
-
-        i32 index = driver->reader % countof(driver->buffer);
-        *dst            = driver->buffer[index];
-        driver->reader += 1;
-    }
-    else
-    {
-        *dst = 0;
-    }
-
-    return data_available;
-
-}
 
 
 
@@ -76,7 +41,7 @@ SPI_reinit(enum SPIHandle handle)
     CMSIS_PUT(SPIx_RESET, true );
     CMSIS_PUT(SPIx_RESET, false);
 
-    *driver = (struct SPIDriver) {0};
+    SPI_ring_buffers[handle].ring_buffer_raw = (struct RingBufferRaw) {0};
 
 
 
@@ -202,13 +167,7 @@ _SPI_update_once(enum SPIHandle handle)
 
             u8 data = *(u8*) &SPIx->RXDR; // Pop from the RX-FIFO.
 
-            if (driver->writer - driver->reader < countof(driver->buffer))
-            {
-                i32 index = driver->writer % countof(driver->buffer);
-                driver->buffer[index]  = data;
-                driver->writer        += 1;
-            }
-            else
+            if (!RingBuffer_push(&SPI_ring_buffers[handle], &data))
             {
                 // Uh oh, ring-buffer overrun!
                 // For now, we'll just drop the data

@@ -368,7 +368,7 @@ FREERTOS_TASK(logger, 2048, 0)
         stlink_tx("OpenMV data:\n");
 
         u8 data = {0};
-        while (SPI_receive_byte(SPIHandle_openmv, &data))
+        while (RingBuffer_pop(&SPI_ring_buffers[SPIHandle_openmv], &data))
         {
             stlink_tx(" 0x%02X", data);
         }
