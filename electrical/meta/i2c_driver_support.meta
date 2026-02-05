@@ -30,8 +30,6 @@
 #endif
 #if TARGET_NAME_IS_MainCameraSystem
 #endif
-#if TARGET_NAME_IS_DemoStepper
-#endif
 #if TARGET_NAME_IS_DemoOVCAM
 #endif
 #if TARGET_NAME_IS_DemoAnalog
@@ -173,9 +171,6 @@
 #if TARGET_NAME_IS_MainCameraSystem
     #error Target 'MainCameraSystem' defines no handle for the 'I2C' driver.
 #endif
-#if TARGET_NAME_IS_DemoStepper
-    #error Target 'DemoStepper' defines no handle for the 'I2C' driver.
-#endif
 #if TARGET_NAME_IS_DemoOVCAM
     enum I2CHandle : u32
     {
@@ -250,8 +245,6 @@
 #if TARGET_NAME_IS_DebugBoard
 #endif
 #if TARGET_NAME_IS_MainCameraSystem
-#endif
-#if TARGET_NAME_IS_DemoStepper
 #endif
 #if TARGET_NAME_IS_DemoOVCAM
 #endif
