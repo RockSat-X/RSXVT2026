@@ -1,7 +1,7 @@
 #define _LOCATION_FOR_GPIO_ACTIVE(NAME) __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__##NAME
 #define _LOCATION_FOR_GPIO_INACTIVE(NAME) __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__##NAME
-#define _PORT_FOR_GPIO_WRITE(NAME) __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__##NAME
-#define _NUMBER_FOR_GPIO_WRITE(NAME) __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__##NAME
+#define _PORT_FOR_GPIO_SET(NAME) __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__##NAME
+#define _NUMBER_FOR_GPIO_SET(NAME) __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__##NAME
 #define _PORT_FOR_GPIO_READ(NAME) __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__##NAME
 #define _NUMBER_FOR_GPIO_READ(NAME) __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__##NAME
 #define _ACTIVE_FOR_GPIO_READ(NAME) __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__##NAME
@@ -193,8 +193,8 @@
 
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__led_green GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__led_green GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__led_green A
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__led_green 5
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__led_green A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__led_green 5
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__stlink_tx A
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_tx 2
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__stlink_tx
@@ -546,8 +546,8 @@
 
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__led_green GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__led_green GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__led_green A
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__led_green 5
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__led_green A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__led_green 5
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__stlink_tx A
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_tx 2
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__stlink_tx
@@ -969,8 +969,8 @@
 
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__led_green GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__led_green GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__led_green A
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__led_green 5
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__led_green A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__led_green 5
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__stlink_tx A
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_tx 2
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__stlink_tx
@@ -1338,8 +1338,8 @@
 
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__led_green GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__led_green GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__led_green A
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__led_green 5
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__led_green A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__led_green 5
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__stlink_tx A
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_tx 2
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__stlink_tx
@@ -1773,8 +1773,8 @@
 
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__led_green GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__led_green GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__led_green A
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__led_green 5
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__led_green A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__led_green 5
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__stlink_tx A
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_tx 2
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__stlink_tx
@@ -2126,8 +2126,8 @@
 
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__led_green GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__led_green GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__led_green A
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__led_green 5
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__led_green A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__led_green 5
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__stlink_tx A
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_tx 2
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__stlink_tx
@@ -2547,8 +2547,8 @@
 
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__led_green GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__led_green GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__led_green A
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__led_green 5
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__led_green A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__led_green 5
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__stlink_tx A
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_tx 2
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__stlink_tx
@@ -2569,8 +2569,8 @@
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__lis2mdl_data_ready
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__debug GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__debug GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__debug C
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__debug 12
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__debug C
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__debug 12
         CMSIS_SET
         (
             RCC    , AHB2ENR,
@@ -2971,8 +2971,8 @@
 
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__led_green GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__led_green GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__led_green A
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__led_green 5
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__led_green A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__led_green 5
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__stlink_tx A
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_tx 2
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__stlink_tx
@@ -3401,16 +3401,16 @@
 
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__led_channel_red GPIO_BSRR_BR
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__led_channel_red GPIO_BSRR_BS
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__led_channel_red C
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__led_channel_red 0
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__led_channel_red C
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__led_channel_red 0
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__led_channel_green GPIO_BSRR_BR
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__led_channel_green GPIO_BSRR_BS
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__led_channel_green C
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__led_channel_green 1
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__led_channel_green C
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__led_channel_green 1
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__led_channel_blue GPIO_BSRR_BR
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__led_channel_blue GPIO_BSRR_BS
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__led_channel_blue A
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__led_channel_blue 0
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__led_channel_blue A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__led_channel_blue 0
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__stlink_tx A
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_tx 2
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__stlink_tx
@@ -3419,8 +3419,8 @@
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__stlink_rx
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__serial_reset GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__serial_reset GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__serial_reset E
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__serial_reset 10
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__serial_reset E
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__serial_reset 10
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__serial_rx D
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__serial_rx 11
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__serial_rx
@@ -3450,8 +3450,8 @@
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__sd_clock
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__battery_allowed GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__battery_allowed GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__battery_allowed D
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__battery_allowed 0
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__battery_allowed D
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__battery_allowed 0
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__openmv_spi_nss B
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__openmv_spi_nss 12
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__openmv_spi_nss
@@ -3469,8 +3469,8 @@
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__openmv_spi_ready
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__openmv_reset GPIO_BSRR_BR
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__openmv_reset GPIO_BSRR_BS
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__openmv_reset B
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__openmv_reset 2
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__openmv_reset B
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__openmv_reset 2
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__esp32_spi_nss B
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__esp32_spi_nss 8
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__esp32_spi_nss
@@ -3488,8 +3488,8 @@
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__esp32_spi_ready
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__esp32_reset GPIO_BSRR_BR
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__esp32_reset GPIO_BSRR_BS
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__esp32_reset E
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__esp32_reset 8
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__esp32_reset E
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__esp32_reset 8
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__motor_uart_tx B
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__motor_uart_tx 14
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__motor_uart_tx
@@ -3510,8 +3510,8 @@
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__vehicle_interface_i2c_clock
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__motor_disable GPIO_BSRR_BR
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__motor_disable GPIO_BSRR_BS
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__motor_disable A
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__motor_disable 4
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__motor_disable A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__motor_disable 4
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__motor_step_x E
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__motor_step_x 9
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__motor_step_x
@@ -3523,20 +3523,20 @@
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__motor_step_z
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__motor_direction_x GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__motor_direction_x GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__motor_direction_x A
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__motor_direction_x 9
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__motor_direction_x A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__motor_direction_x 9
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__motor_direction_y GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__motor_direction_y GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__motor_direction_y A
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__motor_direction_y 8
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__motor_direction_y A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__motor_direction_y 8
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__motor_direction_z GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__motor_direction_z GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__motor_direction_z A
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__motor_direction_z 10
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__motor_direction_z A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__motor_direction_z 10
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__lsm6dsv32x_chip_select GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__lsm6dsv32x_chip_select GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__lsm6dsv32x_chip_select D
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__lsm6dsv32x_chip_select 15
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__lsm6dsv32x_chip_select D
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__lsm6dsv32x_chip_select 15
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__vn100_uart_tx D
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__vn100_uart_tx 8
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__vn100_uart_tx
@@ -4110,8 +4110,8 @@
 
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__led_green GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__led_green GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__led_green A
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__led_green 5
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__led_green A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__led_green 5
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__stlink_tx A
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_tx 2
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__stlink_tx
@@ -4123,15 +4123,15 @@
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__button
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__driver_direction GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__driver_direction GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__driver_direction C
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__driver_direction 3
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__driver_direction C
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__driver_direction 3
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__driver_step A
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__driver_step 9
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__driver_step
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__driver_enable GPIO_BSRR_BR
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__driver_enable GPIO_BSRR_BS
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__driver_enable B
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__driver_enable 0
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__driver_enable B
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__driver_enable 0
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__driver_uart B
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__driver_uart 10
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__driver_uart
@@ -4518,8 +4518,8 @@
 
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__led_green GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__led_green GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__led_green A
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__led_green 5
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__led_green A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__led_green 5
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__stlink_tx A
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_tx 2
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__stlink_tx
@@ -4564,12 +4564,12 @@
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__ovcam_hsync
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__ovcam_power_down GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__ovcam_power_down GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__ovcam_power_down A
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__ovcam_power_down 10
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__ovcam_power_down A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__ovcam_power_down 10
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__ovcam_reset GPIO_BSRR_BR
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__ovcam_reset GPIO_BSRR_BS
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__ovcam_reset C
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__ovcam_reset 5
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__ovcam_reset C
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__ovcam_reset 5
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__ovcam_i2c_clock B
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__ovcam_i2c_clock 10
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__ovcam_i2c_clock
@@ -4996,8 +4996,8 @@
 
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__led_green GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__led_green GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__led_green A
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__led_green 5
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__led_green A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__led_green 5
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__stlink_tx A
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_tx 2
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__stlink_tx
@@ -5390,8 +5390,8 @@
 
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__led_green GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__led_green GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__led_green A
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__led_green 5
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__led_green A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__led_green 5
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__stlink_tx A
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_tx 2
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__stlink_tx
@@ -5409,8 +5409,8 @@
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__esp32_rx
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__debug GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__debug GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__debug C
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__debug 2
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__debug C
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__debug 2
         CMSIS_SET
         (
             RCC    , AHB2ENR,
