@@ -7,9 +7,6 @@
 #if TARGET_NAME_IS_DemoTimer
     #error Target 'DemoTimer' defines no handle for the 'SD' driver.
 #endif
-#if TARGET_NAME_IS_DemoSPI
-    #error Target 'DemoSPI' defines no handle for the 'SD' driver.
-#endif
 #if TARGET_NAME_IS_DemoTimekeeping
     #error Target 'DemoTimekeeping' defines no handle for the 'SD' driver.
 #endif
