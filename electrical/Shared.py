@@ -794,6 +794,7 @@ TARGETS = ( # @/`Defining Targets`.
             ('I2C3_ER', 1),
             ('TIM1_UP', 2),
             ('TIM8_UP', 3),
+            ('SPI2'   , 4),
         ),
 
         drivers = (
@@ -843,6 +844,12 @@ TARGETS = ( # @/`Defining Targets`.
                 'type'       : 'TIMEKEEPING',
                 'peripheral' : 'TIM2',
             },
+            {
+                'type'       : 'SPI',
+                'peripheral' : 'SPI2',
+                'handle'     : 'openmv',
+                'role'       : 'slave_receiver',
+            },
         ),
 
         use_freertos    = True,
@@ -853,6 +860,7 @@ TARGETS = ( # @/`Defining Targets`.
             'CSI_ENABLE'          : True,
             'PLL1P_CK'            : 250_000_000,
             'PLL1Q_CK'            :  10_000_000,
+            'PLL3P_CK'            :     600_000 * 4,
             'CPU_CK'              : 250_000_000,
             'APB1_CK'             : 250_000_000,
             'APB2_CK'             : 250_000_000,
@@ -864,6 +872,7 @@ TARGETS = ( # @/`Defining Targets`.
             'USART1_BAUD'         :   200_000,
             'USART3_BAUD'         : VN100_ESP32_BAUD,
             'I2C3_BAUD'           : VEHICLE_INTERFACE_BAUD,
+            'SPI2_BAUD'           : 600_000,
             'TIM1_UPDATE_RATE'    : 1 / 0.001,
             'TIM2_COUNTER_RATE'   : 1_000_000,
             'TIM8_COUNTER_RATE'   : 1_000_000,
