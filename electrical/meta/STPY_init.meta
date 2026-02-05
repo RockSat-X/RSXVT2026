@@ -3467,8 +3467,8 @@
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__openmv_spi_ready D
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__openmv_spi_ready 5
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__openmv_spi_ready
-        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__openmv_reset GPIO_BSRR_BS
-        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__openmv_reset GPIO_BSRR_BR
+        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__openmv_reset GPIO_BSRR_BR
+        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__openmv_reset GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__openmv_reset B
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__openmv_reset 2
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__esp32_spi_nss B
@@ -3486,8 +3486,8 @@
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__esp32_spi_ready E
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__esp32_spi_ready 0
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__esp32_spi_ready
-        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__esp32_reset GPIO_BSRR_BS
-        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__esp32_reset GPIO_BSRR_BR
+        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__esp32_reset GPIO_BSRR_BR
+        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__esp32_reset GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_WRITE__esp32_reset E
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_WRITE__esp32_reset 8
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__motor_uart_tx B
@@ -3553,12 +3553,14 @@
             GPIOEEN, true   ,
             GPIOHEN, true   ,
         );
+        CMSIS_SET(GPIOB, OTYPER, OT2, true);
         CMSIS_SET
         (
             GPIOD, OTYPER,
             OT6  , true  ,
             OT7  , true  ,
         );
+        CMSIS_SET(GPIOE, OTYPER, OT8, true);
         CMSIS_SET
         (
             GPIOA, ODR  ,
@@ -3568,7 +3570,7 @@
             OD9  , false,
             OD10 , false,
         );
-        CMSIS_SET(GPIOB, ODR, OD2, false);
+        CMSIS_SET(GPIOB, ODR, OD2, true);
         CMSIS_SET
         (
             GPIOC, ODR ,
@@ -3583,9 +3585,9 @@
         );
         CMSIS_SET
         (
-            GPIOE, ODR  ,
-            OD8  , false,
-            OD10 , true ,
+            GPIOE, ODR ,
+            OD8  , true,
+            OD10 , true,
         );
         CMSIS_SET(GPIOC, PUPDR, PUPD8, 0b01);
         CMSIS_SET(GPIOD, PUPDR, PUPD2, 0b01);
