@@ -15,6 +15,7 @@
         driver_type = 'SD',
         cmsis_name  = 'SDMMC',
         common_name = 'SDx',
+        expansions  = (('driver', '&_SD_drivers[handle]'),),
         terms       = lambda type, peripheral, handle: (
             ('{}'                      , 'expression' ),
             ('NVICInterrupt_{}'        , 'expression' ),

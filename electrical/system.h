@@ -555,6 +555,7 @@ halt_(b32 panicking) // @/`Halting`.
         driver_type,
         cmsis_name,
         common_name,
+        expansions,
         terms,
     ):
 
@@ -735,8 +736,12 @@ halt_(b32 panicking) // @/`Halting`.
             Meta.line(f'''
                 if (!(0 <= handle && handle < {driver_type}Handle_COUNT))
                     panic;
-                auto const driver = &_{driver_type.upper()}_drivers[handle];
             ''')
+
+            for identifier, value in expansions:
+                Meta.line(f'''
+                    auto const {identifier} = {value};
+                ''')
 
             for field_identifier in lookup_table_fields:
 

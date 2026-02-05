@@ -84,6 +84,7 @@ typedef void I2CSlaveCallback(enum I2CSlaveCallbackEvent event, u8* data);
         driver_type = 'I2C',
         cmsis_name  = 'I2C',
         common_name = 'I2Cx',
+        expansions  = (('driver', '&_I2C_drivers[handle]'),),
         terms       = lambda type, peripheral, handle, role, address = 0: (
             ('{}_DRIVER_ROLE'       , 'expression' , f'I2CDriverRole_{role}'    ),
             ('{}_SLAVE_ADDRESS'     , 'expression' , f'((u16) 0x{address :03X})'),

@@ -5,6 +5,7 @@
         driver_type = 'SPI',
         cmsis_name  = 'SPI',
         common_name = 'SPIx',
+        expansions  = (('SPI_ring_buffer', '&SPI_ring_buffers[handle]'),),
         terms       = lambda type, peripheral, handle: (
             ('{}'                    , 'expression' ),
             ('NVICInterrupt_{}'      , 'expression' ),
@@ -17,8 +18,6 @@
     )
 
 */
-
-static u8 _SPI_drivers[SPIHandle_COUNT] = {0}; // TODO Remove.
 
 static RingBuffer(u8, 256) SPI_ring_buffers[SPIHandle_COUNT] = {0};
 
@@ -41,7 +40,7 @@ SPI_reinit(enum SPIHandle handle)
     CMSIS_PUT(SPIx_RESET, true );
     CMSIS_PUT(SPIx_RESET, false);
 
-    SPI_ring_buffers[handle].ring_buffer_raw = (struct RingBufferRaw) {0};
+    SPI_ring_buffer->ring_buffer_raw = (struct RingBufferRaw) {0};
 
 
 
@@ -167,7 +166,7 @@ _SPI_update_once(enum SPIHandle handle)
 
             u8 data = *(u8*) &SPIx->RXDR; // Pop from the RX-FIFO.
 
-            if (!RingBuffer_push(&SPI_ring_buffers[handle], &data))
+            if (!RingBuffer_push(SPI_ring_buffer, &data))
             {
                 // Uh oh, ring-buffer overrun!
                 // For now, we'll just drop the data
