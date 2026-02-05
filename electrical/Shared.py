@@ -770,7 +770,6 @@ TARGETS = ( # @/`Defining Targets`.
                 'type'       : 'SPI',
                 'peripheral' : 'SPI2',
                 'handle'     : 'openmv',
-                'role'       : 'slave_receiver',
             },
         ),
 
