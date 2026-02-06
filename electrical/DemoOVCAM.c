@@ -52,7 +52,7 @@ main(void)
                     I2CHandle_ovcam_sccb,
                     OVCAM_SEVEN_BIT_ADDRESS,
                     I2CAddressType_seven,
-                    I2COperation_write,
+                    I2COperation_single_write,
                     (u8*) &command,
                     sizeof(command.address) + sizeof(command.content)
                 );

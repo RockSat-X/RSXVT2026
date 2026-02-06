@@ -80,7 +80,7 @@ main(void)
                             I2CHandle_queen,
                             slave_address,
                             address_type,
-                            I2COperation_read,
+                            I2COperation_single_read,
                             &(u8) {0},
                             1
                         );
@@ -154,7 +154,7 @@ main(void)
                             I2CHandle_queen,
                             I2C_TABLE[I2CHandle_bee].I2Cx_SLAVE_ADDRESS,
                             I2CAddressType_seven,
-                            I2COperation_write,
+                            I2COperation_single_write,
                             (u8*) message,
                             sizeof(message) - 1
                         );
@@ -204,7 +204,7 @@ main(void)
                             I2CHandle_queen,
                             I2C_TABLE[I2CHandle_bee].I2Cx_SLAVE_ADDRESS,
                             I2CAddressType_seven,
-                            I2COperation_read,
+                            I2COperation_single_read,
                             (u8*) response,
                             sizeof(response)
                         );

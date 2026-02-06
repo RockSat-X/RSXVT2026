@@ -107,7 +107,7 @@ LIS2MDL_update
                         handle,
                         LIS2MDL_SEVEN_BIT_ADDRESS,
                         I2CAddressType_seven,
-                        I2COperation_write,
+                        I2COperation_single_write,
                         (u8*) &LIS2MDL_INITIALIZATION_SEQUENCE[_LIS2MDL_driver.initialization_sequence_index],
                         sizeof(LIS2MDL_INITIALIZATION_SEQUENCE[_LIS2MDL_driver.initialization_sequence_index])
                     );
@@ -162,7 +162,7 @@ LIS2MDL_update
                             handle,
                             LIS2MDL_SEVEN_BIT_ADDRESS,
                             I2CAddressType_seven,
-                            I2COperation_write,
+                            I2COperation_repeating_write,
                             &(u8) { 0x67 },
                             1
                         );
@@ -210,7 +210,7 @@ LIS2MDL_update
                         handle,
                         LIS2MDL_SEVEN_BIT_ADDRESS,
                         I2CAddressType_seven,
-                        I2COperation_read,
+                        I2COperation_single_read,
                         (u8*) &_LIS2MDL_driver.freshest_measurement,
                         sizeof(_LIS2MDL_driver.freshest_measurement)
                     );
