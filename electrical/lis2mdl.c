@@ -34,14 +34,16 @@ static const struct { u8 address; u8 value; } LIS2MDL_INITIALIZATION_SEQUENCE[] 
 
 
 
-struct LIS2MDLMeasurement
-{
-    u8  status;      // STATUS_REG.
-    i16 x;           // OUTX_L_REG, OUTX_H_REG.
-    i16 y;           // OUTY_L_REG, OUTY_H_REG.
-    i16 z;           // OUTZ_L_REG, OUTZ_H_REG.
-    i16 temperature; // TEMP_OUT_L_REG, TEMP_OUT_H_REG.
-};
+pack_push
+    struct LIS2MDLMeasurement
+    {
+        u8  status;      // STATUS_REG.
+        i16 x;           // OUTX_L_REG, OUTX_H_REG.
+        i16 y;           // OUTY_L_REG, OUTY_H_REG.
+        i16 z;           // OUTZ_L_REG, OUTZ_H_REG.
+        i16 temperature; // TEMP_OUT_L_REG, TEMP_OUT_H_REG.
+    };
+pack_pop
 
 enum LIS2MDLDriverState : u32
 {
