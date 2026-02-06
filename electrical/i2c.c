@@ -271,7 +271,6 @@ I2C_transfer
             driver->master.amount       = amount;
             driver->master.progress     = 0;
             driver->master.error        = I2CMasterError_none;
-            __DMB();
             driver->master.state        = I2CMasterState_scheduled_transfer;
 
             NVIC_SET_PENDING(I2Cx_EV);
