@@ -86,11 +86,11 @@ SPI_reinit(enum SPIHandle handle)
 
     CMSIS_SET
     (
-        SPIx   , CFG1 ,
-        DSIZE  , 8 - 1, // Bits per word.
-        FTHLV  , 1 - 1, // Amount of words buffered to trigger an interrupt.
-        CRCEN  , true , // Enable CRC checking.
-        CRCSIZE, 8 - 1, // Amount of bits in CRC.
+        SPIx   , CFG1           ,
+        DSIZE  , bitsof(u32) - 1, // Bits per word.
+        FTHLV  , 1 - 1          , // Amount of words buffered to trigger an interrupt.
+        CRCEN  , true           , // Enable CRC checking.
+        CRCSIZE, 8 - 1          , // Amount of bits in CRC.
     );
 
     CMSIS_SET(SPIx, CRCPOLY, CRCPOLY, 0x107); // Set CRC polynomial with explicit MSb.
@@ -110,7 +110,8 @@ SPI_reinit(enum SPIHandle handle)
         RXPIE  , true , //     - Data available in RX-FIFO.
     );
 
-    CMSIS_SET(SPIx, CR2, TSIZE, SPI_BLOCK_SIZE); // Amount of bytes followed by the CRC.
+    CMSIS_SET(SPIx, CR2, TSIZE, SPI_BLOCK_SIZE / sizeof(u32)); // Amount of words followed by the CRC.
+    static_assert(SPI_BLOCK_SIZE % sizeof(u32) == 0);
 
     CMSIS_SET
     (
@@ -163,10 +164,9 @@ _SPI_driver_interrupt(enum SPIHandle handle)
 
             CMSIS_SET(SPIx, IFCR, CRCEC, true); // Acknowledge the CRC mismatch condition.
 
-            // TODO Do something about it.
-
             CMSIS_SET(SPIx, CR1, SPE, false); // @/`SPI Activation Cycling`.
             CMSIS_SET(SPIx, CR1, SPE, true ); // "
+
             driver->byte_index = 0;
 
         }
@@ -195,18 +195,19 @@ _SPI_driver_interrupt(enum SPIHandle handle)
         else if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, RXP))
         {
 
-            u8 data = *(u8*) &SPIx->RXDR; // Pop from the RX-FIFO.
+            u32 data = *(u32*) &SPIx->RXDR; // Pop 32-bit word from the RX-FIFO.
 
             SPIBlock* block = RingBuffer_writing_pointer(&driver->ring_buffer);
 
             if (block)
             {
-                (*block)[driver->byte_index]  = data;
-                driver->byte_index           += 1;
+                *(u32*) (&(*block)[driver->byte_index])  = __builtin_bswap32(data);
+                driver->byte_index                      += sizeof(u32);
             }
             else
             {
-                // TODO.
+                // There's no next spot in the ring-buffer to put the data in.
+                // For now, we'll silently drop the byte.
             }
 
         }
@@ -234,7 +235,7 @@ _SPI_driver_interrupt(enum SPIHandle handle)
             }
             else
             {
-                // We missed some data at some point...
+                // We missed some data at some point.
             }
 
             driver->byte_index = 0;
