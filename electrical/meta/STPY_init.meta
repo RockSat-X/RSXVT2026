@@ -3151,6 +3151,7 @@
             OD8  , true,
             OD10 , true,
         );
+        CMSIS_SET(GPIOB, PUPDR, PUPD10, 0b01);
         CMSIS_SET(GPIOC, PUPDR, PUPD8, 0b01);
         CMSIS_SET(GPIOD, PUPDR, PUPD2, 0b01);
         CMSIS_WRITE

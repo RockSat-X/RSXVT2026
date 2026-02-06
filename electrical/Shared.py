@@ -671,7 +671,7 @@ TARGETS = ( # @/`Defining Targets`.
             ('battery_allowed'            , 'D0'  , 'OUTPUT'    , { 'initlvl' : False                                        }),
             ('external_detected'          , 'D1'  , None        , {                                                          }),
             ('openmv_spi_nss'             , 'B12' , 'ALTERNATE' , { 'altfunc' : 'SPI2_NSS'                                   }),
-            ('openmv_spi_clock'           , 'B10' , 'ALTERNATE' , { 'altfunc' : 'SPI2_SCK'                                   }),
+            ('openmv_spi_clock'           , 'B10' , 'ALTERNATE' , { 'altfunc' : 'SPI2_SCK', 'pull' : 'UP'                    }), # TODO Pulled up due to possibly Pin P2 on my OpenMV is broken.
             ('openmv_spi_mosi'            , 'C3'  , 'ALTERNATE' , { 'altfunc' : 'SPI2_MOSI'                                  }),
             ('openmv_spi_miso'            , 'C2'  , 'ALTERNATE' , { 'altfunc' : 'SPI2_MISO'                                  }),
             ('openmv_spi_ready'           , 'D5'  , 'ALTERNATE' , { 'altfunc' : 'SPI2_RDY'                                   }),
