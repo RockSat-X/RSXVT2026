@@ -52,46 +52,19 @@ enum LIS2MDLDriverState : u32
 
 struct LIS2MDLDriver
 {
-    enum LIS2MDLDriverState   state;
-    i32                       initialization_sequence_index;
-    struct LIS2MDLMeasurement freshest_measurement;
-    struct LIS2MDLMeasurement measurements[64];
-    volatile u32              reader;
-    volatile u32              writer;
+    enum LIS2MDLDriverState                   state;
+    i32                                       initialization_sequence_index;
+    struct LIS2MDLMeasurement                 freshest_measurement;
+    RingBuffer(struct LIS2MDLMeasurement, 64) measurements;
 };
 
 static struct LIS2MDLDriver _LIS2MDL_driver = {0};
 
-
-
-static_assert(IS_POWER_OF_TWO(countof(_LIS2MDL_driver.measurements)));
+#define LIS2MDL_pop_measurement(DST) RingBuffer_pop(&_LIS2MDL_driver.measurements, (DST))
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
-
-
-
-static useret b32
-LIS2MDL_pop_measurement(struct LIS2MDLMeasurement* dst)
-{
-
-    b32 got_measurement = _LIS2MDL_driver.reader != _LIS2MDL_driver.writer;
-
-    if (got_measurement)
-    {
-        i32 index = _LIS2MDL_driver.reader % countof(_LIS2MDL_driver.measurements);
-        *dst                    = _LIS2MDL_driver.measurements[index];
-        _LIS2MDL_driver.reader += 1;
-    }
-    else
-    {
-        *dst = (struct LIS2MDLMeasurement) {0};
-    }
-
-    return got_measurement;
-
-}
 
 
 
@@ -248,20 +221,14 @@ LIS2MDL_update
             case I2CMasterCallbackEvent_transfer_successful:
             {
 
-                // See if we can insert the measurement into the ring-buffer.
-
-                if (_LIS2MDL_driver.writer - _LIS2MDL_driver.reader < countof(_LIS2MDL_driver.measurements))
+                if (!RingBuffer_push(&_LIS2MDL_driver.measurements, &_LIS2MDL_driver.freshest_measurement))
                 {
-                    i32 index = _LIS2MDL_driver.writer % countof(_LIS2MDL_driver.measurements);
-                    _LIS2MDL_driver.measurements[index]  = _LIS2MDL_driver.freshest_measurement;
-                    _LIS2MDL_driver.writer              += 1;
+                    // Ring-buffer full!
+                    // For now, we'll silently ignore this over-run.
                 }
-
-
 
                 // Now back to waiting for the sensor
                 // to set its data-ready signal.
-
                 _LIS2MDL_driver.state = LIS2MDLDriverState_idle;
 
             } break;
