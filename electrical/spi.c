@@ -76,31 +76,39 @@ SPI_reinit(enum SPIHandle handle)
 
     CMSIS_SET
     (
-        SPIx , CFG1 ,
-        DSIZE, 8 - 1, // Bits per word.
-        FTHLV, 1 - 1, // Amount of words buffered to trigger an interrupt.
+        SPIx   , CFG1 ,
+        DSIZE  , 8 - 1, // Bits per word.
+        FTHLV  , 1 - 1, // Amount of words buffered to trigger an interrupt.
+        CRCEN  , true , // Enable CRC checking.
+        CRCSIZE, 8 - 1, // Amount of bits in CRC.
     );
+
+    CMSIS_SET(SPIx, CRCPOLY, CRCPOLY, 0x107); // Set CRC polynomial with explicit MSb.
 
     CMSIS_SET
     (
         SPIx   , IER  , // Enable interrupts for:
         MODFIE , true , //     - Mode fault.
-        TIFREIE, true , //     - (Unlikely) TI frame error.
+        TIFREIE, true , //     - TI frame error.
         CRCEIE , true , //     - CRC mismatch.
         OVRIE  , true , //     - RX-FIFO got too full.
         UDRIE  , false, //     - (Don't care) TX-FIFO was not filled with data in time.
         TXTFIE , false, //     - (Don't care) All data is buffered to be transmitted.
-        EOTIE  , false, //     - (Don't care) All data has been transmitted.
+        EOTIE  , true , //     - When all of the expected amount of bytes have been transferred.
         DXPIE  , false, //     - (Don't care) Space and data available in TX/RX-FIFO.
         TXPIE  , false, //     - (Don't care) Space available in TX-FIFO.
         RXPIE  , true , //     - Data available in RX-FIFO.
     );
 
+    CMSIS_SET(SPIx, CR2, TSIZE, 8); // TODO Set transfer size.
 
-
-    // Activate the peripheral.
-
-    CMSIS_SET(SPIx, CR1, SPE, true);
+    CMSIS_SET
+    (
+        SPIx    , CR1  ,
+        RCRCINI , false, // Whether or not to initialize the CRC digest with all 1s for the receiver.
+        CRC33_17, false, // Whether or not to use the full 33-bit/17-bit CRC polynomial.
+        SPE     , true , // Activate the peripheral.
+    );
 
 }
 
@@ -142,7 +150,14 @@ _SPI_driver_interrupt(enum SPIHandle handle)
 
         else if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, CRCE))
         {
-            panic; // This error should only happen when CRC is enable. TODO Use?
+
+            CMSIS_SET(SPIx, IFCR, CRCEC, true); // Acknowledge the CRC mismatch condition.
+
+            // TODO Do something about it.
+
+            CMSIS_SET(SPIx, CR1, SPE, false); // @/`SPI Activation Cycling`.
+            CMSIS_SET(SPIx, CR1, SPE, true ); // "
+
         }
 
 
@@ -184,6 +199,16 @@ _SPI_driver_interrupt(enum SPIHandle handle)
 
 
 
+        // All expected data has been transferred successfully.
+
+        else if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, EOT))
+        {
+            CMSIS_SET(SPIx, CR1, SPE, false); // @/`SPI Activation Cycling`.
+            CMSIS_SET(SPIx, CR1, SPE, true ); // "
+        }
+
+
+
         // Nothing left to handle for now.
 
         else
@@ -199,3 +224,25 @@ _SPI_driver_interrupt(enum SPIHandle handle)
     }
 
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+// @/`SPI Activation Cycling`:
+//
+// Whenever a transfer is done, either with a CRC error or not,
+// preparing for the next transfer is done by deactivating and
+// reactivating the SPI peripheral. This is just how the RM states
+// it should be done.
+//
+// It should be noted that this is also how the SPI transfer is
+// resynchronized. If the peripheral expected the transfer to end
+// but more data keeps being sent (i.e. NSS doesn't get released),
+// then very likely a CRC error will happen, to which the SPI peripheral
+// goes through the process of activiation cycling. When this happens
+// the SPI peripheral does not start picking up on the data until
+// the next NSS cycle. This overall prevents the SPI slave and master
+// from being perpetually out-of-sync with each other.
