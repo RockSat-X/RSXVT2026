@@ -31,6 +31,8 @@ struct SPIDriver
 
 static struct SPIDriver _SPI_drivers[SPIHandle_COUNT] = {0};
 
+#define SPI_ring_buffer(HANDLE) &_SPI_drivers[(HANDLE)].ring_buffer
+
 
 
 ////////////////////////////////////////////////////////////////////////////////

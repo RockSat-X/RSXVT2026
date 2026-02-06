@@ -370,7 +370,7 @@ FREERTOS_TASK(logger, 2048, 0)
         while (true)
         {
 
-            SPIBlock* block = RingBuffer_reading_pointer(&_SPI_drivers[SPIHandle_openmv].ring_buffer);
+            SPIBlock* block = RingBuffer_reading_pointer(SPI_ring_buffer(SPIHandle_openmv));
 
             if (block)
             {
@@ -380,7 +380,7 @@ FREERTOS_TASK(logger, 2048, 0)
                     stlink_tx(" 0x%02X", (*block)[i]);
                 }
 
-                if (!RingBuffer_pop(&_SPI_drivers[SPIHandle_openmv].ring_buffer, nullptr))
+                if (!RingBuffer_pop(SPI_ring_buffer(SPIHandle_openmv), nullptr))
                     panic;
 
             }
