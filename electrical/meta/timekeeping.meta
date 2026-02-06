@@ -14,8 +14,6 @@
 #endif
 #if TARGET_NAME_IS_DemoSDMMC
 #endif
-#if TARGET_NAME_IS_SensorShield
-#endif
 #if TARGET_NAME_IS_MainFlightComputer
 #endif
 #if TARGET_NAME_IS_MainFlightComputer_NUCLEO

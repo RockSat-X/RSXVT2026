@@ -13,9 +13,6 @@
 #if TARGET_NAME_IS_DemoSDMMC
     #error Target 'DemoSDMMC' defines no handle for the 'SPI' driver.
 #endif
-#if TARGET_NAME_IS_SensorShield
-    #error Target 'SensorShield' defines no handle for the 'SPI' driver.
-#endif
 #if TARGET_NAME_IS_MainFlightComputer
     #error Target 'MainFlightComputer' defines no handle for the 'SPI' driver.
 #endif

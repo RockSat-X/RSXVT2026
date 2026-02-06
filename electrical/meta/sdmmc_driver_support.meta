@@ -29,9 +29,6 @@
         _SD_driver_interrupt(SDHandle_primary);
     }
 #endif
-#if TARGET_NAME_IS_SensorShield
-    #error Target 'SensorShield' defines no handle for the 'SD' driver.
-#endif
 #if TARGET_NAME_IS_MainFlightComputer
     #error Target 'MainFlightComputer' defines no handle for the 'SD' driver.
 #endif
