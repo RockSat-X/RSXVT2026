@@ -19,14 +19,14 @@
 
 */
 
-#define SPI_BLOCK_SIZE 8
+#define SPI_BLOCK_SIZE 64 // @/`OpenMV SPI Block Size`.
 
 typedef u8 SPIBlock[SPI_BLOCK_SIZE];
 
 struct SPIDriver
 {
-    i32                       byte_index;
-    RingBuffer(SPIBlock, 256) ring_buffer;
+    i32                     byte_index;
+    RingBuffer(SPIBlock, 8) ring_buffer;
 };
 
 static struct SPIDriver _SPI_drivers[SPIHandle_COUNT] = {0};
@@ -93,7 +93,11 @@ SPI_reinit(enum SPIHandle handle)
         CRCSIZE, 8 - 1          , // Amount of bits in CRC.
     );
 
-    CMSIS_SET(SPIx, CRCPOLY, CRCPOLY, 0x107); // Set CRC polynomial with explicit MSb.
+    CMSIS_SET
+    (
+        SPIx   , CRCPOLY, // Set CRC polynomial with explicit MSb.
+        CRCPOLY, 0x107  , // @/`OpenMV CRC Polynomial`.
+    );
 
     CMSIS_SET
     (

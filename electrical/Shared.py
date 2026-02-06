@@ -793,7 +793,7 @@ TARGETS = ( # @/`Defining Targets`.
             'USART1_BAUD'         :   200_000,
             'USART3_BAUD'         : VN100_ESP32_BAUD,
             'I2C3_BAUD'           : VEHICLE_INTERFACE_BAUD,
-            'SPI2_BAUD'           : 600_000,
+            'SPI2_BAUD'           : 600_000, # @/`OpenMV SPI Baud`.
             'TIM1_UPDATE_RATE'    : 1 / 0.001,
             'TIM2_COUNTER_RATE'   : 1_000_000,
             'TIM8_COUNTER_RATE'   : 1_000_000,
