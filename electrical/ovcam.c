@@ -398,59 +398,27 @@
 
 
 
-struct OVCAMSwapchain
+struct OVCAMFramebuffer
 {
 
-    volatile u32 reader;
-    volatile u32 writer;
+    volatile i32 length;
 
-    struct OVCAMFramebuffer
-    {
+    // The framebuffer has alignment requirements due to DMA.
+    // Furthermore, the DCMI peripheral organizes its FIFO to
+    // be in units of 32-bit words.
 
-        volatile i32 length;
+    u8 data[OVCAM_FRAMEBUFFER_SIZE] __attribute__((aligned(4)));
 
-        // The framebuffer has alignment requirements due to DMA.
-        // Furthermore, the DCMI peripheral organizes its FIFO to
-        // be in units of 32-bit words.
-
-        u8 data[OVCAM_FRAMEBUFFER_SIZE] __attribute__((aligned(4)));
-
-    } framebuffers[2];
+    static_assert(sizeof(OVCAM_FRAMEBUFFER_SIZE) % sizeof(u32) == 0);
 
 };
 
-static struct OVCAMSwapchain _OVCAM_swapchain = {0};
+static RingBuffer(struct OVCAMFramebuffer, 2) _OVCAM_ring_buffer = {0};
 
-static_assert(IS_POWER_OF_TWO(countof(_OVCAM_swapchain.framebuffers)));
-static_assert(sizeof(_OVCAM_swapchain.framebuffers[0].data) % sizeof(u32) == 0);
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
-
-
-
-static struct OVCAMFramebuffer*
-OVCAM_get_next_framebuffer(void)
-{
-
-    if (!CMSIS_GET(DCMI, CR, ENABLE))
-        panic;
-
-    struct OVCAMFramebuffer* framebuffer = {0};
-
-    if (_OVCAM_swapchain.reader == _OVCAM_swapchain.writer)
-    {
-        framebuffer = nullptr;
-    }
-    else
-    {
-        framebuffer = &_OVCAM_swapchain.framebuffers[_OVCAM_swapchain.reader % countof(_OVCAM_swapchain.framebuffers)];
-    }
-
-    return framebuffer;
-
-}
 
 
 
@@ -461,12 +429,8 @@ OVCAM_free_framebuffer(void)
     if (!CMSIS_GET(DCMI, CR, ENABLE))
         panic;
 
-    i32 framebuffers_filled = (i32) (_OVCAM_swapchain.writer - _OVCAM_swapchain.reader);
-
-    if (!(1 <= framebuffers_filled && framebuffers_filled <= countof(_OVCAM_swapchain.framebuffers)))
+    if (!RingBuffer_pop(&_OVCAM_ring_buffer, nullptr))
         panic;
-
-    _OVCAM_swapchain.reader += 1;
 
     NVIC_SET_PENDING(GPDMA1_Channel7);
 
@@ -484,9 +448,6 @@ _OVCAM_begin_capture(void)
         panic;
 
     if (CMSIS_GET(DCMI, CR, CAPTURE))
-        panic;
-
-    if (_OVCAM_swapchain.writer - _OVCAM_swapchain.reader >= countof(_OVCAM_swapchain.framebuffers))
         panic;
 
     if (!CMSIS_GET(DCMI, CR, ENABLE))
@@ -517,9 +478,12 @@ _OVCAM_begin_capture(void)
     // This gets incremented on each transfer, so we
     // also have to reset it each time we do a capture.
 
-    i32 write_index = _OVCAM_swapchain.writer % countof(_OVCAM_swapchain.framebuffers);
+    struct OVCAMFramebuffer* framebuffer = RingBuffer_writing_pointer(&_OVCAM_ring_buffer);
 
-    CMSIS_SET(GPDMA1_Channel7, CDAR, DA, (u32) &_OVCAM_swapchain.framebuffers[write_index].data);
+    if (!framebuffer)
+        panic;
+
+    CMSIS_SET(GPDMA1_Channel7, CDAR, DA, (u32) &framebuffer->data);
 
 
 
@@ -740,11 +704,6 @@ INTERRUPT_GPDMA1_Channel7(void)
         case DMAInterruptEvent_completed_suspension:
         {
 
-            if (_OVCAM_swapchain.writer - _OVCAM_swapchain.reader >= countof(_OVCAM_swapchain.framebuffers))
-                panic;
-
-
-
             // Ensure that there's no outstanding data
             // that hasn't been transferred to the framebuffer.
 
@@ -759,13 +718,17 @@ INTERRUPT_GPDMA1_Channel7(void)
             // With JPEG compression, the amount of
             // received data will be variable.
 
-            i32 write_index = _OVCAM_swapchain.writer % countof(_OVCAM_swapchain.framebuffers);
-            i32 length      = (i32) CMSIS_GET(GPDMA1_Channel7, CDAR, DA) - (i32) &_OVCAM_swapchain.framebuffers[write_index].data;
+            struct OVCAMFramebuffer* framebuffer = RingBuffer_writing_pointer(&_OVCAM_ring_buffer);
 
-            if (length >= sizeof(_OVCAM_swapchain.framebuffers[write_index].data))
+            if (!framebuffer)
+                panic;
+
+            i32 length = (i32) CMSIS_GET(GPDMA1_Channel7, CDAR, DA) - (i32) &framebuffer->data;
+
+            if (length >= sizeof(framebuffer->data))
                 sorry
 
-            _OVCAM_swapchain.framebuffers[write_index].length = length;
+            framebuffer->length = length;
 
 
 
@@ -778,14 +741,15 @@ INTERRUPT_GPDMA1_Channel7(void)
 
             // User can now use the received data.
 
-            _OVCAM_swapchain.writer += 1;
+            if (!RingBuffer_push(&_OVCAM_ring_buffer, nullptr))
+                panic;
 
 
 
             // There's still space in the swapchain;
             // prepare to capture the next image.
 
-            if (_OVCAM_swapchain.writer - _OVCAM_swapchain.reader < countof(_OVCAM_swapchain.framebuffers))
+            if (RingBuffer_writing_pointer(&_OVCAM_ring_buffer))
             {
                 _OVCAM_begin_capture();
             }
@@ -866,11 +830,6 @@ INTERRUPT_DCMI_PSSI(void)
 
         case DCMIInterruptEvent_capture_complete:
         {
-
-            if (_OVCAM_swapchain.writer - _OVCAM_swapchain.reader >= countof(_OVCAM_swapchain.framebuffers))
-                panic;
-
-
 
             // The DMA should should still be active; the way we
             // will disable it is through suspension. However, we
