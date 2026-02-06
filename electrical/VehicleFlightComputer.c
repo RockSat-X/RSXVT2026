@@ -1,6 +1,7 @@
 #include "system.h"
 #include "uxart.c"
 #include "i2c.c"
+#include "spi.c"
 #include "sd.c"
 #include "filesystem.c"
 #include "stepper.c"
@@ -90,6 +91,7 @@ main(void)
     UXART_init(UXARTHandle_stepper_uart);
     UXART_init(UXARTHandle_vn100_esp32);
     I2C_reinit(I2CHandle_vehicle_interface);
+    SPI_reinit(SPIHandle_openmv);
 
 
 
@@ -362,6 +364,34 @@ FREERTOS_TASK(logger, 2048, 0)
                 packet.GyroZ
             );
         }
+
+        stlink_tx("OpenMV data:\n");
+
+        while (true)
+        {
+
+            SPIBlock* block = RingBuffer_reading_pointer(SPI_ring_buffer(SPIHandle_openmv));
+
+            if (block)
+            {
+
+                for (i32 i = 0; i < countof(*block); i += 1)
+                {
+                    stlink_tx(" 0x%02X", (*block)[i]);
+                }
+
+                if (!RingBuffer_pop(SPI_ring_buffer(SPIHandle_openmv), nullptr))
+                    panic;
+
+            }
+            else
+            {
+                break;
+            }
+
+        }
+
+        stlink_tx("\n\n");
 
         spinlock_us(100'000);
     }

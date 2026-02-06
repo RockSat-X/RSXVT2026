@@ -4,8 +4,6 @@
 #endif
 #if TARGET_NAME_IS_DemoTimer
 #endif
-#if TARGET_NAME_IS_DemoSPI
-#endif
 #if TARGET_NAME_IS_DemoTimekeeping
     static constexpr auto TIMEKEEPING_TIMER_ENABLE = (struct CMSISTuple) { &RCC->APB2ENR, CONCAT(RCC_, APB2ENR_TIM1EN_Pos), CONCAT(RCC_, APB2ENR_TIM1EN_Msk) };
     static constexpr auto TIMEKEEPING_DIVIDER      = STPY_TIM1_DIVIDER;
@@ -35,8 +33,6 @@
 #if TARGET_NAME_IS_DebugBoard
 #endif
 #if TARGET_NAME_IS_MainCameraSystem
-#endif
-#if TARGET_NAME_IS_DemoStepper
 #endif
 #if TARGET_NAME_IS_DemoOVCAM
 #endif

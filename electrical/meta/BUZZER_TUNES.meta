@@ -7,9 +7,6 @@
 #if TARGET_NAME_IS_DemoTimer
     #error Target 'DemoTimer' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
 #endif
-#if TARGET_NAME_IS_DemoSPI
-    #error Target 'DemoSPI' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
-#endif
 #if TARGET_NAME_IS_DemoTimekeeping
     #error Target 'DemoTimekeeping' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
 #endif
@@ -35,9 +32,6 @@
 #endif
 #if TARGET_NAME_IS_MainCameraSystem
     #error Target 'MainCameraSystem' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
-#endif
-#if TARGET_NAME_IS_DemoStepper
-    #error Target 'DemoStepper' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
 #endif
 #if TARGET_NAME_IS_DemoOVCAM
     #error Target 'DemoOVCAM' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
