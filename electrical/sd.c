@@ -116,7 +116,6 @@ _SD_check_deadlock(enum SDHandle handle)
     #if 0 // TODO.
 
         volatile u32 last_isr_timestamp_ms = driver->last_isr_timestamp_ms;
-        __DMB();
         volatile u32 now_ms = systick_ms;
 
         u32 inactivity_ms = now_ms - last_isr_timestamp_ms;
@@ -204,7 +203,6 @@ SD_do
             driver->task.operation = operation;
             driver->task.sector    = sector;
             driver->task.address   = address;
-            __DMB();
             driver->task.state     = SDTaskState_booked;
 
             NVIC_SET_PENDING(SDx); // Alert SD driver of the new task.

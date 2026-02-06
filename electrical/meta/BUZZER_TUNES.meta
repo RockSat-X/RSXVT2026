@@ -13,9 +13,6 @@
 #if TARGET_NAME_IS_DemoSDMMC
     #error Target 'DemoSDMMC' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
 #endif
-#if TARGET_NAME_IS_SensorShield
-    #error Target 'SensorShield' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
-#endif
 #if TARGET_NAME_IS_MainFlightComputer
     #error Target 'MainFlightComputer' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
 #endif

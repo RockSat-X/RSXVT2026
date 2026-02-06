@@ -52,7 +52,7 @@ main(void)
                     I2CHandle_ovcam_sccb,
                     OVCAM_SEVEN_BIT_ADDRESS,
                     I2CAddressType_seven,
-                    I2COperation_write,
+                    I2COperation_single_write,
                     (u8*) &command,
                     sizeof(command.address) + sizeof(command.content)
                 );
@@ -66,7 +66,7 @@ main(void)
             // so the new images with the new settings
             // will be next.
 
-            while (OVCAM_get_next_framebuffer())
+            while (RingBuffer_reading_pointer(&_OVCAM_ring_buffer))
             {
                 OVCAM_free_framebuffer();
             }
@@ -77,7 +77,7 @@ main(void)
 
         // See if the next image frame is available.
 
-        struct OVCAMFramebuffer* framebuffer = OVCAM_get_next_framebuffer();
+        struct OVCAMFramebuffer* framebuffer = RingBuffer_reading_pointer(&_OVCAM_ring_buffer);
 
         if (framebuffer)
         {

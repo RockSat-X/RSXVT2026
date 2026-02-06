@@ -118,13 +118,11 @@ enum StepperInstanceState : u32
 
 struct StepperInstance
 {
-    volatile enum StepperInstanceState state;
-    u32                                incremental_timestamp_us;
-    i32                                initialization_sequence_index;
-    f32                                angular_velocities[STEPPER_RING_BUFFER_LENGTH];
-    volatile u32                       angular_velocity_reader;
-    volatile u32                       angular_velocity_writer;
-    u8                                 uart_write_sequence_number;
+    volatile enum StepperInstanceState          state;
+    u32                                         incremental_timestamp_us;
+    i32                                         initialization_sequence_index;
+    RingBuffer(f32, STEPPER_RING_BUFFER_LENGTH) angular_velocities;
+    u8                                          uart_write_sequence_number;
 };
 
 
@@ -262,7 +260,7 @@ STEPPER_push_angular_velocities(f32 (*angular_velocities)[StepperInstanceHandle_
         b32 this_motor_can_take_new_velocity =
             (
                 instance->state == StepperInstanceState_working &&
-                instance->angular_velocity_writer - instance->angular_velocity_reader < countof(instance->angular_velocities)
+                RingBuffer_writing_pointer(&instance->angular_velocities)
             );
 
         if (!this_motor_can_take_new_velocity)
@@ -283,10 +281,11 @@ STEPPER_push_angular_velocities(f32 (*angular_velocities)[StepperInstanceHandle_
     {
         for (enum StepperInstanceHandle handle = {0}; handle < StepperInstanceHandle_COUNT; handle += 1)
         {
-            struct StepperInstance* instance    = &_STEPPER_driver.instances[handle];
-            i32                     write_index = instance->angular_velocity_writer % countof(instance->angular_velocities);
-            instance->angular_velocities[write_index] = (*angular_velocities)[handle];
-            instance->angular_velocity_writer         += 1;
+            struct StepperInstance* instance = &_STEPPER_driver.instances[handle];
+
+            if (!RingBuffer_push(&instance->angular_velocities, &(*angular_velocities)[handle]))
+                panic;
+
         }
     }
 
@@ -497,18 +496,11 @@ _STEPPER_update_uart(void)
 
                         f32 angular_velocity = {0};
 
-                        if (instance->angular_velocity_reader == instance->angular_velocity_writer)
+                        if (!RingBuffer_pop(&instance->angular_velocities, &angular_velocity))
                         {
                             // Underflow condition.
                             // TODO Indicate this situation somehow?
                             // TODO Perhaps keep the same velocity instead.
-                            angular_velocity = 0;
-                        }
-                        else
-                        {
-                            i32 read_index                     = instance->angular_velocity_reader % countof(instance->angular_velocities);
-                            angular_velocity                   = instance->angular_velocities[read_index];
-                            instance->angular_velocity_reader += 1;
                         }
 
                         // @/`Stepper Microstepping and Step Velocity`.

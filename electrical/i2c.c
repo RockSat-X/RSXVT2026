@@ -1,7 +1,3 @@
-////////////////////////////////////////////////////////////////////////////////
-
-
-
 enum I2CDriverRole : u32
 {
     I2CDriverRole_master_blocking,
@@ -170,8 +166,10 @@ enum I2CAddressType : u32
 
 enum I2COperation : u32
 {
-    I2COperation_write = false,
-    I2COperation_read  = true,
+    I2COperation_single_write,
+    I2COperation_single_read,
+    I2COperation_repeating_write,
+    I2COperation_repeating_read,
 };
 
 struct I2CDriver
@@ -271,7 +269,6 @@ I2C_transfer
             driver->master.amount       = amount;
             driver->master.progress     = 0;
             driver->master.error        = I2CMasterError_none;
-            __DMB();
             driver->master.state        = I2CMasterState_scheduled_transfer;
 
             NVIC_SET_PENDING(I2Cx_EV);
@@ -437,22 +434,18 @@ I2C_reinit(enum I2CHandle handle)
 
     }
 
-
-
-    // Select the interrupt events.
-
     CMSIS_SET
     (
-        I2Cx  , CR1   , // Interrupts for:
-        ERRIE , true  , //     - Error.
-        TCIE  , true  , //     - Transfer completed.
-        STOPIE, true  , //     - STOP signal.
-        NACKIE, true  , //     - NACK signal.
-        ADDRIE, true  , //     - Address match.
-        RXIE  , true  , //     - Reception of data.
-        TXIE  , true  , //     - Transmission of data.
-        DNF   , 15    , // Max out the digital filtering.
-        PE    , true  , // Enable the peripheral.
+        I2Cx  , CR1 , // Interrupts for:
+        ERRIE , true, //     - Error.
+        TCIE  , true, //     - Transfer completed.
+        STOPIE, true, //     - STOP signal.
+        NACKIE, true, //     - NACK signal.
+        ADDRIE, true, //     - Address match.
+        RXIE  , true, //     - Reception of data.
+        TXIE  , true, //     - Transmission of data.
+        DNF   , 15  , // Max out the digital filtering.
+        PE    , true, // Enable the peripheral.
     );
 
 
@@ -497,6 +490,7 @@ _I2C_update_once(enum I2CHandle handle)
     };
     enum I2CInterruptEvent interrupt_event  = {0};
     u32                    interrupt_status = I2Cx->ISR;
+    u32                    interrupt_enable = I2Cx->CR1;
 
 
 
@@ -592,7 +586,11 @@ _I2C_update_once(enum I2CHandle handle)
 
     // @/pg 2095/sec 48.4.9/`H533rm`.
 
-    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, TC))
+    else if
+    (
+        CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, TC  ) &&
+        CMSIS_GET_FROM(interrupt_enable, I2Cx, CR1, TCIE)
+    )
     {
         interrupt_event = I2CInterruptEvent_transfer_completed;
     }
@@ -708,15 +706,21 @@ _I2C_update_once(enum I2CHandle handle)
                         default: panic;
                     }
 
+                    b32 read_operation =
+                        driver->master.operation == I2COperation_single_read ||
+                        driver->master.operation == I2COperation_repeating_read;
+
                     CMSIS_SET
                     (
                         I2Cx   , CR2                          ,
                         SADD   , sadd                         ,
-                        RD_WRN , !!driver->master.operation   ,
+                        RD_WRN , !!read_operation             ,
                         NBYTES , driver->master.amount        ,
                         START  , true                         ,
                         ADD10  , !!driver->master.address_type,
                     );
+
+                    CMSIS_SET(I2Cx, CR1, TCIE, true);
 
                     driver->master.state = I2CMasterState_transferring;
 
@@ -825,10 +829,57 @@ _I2C_update_once(enum I2CHandle handle)
                         if (!iff(driver->master.progress == driver->master.amount, !driver->master.error))
                             panic;
 
-                        // Begin sending out the STOP signal.
-                        CMSIS_SET(I2Cx, CR2, STOP, true);
+                        switch (driver->master.operation)
+                        {
 
-                        driver->master.state = I2CMasterState_stopping;
+                            case I2COperation_single_read:
+                            case I2COperation_single_write:
+                            {
+                                CMSIS_SET(I2Cx, CR2, STOP, true);
+                                driver->master.state = I2CMasterState_stopping;
+                            } break;
+
+                            case I2COperation_repeating_read:
+                            case I2COperation_repeating_write:
+                            {
+
+                                // Disable the transfer-complete interrupt
+                                // because it only gets cleared upon a START
+                                // or STOP condition.
+                                CMSIS_SET(I2Cx, CR1, TCIE, false);
+
+                                driver->master.state = I2CMasterState_standby;
+
+                                if (I2Cx_DRIVER_ROLE == I2CDriverRole_master_callback)
+                                {
+                                    switch (driver->master.error)
+                                    {
+
+                                        case I2CMasterError_none:
+                                        {
+                                            ((I2CMasterCallback*) INTERRUPT_I2Cx_CALLBACK)
+                                            (
+                                                I2CMasterCallbackEvent_transfer_successful
+                                            );
+                                        } break;
+
+                                        case I2CMasterError_no_acknowledge:
+                                        {
+                                            ((I2CMasterCallback*) INTERRUPT_I2Cx_CALLBACK)
+                                            (
+                                                I2CMasterCallbackEvent_transfer_unacknowledged
+                                            );
+                                        } break;
+
+                                        default: panic;
+                                    }
+                                }
+
+                            } break;
+
+                            default: panic;
+
+                        }
 
                         return I2CUpdateOnce_again;
 

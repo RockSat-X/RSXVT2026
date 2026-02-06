@@ -52,7 +52,7 @@ FREERTOS_TASK(vehicle_interface, 1024, 0)
                 I2CHandle_vehicle_interface,
                 VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS,
                 I2CAddressType_seven,
-                I2COperation_read,
+                I2COperation_single_read,
                 (u8*) &payload,
                 sizeof(payload)
             );
