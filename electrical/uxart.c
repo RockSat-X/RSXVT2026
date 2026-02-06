@@ -3,8 +3,9 @@
 
 
 // Useful shorthand marcos.
-#define stlink_tx(...) UXART_tx_format(UXARTHandle_stlink, __VA_ARGS__)
-#define stlink_rx(...) UXART_rx       (UXARTHandle_stlink, __VA_ARGS__)
+#define stlink_tx(...)        UXART_tx_format(UXARTHandle_stlink, __VA_ARGS__)
+#define stlink_rx(...)        UXART_rx  (UXARTHandle_stlink, __VA_ARGS__)
+#define UXART_rx(HANDLE, DST) RingBuffer_pop(&_UXART_drivers[HANDLE].reception, (DST))
 
 
 
@@ -50,16 +51,9 @@ enum UXARTMode : u32
 
 struct UXARTDriver
 {
-    volatile u32 transmission_reader;
-    volatile u32 transmission_writer;
-    volatile u8  transmission_buffer[1 << 8]; // TODO Consider being able to be set.
-    volatile u32 reception_reader;
-    volatile u32 reception_writer;
-    volatile u8  reception_buffer[1 << 8]; // TODO Consider being able to be set.
+    RingBuffer(u8, 256) transmission;
+    RingBuffer(u8, 256) reception;
 };
-
-static_assert(IS_POWER_OF_TWO(countof(((struct UXARTDriver*) 0)->transmission_buffer)));
-static_assert(IS_POWER_OF_TWO(countof(((struct UXARTDriver*) 0)->reception_buffer)));
 
 
 
@@ -141,21 +135,14 @@ _UXART_push_byte_for_transmission(char byte, void* void_handle)
         panic;
 
 
+    // Push into the transmission ring-buffer.
+    // Most of the time, spin-locking will not be done,
+    // but it will be done if the buffer is at its limit.
 
-    // Ensure there's enough space in the transmission ring-buffer.
-
-    while (driver->transmission_writer - driver->transmission_reader == countof(driver->transmission_buffer))
+    while (!RingBuffer_push(&driver->transmission, (u8*) &byte))
     {
         NVIC_SET_PENDING(UXARTx); // Make sure that the UXART knows it should be transmitting.
     }
-
-
-
-    // Push the data to be transmitted eventually.
-
-    u32 writer_index = driver->transmission_writer % countof(driver->transmission_buffer);
-    driver->transmission_buffer[writer_index]  = byte;
-    driver->transmission_writer               += 1;
 
 }
 
@@ -187,7 +174,7 @@ UXART_tx_bytes(enum UXARTHandle handle, u8* bytes, i32 length)
     // Let UXART know it should be transmitting now,
     // if it isn't already aware of that.
 
-    if (driver->transmission_reader != driver->transmission_writer)
+    if (RingBuffer_reading_pointer(&driver->transmission))
     {
         NVIC_SET_PENDING(UXARTx);
     }
@@ -222,7 +209,7 @@ UXART_tx_format(enum UXARTHandle handle, char* format, ...)
     // Let UXART know it should be transmitting now,
     // if it isn't already aware of that.
 
-    if (driver->transmission_reader != driver->transmission_writer)
+    if (RingBuffer_reading_pointer(&driver->transmission))
     {
         NVIC_SET_PENDING(UXARTx);
     }
@@ -230,35 +217,6 @@ UXART_tx_format(enum UXARTHandle handle, char* format, ...)
 
 
     va_end(arguments);
-
-}
-
-
-
-// Note that the terminal on the other end could send '\r'
-// to indicate that the user pressed <ENTER>.
-// Furthermore, certain keys, such as arrow keys, will be
-// sent as a multi-byte sequence.
-
-static useret b32 // Received character?
-UXART_rx(enum UXARTHandle handle, u8* destination)
-{
-
-    _EXPAND_HANDLE
-
-    if (!CMSIS_GET(UXARTx, CR1, UE))
-        panic;
-
-    b32 data_available = driver->reception_reader != driver->reception_writer;
-
-    if (data_available && destination)
-    {
-        i32 reader_index = driver->reception_reader % countof(driver->reception_buffer);
-        *destination              = driver->reception_buffer[reader_index];
-        driver->reception_reader += 1;
-    }
-
-    return data_available;
 
 }
 
@@ -280,7 +238,7 @@ _UXART_driver_interrupt(enum UXARTHandle handle)
         implies
         (
             UXARTx_MODE == UXARTMode_half_duplex,
-            CMSIS_GET(UXARTx, ISR, TC) && driver->transmission_reader == driver->transmission_writer
+            CMSIS_GET(UXARTx, ISR, TC) && !RingBuffer_reading_pointer(&driver->transmission)
         );
 
     CMSIS_SET
@@ -296,22 +254,20 @@ _UXART_driver_interrupt(enum UXARTHandle handle)
     // once it becomes empty, the interrupt routine
     // will retrigger and from there we can replenish it.
 
-    while (driver->transmission_reader != driver->transmission_writer)
+    while (CMSIS_GET(UXARTx, ISR, TXE_TXFNF))
     {
-        if (CMSIS_GET(UXARTx, ISR, TXE_TXFNF))
+
+        u8 data = {0};
+
+        if (RingBuffer_pop(&driver->transmission, &data))
         {
-
-            i32 reader_index = driver->transmission_reader % countof(driver->transmission_buffer);
-
-            CMSIS_SET(UXARTx, TDR, TDR, driver->transmission_buffer[reader_index]);
-
-            driver->transmission_reader += 1;
-
+            CMSIS_SET(UXARTx, TDR, TDR, data);
         }
         else
         {
-            break; // TX-FIFO's full now; come back later when it's empty again.
+            break; // No more data to send!
         }
+
     }
 
 
@@ -320,7 +276,7 @@ _UXART_driver_interrupt(enum UXARTHandle handle)
     // set the interrupt to trigger for whenever
     // the TX-FIFO is empty again.
 
-    CMSIS_SET(UXARTx, CR1, TXFEIE, driver->transmission_reader != driver->transmission_writer);
+    CMSIS_SET(UXARTx, CR1, TXFEIE, !!RingBuffer_reading_pointer(&driver->transmission));
 
 
 
@@ -372,19 +328,13 @@ _UXART_driver_interrupt(enum UXARTHandle handle)
 
 
 
-            // See if we can push the data into
+            // Try pushing the data into
             // the reception ring-buffer.
 
-            if (driver->reception_writer - driver->reception_reader < countof(driver->reception_buffer))
-            {
-                u32 writer_index = driver->reception_writer % countof(driver->reception_buffer);
-                driver->reception_buffer[writer_index]  = data;
-                driver->reception_writer               += 1;
-            }
-            else
+            if (!RingBuffer_push(&driver->reception, &data))
             {
                 #if 0
-                    sorry // RX-buffer overflow!
+                    sorry // Reception ring-buffer overflow!
                 #else
                     // We got an overflow,
                     // but this isn't a critical thing,
