@@ -19,8 +19,8 @@
 
 struct RingBufferRaw
 {
-    volatile u16 reader;
-    volatile u16 writer;
+    volatile u16 reader;  // Max amount of elements will be 2^16.
+    volatile u16 writer;  // "
     u8           bytes[];
 };
 
@@ -58,8 +58,8 @@ static useret void*
 RingBuffer_writing_pointer_
 (
     struct RingBufferRaw* ring_buffer_raw,
-    u16                   element_count,
-    u16                   element_size
+    u32                   element_count,
+    u32                   element_size
 )
 {
 
@@ -68,15 +68,15 @@ RingBuffer_writing_pointer_
     if (ring_buffer_raw)
     {
 
-        u16 observed_reader = ring_buffer_raw->reader;
-        u16 observed_writer = ring_buffer_raw->writer;
-        b32 got_space       = (u16) (observed_writer - observed_reader) < element_count;
+        u32 observed_reader = ring_buffer_raw->reader;
+        u32 observed_writer = ring_buffer_raw->writer;
+        b32 got_space       = (u32) (observed_writer - observed_reader) < element_count;
 
         if (got_space)
         {
 
-            u16 index  = observed_writer & (element_count - 1);
-            u16 offset = index * element_size;
+            u32 index  = observed_writer & (element_count - 1);
+            u32 offset = index * element_size;
 
             writing_pointer = ring_buffer_raw->bytes + offset;
 
@@ -107,8 +107,8 @@ static useret b32
 RingBuffer_push_
 (
     struct RingBufferRaw* ring_buffer_raw,
-    u16                   element_count,
-    u16                   element_size,
+    u32                   element_count,
+    u32                   element_size,
     u8*                   src
 )
 {
@@ -164,8 +164,8 @@ static useret void*
 RingBuffer_reading_pointer_
 (
     struct RingBufferRaw* ring_buffer_raw,
-    u16                   element_count,
-    u16                   element_size
+    u32                   element_count,
+    u32                   element_size
 )
 {
 
@@ -174,15 +174,15 @@ RingBuffer_reading_pointer_
     if (ring_buffer_raw)
     {
 
-        u16 observed_reader = ring_buffer_raw->reader;
-        u16 observed_writer = ring_buffer_raw->writer;
+        u32 observed_reader = ring_buffer_raw->reader;
+        u32 observed_writer = ring_buffer_raw->writer;
         b32 got_element     = observed_reader != observed_writer;
 
         if (got_element)
         {
 
-            u16 index  = observed_reader & (element_count - 1);
-            u16 offset = index * element_size;
+            u32 index  = observed_reader & (element_count - 1);
+            u32 offset = index * element_size;
 
             reading_pointer = ring_buffer_raw->bytes + offset;
 
@@ -213,8 +213,8 @@ static useret b32
 RingBuffer_pop_
 (
     struct RingBufferRaw* ring_buffer_raw,
-    u16                   element_count,
-    u16                   element_size,
+    u32                   element_count,
+    u32                   element_size,
     u8*                   dst
 )
 {
@@ -270,14 +270,14 @@ static useret b32
 RingBuffer_pop_to_latest_
 (
     struct RingBufferRaw* ring_buffer_raw,
-    u16                   element_count,
-    u16                   element_size,
+    u32                   element_count,
+    u32                   element_size,
     u8*                   dst
 )
 {
 
-    u16 observed_reader = ring_buffer_raw->reader;
-    u16 observed_writer = ring_buffer_raw->writer;
+    u32 observed_reader = ring_buffer_raw->reader;
+    u32 observed_writer = ring_buffer_raw->writer;
     b32 got_element     = observed_reader != observed_writer;
 
     if (got_element)
@@ -286,8 +286,8 @@ RingBuffer_pop_to_latest_
         if (dst)
         {
 
-            u16   index           = ((u16) (observed_writer - 1)) & (element_count - 1);
-            u16   offset          = index * element_size;
+            u32   index           = ((u32) (observed_writer - 1)) & (element_count - 1);
+            u32   offset          = index * element_size;
             void* reading_pointer = ring_buffer_raw->bytes + offset;
 
             memmove(dst, reading_pointer, element_size);
@@ -303,7 +303,7 @@ RingBuffer_pop_to_latest_
         }
 
         // The latest element will always be available.
-        ring_buffer_raw->reader = observed_writer - 1;
+        ring_buffer_raw->reader = (u16) (observed_writer - 1);
 
     }
     else
