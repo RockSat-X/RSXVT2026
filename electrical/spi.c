@@ -68,120 +68,39 @@ SPI_reinit(enum SPIHandle handle)
     (
         SPIx   , CFG2 ,
         MASTER , false, // SPI in slave mode.
-        SSIOP  , false, // The SS  pin level during inactivity.
-        CPOL   , false, // The SCK pin level during inactivity.
-        CPHA   , false, // Capture data on the second clock edge?
-        LSBFRST, false, // LSb transmitted first?
-        AFCNTR , true , // Don't leave pins floating when SPI is disabled.
+        SSIOP  , 0b0  , // When 0b0, the NSS pin is active-low.
+        CPOL   , 0b0  , // When 0b0, the SCK pin is low.
+        CPHA   , 0b0  , // When 0b0, data is captured on the first clock edge.
+        LSBFRST, false, // Whether or not LSb is transmitted first.
     );
 
     CMSIS_SET
     (
         SPIx , CFG1 ,
         DSIZE, 8 - 1, // Bits per word.
-        FTHLV, 1 - 1, // Amount of words for an interrupt.
+        FTHLV, 1 - 1, // Amount of words buffered to trigger an interrupt.
     );
-
-
-
-    // The slave-receiver can be enabled immediately.
 
     CMSIS_SET
     (
-        SPIx , IER , // Enable interrupts for:
-        OVRIE, true, //     - Overrun error.
-        RXPIE, true, //     - FIFO received a packet to be read.
+        SPIx   , IER  , // Enable interrupts for:
+        MODFIE , true , //     - Mode fault.
+        TIFREIE, true , //     - (Unlikely) TI frame error.
+        CRCEIE , true , //     - CRC mismatch.
+        OVRIE  , true , //     - RX-FIFO got too full.
+        UDRIE  , false, //     - (Don't care) TX-FIFO was not filled with data in time.
+        TXTFIE , false, //     - (Don't care) All data is buffered to be transmitted.
+        EOTIE  , false, //     - (Don't care) All data has been transmitted.
+        DXPIE  , false, //     - (Don't care) Space and data available in TX/RX-FIFO.
+        TXPIE  , false, //     - (Don't care) Space available in TX-FIFO.
+        RXPIE  , true , //     - Data available in RX-FIFO.
     );
 
+
+
+    // Activate the peripheral.
+
     CMSIS_SET(SPIx, CR1, SPE, true);
-
-}
-
-
-
-static useret enum SPIUpdateOnce : u32
-{
-    SPIUpdateOnce_again,
-    SPIUpdateOnce_yield,
-}
-_SPI_update_once(enum SPIHandle handle)
-{
-
-    _EXPAND_HANDLE
-
-    enum SPIInterruptEvent : u32
-    {
-        SPIInterruptEvent_none,
-        SPIInterruptEvent_data_overrun,
-        SPIInterruptEvent_data_available_to_read,
-    };
-    enum SPIInterruptEvent interrupt_event  = {0};
-    u32                    interrupt_status = SPIx->SR;
-    u32                    interrupt_enable = SPIx->IER;
-
-
-
-    // Uh oh, we missed some data...
-
-    if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, OVR))
-    {
-        CMSIS_SET(SPIx, IFCR, OVRC, true); // Acknowledge the overrun condition.
-        interrupt_event = SPIInterruptEvent_data_overrun;
-    }
-
-
-
-    // We got data to read!
-
-    else if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, RXP))
-    {
-        interrupt_event = SPIInterruptEvent_data_available_to_read;
-    }
-
-
-
-    switch (interrupt_event)
-    {
-
-        case SPIInterruptEvent_none:
-        {
-            return SPIUpdateOnce_yield; // Nothing interesting has happend.
-        } break;
-
-        case SPIInterruptEvent_data_overrun:
-        {
-
-            // Uh oh, the RX-FIFO got too full!
-            // For now, we'll just silently ignore
-            // this error condition.
-            // The user should have a checksum anyways
-            // to ensure integrity of the recieved data.
-
-            return SPIUpdateOnce_yield;
-
-        } break;
-
-        case SPIInterruptEvent_data_available_to_read:
-        {
-
-            u8 data = *(u8*) &SPIx->RXDR; // Pop from the RX-FIFO.
-
-            if (!RingBuffer_push(SPI_ring_buffer, &data))
-            {
-                // Uh oh, ring-buffer overrun!
-                // For now, we'll just drop the data
-                // without indicating that this has happened.
-                // The user should have a checksum anyways
-                // to ensure integrity of the recieved data.
-            }
-
-            return SPIUpdateOnce_again;
-
-        } break;
-
-        default: panic;
-
-    }
 
 }
 
@@ -196,23 +115,85 @@ _SPI_driver_interrupt(enum SPIHandle handle)
     for (b32 yield = false; !yield;)
     {
 
-        enum SPIUpdateOnce result = _SPI_update_once(handle);
+        u32 interrupt_status = SPIx->SR;
+        u32 interrupt_enable = SPIx->IER;
 
-        yield = (result == SPIUpdateOnce_yield);
 
-        switch (result)
+
+        // Mode fault.
+
+        if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, MODF))
         {
-            case SPIUpdateOnce_again:
-            {
-                // The state-machine will be updated again.
-            } break;
+            panic; // This error should only happen in SPI master mode.
+        }
 
-            case SPIUpdateOnce_yield:
-            {
-                // We can stop updating the state-machine for now.
-            } break;
 
-            default: panic;
+
+        // TI mode frame format error.
+
+        else if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, TIFRE))
+        {
+            panic; // This error should only happen when using TI mode.
+        }
+
+
+
+        // CRC mismatch.
+
+        else if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, CRCE))
+        {
+            panic; // This error should only happen when CRC is enable. TODO Use?
+        }
+
+
+
+        // Data over-run.
+
+        else if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, OVR))
+        {
+
+            CMSIS_SET(SPIx, IFCR, OVRC, true); // Acknowledge the over-run condition.
+
+            // Uh oh, the RX-FIFO got too full!
+            // For now, we'll just silently ignore
+            // this error condition.
+            // The user should have a checksum anyways
+            // to ensure integrity of the received data.
+
+        }
+
+
+
+        // Data available in RX-FIFO.
+
+        else if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, RXP))
+        {
+
+            u8 data = *(u8*) &SPIx->RXDR; // Pop from the RX-FIFO.
+
+            if (!RingBuffer_push(SPI_ring_buffer, &data))
+            {
+                // Uh oh, ring-buffer over-run!
+                // For now, we'll just drop the data
+                // without indicating that this has happened.
+                // The user should have a checksum anyways
+                // to ensure integrity of the received data.
+            }
+
+        }
+
+
+
+        // Nothing left to handle for now.
+
+        else
+        {
+
+            if (interrupt_status & interrupt_enable)
+                panic; // We overlooked handling an interrupt event...
+
+            yield = true;
+
         }
 
     }
