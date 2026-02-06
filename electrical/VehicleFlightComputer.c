@@ -367,10 +367,28 @@ FREERTOS_TASK(logger, 2048, 0)
 
         stlink_tx("OpenMV data:\n");
 
-        u8 data = {0};
-        while (RingBuffer_pop(&SPI_ring_buffers[SPIHandle_openmv], &data))
+        while (true)
         {
-            stlink_tx(" 0x%02X", data);
+
+            SPIBlock* block = RingBuffer_reading_pointer(&_SPI_drivers[SPIHandle_openmv].ring_buffer);
+
+            if (block)
+            {
+
+                for (i32 i = 0; i < countof(*block); i += 1)
+                {
+                    stlink_tx(" 0x%02X", (*block)[i]);
+                }
+
+                if (!RingBuffer_pop(&_SPI_drivers[SPIHandle_openmv].ring_buffer, nullptr))
+                    panic;
+
+            }
+            else
+            {
+                break;
+            }
+
         }
 
         stlink_tx("\n\n");

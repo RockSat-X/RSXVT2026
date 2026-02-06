@@ -5,7 +5,7 @@
         driver_type = 'SPI',
         cmsis_name  = 'SPI',
         common_name = 'SPIx',
-        expansions  = (('SPI_ring_buffer', '&SPI_ring_buffers[handle]'),),
+        expansions  = (('driver', '&_SPI_drivers[handle]'),),
         terms       = lambda type, peripheral, handle: (
             ('{}'                    , 'expression' ),
             ('NVICInterrupt_{}'      , 'expression' ),
@@ -19,7 +19,17 @@
 
 */
 
-static RingBuffer(u8, 256) SPI_ring_buffers[SPIHandle_COUNT] = {0};
+#define SPI_BLOCK_SIZE 8
+
+typedef u8 SPIBlock[SPI_BLOCK_SIZE];
+
+struct SPIDriver
+{
+    i32                       byte_index;
+    RingBuffer(SPIBlock, 256) ring_buffer;
+};
+
+static struct SPIDriver _SPI_drivers[SPIHandle_COUNT] = {0};
 
 
 
@@ -40,7 +50,7 @@ SPI_reinit(enum SPIHandle handle)
     CMSIS_PUT(SPIx_RESET, true );
     CMSIS_PUT(SPIx_RESET, false);
 
-    SPI_ring_buffer->ring_buffer_raw = (struct RingBufferRaw) {0};
+    *driver = (struct SPIDriver) {0};
 
 
 
@@ -100,7 +110,7 @@ SPI_reinit(enum SPIHandle handle)
         RXPIE  , true , //     - Data available in RX-FIFO.
     );
 
-    CMSIS_SET(SPIx, CR2, TSIZE, 8); // TODO Set transfer size.
+    CMSIS_SET(SPIx, CR2, TSIZE, SPI_BLOCK_SIZE); // Amount of bytes followed by the CRC.
 
     CMSIS_SET
     (
@@ -157,6 +167,7 @@ _SPI_driver_interrupt(enum SPIHandle handle)
 
             CMSIS_SET(SPIx, CR1, SPE, false); // @/`SPI Activation Cycling`.
             CMSIS_SET(SPIx, CR1, SPE, true ); // "
+            driver->byte_index = 0;
 
         }
 
@@ -186,13 +197,16 @@ _SPI_driver_interrupt(enum SPIHandle handle)
 
             u8 data = *(u8*) &SPIx->RXDR; // Pop from the RX-FIFO.
 
-            if (!RingBuffer_push(SPI_ring_buffer, &data))
+            SPIBlock* block = RingBuffer_writing_pointer(&driver->ring_buffer);
+
+            if (block)
             {
-                // Uh oh, ring-buffer over-run!
-                // For now, we'll just drop the data
-                // without indicating that this has happened.
-                // The user should have a checksum anyways
-                // to ensure integrity of the received data.
+                (*block)[driver->byte_index]  = data;
+                driver->byte_index           += 1;
+            }
+            else
+            {
+                // TODO.
             }
 
         }
@@ -203,8 +217,28 @@ _SPI_driver_interrupt(enum SPIHandle handle)
 
         else if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, EOT))
         {
+
             CMSIS_SET(SPIx, CR1, SPE, false); // @/`SPI Activation Cycling`.
             CMSIS_SET(SPIx, CR1, SPE, true ); // "
+
+            if (driver->byte_index == SPI_BLOCK_SIZE)
+            {
+                if (!RingBuffer_push(&driver->ring_buffer, nullptr))
+                {
+                    // Uh oh, ring-buffer over-run!
+                    // For now, we'll just drop the data
+                    // without indicating that this has happened.
+                    // The user should have a checksum anyways
+                    // to ensure integrity of the received data.
+                }
+            }
+            else
+            {
+                // We missed some data at some point...
+            }
+
+            driver->byte_index = 0;
+
         }
 
 
