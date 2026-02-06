@@ -250,3 +250,69 @@ RingBuffer_pop_
     return !!reading_pointer;
 
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+#define RingBuffer_pop_to_latest(RING_BUFFER, DST)         \
+    RingBuffer_pop_to_latest_                              \
+    (                                                      \
+        &(RING_BUFFER)->ring_buffer_raw,                   \
+        countof((RING_BUFFER)->elements),                  \
+        sizeof((RING_BUFFER)->elements[0]),                \
+        (u8*) (true ? (DST) : &(RING_BUFFER)->elements[0]) \
+    )
+
+static useret b32
+RingBuffer_pop_to_latest_
+(
+    struct RingBufferRaw* ring_buffer_raw,
+    u16                   element_count,
+    u16                   element_size,
+    u8*                   dst
+)
+{
+
+    u16 observed_reader = ring_buffer_raw->reader;
+    u16 observed_writer = ring_buffer_raw->writer;
+    b32 got_element     = observed_reader != observed_writer;
+
+    if (got_element)
+    {
+
+        if (dst)
+        {
+
+            u16   index           = ((u16) (observed_writer - 1)) & (element_count - 1);
+            u16   offset          = index * element_size;
+            void* reading_pointer = ring_buffer_raw->bytes + offset;
+
+            memmove(dst, reading_pointer, element_size);
+
+        }
+        else
+        {
+            // The destination of where to write the
+            // element to was not provided. This should
+            // be probably because the user wants to flush
+            // old data from the ring-buffer.
+
+        }
+
+        // The latest element will always be available.
+        ring_buffer_raw->reader = observed_writer - 1;
+
+    }
+    else
+    {
+        // There's no data available right now,
+        // which typically means the first element
+        // hasn't been pushed into the ring-buffer yet.
+    }
+
+    return got_element;
+
+}

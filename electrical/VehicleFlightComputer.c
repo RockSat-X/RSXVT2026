@@ -35,41 +35,7 @@ struct VN100Packet
     f32 GyroZ;
 };
 
-static struct VN100Packet VN100_buffer[4] = {0};
-static volatile u32       VN100_reader    = 0;
-static volatile u32       VN100_writer    = 0;
-
-static_assert(IS_POWER_OF_TWO(countof(VN100_buffer)));
-
-static useret b32
-VN100_get_latest_reading(struct VN100Packet* dst)
-{
-
-    if (!dst)
-        panic;
-
-    b32 data_available = VN100_reader != VN100_writer;
-
-    if (data_available)
-    {
-        *dst = VN100_buffer[VN100_reader % countof(VN100_buffer)];
-
-        // Flush all buffered packets except the latest one,
-        // so that on the next call that there's still something
-        // to at least give back.
-        VN100_reader = VN100_writer - 1;
-
-    }
-    else
-    {
-        // There's no data available right now,
-        // which means we haven't gotten the
-        // first (valid) packet from the VN-100 yet...
-    }
-
-    return data_available;
-
-}
+static RingBuffer(struct VN100Packet, 4) VN100_ring_buffer = {0};
 
 
 
@@ -331,7 +297,7 @@ FREERTOS_TASK(logger, 2048, 0)
         stlink_tx("Angular acceleration: %.6f\n", current_angular_acceleration);
 
         struct VN100Packet packet = {0};
-        if (VN100_get_latest_reading(&packet))
+        if (RingBuffer_pop_to_latest(&VN100_ring_buffer, &packet))
         {
             stlink_tx
             (
@@ -632,12 +598,7 @@ FREERTOS_TASK(vn100, 2048, 0)
             {
                 // Something was wrong with the received VN-100 payload...
             }
-            else if (VN100_writer - VN100_reader < countof(VN100_buffer))
-            {
-                VN100_buffer[VN100_writer % countof(VN100_buffer)] = packet;
-                VN100_writer += 1;
-            }
-            else
+            else if (!RingBuffer_push(&VN100_ring_buffer, &packet))
             {
                 // VN-100 data overrun!
             }
