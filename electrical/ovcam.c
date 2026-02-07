@@ -751,7 +751,7 @@ INTERRUPT_GPDMA1_Channel7(void)
 
             if (RingBuffer_writing_pointer(&_OVCAM_ring_buffer))
             {
-                _OVCAM_begin_capture();
+                NVIC_SET_PENDING(GPDMA1_Channel7);
             }
 
         } break;
@@ -775,7 +775,7 @@ INTERRUPT_GPDMA1_Channel7(void)
 
             CMSIS_SET(DCMI, CR, ENABLE, false);
             CMSIS_SET(DCMI, CR, ENABLE, true );
-            _OVCAM_begin_capture();
+            NVIC_SET_PENDING(GPDMA1_Channel7);
 
         } break;
 
