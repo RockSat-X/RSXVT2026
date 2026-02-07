@@ -760,6 +760,7 @@
         #define STPY_I2C1_PRESC 7
         #define STPY_I2C1_SCLH 250
         #define STPY_I2C1_SCLL 250
+        #define STPY_I2C1_TIMEOUTR_TIMEOUTA 3905
 
 
 
@@ -771,6 +772,7 @@
         #define STPY_I2C2_PRESC 7
         #define STPY_I2C2_SCLH 250
         #define STPY_I2C2_SCLL 250
+        #define STPY_I2C2_TIMEOUTR_TIMEOUTA 3905
 
     }
     #define STPY_0             (          0)
@@ -2307,10 +2309,11 @@
 
 
 
-        #define STPY_I2C1_KERNEL_SOURCE 0b10
-        #define STPY_I2C1_PRESC 7
+        #define STPY_I2C1_KERNEL_SOURCE 0b11
+        #define STPY_I2C1_PRESC 0
         #define STPY_I2C1_SCLH 200
         #define STPY_I2C1_SCLL 200
+        #define STPY_I2C1_TIMEOUTR_TIMEOUTA 3905
 
     }
     #define STPY_0             (          0)
@@ -3032,10 +3035,11 @@
 
 
 
-        #define STPY_I2C3_KERNEL_SOURCE 0b10
-        #define STPY_I2C3_PRESC 7
+        #define STPY_I2C3_KERNEL_SOURCE 0b11
+        #define STPY_I2C3_PRESC 0
         #define STPY_I2C3_SCLH 200
         #define STPY_I2C3_SCLL 200
+        #define STPY_I2C3_TIMEOUTR_TIMEOUTA 3905
 
 
 
@@ -3565,10 +3569,11 @@
 
 
 
-        #define STPY_I2C2_KERNEL_SOURCE 0b10
-        #define STPY_I2C2_PRESC 7
+        #define STPY_I2C2_KERNEL_SOURCE 0b11
+        #define STPY_I2C2_PRESC 0
         #define STPY_I2C2_SCLH 200
         #define STPY_I2C2_SCLL 200
+        #define STPY_I2C2_TIMEOUTR_TIMEOUTA 3905
 
     }
     #define STPY_0             (          0)

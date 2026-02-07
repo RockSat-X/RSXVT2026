@@ -190,13 +190,13 @@ TARGETS = ( # @/`Defining Targets`.
                 'type'       : 'I2C',
                 'peripheral' : 'I2C1',
                 'handle'     : 'queen',
-                'role'       : 'master_blocking',
+                'mode'       : 'master_blocking',
             },
             {
                 'type'       : 'I2C',
                 'peripheral' : 'I2C2',
                 'handle'     : 'bee',
-                'role'       : 'slave',
+                'mode'       : 'slave',
                 'address'    : 0b_001_1110,
             },
         ),
@@ -215,6 +215,8 @@ TARGETS = ( # @/`Defining Targets`.
             'USART2_BAUD'  : STLINK_BAUD,
             'I2C1_BAUD'    : 1_000,
             'I2C2_BAUD'    : 1_000,
+            'I2C1_TIMEOUT' : 2,
+            'I2C2_TIMEOUT' : 2,
         },
 
     ),
@@ -537,7 +539,7 @@ TARGETS = ( # @/`Defining Targets`.
                 'type'       : 'I2C',
                 'peripheral' : 'I2C1',
                 'handle'     : 'vehicle_interface',
-                'role'       : 'master_blocking',
+                'mode'       : 'master_blocking',
             },
             { # TODO Just to test VN-100 reception for VehicleFlightComputer.
                 'type'       : 'UXART',
@@ -561,6 +563,7 @@ TARGETS = ( # @/`Defining Targets`.
             'USART2_BAUD'  : STLINK_BAUD,
             'USART3_BAUD'  : VN100_ESP32_BAUD,
             'I2C1_BAUD'    : VEHICLE_INTERFACE_BAUD,
+            'I2C1_TIMEOUT' : 2,
         },
 
     ),
@@ -679,7 +682,7 @@ TARGETS = ( # @/`Defining Targets`.
                 'type'       : 'I2C',
                 'peripheral' : 'I2C3',
                 'handle'     : 'vehicle_interface',
-                'role'       : 'slave',
+                'mode'       : 'slave',
                 'address'    : VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS,
             },
             {
@@ -725,6 +728,7 @@ TARGETS = ( # @/`Defining Targets`.
             'USART1_BAUD'         :   200_000,
             'USART3_BAUD'         : VN100_ESP32_BAUD,
             'I2C3_BAUD'           : VEHICLE_INTERFACE_BAUD,
+            'I2C3_TIMEOUT'        : 2,
             'SPI2_BAUD'           : 600_000, # @/`OpenMV SPI Baud`.
             'TIM1_UPDATE_RATE'    : 1 / 0.001,
             'TIM2_COUNTER_RATE'   : 1_000_000,
@@ -973,7 +977,7 @@ TARGETS = ( # @/`Defining Targets`.
                 'type'       : 'I2C',
                 'peripheral' : 'I2C2',
                 'handle'     : 'ovcam_sccb',
-                'role'       : 'master_blocking',
+                'mode'       : 'master_blocking',
             },
         ),
 
@@ -990,6 +994,7 @@ TARGETS = ( # @/`Defining Targets`.
             'APB3_CK'      : 240_000_000,
             'USART2_BAUD'  : STLINK_BAUD,
             'I2C2_BAUD'    : 10_000,
+            'I2C2_TIMEOUT' : 2,
         },
 
     ),

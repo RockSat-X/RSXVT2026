@@ -540,7 +540,7 @@ OVCAM_init(void)
         i32       amount_of_bytes_to_write =  OVCAM_INITIALIZATION_SEQUENCE[sequence_index             ];
         const u8* data_to_send             = &OVCAM_INITIALIZATION_SEQUENCE[sequence_index + sizeof(u8)];
 
-        enum I2CMasterError error =
+        enum I2CTransferResult result =
             I2C_transfer
             (
                 I2CHandle_ovcam_sccb,
@@ -551,7 +551,7 @@ OVCAM_init(void)
                 sizeof(u16) + amount_of_bytes_to_write
             );
 
-        if (error)
+        if (result != I2CTransferResult_transfer_done)
             sorry
 
         sequence_index += sizeof(u8) + sizeof(u16) + amount_of_bytes_to_write;
@@ -751,7 +751,7 @@ INTERRUPT_GPDMA1_Channel7(void)
 
             if (RingBuffer_writing_pointer(&_OVCAM_ring_buffer))
             {
-                _OVCAM_begin_capture();
+                NVIC_SET_PENDING(GPDMA1_Channel7);
             }
 
         } break;
@@ -775,7 +775,7 @@ INTERRUPT_GPDMA1_Channel7(void)
 
             CMSIS_SET(DCMI, CR, ENABLE, false);
             CMSIS_SET(DCMI, CR, ENABLE, true );
-            _OVCAM_begin_capture();
+            NVIC_SET_PENDING(GPDMA1_Channel7);
 
         } break;
 

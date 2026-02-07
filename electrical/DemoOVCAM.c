@@ -11,7 +11,15 @@ main(void)
 
     STPY_init();
     UXART_init(UXARTHandle_stlink);
-    I2C_reinit(I2CHandle_ovcam_sccb);
+    {
+        enum I2CReinitResult result = I2C_reinit(I2CHandle_ovcam_sccb);
+        switch (result)
+        {
+            case I2CReinitResult_success : break;
+            case I2CReinitResult_bug     : panic;
+            default                      : panic;
+        }
+    }
 
 
 
@@ -46,7 +54,7 @@ main(void)
                 while (!stlink_rx((u8*) &command + i));
             }
 
-            enum I2CMasterError error =
+            enum I2CTransferResult result =
                 I2C_transfer
                 (
                     I2CHandle_ovcam_sccb,
@@ -57,7 +65,7 @@ main(void)
                     sizeof(command.address) + sizeof(command.content)
                 );
 
-            if (error)
+            if (result != I2CTransferResult_transfer_done)
                 sorry
 
 

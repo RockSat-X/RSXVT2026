@@ -56,7 +56,15 @@ main(void)
     UXART_init(UXARTHandle_stlink);
     UXART_init(UXARTHandle_stepper_uart);
     UXART_init(UXARTHandle_vn100_esp32);
-    I2C_reinit(I2CHandle_vehicle_interface);
+    {
+        enum I2CReinitResult result = I2C_reinit(I2CHandle_vehicle_interface);
+        switch (result)
+        {
+            case I2CReinitResult_success : break;
+            case I2CReinitResult_bug     : panic;
+            default                      : panic;
+        }
+    }
     SPI_reinit(SPIHandle_openmv);
 
 
@@ -739,7 +747,9 @@ INTERRUPT_I2Cx_vehicle_interface(enum I2CSlaveCallbackEvent event, u8* data)
 
 
 
-        default: panic;
+        case I2CTransferResult_clock_stretch_timeout : panic;
+        case I2CSlaveCallbackEvent_bug               : panic;
+        default                                      : panic;
 
     }
 
