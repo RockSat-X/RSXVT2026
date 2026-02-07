@@ -434,7 +434,7 @@ I2C_transfer
 
 
 
-static enum I2CReinitResult : u32
+static useret enum I2CReinitResult : u32
 {
     I2CReinitResult_success,
     I2CReinitResult_bug,
