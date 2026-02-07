@@ -11,20 +11,6 @@ main(void)
 
     STPY_init();
     UXART_init(UXARTHandle_stlink);
-    {
-        enum I2CReinitResult result = I2C_reinit(I2CHandle_ovcam_sccb);
-        switch (result)
-        {
-            case I2CReinitResult_success : break;
-            case I2CReinitResult_bug     : panic;
-            default                      : panic;
-        }
-    }
-
-
-
-    ////////////////////////////////////////////////////////////////////////////////
-
 
 
     OVCAM_init();
@@ -54,19 +40,7 @@ main(void)
                 while (!stlink_rx((u8*) &command + i));
             }
 
-            enum I2CTransferResult result =
-                I2C_transfer
-                (
-                    I2CHandle_ovcam_sccb,
-                    OVCAM_SEVEN_BIT_ADDRESS,
-                    I2CAddressType_seven,
-                    I2COperation_single_write,
-                    (u8*) &command,
-                    sizeof(command.address) + sizeof(command.content)
-                );
-
-            if (result != I2CTransferResult_transfer_done)
-                sorry
+            OVCAM_write_register(command.address, command.content);
 
 
 

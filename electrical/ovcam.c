@@ -411,7 +411,6 @@ static RingBuffer(struct OVCAMFramebuffer, 2) _OVCAM_ring_buffer = {0};
 
 
 
-
 ////////////////////////////////////////////////////////////////////////////////
 
 
@@ -498,6 +497,35 @@ _OVCAM_begin_capture(void)
 
 
 static void
+OVCAM_write_register(u16 address, u8 content)
+{
+
+    u8 command[] =
+        {
+            (u8) (address >> 0) & 0xFF,
+            (u8) (address >> 8) & 0xFF,
+            content
+        };
+
+    enum I2CTransferResult result =
+        I2C_transfer
+        (
+            I2CHandle_ovcam_sccb,
+            OVCAM_SEVEN_BIT_ADDRESS,
+            I2CAddressType_seven,
+            I2COperation_single_write,
+            command,
+            sizeof(command)
+        );
+
+    if (result != I2CTransferResult_transfer_done)
+        sorry
+
+}
+
+
+
+static void
 OVCAM_init(void)
 {
 
@@ -507,6 +535,16 @@ OVCAM_init(void)
     CMSIS_SET(RCC, AHB2RSTR, DCMI_PSSIRST, true );
     CMSIS_SET(RCC, AHB1RSTR, GPDMA1RST   , false);
     CMSIS_SET(RCC, AHB2RSTR, DCMI_PSSIRST, false);
+
+    {
+        enum I2CReinitResult result = I2C_reinit(I2CHandle_ovcam_sccb);
+        switch (result)
+        {
+            case I2CReinitResult_success : break;
+            case I2CReinitResult_bug     : panic;
+            default                      : panic;
+        }
+    }
 
 
 
