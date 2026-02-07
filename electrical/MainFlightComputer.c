@@ -96,9 +96,10 @@ FREERTOS_TASK(vehicle_interface, 1024, 0)
                 stlink_tx("Slave 0x%03X didn't acknowledge!\n", VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS);
             } break;
 
-            case I2CTransferResult_transfer_ongoing : panic;
-            case I2CTransferResult_bug              : panic;
-            default                                 : panic;
+            case I2CTransferResult_transfer_ongoing      : panic;
+            case I2CTransferResult_clock_stretch_timeout : panic;
+            case I2CTransferResult_bug                   : panic;
+            default                                      : panic;
         }
 
         spinlock_nop(10'000'000);

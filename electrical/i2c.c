@@ -12,6 +12,7 @@ enum I2CMasterCallbackEvent : u32
     I2CMasterCallbackEvent_can_schedule_next_transfer,
     I2CMasterCallbackEvent_transfer_successful,
     I2CMasterCallbackEvent_transfer_unacknowledged,
+    I2CMasterCallbackEvent_clock_stretch_timeout,
     I2CMasterCallbackEvent_bug,
 };
 
@@ -24,6 +25,7 @@ enum I2CSlaveCallbackEvent : u32
     I2CSlaveCallbackEvent_data_available_to_read,
     I2CSlaveCallbackEvent_ready_to_transmit_data,
     I2CSlaveCallbackEvent_stop_signaled,
+    I2CSlaveCallbackEvent_clock_stretch_timeout,
     I2CSlaveCallbackEvent_bug,
 };
 
@@ -93,21 +95,22 @@ union I2CCallback
         common_name = 'I2Cx',
         expansions  = (('driver', '&_I2C_drivers[handle]'),),
         terms       = lambda type, peripheral, handle, mode, address = 0: (
-            ('{}_DRIVER_MODE'       , 'expression' , f'I2CDriverMode_{mode}'    ),
-            ('{}_SLAVE_ADDRESS'     , 'expression' , f'((u16) 0x{address :03X})'),
-            ('{}'                   , 'expression' ,                            ),
-            ('NVICInterrupt_{}_EV'  , 'expression' ,                            ),
-            ('NVICInterrupt_{}_ER'  , 'expression' ,                            ),
-            ('STPY_{}_KERNEL_SOURCE', 'expression' ,                            ),
-            ('STPY_{}_PRESC'        , 'expression' ,                            ),
-            ('STPY_{}_SCLH'         , 'expression' ,                            ),
-            ('STPY_{}_SCLL'         , 'expression' ,                            ),
-            ('{}_RESET'             , 'cmsis_tuple',                            ),
-            ('{}_ENABLE'            , 'cmsis_tuple',                            ),
-            ('{}_KERNEL_SOURCE'     , 'cmsis_tuple',                            ),
-            ('{}_EV'                , 'interrupt'  ,                            ),
-            ('{}_ER'                , 'interrupt'  ,                            ),
-            ('{}_CALLBACK'          , 'expression' ,
+            ('{}_DRIVER_MODE'           , 'expression' , f'I2CDriverMode_{mode}'    ),
+            ('{}_SLAVE_ADDRESS'         , 'expression' , f'((u16) 0x{address :03X})'),
+            ('{}'                       , 'expression' ,                            ),
+            ('NVICInterrupt_{}_EV'      , 'expression' ,                            ),
+            ('NVICInterrupt_{}_ER'      , 'expression' ,                            ),
+            ('STPY_{}_KERNEL_SOURCE'    , 'expression' ,                            ),
+            ('STPY_{}_PRESC'            , 'expression' ,                            ),
+            ('STPY_{}_SCLH'             , 'expression' ,                            ),
+            ('STPY_{}_SCLL'             , 'expression' ,                            ),
+            ('STPY_{}_TIMEOUTR_TIMEOUTA', 'expression' ,                            ),
+            ('{}_RESET'                 , 'cmsis_tuple',                            ),
+            ('{}_ENABLE'                , 'cmsis_tuple',                            ),
+            ('{}_KERNEL_SOURCE'         , 'cmsis_tuple',                            ),
+            ('{}_EV'                    , 'interrupt'  ,                            ),
+            ('{}_ER'                    , 'interrupt'  ,                            ),
+            ('{}_CALLBACK'              , 'expression' ,
                 f'(union I2CCallback) {{ {
                     f'&INTERRUPT_I2Cx_{handle}'
                     if mode in ('master_callback', 'slave') else
@@ -169,6 +172,7 @@ enum I2CMasterError : u32
 {
     I2CMasterError_none,
     I2CMasterError_no_acknowledge,
+    I2CMasterError_clock_stretch_timeout,
 };
 
 enum I2CAddressType : u32 // @/`I2C Slave Address`.
@@ -221,6 +225,7 @@ static useret enum I2CTransferResult : u32
     I2CTransferResult_transfer_done,
     I2CTransferResult_transfer_ongoing,
     I2CTransferResult_no_acknowledge,
+    I2CTransferResult_clock_stretch_timeout,
     I2CTransferResult_bug,
 }
 I2C_transfer
@@ -378,9 +383,10 @@ I2C_transfer
 
             case I2CMasterState_standby: switch (driver->master.error)
             {
-                case I2CMasterError_none           : return I2CTransferResult_transfer_done;
-                case I2CMasterError_no_acknowledge : return I2CTransferResult_no_acknowledge;
-                default                            : return I2CTransferResult_bug;
+                case I2CMasterError_none                  : return I2CTransferResult_transfer_done;
+                case I2CMasterError_no_acknowledge        : return I2CTransferResult_no_acknowledge;
+                case I2CMasterError_clock_stretch_timeout : return I2CTransferResult_clock_stretch_timeout;
+                default                                   : return I2CTransferResult_bug;
             } break;
 
 
@@ -516,6 +522,13 @@ I2C_reinit(enum I2CHandle handle)
 
     CMSIS_SET
     (
+        I2Cx    , TIMEOUTR                   ,
+        TIMEOUTA, STPY_I2Cx_TIMEOUTR_TIMEOUTA, // Set the desired timeout duration.
+        TIMOUTEN, true                       , // Enable the timeout detection.
+    );
+
+    CMSIS_SET
+    (
         I2Cx  , CR1 , // Interrupts for:
         ERRIE , true, //     - Error.
         TCIE  , true, //     - Transfer completed.
@@ -568,6 +581,7 @@ _I2C_update_once(enum I2CHandle handle)
     enum I2CInterruptEvent : u32
     {
         I2CInterruptEvent_none,
+        I2CInterruptEvent_clock_stretch_timeout,
         I2CInterruptEvent_nack_signaled,
         I2CInterruptEvent_stop_signaled,
         I2CInterruptEvent_transfer_completed_successfully,
@@ -652,17 +666,6 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-    // I2C clock line has been stretched for too long.
-    //
-    // @/pg 2117/sec 48.4.17/`H533rm`.
-
-    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, TIMEOUT))
-    {
-        return I2CUpdateOnceResult_bug; // Shouldn't happen; this feature isn't used.
-    }
-
-
-
     // Slave acknowledged our transfer request.
     //
     // @/pg 2088/fig 639/`H533rm`.
@@ -705,6 +708,22 @@ _I2C_update_once(enum I2CHandle handle)
     else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, TXIS))
     {
         interrupt_event = I2CInterruptEvent_ready_to_transmit_data;
+    }
+
+
+
+    // I2C clock line has been stretched for too long.
+    //
+    // This should probably be handled after we
+    // check the RX-register and TX-register so
+    // there won't be any left over data.
+    //
+    // @/pg 2117/sec 48.4.17/`H533rm`.
+
+    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, TIMEOUT))
+    {
+        CMSIS_SET(I2Cx, ICR, TIMOUTCF, true);
+        interrupt_event = I2CInterruptEvent_clock_stretch_timeout;
     }
 
 
@@ -1058,6 +1077,30 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
+                // The slave stretched the clock for too long,
+                // or perhaps our I2C peripheral got locked up somehow.
+
+                case I2CInterruptEvent_clock_stretch_timeout:
+                {
+
+                    if (driver->master.error)
+                        return I2CUpdateOnceResult_bug; // There shouldn't have been any other errors before this.
+
+
+
+                    // A STOP condition is automatically
+                    // sent, so we'll wait for that.
+                    // @/pg 2117/sec 48.4.17/`H533rm`.
+
+                    driver->master.state = I2CMasterState_stopping;
+                    driver->master.error = I2CMasterError_clock_stretch_timeout;
+
+                    return I2CUpdateOnceResult_again;
+
+                } break;
+
+
+
                 case I2CInterruptEvent_stop_signaled : return I2CUpdateOnceResult_bug;
                 case I2CInterruptEvent_address_match : return I2CUpdateOnceResult_bug;
                 default                              : return I2CUpdateOnceResult_bug;
@@ -1113,9 +1156,10 @@ _I2C_update_once(enum I2CHandle handle)
 
                         switch (driver->master.error)
                         {
-                            case I2CMasterError_none           : callback_event = I2CMasterCallbackEvent_transfer_successful;     break;
-                            case I2CMasterError_no_acknowledge : callback_event = I2CMasterCallbackEvent_transfer_unacknowledged; break;
-                            default                            : return I2CUpdateOnceResult_bug;
+                            case I2CMasterError_none                  : callback_event = I2CMasterCallbackEvent_transfer_successful;     break;
+                            case I2CMasterError_no_acknowledge        : callback_event = I2CMasterCallbackEvent_transfer_unacknowledged; break;
+                            case I2CMasterError_clock_stretch_timeout : callback_event = I2CMasterCallbackEvent_clock_stretch_timeout;   break;
+                            default                                   : return I2CUpdateOnceResult_bug;
                         }
 
                         I2Cx_CALLBACK.master(callback_event);
@@ -1126,6 +1170,18 @@ _I2C_update_once(enum I2CHandle handle)
 
                     return I2CUpdateOnceResult_again;
 
+                } break;
+
+
+
+                // We couldn't put a STOP condition
+                // on the I2C bus for some reason;
+                // this could be the I2C peripheral
+                // being locked up.
+
+                case I2CInterruptEvent_clock_stretch_timeout:
+                {
+                    return I2CUpdateOnceResult_bus_misbehaved;
                 } break;
 
 
@@ -1203,6 +1259,19 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
+                // If the I2C peripheral is detecting that the
+                // clock has been stretched for too long, even
+                // though we're not handling any transfers, then
+                // it's likely there's something weird that's happening
+                // on the I2C bus lines.
+
+                case I2CInterruptEvent_clock_stretch_timeout:
+                {
+                    return I2CUpdateOnceResult_bus_misbehaved;
+                } break;
+
+
+
                 case I2CInterruptEvent_nack_signaled                   : return I2CUpdateOnceResult_bug;
                 case I2CInterruptEvent_stop_signaled                   : return I2CUpdateOnceResult_bug;
                 case I2CInterruptEvent_data_available_to_read          : return I2CUpdateOnceResult_bug;
@@ -1262,6 +1331,31 @@ _I2C_update_once(enum I2CHandle handle)
                     // Let the slave callback know that the transfer ended.
 
                     I2Cx_CALLBACK.slave(I2CSlaveCallbackEvent_stop_signaled, nullptr);
+
+                    return I2CUpdateOnceResult_again;
+
+                } break;
+
+
+
+                // Either the master is taking too long to send us data,
+                // or the user is processing the data too slow, or the
+                // I2C peripheral is locked up somehow. The clock-stretching
+                // timeout duration should be long enough that the processing
+                // time of both master and slave is unlikely to be the reason
+                // anyways.
+
+                case I2CInterruptEvent_clock_stretch_timeout:
+                {
+
+                    // We just abort the data reception and
+                    // hope the I2C bus will figure itself out.
+                    // We also let the user know about this time-out
+                    // so they can reinitialize if desired.
+
+                    driver->slave.state = I2CSlaveState_standby;
+
+                    I2Cx_CALLBACK.slave(I2CSlaveCallbackEvent_clock_stretch_timeout, nullptr);
 
                     return I2CUpdateOnceResult_again;
 
@@ -1338,6 +1432,31 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
+                // Either the master is taking too long to process our data,
+                // or the user is queuing the data too slow, or the
+                // I2C peripheral is locked up somehow. The clock-stretching
+                // timeout duration should be long enough that the processing
+                // time of both master and slave is unlikely to be the reason
+                // anyways.
+
+                case I2CInterruptEvent_clock_stretch_timeout:
+                {
+
+                    // We just abort the data transmission and
+                    // hope the I2C bus will figure itself out.
+                    // We also let the user know about this time-out
+                    // so they can reinitialize if desired.
+
+                    driver->slave.state = I2CSlaveState_standby;
+
+                    I2Cx_CALLBACK.slave(I2CSlaveCallbackEvent_clock_stretch_timeout, nullptr);
+
+                    return I2CUpdateOnceResult_again;
+
+                } break;
+
+
+
                 case I2CInterruptEvent_address_match                   : return I2CUpdateOnceResult_bug;
                 case I2CInterruptEvent_data_available_to_read          : return I2CUpdateOnceResult_bug;
                 case I2CInterruptEvent_stop_signaled                   : return I2CUpdateOnceResult_bug;
@@ -1382,6 +1501,18 @@ _I2C_update_once(enum I2CHandle handle)
 
                     return I2CUpdateOnceResult_again;
 
+                } break;
+
+
+
+                // We couldn't detect a STOP condition
+                // on the I2C bus for some reason;
+                // this could be the I2C peripheral
+                // being locked up.
+
+                case I2CInterruptEvent_clock_stretch_timeout:
+                {
+                    return I2CUpdateOnceResult_bus_misbehaved;
                 } break;
 
 
@@ -1541,6 +1672,9 @@ _I2C_driver_interrupt(enum I2CHandle handle)
 //
 // It should be noted that the I2C interrupt routine is the only one
 // that can invoke the callback functions to avoid re-entrance issues.
+//
+// The callback routines should be able to reinitialize the I2C driver
+// any time it wants to.
 
 
 

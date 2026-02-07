@@ -146,6 +146,18 @@ main(void)
                             spinlock_nop(1'000'000);
                         } break;
 
+                        case I2CTransferResult_clock_stretch_timeout:
+                        {
+                            stlink_tx
+                            (
+                                ">"                                             "\n"
+                                "> Queen saw the clock stretched for too long!" "\n"
+                                ">"                                             "\n"
+                            );
+                            reinitialize_i2c_driver(I2CHandle_queen);
+                            spinlock_nop(1'000'000);
+                        } break;
+
                         case I2CTransferResult_transfer_ongoing : panic;
                         default                                 : panic;
                     }
@@ -233,6 +245,18 @@ main(void)
                             spinlock_nop(1'000'000);
                         } break;
 
+                        case I2CTransferResult_clock_stretch_timeout:
+                        {
+                            stlink_tx
+                            (
+                                ">"                                             "\n"
+                                "> Queen saw the clock stretched for too long!" "\n"
+                                ">"                                             "\n"
+                            );
+                            reinitialize_i2c_driver(I2CHandle_queen);
+                            spinlock_nop(1'000'000);
+                        } break;
+
                         case I2CTransferResult_transfer_ongoing : panic;
                         default                                 : panic;
                     }
@@ -292,6 +316,18 @@ main(void)
                             (
                                 ">"                                             "\n"
                                 "> Queen encountered an issue while receiving!" "\n"
+                                ">"                                             "\n"
+                            );
+                            reinitialize_i2c_driver(I2CHandle_queen);
+                            spinlock_nop(1'000'000);
+                        } break;
+
+                        case I2CTransferResult_clock_stretch_timeout:
+                        {
+                            stlink_tx
+                            (
+                                ">"                                             "\n"
+                                "> Queen saw the clock stretched for too long!" "\n"
                                 ">"                                             "\n"
                             );
                             reinitialize_i2c_driver(I2CHandle_queen);
@@ -418,10 +454,22 @@ INTERRUPT_I2Cx_bee(enum I2CSlaveCallbackEvent event, u8* data)
 
         ////////////////////////////////////////////////////////////////////////////////
         //
-        // The I2C driver crashed and needs to be reinitialized.
+        // The I2C driver needs to be reinitialized due to an issue.
         //
 
-        case I2CTransferResult_bug:
+        case I2CTransferResult_clock_stretch_timeout:
+        {
+            stlink_tx
+            (
+                ">"                                           "\n"
+                "> Bee saw the clock stretched for too long!" "\n"
+                ">"                                           "\n"
+            );
+            reinitialize_i2c_driver(I2CHandle_bee);
+            spinlock_nop(1'000'000);
+        } break;
+
+        case I2CSlaveCallbackEvent_bug:
         {
             stlink_tx
             (
