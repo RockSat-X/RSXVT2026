@@ -608,17 +608,6 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-    // I2C clock line has been stretched for too long.
-    //
-    // @/pg 2117/sec 48.4.17/`H533rm`.
-
-    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, TIMEOUT))
-    {
-        return I2CUpdateOnceResult_bug; // Shouldn't happen; this feature isn't used.
-    }
-
-
-
     // An SMBALERT signal was detected.
     //
     // @/pg 2117/sec 48.4.17/`H533rm`.
@@ -663,6 +652,29 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
+    // I2C clock line has been stretched for too long.
+    //
+    // @/pg 2117/sec 48.4.17/`H533rm`.
+
+    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, TIMEOUT))
+    {
+        return I2CUpdateOnceResult_bug; // Shouldn't happen; this feature isn't used.
+    }
+
+
+
+    // Slave acknowledged our transfer request.
+    //
+    // @/pg 2088/fig 639/`H533rm`.
+
+    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, ADDR))
+    {
+        CMSIS_SET(I2Cx, ICR, ADDRCF, true);
+        interrupt_event = I2CInterruptEvent_address_match;
+    }
+
+
+
     // The slave didn't acknowledge.
     //
     // @/pg 2085/sec 48.4.8/`H533rm`.
@@ -671,34 +683,6 @@ _I2C_update_once(enum I2CHandle handle)
     {
         CMSIS_SET(I2Cx, ICR, NACKCF, true);
         interrupt_event = I2CInterruptEvent_nack_signaled;
-    }
-
-
-
-    // A STOP condition was successfully sent.
-    //
-    // @/pg 2085/sec 48.4.8/`H533rm`.
-
-    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, STOPF))
-    {
-        CMSIS_SET(I2Cx, ISR, TXE   , true); // @/`Flushing I2C Transmission Data`.
-        CMSIS_SET(I2Cx, ICR, STOPCF, true);
-        interrupt_event = I2CInterruptEvent_stop_signaled;
-    }
-
-
-
-    // The I2C transfer was just finished.
-    //
-    // @/pg 2095/sec 48.4.9/`H533rm`.
-
-    else if
-    (
-        CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, TC  ) &&
-        CMSIS_GET_FROM(interrupt_enable, I2Cx, CR1, TCIE) // @/`I2C Transfer-Complete Interrupt and Repeated Starts`.
-    )
-    {
-        interrupt_event = I2CInterruptEvent_transfer_completed_successfully;
     }
 
 
@@ -725,14 +709,33 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-    // Slave acknowledged our transfer request.
+    // A STOP condition was successfully sent.
     //
-    // @/pg 2088/fig 639/`H533rm`.
+    // We must process the STOP condition after
+    // we have read all data from the RX-register.
+    //
+    // @/pg 2085/sec 48.4.8/`H533rm`.
 
-    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, ADDR))
+    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, STOPF))
     {
-        CMSIS_SET(I2Cx, ICR, ADDRCF, true);
-        interrupt_event = I2CInterruptEvent_address_match;
+        CMSIS_SET(I2Cx, ISR, TXE   , true); // @/`Flushing I2C Transmission Data`.
+        CMSIS_SET(I2Cx, ICR, STOPCF, true);
+        interrupt_event = I2CInterruptEvent_stop_signaled;
+    }
+
+
+
+    // The I2C transfer was just finished.
+    //
+    // @/pg 2095/sec 48.4.9/`H533rm`.
+
+    else if
+    (
+        CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, TC  ) &&
+        CMSIS_GET_FROM(interrupt_enable, I2Cx, CR1, TCIE) // @/`I2C Transfer-Complete Interrupt and Repeated Starts`.
+    )
+    {
+        interrupt_event = I2CInterruptEvent_transfer_completed_successfully;
     }
 
 
