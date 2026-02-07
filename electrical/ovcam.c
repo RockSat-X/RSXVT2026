@@ -415,6 +415,226 @@ static RingBuffer(struct OVCAMFramebuffer, 2) _OVCAM_ring_buffer = {0};
 
 
 
+static useret enum OVCAMReinitResult : u32
+{
+    OVCAMReinitResult_success,
+    OVCAMReinitResult_failed_to_initialize_with_i2c,
+    OVCAMReinitResult_bug,
+}
+OVCAM_reinit(void)
+{
+
+
+
+    // Reset-cycle the peripherals.
+
+    CMSIS_SET(RCC, AHB1RSTR, GPDMA1RST   , true );
+    CMSIS_SET(RCC, AHB2RSTR, DCMI_PSSIRST, true );
+    CMSIS_SET(RCC, AHB1RSTR, GPDMA1RST   , false);
+    CMSIS_SET(RCC, AHB2RSTR, DCMI_PSSIRST, false);
+
+    NVIC_DISABLE(GPDMA1_Channel7);
+    NVIC_DISABLE(DCMI_PSSI);
+
+
+
+    // When clearing out the framebuffer ring-buffer,
+    // we make sure to only clear out the non-data part,
+    // because the framebuffers are pretty big, and it'd
+    // be a waste of time to do so.
+
+    _OVCAM_ring_buffer.ring_buffer_raw = (struct RingBufferRaw) {0};
+
+
+
+    // Reinitialize the I2C driver that'll
+    // later initialize the OV camera module.
+
+    enum I2CReinitResult i2c_reinit_result = I2C_reinit(I2CHandle_ovcam_sccb);
+
+    switch (i2c_reinit_result)
+    {
+        case I2CReinitResult_success : break;
+        case I2CReinitResult_bug     : return OVCAMReinitResult_bug;
+        default                      : return OVCAMReinitResult_bug;
+    }
+
+
+
+    // Power-cycle and reset-cycle the camera module.
+    //
+    // TODO We have an artifical amount of delay here,
+    //      something smarter could be done, but this
+    //      pretty sufficient.
+
+    GPIO_ACTIVE(ovcam_power_down);
+    GPIO_ACTIVE(ovcam_reset);
+
+    spinlock_nop(50'000);
+
+    GPIO_INACTIVE(ovcam_power_down);
+    GPIO_INACTIVE(ovcam_reset);
+
+    spinlock_nop(50'000);
+
+
+
+    // Initialize the camera module's registers.
+
+    for
+    (
+        i32 sequence_offset = 0;
+        sequence_offset < countof(OVCAM_INITIALIZATION_SEQUENCE);
+    )
+    {
+
+        i32       amount_of_bytes_to_write =  OVCAM_INITIALIZATION_SEQUENCE[sequence_offset             ];
+        const u8* data_to_send             = &OVCAM_INITIALIZATION_SEQUENCE[sequence_offset + sizeof(u8)];
+
+        b32 success = false;
+
+        for
+        (
+            i32 attempts = 0;
+            attempts < 16 && !success;
+            attempts += 1
+        )
+        {
+
+            enum I2CTransferResult i2c_transfer_result =
+                I2C_transfer
+                (
+                    I2CHandle_ovcam_sccb,
+                    OVCAM_SEVEN_BIT_ADDRESS,
+                    I2CAddressType_seven,
+                    I2COperation_single_write,
+                    (u8*) data_to_send,
+                    sizeof(u16) + amount_of_bytes_to_write
+                );
+
+            switch (i2c_transfer_result)
+            {
+
+                case I2CTransferResult_transfer_done:
+                {
+                    success = true;
+                } break;
+
+                case I2CTransferResult_no_acknowledge:
+                case I2CTransferResult_clock_stretch_timeout:
+                {
+                    // Something weird happened;
+                    // let's try the transfer again.
+                } break;
+
+                case I2CTransferResult_transfer_ongoing : return OVCAMReinitResult_bug;
+                case I2CTransferResult_bug              : return OVCAMReinitResult_bug;
+                default                                 : return OVCAMReinitResult_bug;
+
+            }
+
+        }
+
+        if (success)
+        {
+            sequence_offset += sizeof(u8) + sizeof(u16) + amount_of_bytes_to_write;
+        }
+        else
+        {
+            return OVCAMReinitResult_failed_to_initialize_with_i2c;
+        }
+
+    }
+
+
+
+    // Clock the DCMI peripheral.
+
+    CMSIS_SET(RCC, AHB2ENR, DCMI_PSSIEN, true);
+
+
+
+    // Configure the DCMI peripheral.
+
+    CMSIS_SET
+    (
+        DCMI    , IER  , // Enable interrupts for:
+        ERR_IE  , true , //     - Embedded synchronization error.
+        OVR_IE  , true , //     - Data overrun error.
+        FRAME_IE, true , //     - Frame captured.
+    );
+
+    CMSIS_SET
+    (
+        DCMI  , CR   ,
+        EDM   , 0b00 , // "00: Interface captures 8-bit data on every pixel clock."
+        VSPOL , true , // "1: DCMI_VSYNC active high".
+        HSPOL , true , // "1: DCMI_HSYNC active high".
+        PCKPOL, true , // "1: Rising edge active".
+        JPEG  , true , // Expect JPEG data.
+        CM    , true , // "1: Snapshot mode (single frame) - ..."
+        ENABLE, true , // We're done configuring and the DCMI is ready to be used.
+    );
+
+    NVIC_ENABLE(DCMI_PSSI);
+
+
+
+    // Clock the GPDMA1 peripheral.
+
+    CMSIS_SET(RCC, AHB1ENR, GPDMA1EN, true);
+
+
+
+    // Configure the DMA channel.
+
+    CMSIS_SET(GPDMA1_Channel7, CSAR, SA, (u32) &DCMI->DR); // Where to get the pixel data.
+
+    CMSIS_SET
+    (
+        GPDMA1_Channel7, CTR1 ,
+        DINC           , true , // Destination address will be incremented on each transfer.
+        SINC           , false, // Source addresss will stay fixed.
+        DDW_LOG2       , 0b10 , // Transfer size of four bytes.
+        SDW_LOG2       , 0b10 , // "
+    );
+
+    CMSIS_SET
+    (
+        GPDMA1_Channel7, CTR2,
+        PFREQ          , true, // The peripheral will dictate when the transfer can happen.
+        REQSEL         , 108 , // The DCMI peripheral is the one that'll be providing the transfer request.
+        TCEM           , 0b01, // The transfer is considered complete when BNDT and BRC are both zero.
+    );
+
+    CMSIS_SET
+    (
+        GPDMA1_Channel7, CCR , // Enable interrupts for:
+        TOIE           , true, //     - Trigger over-run.
+        SUSPIE         , true, //     - Completed suspension.
+        USEIE          , true, //     - User setting error.
+        ULEIE          , true, //     - Update link transfer error.
+        DTEIE          , true, //     - Data transfer error.
+        TCIE           , true, //     - Transfer complete.
+    );
+
+    CMSIS_SET(GPDMA1, MISR, MIS7, true); // Allow interrupts for the DMA channel.
+    NVIC_ENABLE(GPDMA1_Channel7);        // "
+
+
+
+    // The DMA channel will schedule the capture of the first frame.
+
+    NVIC_SET_PENDING(GPDMA1_Channel7);
+
+
+
+    return OVCAMReinitResult_success;
+
+}
+
+
+
 static void
 OVCAM_free_framebuffer(void)
 {
@@ -428,6 +648,10 @@ OVCAM_free_framebuffer(void)
     NVIC_SET_PENDING(GPDMA1_Channel7);
 
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -520,149 +744,6 @@ OVCAM_write_register(u16 address, u8 content)
 
     if (result != I2CTransferResult_transfer_done)
         sorry
-
-}
-
-
-
-static void
-OVCAM_init(void)
-{
-
-    // Reset-cycle the peripherals.
-
-    CMSIS_SET(RCC, AHB1RSTR, GPDMA1RST   , true );
-    CMSIS_SET(RCC, AHB2RSTR, DCMI_PSSIRST, true );
-    CMSIS_SET(RCC, AHB1RSTR, GPDMA1RST   , false);
-    CMSIS_SET(RCC, AHB2RSTR, DCMI_PSSIRST, false);
-
-    {
-        enum I2CReinitResult result = I2C_reinit(I2CHandle_ovcam_sccb);
-        switch (result)
-        {
-            case I2CReinitResult_success : break;
-            case I2CReinitResult_bug     : panic;
-            default                      : panic;
-        }
-    }
-
-
-
-    // Reset-cycle the camera module.
-
-    GPIO_ACTIVE(ovcam_power_down); // Power-cycle the camera module.
-    GPIO_ACTIVE(ovcam_reset);      // Reset-cycle the camera module.
-
-    spinlock_nop(100'000); // TODO something less ad-hoc?
-
-    GPIO_INACTIVE(ovcam_power_down);
-    GPIO_INACTIVE(ovcam_reset);
-
-    spinlock_nop(100'000); // TODO something less ad-hoc?
-
-
-
-    // Initialize the camera module's registers.
-
-    i32 sequence_index = 0;
-
-    while (sequence_index < countof(OVCAM_INITIALIZATION_SEQUENCE))
-    {
-
-        i32       amount_of_bytes_to_write =  OVCAM_INITIALIZATION_SEQUENCE[sequence_index             ];
-        const u8* data_to_send             = &OVCAM_INITIALIZATION_SEQUENCE[sequence_index + sizeof(u8)];
-
-        enum I2CTransferResult result =
-            I2C_transfer
-            (
-                I2CHandle_ovcam_sccb,
-                OVCAM_SEVEN_BIT_ADDRESS,
-                I2CAddressType_seven,
-                I2COperation_single_write,
-                (u8*) data_to_send,
-                sizeof(u16) + amount_of_bytes_to_write
-            );
-
-        if (result != I2CTransferResult_transfer_done)
-            sorry
-
-        sequence_index += sizeof(u8) + sizeof(u16) + amount_of_bytes_to_write;
-
-    }
-
-
-
-    // Initialize the DMA for the DCMI peripheral.
-
-    CMSIS_SET(RCC, AHB1ENR, GPDMA1EN, true); // Clock the GPDMA1 peripheral.
-
-    CMSIS_SET(GPDMA1_Channel7, CSAR, SA, (u32) &DCMI->DR); // The address to get the data from.
-
-    CMSIS_SET
-    (
-        GPDMA1_Channel7, CTR1 ,
-        DINC           , true , // Destination address will be incremented on each transfer.
-        SINC           , false, // Source addresss will stay fixed.
-        DDW_LOG2       , 0b10 , // Transfer size of four bytes.
-        SDW_LOG2       , 0b10 , // "
-    );
-
-    CMSIS_SET
-    (
-        GPDMA1_Channel7, CTR2,
-        PFREQ          , true, // The peripheral will dictate when the transfer can happen.
-        REQSEL         , 108 , // The DCMI peripheral is the one that'll be providing the transfer request.
-        TCEM           , 0b01, // The transfer is considered complete when BNDT and BRC are both zero.
-    );
-
-    CMSIS_SET
-    (
-        GPDMA1_Channel7, CCR , // Enable interrupts for:
-        TOIE           , true, //     - Trigger over-run.
-        SUSPIE         , true, //     - Completed suspension.
-        USEIE          , true, //     - User setting error.
-        ULEIE          , true, //     - Update link transfer error.
-        DTEIE          , true, //     - Data transfer error.
-        TCIE           , true, //     - Transfer complete.
-    );
-
-    CMSIS_SET(GPDMA1, MISR, MIS7, true); // Allow interrupts for the DMA channel.
-
-    NVIC_ENABLE(GPDMA1_Channel7);
-
-
-
-    // Initialize the DCMI peripheral.
-
-    CMSIS_SET(RCC, AHB2ENR, DCMI_PSSIEN, true); // Clock the DCMI peripheral.
-
-    CMSIS_SET
-    (
-        DCMI    , IER  , // Enable interrupts for:
-        ERR_IE  , true , //     - Embedded synchronization error.
-        OVR_IE  , true , //     - Data overrun error.
-        FRAME_IE, true , //     - Frame captured.
-    );
-
-    CMSIS_SET
-    (
-        DCMI  , CR   ,
-        EDM   , 0b00 , // "00: Interface captures 8-bit data on every pixel clock."
-        VSPOL , true , // "1: DCMI_VSYNC active high".
-        HSPOL , true , // "1: DCMI_HSYNC active high".
-        PCKPOL, true , // "1: Rising edge active".
-        JPEG  , true , // Expect JPEG data.
-        CM    , true , // "1: Snapshot mode (single frame) - ..."
-        ENABLE, true , // We're done configuring and the DCMI is ready to be used.
-    );
-
-    NVIC_ENABLE(DCMI_PSSI);
-
-
-
-    // The DMA channel will schedule the capture of the first frame.
-
-    NVIC_SET_PENDING(GPDMA1_Channel7);
 
 }
 

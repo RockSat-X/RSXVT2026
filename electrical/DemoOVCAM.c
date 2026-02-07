@@ -13,7 +13,19 @@ main(void)
     UXART_init(UXARTHandle_stlink);
 
 
-    OVCAM_init();
+
+    {
+        enum OVCAMReinitResult result = OVCAM_reinit();
+        switch (result)
+        {
+            case OVCAMReinitResult_success                       : break;
+            case OVCAMReinitResult_failed_to_initialize_with_i2c : panic;
+            case OVCAMReinitResult_bug                           : panic;
+            default                                              : panic;
+        }
+    }
+
+
 
     for (;;)
     {
