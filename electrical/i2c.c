@@ -272,6 +272,13 @@ I2C_transfer
 
 
 
+    // There shouldn't be any transfers on the bus of right now.
+
+    if (CMSIS_GET(I2Cx, ISR, BUSY))
+        return I2CTransferResult_bug;
+
+
+
     // Validate I2C slave address.
 
     switch (address_type)
@@ -760,6 +767,11 @@ _I2C_update_once(enum I2CHandle handle)
                 if (interrupt_event)
                     return I2CUpdateOnceResult_bug; // We shouldn't have unhandled interrupt events...
 
+                if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, BUSY))
+                    return I2CUpdateOnceResult_bug; // There shouldn't be any transfers on the bus of right now.
+
+
+
                 if (I2Cx_DRIVER_MODE == I2CDriverMode_master_callback)
                 {
 
@@ -784,6 +796,9 @@ _I2C_update_once(enum I2CHandle handle)
 
                 if (interrupt_event)
                     return I2CUpdateOnceResult_bug; // We shouldn't have unhandled interrupt events...
+
+                if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, BUSY))
+                    return I2CUpdateOnceResult_bug; // There shouldn't be any transfers on the bus of right now.
 
                 if (!(1 <= driver->master.amount && driver->master.amount <= 255))
                     return I2CUpdateOnceResult_bug; // We currently don't handle transfer sizes larger than this.
@@ -1073,6 +1088,9 @@ _I2C_update_once(enum I2CHandle handle)
 
                     if (!iff(driver->master.progress == driver->master.amount, !driver->master.error))
                         return I2CUpdateOnceResult_bug; // Error, but we transferred all expected data?
+
+                    if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, BUSY))
+                        return I2CUpdateOnceResult_bug; // The bus should be no longer busy now.
 
 
 
