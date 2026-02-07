@@ -8,34 +8,48 @@
 
 
 
+static void
+reinitialize_i2c_driver(enum I2CHandle handle)
+{
+
+    // When the I2C driver encounters an issue,
+    // it quickly goes into a bugged state
+    // where nothing can be done until the driver
+    // is completely reinitialized.
+    //
+    // This could be due to a bug within the driver code,
+    // or the user passing in invalid parameters, or
+    // some sort of unexpected error on the I2C bus clock
+    // and data lines.
+
+    enum I2CReinitResult result = I2C_reinit(handle);
+
+    switch (result)
+    {
+        case I2CReinitResult_success : break;
+        case I2CReinitResult_bug     : panic;
+        default                      : panic;
+    }
+
+}
+
+
+
 extern noret void
 main(void)
 {
 
     STPY_init();
     UXART_init(UXARTHandle_stlink);
+    reinitialize_i2c_driver(I2CHandle_queen);
+    reinitialize_i2c_driver(I2CHandle_bee);
 
-    {
-        enum I2CReinitResult result = I2C_reinit(I2CHandle_queen);
-        switch (result)
-        {
-            case I2CReinitResult_success : break;
-            case I2CReinitResult_bug     : panic;
-            default                      : panic;
-        }
-    }
-    {
-        enum I2CReinitResult result = I2C_reinit(I2CHandle_bee);
-        switch (result)
-        {
-            case I2CReinitResult_success : break;
-            case I2CReinitResult_bug     : panic;
-            default                      : panic;
-        }
-    }
+
 
     switch (DEMO_MODE)
     {
+
+
 
         ////////////////////////////////////////////////////////////////////////////////
         //
@@ -52,6 +66,8 @@ main(void)
                 address_type = !address_type // Flip-flop between 7-bit and 10-bit addressing.
             )
             {
+
+
 
                 // Get the address range.
 
@@ -91,7 +107,7 @@ main(void)
                     // We try to read a single byte from the slave at the
                     // current slave address to see if we get an acknowledge.
 
-                    enum I2CTransferResult result =
+                    enum I2CTransferResult transfer_result =
                         I2C_transfer
                         (
                             I2CHandle_queen,
@@ -106,7 +122,7 @@ main(void)
 
                     // Check the results of the transfer.
 
-                    switch (result)
+                    switch (transfer_result)
                     {
                         case I2CTransferResult_transfer_done:
                         {
@@ -118,8 +134,19 @@ main(void)
                             stlink_tx("Slave 0x%03X didn't acknowledge!\n", slave_address);
                         } break;
 
+                        case I2CTransferResult_bug:
+                        {
+                            stlink_tx
+                            (
+                                ">"                             "\n"
+                                "> Queen encountered an issue!" "\n"
+                                ">"                             "\n"
+                            );
+                            reinitialize_i2c_driver(I2CHandle_queen);
+                            spinlock_nop(1'000'000);
+                        } break;
+
                         case I2CTransferResult_transfer_ongoing : panic;
-                        case I2CTransferResult_bug              : panic;
                         default                                 : panic;
                     }
 
@@ -167,7 +194,7 @@ main(void)
 
                     char message[] = "Doing taxes suck!";
 
-                    enum I2CTransferResult result =
+                    enum I2CTransferResult transfer_result =
                         I2C_transfer
                         (
                             I2CHandle_queen,
@@ -182,7 +209,7 @@ main(void)
 
                     // Check the results of the transfer.
 
-                    switch (result)
+                    switch (transfer_result)
                     {
                         case I2CTransferResult_transfer_done:
                         {
@@ -194,8 +221,19 @@ main(void)
                             stlink_tx("Queen : transmission failed!\n");
                         } break;
 
+                        case I2CTransferResult_bug:
+                        {
+                            stlink_tx
+                            (
+                                ">"                                                "\n"
+                                "> Queen encountered an issue while transmitting!" "\n"
+                                ">"                                                "\n"
+                            );
+                            reinitialize_i2c_driver(I2CHandle_queen);
+                            spinlock_nop(1'000'000);
+                        } break;
+
                         case I2CTransferResult_transfer_ongoing : panic;
-                        case I2CTransferResult_bug              : panic;
                         default                                 : panic;
                     }
 
@@ -211,6 +249,8 @@ main(void)
 
                 stlink_tx("\n");
 
+
+
                 stlink_tx("Queen : reading from bee...\n");
 
                 {
@@ -219,7 +259,7 @@ main(void)
 
                     char response[24] = {0};
 
-                    enum I2CTransferResult result =
+                    enum I2CTransferResult transfer_result =
                         I2C_transfer
                         (
                             I2CHandle_queen,
@@ -234,7 +274,7 @@ main(void)
 
                     // Check the results of the transfer.
 
-                    switch (result)
+                    switch (transfer_result)
                     {
                         case I2CTransferResult_transfer_done:
                         {
@@ -246,8 +286,19 @@ main(void)
                             stlink_tx("Queen : reception failed!\n");
                         } break;
 
+                        case I2CTransferResult_bug:
+                        {
+                            stlink_tx
+                            (
+                                ">"                                             "\n"
+                                "> Queen encountered an issue while receiving!" "\n"
+                                ">"                                             "\n"
+                            );
+                            reinitialize_i2c_driver(I2CHandle_queen);
+                            spinlock_nop(1'000'000);
+                        } break;
+
                         case I2CTransferResult_transfer_ongoing : panic;
-                        case I2CTransferResult_bug              : panic;
                         default                                 : panic;
                     }
 
@@ -294,6 +345,8 @@ INTERRUPT_I2Cx_bee(enum I2CSlaveCallbackEvent event, u8* data)
 
     switch (event)
     {
+
+
 
         ////////////////////////////////////////////////////////////////////////////////
         //
@@ -363,8 +416,26 @@ INTERRUPT_I2Cx_bee(enum I2CSlaveCallbackEvent event, u8* data)
 
 
 
-        case I2CSlaveCallbackEvent_bug : panic;
-        default                        : panic;
+        ////////////////////////////////////////////////////////////////////////////////
+        //
+        // The I2C driver crashed and needs to be reinitialized.
+        //
+
+        case I2CTransferResult_bug:
+        {
+            stlink_tx
+            (
+                ">"                           "\n"
+                "> Bee encountered an issue!" "\n"
+                ">"                           "\n"
+            );
+            reinitialize_i2c_driver(I2CHandle_bee);
+            spinlock_nop(1'000'000);
+        } break;
+
+
+
+        default : panic;
 
     }
 
