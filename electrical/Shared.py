@@ -1231,16 +1231,16 @@ for target in TARGETS:
     # Additional macro defines.
 
     defines = [
-        ('TARGET_NAME'                        , target.name                              ),
-        ('TARGET_MCU'                         , target.mcu                               ),
-        ('TARGET_USES_FREERTOS'               , target.use_freertos                      ),
-        ('MAIN_STACK_SIZE'                    , target.main_stack_size                   ),
-        ('COMPILING_ESP32'                    , False                                    ),
-        ('VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS', VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS      ),
-        ('VN100_ESP32_BAUD'                   , VN100_ESP32_BAUD                         ),
-        ('TV_TOKEN_START'                     , f'\\"{TV_TOKEN.START.decode('UTF-8')}\\"'),
-        ('TV_TOKEN_END'                       , f'\\"{TV_TOKEN.END  .decode('UTF-8')}\\"'),
-        ('TV_WRITE_BYTE'                      , f'0x{TV_WRITE_BYTE :02X}'                ),
+        ('TARGET_NAME'                        , target.name                                   ),
+        ('TARGET_MCU'                         , target.mcu                                    ),
+        ('TARGET_USES_FREERTOS'               , target.use_freertos                           ),
+        ('MAIN_STACK_SIZE'                    , target.main_stack_size                        ),
+        ('COMPILING_ESP32'                    , False                                         ),
+        ('VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS', VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS           ),
+        ('VN100_ESP32_BAUD'                   , VN100_ESP32_BAUD                              ),
+        ('TV_TOKEN_START'                     , f'STRINGIFY({TV_TOKEN.START.decode('UTF-8')})'),
+        ('TV_TOKEN_END'                       , f'STRINGIFY({TV_TOKEN.END  .decode('UTF-8')})'),
+        ('TV_WRITE_BYTE'                      , f'0x{TV_WRITE_BYTE :02X}'                     ),
     ]
 
     for other_target in TARGETS:
