@@ -4,7 +4,7 @@
 
 
 
-#define DEMO_MODE 1 // See below for different kinds of tests.
+#define DEMO_MODE 0 // See below for different kinds of tests.
 
 
 
@@ -14,8 +14,25 @@ main(void)
 
     STPY_init();
     UXART_init(UXARTHandle_stlink);
-    I2C_reinit(I2CHandle_queen);
-    I2C_reinit(I2CHandle_bee);
+
+    {
+        enum I2CReinitResult result = I2C_reinit(I2CHandle_queen);
+        switch (result)
+        {
+            case I2CReinitResult_success : break;
+            case I2CReinitResult_bug     : panic;
+            default                      : panic;
+        }
+    }
+    {
+        enum I2CReinitResult result = I2C_reinit(I2CHandle_bee);
+        switch (result)
+        {
+            case I2CReinitResult_success : break;
+            case I2CReinitResult_bug     : panic;
+            default                      : panic;
+        }
+    }
 
     switch (DEMO_MODE)
     {
@@ -74,7 +91,7 @@ main(void)
                     // We try to read a single byte from the slave at the
                     // current slave address to see if we get an acknowledge.
 
-                    enum I2CMasterError error =
+                    enum I2CTransferResult result =
                         I2C_transfer
                         (
                             I2CHandle_queen,
@@ -89,19 +106,21 @@ main(void)
 
                     // Check the results of the transfer.
 
-                    switch (error)
+                    switch (result)
                     {
-                        case I2CMasterError_none:
+                        case I2CTransferResult_transfer_done:
                         {
                             stlink_tx("Slave 0x%03X acknowledged!\n", slave_address);
                         } break;
 
-                        case I2CMasterError_no_acknowledge:
+                        case I2CTransferResult_no_acknowledge:
                         {
                             stlink_tx("Slave 0x%03X didn't acknowledge!\n", slave_address);
                         } break;
 
-                        default: panic;
+                        case I2CTransferResult_transfer_ongoing : panic;
+                        case I2CTransferResult_bug              : panic;
+                        default                                 : panic;
                     }
 
 
@@ -148,7 +167,7 @@ main(void)
 
                     char message[] = "Doing taxes suck!";
 
-                    enum I2CMasterError error =
+                    enum I2CTransferResult result =
                         I2C_transfer
                         (
                             I2CHandle_queen,
@@ -163,19 +182,21 @@ main(void)
 
                     // Check the results of the transfer.
 
-                    switch (error)
+                    switch (result)
                     {
-                        case I2CMasterError_none:
+                        case I2CTransferResult_transfer_done:
                         {
                             stlink_tx("Queen : transmission successful!\n");
                         } break;
 
-                        case I2CMasterError_no_acknowledge:
+                        case I2CTransferResult_no_acknowledge:
                         {
                             stlink_tx("Queen : transmission failed!\n");
                         } break;
 
-                        default: panic;
+                        case I2CTransferResult_transfer_ongoing : panic;
+                        case I2CTransferResult_bug              : panic;
+                        default                                 : panic;
                     }
 
 
@@ -198,7 +219,7 @@ main(void)
 
                     char response[24] = {0};
 
-                    enum I2CMasterError error =
+                    enum I2CTransferResult result =
                         I2C_transfer
                         (
                             I2CHandle_queen,
@@ -213,19 +234,21 @@ main(void)
 
                     // Check the results of the transfer.
 
-                    switch (error)
+                    switch (result)
                     {
-                        case I2CMasterError_none:
+                        case I2CTransferResult_transfer_done:
                         {
                             stlink_tx("Queen : reception successful! : `%.*s`\n", sizeof(response), response);
                         } break;
 
-                        case I2CMasterError_no_acknowledge:
+                        case I2CTransferResult_no_acknowledge:
                         {
                             stlink_tx("Queen : reception failed!\n");
                         } break;
 
-                        default: panic;
+                        case I2CTransferResult_transfer_ongoing : panic;
+                        case I2CTransferResult_bug              : panic;
+                        default                                 : panic;
                     }
 
 
@@ -340,7 +363,8 @@ INTERRUPT_I2Cx_bee(enum I2CSlaveCallbackEvent event, u8* data)
 
 
 
-        default: panic;
+        case I2CSlaveCallbackEvent_bug : panic;
+        default                        : panic;
 
     }
 

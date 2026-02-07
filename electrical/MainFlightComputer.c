@@ -20,7 +20,15 @@ main(void)
     STPY_init();
     UXART_init(UXARTHandle_stlink);
     UXART_init(UXARTHandle_vn100); // TODO Just to test VN-100 reception for VehicleFlightComputer.
-    I2C_reinit(I2CHandle_vehicle_interface);
+    {
+        enum I2CReinitResult result = I2C_reinit(I2CHandle_vehicle_interface);
+        switch (result)
+        {
+            case I2CReinitResult_success : break;
+            case I2CReinitResult_bug     : panic;
+            default                      : panic;
+        }
+    }
 
 
 
@@ -46,7 +54,7 @@ FREERTOS_TASK(vehicle_interface, 1024, 0)
 
         struct VehicleInterfacePayload payload = {0};
 
-        enum I2CMasterError error =
+        enum I2CTransferResult result =
             I2C_transfer
             (
                 I2CHandle_vehicle_interface,
@@ -57,9 +65,9 @@ FREERTOS_TASK(vehicle_interface, 1024, 0)
                 sizeof(payload)
             );
 
-        switch (error)
+        switch (result)
         {
-            case I2CMasterError_none:
+            case I2CTransferResult_transfer_done:
             {
 
                 static u16 previous_timestamp_us = 0;
@@ -83,12 +91,14 @@ FREERTOS_TASK(vehicle_interface, 1024, 0)
 
             } break;
 
-            case I2CMasterError_no_acknowledge:
+            case I2CTransferResult_no_acknowledge:
             {
                 stlink_tx("Slave 0x%03X didn't acknowledge!\n", VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS);
             } break;
 
-            default: panic;
+            case I2CTransferResult_transfer_ongoing : panic;
+            case I2CTransferResult_bug              : panic;
+            default                                 : panic;
         }
 
         spinlock_nop(10'000'000);
