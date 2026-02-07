@@ -60,9 +60,23 @@ main(void)
             // so the new images with the new settings
             // will be next.
 
-            while (RingBuffer_reading_pointer(&_OVCAM_ring_buffer))
+            while (true)
             {
-                OVCAM_free_framebuffer();
+
+                enum OVCAMSwapFramebufferResult result = OVCAM_swap_framebuffer();
+
+                switch (result)
+                {
+                    case OVCAMSwapFramebufferResult_success : break;
+                    case OVCAMSwapFramebufferResult_bug     : panic;
+                    default                                 : panic;
+                }
+
+                if (!OVCAM_current_framebuffer)
+                {
+                    break;
+                }
+
             }
 
         }
@@ -71,15 +85,22 @@ main(void)
 
         // See if the next image frame is available.
 
-        struct OVCAMFramebuffer* framebuffer = RingBuffer_reading_pointer(&_OVCAM_ring_buffer);
+        enum OVCAMSwapFramebufferResult result = OVCAM_swap_framebuffer();
 
-        if (framebuffer)
+        switch (result)
+        {
+            case OVCAMSwapFramebufferResult_success : break;
+            case OVCAMSwapFramebufferResult_bug     : panic;
+            default                                 : panic;
+        }
+
+        if (OVCAM_current_framebuffer)
         {
 
             // Send the data over.
 
             stlink_tx(TV_TOKEN_START);
-            UXART_tx_bytes(UXARTHandle_stlink, framebuffer->data, framebuffer->length);
+            UXART_tx_bytes(UXARTHandle_stlink, OVCAM_current_framebuffer->data, OVCAM_current_framebuffer->length);
             stlink_tx(TV_TOKEN_END);
 
 
@@ -88,11 +109,6 @@ main(void)
 
             GPIO_TOGGLE(led_green);
 
-
-
-            // Release the current image frame to get the next one.
-
-            OVCAM_free_framebuffer();
         }
 
     }

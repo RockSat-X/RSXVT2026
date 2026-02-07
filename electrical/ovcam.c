@@ -407,7 +407,15 @@ struct OVCAMFramebuffer
 
 };
 
-static RingBuffer(struct OVCAMFramebuffer, 2) _OVCAM_ring_buffer = {0};
+
+
+// Note that an OVCAM driver struct could be made,
+// but if so, it should not include the framebuffer ring-buffer,
+// or else zeroing the driver struct will be expensive and
+// the debug inspection will be more noisy.
+
+static RingBuffer(struct OVCAMFramebuffer, 2) _OVCAM_framebuffers       = {0};
+static struct OVCAMFramebuffer*               OVCAM_current_framebuffer = {0};
 
 
 
@@ -443,8 +451,8 @@ OVCAM_reinit(void)
     // because the framebuffers are pretty big, and it'd
     // be a waste of time to do so.
 
-    _OVCAM_ring_buffer.ring_buffer_raw = (struct RingBufferRaw) {0};
-
+    _OVCAM_framebuffers.ring_buffer_raw = (struct RingBufferRaw) {0};
+    OVCAM_current_framebuffer           = nullptr;
 
 
     // Reinitialize the I2C driver that'll
@@ -635,17 +643,42 @@ OVCAM_reinit(void)
 
 
 
-static void
-OVCAM_free_framebuffer(void)
+static useret enum OVCAMSwapFramebufferResult : u32
+{
+    OVCAMSwapFramebufferResult_success,
+    OVCAMSwapFramebufferResult_bug,
+}
+OVCAM_swap_framebuffer(void)
 {
 
-    if (!CMSIS_GET(DCMI, CR, ENABLE))
-        panic;
+    // If there was already a framebuffer
+    // that the user was using, we now free it
+    // so the OVCAM driver can fill in a new one
+    // and the user can get the next framebuffer.
 
-    if (!RingBuffer_pop(&_OVCAM_ring_buffer, nullptr))
-        panic;
+    if (OVCAM_current_framebuffer)
+    {
 
-    NVIC_SET_PENDING(GPDMA1_Channel7);
+        if (!RingBuffer_pop(&_OVCAM_framebuffers, nullptr))
+            return OVCAMSwapFramebufferResult_bug; // The ring-buffer should've had the framebuffer the user was using...
+
+
+
+        // Indicate to the OVCAM driver that
+        // there's space for the next image capture.
+
+        NVIC_SET_PENDING(GPDMA1_Channel7);
+
+    }
+
+
+
+    // Update the current framebuffer that the
+    // user can use, which may or may not be available.
+
+    OVCAM_current_framebuffer = RingBuffer_reading_pointer(&_OVCAM_framebuffers);
+
+    return OVCAMSwapFramebufferResult_success;
 
 }
 
@@ -695,7 +728,7 @@ _OVCAM_begin_capture(void)
     // This gets incremented on each transfer, so we
     // also have to reset it each time we do a capture.
 
-    struct OVCAMFramebuffer* framebuffer = RingBuffer_writing_pointer(&_OVCAM_ring_buffer);
+    struct OVCAMFramebuffer* framebuffer = RingBuffer_writing_pointer(&_OVCAM_framebuffers);
 
     if (!framebuffer)
         panic;
@@ -831,7 +864,7 @@ INTERRUPT_GPDMA1_Channel7(void)
             // With JPEG compression, the amount of
             // received data will be variable.
 
-            struct OVCAMFramebuffer* framebuffer = RingBuffer_writing_pointer(&_OVCAM_ring_buffer);
+            struct OVCAMFramebuffer* framebuffer = RingBuffer_writing_pointer(&_OVCAM_framebuffers);
 
             if (!framebuffer)
                 panic;
@@ -854,7 +887,7 @@ INTERRUPT_GPDMA1_Channel7(void)
 
             // User can now use the received data.
 
-            if (!RingBuffer_push(&_OVCAM_ring_buffer, nullptr))
+            if (!RingBuffer_push(&_OVCAM_framebuffers, nullptr))
                 panic;
 
 
@@ -862,7 +895,7 @@ INTERRUPT_GPDMA1_Channel7(void)
             // There's still space in the swapchain;
             // prepare to capture the next image.
 
-            if (RingBuffer_writing_pointer(&_OVCAM_ring_buffer))
+            if (RingBuffer_writing_pointer(&_OVCAM_framebuffers))
             {
                 NVIC_SET_PENDING(GPDMA1_Channel7);
             }
