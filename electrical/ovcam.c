@@ -1,5 +1,6 @@
 #define OVCAM_SEVEN_BIT_ADDRESS 0x3C
 #define OVCAM_FRAMEBUFFER_SIZE  (100 * 1024) // @/`OVCAM DMA Block Repetitions`.
+#define OVCAM_TIMEOUT_US        5'000'000    // TODO This could be set lower, but TV register writes may cause a time-out.
 
 
 
@@ -420,6 +421,7 @@ enum OVCAMDriverState : u32
 struct OVCAMDriver
 {
     volatile enum OVCAMDriverState state;
+    u32                            swap_timestamp_us;
 };
 
 static struct OVCAMDriver       _OVCAM_driver             = {0};
@@ -647,7 +649,8 @@ OVCAM_reinit(void)
 
     // The interrupt routine will handle the capture of the first image.
 
-    _OVCAM_driver.state = OVCAMDriverState_standby;
+    _OVCAM_driver.state             = OVCAMDriverState_standby;
+    _OVCAM_driver.swap_timestamp_us = TIMEKEEPING_COUNTER();
 
     NVIC_SET_PENDING(DCMI_PSSI);
 
@@ -696,6 +699,13 @@ OVCAM_swap_framebuffer(void)
 
         NVIC_SET_PENDING(DCMI_PSSI);
 
+
+
+        // We now start keeping track of how it's taking
+        // for the OVCAM driver to get the image data...
+
+        _OVCAM_driver.swap_timestamp_us = TIMEKEEPING_COUNTER();
+
     }
 
 
@@ -712,7 +722,20 @@ OVCAM_swap_framebuffer(void)
 
     if (!OVCAM_current_framebuffer)
     {
-        NVIC_SET_PENDING(DCMI_PSSI);
+
+        u32 capture_timestamp_us = _OVCAM_driver.swap_timestamp_us;
+        u32 current_timestamp_us = TIMEKEEPING_COUNTER();
+        u32 elapsed_us           = current_timestamp_us - capture_timestamp_us;
+
+        if (elapsed_us < (TIMEKEEPING_COUNTER_TYPE) { OVCAM_TIMEOUT_US })
+        {
+            NVIC_SET_PENDING(DCMI_PSSI);
+        }
+        else
+        {
+            return OVCAMSwapFramebufferResult_bug; // The OVCAM driver is taking too long...
+        }
+
     }
 
 
