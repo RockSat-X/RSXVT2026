@@ -684,75 +684,6 @@ OVCAM_swap_framebuffer(void)
 
 
 
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-static void
-_OVCAM_begin_capture(void)
-{
-
-    // There shouldn't be an ongoing capture.
-
-    if (CMSIS_GET(GPDMA1_Channel7, CCR, EN))
-        panic;
-
-    if (CMSIS_GET(DCMI, CR, CAPTURE))
-        panic;
-
-    if (!CMSIS_GET(DCMI, CR, ENABLE))
-        panic;
-
-
-
-    // Configure the DMA channel in such a way that it always
-    // expect more data than there'll actually be in the transfer.
-    // This is so we can handle variable lengthed data transfers.
-    // Thus, the data transfer should technically never complete;
-    // if it does, then this means the framebuffer got too full.
-
-    #define OVCAM_BYTES_PER_BLOCK_TRANSFER 1024
-
-    static_assert(OVCAM_FRAMEBUFFER_SIZE % OVCAM_BYTES_PER_BLOCK_TRANSFER == 0);
-
-    #define OVCAM_BLOCK_REPETITIONS ((OVCAM_FRAMEBUFFER_SIZE / OVCAM_BYTES_PER_BLOCK_TRANSFER) - 1)
-
-    static_assert(OVCAM_BLOCK_REPETITIONS < (1 << 11));
-
-    CMSIS_SET(GPDMA1_Channel7, CBR1, BRC , OVCAM_BLOCK_REPETITIONS       );
-    CMSIS_SET(GPDMA1_Channel7, CBR1, BNDT, OVCAM_BYTES_PER_BLOCK_TRANSFER);
-
-
-
-    // Set the destination of the data.
-    // This gets incremented on each transfer, so we
-    // also have to reset it each time we do a capture.
-
-    struct OVCAMFramebuffer* framebuffer = RingBuffer_writing_pointer(&_OVCAM_framebuffers);
-
-    if (!framebuffer)
-        panic;
-
-    CMSIS_SET(GPDMA1_Channel7, CDAR, DA, (u32) &framebuffer->data);
-
-
-
-    // The DMA channel is now ready to begin transferring
-    // data whenever the DCMI requests to do so.
-
-    CMSIS_SET(GPDMA1_Channel7, CCR, EN, true);
-
-
-
-    // Tell DCMI to begin capturing the next
-    // frame sent by the camera module.
-
-    CMSIS_SET(DCMI, CR, CAPTURE, true);
-
-}
-
-
-
 static void
 OVCAM_write_register(u16 address, u8 content)
 {
@@ -779,6 +710,10 @@ OVCAM_write_register(u16 address, u8 content)
         sorry
 
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -821,7 +756,64 @@ INTERRUPT_GPDMA1_Channel7(void)
             }
             else // Initialize the DCMI and DMA to capture an image.
             {
-                _OVCAM_begin_capture();
+
+                // There shouldn't be an ongoing capture.
+
+                if (CMSIS_GET(GPDMA1_Channel7, CCR, EN))
+                    panic;
+
+                if (CMSIS_GET(DCMI, CR, CAPTURE))
+                    panic;
+
+                if (!CMSIS_GET(DCMI, CR, ENABLE))
+                    panic;
+
+
+
+                // Configure the DMA channel in such a way that it always
+                // expect more data than there'll actually be in the transfer.
+                // This is so we can handle variable lengthed data transfers.
+                // Thus, the data transfer should technically never complete;
+                // if it does, then this means the framebuffer got too full.
+
+                #define OVCAM_BYTES_PER_BLOCK_TRANSFER 1024
+
+                static_assert(OVCAM_FRAMEBUFFER_SIZE % OVCAM_BYTES_PER_BLOCK_TRANSFER == 0);
+
+                #define OVCAM_BLOCK_REPETITIONS ((OVCAM_FRAMEBUFFER_SIZE / OVCAM_BYTES_PER_BLOCK_TRANSFER) - 1)
+
+                static_assert(OVCAM_BLOCK_REPETITIONS < (1 << 11));
+
+                CMSIS_SET(GPDMA1_Channel7, CBR1, BRC , OVCAM_BLOCK_REPETITIONS       );
+                CMSIS_SET(GPDMA1_Channel7, CBR1, BNDT, OVCAM_BYTES_PER_BLOCK_TRANSFER);
+
+
+
+                // Set the destination of the data.
+                // This gets incremented on each transfer, so we
+                // also have to reset it each time we do a capture.
+
+                struct OVCAMFramebuffer* framebuffer = RingBuffer_writing_pointer(&_OVCAM_framebuffers);
+
+                if (!framebuffer)
+                    panic;
+
+                CMSIS_SET(GPDMA1_Channel7, CDAR, DA, (u32) &framebuffer->data);
+
+
+
+                // The DMA channel is now ready to begin transferring
+                // data whenever the DCMI requests to do so.
+
+                CMSIS_SET(GPDMA1_Channel7, CCR, EN, true);
+
+
+
+                // Tell DCMI to begin capturing the next
+                // frame sent by the camera module.
+
+                CMSIS_SET(DCMI, CR, CAPTURE, true);
+
             }
 
         } break;
