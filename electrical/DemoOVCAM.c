@@ -110,11 +110,13 @@ main(void)
 
             // Update one of the camera module's register.
 
-            struct WriteCommand
-            {
-                u16 address;
-                u8  content;
-            } __attribute__((packed));
+            pack_push
+                struct WriteCommand
+                {
+                    u16 address;
+                    u8  content;
+                };
+            pack_pop
 
             struct WriteCommand command = {0};
 
@@ -123,7 +125,27 @@ main(void)
                 while (!stlink_rx((u8*) &command + i));
             }
 
-            OVCAM_write_register(command.address, command.content);
+
+
+            // Note: this is only done for testing purposes.
+
+            {
+
+                enum I2CTransferResult result =
+                    I2C_transfer
+                    (
+                        I2CHandle_ovcam_sccb,
+                        OVCAM_SEVEN_BIT_ADDRESS,
+                        I2CAddressType_seven,
+                        I2COperation_single_write,
+                        (u8*) &command,
+                        sizeof(command)
+                    );
+
+                if (result != I2CTransferResult_transfer_done)
+                    panic;
+
+            }
 
 
 
