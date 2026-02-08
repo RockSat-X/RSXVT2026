@@ -716,7 +716,7 @@ _I2C_update_once(enum I2CHandle handle)
     //
     // This should probably be handled after we
     // check the RX-register and TX-register so
-    // there won't be any left over data.
+    // there won't be any left-over data.
     //
     // @/pg 2117/sec 48.4.17/`H533rm`.
 
