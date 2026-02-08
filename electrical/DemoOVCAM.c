@@ -1,7 +1,53 @@
 #include "system.h"
 #include "uxart.c"
 #include "i2c.c"
+#include "timekeeping.c"
 #include "ovcam.c"
+
+
+
+static void
+reinitialize_ovcam(void)
+{
+
+    enum OVCAMReinitResult result = OVCAM_reinit();
+
+    switch (result)
+    {
+        case OVCAMReinitResult_success                       : break;
+        case OVCAMReinitResult_failed_to_initialize_with_i2c : panic;
+        case OVCAMReinitResult_bug                           : panic;
+        default                                              : panic;
+    }
+
+}
+
+
+
+static void
+try_swap(void)
+{
+
+    enum OVCAMSwapFramebufferResult result = OVCAM_swap_framebuffer();
+
+    switch (result)
+    {
+
+        case OVCAMSwapFramebufferResult_attempted:
+        {
+            // An attempt was made to get the next framebuffer.
+        } break;
+
+        case OVCAMSwapFramebufferResult_bug:
+        {
+            reinitialize_ovcam(); // Something bad happened, so we'll reinitialize everything.
+        } break;
+
+        default: panic;
+
+    }
+
+}
 
 
 
@@ -11,23 +57,46 @@ main(void)
 
     STPY_init();
     UXART_init(UXARTHandle_stlink);
+
     {
-        enum I2CReinitResult result = I2C_reinit(I2CHandle_ovcam_sccb);
-        switch (result)
-        {
-            case I2CReinitResult_success : break;
-            case I2CReinitResult_bug     : panic;
-            default                      : panic;
-        }
+
+        // Set the prescaler that'll affect all timers' kernel frequency.
+
+        CMSIS_SET(RCC, CFGR1, TIMPRE, STPY_GLOBAL_TIMER_PRESCALER);
+
+
+
+        // Enable the peripheral.
+
+        CMSIS_PUT(TIMEKEEPING_TIMER_ENABLE, true);
+
+
+
+        // Configure the divider to set the rate at
+        // which the timer's counter will increment.
+
+        CMSIS_SET(TIMEKEEPING_TIMER, PSC, PSC, TIMEKEEPING_DIVIDER);
+
+
+
+        // Trigger an update event so that the shadow registers
+        // are what we initialize them to be.
+        // The hardware uses shadow registers in order for updates
+        // to these registers not result in a corrupt timer output.
+
+        CMSIS_SET(TIMEKEEPING_TIMER, EGR, UG, true);
+
+
+
+        // Enable the timer's counter.
+
+        CMSIS_SET(TIMEKEEPING_TIMER, CR1, CEN, true);
+
     }
 
+    reinitialize_ovcam();
 
 
-    ////////////////////////////////////////////////////////////////////////////////
-
-
-
-    OVCAM_init();
 
     for (;;)
     {
@@ -41,11 +110,13 @@ main(void)
 
             // Update one of the camera module's register.
 
-            struct WriteCommand
-            {
-                u16 address;
-                u8  content;
-            } __attribute__((packed));
+            pack_push
+                struct WriteCommand
+                {
+                    u16 address;
+                    u8  content;
+                };
+            pack_pop
 
             struct WriteCommand command = {0};
 
@@ -54,19 +125,27 @@ main(void)
                 while (!stlink_rx((u8*) &command + i));
             }
 
-            enum I2CTransferResult result =
-                I2C_transfer
-                (
-                    I2CHandle_ovcam_sccb,
-                    OVCAM_SEVEN_BIT_ADDRESS,
-                    I2CAddressType_seven,
-                    I2COperation_single_write,
-                    (u8*) &command,
-                    sizeof(command.address) + sizeof(command.content)
-                );
 
-            if (result != I2CTransferResult_transfer_done)
-                sorry
+
+            // Note: this is only done for testing purposes.
+
+            {
+
+                enum I2CTransferResult result =
+                    I2C_transfer
+                    (
+                        I2CHandle_ovcam_sccb,
+                        OVCAM_SEVEN_BIT_ADDRESS,
+                        I2CAddressType_seven,
+                        I2COperation_single_write,
+                        (u8*) &command,
+                        sizeof(command)
+                    );
+
+                if (result != I2CTransferResult_transfer_done)
+                    panic;
+
+            }
 
 
 
@@ -74,9 +153,16 @@ main(void)
             // so the new images with the new settings
             // will be next.
 
-            while (RingBuffer_reading_pointer(&_OVCAM_ring_buffer))
+            while (true)
             {
-                OVCAM_free_framebuffer();
+
+                try_swap();
+
+                if (!OVCAM_current_framebuffer)
+                {
+                    break;
+                }
+
             }
 
         }
@@ -85,15 +171,15 @@ main(void)
 
         // See if the next image frame is available.
 
-        struct OVCAMFramebuffer* framebuffer = RingBuffer_reading_pointer(&_OVCAM_ring_buffer);
+        try_swap();
 
-        if (framebuffer)
+        if (OVCAM_current_framebuffer)
         {
 
             // Send the data over.
 
             stlink_tx(TV_TOKEN_START);
-            UXART_tx_bytes(UXARTHandle_stlink, framebuffer->data, framebuffer->length);
+            UXART_tx_bytes(UXARTHandle_stlink, OVCAM_current_framebuffer->data, OVCAM_current_framebuffer->length);
             stlink_tx(TV_TOKEN_END);
 
 
@@ -102,12 +188,13 @@ main(void)
 
             GPIO_TOGGLE(led_green);
 
-
-
-            // Release the current image frame to get the next one.
-
-            OVCAM_free_framebuffer();
         }
+
+
+
+        // To induce a spurious reset.
+
+        GPIO_SET(ovcam_reset, GPIO_READ(button));
 
     }
 

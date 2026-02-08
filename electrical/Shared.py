@@ -960,8 +960,8 @@ TARGETS = ( # @/`Defining Targets`.
 
         interrupts = (
             ('USART2'         , 0),
-            ('GPDMA1_Channel7', 1),
-            ('DCMI_PSSI'      , 2),
+            ('DCMI_PSSI'      , 1),
+            ('GPDMA1_Channel7', 2),
             ('I2C2_EV'        , 3),
             ('I2C2_ER'        , 3),
         ),
@@ -979,22 +979,27 @@ TARGETS = ( # @/`Defining Targets`.
                 'handle'     : 'ovcam_sccb',
                 'mode'       : 'master_blocking',
             },
+            {
+                'type'       : 'TIMEKEEPING',
+                'peripheral' : 'TIM2',
+            },
         ),
 
         use_freertos    = False,
         main_stack_size = 8192,
         schema          = {
-            'HSI_ENABLE'   : True,
-            'HSI48_ENABLE' : True,
-            'CSI_ENABLE'   : True,
-            'PLL1P_CK'     : 240_000_000,
-            'CPU_CK'       : 240_000_000,
-            'APB1_CK'      : 240_000_000,
-            'APB2_CK'      : 240_000_000,
-            'APB3_CK'      : 240_000_000,
-            'USART2_BAUD'  : STLINK_BAUD,
-            'I2C2_BAUD'    : 10_000,
-            'I2C2_TIMEOUT' : 2,
+            'HSI_ENABLE'        : True,
+            'HSI48_ENABLE'      : True,
+            'CSI_ENABLE'        : True,
+            'PLL1P_CK'          : 240_000_000,
+            'CPU_CK'            : 240_000_000,
+            'APB1_CK'           : 240_000_000,
+            'APB2_CK'           : 240_000_000,
+            'APB3_CK'           : 240_000_000,
+            'USART2_BAUD'       : STLINK_BAUD,
+            'I2C2_BAUD'         : 10_000,
+            'I2C2_TIMEOUT'      : 2,
+            'TIM2_COUNTER_RATE' : 1_000_000,
         },
 
     ),
@@ -1231,13 +1236,16 @@ for target in TARGETS:
     # Additional macro defines.
 
     defines = [
-        ('TARGET_NAME'                        , target.name                        ),
-        ('TARGET_MCU'                         , target.mcu                         ),
-        ('TARGET_USES_FREERTOS'               , target.use_freertos                ),
-        ('MAIN_STACK_SIZE'                    , target.main_stack_size             ),
-        ('COMPILING_ESP32'                    , False                              ),
-        ('VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS', VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS),
-        ('VN100_ESP32_BAUD'                   , VN100_ESP32_BAUD                   ),
+        ('TARGET_NAME'                        , target.name                                   ),
+        ('TARGET_MCU'                         , target.mcu                                    ),
+        ('TARGET_USES_FREERTOS'               , target.use_freertos                           ),
+        ('MAIN_STACK_SIZE'                    , target.main_stack_size                        ),
+        ('COMPILING_ESP32'                    , False                                         ),
+        ('VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS', VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS           ),
+        ('VN100_ESP32_BAUD'                   , VN100_ESP32_BAUD                              ),
+        ('TV_TOKEN_START'                     , f'STRINGIFY({TV_TOKEN.START.decode('UTF-8')})'),
+        ('TV_TOKEN_END'                       , f'STRINGIFY({TV_TOKEN.END  .decode('UTF-8')})'),
+        ('TV_WRITE_BYTE'                      , f'0x{TV_WRITE_BYTE :02X}'                     ),
     ]
 
     for other_target in TARGETS:
