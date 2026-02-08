@@ -3102,8 +3102,8 @@
     enum NVICInterrupt : u32
     {
         NVICInterrupt_USART2          = USART2_IRQn,
-        NVICInterrupt_GPDMA1_Channel7 = GPDMA1_Channel7_IRQn,
         NVICInterrupt_DCMI_PSSI       = DCMI_PSSI_IRQn,
+        NVICInterrupt_GPDMA1_Channel7 = GPDMA1_Channel7_IRQn,
         NVICInterrupt_I2C2_EV         = I2C2_EV_IRQn,
         NVICInterrupt_I2C2_ER         = I2C2_ER_IRQn,
     };
@@ -3450,9 +3450,9 @@
         static_assert(0 <= 0 && 0 < (1 << __NVIC_PRIO_BITS));
         NVIC->IPR[NVICInterrupt_USART2] = 0 << __NVIC_PRIO_BITS;
         static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
-        NVIC->IPR[NVICInterrupt_GPDMA1_Channel7] = 1 << __NVIC_PRIO_BITS;
+        NVIC->IPR[NVICInterrupt_DCMI_PSSI] = 1 << __NVIC_PRIO_BITS;
         static_assert(0 <= 2 && 2 < (1 << __NVIC_PRIO_BITS));
-        NVIC->IPR[NVICInterrupt_DCMI_PSSI] = 2 << __NVIC_PRIO_BITS;
+        NVIC->IPR[NVICInterrupt_GPDMA1_Channel7] = 2 << __NVIC_PRIO_BITS;
         static_assert(0 <= 3 && 3 < (1 << __NVIC_PRIO_BITS));
         NVIC->IPR[NVICInterrupt_I2C2_EV] = 3 << __NVIC_PRIO_BITS;
         static_assert(0 <= 3 && 3 < (1 << __NVIC_PRIO_BITS));

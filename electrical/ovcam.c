@@ -631,9 +631,9 @@ OVCAM_reinit(void)
 
 
 
-    // The DMA channel will schedule the capture of the first frame.
+    // The interrupt routine will handle the capture of the first image.
 
-    NVIC_SET_PENDING(GPDMA1_Channel7);
+    NVIC_SET_PENDING(DCMI_PSSI);
 
 
 
@@ -672,7 +672,7 @@ OVCAM_swap_framebuffer(void)
         // Indicate to the OVCAM driver that
         // there's space for the next image capture.
 
-        NVIC_SET_PENDING(GPDMA1_Channel7);
+        NVIC_SET_PENDING(DCMI_PSSI);
 
     }
 
@@ -682,6 +682,18 @@ OVCAM_swap_framebuffer(void)
     // user can use, which may or may not be available.
 
     OVCAM_current_framebuffer = RingBuffer_reading_pointer(&_OVCAM_framebuffers);
+
+
+
+    // Make sure that the OVCAM driver is aware that
+    // there's an available framebuffer it should be filling.
+
+    if (!OVCAM_current_framebuffer)
+    {
+        NVIC_SET_PENDING(DCMI_PSSI);
+    }
+
+
 
     return OVCAMSwapFramebufferResult_attempted;
 
@@ -979,53 +991,6 @@ _OVCAM_dma_update(void)
 
 
 
-INTERRUPT_GPDMA1_Channel7(void)
-{
-    for (b32 yield = false; !yield;)
-    {
-
-        enum OVCAMDMAUpdateResult result = _OVCAM_dma_update();
-
-        switch (result)
-        {
-
-            case OVCAMDMAUpdateResult_again:
-            {
-                // The state-machine should be updated again.
-            } break;
-
-            case OVCAMDMAUpdateResult_yield:
-            {
-                yield = true; // We can stop updating the state-machine for now.
-            } break;
-
-            case OVCAMDMAUpdateResult_bug:
-            default:
-            {
-
-                // Something bad happened!
-                // Shut down the peripherals and wait
-                // for the user to reinitialize everything.
-
-                CMSIS_SET(RCC, AHB1RSTR, GPDMA1RST   , true );
-                CMSIS_SET(RCC, AHB2RSTR, DCMI_PSSIRST, true );
-                CMSIS_SET(RCC, AHB1RSTR, GPDMA1RST   , false);
-                CMSIS_SET(RCC, AHB2RSTR, DCMI_PSSIRST, false);
-
-                NVIC_DISABLE(GPDMA1_Channel7);
-                NVIC_DISABLE(DCMI_PSSI);
-
-                yield = true;
-
-            } break;
-
-        }
-
-    }
-}
-
-
-
 static useret enum OVCAMDCMIUpdateResult : u32
 {
     OVCAMDCMIUpdateResult_again,
@@ -1188,8 +1153,28 @@ _OVCAM_dcmi_update(void)
 
 
 
+INTERRUPT_GPDMA1_Channel7(void)
+{
+
+    // Rather than having more than one interrupt handler
+    // potentially overlapping each other, the DMA routine
+    // will invoke the DCMI handler, and from there is where
+    // both DMA and DCMI interrupt events are handled and processed.
+    //
+    // This also means that the DMA channel's interrupt priority
+    // needs to be less than of the DCMI's interrupt priority.
+
+    NVIC_SET_PENDING(DCMI_PSSI);
+
+}
+
+
+
 INTERRUPT_DCMI_PSSI(void)
 {
+
+    // Handle DCMI events.
+
     for (b32 yield = false; !yield;)
     {
 
@@ -1208,29 +1193,59 @@ INTERRUPT_DCMI_PSSI(void)
                 yield = true; // We can stop updating the state-machine for now.
             } break;
 
-            case OVCAMDCMIUpdateResult_bug:
-            default:
-            {
-
-                // Something bad happened!
-                // Shut down the peripherals and wait
-                // for the user to reinitialize everything.
-
-                CMSIS_SET(RCC, AHB1RSTR, GPDMA1RST   , true );
-                CMSIS_SET(RCC, AHB2RSTR, DCMI_PSSIRST, true );
-                CMSIS_SET(RCC, AHB1RSTR, GPDMA1RST   , false);
-                CMSIS_SET(RCC, AHB2RSTR, DCMI_PSSIRST, false);
-
-                NVIC_DISABLE(GPDMA1_Channel7);
-                NVIC_DISABLE(DCMI_PSSI);
-
-                yield = true;
-
-            } break;
+            case OVCAMDCMIUpdateResult_bug : goto BUG;
+            default                        : goto BUG;
 
         }
 
     }
+
+
+
+    // Handle DMA events.
+
+    for (b32 yield = false; !yield;)
+    {
+
+        enum OVCAMDMAUpdateResult result = _OVCAM_dma_update();
+
+        switch (result)
+        {
+
+            case OVCAMDMAUpdateResult_again:
+            {
+                // The state-machine should be updated again.
+            } break;
+
+            case OVCAMDMAUpdateResult_yield:
+            {
+                yield = true; // We can stop updating the state-machine for now.
+            } break;
+
+            case OVCAMDMAUpdateResult_bug : goto BUG;
+            default                       : goto BUG;
+
+        }
+
+    }
+
+
+
+    // Something bad happened!
+    // Shut down the peripherals and wait
+    // for the user to reinitialize everything.
+
+    return;
+    BUG:;
+
+    CMSIS_SET(RCC, AHB1RSTR, GPDMA1RST   , true );
+    CMSIS_SET(RCC, AHB2RSTR, DCMI_PSSIRST, true );
+    CMSIS_SET(RCC, AHB1RSTR, GPDMA1RST   , false);
+    CMSIS_SET(RCC, AHB2RSTR, DCMI_PSSIRST, false);
+
+    NVIC_DISABLE(GPDMA1_Channel7);
+    NVIC_DISABLE(DCMI_PSSI);
+
 }
 
 

@@ -960,8 +960,8 @@ TARGETS = ( # @/`Defining Targets`.
 
         interrupts = (
             ('USART2'         , 0),
-            ('GPDMA1_Channel7', 1),
-            ('DCMI_PSSI'      , 2),
+            ('DCMI_PSSI'      , 1),
+            ('GPDMA1_Channel7', 2),
             ('I2C2_EV'        , 3),
             ('I2C2_ER'        , 3),
         ),
