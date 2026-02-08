@@ -3575,6 +3575,15 @@
         #define STPY_I2C2_SCLL 200
         #define STPY_I2C2_TIMEOUTR_TIMEOUTA 3905
 
+
+
+        /////////////////////////////////// Timers ///////////////////////////////////
+
+
+
+        #define STPY_GLOBAL_TIMER_PRESCALER false
+        #define STPY_TIM2_DIVIDER (240 - 1)
+
     }
     #define STPY_0             (          0)
     #define STPY_CPU_CK        (240'000'000)

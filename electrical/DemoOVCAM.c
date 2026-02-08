@@ -1,6 +1,7 @@
 #include "system.h"
 #include "uxart.c"
 #include "i2c.c"
+#include "timekeeping.c"
 #include "ovcam.c"
 
 
@@ -56,6 +57,43 @@ main(void)
 
     STPY_init();
     UXART_init(UXARTHandle_stlink);
+
+    {
+
+        // Set the prescaler that'll affect all timers' kernel frequency.
+
+        CMSIS_SET(RCC, CFGR1, TIMPRE, STPY_GLOBAL_TIMER_PRESCALER);
+
+
+
+        // Enable the peripheral.
+
+        CMSIS_PUT(TIMEKEEPING_TIMER_ENABLE, true);
+
+
+
+        // Configure the divider to set the rate at
+        // which the timer's counter will increment.
+
+        CMSIS_SET(TIMEKEEPING_TIMER, PSC, PSC, TIMEKEEPING_DIVIDER);
+
+
+
+        // Trigger an update event so that the shadow registers
+        // are what we initialize them to be.
+        // The hardware uses shadow registers in order for updates
+        // to these registers not result in a corrupt timer output.
+
+        CMSIS_SET(TIMEKEEPING_TIMER, EGR, UG, true);
+
+
+
+        // Enable the timer's counter.
+
+        CMSIS_SET(TIMEKEEPING_TIMER, CR1, CEN, true);
+
+    }
+
     reinitialize_ovcam();
 
 
@@ -129,6 +167,12 @@ main(void)
             GPIO_TOGGLE(led_green);
 
         }
+
+
+
+        // To induce a spurious reset.
+
+        GPIO_SET(ovcam_reset, GPIO_READ(button));
 
     }
 

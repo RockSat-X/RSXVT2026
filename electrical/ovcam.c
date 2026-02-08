@@ -488,20 +488,16 @@ OVCAM_reinit(void)
 
 
     // Power-cycle and reset-cycle the camera module.
-    //
-    // TODO We have an artifical amount of delay here,
-    //      something smarter could be done, but this
-    //      pretty sufficient.
 
     GPIO_ACTIVE(ovcam_power_down);
     GPIO_ACTIVE(ovcam_reset);
 
-    spinlock_nop(50'000);
+    spinlock_us(1'000);
 
     GPIO_INACTIVE(ovcam_power_down);
     GPIO_INACTIVE(ovcam_reset);
 
-    spinlock_nop(50'000);
+    spinlock_us(1'000);
 
 
 
