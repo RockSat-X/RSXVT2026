@@ -5,25 +5,58 @@
 
 
 
+static void
+reinitialize_ovcam(void)
+{
+
+    enum OVCAMReinitResult result = OVCAM_reinit();
+
+    switch (result)
+    {
+        case OVCAMReinitResult_success                       : break;
+        case OVCAMReinitResult_failed_to_initialize_with_i2c : panic;
+        case OVCAMReinitResult_bug                           : panic;
+        default                                              : panic;
+    }
+
+}
+
+
+
+static void
+try_swap(void)
+{
+
+    enum OVCAMSwapFramebufferResult result = OVCAM_swap_framebuffer();
+
+    switch (result)
+    {
+
+        case OVCAMSwapFramebufferResult_attempted:
+        {
+            // An attempt was made to get the next framebuffer.
+        } break;
+
+        case OVCAMSwapFramebufferResult_bug:
+        {
+            reinitialize_ovcam(); // Something bad happened, so we'll reinitialize everything.
+        } break;
+
+        default: panic;
+
+    }
+
+}
+
+
+
 extern noret void
 main(void)
 {
 
     STPY_init();
     UXART_init(UXARTHandle_stlink);
-
-
-
-    {
-        enum OVCAMReinitResult result = OVCAM_reinit();
-        switch (result)
-        {
-            case OVCAMReinitResult_success                       : break;
-            case OVCAMReinitResult_failed_to_initialize_with_i2c : panic;
-            case OVCAMReinitResult_bug                           : panic;
-            default                                              : panic;
-        }
-    }
+    reinitialize_ovcam();
 
 
 
@@ -63,14 +96,7 @@ main(void)
             while (true)
             {
 
-                enum OVCAMSwapFramebufferResult result = OVCAM_swap_framebuffer();
-
-                switch (result)
-                {
-                    case OVCAMSwapFramebufferResult_success : break;
-                    case OVCAMSwapFramebufferResult_bug     : panic;
-                    default                                 : panic;
-                }
+                try_swap();
 
                 if (!OVCAM_current_framebuffer)
                 {
@@ -85,14 +111,7 @@ main(void)
 
         // See if the next image frame is available.
 
-        enum OVCAMSwapFramebufferResult result = OVCAM_swap_framebuffer();
-
-        switch (result)
-        {
-            case OVCAMSwapFramebufferResult_success : break;
-            case OVCAMSwapFramebufferResult_bug     : panic;
-            default                                 : panic;
-        }
+        try_swap();
 
         if (OVCAM_current_framebuffer)
         {
