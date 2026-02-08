@@ -1,5 +1,5 @@
 #define OVCAM_SEVEN_BIT_ADDRESS 0x3C
-#define OVCAM_FRAMEBUFFER_SIZE  (100 * 1024)
+#define OVCAM_FRAMEBUFFER_SIZE  (100 * 1024) // @/`OVCAM DMA Block Repetitions`.
 
 
 
@@ -717,156 +717,208 @@ OVCAM_write_register(u16 address, u8 content)
 
 
 
-INTERRUPT_GPDMA1_Channel7(void)
+static useret enum OVCAMDMAUpdateResult : u32
+{
+    OVCAMDMAUpdateResult_again,
+    OVCAMDMAUpdateResult_yield,
+    OVCAMDMAUpdateResult_bug,
+}
+_OVCAM_dma_update(void)
 {
 
     enum DMAInterruptEvent : u32
     {
         DMAInterruptEvent_none,
-        DMAInterruptEvent_trigger_overrun,
         DMAInterruptEvent_completed_suspension,
-        DMAInterruptEvent_user_setting_error,
-        DMAInterruptEvent_update_link_transfer_error,
-        DMAInterruptEvent_data_transfer_error,
         DMAInterruptEvent_transfer_complete,
     };
     enum DMAInterruptEvent interrupt_event  = {0};
     u32                    interrupt_status = GPDMA1_Channel7->CSR;
 
-    if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, SUSPF)) { CMSIS_SET(GPDMA1_Channel7, CFCR, SUSPF, true); interrupt_event = DMAInterruptEvent_completed_suspension;       } else
-    if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, ULEF )) { CMSIS_SET(GPDMA1_Channel7, CFCR, ULEF , true); interrupt_event = DMAInterruptEvent_update_link_transfer_error; } else
-    if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, TOF  )) { CMSIS_SET(GPDMA1_Channel7, CFCR, TOF  , true); interrupt_event = DMAInterruptEvent_trigger_overrun;            } else
-    if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, USEF )) { CMSIS_SET(GPDMA1_Channel7, CFCR, USEF , true); interrupt_event = DMAInterruptEvent_user_setting_error;         } else
-    if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, DTEF )) { CMSIS_SET(GPDMA1_Channel7, CFCR, DTEF , true); interrupt_event = DMAInterruptEvent_data_transfer_error;        } else
-    if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, TCF  )) { CMSIS_SET(GPDMA1_Channel7, CFCR, TCF  , true); interrupt_event = DMAInterruptEvent_transfer_complete;          }
+
+
+    // The DMA failed to update the link-listed.
+    //
+    // @/pg 677/sec 16.4.17/`H533rm`.
+
+    if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, ULEF))
+    {
+        return OVCAMDMAUpdateResult_bug; // Shouldn't happen; this feature isn't used.
+    }
+
+
+
+    // The DMA channel got triggered too quickly by an external trigger.
+    //
+    // @/pg 672/sec 16.4.12/`H533rm`.
+
+    else if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, TOF))
+    {
+        return OVCAMDMAUpdateResult_bug; // Shouldn't happen; DMA channel isn't using an external trigger.
+    }
+
+
+
+    // The DMA configuration is invalid.
+    //
+    // @/pg 677/sec 16.4.17/`H533rm`.
+
+    else if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, USEF))
+    {
+        return OVCAMDMAUpdateResult_bug; // Something obvious like this shouldn't happen.
+    }
+
+
+
+    // The DMA encountered an error while trying to transfer the data.
+    //
+    // @/pg 676/sec 16.4.17/`H533rm`.
+
+    else if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, DTEF))
+    {
+        return OVCAMDMAUpdateResult_bug; // Something obvious like this shouldn't happen.
+    }
+
+
+
+    // The DMA channel is done being suspended.
+    //
+    // @/pg 642/sec 16.4.3/`H533rm`.
+
+    else if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, SUSPF))
+    {
+        CMSIS_SET(GPDMA1_Channel7, CFCR, SUSPF, true);
+        interrupt_event = DMAInterruptEvent_completed_suspension;
+    }
+
+
+
+    // The DMA is done transferring all of the data it was programmed to do.
+    //
+    // @/`OVCAM DMA Block Repetitions`.
+    // @/pg 642/sec 16.4.3/`H533rm`.
+
+    else if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, TCF))
+    {
+        CMSIS_SET(GPDMA1_Channel7, CFCR, TCF, true);
+        interrupt_event = DMAInterruptEvent_transfer_complete;
+    }
+
+
+
+    // Nothing notable happened.
+
     else
     {
         interrupt_event = DMAInterruptEvent_none;
     }
 
+
+
+    // Handle the DMA interrupt event.
+
     switch (interrupt_event)
     {
+
+
+
+        // No notable interrupt status flag found yet.
 
         case DMAInterruptEvent_none:
         {
 
             if (CMSIS_GET(GPDMA1_Channel7, CCR, EN))
             {
-                // DMA is still working...
+                return OVCAMDMAUpdateResult_yield; // DMA is still doing stuff.
             }
-            else // Initialize the DCMI and DMA to capture an image.
+            else
             {
 
-                // There shouldn't be an ongoing capture.
-
-                if (CMSIS_GET(GPDMA1_Channel7, CCR, EN))
-                    panic;
-
                 if (CMSIS_GET(DCMI, CR, CAPTURE))
-                    panic;
+                    return OVCAMDMAUpdateResult_bug; // DCMI shouldn't be trying to do a capture with an inactive DMA...
 
                 if (!CMSIS_GET(DCMI, CR, ENABLE))
-                    panic;
+                    return OVCAMDMAUpdateResult_bug; // DCMI should've been initialized...
 
 
 
-                // Configure the DMA channel in such a way that it always
-                // expect more data than there'll actually be in the transfer.
-                // This is so we can handle variable lengthed data transfers.
-                // Thus, the data transfer should technically never complete;
-                // if it does, then this means the framebuffer got too full.
-
-                #define OVCAM_BYTES_PER_BLOCK_TRANSFER 1024
-
-                static_assert(OVCAM_FRAMEBUFFER_SIZE % OVCAM_BYTES_PER_BLOCK_TRANSFER == 0);
-
-                #define OVCAM_BLOCK_REPETITIONS ((OVCAM_FRAMEBUFFER_SIZE / OVCAM_BYTES_PER_BLOCK_TRANSFER) - 1)
-
-                static_assert(OVCAM_BLOCK_REPETITIONS < (1 << 11));
-
-                CMSIS_SET(GPDMA1_Channel7, CBR1, BRC , OVCAM_BLOCK_REPETITIONS       );
-                CMSIS_SET(GPDMA1_Channel7, CBR1, BNDT, OVCAM_BYTES_PER_BLOCK_TRANSFER);
-
-
-
-                // Set the destination of the data.
-                // This gets incremented on each transfer, so we
-                // also have to reset it each time we do a capture.
+                // Try to configure the DMA and DCMI for the next image capture.
 
                 struct OVCAMFramebuffer* framebuffer = RingBuffer_writing_pointer(&_OVCAM_framebuffers);
 
-                if (!framebuffer)
-                    panic;
+                if (framebuffer)
+                {
 
-                CMSIS_SET(GPDMA1_Channel7, CDAR, DA, (u32) &framebuffer->data);
+                    // Set the DMA destination of the next available framebuffer to fill.
 
-
-
-                // The DMA channel is now ready to begin transferring
-                // data whenever the DCMI requests to do so.
-
-                CMSIS_SET(GPDMA1_Channel7, CCR, EN, true);
+                    CMSIS_SET(GPDMA1_Channel7, CDAR, DA, (u32) &framebuffer->data);
 
 
 
-                // Tell DCMI to begin capturing the next
-                // frame sent by the camera module.
+                    // Set the range of data that the DMA can transfer up to.
+                    //
+                    // @/`OVCAM DMA Block Repetitions`.
 
-                CMSIS_SET(DCMI, CR, CAPTURE, true);
+                    #define OVCAM_BYTES_PER_BLOCK_TRANSFER 1024
+
+                    static_assert(OVCAM_FRAMEBUFFER_SIZE % OVCAM_BYTES_PER_BLOCK_TRANSFER == 0);
+
+                    #define OVCAM_BLOCK_REPETITIONS ((OVCAM_FRAMEBUFFER_SIZE / OVCAM_BYTES_PER_BLOCK_TRANSFER) - 1)
+
+                    static_assert(0 <= OVCAM_BLOCK_REPETITIONS && OVCAM_BLOCK_REPETITIONS < (1 << 11));
+
+                    CMSIS_SET(GPDMA1_Channel7, CBR1, BRC , OVCAM_BLOCK_REPETITIONS       );
+                    CMSIS_SET(GPDMA1_Channel7, CBR1, BNDT, OVCAM_BYTES_PER_BLOCK_TRANSFER);
+
+
+
+                    // The DMA channel is now ready to fill in the framebuffer data;
+                    // the DCMI will now also be ready to capture the next image.
+
+                    CMSIS_SET(GPDMA1_Channel7, CCR, EN     , true);
+                    CMSIS_SET(DCMI           , CR , CAPTURE, true);
+
+                    return OVCAMDMAUpdateResult_again;
+
+                }
+                else // No space for the next image; gotta wait for the user to free up a framebuffer.
+                {
+                    return OVCAMDMAUpdateResult_yield;
+                }
 
             }
 
         } break;
 
-        case DMAInterruptEvent_trigger_overrun:
-        {
-            sorry
-        } break;
 
 
-        case DMAInterruptEvent_user_setting_error:
-        {
-            sorry
-        } break;
-
-        case DMAInterruptEvent_data_transfer_error:
-        {
-            sorry
-        } break;
-
-
-
-        // The DCMI suspended the DMA channel
-        // because the image frame was complete.
+        // The DCMI suspended the DMA channel because the image frame was complete.
+        //
+        // @/`OVCAM DMA Block Repetitions`.
 
         case DMAInterruptEvent_completed_suspension:
         {
 
-            // Ensure that there's no outstanding data
-            // that hasn't been transferred to the framebuffer.
-
             if (CMSIS_GET(DCMI, SR, FNE))
-                sorry
+                return OVCAMDMAUpdateResult_bug; // The DCMI somehow still has left-over data in its FIFO.
 
             if (CMSIS_GET(GPDMA1_Channel7, CSR, FIFOL))
-                sorry
+                return OVCAMDMAUpdateResult_bug; // The DMA somehow still has left-over data in its FIFO.
 
 
 
-            // With JPEG compression, the amount of
-            // received data will be variable.
+            // With JPEG compression, the amount of received data will be variable,
+            // so we'll have to calculate the actual amount of data that has been transferred.
 
             struct OVCAMFramebuffer* framebuffer = RingBuffer_writing_pointer(&_OVCAM_framebuffers);
 
             if (!framebuffer)
-                panic;
+                return OVCAMDMAUpdateResult_bug; // There should've been a framebuffer that we were filling out...
 
-            i32 length = (i32) CMSIS_GET(GPDMA1_Channel7, CDAR, DA) - (i32) &framebuffer->data;
+            framebuffer->length = (i32) CMSIS_GET(GPDMA1_Channel7, CDAR, DA) - (i32) &framebuffer->data;
 
-            if (length >= sizeof(framebuffer->data))
-                sorry
-
-            framebuffer->length = length;
+            if (!(0 < framebuffer->length && framebuffer->length < OVCAM_FRAMEBUFFER_SIZE))
+                return OVCAMDMAUpdateResult_bug; // Non-sensical data transfer length!
 
 
 
@@ -880,28 +932,22 @@ INTERRUPT_GPDMA1_Channel7(void)
             // User can now use the received data.
 
             if (!RingBuffer_push(&_OVCAM_framebuffers, nullptr))
-                panic;
+                return OVCAMDMAUpdateResult_bug; // There should've been the framebuffer that we were filling out...
 
 
 
-            // There's still space in the swapchain;
-            // prepare to capture the next image.
-
-            if (RingBuffer_writing_pointer(&_OVCAM_framebuffers))
-            {
-                NVIC_SET_PENDING(GPDMA1_Channel7);
-            }
+            return OVCAMDMAUpdateResult_again;
 
         } break;
 
 
 
-        // We ran out of framebuffer space;
-        // we're going to have to discard the frame.
-        // This can typically happen when the
-        // camera module's register is updated in
-        // such a way that the new image data coming
-        // in correspond to a larger image.
+        // When the DMA finishes its transfer, this means we ran out of framebuffer space
+        // and we're going to have to discard the frame. This can typically happen when the
+        // camera module's register is updated in such a way that the new image data coming
+        // in correspond to a larger image. Or of course, the framebuffer is too small.
+        //
+        // @/`OVCAM DMA Block Repetitions`.
 
         case DMAInterruptEvent_transfer_complete:
         {
@@ -913,17 +959,47 @@ INTERRUPT_GPDMA1_Channel7(void)
 
             CMSIS_SET(DCMI, CR, ENABLE, false);
             CMSIS_SET(DCMI, CR, ENABLE, true );
-            NVIC_SET_PENDING(GPDMA1_Channel7);
+
+            return OVCAMDMAUpdateResult_again;
 
         } break;
 
 
 
-        case DMAInterruptEvent_update_link_transfer_error : panic; // We aren't using this DMA feature.
-        default                                           : panic;
+        default: return OVCAMDMAUpdateResult_bug;
 
     }
 
+}
+
+
+
+INTERRUPT_GPDMA1_Channel7(void)
+{
+    for (b32 yield = false; !yield;)
+    {
+
+        enum OVCAMDMAUpdateResult result = _OVCAM_dma_update();
+
+        switch (result)
+        {
+
+            case OVCAMDMAUpdateResult_again:
+            {
+                // The state-machine should be updated again.
+            } break;
+
+            case OVCAMDMAUpdateResult_yield:
+            {
+                yield = true; // We can stop updating the state-machine for now.
+            } break;
+
+            case OVCAMDMAUpdateResult_bug : panic;
+            default                       : panic;
+
+        }
+
+    }
 }
 
 
@@ -1005,3 +1081,24 @@ INTERRUPT_DCMI_PSSI(void)
     }
 
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+// @/`OVCAM DMA Block Repetitions`:
+//
+// We configure the DMA channel in such a way that it always
+// expect more data than there'll actually be in the transfer.
+// This is so we can handle variable lengthed data transfers,
+// since the size of a JPEG image can vary scene-to-scene.
+//
+// Thus, the data transfer should technically never complete;
+// if it does, then this means the framebuffer got too full.
+//
+// Note that the DMA has a maximum transfer size limit of
+// about 64 KiB; to transfer more than that, we need to do
+// multiple reptitions in smaller block chunks. Thus, the
+// framebuffer should be a multiple of the block size.
