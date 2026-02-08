@@ -409,13 +409,29 @@ struct OVCAMFramebuffer
 
 
 
-// Note that an OVCAM driver struct could be made,
-// but if so, it should not include the framebuffer ring-buffer,
-// or else zeroing the driver struct will be expensive and
-// the debug inspection will be more noisy.
+enum OVCAMDriverState : u32
+{
+    OVCAMDriverState_uninitialized,
+    OVCAMDriverState_standby,
+    OVCAMDriverState_capturing,
+    OVCAMDriverState_dcmi_finished_capturing,
+};
 
-static RingBuffer(struct OVCAMFramebuffer, 2) _OVCAM_framebuffers       = {0};
-static struct OVCAMFramebuffer*               OVCAM_current_framebuffer = {0};
+struct OVCAMDriver
+{
+    volatile enum OVCAMDriverState state;
+};
+
+static struct OVCAMDriver       _OVCAM_driver             = {0};
+static struct OVCAMFramebuffer* OVCAM_current_framebuffer = {0};
+
+
+
+// Framebuffer ring-buffer must not be a part of the OVCAM driver
+// because it'll be expensive to zero it out; also, debug inspection
+// will become much more noisy.
+
+static RingBuffer(struct OVCAMFramebuffer, 2) _OVCAM_framebuffers = {0};
 
 
 
@@ -452,7 +468,9 @@ OVCAM_reinit(void)
     // be a waste of time to do so.
 
     _OVCAM_framebuffers.ring_buffer_raw = (struct RingBufferRaw) {0};
+    _OVCAM_driver                       = (struct OVCAMDriver) {0};
     OVCAM_current_framebuffer           = nullptr;
+
 
 
     // Reinitialize the I2C driver that'll
@@ -633,6 +651,8 @@ OVCAM_reinit(void)
 
     // The interrupt routine will handle the capture of the first image.
 
+    _OVCAM_driver.state = OVCAMDriverState_standby;
+
     NVIC_SET_PENDING(DCMI_PSSI);
 
 
@@ -651,8 +671,14 @@ static useret enum OVCAMSwapFramebufferResult : u32
 OVCAM_swap_framebuffer(void)
 {
 
-    if (!CMSIS_GET(DCMI, CR, ENABLE))
-        return OVCAMSwapFramebufferResult_bug; // DCMI should've been initialized, or perhaps there was a driver crash.
+    switch (_OVCAM_driver.state)
+    {
+        case OVCAMDriverState_standby                 : break;
+        case OVCAMDriverState_capturing               : break;
+        case OVCAMDriverState_dcmi_finished_capturing : break;
+        case OVCAMDriverState_uninitialized           : return OVCAMSwapFramebufferResult_bug;
+        default                                       : return OVCAMSwapFramebufferResult_bug;
+    }
 
 
 
@@ -734,23 +760,26 @@ OVCAM_write_register(u16 address, u8 content)
 
 
 
-static useret enum OVCAMDMAUpdateResult : u32
+static useret enum OVCAMUpdateOnceResult : u32
 {
-    OVCAMDMAUpdateResult_again,
-    OVCAMDMAUpdateResult_yield,
-    OVCAMDMAUpdateResult_bug,
+    OVCAMUpdateOnceResult_again,
+    OVCAMUpdateOnceResult_yield,
+    OVCAMUpdateOnceResult_bug,
 }
-_OVCAM_dma_update(void)
+_OVCAM_update_once(void)
 {
 
-    enum DMAInterruptEvent : u32
+    enum OVCAMInterruptEvent : u32
     {
-        DMAInterruptEvent_none,
-        DMAInterruptEvent_completed_suspension,
-        DMAInterruptEvent_transfer_complete,
+        OVCAMInterruptEvent_none,
+        OVCAMInterruptEvent_dma_completed_suspension,
+        OVCAMInterruptEvent_dma_transfer_complete,
+        OVCAMInterruptEvent_dcmi_capture_complete
     };
-    enum DMAInterruptEvent interrupt_event  = {0};
-    u32                    interrupt_status = GPDMA1_Channel7->CSR;
+    enum OVCAMInterruptEvent interrupt_event       = {0};
+    u32                      dma_interrupt_status  = GPDMA1_Channel7->CSR;
+    u32                      dcmi_interrupt_status = DCMI->MISR;
+    u32                      dcmi_interrupt_enable = DCMI->IER;
 
 
 
@@ -758,9 +787,9 @@ _OVCAM_dma_update(void)
     //
     // @/pg 677/sec 16.4.17/`H533rm`.
 
-    if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, ULEF))
+    if (CMSIS_GET_FROM(dma_interrupt_status, GPDMA1_Channel7, CSR, ULEF))
     {
-        return OVCAMDMAUpdateResult_bug; // Shouldn't happen; this feature isn't used.
+        return OVCAMUpdateOnceResult_bug; // Shouldn't happen; this feature isn't used.
     }
 
 
@@ -769,9 +798,9 @@ _OVCAM_dma_update(void)
     //
     // @/pg 672/sec 16.4.12/`H533rm`.
 
-    else if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, TOF))
+    else if (CMSIS_GET_FROM(dma_interrupt_status, GPDMA1_Channel7, CSR, TOF))
     {
-        return OVCAMDMAUpdateResult_bug; // Shouldn't happen; DMA channel isn't using an external trigger.
+        return OVCAMUpdateOnceResult_bug; // Shouldn't happen; DMA channel isn't using an external trigger.
     }
 
 
@@ -780,9 +809,9 @@ _OVCAM_dma_update(void)
     //
     // @/pg 677/sec 16.4.17/`H533rm`.
 
-    else if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, USEF))
+    else if (CMSIS_GET_FROM(dma_interrupt_status, GPDMA1_Channel7, CSR, USEF))
     {
-        return OVCAMDMAUpdateResult_bug; // Something obvious like this shouldn't happen.
+        return OVCAMUpdateOnceResult_bug; // Something obvious like this shouldn't happen.
     }
 
 
@@ -791,21 +820,45 @@ _OVCAM_dma_update(void)
     //
     // @/pg 676/sec 16.4.17/`H533rm`.
 
-    else if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, DTEF))
+    else if (CMSIS_GET_FROM(dma_interrupt_status, GPDMA1_Channel7, CSR, DTEF))
     {
-        return OVCAMDMAUpdateResult_bug; // Something obvious like this shouldn't happen.
+        return OVCAMUpdateOnceResult_bug; // Something obvious like this shouldn't happen.
     }
 
 
 
-    // The DMA channel is done being suspended.
-    //
-    // @/pg 642/sec 16.4.3/`H533rm`.
+    // VSYNC activation detected.
 
-    else if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, SUSPF))
+    else if (CMSIS_GET_FROM(dcmi_interrupt_status, DCMI, MIS, VSYNC_MIS))
     {
-        CMSIS_SET(GPDMA1_Channel7, CFCR, SUSPF, true);
-        interrupt_event = DMAInterruptEvent_completed_suspension;
+        return OVCAMUpdateOnceResult_bug; // Shouldn't happen; this interrupt event isn't used.
+    }
+
+
+
+    // DCMI finished receiving an entire image line.
+
+    else if (CMSIS_GET_FROM(dcmi_interrupt_status, DCMI, MIS, LINE_MIS))
+    {
+        return OVCAMUpdateOnceResult_bug; // Shouldn't happen; this interrupt event isn't used.
+    }
+
+
+
+    // Error within embedded syncronization codes found.
+
+    else if (CMSIS_GET_FROM(dcmi_interrupt_status, DCMI, MIS, ERR_MIS))
+    {
+        return OVCAMUpdateOnceResult_bug; // Shouldn't happen; this feature isn't used.
+    }
+
+
+
+    // DCMI's FIFO got too full.
+
+    else if (CMSIS_GET_FROM(dcmi_interrupt_status, DCMI, MIS, OVR_MIS))
+    {
+        return OVCAMUpdateOnceResult_bug; // Shouldn't happen; the DMA should've handled it.
     }
 
 
@@ -815,10 +868,32 @@ _OVCAM_dma_update(void)
     // @/`OVCAM DMA Block Repetitions`.
     // @/pg 642/sec 16.4.3/`H533rm`.
 
-    else if (CMSIS_GET_FROM(interrupt_status, GPDMA1_Channel7, CSR, TCF))
+    else if (CMSIS_GET_FROM(dma_interrupt_status, GPDMA1_Channel7, CSR, TCF))
     {
         CMSIS_SET(GPDMA1_Channel7, CFCR, TCF, true);
-        interrupt_event = DMAInterruptEvent_transfer_complete;
+        interrupt_event = OVCAMInterruptEvent_dma_transfer_complete;
+    }
+
+
+
+    // DCMI finished capturing an entire image.
+
+    else if (CMSIS_GET_FROM(dcmi_interrupt_status, DCMI, MIS, FRAME_MIS))
+    {
+        CMSIS_SET(DCMI, ICR, FRAME_ISC, true);
+        interrupt_event = OVCAMInterruptEvent_dcmi_capture_complete;
+    }
+
+
+
+    // The DMA channel is done being suspended.
+    //
+    // @/pg 642/sec 16.4.3/`H533rm`.
+
+    else if (CMSIS_GET_FROM(dma_interrupt_status, GPDMA1_Channel7, CSR, SUSPF))
+    {
+        CMSIS_SET(GPDMA1_Channel7, CFCR, SUSPF, true);
+        interrupt_event = OVCAMInterruptEvent_dma_completed_suspension;
     }
 
 
@@ -827,35 +902,70 @@ _OVCAM_dma_update(void)
 
     else
     {
-        interrupt_event = DMAInterruptEvent_none;
+
+        if (dcmi_interrupt_status & dcmi_interrupt_enable)
+            return OVCAMUpdateOnceResult_bug; // We have an unhandled interrupt event...?
+
+        interrupt_event = OVCAMInterruptEvent_none;
+
     }
 
 
 
-    // Handle the DMA interrupt event.
+    // Handle the interrupt event.
 
-    switch (interrupt_event)
+    switch (_OVCAM_driver.state)
     {
 
 
 
-        // No notable interrupt status flag found yet.
+        // Driver and camera module not even initialized yet...
 
-        case DMAInterruptEvent_none:
+        case OVCAMDriverState_uninitialized: switch (interrupt_event)
         {
 
-            if (CMSIS_GET(GPDMA1_Channel7, CCR, EN))
+            case OVCAMInterruptEvent_none:
             {
-                return OVCAMDMAUpdateResult_yield; // DMA is still doing stuff.
-            }
-            else
-            {
+
+                if (CMSIS_GET(GPDMA1_Channel7, CCR, EN))
+                    return OVCAMUpdateOnceResult_bug; // DMA active for some reason?
 
                 if (CMSIS_GET(DCMI, CR, CAPTURE))
-                    return OVCAMDMAUpdateResult_bug; // DCMI shouldn't be trying to do a capture with an inactive DMA...
+                    return OVCAMUpdateOnceResult_bug; // DCMI capturing for some reason?
+
+                // Somehow the OVCAM interrupt routines got
+                // pended but the driver is not initialized yet;
+                // either way, not much we can do until the user
+                // initializes the driver.
+                return OVCAMUpdateOnceResult_yield;
+
+            } break;
+
+            case OVCAMInterruptEvent_dma_completed_suspension : return OVCAMUpdateOnceResult_bug;
+            case OVCAMInterruptEvent_dma_transfer_complete    : return OVCAMUpdateOnceResult_bug;
+            case OVCAMInterruptEvent_dcmi_capture_complete    : return OVCAMUpdateOnceResult_bug;
+            default                                           : return OVCAMUpdateOnceResult_bug;
+
+        } break;
+
+
+
+        // Driver peripherals are ready to capture the next image.
+
+        case OVCAMDriverState_standby: switch (interrupt_event)
+        {
+
+            case OVCAMInterruptEvent_none:
+            {
+
+                if (CMSIS_GET(GPDMA1_Channel7, CCR, EN))
+                    return OVCAMUpdateOnceResult_bug; // DMA already active for some reason?
+
+                if (CMSIS_GET(DCMI, CR, CAPTURE))
+                    return OVCAMUpdateOnceResult_bug; // DCMI already capturing for some reason?
 
                 if (!CMSIS_GET(DCMI, CR, ENABLE))
-                    return OVCAMDMAUpdateResult_bug; // DCMI should've been initialized...
+                    return OVCAMUpdateOnceResult_bug; // DCMI should've been initialized...
 
 
 
@@ -895,257 +1005,234 @@ _OVCAM_dma_update(void)
                     CMSIS_SET(GPDMA1_Channel7, CCR, EN     , true);
                     CMSIS_SET(DCMI           , CR , CAPTURE, true);
 
-                    return OVCAMDMAUpdateResult_again;
+                    _OVCAM_driver.state = OVCAMDriverState_capturing;
+
+                    return OVCAMUpdateOnceResult_again;
 
                 }
                 else // No space for the next image; gotta wait for the user to free up a framebuffer.
                 {
-                    return OVCAMDMAUpdateResult_yield;
+                    return OVCAMUpdateOnceResult_yield;
                 }
 
-            }
+            } break;
+
+            case OVCAMInterruptEvent_dma_completed_suspension : return OVCAMUpdateOnceResult_bug;
+            case OVCAMInterruptEvent_dma_transfer_complete    : return OVCAMUpdateOnceResult_bug;
+            case OVCAMInterruptEvent_dcmi_capture_complete    : return OVCAMUpdateOnceResult_bug;
+            default                                           : return OVCAMUpdateOnceResult_bug;
 
         } break;
 
 
 
-        // The DCMI suspended the DMA channel because the image frame was complete.
-        //
-        // @/`OVCAM DMA Block Repetitions`.
+        // The peripherals are in the process of capturing the next image.
 
-        case DMAInterruptEvent_completed_suspension:
+        case OVCAMDriverState_capturing: switch (interrupt_event)
         {
 
-            if (CMSIS_GET(DCMI, SR, FNE))
-                return OVCAMDMAUpdateResult_bug; // The DCMI somehow still has left-over data in its FIFO.
 
-            if (CMSIS_GET(GPDMA1_Channel7, CSR, FIFOL))
-                return OVCAMDMAUpdateResult_bug; // The DMA somehow still has left-over data in its FIFO.
 
+            // Nothing new yet...
 
-
-            // With JPEG compression, the amount of received data will be variable,
-            // so we'll have to calculate the actual amount of data that has been transferred.
-
-            struct OVCAMFramebuffer* framebuffer = RingBuffer_writing_pointer(&_OVCAM_framebuffers);
-
-            if (!framebuffer)
-                return OVCAMDMAUpdateResult_bug; // There should've been a framebuffer that we were filling out...
-
-            framebuffer->length = (i32) CMSIS_GET(GPDMA1_Channel7, CDAR, DA) - (i32) &framebuffer->data;
-
-            if (!(0 < framebuffer->length && framebuffer->length < OVCAM_FRAMEBUFFER_SIZE))
-                return OVCAMDMAUpdateResult_bug; // Non-sensical data transfer length!
-
-
-
-            // We can now reset the DMA channel to have
-            // it be reconfigured for the next transfer.
-
-            CMSIS_SET(GPDMA1_Channel7, CCR, RESET, true);
-
-
-
-            // User can now use the received data.
-
-            if (!RingBuffer_push(&_OVCAM_framebuffers, nullptr))
-                return OVCAMDMAUpdateResult_bug; // There should've been the framebuffer that we were filling out...
-
-
-
-            return OVCAMDMAUpdateResult_again;
-
-        } break;
-
-
-
-        // When the DMA finishes its transfer, this means we ran out of framebuffer space
-        // and we're going to have to discard the frame. This can typically happen when the
-        // camera module's register is updated in such a way that the new image data coming
-        // in correspond to a larger image. Or of course, the framebuffer is too small.
-        //
-        // @/`OVCAM DMA Block Repetitions`.
-
-        case DMAInterruptEvent_transfer_complete:
-        {
-
-            // Although the reference manual doesn't seem to be explicit about this,
-            // it seems like disabling and enabling the DCMI interface is sufficient
-            // in resetting the internal DCMI state machine to discard whatever's
-            // remaining of the image frame and prepare for the next.
-
-            CMSIS_SET(DCMI, CR, ENABLE, false);
-            CMSIS_SET(DCMI, CR, ENABLE, true );
-
-            return OVCAMDMAUpdateResult_again;
-
-        } break;
-
-
-
-        default: return OVCAMDMAUpdateResult_bug;
-
-    }
-
-}
-
-
-
-static useret enum OVCAMDCMIUpdateResult : u32
-{
-    OVCAMDCMIUpdateResult_again,
-    OVCAMDCMIUpdateResult_yield,
-    OVCAMDCMIUpdateResult_bug,
-}
-_OVCAM_dcmi_update(void)
-{
-
-    enum DCMIInterruptEvent : u32
-    {
-        DCMIInterruptEvent_none,
-        DCMIInterruptEvent_capture_complete,
-    };
-    enum DCMIInterruptEvent interrupt_event  = {0};
-    u32                     interrupt_status = DCMI->MISR;
-    u32                     interrupt_enable = DCMI->IER;
-
-
-
-    // VSYNC activation detected.
-
-    if (CMSIS_GET_FROM(interrupt_status, DCMI, MIS, VSYNC_MIS))
-    {
-        return OVCAMDCMIUpdateResult_bug; // Shouldn't happen; this interrupt event isn't used.
-    }
-
-
-
-    // DCMI finished receiving an entire image line.
-
-    else if (CMSIS_GET_FROM(interrupt_status, DCMI, MIS, LINE_MIS))
-    {
-        return OVCAMDCMIUpdateResult_bug; // Shouldn't happen; this interrupt event isn't used.
-    }
-
-
-
-    // Error within embedded syncronization codes found.
-
-    else if (CMSIS_GET_FROM(interrupt_status, DCMI, MIS, ERR_MIS))
-    {
-        return OVCAMDCMIUpdateResult_bug; // Shouldn't happen; this feature isn't used.
-    }
-
-
-
-    // DCMI's FIFO got too full.
-
-    else if (CMSIS_GET_FROM(interrupt_status, DCMI, MIS, OVR_MIS))
-    {
-        return OVCAMDCMIUpdateResult_bug; // Shouldn't happen; the DMA should've handled it.
-    }
-
-
-
-    // DCMI finished capturing an entire image.
-
-    else if (CMSIS_GET_FROM(interrupt_status, DCMI, MIS, FRAME_MIS))
-    {
-        CMSIS_SET(DCMI, ICR, FRAME_ISC, true);
-        interrupt_event = DCMIInterruptEvent_capture_complete;
-    }
-
-
-
-    // Nothing notable happened.
-
-    else
-    {
-
-        if (interrupt_status & interrupt_enable)
-            return OVCAMDCMIUpdateResult_bug; // We have an unhandled interrupt event...?
-
-        interrupt_event = DCMIInterruptEvent_none;
-    }
-
-
-
-    // Handle the DCMI interrupt event.
-
-    switch (interrupt_event)
-    {
-
-
-
-        case DCMIInterruptEvent_none:
-        {
-            return OVCAMDCMIUpdateResult_yield; // Nothing interesting here...
-        } break;
-
-
-
-        case DCMIInterruptEvent_capture_complete:
-        {
-
-            // Before we reconfigure the DMA to for the next image capture,
-            // we should wait until the DMA has definitely grabbed all of
-            // the data in DCMI's FIFO and has transferred it all. It should
-            // be noted that I haven't been able to stimulate this edge-case,
-            // so I can't say for certainty that this works as expected.
-
-            i32 attempts = 0;
-
-            while (true)
+            case OVCAMInterruptEvent_none:
             {
-                if
-                (
-                    CMSIS_GET(DCMI, SR, FNE) ||            // Data still in DCMI's FIFO?
-                    CMSIS_GET(GPDMA1_Channel7, CSR, FIFOL) // Data still in DMA's FIFO?
-                )
+                return OVCAMUpdateOnceResult_yield;
+            } break;
+
+
+
+            // All pixel data has been transferred through the DCMI frontend;
+            // we now suspend the DMA transfer to reset the DMA.
+            //
+            // @/`OVCAM DMA Block Repetitions`.
+
+            case OVCAMInterruptEvent_dcmi_capture_complete:
+            {
+
+                // Before we suspend the DMA to for the next image capture,
+                // we should wait until the DMA has definitely grabbed all of
+                // the data in DCMI's FIFO and has transferred it all. It should
+                // be noted that I haven't been able to stimulate this edge-case,
+                // so I can't say for certainty that this works as expected.
+
+                i32 attempts = 0;
+
+                while (true)
                 {
-                    if (!CMSIS_GET(GPDMA1_Channel7, CCR, EN))
+                    if
+                    (
+                        CMSIS_GET(DCMI, SR, FNE) ||            // Data still in DCMI's FIFO?
+                        CMSIS_GET(GPDMA1_Channel7, CSR, FIFOL) // Data still in DMA's FIFO?
+                    )
                     {
+                        if (!CMSIS_GET(GPDMA1_Channel7, CCR, EN))
+                        {
 
-                        if (CMSIS_GET(DCMI, SR, FNE))
-                            return OVCAMDCMIUpdateResult_bug; // DMA got disabled, but there's still DCMI data!
+                            if (CMSIS_GET(DCMI, SR, FNE))
+                                return OVCAMUpdateOnceResult_bug; // DMA got disabled, but there's still DCMI data!
 
-                        if (CMSIS_GET(GPDMA1_Channel7, CSR, FIFOL))
-                            return OVCAMDCMIUpdateResult_bug; // DMA got disabled, but there's still DMA data!
+                            if (CMSIS_GET(GPDMA1_Channel7, CSR, FIFOL))
+                                return OVCAMUpdateOnceResult_bug; // DMA got disabled, but there's still DMA data!
 
-                    }
+                        }
 
-                    if (attempts < 4096)
-                    {
-                        attempts += 1;
+                        if (attempts < 4096)
+                        {
+                            attempts += 1;
+                        }
+                        else
+                        {
+                            return OVCAMUpdateOnceResult_bug; // We spent too much time waiting...
+                        }
+
                     }
                     else
                     {
-                        return OVCAMDCMIUpdateResult_bug; // We spent too much time waiting...
+                        break;
                     }
-
                 }
-                else
-                {
-                    break;
-                }
-            }
 
 
 
-            // The DMA is configured in such a way that it'll be able to
-            // handle arbitrary lengthed data, but to disable it so we
-            // can configure for the next transfer, we have to first
-            // suspend the channel.
+                // We can now finally suspend the DMA
+                // channel, which will take some cycles.
 
-            CMSIS_SET(GPDMA1_Channel7, CCR, SUSP, true);
+                CMSIS_SET(GPDMA1_Channel7, CCR, SUSP, true);
 
-            return OVCAMDCMIUpdateResult_again;
+                _OVCAM_driver.state = OVCAMDriverState_dcmi_finished_capturing;
+
+                return OVCAMUpdateOnceResult_again;
+
+            } break;
+
+
+
+            // The DMA completely filled out the framebuffer;
+            // we're going to have the discard this image frame...
+
+            case OVCAMInterruptEvent_dma_transfer_complete:
+            {
+
+                // @/`OVCAM Discarding Frame`:
+                //
+                // Although the reference manual doesn't seem to be explicit about this,
+                // it seems like disabling and enabling the DCMI interface is sufficient
+                // in resetting the internal DCMI state machine to discard whatever's
+                // remaining of the image frame.
+
+                CMSIS_SET(DCMI, CR, ENABLE, false);
+                CMSIS_SET(DCMI, CR, ENABLE, true );
+
+                _OVCAM_driver.state = OVCAMDriverState_standby;
+
+                return OVCAMUpdateOnceResult_again;
+
+            } break;
+
+
+
+            case OVCAMInterruptEvent_dma_completed_suspension : return OVCAMUpdateOnceResult_bug;
+            default                                           : return OVCAMUpdateOnceResult_bug;
 
         } break;
 
 
 
-        default: return OVCAMDCMIUpdateResult_bug;
+        // We're now waiting for the DMA channel to become suspended.
+
+        case OVCAMDriverState_dcmi_finished_capturing: switch (interrupt_event)
+        {
+
+
+
+            // Nothing new yet...
+
+            case OVCAMInterruptEvent_none:
+            {
+                return OVCAMUpdateOnceResult_yield;
+            } break;
+
+
+
+            // The DMA channel can now be reset and our image be sent to the user.
+
+            case OVCAMInterruptEvent_dma_completed_suspension:
+            {
+
+                if (CMSIS_GET(DCMI, SR, FNE))
+                    return OVCAMUpdateOnceResult_bug; // The DCMI somehow still has left-over data in its FIFO.
+
+                if (CMSIS_GET(GPDMA1_Channel7, CSR, FIFOL))
+                    return OVCAMUpdateOnceResult_bug; // The DMA somehow still has left-over data in its FIFO.
+
+
+
+                // With JPEG compression, the amount of received data will be variable,
+                // so we'll have to calculate the actual amount of data that has been transferred.
+
+                struct OVCAMFramebuffer* framebuffer = RingBuffer_writing_pointer(&_OVCAM_framebuffers);
+
+                if (!framebuffer)
+                    return OVCAMUpdateOnceResult_bug; // There should've been a framebuffer that we were filling out...
+
+                framebuffer->length = (i32) CMSIS_GET(GPDMA1_Channel7, CDAR, DA) - (i32) &framebuffer->data;
+
+                if (!(0 < framebuffer->length && framebuffer->length < OVCAM_FRAMEBUFFER_SIZE))
+                    return OVCAMUpdateOnceResult_bug; // Non-sensical data transfer length!
+
+
+
+                // We can now reset the DMA channel to have
+                // it be reconfigured for the next transfer.
+
+                CMSIS_SET(GPDMA1_Channel7, CCR, RESET, true);
+
+
+
+                // User can now use the received data.
+
+                if (!RingBuffer_push(&_OVCAM_framebuffers, nullptr))
+                    return OVCAMUpdateOnceResult_bug; // There should've been the framebuffer that we were filling out...
+
+
+
+                _OVCAM_driver.state = OVCAMDriverState_standby;
+
+                return OVCAMUpdateOnceResult_again;
+
+            } break;
+
+
+
+            // The DCMI peripheral finished capturing all of the image pixel data,
+            // but the DMA fully used all of the framebuffer space. This is probably
+            // because the image was exactly the same size as the framebuffer.
+            // Although the image could still be technically used, this should be
+            // such a rare situation that we can safely discard it.
+
+            case OVCAMInterruptEvent_dma_transfer_complete:
+            {
+
+                CMSIS_SET(DCMI, CR, ENABLE, false); // @/`OVCAM Discarding Frame`.
+                CMSIS_SET(DCMI, CR, ENABLE, true ); // "
+
+                _OVCAM_driver.state = OVCAMDriverState_standby;
+
+                return OVCAMUpdateOnceResult_again;
+
+            } break;
+
+
+
+            case OVCAMInterruptEvent_dcmi_capture_complete : return OVCAMUpdateOnceResult_bug;
+            default                                        : return OVCAMUpdateOnceResult_bug;
+
+        } break;
+
+
+
+        default: return OVCAMUpdateOnceResult_bug;
 
     }
 
@@ -1173,78 +1260,47 @@ INTERRUPT_GPDMA1_Channel7(void)
 INTERRUPT_DCMI_PSSI(void)
 {
 
-    // Handle DCMI events.
-
     for (b32 yield = false; !yield;)
     {
 
-        enum OVCAMDCMIUpdateResult result = _OVCAM_dcmi_update();
+        enum OVCAMUpdateOnceResult result = _OVCAM_update_once();
 
         switch (result)
         {
 
-            case OVCAMDCMIUpdateResult_again:
+            case OVCAMUpdateOnceResult_again:
             {
                 // The state-machine should be updated again.
             } break;
 
-            case OVCAMDCMIUpdateResult_yield:
+            case OVCAMUpdateOnceResult_yield:
             {
                 yield = true; // We can stop updating the state-machine for now.
             } break;
 
-            case OVCAMDCMIUpdateResult_bug : goto BUG;
-            default                        : goto BUG;
+            case OVCAMUpdateOnceResult_bug:
+            default:
+            {
+
+                // Something bad happened!
+                // Shut down the peripherals and wait
+                // for the user to reinitialize everything.
+
+                CMSIS_SET(RCC, AHB1RSTR, GPDMA1RST   , true );
+                CMSIS_SET(RCC, AHB2RSTR, DCMI_PSSIRST, true );
+                CMSIS_SET(RCC, AHB1RSTR, GPDMA1RST   , false);
+                CMSIS_SET(RCC, AHB2RSTR, DCMI_PSSIRST, false);
+
+                NVIC_DISABLE(GPDMA1_Channel7);
+                NVIC_DISABLE(DCMI_PSSI);
+
+                _OVCAM_driver = (struct OVCAMDriver) {0};
+
+            } break;
 
         }
 
     }
-
-
-
-    // Handle DMA events.
-
-    for (b32 yield = false; !yield;)
-    {
-
-        enum OVCAMDMAUpdateResult result = _OVCAM_dma_update();
-
-        switch (result)
-        {
-
-            case OVCAMDMAUpdateResult_again:
-            {
-                // The state-machine should be updated again.
-            } break;
-
-            case OVCAMDMAUpdateResult_yield:
-            {
-                yield = true; // We can stop updating the state-machine for now.
-            } break;
-
-            case OVCAMDMAUpdateResult_bug : goto BUG;
-            default                       : goto BUG;
-
-        }
-
-    }
-
-
-
-    // Something bad happened!
-    // Shut down the peripherals and wait
-    // for the user to reinitialize everything.
-
-    return;
-    BUG:;
-
-    CMSIS_SET(RCC, AHB1RSTR, GPDMA1RST   , true );
-    CMSIS_SET(RCC, AHB2RSTR, DCMI_PSSIRST, true );
-    CMSIS_SET(RCC, AHB1RSTR, GPDMA1RST   , false);
-    CMSIS_SET(RCC, AHB2RSTR, DCMI_PSSIRST, false);
-
-    NVIC_DISABLE(GPDMA1_Channel7);
-    NVIC_DISABLE(DCMI_PSSI);
 
 }
 
