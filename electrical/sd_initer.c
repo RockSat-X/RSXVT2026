@@ -1,3 +1,8 @@
+#define SD_INITER_MAX_MOUNTING_RETRIES 64
+#define SD_INITER_MAX_READY_RETRIES    1024
+
+
+
 enum SDCardState : u32 // @/pg 148/tbl 4-42/`SD`.
 {
     SDCardState_idle  = 0,
@@ -42,14 +47,6 @@ struct SDIniter
         u8  switch_function_status[64];
     } local;
 
-    // To be filled out by the caller before updating
-    // with the results of the previous command.
-    struct SDIniterFeedback
-    {
-        b32 failed;
-        u32 response[4]; // Begins with the first 32 most-significant bits.
-    } feedback;
-
     struct SDIniterCommand
     {
         enum SDCmd cmd;
@@ -57,6 +54,12 @@ struct SDIniter
         u8*        data;
         i32        size;
     } command;
+
+    struct SDIniterFeedback // To be filled out by the caller with the results of the previous command.
+    {
+        b32 failed;
+        u32 response[4]; // Begins with the first 32 most-significant bits.
+    } feedback;
 
 };
 
@@ -68,10 +71,14 @@ struct SDIniter
 
 static useret enum SDIniterHandleFeedbackResult : u32
 {
-    SDIniterHandleFeedbackResult_ok,
-    SDIniterHandleFeedbackResult_bug,
+    SDIniterHandleFeedbackResult_okay,
+    SDIniterHandleFeedbackResult_user_problem,
     SDIniterHandleFeedbackResult_card_likely_unmounted,
-    SDIniterHandleFeedbackResult_support_issue,
+    SDIniterHandleFeedbackResult_voltage_check_failed,
+    SDIniterHandleFeedbackResult_could_not_ready_card,
+    SDIniterHandleFeedbackResult_unsupported_card,
+    SDIniterHandleFeedbackResult_card_glitch,
+    SDIniterHandleFeedbackResult_bug,
 }
 _SDIniter_handle_feedback(struct SDIniter* initer)
 {
@@ -79,62 +86,71 @@ _SDIniter_handle_feedback(struct SDIniter* initer)
     if (!initer)
         return SDIniterHandleFeedbackResult_bug;
 
-    initer->command = (struct SDIniterCommand) {0};
-
     switch (initer->state)
     {
 
-        ////////////////////////////////////////////////////////////////////////////////
+
+        ////////////////////////////////////////
         //
-        // This is the beginning of the SD
-        // card initializer state machine.
+        // This is the beginning of the SD card initializer state machine.
+        //
         // @/pg 67/sec 4.2/`SD`.
         //
-
-
+        ////////////////////////////////////////
 
         case SDIniterState_uninited:
         {
-
             if (initer->feedback.failed)
-                // Feedback said SD command failed,
-                // but SD-initer hasn't given the
-                // caller any SD commands yet.
-                return SDIniterHandleFeedbackResult_bug;
+            {
+                return SDIniterHandleFeedbackResult_bug; // There's no reason for a failed command already...
+            }
+            else
+            {
 
-            initer->state = SDIniterState_execute_GO_IDLE_STATE;
+                *initer =
+                    (struct SDIniter)
+                    {
 
+                        .state = SDIniterState_execute_GO_IDLE_STATE,
+                    };
+
+                return SDIniterHandleFeedbackResult_okay;
+
+            }
         } break;
 
 
 
-        ////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////
         //
-        // Make card reset into the idle state.
+        // Make SD card reset into the idle state.
+        //
         // @/pg 68/fig 4-1/`SD`.
         //
-
-
+        ////////////////////////////////////////
 
         case SDIniterState_execute_GO_IDLE_STATE:
         {
-
             if (initer->feedback.failed)
-                return SDIniterHandleFeedbackResult_support_issue;
-
-            initer->state = SDIniterState_execute_SEND_IF_COND;
-
+            {
+                return SDIniterHandleFeedbackResult_user_problem; // The GO_IDLE_STATE doesn't even require a reply from the SD card...
+            }
+            else
+            {
+                initer->state = SDIniterState_execute_SEND_IF_COND;
+                return SDIniterHandleFeedbackResult_okay;
+            }
         } break;
 
 
 
-        ////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////
         //
         // Send the mandatory voltage-check command.
+        //
         // @/pg 67/sec 4.2.2/`SD`.
         //
-
-
+        ////////////////////////////////////////
 
         #define SD_INTERFACE_CONDITION ( /* Argument to SEND_IF_COND (CMD8). @/pg 116/sec 4.3.13/`SD`. */ \
                 (0      << (21 - 8)) |   /* We don't support the PCIe 1.2v bus.                        */ \
@@ -145,383 +161,392 @@ _SDIniter_handle_feedback(struct SDIniter* initer)
 
         case SDIniterState_execute_SEND_IF_COND:
         {
-
             if (initer->feedback.failed)
             {
+                if (initer->local.mount_attempts < SD_INITER_MAX_MOUNTING_RETRIES)
+                {
 
-                if (initer->local.mount_attempts + 1 >= 64)
+                    initer->local.mount_attempts += 1;
+                    initer->state                 = SDIniterState_execute_GO_IDLE_STATE;
+
+                    return SDIniterHandleFeedbackResult_okay; // Try restarting and mounting again...
+
+                }
+                else
+                {
                     return SDIniterHandleFeedbackResult_card_likely_unmounted;
-
-                initer->local.mount_attempts += 1;
-                initer->state                 = SDIniterState_execute_GO_IDLE_STATE;
-
+                }
             }
-            else
+            else if (initer->feedback.response[0] != (SD_INTERFACE_CONDITION & ((1 << 12) - 1)))
             {
 
-                if (initer->feedback.response[0] != (SD_INTERFACE_CONDITION & ((1 << 12) - 1)))
-                    // Response of SEND_IF_COND must echo back
-                    // the expected voltage and check-pattern.
-                    // @/pg 116/sec 4.3.13/`SD`."
-                    return SDIniterHandleFeedbackResult_support_issue;
+                // Response of SEND_IF_COND must echo back the expected voltage
+                // and check-pattern; we got something different, so...
+                //
+                // @/pg 116/sec 4.3.13/`SD`."
 
-                initer->local.mount_attempts = 0;
-                initer->state                = SDIniterState_execute_SD_SEND_OP_COND;
+                return SDIniterHandleFeedbackResult_voltage_check_failed;
 
             }
-
+            else // SD card successfully replied back!
+            {
+                initer->local.mount_attempts = 0;
+                initer->state                = SDIniterState_execute_SD_SEND_OP_COND;
+                return SDIniterHandleFeedbackResult_okay;
+            }
         } break;
 
 
 
-        ////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////
         //
         // Attempt to move from idle state into ready state.
         //
-
-
+        ////////////////////////////////////////
 
         case SDIniterState_execute_SD_SEND_OP_COND:
         {
 
             u32 ocr        = initer->feedback.response[0]; // @/pg 71/fig 4-4/`SD`.
             b32 powered_up = ocr & (1U << 31);             // @/pg 249/tbl 5-1/`SD`.
+            b32 ccs        = ocr & (1U << 30);             // "CCS=0 is SDSC and CCS=1 is SDHC or SDXC". @/pg 117/sec 4.3.14/`SD`.
 
             if (initer->feedback.failed || !powered_up) // Couldn't ready the card?
             {
+                if (initer->local.mount_attempts < SD_INITER_MAX_READY_RETRIES)
+                {
 
-                if (initer->local.mount_attempts + 1 >= 1024)
-                    return SDIniterHandleFeedbackResult_card_likely_unmounted;
+                    initer->local.mount_attempts += 1;
+                    initer->state                 = SDIniterState_execute_SD_SEND_OP_COND;
 
-                initer->local.mount_attempts += 1;
-                initer->state                 = SDIniterState_execute_SD_SEND_OP_COND;
+                    return SDIniterHandleFeedbackResult_okay; // Give the card a bit more time...
+
+                }
+                else
+                {
+                    return SDIniterHandleFeedbackResult_could_not_ready_card;
+                }
+            }
+            else if (!ccs)
+            {
+
+                // We don't support standard capacity SD cards; if we were to,
+                // we'd need to account for the byte unit addressing.
+                //
+                // @/pg 130/tbl 4-23/`SD`.
+
+                return SDIniterHandleFeedbackResult_unsupported_card;
 
             }
             else
             {
-
-                // "CCS=0 is SDSC and CCS=1 is SDHC or SDXC". @/pg 117/sec 4.3.14/`SD`.
-                b32 ccs = ocr & (1 << 30);
-
-                if (!ccs)
-                    // We don't support SDSC; if we were to,
-                    // we'd need to account for the byte unit addressing.
-                    // @/pg 130/tbl 4-23/`SD`.
-                    return SDIniterHandleFeedbackResult_support_issue;
-
                 initer->local.mount_attempts = 0;
                 initer->state                = SDIniterState_execute_ALL_SEND_CID;
-
+                return SDIniterHandleFeedbackResult_okay;
             }
 
         } break;
 
 
 
-        ////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////
         //
         // Get the unique card identification number (CID).
+        //
         // @/pg 69/sec 4.2.3/`SD`.
         //
-
-
+        ////////////////////////////////////////
 
         case SDIniterState_execute_ALL_SEND_CID:
         {
-
             if (initer->feedback.failed)
-                return SDIniterHandleFeedbackResult_support_issue;
-
-            initer->state = SDIniterState_execute_SEND_RELATIVE_ADDR;
-
+            {
+                return SDIniterHandleFeedbackResult_user_problem; // Probably due to something outside our control.
+            }
+            else
+            {
+                initer->state = SDIniterState_execute_SEND_RELATIVE_ADDR;
+                return SDIniterHandleFeedbackResult_okay;
+            }
         } break;
 
 
 
-        ////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////
         //
-        // Get the relative card address (RCA) to bring the card into standby state.
+        // Get the relative card address (RCA) to bring the card into standby state;
+        // it's also needed for certain SD commands.
+        //
         // @/pg 69/sec 4.2.3/`SD`.
         //
-
-
+        ////////////////////////////////////////
 
         case SDIniterState_execute_SEND_RELATIVE_ADDR:
         {
-
             if (initer->feedback.failed)
-                return SDIniterHandleFeedbackResult_support_issue;
-
-            if (((initer->feedback.response[0] >> 9) & 0b1111) != SDCardState_ident)
-                return SDIniterHandleFeedbackResult_support_issue;
-
-            // The RCA is needed for some commands.
-            // @/pg 144/sec 4.9.5/`SD`.
-            initer->rca   = (u16) (initer->feedback.response[0] >> 16);
-            initer->state = SDIniterState_execute_SEND_CSD;
-
+            {
+                return SDIniterHandleFeedbackResult_user_problem; // Probably due to something outside our control.
+            }
+            else if (((initer->feedback.response[0] >> 9) & 0b1111) != SDCardState_ident)
+            {
+                return SDIniterHandleFeedbackResult_card_glitch; // SD card should've came out of the identification state...
+            }
+            else
+            {
+                initer->rca   = (u16) (initer->feedback.response[0] >> 16); // @/pg 144/sec 4.9.5/`SD`.
+                initer->state = SDIniterState_execute_SEND_CSD;
+                return SDIniterHandleFeedbackResult_okay;
+            }
         } break;
 
 
 
-        ////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////
         //
         // Get and verify card-specific data.
+        //
         // @/pg 251/sec 5.3.1/`SD`.
         //
-
-
+        ////////////////////////////////////////
 
         case SDIniterState_execute_SEND_CSD:
         {
-
             if (initer->feedback.failed)
-                return SDIniterHandleFeedbackResult_support_issue;
-
-            union
             {
-                u32 words[4];
-                u8  bytes[4 * sizeof(u32)];
-            } card_specific_data_data =
-                {
-                    {
-                        __builtin_bswap32(initer->feedback.response[0]),
-                        __builtin_bswap32(initer->feedback.response[1]),
-                        __builtin_bswap32(initer->feedback.response[2]),
-                        __builtin_bswap32(initer->feedback.response[3]),
-                    },
-                };
-
-            struct SDCardSpecificData csd = {0};
-
-            if (!SD_parse_register(&csd, card_specific_data_data.bytes))
-                return SDIniterHandleFeedbackResult_support_issue;
-
-
-
-            switch (csd.CSD_STRUCTURE)
-            {
-                case SDCardSpecificDataVersion_2:
-                {
-
-                    if (~csd.v2_CCC & ((1 << 0) | (1 << 2) | (1 << 4) | (1 << 5) | (1 << 8)))
-                        // Classes 0, 2, 4, 5, and 8 are mandatory.
-                        // @/pg 123/sec 4.7.3/`SD`.
-                        return SDIniterHandleFeedbackResult_support_issue;
-
-
-
-                    // Memory capacity of the SD card
-                    // in units of 512-byte sectors.
-                    // @/pg 260/sec 5.3.3/`SD`.
-
-                    initer->capacity_sector_count = ((i32) csd.v2_C_SIZE + 1) * 1024;
-
-                } break;
-
-                default: return SDIniterHandleFeedbackResult_support_issue;
+                return SDIniterHandleFeedbackResult_user_problem; // Probably due to something outside our control.
             }
+            else
+            {
 
+                union
+                {
+                    u32 words[4];
+                    u8  bytes[4 * sizeof(u32)];
+                } card_specific_data_data =
+                    {
+                        {
+                            __builtin_bswap32(initer->feedback.response[0]),
+                            __builtin_bswap32(initer->feedback.response[1]),
+                            __builtin_bswap32(initer->feedback.response[2]),
+                            __builtin_bswap32(initer->feedback.response[3]),
+                        },
+                    };
 
+                struct SDCardSpecificData csd = {0};
 
-            initer->state = SDIniterState_execute_SELECT_DESELECT_CARD;
+                if (!SD_parse_register(&csd, card_specific_data_data.bytes))
+                {
+                    return SDIniterHandleFeedbackResult_card_glitch; // Register has invalid values.
+                }
+                else switch (csd.CSD_STRUCTURE)
+                {
 
+                    case SDCardSpecificDataVersion_2:
+                    {
+                        if (~csd.v2_CCC & ((1 << 0) | (1 << 2) | (1 << 4) | (1 << 5) | (1 << 8)))
+                        {
+                            return SDIniterHandleFeedbackResult_card_glitch; // Missing mandatory classes. @/pg 123/sec 4.7.3/`SD`.
+                        }
+                        else
+                        {
+                            initer->capacity_sector_count = ((i32) csd.v2_C_SIZE + 1) * 1024; // @/pg 260/sec 5.3.3/`SD`.
+                            initer->state                 = SDIniterState_execute_SELECT_DESELECT_CARD;
+                            return SDIniterHandleFeedbackResult_okay;
+                        }
+                    } break;
+
+                    default: return SDIniterHandleFeedbackResult_unsupported_card;
+
+                }
+
+            }
         } break;
 
 
 
-        ////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////
         //
         // Go into transfer state.
         //
-
-
+        ////////////////////////////////////////
 
         case SDIniterState_execute_SELECT_DESELECT_CARD:
         {
-
             if (initer->feedback.failed)
-                return SDIniterHandleFeedbackResult_support_issue;
-
-            if (((initer->feedback.response[0] >> 9) & 0b1111) != SDCardState_stby)
-                // Transitioned out of the stand-by state.
-                // @/pg 76/fig 4-13/`SD`.
-                return SDIniterHandleFeedbackResult_support_issue;
-
-            initer->state = SDIniterState_execute_SEND_SCR;
-
+            {
+                return SDIniterHandleFeedbackResult_user_problem; // Probably due to something outside our control.
+            }
+            else if (((initer->feedback.response[0] >> 9) & 0b1111) != SDCardState_stby)
+            {
+                return SDIniterHandleFeedbackResult_card_glitch; // SD card should've came out of the stand-by state...
+            }
+            else
+            {
+                initer->state = SDIniterState_execute_SEND_SCR;
+                return SDIniterHandleFeedbackResult_okay;
+            }
         } break;
 
 
 
-        ////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////
         //
         // Get and verify SD configuration register (SCR).
         //
-
-
+        ////////////////////////////////////////
 
         case SDIniterState_execute_SEND_SCR:
         {
-
             if (initer->feedback.failed)
-                return SDIniterHandleFeedbackResult_support_issue;
-
-            if (((initer->feedback.response[0] >> 9) & 0b1111) != SDCardState_tran)
-                // Transitioned out of the transmission state.
-                // @/pg 76/fig 4-13/`SD`.
-                return SDIniterHandleFeedbackResult_support_issue;
-
-            struct SDConfigurationRegister scr = {0};
-
-            if (!SD_parse_register(&scr, initer->local.sd_configuration_register))
-                return SDIniterHandleFeedbackResult_support_issue;
-
-
-
-            switch (scr.SCR_STRUCTURE)
             {
-                case SDConfigurationRegisterVersion_1:
+                return SDIniterHandleFeedbackResult_user_problem; // Probably due to something outside our control.
+            }
+            else if (((initer->feedback.response[0] >> 9) & 0b1111) != SDCardState_tran)
+            {
+                return SDIniterHandleFeedbackResult_card_glitch; // SD card should've came out of the transmission state...
+            }
+            else
+            {
+
+                struct SDConfigurationRegister scr = {0};
+
+                if (!SD_parse_register(&scr, initer->local.sd_configuration_register))
+                {
+                    return SDIniterHandleFeedbackResult_card_glitch; // Register has invalid values.
+                }
+                else switch (scr.SCR_STRUCTURE)
                 {
 
-                    // Only SD cards with version 2.00 of the physical
-                    // layer specification are currently supported.
-                    // @/pg 267/tbl 5-19/`SD`
+                    case SDConfigurationRegisterVersion_1:
+                    {
+                        if (scr.v1_SD_SPEC != 2) // @/pg 267/tbl 5-19/`SD`.
+                        {
+                            return SDIniterHandleFeedbackResult_unsupported_card; // Unsupported specification version.
+                        }
+                        else if (~scr.v1_SD_BUS_WIDTHS & ((1 << 0) | (1 << 2))) // @/pg 270/tbl 5-21/`SD`.
+                        {
+                            return SDIniterHandleFeedbackResult_unsupported_card; // We need 1-bit and 4-bit data busses.
+                        }
+                        else
+                        {
+                            initer->state = SDIniterState_execute_SWITCH_FUNC;
+                            return SDIniterHandleFeedbackResult_okay;
+                        }
+                    } break;
 
-                    if (scr.v1_SD_SPEC != 2)
-                        return SDIniterHandleFeedbackResult_support_issue;
+                    default: return SDIniterHandleFeedbackResult_unsupported_card;
 
-                    // Only SD cards with 1-bit and 4-bit
-                    // busses are currently supported.
-                    // @/pg 270/tbl 5-21/`SD`.
+                }
 
-                    if (~scr.v1_SD_BUS_WIDTHS & ((1 << 0) | (1 << 2)))
-                        return SDIniterHandleFeedbackResult_support_issue;
-
-                } break;
-
-                default: return SDIniterHandleFeedbackResult_support_issue;
             }
-
-
-
-            initer->state = SDIniterState_execute_SWITCH_FUNC;
-
         } break;
 
 
 
-        ////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////
         //
-        // Ensure the card supports high-speed
-        // mode so we can go up to 48MHz.
+        // Ensure the card supports high-speed mode so we can go up to 48MHz.
         // @/pg 106/sec 4.3.10.3/`SD`.
         //
-
-
+        ////////////////////////////////////////
 
         case SDIniterState_execute_SWITCH_FUNC:
         {
-
             if (initer->feedback.failed)
-                return SDIniterHandleFeedbackResult_support_issue;
-
-            struct SDSwitchFunctionStatus sfs = {0};
-
-            if (!SD_parse_register(&sfs, initer->local.switch_function_status))
-                return SDIniterHandleFeedbackResult_support_issue;
-
-
-
-            switch (sfs.version)
             {
-                case SDSwitchFunctionStatusVersion_1:
-                case SDSwitchFunctionStatusVersion_2:
+                return SDIniterHandleFeedbackResult_user_problem; // Probably due to something outside our control.
+            }
+            else
+            {
+
+                struct SDSwitchFunctionStatus sfs = {0};
+
+                if (!SD_parse_register(&sfs, initer->local.switch_function_status))
+                {
+                    return SDIniterHandleFeedbackResult_card_glitch; // Register has invalid values.
+                }
+                else switch (sfs.version)
                 {
 
-                    // Only SD cards with high-speed
-                    // mode are currently supported.
-                    // @/pg 111/tbl 4-13/`SD`.
+                    case SDSwitchFunctionStatusVersion_1:
+                    case SDSwitchFunctionStatusVersion_2:
+                    {
+                        if (~sfs.v2_group_1_support & (1 << 1)) // @/pg 111/tbl 4-13/`SD`.
+                        {
+                            return SDIniterHandleFeedbackResult_unsupported_card; // We need high-speed mode.
+                        }
+                        else if (sfs.v2_group_1_selection != 0x1) // @/pg 107/tbl 4-11/`SD`.
+                        {
+                            return SDIniterHandleFeedbackResult_unsupported_card; // We failed to switch to high-speed mode.
+                        }
+                        else
+                        {
+                            initer->state = SDIniterState_execute_SET_BUS_WIDTH;
+                            return SDIniterHandleFeedbackResult_okay;
+                        }
+                    } break;
 
-                    if (~sfs.v2_group_1_support & (1 << 1))
-                        return SDIniterHandleFeedbackResult_support_issue;
+                    default: return SDIniterHandleFeedbackResult_unsupported_card;
 
+                }
 
-
-                    // SD cards couldn't be switched to high-speed mode.
-                    // @/pg 107/tbl 4-11/`SD`.
-
-                    if (sfs.v2_group_1_selection != 0x1)
-                        return SDIniterHandleFeedbackResult_support_issue;
-
-                } break;
-
-                default: return SDIniterHandleFeedbackResult_support_issue;
             }
-
-
-
-            initer->state = SDIniterState_execute_SET_BUS_WIDTH;
-
         } break;
 
 
 
-        ////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////
         //
         // Notify the SD card that the bus width will be set to 4.
-        // @/pg 133/tbl 4-31/`SD`.
-        // TODO Customize bus width.
         //
-
-
+        // @/pg 133/tbl 4-31/`SD`.
+        //
+        ////////////////////////////////////////
 
         case SDIniterState_execute_SET_BUS_WIDTH:
         {
-
             if (initer->feedback.failed)
-                return SDIniterHandleFeedbackResult_support_issue;
-
-            if (((initer->feedback.response[0] >> 9) & 0b1111) != SDCardState_tran)
-                // Transitioned out of the transfer state.
-                // @/pg 76/fig 4-13/`SD`.
-                return SDIniterHandleFeedbackResult_support_issue;
-
-            initer->state = SDIniterState_caller_set_bus_width;
-
+            {
+                return SDIniterHandleFeedbackResult_user_problem; // Probably due to something outside our control.
+            }
+            else if (((initer->feedback.response[0] >> 9) & 0b1111) != SDCardState_tran)
+            {
+                return SDIniterHandleFeedbackResult_card_glitch; // SD card should've came out of the transfer state...
+            }
+            else
+            {
+                initer->state = SDIniterState_caller_set_bus_width;
+                return SDIniterHandleFeedbackResult_okay;
+            }
         } break;
 
 
 
-        ////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////
         //
         // Caller now configures the bus width.
         //
-
-
+        ////////////////////////////////////////
 
         case SDIniterState_caller_set_bus_width:
         {
-
             if (initer->feedback.failed)
-                // No reason for the caller to
-                // fail configuring the bus width.
-                return SDIniterHandleFeedbackResult_bug;
-
-            initer->state = SDIniterState_done;
-
+            {
+                return SDIniterHandleFeedbackResult_bug; // No reason for the user to fail configuring the bus width.
+            }
+            else
+            {
+                initer->state = SDIniterState_done;
+                return SDIniterHandleFeedbackResult_okay;
+            }
         } break;
 
 
-
-        ////////////////////////////////////////////////////////////////////////////////
 
         case SDIniterState_done : return SDIniterHandleFeedbackResult_bug; // We're already done; there's nothing left to do!
         default                 : return SDIniterHandleFeedbackResult_bug;
 
     }
-
-    return SDIniterHandleFeedbackResult_ok;
 
 }
 
@@ -563,7 +588,12 @@ SDIniter_update(struct SDIniter* initer)
 
     switch (feedback_result)
     {
-        case SDIniterHandleFeedbackResult_support_issue:
+
+        case SDIniterHandleFeedbackResult_user_problem:
+        case SDIniterHandleFeedbackResult_voltage_check_failed:
+        case SDIniterHandleFeedbackResult_could_not_ready_card:
+        case SDIniterHandleFeedbackResult_unsupported_card:
+        case SDIniterHandleFeedbackResult_card_glitch:
         {
 
             if (initer->local.support_attempts + 1 >= 64)
@@ -574,7 +604,7 @@ SDIniter_update(struct SDIniter* initer)
 
         } break;
 
-        case SDIniterHandleFeedbackResult_ok                    : break;
+        case SDIniterHandleFeedbackResult_okay                    : break;
         case SDIniterHandleFeedbackResult_card_likely_unmounted : return SDIniterUpdateResult_card_likely_unmounted;
         case SDIniterHandleFeedbackResult_bug                   : return SDIniterUpdateResult_bug;
         default                                           : return SDIniterUpdateResult_bug;
