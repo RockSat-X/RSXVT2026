@@ -496,7 +496,7 @@ _SD_update_once(enum SDHandle handle)
 
                     // SD-initer gave us the command to execute next.
 
-                    case SDIniterUpdateResult_do_cmd:
+                    case SDIniterUpdateResult_execute_command:
                     {
 
                         driver->cmder =
@@ -521,7 +521,7 @@ _SD_update_once(enum SDHandle handle)
                     // the bus width width now. At this point,
                     // we can also increase the bus speed.
 
-                    case SDIniterUpdateResult_caller_set_bus_width:
+                    case SDIniterUpdateResult_user_set_bus_width:
                     {
 
                         CMSIS_SET(SDx, DTIMER, DATATIME, STPY_SDx_FULL_DATATIME); // New max timeout period.
@@ -558,7 +558,7 @@ _SD_update_once(enum SDHandle handle)
                     // the SD card most likely because the
                     // card is not supported by SD-initer.
 
-                    case SDIniterUpdateResult_card_likely_unsupported:
+                    case SDIniterUpdateResult_unsupported_card:
                     {
 
                         driver->state = SDDriverState_error;
@@ -582,6 +582,10 @@ _SD_update_once(enum SDHandle handle)
                     } break;
 
 
+                    case SDIniterUpdateResult_maybe_bus_problem: sorry
+                    case SDIniterUpdateResult_voltage_check_failed: sorry
+                    case SDIniterUpdateResult_could_not_ready_card: sorry
+                    case SDIniterUpdateResult_card_glitch: sorry
 
                     case SDIniterUpdateResult_bug : bug;
                     default                 : bug;
