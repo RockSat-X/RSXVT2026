@@ -5,7 +5,7 @@
 
 
 
-#define DEMO_MODE 1 // See below for different kinds of tests.
+#define DEMO_MODE 0 // See below for different kinds of tests.
 
 
 

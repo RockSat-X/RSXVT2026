@@ -489,25 +489,25 @@ _SD_update_once(enum SDHandle handle)
             case SDCmderUpdate_ready_for_next_command:
             {
 
-                enum SDIniterUpdate initer_result = SDIniter_update(&driver->initer);
+                enum SDIniterUpdateResult initer_result = SDIniter_update(&driver->initer);
 
                 switch (initer_result)
                 {
 
                     // SD-initer gave us the command to execute next.
 
-                    case SDIniterUpdate_do_cmd:
+                    case SDIniterUpdateResult_do_cmd:
                     {
 
                         driver->cmder =
                             (struct SDCmder)
                             {
                                 .state      = SDCmderState_scheduled_command,
-                                .cmd        = driver->initer.cmd.cmd,
-                                .arg        = driver->initer.cmd.arg,
-                                .data       = driver->initer.cmd.data,
-                                .remaining  = driver->initer.cmd.size,
-                                .block_size = driver->initer.cmd.size,
+                                .cmd        = driver->initer.command.cmd,
+                                .arg        = driver->initer.command.arg,
+                                .data       = driver->initer.command.data,
+                                .remaining  = driver->initer.command.size,
+                                .block_size = driver->initer.command.size,
                                 .rca        = driver->initer.rca,
                             };
 
@@ -521,7 +521,7 @@ _SD_update_once(enum SDHandle handle)
                     // the bus width width now. At this point,
                     // we can also increase the bus speed.
 
-                    case SDIniterUpdate_caller_set_bus_width:
+                    case SDIniterUpdateResult_caller_set_bus_width:
                     {
 
                         CMSIS_SET(SDx, DTIMER, DATATIME, STPY_SDx_FULL_DATATIME); // New max timeout period.
@@ -542,7 +542,7 @@ _SD_update_once(enum SDHandle handle)
                     // seeing is making it think that
                     // there's no SD card at all.
 
-                    case SDIniterUpdate_card_likely_unmounted:
+                    case SDIniterUpdateResult_card_likely_unmounted:
                     {
 
                         driver->state = SDDriverState_error;
@@ -558,7 +558,7 @@ _SD_update_once(enum SDHandle handle)
                     // the SD card most likely because the
                     // card is not supported by SD-initer.
 
-                    case SDIniterUpdate_card_likely_unsupported:
+                    case SDIniterUpdateResult_card_likely_unsupported:
                     {
 
                         driver->state = SDDriverState_error;
@@ -572,7 +572,7 @@ _SD_update_once(enum SDHandle handle)
 
                     // Hip hip hooray! We've finished initializing the SD card!
 
-                    case SDIniterUpdate_done:
+                    case SDIniterUpdateResult_done:
                     {
 
                         driver->state = SDDriverState_active;
@@ -583,7 +583,7 @@ _SD_update_once(enum SDHandle handle)
 
 
 
-                    case SDIniterUpdate_bug : bug;
+                    case SDIniterUpdateResult_bug : bug;
                     default                 : bug;
 
                 }
@@ -611,8 +611,8 @@ _SD_update_once(enum SDHandle handle)
                 driver->initer.feedback =
                     (struct SDIniterFeedback)
                     {
-                        .cmd_failed = !!driver->cmder.error,
-                        .response   =
+                        .failed   = !!driver->cmder.error,
+                        .response =
                             {
                                 SDx->RESP1,
                                 SDx->RESP2,
