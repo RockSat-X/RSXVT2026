@@ -755,12 +755,18 @@ halt_(b32 panicking) // @/`Halting`.
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Ring-buffers.
+// Miscellaneous.
 //
 
 
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wundef"
+#include <printf/printf.c>
+#pragma GCC diagnostic pop
+
 #include "ringbuffer.c"
+#include "log.c"
 
 
 

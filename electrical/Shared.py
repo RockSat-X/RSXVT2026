@@ -386,6 +386,10 @@ TARGETS = ( # @/`Defining Targets`.
                 'peripheral' : 'SDMMC1',
                 'handle'     : 'primary',
             },
+            {
+                'type'         : 'Log',
+                'uxart_handle' : 'stlink',
+            },
         ),
 
         use_freertos    = False,
