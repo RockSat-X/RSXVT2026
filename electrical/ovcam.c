@@ -1286,6 +1286,8 @@ INTERRUPT_DCMI_PSSI(void)
 
                 _OVCAM_driver = (struct OVCAMDriver) {0};
 
+                yield = true;
+
             } break;
 
         }
