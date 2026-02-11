@@ -241,7 +241,7 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
         ////////////////////////////////////////
         //
-        // The commander has nothing to do.
+        // The SD-cmder has nothing to do.
         //
         ////////////////////////////////////////
 
@@ -250,7 +250,7 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
             case SDMMCInterruptEvent_none:
             {
-                return SDCmderIterateResult_ready_for_next_command; // Tell user that the commander is on stand-by.
+                return SDCmderIterateResult_ready_for_next_command; // Tell user that the SD-cmder is on stand-by.
             } break;
 
             case SDMMCInterruptEvent_end_of_busy_signal                     : return SDCmderIterateResult_bug;
@@ -271,7 +271,7 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
         ////////////////////////////////////////
         //
-        // The commander needs to set up the next command to be done.
+        // The SD-cmder needs to set up the next command to be done.
         //
         ////////////////////////////////////////
 
@@ -431,7 +431,7 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
         ////////////////////////////////////////
         //
-        // The commander is in the process of sending the APP_CMD prefix.
+        // The SD-cmder is in the process of sending the APP_CMD prefix.
         //
         ////////////////////////////////////////
 
@@ -548,7 +548,7 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
         ////////////////////////////////////////
         //
-        // The commander is in the process of sending the user's desired command.
+        // The SD-cmder is in the process of sending the user's desired command.
         //
         ////////////////////////////////////////
 
@@ -737,7 +737,7 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
         ////////////////////////////////////////
         //
-        // The commander is in the process of receiving/transmitting data-blocks.
+        // The SD-cmder is in the process of receiving/transmitting data-blocks.
         //
         ////////////////////////////////////////
 
@@ -908,7 +908,7 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
         ////////////////////////////////////////
         //
-        // The commander is attempting to reset the DPSM with STOP_TRANSMISSION.
+        // The SD-cmder is attempting to reset the DPSM with STOP_TRANSMISSION.
         //
         ////////////////////////////////////////
 

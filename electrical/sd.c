@@ -2,12 +2,6 @@
 #include "sd_initer.c"
 #include "sd_cmder.c"
 
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-
 #include "sdmmc_driver_support.meta"
 /* #meta
 
@@ -33,45 +27,35 @@
 
 */
 
-
-
-#define SDMMC_MAX_DEADLOCK_DURATION_MS 250
-
-
-
 struct Sector
 {
     u8 data[512];
 };
 
-
-
 enum SDDriverState : u32
 {
+    SDDriverState_disabled,
     SDDriverState_initer,
     SDDriverState_active,
     SDDriverState_error,
 };
 
-
-
 enum SDDriverError : u32
 {
-    SDDriverError_sdmmc_deadlocked,
-    SDDriverError_cmder_needs_sdmmc_reinited,
+    SDDriverError_none,
     SDDriverError_card_likely_unmounted,
-    SDDriverError_card_likely_unsupported,
+    SDDriverError_unsupported_card,
+    SDDriverError_maybe_bus_problem,
+    SDDriverError_voltage_check_failed,
+    SDDriverError_could_not_ready_card,
+    SDDriverError_card_glitch,
 };
-
-
 
 enum SDOperation : u32
 {
     SDOperation_single_read  = SDCmd_READ_SINGLE_BLOCK,
     SDOperation_single_write = SDCmd_WRITE_BLOCK,
 };
-
-
 
 enum SDTaskState : u32
 {
@@ -81,15 +65,12 @@ enum SDTaskState : u32
     SDTaskState_error,
 };
 
-
-
 struct SDDriver
 {
     volatile enum SDDriverState state;
-    volatile u32                last_isr_timestamp_ms; // @/`SDMMC Deadlock`.
     struct SDIniter             initer;
     struct SDCmder              cmder;
-    enum SDDriverError          error;
+    volatile enum SDDriverError error;
 
     struct
     {
@@ -100,8 +81,6 @@ struct SDDriver
     } task;
 };
 
-
-
 static struct SDDriver _SD_drivers[SDHandle_COUNT] = {0};
 
 
@@ -110,40 +89,17 @@ static struct SDDriver _SD_drivers[SDHandle_COUNT] = {0};
 
 
 
-static void
-_SD_check_deadlock(enum SDHandle handle)
+static useret enum SDDoResult : u32
 {
-    #if 0 // TODO.
-
-        volatile u32 last_isr_timestamp_ms = driver->last_isr_timestamp_ms;
-        volatile u32 now_ms = systick_ms;
-
-        u32 inactivity_ms = now_ms - last_isr_timestamp_ms;
-
-        if (inactivity_ms >= SDMMC_MAX_DEADLOCK_DURATION_MS)
-        {
-            driver->state = SDDriverState_error;
-            driver->error = SDDriverError_sdmmc_deadlocked;
-        }
-
-    #endif
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-#undef  ret
-#define ret(NAME) return SDDo_##NAME
-static useret enum SDDo : u32
-{
-    SDDo_task_completed,
-    SDDo_task_in_progress,
-    SDDo_task_error,
-    SDDo_driver_error,
-    SDDo_bug,
+    SDDoResult_success,
+    SDDoResult_task_error,
+    SDDoResult_card_likely_unmounted,
+    SDDoResult_unsupported_card,
+    SDDoResult_maybe_bus_problem,
+    SDDoResult_voltage_check_failed,
+    SDDoResult_could_not_ready_card,
+    SDDoResult_card_glitch,
+    SDDoResult_bug,
 }
 SD_do
 (
@@ -156,211 +112,129 @@ SD_do
 
     _EXPAND_HANDLE
 
-
-
     if (!sector)
-        return SDDo_bug;
+        return SDDoResult_bug; // Source/destination not provided..?
+
+    if (driver->task.state != SDTaskState_unscheduled)
+        return SDDoResult_bug; // Unexpected state...
 
 
 
-    // If the driver is in an error condition, nothing
-    // will be done until the user reinitialize the driver.
+    // Make sure the SD driver is ready for a task.
 
-    enum SDDriverState driver_state = driver->state;
-
-    if (driver_state == SDDriverState_error)
-        ret(driver_error);
-
-
-
-    // If there was a task already, make sure the user isn't
-    // trying to schedule a completely different task.
-
-    enum SDTaskState task_state = driver->task.state;
-
-    if (task_state != SDTaskState_unscheduled)
+    for (b32 yield = false; !yield;)
     {
-        if (driver->task.operation != operation)
-            return SDDo_bug;
+        switch (driver->state)
+        {
 
-        if (driver->task.sector != sector)
-            return SDDo_bug;
+            case SDDriverState_initer:
+            {
+                NVIC_SET_PENDING(SDx); // The SD card is still being initialized...
+            } break;
 
-        if (driver->task.address != address)
-            return SDDo_bug;
+            case SDDriverState_active:
+            {
+                yield = true; // The SD driver is ready to handle tasks now.
+            } break;
+
+            case SDDriverState_error: switch (driver->error)
+            {
+                case SDDriverError_card_likely_unmounted : return SDDoResult_card_likely_unmounted;
+                case SDDriverError_unsupported_card      : return SDDoResult_unsupported_card;
+                case SDDriverError_maybe_bus_problem     : return SDDoResult_maybe_bus_problem;
+                case SDDriverError_voltage_check_failed  : return SDDoResult_voltage_check_failed;
+                case SDDriverError_could_not_ready_card  : return SDDoResult_could_not_ready_card;
+                case SDDriverError_card_glitch           : return SDDoResult_card_glitch;
+                case SDDriverError_none                  : return SDDoResult_bug;
+                default                                  : return SDDoResult_bug;
+            } break;
+
+            case SDDriverState_disabled : return SDDoResult_bug;
+            default                     : return SDDoResult_bug;
+
+        }
     }
 
 
 
-    switch (task_state)
+    // Fill out the SD card operation the user would like to do.
+
     {
 
-        // Schedule the next task for the SD driver to carry out.
+        driver->task.operation = operation;
+        driver->task.sector    = sector;
+        driver->task.address   = address;
 
-        case SDTaskState_unscheduled:
-        {
+        // Release memory.
 
-            driver->task.operation = operation;
-            driver->task.sector    = sector;
-            driver->task.address   = address;
-            driver->task.state     = SDTaskState_booked;
+        driver->task.state = SDTaskState_booked;
 
-            NVIC_SET_PENDING(SDx); // Alert SD driver of the new task.
+        NVIC_SET_PENDING(SDx); // Alert SD driver of the new task.
 
-            ret(task_in_progress);
-
-        } break;
-
-
-
-        // The task has already been scheduled; we'll just
-        // wait for the SD driver to finish carrying it out.
-
-        case SDTaskState_booked:
-        {
-
-            _SD_check_deadlock(handle);
-
-            driver_state = driver->state;
-
-            if (driver_state == SDDriverState_error)
-            {
-                ret(driver_error);
-            }
-            else
-            {
-                ret(task_in_progress);
-            }
-
-        } break;
-
-
-
-        // The task has been successfully executed.
-
-        case SDTaskState_done:
-        {
-            driver->task.state = SDTaskState_unscheduled;
-            ret(task_completed);
-        } break;
-
-
-
-        case SDTaskState_error : ret(task_error);
-        default                : return SDDo_bug;
-
-    }
-
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-#undef  ret
-#define ret(NAME) return SDPoll_##NAME
-static useret enum SDPoll : u32
-{
-    SDPoll_idle,
-    SDPoll_busy,
-    SDPoll_cleared_task_error,
-    SDPoll_driver_error,
-    SDPoll_bug,
-}
-SD_poll(enum SDHandle handle)
-{
-
-    _EXPAND_HANDLE
-
-
-
-    // In the event of a task error, the user will do a poll in order
-    // to clear the error condition. The SD driver can recover from
-    // task errors, so reinitialization is not necessary here.
-    // Note that this check is done first before the check for driver
-    // errors, because the user might've seen that there was a task error
-    // as reported by `SD_do`, so they'll call `SD_poll` to clear it
-    // and thus expect `SDPoll_cleared_task_error`. A driver error can
-    // theoritically happen between when the task error was reported and
-    // when it'll get cleared by the user, so to make it simpler for the
-    // user, we prioritize clearing the task error first.
-
-    enum SDTaskState task_state = driver->task.state;
-
-    if (task_state == SDTaskState_error)
-    {
-        driver->task.state = SDTaskState_unscheduled;
-        ret(cleared_task_error);
     }
 
 
 
-    // If the driver is in an error condition, nothing
-    // will be done until the user reinitialize the driver.
+    // Block until the task has been handled.
 
-    enum SDDriverState driver_state = driver->state;
-
-    if (driver_state == SDDriverState_error)
-        ret(driver_error);
-
-
-
-    switch (task_state)
+    while (true)
     {
-
-        // Nothing going on; the user can schedule the next task.
-
-        case SDTaskState_unscheduled:
-        {
-            ret(idle);
-        } break;
-
-
-
-        // The SD driver is busy with a task right now.
-
-        case SDTaskState_booked:
+        switch (driver->state)
         {
 
-            _SD_check_deadlock(handle);
-
-            driver_state = driver->state;
-
-            if (driver_state == SDDriverState_error)
+            case SDDriverState_active: switch (driver->task.state)
             {
-                ret(driver_error);
-            }
-            else
+
+                case SDTaskState_booked:
+                {
+                    NVIC_SET_PENDING(SDx); // Make sure the SD driver knows what it should be doing.
+                } break;
+
+                case SDTaskState_done:
+                {
+
+                    // Successfully executed the SD operation!
+
+                    driver->task.state = SDTaskState_unscheduled;
+                    return SDDoResult_success;
+
+                } break;
+
+                case SDTaskState_error:
+                {
+
+                    // Something went wrong with the task!
+
+                    driver->task.state = SDTaskState_unscheduled;
+                    return SDDoResult_task_error;
+
+                } break;
+
+                case SDTaskState_unscheduled : return SDDoResult_bug;
+                default                      : return SDDoResult_bug;
+
+            } break;
+
+            case SDDriverState_error: switch (driver->error) // TODO Copy-pasta.
             {
-                ret(busy);
-            }
+                case SDDriverError_card_likely_unmounted : return SDDoResult_card_likely_unmounted;
+                case SDDriverError_unsupported_card      : return SDDoResult_unsupported_card;
+                case SDDriverError_maybe_bus_problem     : return SDDoResult_maybe_bus_problem;
+                case SDDriverError_voltage_check_failed  : return SDDoResult_voltage_check_failed;
+                case SDDriverError_could_not_ready_card  : return SDDoResult_could_not_ready_card;
+                case SDDriverError_card_glitch           : return SDDoResult_card_glitch;
+                case SDDriverError_none                  : return SDDoResult_bug;
+                default                                  : return SDDoResult_bug;
+            } break;
 
-        } break;
+            case SDDriverState_disabled : return SDDoResult_bug;
+            case SDDriverState_initer   : return SDDoResult_bug;
+            default                     : return SDDoResult_bug;
 
-
-
-        // The SD driver just finished a task and
-        // the next one can be scheduled if need be.
-
-        case SDTaskState_done:
-        {
-            ret(idle);
-        } break;
-
-
-
-        case SDTaskState_error : return SDPoll_bug;
-        default                : return SDPoll_bug;
-
+        }
     }
 
 }
-
-
-
-////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -377,13 +251,9 @@ SD_reinit(enum SDHandle handle)
     CMSIS_PUT(SDx_RESET, true );
     CMSIS_PUT(SDx_RESET, false);
 
+    NVIC_DISABLE(SDx);
+
     *driver = (struct SDDriver) {0};
-
-
-
-    // Enable the interrupts.
-
-    NVIC_ENABLE(SDx);
 
 
 
@@ -405,7 +275,7 @@ SD_reinit(enum SDHandle handle)
     CMSIS_SET(SDx, DTIMER , DATATIME, STPY_SDx_INITIAL_DATATIME); // Max timeout period.
     CMSIS_SET
     (
-        SDx    , CLKCR                   , // TODO Use PWRSAV?
+        SDx    , CLKCR                   ,
         HWFC_EN, true                    , // Allow output clock to be halted to prevent FIFO overrun/underrun.
         CLKDIV , STPY_SDx_INITIAL_DIVIDER, // Divide the kernel clock down to the desired bus frequency.
         NEGEDGE, true                    , // Sample on rise, setup on fall. @/pg 307/fig 6.6.6/`SD`.
@@ -413,32 +283,35 @@ SD_reinit(enum SDHandle handle)
 
     CMSIS_SET
     (
-        SDx        , MASK, // Enable interrupts for:
-        IDMABTCIE, true,
-        CKSTOPIE, true,
-        VSWENDIE, true,
-        ACKTIMEOUTIE, true,
-        ACKFAILIE, true,
-        SDIOITIE, true,
-        BUSYD0ENDIE, true,
-        DABORTIE, true,
-        DBCKENDIE, true,
-        DHOLDIE, true,
-        DATAENDIE, true,
-        CMDSENTIE, true,
-        CMDRENDIE, true,
-        RXOVERRIE, true,
-        TXUNDERRIE, true,
-        DTIMEOUTIE, true,
-        CTIMEOUTIE, true,
-        DCRCFAILIE, true,
-        CCRCFAILIE, true,
+        SDx         , MASK, // Literally enable all interrupts; the SD-cmder will handle them.
+        IDMABTCIE   , true, // "
+        CKSTOPIE    , true, // "
+        VSWENDIE    , true, // "
+        ACKTIMEOUTIE, true, // "
+        ACKFAILIE   , true, // "
+        SDIOITIE    , true, // "
+        BUSYD0ENDIE , true, // "
+        DABORTIE    , true, // "
+        DBCKENDIE   , true, // "
+        DHOLDIE     , true, // "
+        DATAENDIE   , true, // "
+        CMDSENTIE   , true, // "
+        CMDRENDIE   , true, // "
+        RXOVERRIE   , true, // "
+        TXUNDERRIE  , true, // "
+        DTIMEOUTIE  , true, // "
+        CTIMEOUTIE  , true, // "
+        DCRCFAILIE  , true, // "
+        CCRCFAILIE  , true, // "
     );
 
 
 
-    // Rest of initialization is done within the interrupt handler.
+    // Further SD card initialization is done within the interrupt handler.
 
+    driver->state = SDDriverState_initer;
+
+    NVIC_ENABLE(SDx);
     NVIC_SET_PENDING(SDx);
 
 }
@@ -449,314 +322,314 @@ SD_reinit(enum SDHandle handle)
 
 
 
-#undef  ret
-#define ret(NAME) return SDUpdateOnce_##NAME
-static useret enum SDUpdateOnce : u32
+static useret enum SDUpdateOnceResult : u32
 {
-    SDUpdateOnce_again,
-    SDUpdateOnce_yield,
-    SDUpdateOnce_bug,
+    SDUpdateOnceResult_again,
+    SDUpdateOnceResult_yield,
+    SDUpdateOnceResult_bug,
 }
 _SD_update_once(enum SDHandle handle)
 {
 
     _EXPAND_HANDLE
 
-
-
-    // Run the SD-cmder to handle the execution of SD commands.
-
-    enum SDCmderUpdateResult cmder_result = SDCmder_update(SDx, &driver->cmder);
-
-    if (cmder_result == SDCmderUpdateResult_card_glitch)
-    {
-        driver->state = SDDriverState_error;
-        driver->error = SDDriverError_cmder_needs_sdmmc_reinited;
-    }
-
     switch (driver->state)
     {
 
-        // The SD card is in the process of being initialized.
 
-        case SDDriverState_initer: switch (cmder_result)
+
+        ////////////////////////////////////////
+        //
+        // The SD card needs to be initialized.
+        //
+        ////////////////////////////////////////
+
+        case SDDriverState_initer:
         {
 
-            // The SD-cmder can execute a command, so we'll
-            // query SD-initer for the next command we should
-            // do to get closer to initializing the SD card.
+            enum SDCmderUpdateResult cmder_result = SDCmder_update(SDx, &driver->cmder);
 
-            case SDCmderUpdateResult_ready_for_next_command:
+            switch (cmder_result)
             {
 
-                enum SDIniterUpdateResult initer_result = SDIniter_update(&driver->initer);
+                case SDCmderUpdateResult_yield:
+                {
+                    return SDUpdateOnceResult_yield; // The SD interface still busy...
+                } break;
 
-                switch (initer_result)
+                case SDCmderUpdateResult_ready_for_next_command:
                 {
 
-                    // SD-initer gave us the command to execute next.
+                    enum SDIniterUpdateResult initer_result = SDIniter_update(&driver->initer);
 
-                    case SDIniterUpdateResult_execute_command:
+                    switch (initer_result)
                     {
+
+                        // SD-inter provides SD-cmder with the next command to execute.
+
+                        case SDIniterUpdateResult_execute_command:
+                        {
+
+                            driver->cmder =
+                                (struct SDCmder)
+                                {
+                                    .state      = SDCmderState_scheduled_command,
+                                    .cmd        = driver->initer.command.cmd,
+                                    .argument   = driver->initer.command.argument,
+                                    .data       = driver->initer.command.data,
+                                    .remaining  = driver->initer.command.size,
+                                    .block_size = driver->initer.command.size,
+                                    .rca        = driver->initer.rca,
+                                };
+
+                            return SDUpdateOnceResult_again;
+
+                        } break;
+
+
+
+                        // The SD-initer says we can increase the bus width width now.
+                        // At this point, we can also increase the bus speed.
+
+                        case SDIniterUpdateResult_user_set_bus_width:
+                        {
+
+                            CMSIS_SET(SDx, DTIMER, DATATIME, STPY_SDx_FULL_DATATIME); // New max timeout period.
+                            CMSIS_SET
+                            (
+                                SDx   , CLKCR                ,
+                                CLKDIV, STPY_SDx_FULL_DIVIDER, // Divide the kernel clock down to the desired bus frequency.
+                                WIDBUS, 0b01                 , // Set peripheral to now use 4-bit wide bus.
+                            );
+
+                            driver->initer.feedback =
+                                (struct SDIniterFeedback)
+                                {
+                                    .failed = false,
+                                };
+
+                            return SDUpdateOnceResult_again;
+
+                        } break;
+
+
+
+                        // Hip hip hooray! We've finished initializing the SD card!
+
+                        case SDIniterUpdateResult_done:
+                        {
+                            driver->state = SDDriverState_active;
+                            return SDUpdateOnceResult_again;
+                        } break;
+
+
+
+                        // The SD-initer encountered an issue trying to initialize the SD card.
+
+                        {
+                            case SDIniterUpdateResult_card_likely_unmounted : driver->error = SDDriverError_card_likely_unmounted; goto SD_INITER_ERROR;
+                            case SDIniterUpdateResult_unsupported_card      : driver->error = SDDriverError_unsupported_card;      goto SD_INITER_ERROR;
+                            case SDIniterUpdateResult_maybe_bus_problem     : driver->error = SDDriverError_maybe_bus_problem;     goto SD_INITER_ERROR;
+                            case SDIniterUpdateResult_voltage_check_failed  : driver->error = SDDriverError_voltage_check_failed;  goto SD_INITER_ERROR;
+                            case SDIniterUpdateResult_could_not_ready_card  : driver->error = SDDriverError_could_not_ready_card;  goto SD_INITER_ERROR;
+                            case SDIniterUpdateResult_card_glitch           : driver->error = SDDriverError_card_glitch;           goto SD_INITER_ERROR;
+                            SD_INITER_ERROR:;
+
+                            driver->state = SDDriverState_error;
+
+                            return SDUpdateOnceResult_again;
+
+                        } break;
+
+
+
+                        case SDIniterUpdateResult_bug : return SDUpdateOnceResult_bug;
+                        default                       : return SDUpdateOnceResult_bug;
+
+                    }
+
+                } break;
+
+                case SDCmderUpdateResult_command_attempted:
+                {
+
+                    driver->initer.feedback = // Provide the SD-initer with the results from SD-cmder.
+                        (struct SDIniterFeedback)
+                        {
+                            .failed   = !!driver->cmder.error,
+                            .response =
+                                {
+                                    SDx->RESP1,
+                                    SDx->RESP2,
+                                    SDx->RESP3,
+                                    SDx->RESP4,
+                                },
+                        };
+
+                    return SDUpdateOnceResult_again;
+
+                } break;
+
+                case SDCmderUpdateResult_card_glitch:
+                {
+                    driver->error = SDDriverError_card_glitch;
+                    driver->state = SDDriverState_error;
+                    return SDUpdateOnceResult_again;
+                } break;
+
+                case SDCmderUpdateResult_bug : return SDUpdateOnceResult_bug;
+                default                      : return SDUpdateOnceResult_bug;
+
+            }
+
+        } break;
+
+
+
+        ////////////////////////////////////////
+        //
+        // The SD card is ready to be used.
+        //
+        ////////////////////////////////////////
+
+        case SDDriverState_active:
+        {
+
+            enum SDCmderUpdateResult cmder_result = SDCmder_update(SDx, &driver->cmder);
+
+            switch (cmder_result)
+            {
+
+                case SDCmderUpdateResult_yield:
+                {
+                    return SDUpdateOnceResult_yield; // The SD interface still busy...
+                } break;
+
+                case SDCmderUpdateResult_ready_for_next_command: switch (driver->task.state)
+                {
+
+                    case SDTaskState_unscheduled:
+                    case SDTaskState_done:
+                    case SDTaskState_error:
+                    {
+                        return SDUpdateOnceResult_yield; // Nothing for the SD driver to do yet.
+                    } break;
+
+                    case SDTaskState_booked:
+                    {
+
+                        if (!driver->task.operation)
+                            return SDUpdateOnceResult_bug; // Unspecified SD operation..?
+
+                        if (!driver->task.sector)
+                            return SDUpdateOnceResult_bug; // No source/destination..?
+
+
+
+                        // Execute the command to carry out the user's desired operation.
 
                         driver->cmder =
                             (struct SDCmder)
                             {
                                 .state      = SDCmderState_scheduled_command,
-                                .cmd        = driver->initer.command.cmd,
-                                .argument   = driver->initer.command.argument,
-                                .data       = driver->initer.command.data,
-                                .remaining  = driver->initer.command.size,
-                                .block_size = driver->initer.command.size,
+                                .cmd        = (enum SDCmd) driver->task.operation,
+                                .argument   = driver->task.address,
+                                .data       = (u8*) driver->task.sector,
+                                .remaining  = sizeof(driver->task.sector->data),
+                                .block_size = sizeof(driver->task.sector->data),
                                 .rca        = driver->initer.rca,
                             };
 
-                        ret(again);
+                        return SDUpdateOnceResult_again;
 
                     } break;
 
+                    default: return SDUpdateOnceResult_bug;
 
+                } break;
 
-                    // The SD-initer says we can increase
-                    // the bus width width now. At this point,
-                    // we can also increase the bus speed.
+                case SDCmderUpdateResult_command_attempted:
+                {
 
-                    case SDIniterUpdateResult_user_set_bus_width:
+                    if (driver->task.state != SDTaskState_booked)
+                        return SDUpdateOnceResult_bug; // There should've been an SD operation that we were doing...
+
+                    switch (driver->cmder.error)
                     {
 
-                        CMSIS_SET(SDx, DTIMER, DATATIME, STPY_SDx_FULL_DATATIME); // New max timeout period.
-                        CMSIS_SET
-                        (
-                            SDx   , CLKCR                ,
-                            CLKDIV, STPY_SDx_FULL_DIVIDER, // Divide the kernel clock down to the desired bus frequency.
-                            WIDBUS, 0b01                 , // Set peripheral to now use 4-bit wide bus. TODO Customize.
-                        );
 
-                        ret(again);
 
-                    } break;
+                        // The SD task was carried out successfully!
+
+                        case SDCmderError_none:
+                        {
+                            driver->task.state = SDTaskState_done;
+                            return SDUpdateOnceResult_again;
+                        } break;
 
 
 
-                    // The errors that the SD-initer is
-                    // seeing is making it think that
-                    // there's no SD card at all.
+                        // Something weird happened; indicate it to the user.
 
-                    case SDIniterUpdateResult_card_likely_unmounted:
-                    {
-
-                        driver->state = SDDriverState_error;
-                        driver->error = SDDriverError_card_likely_unmounted;
-
-                        ret(again);
-
-                    } break;
+                        case SDCmderError_command_timeout:
+                        case SDCmderError_data_timeout:
+                        case SDCmderError_bad_crc:
+                        {
+                            driver->task.state = SDTaskState_error;
+                            return SDUpdateOnceResult_again;
+                        } break;
 
 
 
-                    // The SD-initer couldn't initialize
-                    // the SD card most likely because the
-                    // card is not supported by SD-initer.
+                        default: return SDUpdateOnceResult_bug;
 
-                    case SDIniterUpdateResult_unsupported_card:
-                    {
+                    }
 
-                        driver->state = SDDriverState_error;
-                        driver->error = SDDriverError_card_likely_unsupported;
+                } break;
 
-                        ret(again);
+                case SDCmderUpdateResult_card_glitch:
+                {
+                    driver->error = SDDriverError_card_glitch;
+                    driver->state = SDDriverState_error;
+                    return SDUpdateOnceResult_again;
+                } break;
 
-                    } break;
+                case SDCmderUpdateResult_bug : return SDUpdateOnceResult_bug;
+                default                      : return SDUpdateOnceResult_bug;
 
-
-
-                    // Hip hip hooray! We've finished initializing the SD card!
-
-                    case SDIniterUpdateResult_done:
-                    {
-
-                        driver->state = SDDriverState_active;
-
-                        ret(again);
-
-                    } break;
-
-
-
-                    case SDIniterUpdateResult_maybe_bus_problem:
-                    case SDIniterUpdateResult_voltage_check_failed:
-                    case SDIniterUpdateResult_could_not_ready_card:
-                    {
-                        driver->initer = (struct SDIniter) {0};
-                        ret(again);
-                    } break;
-
-                    case SDIniterUpdateResult_card_glitch:
-                    {
-                        driver->state = SDDriverState_error;
-                        driver->error = SDDriverError_cmder_needs_sdmmc_reinited;
-                        ret(yield);
-                    } break;
-
-                    case SDIniterUpdateResult_bug : return SDUpdateOnce_bug;
-                    default                 : return SDUpdateOnce_bug;
-
-                }
-
-            } break;
-
-
-
-            // The SD-cmder is busy doing stuff...
-
-            case SDCmderUpdateResult_yield:
-            {
-                ret(yield);
-            } break;
-
-
-
-            // The SD-cmder just finished executing SD-initer's command.
-            // It may or may not have been successful, so we'll report
-            // this back to SD-initer to handle and figure out what to do next.
-
-            case SDCmderUpdateResult_command_attempted:
-            {
-
-                driver->initer.feedback =
-                    (struct SDIniterFeedback)
-                    {
-                        .failed   = !!driver->cmder.error,
-                        .response =
-                            {
-                                SDx->RESP1,
-                                SDx->RESP2,
-                                SDx->RESP3,
-                                SDx->RESP4,
-                            },
-                    };
-
-                ret(again);
-
-            } break;
-
-
-
-            case SDCmderUpdateResult_bug                : return SDUpdateOnce_bug;
-            case SDCmderUpdateResult_card_glitch : return SDUpdateOnce_bug;
-            default                               : return SDUpdateOnce_bug;
+            }
 
         } break;
 
 
 
-        // The SD card is initialized and
-        // the driver is ready to handle tasks.
-
-        case SDDriverState_active: switch (cmder_result)
-        {
-
-            // If there's a task scheduled,
-            // we pass it to SD-cmder to do.
-
-            case SDCmderUpdateResult_ready_for_next_command:
-            {
-
-                if (driver->task.state != SDTaskState_booked)
-                    ret(yield);
-
-                if (!driver->task.operation)
-                    return SDUpdateOnce_bug;
-
-                if (!driver->task.sector)
-                    return SDUpdateOnce_bug;
-
-                driver->cmder =
-                    (struct SDCmder)
-                    {
-                        .state      = SDCmderState_scheduled_command,
-                        .cmd        = (enum SDCmd) driver->task.operation,
-                        .argument   = driver->task.address,
-                        .data       = (u8*) driver->task.sector,
-                        .remaining  = sizeof(driver->task.sector->data),
-                        .block_size = sizeof(driver->task.sector->data),
-                        .rca        = driver->initer.rca,
-                    };
-
-                ret(again);
-
-            } break;
-
-
-
-            // The SD-cmder is busy doing stuff...
-
-            case SDCmderUpdateResult_yield:
-            {
-
-                if (driver->task.state != SDTaskState_booked)
-                    return SDUpdateOnce_bug;
-
-                ret(yield);
-
-            } break;
-
-
-
-            // The SD-cmder just finished executing the command.
-            // It may or may not have been successful, so it'll be up
-            // to the user to acknowledge and handle.
-
-            case SDCmderUpdateResult_command_attempted:
-            {
-
-                if (driver->task.state != SDTaskState_booked)
-                    return SDUpdateOnce_bug;
-
-                if (driver->cmder.error)
-                {
-                    driver->task.state = SDTaskState_error;
-                }
-                else
-                {
-                    driver->task.state = SDTaskState_done;
-                }
-
-                ret(again);
-
-            } break;
-
-
-
-            case SDCmderUpdateResult_bug                : return SDUpdateOnce_bug;
-            case SDCmderUpdateResult_card_glitch : return SDUpdateOnce_bug;
-            default                               : return SDUpdateOnce_bug;
-
-        } break;
-
-
-
-        // The SD driver is stuck in an error
-        // condition right now, so nothing will
-        // be done until the user reinitializes
-        // the whole driver.
+        ////////////////////////////////////////
+        //
+        // The SD driver is stuck in the error condition
+        // until the user reinitializes everything.
+        //
+        ////////////////////////////////////////
 
         case SDDriverState_error:
         {
-            ret(yield);
+
+            if (!driver->error)
+                return SDUpdateOnceResult_bug; // Error not set..?
+
+            NVIC_DISABLE(SDx);
+
+            return SDUpdateOnceResult_yield;
+
         } break;
 
 
 
-        default: return SDUpdateOnce_bug;
+        case SDDriverState_disabled : return SDUpdateOnceResult_bug;
+        default                     : return SDUpdateOnceResult_bug;
 
     }
 
 }
-
-
-
-////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -769,26 +642,38 @@ _SD_driver_interrupt(enum SDHandle handle)
     for (b32 yield = false; !yield;)
     {
 
-        // TODO: driver->last_isr_timestamp_ms = systick_ms;
-
-        enum SDUpdateOnce result = _SD_update_once(handle);
-
-        yield = (result == SDUpdateOnce_yield);
+        enum SDUpdateOnceResult result = _SD_update_once(handle);
 
         switch (result)
         {
-            case SDUpdateOnce_again:
+
+            case SDUpdateOnceResult_again:
             {
                 // The state-machine will be updated again.
             } break;
 
-            case SDUpdateOnce_yield:
+            case SDUpdateOnceResult_yield:
             {
-                // We can stop updating the state-machine for now.
+                yield = true; // We can stop updating the state-machine for now.
             } break;
 
-            case SDUpdateOnce_bug : panic;
-            default               : panic;
+            case SDUpdateOnceResult_bug:
+            default:
+            {
+
+                // Something weird happen;
+                // we need to shut the SD peripheral down
+                // and make the user reset everything.
+
+                CMSIS_PUT(SDx_RESET, true);
+                NVIC_DISABLE(SDx);
+
+                *driver = (struct SDDriver) {0};
+
+                yield = true;
+
+            } break;
+
         }
 
     }

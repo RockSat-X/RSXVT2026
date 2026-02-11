@@ -56,6 +56,9 @@ extern DSTATUS
 disk_initialize(BYTE pdrv)
 {
 
+    sorry
+
+#if 0
     if (pdrv != 0)
         sorry
 
@@ -77,6 +80,7 @@ disk_initialize(BYTE pdrv)
         default                   : sorry
     }
 
+#endif
 }
 
 
@@ -85,6 +89,9 @@ extern DSTATUS
 disk_status(BYTE pdrv)
 {
 
+    sorry
+
+#if 0
     if (pdrv != 0)
         sorry
 
@@ -109,6 +116,7 @@ disk_status(BYTE pdrv)
         default: sorry;
 
     }
+#endif
 
 }
 
@@ -118,6 +126,9 @@ extern DRESULT
 disk_write(BYTE pdrv, const BYTE* buff, LBA_t sector, UINT count)
 {
 
+    sorry
+
+#if 0
     if (pdrv != 0)
         sorry
 
@@ -164,6 +175,7 @@ disk_write(BYTE pdrv, const BYTE* buff, LBA_t sector, UINT count)
     }
 
     return RES_OK;
+#endif
 
 }
 
@@ -172,6 +184,10 @@ disk_write(BYTE pdrv, const BYTE* buff, LBA_t sector, UINT count)
 extern DRESULT
 disk_read(BYTE pdrv, BYTE* buff, LBA_t sector, UINT count)
 {
+
+    sorry
+
+#if 0
 
     if (pdrv != 0)
         sorry
@@ -220,6 +236,8 @@ disk_read(BYTE pdrv, BYTE* buff, LBA_t sector, UINT count)
 
     return RES_OK;
 
+#endif
+
 }
 
 
@@ -227,6 +245,10 @@ disk_read(BYTE pdrv, BYTE* buff, LBA_t sector, UINT count)
 extern DRESULT
 disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
 {
+
+    sorry
+
+#if 0
 
     if (pdrv != 0)
         sorry
@@ -266,6 +288,8 @@ disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
 
     }
 
+#endif
+
 }
 
 
@@ -273,6 +297,10 @@ disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
 static void
 _FILESYSTEM_fctprintf_callback(char character, void* void_fp)
 {
+
+    sorry
+
+#if 0
 
     UINT bytes_written = {0};
 
@@ -290,6 +318,8 @@ _FILESYSTEM_fctprintf_callback(char character, void* void_fp)
         sorry
     }
 
+#endif
+
 }
 
 
@@ -297,6 +327,10 @@ _FILESYSTEM_fctprintf_callback(char character, void* void_fp)
 extern int __attribute__((format(printf, 2, 3)))
 f_printf(FIL* fp, const TCHAR* str, ...)
 {
+
+    sorry
+
+#if 0
 
     va_list arguments = {0};
     va_start(arguments);
@@ -312,5 +346,7 @@ f_printf(FIL* fp, const TCHAR* str, ...)
     va_end(arguments);
 
     return result;
+
+#endif
 
 }
