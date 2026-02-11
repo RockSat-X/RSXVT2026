@@ -111,6 +111,7 @@ UXART_init(enum UXARTHandle handle)
     // Enable the interrupts.
 
     NVIC_ENABLE(UXARTx);
+    NVIC_SET_PENDING(UXARTx); // So logs can be handled if any.
 
 }
 
