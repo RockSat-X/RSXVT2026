@@ -1,0 +1,29 @@
+enum SDMMCInterruptEvent : u32
+{
+    SDMMCInterruptEvent_none,
+    SDMMCInterruptEvent_end_of_busy_signal,
+    SDMMCInterruptEvent_cmd12_aborted_data_transfer,
+    SDMMCInterruptEvent_transferred_data_block,
+    SDMMCInterruptEvent_completed_transfer,
+    SDMMCInterruptEvent_command_sent_with_no_response_expected,
+    SDMMCInterruptEvent_command_sent_with_good_response,
+    SDMMCInterruptEvent_data_timeout,
+    SDMMCInterruptEvent_command_timeout,
+    SDMMCInterruptEvent_data_with_bad_crc,
+    SDMMCInterruptEvent_command_with_bad_crc,
+};
+static constexpr u32 SDMMCInterruptEvent_COUNT = 11;
+static const struct { char* name; } SDMMCInterruptEvent_TABLE[] =
+    {
+        { .name = "none"                                   },
+        { .name = "end_of_busy_signal"                     },
+        { .name = "cmd12_aborted_data_transfer"            },
+        { .name = "transferred_data_block"                 },
+        { .name = "completed_transfer"                     },
+        { .name = "command_sent_with_no_response_expected" },
+        { .name = "command_sent_with_good_response"        },
+        { .name = "data_timeout"                           },
+        { .name = "command_timeout"                        },
+        { .name = "data_with_bad_crc"                      },
+        { .name = "command_with_bad_crc"                   },
+    };

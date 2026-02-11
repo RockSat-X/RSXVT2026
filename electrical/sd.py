@@ -57,6 +57,7 @@ for mcu in PER_MCU():
 
 Meta.lut('SD_CMDS', (
     (
+        ('char*'              , 'name'         , f'"{cmd.name}"'),
         ('u8'                 , 'code'         , cmd.code                        ),
         ('b32'                , 'acmd'         , cmd.acmd                        ),
         ('enum SDWaitRespType', 'waitresp_type', f'SDWaitRespType_{cmd.waitresp}'),

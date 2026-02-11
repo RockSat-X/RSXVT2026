@@ -5,7 +5,7 @@
 
 
 
-/* #meta global CMSIS_SET, CMSIS_WRITE, CMSIS_SPINLOCK, CMSIS_TUPLE
+/* #meta global CMSIS_SET, CMSIS_WRITE, CMSIS_SPINLOCK, CMSIS_TUPLE, make_named_enums
 
     from deps.stpy.cmsis_tools import get_cmsis_tools
 
@@ -14,6 +14,21 @@
     CMSIS_WRITE    = cmsis_tools.CMSIS_WRITE
     CMSIS_SPINLOCK = cmsis_tools.CMSIS_SPINLOCK
     CMSIS_TUPLE    = cmsis_tools.CMSIS_TUPLE
+
+    def make_named_enums(members_string):
+
+        members = members_string.split()
+
+        enumeration_name = Meta.meta_directive.include_file_path.stem
+
+        Meta.enums(enumeration_name, 'u32', members)
+
+        Meta.lut(f'{enumeration_name}_TABLE', (
+            (
+                ('char*', 'name', f'"{member}"',),
+            )
+            for member in members
+        ))
 
 */
 
@@ -94,13 +109,6 @@ typedef double             f64; static_assert(sizeof(f64) == 8);
 
 #define sorry halt_(false);
 #define panic halt_(true)
-#define bug       \
-    do            \
-    {             \
-        sorry;    \
-        ret(bug); \
-    }             \
-    while (false)
 
 extern noret void
 halt_(b32 panicking);
@@ -1035,7 +1043,7 @@ pack_pop
 // entirely dependent upon the target.
 //
 // A `bug` is a less extreme version of `panic` where the function
-// that the `bug` gets triggered in will return immediately via `ret(bug)`.
+// that the `bug` gets triggered in will return immediately via `ret(bug)`. TODO Deprecate
 // This allows us to bubble up the error to handle gracefully by the caller
 // if possible rather than blowing up the entire program like `panic` will.
 // The `bug` macro also allows for us to halt right at where it's triggered

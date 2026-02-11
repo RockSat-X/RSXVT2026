@@ -1,6 +1,6 @@
-#define SD_INITER_MAX_MOUNTING_RETRIES  64
+#define SD_INITER_MAX_MOUNTING_RETRIES  32
 #define SD_INITER_MAX_READY_RETRIES     1024
-#define SD_INITER_MAX_BUS_ERROR_RETRIES 64
+#define SD_INITER_MAX_BUS_ERROR_RETRIES 16
 
 
 
@@ -51,7 +51,7 @@ struct SDIniter
     struct SDIniterCommand
     {
         enum SDCmd cmd;
-        u32        arg;
+        u32        argument;
         u8*        data;
         i32        size;
     } command;
@@ -645,8 +645,8 @@ SDIniter_update(struct SDIniter* initer)
             initer->command =
                 (struct SDIniterCommand)
                 {
-                    .cmd = SDCmd_SEND_IF_COND,
-                    .arg = SD_INITER_INTERFACE_CONDITION,
+                    .cmd      = SDCmd_SEND_IF_COND,
+                    .argument = SD_INITER_INTERFACE_CONDITION,
                 };
 
             return SDIniterUpdateResult_execute_command;
@@ -685,8 +685,8 @@ SDIniter_update(struct SDIniter* initer)
             initer->command =
                 (struct SDIniterCommand)
                 {
-                    .cmd = SDCmd_SEND_CSD,
-                    .arg = initer->rca << 16,
+                    .cmd      = SDCmd_SEND_CSD,
+                    .argument = initer->rca << 16,
                 };
 
             return SDIniterUpdateResult_execute_command;
@@ -699,8 +699,8 @@ SDIniter_update(struct SDIniter* initer)
             initer->command =
                 (struct SDIniterCommand)
                 {
-                    .cmd = SDCmd_SELECT_DESELECT_CARD,
-                    .arg = initer->rca << 16,
+                    .cmd      = SDCmd_SELECT_DESELECT_CARD,
+                    .argument = initer->rca << 16,
                 };
 
             return SDIniterUpdateResult_execute_command;
@@ -713,8 +713,8 @@ SDIniter_update(struct SDIniter* initer)
             initer->command =
                 (struct SDIniterCommand)
                 {
-                    .cmd = SDCmd_SET_BUS_WIDTH,
-                    .arg = 0b10, // @/pg 133/tbl 4-32/`SD`.
+                    .cmd      = SDCmd_SET_BUS_WIDTH,
+                    .argument = 0b10, // @/pg 133/tbl 4-32/`SD`.
                 };
 
             return SDIniterUpdateResult_execute_command;
@@ -727,8 +727,8 @@ SDIniter_update(struct SDIniter* initer)
             initer->command =
                 (struct SDIniterCommand)
                 {
-                    .cmd = SDCmd_SD_SEND_OP_COND,
-                    .arg = SD_INITER_OPERATING_CONDITION,
+                    .cmd      = SDCmd_SD_SEND_OP_COND,
+                    .argument = SD_INITER_OPERATING_CONDITION,
                 };
 
             return SDIniterUpdateResult_execute_command;
@@ -741,10 +741,10 @@ SDIniter_update(struct SDIniter* initer)
             initer->command =
                 (struct SDIniterCommand)
                 {
-                    .cmd  = SDCmd_SEND_SCR,
-                    .arg  = 0,
-                    .data = initer->local.sd_configuration_register,
-                    .size = sizeof(initer->local.sd_configuration_register),
+                    .cmd      = SDCmd_SEND_SCR,
+                    .argument = 0,
+                    .data     = initer->local.sd_configuration_register,
+                    .size     = sizeof(initer->local.sd_configuration_register),
                 };
 
             return SDIniterUpdateResult_execute_command;
@@ -757,8 +757,8 @@ SDIniter_update(struct SDIniter* initer)
             initer->command =
                 (struct SDIniterCommand)
                 {
-                    .cmd = SDCmd_SWITCH_FUNC,
-                    .arg =
+                    .cmd      = SDCmd_SWITCH_FUNC,
+                    .argument =
                         (
                             (1U  << 31) | // We're going to change some functions around... @/pg 136/tbl 4-32/`SD`.
                             (0xF << 12) | // No influence on power-limit group. @/pg 107/tbl 4-11/`SD`.

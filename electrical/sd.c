@@ -159,7 +159,7 @@ SD_do
 
 
     if (!sector)
-        bug;
+        return SDDo_bug;
 
 
 
@@ -181,13 +181,13 @@ SD_do
     if (task_state != SDTaskState_unscheduled)
     {
         if (driver->task.operation != operation)
-            bug;
+            return SDDo_bug;
 
         if (driver->task.sector != sector)
-            bug;
+            return SDDo_bug;
 
         if (driver->task.address != address)
-            bug;
+            return SDDo_bug;
     }
 
 
@@ -247,7 +247,7 @@ SD_do
 
 
         case SDTaskState_error : ret(task_error);
-        default                : bug;
+        default                : return SDDo_bug;
 
     }
 
@@ -351,8 +351,8 @@ SD_poll(enum SDHandle handle)
 
 
 
-        case SDTaskState_error : bug;
-        default                : bug;
+        case SDTaskState_error : return SDPoll_bug;
+        default                : return SDPoll_bug;
 
     }
 
@@ -414,17 +414,25 @@ SD_reinit(enum SDHandle handle)
     CMSIS_SET
     (
         SDx        , MASK, // Enable interrupts for:
-        CMDSENTIE  , true, //     - Command sent      (applies only when no response is expected).
-        CCRCFAILIE , true, //     - Command CRC fail  (applies only when a  response is expected).
-        CTIMEOUTIE , true, //     - Command timed out (applies only when a  response is expected).
-        CMDRENDIE  , true, //     - Command response received.
-        DCRCFAILIE , true, //     - Data-block CRC error.
-        DTIMEOUTIE , true, //     - Data-block timed out.
-        DBCKENDIE  , true, //     - Data-block sent/received successfully.
-        DATAENDIE  , true, //     - Data transfer ended correctly.
-        RXOVERRIE  , true, //     - RX-FIFO overrun.
-        TXUNDERRIE , true, //     - TX-FIFO underrun.
-        BUSYD0ENDIE, true, //     - Busy signal on D0 has been lifted.
+        IDMABTCIE, true,
+        CKSTOPIE, true,
+        VSWENDIE, true,
+        ACKTIMEOUTIE, true,
+        ACKFAILIE, true,
+        SDIOITIE, true,
+        BUSYD0ENDIE, true,
+        DABORTIE, true,
+        DBCKENDIE, true,
+        DHOLDIE, true,
+        DATAENDIE, true,
+        CMDSENTIE, true,
+        CMDRENDIE, true,
+        RXOVERRIE, true,
+        TXUNDERRIE, true,
+        DTIMEOUTIE, true,
+        CTIMEOUTIE, true,
+        DCRCFAILIE, true,
+        CCRCFAILIE, true,
     );
 
 
@@ -458,21 +466,13 @@ _SD_update_once(enum SDHandle handle)
 
     // Run the SD-cmder to handle the execution of SD commands.
 
-    enum SDCmderUpdateOnceResult cmder_result = {0};
+    enum SDCmderUpdateResult cmder_result = SDCmder_update(SDx, &driver->cmder);
 
-    do
-    {
-        cmder_result = SDCmder_update_once(SDx, &driver->cmder);
-    }
-    while (cmder_result == SDCmderUpdateOnceResult_again);
-
-    if (cmder_result == SDCmderUpdateOnceResult_sdmmc_needs_reinit)
+    if (cmder_result == SDCmderUpdateResult_card_glitch)
     {
         driver->state = SDDriverState_error;
         driver->error = SDDriverError_cmder_needs_sdmmc_reinited;
     }
-
-
 
     switch (driver->state)
     {
@@ -486,7 +486,7 @@ _SD_update_once(enum SDHandle handle)
             // query SD-initer for the next command we should
             // do to get closer to initializing the SD card.
 
-            case SDCmderUpdateOnceResult_ready_for_next_command:
+            case SDCmderUpdateResult_ready_for_next_command:
             {
 
                 enum SDIniterUpdateResult initer_result = SDIniter_update(&driver->initer);
@@ -504,7 +504,7 @@ _SD_update_once(enum SDHandle handle)
                             {
                                 .state      = SDCmderState_scheduled_command,
                                 .cmd        = driver->initer.command.cmd,
-                                .arg        = driver->initer.command.arg,
+                                .argument   = driver->initer.command.argument,
                                 .data       = driver->initer.command.data,
                                 .remaining  = driver->initer.command.size,
                                 .block_size = driver->initer.command.size,
@@ -582,13 +582,24 @@ _SD_update_once(enum SDHandle handle)
                     } break;
 
 
-                    case SDIniterUpdateResult_maybe_bus_problem: sorry
-                    case SDIniterUpdateResult_voltage_check_failed: sorry
-                    case SDIniterUpdateResult_could_not_ready_card: sorry
-                    case SDIniterUpdateResult_card_glitch: sorry
 
-                    case SDIniterUpdateResult_bug : bug;
-                    default                 : bug;
+                    case SDIniterUpdateResult_maybe_bus_problem:
+                    case SDIniterUpdateResult_voltage_check_failed:
+                    case SDIniterUpdateResult_could_not_ready_card:
+                    {
+                        driver->initer = (struct SDIniter) {0};
+                        ret(again);
+                    } break;
+
+                    case SDIniterUpdateResult_card_glitch:
+                    {
+                        driver->state = SDDriverState_error;
+                        driver->error = SDDriverError_cmder_needs_sdmmc_reinited;
+                        ret(yield);
+                    } break;
+
+                    case SDIniterUpdateResult_bug : return SDUpdateOnce_bug;
+                    default                 : return SDUpdateOnce_bug;
 
                 }
 
@@ -598,7 +609,7 @@ _SD_update_once(enum SDHandle handle)
 
             // The SD-cmder is busy doing stuff...
 
-            case SDCmderUpdateOnceResult_yield:
+            case SDCmderUpdateResult_yield:
             {
                 ret(yield);
             } break;
@@ -609,7 +620,7 @@ _SD_update_once(enum SDHandle handle)
             // It may or may not have been successful, so we'll report
             // this back to SD-initer to handle and figure out what to do next.
 
-            case SDCmderUpdateOnceResult_command_attempted:
+            case SDCmderUpdateResult_command_attempted:
             {
 
                 driver->initer.feedback =
@@ -631,10 +642,9 @@ _SD_update_once(enum SDHandle handle)
 
 
 
-            case SDCmderUpdateOnceResult_again              : bug;
-            case SDCmderUpdateOnceResult_sdmmc_needs_reinit : bug;
-            case SDCmderUpdateOnceResult_bug                : bug;
-            default                               : bug;
+            case SDCmderUpdateResult_bug                : return SDUpdateOnce_bug;
+            case SDCmderUpdateResult_card_glitch : return SDUpdateOnce_bug;
+            default                               : return SDUpdateOnce_bug;
 
         } break;
 
@@ -649,24 +659,24 @@ _SD_update_once(enum SDHandle handle)
             // If there's a task scheduled,
             // we pass it to SD-cmder to do.
 
-            case SDCmderUpdateOnceResult_ready_for_next_command:
+            case SDCmderUpdateResult_ready_for_next_command:
             {
 
                 if (driver->task.state != SDTaskState_booked)
                     ret(yield);
 
                 if (!driver->task.operation)
-                    bug;
+                    return SDUpdateOnce_bug;
 
                 if (!driver->task.sector)
-                    bug;
+                    return SDUpdateOnce_bug;
 
                 driver->cmder =
                     (struct SDCmder)
                     {
                         .state      = SDCmderState_scheduled_command,
                         .cmd        = (enum SDCmd) driver->task.operation,
-                        .arg        = driver->task.address,
+                        .argument   = driver->task.address,
                         .data       = (u8*) driver->task.sector,
                         .remaining  = sizeof(driver->task.sector->data),
                         .block_size = sizeof(driver->task.sector->data),
@@ -681,11 +691,11 @@ _SD_update_once(enum SDHandle handle)
 
             // The SD-cmder is busy doing stuff...
 
-            case SDCmderUpdateOnceResult_yield:
+            case SDCmderUpdateResult_yield:
             {
 
                 if (driver->task.state != SDTaskState_booked)
-                    bug;
+                    return SDUpdateOnce_bug;
 
                 ret(yield);
 
@@ -697,11 +707,11 @@ _SD_update_once(enum SDHandle handle)
             // It may or may not have been successful, so it'll be up
             // to the user to acknowledge and handle.
 
-            case SDCmderUpdateOnceResult_command_attempted:
+            case SDCmderUpdateResult_command_attempted:
             {
 
                 if (driver->task.state != SDTaskState_booked)
-                    bug;
+                    return SDUpdateOnce_bug;
 
                 if (driver->cmder.error)
                 {
@@ -718,10 +728,9 @@ _SD_update_once(enum SDHandle handle)
 
 
 
-            case SDCmderUpdateOnceResult_again              : bug;
-            case SDCmderUpdateOnceResult_sdmmc_needs_reinit : bug;
-            case SDCmderUpdateOnceResult_bug                : bug;
-            default                               : bug;
+            case SDCmderUpdateResult_bug                : return SDUpdateOnce_bug;
+            case SDCmderUpdateResult_card_glitch : return SDUpdateOnce_bug;
+            default                               : return SDUpdateOnce_bug;
 
         } break;
 
@@ -739,7 +748,7 @@ _SD_update_once(enum SDHandle handle)
 
 
 
-        default: bug;
+        default: return SDUpdateOnce_bug;
 
     }
 
