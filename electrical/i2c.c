@@ -1579,8 +1579,7 @@ _I2C_driver_interrupt(enum I2CHandle handle)
 
                 // Shut down the driver!
 
-                CMSIS_PUT(I2Cx_RESET, true );
-                CMSIS_PUT(I2Cx_RESET, false);
+                CMSIS_PUT(I2Cx_RESET, true);
 
                 NVIC_DISABLE(I2Cx_EV);
                 NVIC_DISABLE(I2Cx_ER);
