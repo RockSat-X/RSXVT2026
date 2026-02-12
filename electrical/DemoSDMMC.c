@@ -5,7 +5,110 @@
 
 
 
-#define DEMO_MODE 0 // See below for different kinds of tests.
+#define DEMO_MODE 1 // See below for different kinds of tests.
+
+
+
+static i32 count_successful            = 0; // TODO Metatize.
+static i32 count_task_error            = 0; // "
+static i32 count_card_likely_unmounted = 0; // "
+static i32 count_unsupported_card      = 0; // "
+static i32 count_maybe_bus_problem     = 0; // "
+static i32 count_voltage_check_failed  = 0; // "
+static i32 count_could_not_ready_card  = 0; // "
+static i32 count_card_glitch           = 0; // "
+static i32 count_bugs                  = 0; // "
+
+static useret b32
+try_doing_operation
+(
+    enum SDHandle    handle,
+    enum SDOperation operation,
+    struct Sector*   sector,
+    u32              address
+)
+{
+
+
+
+    // Do the operation.
+
+    enum SDDoResult do_result = SD_do(handle, operation, sector, address);
+
+
+
+    // Interpret the results.
+
+    switch (do_result)
+    {
+
+        case SDDoResult_success:
+        {
+            count_successful += 1;
+        } break;
+
+        case SDDoResult_task_error:
+        {
+
+            count_task_error += 1;
+
+            SD_reinit(SDHandle_primary);
+
+        } break;
+
+        {
+
+            case SDDoResult_card_likely_unmounted : count_card_likely_unmounted += 1; goto SD_DRIVER_ERROR;
+            case SDDoResult_unsupported_card      : count_unsupported_card      += 1; goto SD_DRIVER_ERROR;
+            case SDDoResult_maybe_bus_problem     : count_maybe_bus_problem     += 1; goto SD_DRIVER_ERROR;
+            case SDDoResult_voltage_check_failed  : count_voltage_check_failed  += 1; goto SD_DRIVER_ERROR;
+            case SDDoResult_could_not_ready_card  : count_could_not_ready_card  += 1; goto SD_DRIVER_ERROR;
+            case SDDoResult_card_glitch           : count_card_glitch           += 1; goto SD_DRIVER_ERROR;
+            SD_DRIVER_ERROR:
+
+            SD_reinit(SDHandle_primary);
+
+        } break;
+
+        case SDDoResult_bug:
+        default:
+        {
+            count_bugs += 1;
+            SD_reinit(SDHandle_primary);
+        } break;
+
+    }
+
+    return do_result == SDDoResult_success;
+
+}
+
+static void
+print_stats(void)
+{
+    stlink_tx
+    (
+        "count_successful            : %d" "\n"
+        "count_task_error            : %d" "\n"
+        "count_card_likely_unmounted : %d" "\n"
+        "count_unsupported_card      : %d" "\n"
+        "count_maybe_bus_problem     : %d" "\n"
+        "count_voltage_check_failed  : %d" "\n"
+        "count_could_not_ready_card  : %d" "\n"
+        "count_card_glitch           : %d" "\n"
+        "count_bugs                  : %d" "\n",
+        count_successful,
+        count_task_error,
+        count_card_likely_unmounted,
+        count_unsupported_card,
+        count_maybe_bus_problem,
+        count_voltage_check_failed,
+        count_could_not_ready_card,
+        count_card_glitch,
+        count_bugs
+    );
+
+}
 
 
 
@@ -20,35 +123,23 @@ main(void)
     switch (DEMO_MODE)
     {
 
+
+
         ////////////////////////////////////////////////////////////////////////////////
         //
-        // Test the SD driver.
+        // Do some basic reads. Data on the SD card will not be tampereed with.
         //
 
         case 0:
         {
 
-            i32 count_successful            = 0; // TODO Metatize.
-            i32 count_task_error            = 0; // "
-            i32 count_card_likely_unmounted = 0; // "
-            i32 count_unsupported_card      = 0; // "
-            i32 count_maybe_bus_problem     = 0; // "
-            i32 count_voltage_check_failed  = 0; // "
-            i32 count_could_not_ready_card  = 0; // "
-            i32 count_card_glitch           = 0; // "
-            i32 count_bugs                  = 0; // "
-
             for (u32 address = 0;; address += 1)
             {
 
-
-
-                // Schedule a sector-read and block on it until it's done.
-
                 struct Sector sector = {0};
 
-                enum SDDoResult do_result =
-                    SD_do
+                b32 success =
+                    try_doing_operation
                     (
                         SDHandle_primary,
                         SDOperation_single_read,
@@ -56,75 +147,10 @@ main(void)
                         address
                     );
 
+                stlink_tx("\n[0x%08X]\n", address);
+                print_stats();
 
-
-                // Handle the results of the sector-read.
-
-                switch (do_result)
-                {
-
-                    case SDDoResult_success:
-                    {
-                        count_successful += 1; // The sector-read was a success!
-                    } break;
-
-                    case SDDoResult_task_error:
-                    {
-                        count_task_error += 1; // The operation failed for some reason.
-                    } break;
-
-                    {
-                        case SDDoResult_card_likely_unmounted : count_card_likely_unmounted += 1; goto SD_DRIVER_ERROR;
-                        case SDDoResult_unsupported_card      : count_unsupported_card      += 1; goto SD_DRIVER_ERROR;
-                        case SDDoResult_maybe_bus_problem     : count_maybe_bus_problem     += 1; goto SD_DRIVER_ERROR;
-                        case SDDoResult_voltage_check_failed  : count_voltage_check_failed  += 1; goto SD_DRIVER_ERROR;
-                        case SDDoResult_could_not_ready_card  : count_could_not_ready_card  += 1; goto SD_DRIVER_ERROR;
-                        case SDDoResult_card_glitch           : count_card_glitch           += 1; goto SD_DRIVER_ERROR;
-                        SD_DRIVER_ERROR:
-
-                        SD_reinit(SDHandle_primary); // Something went wrong; we're going have to restart the SD driver.
-
-                    } break;
-
-                    case SDDoResult_bug:
-                    default:
-                    {
-                        count_bugs += 1;
-                        SD_reinit(SDHandle_primary); // Something went REALLY wrong; we're going have to restart the SD driver.
-                    } break;
-
-                }
-
-
-
-                // Output the results.
-
-                stlink_tx
-                (
-                    "\n"
-                    "[Sector 0x%08X]"                  "\n"
-                    "count_successful            : %d" "\n"
-                    "count_task_error            : %d" "\n"
-                    "count_card_likely_unmounted : %d" "\n"
-                    "count_unsupported_card      : %d" "\n"
-                    "count_maybe_bus_problem     : %d" "\n"
-                    "count_voltage_check_failed  : %d" "\n"
-                    "count_could_not_ready_card  : %d" "\n"
-                    "count_card_glitch           : %d" "\n"
-                    "count_bugs                  : %d" "\n",
-                    address,
-                    count_successful,
-                    count_task_error,
-                    count_card_likely_unmounted,
-                    count_unsupported_card,
-                    count_maybe_bus_problem,
-                    count_voltage_check_failed,
-                    count_could_not_ready_card,
-                    count_card_glitch,
-                    count_bugs
-                );
-
-                if (do_result == SDDoResult_success)
+                if (success)
                 {
                     for (i32 byte_i = 0; byte_i < 512; byte_i += 1)
                     {
@@ -157,10 +183,145 @@ main(void)
 
         ////////////////////////////////////////////////////////////////////////////////
         //
-        // Test the file-system.
+        // Stress test the SD card and SD API.
+        // Data on the SD card will be overwritten.
         //
 
         case 1:
+        {
+
+            for (u32 address = 0;; address += 1)
+            {
+
+                u32 amount_of_sectors_to_test = address + 1;
+
+                stlink_tx
+                (
+                    "\n[0x%08X - 0x%08X] (%d sectors)\n",
+                    address,
+                    address + amount_of_sectors_to_test - 1,
+                    amount_of_sectors_to_test
+                );
+
+
+
+                // Read a sector that'll determine the counter's initial value.
+
+                u8 counter = {0};
+
+                {
+
+                    struct Sector sector = {0};
+
+                    b32 success =
+                        try_doing_operation
+                        (
+                            SDHandle_primary,
+                            SDOperation_single_read,
+                            &sector,
+                            address
+                        );
+
+                    if (!success)
+                    {
+                        goto STRESS_FAILED;
+                    }
+
+                    for (u32 i = 0; i < countof(sector.data); i += 1)
+                    {
+                        counter += (u8) ((sector.data[i] + 1) * (i + 1) | (sector.data[i] >> 4)); // Something strange.
+                    }
+
+                }
+
+
+
+                // Fill out bunch of sectors with data we can predict.
+
+                for (u32 sector_index = 0; sector_index < amount_of_sectors_to_test; sector_index += 1)
+                {
+
+                    struct Sector sector = {0};
+
+                    for (u32 byte_index = 0; byte_index < countof(sector.data); byte_index += 1)
+                    {
+                        sector.data[byte_index] += (u8) (counter * (sector_index + 1) + byte_index);
+                    }
+
+                    b32 success =
+                        try_doing_operation
+                        (
+                            SDHandle_primary,
+                            SDOperation_single_write,
+                            &sector,
+                            address + sector_index
+                        );
+
+                    if (!success)
+                    {
+                        goto STRESS_FAILED;
+                    }
+
+                }
+
+
+
+                // Read in the sectors with data we should be expecting.
+
+                for (u32 sector_index = 0; sector_index < amount_of_sectors_to_test; sector_index += 1)
+                {
+
+                    struct Sector sector = {0};
+
+                    b32 success =
+                        try_doing_operation
+                        (
+                            SDHandle_primary,
+                            SDOperation_single_read,
+                            &sector,
+                            address + sector_index
+                        );
+
+                    if (!success)
+                    {
+                        goto STRESS_FAILED;
+                    }
+
+                    for (u32 byte_index = 0; byte_index < countof(sector.data); byte_index += 1)
+                    {
+                        if (sector.data[byte_index] != (u8) (counter * (sector_index + 1) + byte_index))
+                            panic;
+                    }
+
+                }
+
+
+
+                // Bit of breather...
+
+                print_stats();
+                GPIO_TOGGLE(led_green);
+                spinlock_nop(50'000'000);
+
+                continue;
+                STRESS_FAILED:;
+
+                print_stats();
+                stlink_tx("Failed!\n");
+                spinlock_nop(200'000'000);
+
+            }
+
+        } break;
+
+
+
+        ////////////////////////////////////////////////////////////////////////////////
+        //
+        // Test the file-system.
+        //
+
+        case 2:
         {
 
             FRESULT fr;
