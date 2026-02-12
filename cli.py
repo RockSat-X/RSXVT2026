@@ -268,7 +268,7 @@ def request_stlinks(
 
     # Sometimes ST-Links can lock-up.
 
-    if any('ST-LINK error' in line for line in listing_lines):
+    if any('ST-LINK error' in line or 'Unexpected_SN_Format' in line for line in listing_lines):
 
         pxd.pxd_logger.error(
             f'There seems to be an error with an ST-Link; '
