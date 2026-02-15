@@ -1889,9 +1889,9 @@
 
         #define STPY_SDMMC1_KERNEL_SOURCE 0b0
         #define STPY_SDMMC1_INITIAL_DIVIDER 0x032
-        #define STPY_SDMMC1_INITIAL_DATATIME 1000
+        #define STPY_SDMMC1_INITIAL_DATATIME 5000
         #define STPY_SDMMC1_FULL_DIVIDER 0x005
-        #define STPY_SDMMC1_FULL_DATATIME 10000
+        #define STPY_SDMMC1_FULL_DATATIME 50000
 
     }
     #define STPY_0             (          0)
@@ -3071,9 +3071,9 @@
 
         #define STPY_SDMMC1_KERNEL_SOURCE 0b0
         #define STPY_SDMMC1_INITIAL_DIVIDER 0x032
-        #define STPY_SDMMC1_INITIAL_DATATIME 1000
+        #define STPY_SDMMC1_INITIAL_DATATIME 5000
         #define STPY_SDMMC1_FULL_DIVIDER 0x005
-        #define STPY_SDMMC1_FULL_DATATIME 10000
+        #define STPY_SDMMC1_FULL_DATATIME 50000
 
     }
     #define STPY_0             (          0)
