@@ -24,7 +24,7 @@ try_doing_operation
 (
     enum SDHandle    handle,
     enum SDOperation operation,
-    struct Sector*   sector,
+    Sector*          sector,
     u32              address
 )
 {
@@ -136,7 +136,7 @@ main(void)
             for (u32 address = 0;; address += 1)
             {
 
-                struct Sector sector = {0};
+                Sector sector = {0};
 
                 b32 success =
                     try_doing_operation
@@ -162,7 +162,7 @@ main(void)
                         stlink_tx
                         (
                             "%02X%c",
-                            sector.data[byte_i],
+                            sector[byte_i],
                             (byte_i % 32 == 31) ? '\n' : ' '
                         );
                     }
@@ -211,7 +211,7 @@ main(void)
 
                 {
 
-                    struct Sector sector = {0};
+                    Sector sector = {0};
 
                     b32 success =
                         try_doing_operation
@@ -227,9 +227,9 @@ main(void)
                         goto STRESS_FAILED;
                     }
 
-                    for (u32 i = 0; i < countof(sector.data); i += 1)
+                    for (u32 i = 0; i < countof(sector); i += 1)
                     {
-                        counter += (u8) ((sector.data[i] + 1) * (i + 1) | (sector.data[i] >> 4)); // Something strange.
+                        counter += (u8) ((sector[i] + 1) * (i + 1) | (sector[i] >> 4)); // Something strange.
                     }
 
                 }
@@ -241,11 +241,11 @@ main(void)
                 for (u32 sector_index = 0; sector_index < amount_of_sectors_to_test; sector_index += 1)
                 {
 
-                    struct Sector sector = {0};
+                    Sector sector = {0};
 
-                    for (u32 byte_index = 0; byte_index < countof(sector.data); byte_index += 1)
+                    for (u32 byte_index = 0; byte_index < countof(sector); byte_index += 1)
                     {
-                        sector.data[byte_index] += (u8) (counter * (sector_index + 1) + byte_index);
+                        sector[byte_index] += (u8) (counter * (sector_index + 1) + byte_index);
                     }
 
                     b32 success =
@@ -271,7 +271,7 @@ main(void)
                 for (u32 sector_index = 0; sector_index < amount_of_sectors_to_test; sector_index += 1)
                 {
 
-                    struct Sector sector = {0};
+                    Sector sector = {0};
 
                     b32 success =
                         try_doing_operation
@@ -287,9 +287,9 @@ main(void)
                         goto STRESS_FAILED;
                     }
 
-                    for (u32 byte_index = 0; byte_index < countof(sector.data); byte_index += 1)
+                    for (u32 byte_index = 0; byte_index < countof(sector); byte_index += 1)
                     {
-                        if (sector.data[byte_index] != (u8) (counter * (sector_index + 1) + byte_index))
+                        if (sector[byte_index] != (u8) (counter * (sector_index + 1) + byte_index))
                             panic;
                     }
 

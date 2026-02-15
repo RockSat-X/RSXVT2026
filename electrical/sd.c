@@ -27,10 +27,7 @@
 
 */
 
-struct Sector
-{
-    u8 data[512];
-};
+typedef u8 Sector[512];
 
 enum SDDriverState : u32
 {
@@ -76,7 +73,7 @@ struct SDDriver
     {
         volatile enum SDTaskState state;
         volatile enum SDOperation operation;
-        volatile struct Sector*   sector;
+        Sector* volatile          sector;
         volatile u32              address;
     } task;
 };
@@ -105,7 +102,7 @@ SD_do
 (
     enum SDHandle    handle,
     enum SDOperation operation,
-    struct Sector*   sector,
+    Sector*          sector,
     u32              address
 )
 {
@@ -534,9 +531,9 @@ _SD_update_once(enum SDHandle handle)
                                 .state      = SDCmderState_scheduled_command,
                                 .cmd        = (enum SDCmd) driver->task.operation,
                                 .argument   = driver->task.address,
-                                .data       = (u8*) driver->task.sector,
-                                .remaining  = sizeof(driver->task.sector->data),
-                                .block_size = sizeof(driver->task.sector->data),
+                                .data       = *driver->task.sector,
+                                .remaining  = sizeof(*driver->task.sector),
+                                .block_size = sizeof(*driver->task.sector),
                                 .rca        = driver->initer.rca,
                             };
 

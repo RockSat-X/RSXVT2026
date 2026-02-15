@@ -60,7 +60,7 @@ static useret enum SDCmderIterateResult : u32
     SDCmderIterateResult_card_glitch,
     SDCmderIterateResult_bug = BUG_CODE,
 }
-SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
+_SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 {
 
     if (!SDMMC)
@@ -1025,6 +1025,10 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
 
 
+////////////////////////////////////////////////////////////////////////////////
+
+
+
 static useret enum SDCmderUpdateResult : u32
 {
     SDCmderUpdateResult_yield,
@@ -1038,7 +1042,7 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
     while (true)
     {
 
-        enum SDCmderIterateResult result = SDCmder_iterate_once(SDMMC, cmder);
+        enum SDCmderIterateResult result = _SDCmder_iterate_once(SDMMC, cmder);
 
         switch (result)
         {
