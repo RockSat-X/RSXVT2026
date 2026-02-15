@@ -469,7 +469,7 @@ _SD_update_once(enum SDHandle handle)
                                     .cmd        = driver->initer.command.cmd,
                                     .argument   = driver->initer.command.argument,
                                     .data       = driver->initer.command.data,
-                                    .remaining  = driver->initer.command.size,
+                                    .total_size = driver->initer.command.size,
                                     .block_size = driver->initer.command.size,
                                     .rca        = driver->initer.rca,
                                 };
@@ -627,7 +627,7 @@ _SD_update_once(enum SDHandle handle)
                                 .cmd        = (enum SDCmd) driver->task.operation,
                                 .argument   = driver->task.address,
                                 .data       = *driver->task.sector,
-                                .remaining  = sizeof(*driver->task.sector),
+                                .total_size = sizeof(*driver->task.sector),
                                 .block_size = sizeof(*driver->task.sector),
                                 .rca        = driver->initer.rca,
                             };

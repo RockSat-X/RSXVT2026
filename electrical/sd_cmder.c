@@ -40,8 +40,9 @@ struct SDCmder
     enum SDCmd        cmd;
     u32               argument;
     u8*               data;
-    i32               remaining;
+    i32               total_size;
     i32               block_size;
+    i32               bytes_transferred;
     u16               rca; // Relative card address. @/pg 67/sec 4.2.2/`SD`.
 };
 
@@ -325,7 +326,7 @@ _SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 {
                     actual_cmd            = cmder->cmd;
                     actual_argument       = cmder->argument;
-                    actually_transferring = !!cmder->remaining;
+                    actually_transferring = !!cmder->total_size;
                     cmder->state          = SDCmderState_transferring_user_command;
                 }
 
@@ -344,16 +345,16 @@ _SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                     if (!IS_POWER_OF_TWO(cmder->block_size) || block_size_pow2 > 14)
                         bug; // Must be a power of two no greater than 2^14 = 16384 bytes.
 
-                    if (cmder->remaining % cmder->block_size)
+                    if (cmder->total_size % cmder->block_size)
                         bug; // Data must be a multiple of the data-block or else it'll be truncated.
 
-                    if (cmder->remaining % sizeof(u32))
+                    if (cmder->total_size % sizeof(u32))
                         bug; // We're assuming data is also a multiple of word size to make it easy.
 
-                    if (cmder->remaining >= (1 << 25))
+                    if (cmder->total_size >= (1 << 25))
                         bug; // Transfer limit of the DATALENGTH field.
 
-                    if (cmder->remaining <= 0)
+                    if (cmder->total_size <= 0)
                         bug; // Can't transfer no data...
 
                     if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT))
@@ -361,8 +362,8 @@ _SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
                     CMSIS_SET
                     (
-                        SDMMC     , DLEN            ,
-                        DATALENGTH, cmder->remaining, // Let DPSM know the expected transfer amount.
+                        SDMMC     , DLEN             ,
+                        DATALENGTH, cmder->total_size, // Let DPSM know the expected transfer amount.
                     );
 
                     CMSIS_SET
@@ -745,14 +746,14 @@ _SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
 
 
-                if (cmder->remaining) // TODO We're manually transferring data-blocks for now...
+                if (cmder->bytes_transferred < cmder->total_size) // TODO We're manually transferring data-blocks for now...
                 {
 
                     if (!cmder->data)
                         bug; // Missing data..?
 
-                    if (cmder->remaining < cmder->block_size && cmder->remaining % cmder->block_size)
-                        bug; // Data not multiple of block-size..?
+                    if (cmder->bytes_transferred % sizeof(u32))
+                        bug; // Transfer became misaligned..?
 
                     i32 word_index = 0;
                     for
@@ -775,12 +776,14 @@ _SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                                     if (!CMSIS_GET(SDMMC, STA, RXFIFOE))
                                     {
                                         *(u32*) (cmder->data + word_index) = CMSIS_GET(SDMMC, FIFO, FIFODATA);
+                                        cmder->bytes_transferred += sizeof(u32);
                                         break;
                                     }
                                 }
                                 else if (!CMSIS_GET(SDMMC, STA, TXFIFOF))
                                 {
                                     CMSIS_SET(SDMMC, FIFO, FIFODATA, *(u32*) (cmder->data + word_index));
+                                    cmder->bytes_transferred += sizeof(u32);
                                     break;
                                 }
                             }
@@ -789,12 +792,6 @@ _SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                         {
                             sorry
                         }
-                    }
-
-                    if (word_index == cmder->block_size)
-                    {
-                        cmder->data       = 0;
-                        cmder->remaining -= cmder->block_size;
                     }
 
                     return SDCmderIterateResult_again;
@@ -815,8 +812,8 @@ _SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 if (cmder->error)
                     bug; // No reason for an error.
 
-                if (cmder->remaining)
-                    bug; // There shouldn't be anything left to transmit.
+                if (cmder->bytes_transferred != cmder->total_size)
+                    bug; // There shouldn't be anything left to transfer.
 
                 if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, CPSMACT))
                     bug; // Command-path state-machine should've been done by now.
