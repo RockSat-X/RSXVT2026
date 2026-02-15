@@ -14,8 +14,8 @@
             transferring_user_command
             outwaiting_busy_signal_for_user_command
             undergoing_data_transfer
-            scheduled_stop_transmission_for_error
-            transferring_stop_transmission_for_error
+            scheduled_stop_transmission
+            transferring_stop_transmission
             outwaiting_busy_signal_for_stop_transmission
         '''
     )
@@ -43,6 +43,7 @@ struct SDCmder
     i32               total_size;
     i32               block_size;
     i32               bytes_transferred;
+    i32               byte_index;
     u16               rca; // Relative card address. @/pg 67/sec 4.2.2/`SD`.
 };
 
@@ -57,6 +58,7 @@ static useret enum SDCmderIterateResult : u32
     SDCmderIterateResult_again,
     SDCmderIterateResult_yield,
     SDCmderIterateResult_ready_for_next_command,
+    SDCmderIterateResult_waiting_for_user_data,
     SDCmderIterateResult_command_attempted,
     SDCmderIterateResult_card_glitch,
     SDCmderIterateResult_bug = BUG_CODE,
@@ -244,7 +246,7 @@ _SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 return SDCmderIterateResult_ready_for_next_command; // Tell user that the SD-cmder is on stand-by.
             } break;
 
-            case SDMMCInterruptEvent_end_of_busy_signal                     : bug;
+            case SDMMCInterruptEvent_end_of_busy_signal                     : return SDCmderIterateResult_ready_for_next_command; // TODO Fix.
             case SDMMCInterruptEvent_cmd12_aborted_data_transfer            : bug;
             case SDMMCInterruptEvent_completed_transfer                     : bug;
             case SDMMCInterruptEvent_command_sent_with_no_response_expected : bug;
@@ -265,19 +267,13 @@ _SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
         //
         ////////////////////////////////////////
 
-        case SDCmderState_scheduled_amcd_prefixed_command       :
-        case SDCmderState_scheduled_command                     :
-        case SDCmderState_scheduled_stop_transmission_for_error : switch (interrupt_event)
+        case SDCmderState_scheduled_amcd_prefixed_command :
+        case SDCmderState_scheduled_command               :
+        case SDCmderState_scheduled_stop_transmission     : switch (interrupt_event)
         {
 
             case SDMMCInterruptEvent_none:
             {
-
-                if (!iff(cmder->error, cmder->state == SDCmderState_scheduled_stop_transmission_for_error))
-                    bug; // Unexpected error or unset error condition.
-
-                if (!iff(CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT), cmder->state == SDCmderState_scheduled_stop_transmission_for_error))
-                    bug; // The data-path state-machine unexpected active/inactive.
 
                 if (cmder->cmd == SDCmd_APP_CMD)
                     bug; // APP_CMD is already handled automatically.
@@ -300,13 +296,13 @@ _SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 u32        actual_argument       = {0};
                 b32        actually_transferring = {0};
 
-                if (cmder->state == SDCmderState_scheduled_stop_transmission_for_error)
+                if (cmder->state == SDCmderState_scheduled_stop_transmission)
                 {
 
                     actual_cmd            = SDCmd_STOP_TRANSMISSION;
                     actual_argument       = 0; // No argument necessary.
                     actually_transferring = false;
-                    cmder->state          = SDCmderState_transferring_stop_transmission_for_error;
+                    cmder->state          = SDCmderState_transferring_stop_transmission;
 
                     CMSIS_SET
                     (
@@ -629,7 +625,7 @@ _SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                     // Because we were expecting a data transfer, the DPSM is still active.
                     // To turn if off, we have to send a STOP_TRANSMISSION.
 
-                    cmder->state = SDCmderState_scheduled_stop_transmission_for_error;
+                    cmder->state = SDCmderState_scheduled_stop_transmission;
                     return SDCmderIterateResult_again;
 
                 }
@@ -746,22 +742,13 @@ _SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
 
 
-                if (cmder->bytes_transferred < cmder->total_size) // TODO We're manually transferring data-blocks for now...
+                if (cmder->data) // TODO We're manually transferring data-blocks for now...
                 {
-
-                    if (!cmder->data)
-                        bug; // Missing data..?
 
                     if (cmder->bytes_transferred % sizeof(u32))
                         bug; // Transfer became misaligned..?
 
-                    i32 word_index = 0;
-                    for
-                    (
-                        ;
-                        word_index < cmder->block_size;
-                        word_index += sizeof(u32)
-                    )
+                    while (cmder->byte_index < cmder->block_size)
                     {
                         if (CMSIS_GET(SDMMC, STA, DPSMACT))
                         {
@@ -775,15 +762,15 @@ _SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                                 {
                                     if (!CMSIS_GET(SDMMC, STA, RXFIFOE))
                                     {
-                                        *(u32*) (cmder->data + word_index) = CMSIS_GET(SDMMC, FIFO, FIFODATA);
-                                        cmder->bytes_transferred += sizeof(u32);
+                                        *(u32*) (cmder->data + cmder->byte_index) = CMSIS_GET(SDMMC, FIFO, FIFODATA);
+                                        cmder->byte_index += sizeof(u32);
                                         break;
                                     }
                                 }
                                 else if (!CMSIS_GET(SDMMC, STA, TXFIFOF))
                                 {
-                                    CMSIS_SET(SDMMC, FIFO, FIFODATA, *(u32*) (cmder->data + word_index));
-                                    cmder->bytes_transferred += sizeof(u32);
+                                    CMSIS_SET(SDMMC, FIFO, FIFODATA, *(u32*) (cmder->data + cmder->byte_index));
+                                    cmder->byte_index += sizeof(u32);
                                     break;
                                 }
                             }
@@ -794,8 +781,19 @@ _SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                         }
                     }
 
+                    if (cmder->byte_index == cmder->block_size)
+                    {
+                        cmder->byte_index         = 0;
+                        cmder->bytes_transferred += cmder->block_size;
+                        cmder->data               = 0;
+                    }
+
                     return SDCmderIterateResult_again;
 
+                }
+                else if (cmder->bytes_transferred < cmder->total_size)
+                {
+                    return SDCmderIterateResult_waiting_for_user_data;
                 }
                 else
                 {
@@ -823,10 +821,20 @@ _SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
 
 
-                // The caller's desired command has been successfully executed with a successful transfer.
+                if (cmder->cmd == SDCmd_READ_MULTIPLE_BLOCK || cmder->cmd == SDCmd_WRITE_MULTIPLE_BLOCK)
+                {
+                    cmder->state = SDCmderState_scheduled_stop_transmission;
+                    return SDCmderIterateResult_again;
+                }
+                else
+                {
 
-                cmder->state = SDCmderState_ready_for_next_command;
-                return SDCmderIterateResult_command_attempted;
+                    // The caller's desired command has been successfully executed with a successful transfer.
+
+                    cmder->state = SDCmderState_ready_for_next_command;
+                    return SDCmderIterateResult_command_attempted;
+
+                }
 
             } break;
 
@@ -845,7 +853,7 @@ _SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                     bug; // Data-path state-machine should still be active for data time-out conditions.
 
                 cmder->error = SDCmderError_data_timeout;
-                cmder->state = SDCmderState_scheduled_stop_transmission_for_error;
+                cmder->state = SDCmderState_scheduled_stop_transmission;
                 return SDCmderIterateResult_again;
 
             } break;
@@ -890,16 +898,13 @@ _SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
         //
         ////////////////////////////////////////
 
-        case SDCmderState_transferring_stop_transmission_for_error: switch (interrupt_event)
+        case SDCmderState_transferring_stop_transmission: switch (interrupt_event)
         {
 
 
 
             case SDMMCInterruptEvent_none:
             {
-
-                if (!cmder->error)
-                    bug; // Error not set..?
 
                 return SDCmderIterateResult_yield; // Nothing new yet.
 
@@ -909,9 +914,6 @@ _SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
             case SDMMCInterruptEvent_end_of_busy_signal:
             {
-
-                if (!cmder->error)
-                    bug; // Error not set..?
 
                 if (CMSIS_GET(SDMMC, STA, BUSYD0))
                     bug; // Shouldn't be busy anymore!
@@ -925,9 +927,6 @@ _SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             case SDMMCInterruptEvent_cmd12_aborted_data_transfer:
             {
 
-                if (!cmder->error)
-                    bug; // Error not set..?
-
                 if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT))
                     bug; // Data-path state-machine should've been disabled by now.
 
@@ -940,21 +939,11 @@ _SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             case SDMMCInterruptEvent_command_sent_with_good_response:
             {
 
-                if (!cmder->error)
-                    bug; // Error not set..?
-
                 if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, CPSMACT))
                     bug; // Command-path state-machine shouldn't be enabled...
 
-                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT))
-                {
-                    return SDCmderIterateResult_card_glitch; // We tried to disable the DPSM with STOP_TRANSMISSION, but it still didn't work...
-                }
-                else
-                {
-                    cmder->state = SDCmderState_outwaiting_busy_signal_for_stop_transmission;
-                    return SDCmderIterateResult_again;
-                }
+                cmder->state = SDCmderState_outwaiting_busy_signal_for_stop_transmission;
+                return SDCmderIterateResult_again;
 
             } break;
 
@@ -964,14 +953,12 @@ _SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             case SDMMCInterruptEvent_command_with_bad_crc:
             {
 
-                if (!cmder->error)
-                    bug; // Error not set..?
-
                 if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, CPSMACT))
                     bug; // Command-path state-machine shouldn't still be enabled...
 
                 if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT))
                 {
+                    sorry
                     return SDCmderIterateResult_card_glitch; // We tried to disable the DPSM with STOP_TRANSMISSION, but it still didn't work...
                 }
                 else
@@ -1010,6 +997,7 @@ static useret enum SDCmderUpdateResult : u32
 {
     SDCmderUpdateResult_yield,
     SDCmderUpdateResult_ready_for_next_command,
+    SDCmderUpdateResult_waiting_for_user_data,
     SDCmderUpdateResult_command_attempted,
     SDCmderUpdateResult_card_glitch,
     SDCmderUpdateResult_bug = BUG_CODE,
@@ -1048,6 +1036,17 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 #endif
 
                 return SDCmderUpdateResult_ready_for_next_command;
+
+            } break;
+
+            case SDCmderIterateResult_waiting_for_user_data:
+            {
+
+                #if SDCMDER_LOG_UPDATE_ITERATION
+                log("> WAITING FOR USER DATA");
+                #endif
+
+                return SDCmderUpdateResult_waiting_for_user_data;
 
             } break;
 

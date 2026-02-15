@@ -54,8 +54,8 @@ enum SDDriverError : u32
 
 enum SDOperation : u32
 {
-    SDOperation_single_read  = SDCmd_READ_SINGLE_BLOCK,
-    SDOperation_single_write = SDCmd_WRITE_BLOCK,
+    SDOperation_single_read  = SDCmd_READ_MULTIPLE_BLOCK,
+    SDOperation_single_write = SDCmd_WRITE_MULTIPLE_BLOCK,
 };
 
 enum SDTaskState : u32
@@ -542,6 +542,11 @@ _SD_update_once(enum SDHandle handle)
 
                 } break;
 
+                case SDCmderUpdateResult_waiting_for_user_data:
+                {
+                    sorry
+                } break;
+
                 case SDCmderUpdateResult_command_attempted:
                 {
 
@@ -638,6 +643,11 @@ _SD_update_once(enum SDHandle handle)
 
                     default: bug;
 
+                } break;
+
+                case SDCmderUpdateResult_waiting_for_user_data:
+                {
+                    sorry
                 } break;
 
                 case SDCmderUpdateResult_command_attempted:
