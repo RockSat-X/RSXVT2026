@@ -79,13 +79,13 @@ static useret enum SDIniterHandleFeedbackResult : u32
     SDIniterHandleFeedbackResult_unsupported_card,
     SDIniterHandleFeedbackResult_maybe_bus_problem,
     SDIniterHandleFeedbackResult_card_glitch,
-    SDIniterHandleFeedbackResult_bug,
+    SDIniterHandleFeedbackResult_bug = BUG_CODE,
 }
 _SDIniter_handle_feedback(struct SDIniter* initer)
 {
 
     if (!initer)
-        return SDIniterHandleFeedbackResult_bug;
+        bug;
 
     switch (initer->state)
     {
@@ -103,7 +103,7 @@ _SDIniter_handle_feedback(struct SDIniter* initer)
         {
             if (initer->feedback.failed)
             {
-                return SDIniterHandleFeedbackResult_bug; // There's no reason for a failed command already...
+                bug; // There's no reason for a failed command already...
             }
             else
             {
@@ -134,7 +134,7 @@ _SDIniter_handle_feedback(struct SDIniter* initer)
         {
             if (initer->feedback.failed)
             {
-                return SDIniterHandleFeedbackResult_bug; // There's no reason for the GO_IDLE_STATE command to fail.
+                bug; // There's no reason for the GO_IDLE_STATE command to fail.
             }
             else
             {
@@ -539,7 +539,7 @@ _SDIniter_handle_feedback(struct SDIniter* initer)
         {
             if (initer->feedback.failed)
             {
-                return SDIniterHandleFeedbackResult_bug; // No reason for the user to fail configuring the bus width.
+                bug; // No reason for the user to fail configuring the bus width.
             }
             else
             {
@@ -550,8 +550,8 @@ _SDIniter_handle_feedback(struct SDIniter* initer)
 
 
 
-        case SDIniterState_done : return SDIniterHandleFeedbackResult_bug; // We're already done; there's nothing left to do!
-        default                 : return SDIniterHandleFeedbackResult_bug;
+        case SDIniterState_done : bug; // We're already done; there's nothing left to do!
+        default                 : bug;
 
     }
 
@@ -574,13 +574,13 @@ static useret enum SDIniterUpdateResult : u32
     SDIniterUpdateResult_unsupported_card,
     SDIniterUpdateResult_card_glitch,
     SDIniterUpdateResult_card_likely_unmounted,
-    SDIniterUpdateResult_bug,
+    SDIniterUpdateResult_bug = BUG_CODE,
 }
 SDIniter_update(struct SDIniter* initer)
 {
 
     if (!initer)
-        return SDIniterUpdateResult_bug;
+        bug;
 
 
 
@@ -614,8 +614,8 @@ SDIniter_update(struct SDIniter* initer)
         case SDIniterHandleFeedbackResult_could_not_ready_card  : return SDIniterUpdateResult_could_not_ready_card;
         case SDIniterHandleFeedbackResult_unsupported_card      : return SDIniterUpdateResult_unsupported_card;
         case SDIniterHandleFeedbackResult_card_glitch           : return SDIniterUpdateResult_card_glitch;
-        case SDIniterHandleFeedbackResult_bug                   : return SDIniterUpdateResult_bug;
-        default                                                 : return SDIniterUpdateResult_bug;
+        case SDIniterHandleFeedbackResult_bug                   : bug;
+        default                                                 : bug;
 
     }
 
@@ -775,8 +775,8 @@ SDIniter_update(struct SDIniter* initer)
 
         case SDIniterState_user_set_bus_width : return SDIniterUpdateResult_user_set_bus_width;
         case SDIniterState_done               : return SDIniterUpdateResult_done;
-        case SDIniterState_uninited           : return SDIniterUpdateResult_bug;
-        default                               : return SDIniterUpdateResult_bug;
+        case SDIniterState_uninited           : bug;
+        default                               : bug;
 
     }
 

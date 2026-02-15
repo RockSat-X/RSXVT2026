@@ -99,7 +99,7 @@ static useret enum SDDoResult : u32
     SDDoResult_voltage_check_failed,
     SDDoResult_could_not_ready_card,
     SDDoResult_card_glitch,
-    SDDoResult_bug,
+    SDDoResult_bug = BUG_CODE,
 }
 SD_do
 (
@@ -113,10 +113,10 @@ SD_do
     _EXPAND_HANDLE
 
     if (!sector)
-        return SDDoResult_bug; // Source/destination not provided..?
+        bug; // Source/destination not provided..?
 
     if (driver->task.state != SDTaskState_unscheduled)
-        return SDDoResult_bug; // Unexpected state...
+        bug; // Unexpected state...
 
 
 
@@ -145,12 +145,12 @@ SD_do
                 case SDDriverError_voltage_check_failed  : return SDDoResult_voltage_check_failed;
                 case SDDriverError_could_not_ready_card  : return SDDoResult_could_not_ready_card;
                 case SDDriverError_card_glitch           : return SDDoResult_card_glitch;
-                case SDDriverError_none                  : return SDDoResult_bug;
-                default                                  : return SDDoResult_bug;
+                case SDDriverError_none                  : bug;
+                default                                  : bug;
             } break;
 
-            case SDDriverState_disabled : return SDDoResult_bug;
-            default                     : return SDDoResult_bug;
+            case SDDriverState_disabled : bug;
+            default                     : bug;
 
         }
     }
@@ -210,8 +210,8 @@ SD_do
 
                 } break;
 
-                case SDTaskState_unscheduled : return SDDoResult_bug;
-                default                      : return SDDoResult_bug;
+                case SDTaskState_unscheduled : bug;
+                default                      : bug;
 
             } break;
 
@@ -223,13 +223,13 @@ SD_do
                 case SDDriverError_voltage_check_failed  : return SDDoResult_voltage_check_failed;
                 case SDDriverError_could_not_ready_card  : return SDDoResult_could_not_ready_card;
                 case SDDriverError_card_glitch           : return SDDoResult_card_glitch;
-                case SDDriverError_none                  : return SDDoResult_bug;
-                default                                  : return SDDoResult_bug;
+                case SDDriverError_none                  : bug;
+                default                                  : bug;
             } break;
 
-            case SDDriverState_disabled : return SDDoResult_bug;
-            case SDDriverState_initer   : return SDDoResult_bug;
-            default                     : return SDDoResult_bug;
+            case SDDriverState_disabled : bug;
+            case SDDriverState_initer   : bug;
+            default                     : bug;
 
         }
     }
@@ -326,7 +326,7 @@ static useret enum SDUpdateOnceResult : u32
 {
     SDUpdateOnceResult_again,
     SDUpdateOnceResult_yield,
-    SDUpdateOnceResult_bug,
+    SDUpdateOnceResult_bug = BUG_CODE,
 }
 _SD_update_once(enum SDHandle handle)
 {
@@ -443,8 +443,8 @@ _SD_update_once(enum SDHandle handle)
 
 
 
-                        case SDIniterUpdateResult_bug : return SDUpdateOnceResult_bug;
-                        default                       : return SDUpdateOnceResult_bug;
+                        case SDIniterUpdateResult_bug : bug;
+                        default                       : bug;
 
                     }
 
@@ -477,8 +477,8 @@ _SD_update_once(enum SDHandle handle)
                     return SDUpdateOnceResult_again;
                 } break;
 
-                case SDCmderUpdateResult_bug : return SDUpdateOnceResult_bug;
-                default                      : return SDUpdateOnceResult_bug;
+                case SDCmderUpdateResult_bug : bug;
+                default                      : bug;
 
             }
 
@@ -519,10 +519,10 @@ _SD_update_once(enum SDHandle handle)
                     {
 
                         if (!driver->task.operation)
-                            return SDUpdateOnceResult_bug; // Unspecified SD operation..?
+                            bug; // Unspecified SD operation..?
 
                         if (!driver->task.sector)
-                            return SDUpdateOnceResult_bug; // No source/destination..?
+                            bug; // No source/destination..?
 
 
 
@@ -544,7 +544,7 @@ _SD_update_once(enum SDHandle handle)
 
                     } break;
 
-                    default: return SDUpdateOnceResult_bug;
+                    default: bug;
 
                 } break;
 
@@ -552,7 +552,7 @@ _SD_update_once(enum SDHandle handle)
                 {
 
                     if (driver->task.state != SDTaskState_booked)
-                        return SDUpdateOnceResult_bug; // There should've been an SD operation that we were doing...
+                        bug; // There should've been an SD operation that we were doing...
 
                     switch (driver->cmder.error)
                     {
@@ -581,7 +581,7 @@ _SD_update_once(enum SDHandle handle)
 
 
 
-                        default: return SDUpdateOnceResult_bug;
+                        default: bug;
 
                     }
 
@@ -594,8 +594,8 @@ _SD_update_once(enum SDHandle handle)
                     return SDUpdateOnceResult_again;
                 } break;
 
-                case SDCmderUpdateResult_bug : return SDUpdateOnceResult_bug;
-                default                      : return SDUpdateOnceResult_bug;
+                case SDCmderUpdateResult_bug : bug;
+                default                      : bug;
 
             }
 
@@ -614,7 +614,7 @@ _SD_update_once(enum SDHandle handle)
         {
 
             if (!driver->error)
-                return SDUpdateOnceResult_bug; // Error not set..?
+                bug; // Error not set..?
 
             NVIC_DISABLE(SDx);
 
@@ -624,8 +624,8 @@ _SD_update_once(enum SDHandle handle)
 
 
 
-        case SDDriverState_disabled : return SDUpdateOnceResult_bug;
-        default                     : return SDUpdateOnceResult_bug;
+        case SDDriverState_disabled : bug;
+        default                     : bug;
 
     }
 

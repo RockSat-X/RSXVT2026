@@ -58,16 +58,16 @@ static useret enum SDCmderIterateResult : u32
     SDCmderIterateResult_ready_for_next_command,
     SDCmderIterateResult_command_attempted,
     SDCmderIterateResult_card_glitch,
-    SDCmderIterateResult_bug,
+    SDCmderIterateResult_bug = BUG_CODE,
 }
 SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 {
 
     if (!SDMMC)
-        return SDCmderIterateResult_bug;
+        bug;
 
     if (!cmder)
-        return SDCmderIterateResult_bug;
+        bug;
 
 
 
@@ -108,7 +108,7 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
         CMSIS_GET_FROM(interrupt_status, SDMMC, STA, TXUNDERR  )    // Hardware found TX-FIFO empty (shouldn't happen).
     )
     {
-        return SDCmderIterateResult_bug; // Shouldn't happen, mostly because the feature isn't even used.
+        bug; // Shouldn't happen, mostly because the feature isn't even used.
     }
 
 
@@ -219,7 +219,7 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
     {
 
         if (interrupt_status & interrupt_enable)
-            return SDCmderIterateResult_bug; // There shouldn't be any leftover interrupt events.
+            bug; // There shouldn't be any leftover interrupt events.
 
         interrupt_event = SDMMCInterruptEvent_none;
 
@@ -253,17 +253,17 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 return SDCmderIterateResult_ready_for_next_command; // Tell user that the SD-cmder is on stand-by.
             } break;
 
-            case SDMMCInterruptEvent_end_of_busy_signal                     : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_cmd12_aborted_data_transfer            : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_transferred_data_block                 : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_completed_transfer                     : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_command_sent_with_no_response_expected : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_command_sent_with_good_response        : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_data_timeout                           : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_command_timeout                        : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_data_with_bad_crc                      : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_command_with_bad_crc                   : return SDCmderIterateResult_bug;
-            default                                                         : return SDCmderIterateResult_bug;
+            case SDMMCInterruptEvent_end_of_busy_signal                     : bug;
+            case SDMMCInterruptEvent_cmd12_aborted_data_transfer            : bug;
+            case SDMMCInterruptEvent_transferred_data_block                 : bug;
+            case SDMMCInterruptEvent_completed_transfer                     : bug;
+            case SDMMCInterruptEvent_command_sent_with_no_response_expected : bug;
+            case SDMMCInterruptEvent_command_sent_with_good_response        : bug;
+            case SDMMCInterruptEvent_data_timeout                           : bug;
+            case SDMMCInterruptEvent_command_timeout                        : bug;
+            case SDMMCInterruptEvent_data_with_bad_crc                      : bug;
+            case SDMMCInterruptEvent_command_with_bad_crc                   : bug;
+            default                                                         : bug;
 
         } break;
 
@@ -284,22 +284,22 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             {
 
                 if (!iff(cmder->error, cmder->state == SDCmderState_scheduled_stop_transmission_for_error))
-                    return SDCmderIterateResult_bug; // Unexpected error or unset error condition.
+                    bug; // Unexpected error or unset error condition.
 
                 if (!iff(CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT), cmder->state == SDCmderState_scheduled_stop_transmission_for_error))
-                    return SDCmderIterateResult_bug; // The data-path state-machine unexpected active/inactive.
+                    bug; // The data-path state-machine unexpected active/inactive.
 
                 if (cmder->cmd == SDCmd_APP_CMD)
-                    return SDCmderIterateResult_bug; // APP_CMD is already handled automatically.
+                    bug; // APP_CMD is already handled automatically.
 
                 if (cmder->cmd == SDCmd_STOP_TRANSMISSION)
-                    return SDCmderIterateResult_bug; // STOP_TRANSMISSION is already handled automatically.
+                    bug; // STOP_TRANSMISSION is already handled automatically.
 
                 if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, CPSMACT))
-                    return SDCmderIterateResult_bug; // The command-path state-machine shouldn't be active.
+                    bug; // The command-path state-machine shouldn't be active.
 
                 if (CMSIS_GET(SDMMC, CMD, CPSMEN))
-                    return SDCmderIterateResult_bug; // The command-path state-machine shouldn't still be enabled...
+                    bug; // The command-path state-machine shouldn't still be enabled...
 
 
 
@@ -350,22 +350,22 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                     i32 block_size_pow2 = __builtin_ctz((u32) cmder->block_size); // Get size of the data-block.
 
                     if (!IS_POWER_OF_TWO(cmder->block_size) || block_size_pow2 > 14)
-                        return SDCmderIterateResult_bug; // Must be a power of two no greater than 2^14 = 16384 bytes.
+                        bug; // Must be a power of two no greater than 2^14 = 16384 bytes.
 
                     if (cmder->remaining % cmder->block_size)
-                        return SDCmderIterateResult_bug; // Data must be a multiple of the data-block or else it'll be truncated.
+                        bug; // Data must be a multiple of the data-block or else it'll be truncated.
 
                     if (cmder->remaining % sizeof(u32))
-                        return SDCmderIterateResult_bug; // We're assuming data is also a multiple of word size to make it easy.
+                        bug; // We're assuming data is also a multiple of word size to make it easy.
 
                     if (cmder->remaining >= (1 << 25))
-                        return SDCmderIterateResult_bug; // Transfer limit of the DATALENGTH field.
+                        bug; // Transfer limit of the DATALENGTH field.
 
                     if (cmder->remaining <= 0)
-                        return SDCmderIterateResult_bug; // Can't transfer no data...
+                        bug; // Can't transfer no data...
 
                     if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT))
-                        return SDCmderIterateResult_bug; // The DPSM must be inactive in order to be configured.
+                        bug; // The DPSM must be inactive in order to be configured.
 
                     CMSIS_SET
                     (
@@ -413,17 +413,17 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
             } break;
 
-            case SDMMCInterruptEvent_end_of_busy_signal                     : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_cmd12_aborted_data_transfer            : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_transferred_data_block                 : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_completed_transfer                     : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_command_sent_with_no_response_expected : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_command_sent_with_good_response        : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_data_timeout                           : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_command_timeout                        : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_data_with_bad_crc                      : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_command_with_bad_crc                   : return SDCmderIterateResult_bug;
-            default                                                         : return SDCmderIterateResult_bug;
+            case SDMMCInterruptEvent_end_of_busy_signal                     : bug;
+            case SDMMCInterruptEvent_cmd12_aborted_data_transfer            : bug;
+            case SDMMCInterruptEvent_transferred_data_block                 : bug;
+            case SDMMCInterruptEvent_completed_transfer                     : bug;
+            case SDMMCInterruptEvent_command_sent_with_no_response_expected : bug;
+            case SDMMCInterruptEvent_command_sent_with_good_response        : bug;
+            case SDMMCInterruptEvent_data_timeout                           : bug;
+            case SDMMCInterruptEvent_command_timeout                        : bug;
+            case SDMMCInterruptEvent_data_with_bad_crc                      : bug;
+            case SDMMCInterruptEvent_command_with_bad_crc                   : bug;
+            default                                                         : bug;
 
         } break;
 
@@ -444,10 +444,10 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             {
 
                 if (cmder->error)
-                    return SDCmderIterateResult_bug; // No reason for an error yet...
+                    bug; // No reason for an error yet...
 
                 if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT))
-                    return SDCmderIterateResult_bug; // The data-path state-machine shouldn't have been active for APP_CMD itself.
+                    bug; // The data-path state-machine shouldn't have been active for APP_CMD itself.
 
                 return SDCmderIterateResult_yield; // Nothing new yet.
 
@@ -459,10 +459,10 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             {
 
                 if (cmder->error)
-                    return SDCmderIterateResult_bug; // No reason for an error yet...
+                    bug; // No reason for an error yet...
 
                 if (CMSIS_GET(SDMMC, STA, BUSYD0))
-                    return SDCmderIterateResult_bug; // Shouldn't be busy anymore!
+                    bug; // Shouldn't be busy anymore!
 
 
 
@@ -480,22 +480,22 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             {
 
                 if (cmder->error)
-                    return SDCmderIterateResult_bug; // No reason for an error already...
+                    bug; // No reason for an error already...
 
                 if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, CPSMACT))
-                    return SDCmderIterateResult_bug; // Command-path state-machine should've been done by now.
+                    bug; // Command-path state-machine should've been done by now.
 
                 if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT))
-                    return SDCmderIterateResult_bug; // The data-path state-machine shouldn't have been active for APP_CMD itself.
+                    bug; // The data-path state-machine shouldn't have been active for APP_CMD itself.
 
                 if (!(SDMMC->RESP1 & (1 << 5)))
                     return SDCmderIterateResult_card_glitch; // Next command not being recognized as ACMD..? @/pg 148/tbl 4-42/`SD`.
 
                 if (SDMMC->RESPCMD != SD_CMDS[SDCmd_APP_CMD].code)
-                    return SDCmderIterateResult_bug; // Response didn't match the expected command code..?
+                    bug; // Response didn't match the expected command code..?
 
                 if (CMSIS_GET(SDMMC, STA, BUSYD0))
-                    return SDCmderIterateResult_bug; // The APP_CMD shouldn't make the card busy.
+                    bug; // The APP_CMD shouldn't make the card busy.
 
 
 
@@ -514,13 +514,13 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             {
 
                 if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, CPSMACT))
-                    return SDCmderIterateResult_bug; // Command-path state-machine should've turned itself off.
+                    bug; // Command-path state-machine should've turned itself off.
 
                 if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT))
-                    return SDCmderIterateResult_bug; // The data-path state-machine shouldn't have been active for APP_CMD itself.
+                    bug; // The data-path state-machine shouldn't have been active for APP_CMD itself.
 
                 if (cmder->error)
-                    return SDCmderIterateResult_bug; // There shouldn't be any errors before this...
+                    bug; // There shouldn't be any errors before this...
 
                 cmder->error =
                     interrupt_event == SDMMCInterruptEvent_command_timeout
@@ -534,13 +534,13 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
 
 
-            case SDMMCInterruptEvent_command_sent_with_no_response_expected : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_cmd12_aborted_data_transfer            : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_transferred_data_block                 : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_completed_transfer                     : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_data_timeout                           : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_data_with_bad_crc                      : return SDCmderIterateResult_bug;
-            default                                                         : return SDCmderIterateResult_bug;
+            case SDMMCInterruptEvent_command_sent_with_no_response_expected : bug;
+            case SDMMCInterruptEvent_cmd12_aborted_data_transfer            : bug;
+            case SDMMCInterruptEvent_transferred_data_block                 : bug;
+            case SDMMCInterruptEvent_completed_transfer                     : bug;
+            case SDMMCInterruptEvent_data_timeout                           : bug;
+            case SDMMCInterruptEvent_data_with_bad_crc                      : bug;
+            default                                                         : bug;
 
         } break;
 
@@ -561,7 +561,7 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             {
 
                 if (cmder->error)
-                    return SDCmderIterateResult_bug; // No reason for an error yet...
+                    bug; // No reason for an error yet...
 
                 return SDCmderIterateResult_yield; // Nothing interesting yet...
 
@@ -573,10 +573,10 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             {
 
                 if (cmder->error)
-                    return SDCmderIterateResult_bug; // No reason for an error yet...
+                    bug; // No reason for an error yet...
 
                 if (CMSIS_GET(SDMMC, STA, BUSYD0))
-                    return SDCmderIterateResult_bug; // Shouldn't be busy anymore!
+                    bug; // Shouldn't be busy anymore!
 
                 return SDCmderIterateResult_again; // Cool, whatever.
 
@@ -589,10 +589,10 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             {
 
                 if (cmder->error)
-                    return SDCmderIterateResult_bug; // No reason for an error already...
+                    bug; // No reason for an error already...
 
                 if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, CPSMACT))
-                    return SDCmderIterateResult_bug; // Command-path state-machine should've been done by now.
+                    bug; // Command-path state-machine should've been done by now.
 
                 if
                 (
@@ -621,7 +621,7 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             {
 
                 if (cmder->error)
-                    return SDCmderIterateResult_bug; // There shouldn't be any errors before this...
+                    bug; // There shouldn't be any errors before this...
 
 
 
@@ -652,12 +652,12 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
 
 
-            case SDMMCInterruptEvent_cmd12_aborted_data_transfer : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_transferred_data_block      : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_completed_transfer          : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_data_timeout                : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_data_with_bad_crc           : return SDCmderIterateResult_bug;
-            default                                              : return SDCmderIterateResult_bug;
+            case SDMMCInterruptEvent_cmd12_aborted_data_transfer : bug;
+            case SDMMCInterruptEvent_transferred_data_block      : bug;
+            case SDMMCInterruptEvent_completed_transfer          : bug;
+            case SDMMCInterruptEvent_data_timeout                : bug;
+            case SDMMCInterruptEvent_data_with_bad_crc           : bug;
+            default                                              : bug;
 
         } break;
 
@@ -680,7 +680,7 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             {
 
                 if (CMSIS_GET(SDMMC, STA, BUSYD0))
-                    return SDCmderIterateResult_bug; // Shouldn't be busy anymore!
+                    bug; // Shouldn't be busy anymore!
 
                 return SDCmderIterateResult_again; // Next iteration we'll move onto next state.
 
@@ -699,7 +699,7 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 {
 
                     if (CMSIS_GET(SDMMC, STA, DPSMACT))
-                        return SDCmderIterateResult_bug; // Data-path state-machine should've been disabled by now.
+                        bug; // Data-path state-machine should've been disabled by now.
 
                     cmder->state = SDCmderState_ready_for_next_command;
                     return SDCmderIterateResult_command_attempted;
@@ -720,16 +720,16 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
 
 
-            case SDMMCInterruptEvent_command_sent_with_no_response_expected : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_command_sent_with_good_response        : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_command_timeout                        : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_command_with_bad_crc                   : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_cmd12_aborted_data_transfer            : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_transferred_data_block                 : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_completed_transfer                     : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_data_timeout                           : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_data_with_bad_crc                      : return SDCmderIterateResult_bug;
-            default                                                         : return SDCmderIterateResult_bug;
+            case SDMMCInterruptEvent_command_sent_with_no_response_expected : bug;
+            case SDMMCInterruptEvent_command_sent_with_good_response        : bug;
+            case SDMMCInterruptEvent_command_timeout                        : bug;
+            case SDMMCInterruptEvent_command_with_bad_crc                   : bug;
+            case SDMMCInterruptEvent_cmd12_aborted_data_transfer            : bug;
+            case SDMMCInterruptEvent_transferred_data_block                 : bug;
+            case SDMMCInterruptEvent_completed_transfer                     : bug;
+            case SDMMCInterruptEvent_data_timeout                           : bug;
+            case SDMMCInterruptEvent_data_with_bad_crc                      : bug;
+            default                                                         : bug;
 
         } break;
 
@@ -750,10 +750,10 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             {
 
                 if (cmder->error)
-                    return SDCmderIterateResult_bug; // No reason for an error already...
+                    bug; // No reason for an error already...
 
                 if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, CPSMACT))
-                    return SDCmderIterateResult_bug; // Command-path state-machine should've been done by now.
+                    bug; // Command-path state-machine should've been done by now.
 
 
 
@@ -761,10 +761,10 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 {
 
                     if (!cmder->data)
-                        return SDCmderIterateResult_bug; // Missing data..?
+                        bug; // Missing data..?
 
                     if (cmder->remaining < cmder->block_size && cmder->remaining % cmder->block_size)
-                        return SDCmderIterateResult_bug; // Data not multiple of block-size..?
+                        bug; // Data not multiple of block-size..?
 
                     i32 word_index = 0;
                     for
@@ -832,16 +832,16 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             {
 
                 if (cmder->error)
-                    return SDCmderIterateResult_bug; // No reason for an error.
+                    bug; // No reason for an error.
 
                 if (cmder->remaining)
-                    return SDCmderIterateResult_bug; // There shouldn't be anything left to transmit.
+                    bug; // There shouldn't be anything left to transmit.
 
                 if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, CPSMACT))
-                    return SDCmderIterateResult_bug; // Command-path state-machine should've been done by now.
+                    bug; // Command-path state-machine should've been done by now.
 
                 if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT))
-                    return SDCmderIterateResult_bug; // Data-path state-machine should've been done by now.
+                    bug; // Data-path state-machine should've been done by now.
 
 
 
@@ -858,13 +858,13 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             {
 
                 if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, CPSMACT))
-                    return SDCmderIterateResult_bug; // Command-path state-machine should've been done by now.
+                    bug; // Command-path state-machine should've been done by now.
 
                 if (cmder->error)
-                    return SDCmderIterateResult_bug; // There shouldn't be any errors before this...
+                    bug; // There shouldn't be any errors before this...
 
                 if (!CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT))
-                    return SDCmderIterateResult_bug; // Data-path state-machine should still be active for data time-out conditions.
+                    bug; // Data-path state-machine should still be active for data time-out conditions.
 
                 cmder->error = SDCmderError_data_timeout;
                 cmder->state = SDCmderState_scheduled_stop_transmission_for_error;
@@ -878,13 +878,13 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             {
 
                 if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, CPSMACT))
-                    return SDCmderIterateResult_bug; // Command-path state-machine should've been done by now.
+                    bug; // Command-path state-machine should've been done by now.
 
                 if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT))
-                    return SDCmderIterateResult_bug; // Data-path state-machine should've been deactivated by now.
+                    bug; // Data-path state-machine should've been deactivated by now.
 
                 if (cmder->error)
-                    return SDCmderIterateResult_bug; // There shouldn't be any errors before this...
+                    bug; // There shouldn't be any errors before this...
 
                 cmder->error = SDCmderError_bad_crc;
                 cmder->state = SDCmderState_ready_for_next_command;
@@ -894,13 +894,13 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
 
 
-            case SDMMCInterruptEvent_end_of_busy_signal                     : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_command_sent_with_no_response_expected : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_command_sent_with_good_response        : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_command_timeout                        : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_command_with_bad_crc                   : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_cmd12_aborted_data_transfer            : return SDCmderIterateResult_bug;
-            default                                                         : return SDCmderIterateResult_bug;
+            case SDMMCInterruptEvent_end_of_busy_signal                     : bug;
+            case SDMMCInterruptEvent_command_sent_with_no_response_expected : bug;
+            case SDMMCInterruptEvent_command_sent_with_good_response        : bug;
+            case SDMMCInterruptEvent_command_timeout                        : bug;
+            case SDMMCInterruptEvent_command_with_bad_crc                   : bug;
+            case SDMMCInterruptEvent_cmd12_aborted_data_transfer            : bug;
+            default                                                         : bug;
 
         } break;
 
@@ -921,7 +921,7 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             {
 
                 if (!cmder->error)
-                    return SDCmderIterateResult_bug; // Error not set..?
+                    bug; // Error not set..?
 
                 return SDCmderIterateResult_yield; // Nothing new yet.
 
@@ -933,10 +933,10 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             {
 
                 if (!cmder->error)
-                    return SDCmderIterateResult_bug; // Error not set..?
+                    bug; // Error not set..?
 
                 if (CMSIS_GET(SDMMC, STA, BUSYD0))
-                    return SDCmderIterateResult_bug; // Shouldn't be busy anymore!
+                    bug; // Shouldn't be busy anymore!
 
                 return SDCmderIterateResult_again; // Cool, whatever.
 
@@ -948,10 +948,10 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             {
 
                 if (!cmder->error)
-                    return SDCmderIterateResult_bug; // Error not set..?
+                    bug; // Error not set..?
 
                 if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT))
-                    return SDCmderIterateResult_bug; // Data-path state-machine should've been disabled by now.
+                    bug; // Data-path state-machine should've been disabled by now.
 
                 return SDCmderIterateResult_again; // We still have to wait for the CPSM to be done with STOP_TRANSMISSION.
 
@@ -963,10 +963,10 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             {
 
                 if (!cmder->error)
-                    return SDCmderIterateResult_bug; // Error not set..?
+                    bug; // Error not set..?
 
                 if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, CPSMACT))
-                    return SDCmderIterateResult_bug; // Command-path state-machine shouldn't be enabled...
+                    bug; // Command-path state-machine shouldn't be enabled...
 
                 if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT))
                 {
@@ -987,10 +987,10 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             {
 
                 if (!cmder->error)
-                    return SDCmderIterateResult_bug; // Error not set..?
+                    bug; // Error not set..?
 
                 if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, CPSMACT))
-                    return SDCmderIterateResult_bug; // Command-path state-machine shouldn't still be enabled...
+                    bug; // Command-path state-machine shouldn't still be enabled...
 
                 if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT))
                 {
@@ -1006,18 +1006,18 @@ SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
 
 
-            case SDMMCInterruptEvent_command_sent_with_no_response_expected : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_transferred_data_block                 : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_completed_transfer                     : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_data_timeout                           : return SDCmderIterateResult_bug;
-            case SDMMCInterruptEvent_data_with_bad_crc                      : return SDCmderIterateResult_bug;
-            default                                                         : return SDCmderIterateResult_bug;
+            case SDMMCInterruptEvent_command_sent_with_no_response_expected : bug;
+            case SDMMCInterruptEvent_transferred_data_block                 : bug;
+            case SDMMCInterruptEvent_completed_transfer                     : bug;
+            case SDMMCInterruptEvent_data_timeout                           : bug;
+            case SDMMCInterruptEvent_data_with_bad_crc                      : bug;
+            default                                                         : bug;
 
         } break;
 
 
 
-        default: return SDCmderIterateResult_bug;
+        default: bug;
 
     }
 
@@ -1031,7 +1031,7 @@ static useret enum SDCmderUpdateResult : u32
     SDCmderUpdateResult_ready_for_next_command,
     SDCmderUpdateResult_command_attempted,
     SDCmderUpdateResult_card_glitch,
-    SDCmderUpdateResult_bug,
+    SDCmderUpdateResult_bug = BUG_CODE,
 }
 SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 {
@@ -1092,17 +1092,8 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
             } break;
 
-            case SDCmderIterateResult_bug:
-            default:
-            {
-
-                #if SDCMDER_LOG_UPDATE_ITERATION
-                log("> BUG");
-                #endif
-
-                return SDCmderUpdateResult_bug;
-
-            } break;
+            case SDCmderIterateResult_bug : bug;
+            default                       : bug;
 
         }
 

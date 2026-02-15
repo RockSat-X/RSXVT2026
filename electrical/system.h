@@ -110,6 +110,13 @@ typedef double             f64; static_assert(sizeof(f64) == 8);
 #define sorry halt_(false);
 #define panic halt_(true)
 
+#define BUG_CODE 0xDEADC0DE // TODO Document.
+#if 0
+    #define bug return BUG_CODE
+#else
+    #define bug halt_(false)
+#endif
+
 extern noret void
 halt_(b32 panicking);
 
