@@ -117,7 +117,7 @@ SD_do
 
 
 
-    // Make sure the SD driver is ready for a task.
+    // Make sure the SD driver is still not initializing.
 
     for (b32 yield = false; !yield;)
     {
@@ -134,16 +134,9 @@ SD_do
                 yield = true; // The SD driver is ready to handle tasks now.
             } break;
 
-            case SDDriverState_error: switch (driver->error)
+            case SDDriverState_error:
             {
-                case SDDriverError_card_likely_unmounted : return SDDoResult_card_likely_unmounted;
-                case SDDriverError_unsupported_card      : return SDDoResult_unsupported_card;
-                case SDDriverError_maybe_bus_problem     : return SDDoResult_maybe_bus_problem;
-                case SDDriverError_voltage_check_failed  : return SDDoResult_voltage_check_failed;
-                case SDDriverError_could_not_ready_card  : return SDDoResult_could_not_ready_card;
-                case SDDriverError_card_glitch           : return SDDoResult_card_glitch;
-                case SDDriverError_none                  : bug;
-                default                                  : bug;
+                yield = true; // No point in further waiting.
             } break;
 
             case SDDriverState_disabled : bug;
@@ -212,7 +205,7 @@ SD_do
 
             } break;
 
-            case SDDriverState_error: switch (driver->error) // TODO Copy-pasta.
+            case SDDriverState_error: switch (driver->error)
             {
                 case SDDriverError_card_likely_unmounted : return SDDoResult_card_likely_unmounted;
                 case SDDriverError_unsupported_card      : return SDDoResult_unsupported_card;
