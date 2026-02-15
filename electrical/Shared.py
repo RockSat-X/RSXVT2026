@@ -390,6 +390,10 @@ TARGETS = ( # @/`Defining Targets`.
                 'type'         : 'Log',
                 'uxart_handle' : 'stlink',
             },
+            {
+                'type'       : 'TIMEKEEPING',
+                'peripheral' : 'TIM2',
+            },
         ),
 
         use_freertos    = False,
@@ -405,6 +409,7 @@ TARGETS = ( # @/`Defining Targets`.
             'APB2_CK'             : 250_000_000,
             'APB3_CK'             : 250_000_000,
             'USART2_BAUD'         : STLINK_BAUD,
+            'TIM2_COUNTER_RATE'   :   1_000_000,
             'SDMMC1_TIMEOUT'      : 0.050,
             'SDMMC1_INITIAL_BAUD' :   100_000,
             'SDMMC1_FULL_BAUD'    : 1_000_000,

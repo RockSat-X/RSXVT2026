@@ -1,3 +1,7 @@
+#ifndef SD_PROFILER_ENABLE
+#define SD_PROFILER_ENABLE false
+#endif
+
 #include "sd.meta"
 #include "sd_initer.c"
 #include "sd_cmder.c"
@@ -86,6 +90,100 @@ static struct SDDriver _SD_drivers[SDHandle_COUNT] = {0};
 
 
 
+#if SD_PROFILER_ENABLE
+
+    struct SDProfiler
+    {
+        u64 amount_of_bytes_successfully_read;
+        u64 amount_of_time_reading_us;
+        u64 amount_of_bytes_successfully_written;
+        u64 amount_of_time_writing_us;
+        u32 starting_timestamp_us;
+    };
+
+    struct SDProfiler _SD_profiler = {0};
+
+
+
+    static void
+    SD_profiler_report(void)
+    {
+
+        stlink_tx
+        (
+            "Average read  throughput : %.2f KiB/s" "\n"
+            "Average write throughput : %.2f KiB/s" "\n",
+            (f32) _SD_profiler.amount_of_bytes_successfully_read    / 1024.0f / ((f32) _SD_profiler.amount_of_time_reading_us / 1'000'000.0f),
+            (f32) _SD_profiler.amount_of_bytes_successfully_written / 1024.0f / ((f32) _SD_profiler.amount_of_time_writing_us / 1'000'000.0f)
+        );
+
+        if (_SD_profiler.amount_of_time_reading_us >= 5'000'000)
+        {
+            _SD_profiler.amount_of_bytes_successfully_read /= 2;
+            _SD_profiler.amount_of_time_reading_us         /= 2;
+        }
+
+        if (_SD_profiler.amount_of_time_writing_us >= 5'000'000)
+        {
+            _SD_profiler.amount_of_bytes_successfully_written /= 2;
+            _SD_profiler.amount_of_time_writing_us            /= 2;
+        }
+
+    }
+
+
+
+    static void
+    _SD_profiler_begin(enum SDOperation operation)
+    {
+        _SD_profiler.starting_timestamp_us = TIMEKEEPING_COUNTER();
+    }
+
+
+
+    static void
+    _SD_profiler_end(enum SDOperation operation)
+    {
+
+        u32 ending_timestamp_us = TIMEKEEPING_COUNTER();
+        u32 elapsed_us          = ending_timestamp_us - _SD_profiler.starting_timestamp_us;
+
+        static_assert(sizeof(TIMEKEEPING_COUNTER_TYPE) == sizeof(u32));
+
+        switch (operation)
+        {
+
+            case SDOperation_single_read:
+            {
+                _SD_profiler.amount_of_bytes_successfully_read += sizeof(Sector);
+                _SD_profiler.amount_of_time_reading_us         += elapsed_us;
+            } break;
+
+            case SDOperation_single_write:
+            {
+                _SD_profiler.amount_of_bytes_successfully_written += sizeof(Sector);
+                _SD_profiler.amount_of_time_writing_us            += elapsed_us;
+            } break;
+
+            default: bug;
+
+        }
+
+    }
+
+#else
+
+    #define _SD_profiler_begin(...)
+    #define _SD_profiler_end(...)
+
+#endif
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
 static useret enum SDDoResult : u32
 {
     SDDoResult_success,
@@ -149,6 +247,8 @@ SD_do
 
     // Fill out the SD card operation the user would like to do.
 
+    _SD_profiler_begin(operation);
+
     {
 
         driver->task.operation = operation;
@@ -184,6 +284,8 @@ SD_do
                 {
 
                     // Successfully executed the SD operation!
+
+                    _SD_profiler_end(operation);
 
                     driver->task.state = SDTaskState_unscheduled;
                     return SDDoResult_success;
