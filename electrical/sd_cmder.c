@@ -336,6 +336,9 @@ _SDCmder_iterate_once(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 if (actually_transferring)
                 {
 
+                    if (cmder->block_size == 0)
+                        bug; // Avoid undefined behavior with `__builtin_ctz`.
+
                     i32 block_size_pow2 = __builtin_ctz((u32) cmder->block_size); // Get size of the data-block.
 
                     if (!IS_POWER_OF_TWO(cmder->block_size) || block_size_pow2 > 14)
