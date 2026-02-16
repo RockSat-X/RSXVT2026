@@ -7,17 +7,22 @@
 /* #meta
     make_named_enums(
         '''
+
             ready_for_next_command
+
             scheduled_command
             transferring_acmd_prefix
             scheduled_amcd_prefixed_command
             transferring_user_command
             outwaiting_busy_signal_for_user_command
+
             undergoing_data_transfer
             expecting_data_hold_before_scheduling_stop_transmission
+
             scheduled_stop_transmission
             transferring_stop_transmission
             outwaiting_busy_signal_for_stop_transmission
+
         '''
     )
 */
@@ -40,7 +45,7 @@ struct SDCmder
     enum SDCmderError error;
     enum SDCmd        cmd;
     u32               argument;
-    u8*               data;
+    u8*               block_data;
     i32               total_size;
     i32               block_size;
     i32               bytes_transferred;
@@ -710,12 +715,11 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
             case SDMMCInterruptEvent_none:
             {
-
                 if (CMSIS_GET(SDMMC, STA, BUSYD0))
                 {
                     return SDCmderIterateResult_yield; // Still busy...
                 }
-                else if (cmder->state == SDCmderState_outwaiting_busy_signal_for_stop_transmission)
+                else if (cmder->state == SDCmderState_outwaiting_busy_signal_for_stop_transmission) // Stopping data transfer?
                 {
 
                     if (CMSIS_GET(SDMMC, STA, DPSMACT))
@@ -725,7 +729,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                     return SDCmderIterateResult_command_attempted;
 
                 }
-                else if (cmder->block_size) // Now move onto receiving/transmitting data-blocks?
+                else if (cmder->total_size) // Now move onto receiving/transmitting data-blocks?
                 {
                     cmder->state = SDCmderState_undergoing_data_transfer;
                     return SDCmderIterateResult_again;
@@ -735,7 +739,6 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                     cmder->state = SDCmderState_ready_for_next_command;
                     return SDCmderIterateResult_command_attempted;
                 }
-
             } break;
 
 
@@ -776,7 +779,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
 
 
-                if (cmder->data) // TODO We're manually transferring data-blocks for now...
+                if (cmder->block_data) // TODO We're manually transferring data-blocks for now...
                 {
 
                     if (cmder->bytes_transferred % sizeof(u32))
@@ -796,14 +799,14 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                                 {
                                     if (!CMSIS_GET(SDMMC, STA, RXFIFOE))
                                     {
-                                        *(u32*) (cmder->data + cmder->byte_index) = CMSIS_GET(SDMMC, FIFO, FIFODATA);
+                                        *(u32*) (cmder->block_data + cmder->byte_index) = CMSIS_GET(SDMMC, FIFO, FIFODATA);
                                         cmder->byte_index += sizeof(u32);
                                         break;
                                     }
                                 }
                                 else if (!CMSIS_GET(SDMMC, STA, TXFIFOF))
                                 {
-                                    CMSIS_SET(SDMMC, FIFO, FIFODATA, *(u32*) (cmder->data + cmder->byte_index));
+                                    CMSIS_SET(SDMMC, FIFO, FIFODATA, *(u32*) (cmder->block_data + cmder->byte_index));
                                     cmder->byte_index += sizeof(u32);
                                     break;
                                 }
@@ -819,7 +822,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                     {
                         cmder->byte_index         = 0;
                         cmder->bytes_transferred += cmder->block_size;
-                        cmder->data               = 0;
+                        cmder->block_data         = nullptr;
                     }
 
                     return SDCmderIterateResult_again;

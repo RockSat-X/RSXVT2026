@@ -470,7 +470,7 @@ _SD_update_once(enum SDHandle handle)
                                     .state      = SDCmderState_scheduled_command,
                                     .cmd        = driver->initer.command.cmd,
                                     .argument   = driver->initer.command.argument,
-                                    .data       = driver->initer.command.data,
+                                    .block_data = driver->initer.command.data,
                                     .total_size = driver->initer.command.size,
                                     .block_size = driver->initer.command.size,
                                     .rca        = driver->initer.rca,
@@ -633,7 +633,7 @@ _SD_update_once(enum SDHandle handle)
                                 .state      = SDCmderState_scheduled_command,
                                 .cmd        = (enum SDCmd) driver->task.operation,
                                 .argument   = driver->task.address,
-                                .data       = *driver->task.sector,
+                                .block_data = *driver->task.sector,
                                 .total_size = sizeof(*driver->task.sector) * 65535, // TODO.
                                 .block_size = sizeof(*driver->task.sector),
                                 .rca        = driver->initer.rca,
@@ -677,8 +677,8 @@ _SD_update_once(enum SDHandle handle)
                             driver->task.address   == driver->cmder.argument
                         )
                         {
-                            driver->cmder.data = *driver->task.sector;
-                            driver->task.state = SDTaskState_processing;
+                            driver->cmder.block_data = *driver->task.sector;
+                            driver->task.state       = SDTaskState_processing;
                         }
                         else
                         {
