@@ -1,8 +1,6 @@
 #define SDCMDER_LOG_UPDATE_ITERATION  false
 #define SDCMDER_LOG_EXECUTED_COMMANDS false
 
-
-
 #include "SDCmderState.meta"
 /* #meta
     make_named_enums(
@@ -39,19 +37,25 @@
     )
 */
 
-struct SDCmder
+struct SDCmder // @/`Scheduling a Command with SD-Cmder`.
 {
-    enum SDCmderState state;
-    enum SDCmderError error;
-    enum SDCmd        cmd;
-    u32               argument;
-    u8*               block_data;
-    i32               total_size;
-    i32               block_size;
-    i32               bytes_transferred;
-    i32               byte_index;
-    b32               now_stop_transferring;
-    u16               rca; // Relative card address. @/pg 67/sec 4.2.2/`SD`.
+    struct
+    {
+        enum SDCmderState state;
+        enum SDCmd        cmd;
+        u32               argument;
+        i32               total_blocks_to_transfer;
+        i32               bytes_per_block;
+        u8*               block_data;
+        b32               stop_requesting_for_data_blocks;
+        u16               rca;
+    };
+    struct
+    {
+        enum SDCmderError error;
+        i32               blocks_processed_so_far;
+        i32               current_byte_index_of_block_data;
+    };
 };
 
 
@@ -355,7 +359,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 {
                     actual_cmd            = cmder->cmd;
                     actual_argument       = cmder->argument;
-                    actually_transferring = !!cmder->total_size;
+                    actually_transferring = !!cmder->total_blocks_to_transfer;
                     cmder->state          = SDCmderState_transferring_user_command;
                 }
 
@@ -366,24 +370,22 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 if (actually_transferring)
                 {
 
-                    if (cmder->block_size == 0)
+                    if (cmder->bytes_per_block == 0)
                         bug; // Avoid undefined behavior with `__builtin_ctz`.
 
-                    i32 block_size_pow2 = __builtin_ctz((u32) cmder->block_size); // Get size of the data-block.
+                    i32 bytes_per_block_pow2 = __builtin_ctz((u32) cmder->bytes_per_block); // Get size of the data-block.
+                    i32 data_length          = cmder->total_blocks_to_transfer * cmder->bytes_per_block;
 
-                    if (!IS_POWER_OF_TWO(cmder->block_size) || block_size_pow2 > 14)
+                    if (!IS_POWER_OF_TWO(cmder->bytes_per_block) || bytes_per_block_pow2 > 14)
                         bug; // Must be a power of two no greater than 2^14 = 16384 bytes.
 
-                    if (cmder->total_size % cmder->block_size)
-                        bug; // Data must be a multiple of the data-block or else it'll be truncated.
-
-                    if (cmder->total_size % sizeof(u32))
+                    if (data_length % sizeof(u32))
                         bug; // We're assuming data is also a multiple of word size to make it easy.
 
-                    if (cmder->total_size >= (1 << 25))
+                    if (data_length >= (1 << 25))
                         bug; // Transfer limit of the DATALENGTH field.
 
-                    if (cmder->total_size <= 0)
+                    if (data_length <= 0)
                         bug; // Can't transfer no data...
 
                     if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT))
@@ -391,14 +393,14 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
                     CMSIS_SET
                     (
-                        SDMMC     , DLEN             ,
-                        DATALENGTH, cmder->total_size, // Let DPSM know the expected transfer amount.
+                        SDMMC     , DLEN       ,
+                        DATALENGTH, data_length, // Let DPSM know the expected transfer amount.
                     );
 
                     CMSIS_SET
                     (
                         SDMMC     , DCTRL                          ,
-                        DBLOCKSIZE, block_size_pow2                , // CRC16 is appended at end of each data-block, so this tells the DPSM when to check/send it.
+                        DBLOCKSIZE, bytes_per_block_pow2           , // CRC16 is appended at end of each data-block, so this tells the DPSM when to check/send it.
                         DTDIR     , !!SD_CMDS[cmder->cmd].receiving, // Whether we are receiving or transmitting data-blocks.
                     );
 
@@ -729,7 +731,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                     return SDCmderIterateResult_command_attempted;
 
                 }
-                else if (cmder->total_size) // Now move onto receiving/transmitting data-blocks?
+                else if (cmder->total_blocks_to_transfer) // Now move onto receiving/transmitting data-blocks?
                 {
                     cmder->state = SDCmderState_undergoing_data_transfer;
                     return SDCmderIterateResult_again;
@@ -782,47 +784,39 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 if (cmder->block_data) // TODO We're manually transferring data-blocks for now...
                 {
 
-                    if (cmder->bytes_transferred % sizeof(u32))
-                        bug; // Transfer became misaligned..?
-
-                    while (cmder->byte_index < cmder->block_size)
+                    while (cmder->current_byte_index_of_block_data < cmder->bytes_per_block)
                     {
-                        if (CMSIS_GET(SDMMC, STA, DPSMACT))
+
+                        if (!CMSIS_GET(SDMMC, STA, DPSMACT))
+                            sorry
+
+                        if (CMSIS_GET(SDMMC, STA, DTIMEOUT))
+                            return SDCmderIterateResult_again;
+
+                        if (SD_CMDS[cmder->cmd].receiving)
                         {
-                            while (true)
+                            if (!CMSIS_GET(SDMMC, STA, RXFIFOE))
                             {
-                                if (CMSIS_GET(SDMMC, STA, DTIMEOUT))
-                                {
-                                    return SDCmderIterateResult_again;
-                                }
-                                else if (SD_CMDS[cmder->cmd].receiving)
-                                {
-                                    if (!CMSIS_GET(SDMMC, STA, RXFIFOE))
-                                    {
-                                        *(u32*) (cmder->block_data + cmder->byte_index) = CMSIS_GET(SDMMC, FIFO, FIFODATA);
-                                        cmder->byte_index += sizeof(u32);
-                                        break;
-                                    }
-                                }
-                                else if (!CMSIS_GET(SDMMC, STA, TXFIFOF))
-                                {
-                                    CMSIS_SET(SDMMC, FIFO, FIFODATA, *(u32*) (cmder->block_data + cmder->byte_index));
-                                    cmder->byte_index += sizeof(u32);
-                                    break;
-                                }
+                                *(u32*) (cmder->block_data + cmder->current_byte_index_of_block_data) = CMSIS_GET(SDMMC, FIFO, FIFODATA);
+                                cmder->current_byte_index_of_block_data += sizeof(u32);
                             }
                         }
                         else
                         {
-                            sorry
+                            if (!CMSIS_GET(SDMMC, STA, TXFIFOF))
+                            {
+                                CMSIS_SET(SDMMC, FIFO, FIFODATA, *(u32*) (cmder->block_data + cmder->current_byte_index_of_block_data));
+                                cmder->current_byte_index_of_block_data += sizeof(u32);
+                            }
                         }
+
                     }
 
-                    if (cmder->byte_index == cmder->block_size)
+                    if (cmder->current_byte_index_of_block_data == cmder->bytes_per_block)
                     {
-                        cmder->byte_index         = 0;
-                        cmder->bytes_transferred += cmder->block_size;
-                        cmder->block_data         = nullptr;
+                        cmder->current_byte_index_of_block_data  = 0;
+                        cmder->blocks_processed_so_far          += 1;
+                        cmder->block_data                        = nullptr;
                     }
 
                     return SDCmderIterateResult_again;
@@ -831,7 +825,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 else if (cmder->cmd == SDCmd_READ_MULTIPLE_BLOCK || cmder->cmd == SDCmd_WRITE_MULTIPLE_BLOCK)
                 {
 
-                    if (cmder->now_stop_transferring)
+                    if (cmder->stop_requesting_for_data_blocks)
                     {
                         if (cmder->cmd == SDCmd_READ_MULTIPLE_BLOCK)
                         {
@@ -870,7 +864,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                     }
 
                 }
-                else if (cmder->bytes_transferred < cmder->total_size)
+                else if (cmder->blocks_processed_so_far < cmder->total_blocks_to_transfer)
                 {
                     return SDCmderIterateResult_waiting_for_user_data;
                 }
@@ -889,7 +883,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 if (cmder->error)
                     bug; // No reason for an error.
 
-                if (cmder->bytes_transferred != cmder->total_size)
+                if (cmder->blocks_processed_so_far != cmder->total_blocks_to_transfer)
                     bug; // There shouldn't be anything left to transfer.
 
                 if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, CPSMACT))
@@ -1201,3 +1195,45 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
     }
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+// @/`Scheduling a Command with SD-Cmder`:
+//
+// To schedule a command, the `.state` field should be set to
+// `SDCmderState_scheduled_command` after configuring the settings
+// for the SD command for the SD-cmder to carry out.
+//
+// This obviously includes `.cmd` and `.argument` to describe
+// which SD command to execute and the 32-bit argument that
+// goes along with it.
+//
+// If there's a data transfer associated with the command,
+// then `.total_blocks_to_transfer` should be non-zero and
+// `.bytes_per_block` to a supported size. The `.block_data`
+// field can be provided immediately by the user; if it's null,
+// then the SD-cmder will request the user to update the `.block_data`
+// with a non-null pointer for it to write/read the data to/from.
+//
+// If the data transfer consists of multiple data-blocks (i.e.
+// `.total_blocks_to_transfer` is greater than one), then the `.block_data`
+// field will be set to null once SD-cmder is done with read/writing to it,
+// to which the SD-cmder will then request the user to update `.block_data`
+// with the next source/destination for SD-cmder to write/read to/from.
+//
+// To allow for data transfers of "arbitrary" amount of data-blocks,
+// the user can set `.total_blocks_to_transfer` to the maximum supported
+// value and then use `.stop_requesting_for_data_blocks` to indicate no
+// more data-blocks should be requested from the user and that the command
+// can be wrapped up now. Note that there is an upper limit to the amount
+// of data-blocks that can be transferred due to how the SDMMC peripheral
+// works, so this should be accounted for by the user.
+//
+// The `.rca` field should also be filled with the SD card's
+// relative card address; this is needed for ACMDs where they're
+// prefixed with APP_CMD and the argument for that is the RCA.
+// @/pg 67/sec 4.2.2/`SD`.

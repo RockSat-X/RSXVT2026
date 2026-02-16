@@ -467,13 +467,13 @@ _SD_update_once(enum SDHandle handle)
                             driver->cmder =
                                 (struct SDCmder)
                                 {
-                                    .state      = SDCmderState_scheduled_command,
-                                    .cmd        = driver->initer.command.cmd,
-                                    .argument   = driver->initer.command.argument,
-                                    .block_data = driver->initer.command.data,
-                                    .total_size = driver->initer.command.size,
-                                    .block_size = driver->initer.command.size,
-                                    .rca        = driver->initer.rca,
+                                    .state                    = SDCmderState_scheduled_command,
+                                    .cmd                      = driver->initer.command.cmd,
+                                    .argument                 = driver->initer.command.argument,
+                                    .total_blocks_to_transfer = !!driver->initer.command.size,
+                                    .bytes_per_block          = driver->initer.command.size,
+                                    .block_data               = driver->initer.command.data,
+                                    .rca                      = driver->initer.rca,
                                 };
 
                             return SDUpdateOnceResult_again;
@@ -630,13 +630,13 @@ _SD_update_once(enum SDHandle handle)
                         driver->cmder =
                             (struct SDCmder)
                             {
-                                .state      = SDCmderState_scheduled_command,
-                                .cmd        = (enum SDCmd) driver->task.operation,
-                                .argument   = driver->task.address,
-                                .block_data = *driver->task.sector,
-                                .total_size = sizeof(*driver->task.sector) * 65535, // TODO.
-                                .block_size = sizeof(*driver->task.sector),
-                                .rca        = driver->initer.rca,
+                                .state                    = SDCmderState_scheduled_command,
+                                .cmd                      = (enum SDCmd) driver->task.operation,
+                                .argument                 = driver->task.address,
+                                .total_blocks_to_transfer = 65535, // TODO.
+                                .bytes_per_block          = sizeof(*driver->task.sector),
+                                .block_data               = *driver->task.sector,
+                                .rca                      = driver->initer.rca,
                             };
 
                         driver->task.state = SDTaskState_processing;
@@ -682,7 +682,7 @@ _SD_update_once(enum SDHandle handle)
                         }
                         else
                         {
-                            driver->cmder.now_stop_transferring = true;
+                            driver->cmder.stop_requesting_for_data_blocks = true;
                         }
 
                         return SDUpdateOnceResult_again;
@@ -709,13 +709,6 @@ _SD_update_once(enum SDHandle handle)
                     default: bug;
 
                 } break;
-
-
-                //case SDCmderUpdateResult_waiting_for_user_data:
-                //{
-                //    driver->cmder.now_stop_transferring = true;
-                //    return SDUpdateOnceResult_again;
-                //} break;
 
                 case SDCmderUpdateResult_command_attempted:
                 {
