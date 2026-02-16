@@ -254,6 +254,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
     {
 
 
+
         ////////////////////////////////////////
         //
         // The SD-cmder has nothing to do.
@@ -307,6 +308,9 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
                 if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, CPSMACT))
                     bug; // The command-path state-machine shouldn't be active.
+
+                if (!implies(CMSIS_GET_FROM(interrupt_status, SDMMC, STA, CPSMACT), cmder->state == SDCmderState_scheduled_stop_transmission))
+                    bug; // The data-path state-machine begin active still is only okay for STOP_TRANSMISSION commands...
 
                 if (CMSIS_GET(SDMMC, CMD, CPSMEN))
                     bug; // The command-path state-machine shouldn't still be enabled...
@@ -380,28 +384,16 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                     if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT))
                         bug; // The DPSM must be inactive in order to be configured.
 
-                    i32 TMP = 0;
-
-                    if (cmder->cmd == SDCmd_READ_MULTIPLE_BLOCK || cmder->cmd == SDCmd_WRITE_MULTIPLE_BLOCK)
-                    {
-                        TMP = 512 * 2048;
-                    }
-                    else
-                    {
-                        TMP = cmder->total_size;
-                    }
-
                     CMSIS_SET
                     (
-                        SDMMC     , DLEN,
-                        DATALENGTH, TMP , // Let DPSM know the expected transfer amount.
+                        SDMMC     , DLEN             ,
+                        DATALENGTH, cmder->total_size, // Let DPSM know the expected transfer amount.
                     );
 
                     CMSIS_SET
                     (
                         SDMMC     , DCTRL                          ,
                         DBLOCKSIZE, block_size_pow2                , // CRC16 is appended at end of each data-block, so this tells the DPSM when to check/send it.
-                        DTMODE    , 0b00                           , // TODO Important for multiple reads/writes?
                         DTDIR     , !!SD_CMDS[cmder->cmd].receiving, // Whether we are receiving or transmitting data-blocks.
                     );
 
@@ -420,11 +412,11 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 CMSIS_SET
                 (
                     SDMMC   , CMD                                  ,
-                    DTHOLD  , false, // TMP
                     CMDINDEX, SD_CMDS[actual_cmd].code             , // Set the command code to send.
                     WAITRESP, SD_CMDS[actual_cmd].waitresp_code    , // Type of command response to expect.
                     CMDSTOP , actual_cmd == SDCmd_STOP_TRANSMISSION, // Lets the DPSM be signaled to go back to the idle state.
                     CMDTRANS, !!actually_transferring              , // If needed, the CPSM will send a DataEnable signal to DPSM to begin transferring.
+                    DTHOLD  , false                                , // Make sure the DPSM is unfrozen.
                     CPSMEN  , true                                 , // Enable command-path state-machine.
                 );
 

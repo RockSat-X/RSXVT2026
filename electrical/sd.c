@@ -634,7 +634,7 @@ _SD_update_once(enum SDHandle handle)
                                 .cmd        = (enum SDCmd) driver->task.operation,
                                 .argument   = driver->task.address,
                                 .data       = *driver->task.sector,
-                                .total_size = sizeof(*driver->task.sector),
+                                .total_size = sizeof(*driver->task.sector) * 65535, // TODO.
                                 .block_size = sizeof(*driver->task.sector),
                                 .rca        = driver->initer.rca,
                             };
