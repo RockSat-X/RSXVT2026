@@ -544,7 +544,7 @@ _SD_update_once(enum SDHandle handle)
 
                 } break;
 
-                case SDCmderUpdateResult_waiting_for_user_data:
+                case SDCmderUpdateResult_need_user_to_provide_next_data_block:
                 {
                     sorry
                 } break;
@@ -652,7 +652,7 @@ _SD_update_once(enum SDHandle handle)
 
 
 
-                case SDCmderUpdateResult_waiting_for_user_data: switch (driver->task.state)
+                case SDCmderUpdateResult_need_user_to_provide_next_data_block: switch (driver->task.state)
                 {
 
                     case SDTaskState_unscheduled:

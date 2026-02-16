@@ -15,7 +15,8 @@
             outwaiting_busy_signal_for_user_command
 
             undergoing_data_transfer
-            expecting_data_hold_before_scheduling_stop_transmission
+            discarding_current_data_block
+            queueing_up_dummy_data_block
 
             scheduled_stop_transmission
             transferring_stop_transmission
@@ -69,7 +70,7 @@ static useret enum SDCmderIterateResult : u32
     SDCmderIterateResult_again,
     SDCmderIterateResult_yield,
     SDCmderIterateResult_ready_for_next_command,
-    SDCmderIterateResult_waiting_for_user_data,
+    SDCmderIterateResult_need_user_to_provide_next_data_block,
     SDCmderIterateResult_command_attempted,
     SDCmderIterateResult_card_glitch,
     SDCmderIterateResult_bug = BUG_CODE,
@@ -770,6 +771,8 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
         case SDCmderState_undergoing_data_transfer: switch (interrupt_event)
         {
 
+
+
             case SDMMCInterruptEvent_none:
             {
 
@@ -822,55 +825,31 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                     return SDCmderIterateResult_again;
 
                 }
-                else if (cmder->cmd == SDCmd_READ_MULTIPLE_BLOCK || cmder->cmd == SDCmd_WRITE_MULTIPLE_BLOCK)
+                else if (cmder->blocks_processed_so_far == cmder->total_blocks_to_transfer)
+                {
+                    return SDCmderIterateResult_yield; // Twiddling our thumbs waiting for the whole transfer to be done...
+                }
+                else if (cmder->stop_requesting_for_data_blocks) // User wants to end the data transfer prematurely.
                 {
 
-                    if (cmder->stop_requesting_for_data_blocks)
+                    CMSIS_SET(SDMMC, CMD  , DTHOLD , true); // Begin freezing the DPSM.
+                    CMSIS_SET(SDMMC, DCTRL, FIFORST, true); // Have the FIFO flush when DPSM resets.
+
+                    if (SD_CMDS[cmder->cmd].receiving)
                     {
-                        if (cmder->cmd == SDCmd_READ_MULTIPLE_BLOCK)
-                        {
-                            CMSIS_SET(SDMMC, CMD, DTHOLD, true);
-                            while (!CMSIS_GET(SDMMC, STA, DHOLD))
-                            {
-                                if (CMSIS_GET(SDMMC, STA, DCRCFAIL))
-                                {
-                                    return SDCmderIterateResult_card_glitch;
-                                }
-                                CMSIS_GET(SDMMC, FIFO, FIFODATA);
-                            }
-                            cmder->state = SDCmderState_expecting_data_hold_before_scheduling_stop_transmission;
-                            return SDCmderIterateResult_again;
-                        }
-                        else
-                        {
-                            CMSIS_SET(SDMMC, CMD, DTHOLD, true);
-                            while (!CMSIS_GET(SDMMC, STA, DBCKEND))
-                            {
-                                if (CMSIS_GET(SDMMC, STA, DCRCFAIL))
-                                {
-                                    return SDCmderIterateResult_card_glitch;
-                                }
-                                CMSIS_SET(SDMMC, FIFO, FIFODATA, 0xDEADBEEF);
-                            }
-                            CMSIS_SET(SDMMC, ICR, DBCKENDC, true);
-                            CMSIS_SET ( SDMMC  , DCTRL, FIFORST, true );
-                            cmder->state = SDCmderState_expecting_data_hold_before_scheduling_stop_transmission;
-                            return SDCmderIterateResult_again;
-                        }
+                        cmder->state = SDCmderState_discarding_current_data_block;
                     }
                     else
                     {
-                        return SDCmderIterateResult_waiting_for_user_data;
+                        cmder->state = SDCmderState_queueing_up_dummy_data_block;
                     }
 
+                    return SDCmderIterateResult_again;
+
                 }
-                else if (cmder->blocks_processed_so_far < cmder->total_blocks_to_transfer)
+                else // We need the next source/destination from the user for the next data-block.
                 {
-                    return SDCmderIterateResult_waiting_for_user_data;
-                }
-                else
-                {
-                    return SDCmderIterateResult_yield; // Nothing new yet.
+                    return SDCmderIterateResult_need_user_to_provide_next_data_block;
                 }
 
             } break;
@@ -974,8 +953,30 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
 
 
-        case SDCmderState_expecting_data_hold_before_scheduling_stop_transmission: switch (interrupt_event)
+        ////////////////////////////////////////
+        //
+        // TODO.
+        //
+        ////////////////////////////////////////
+
+        case SDCmderState_discarding_current_data_block: switch (interrupt_event)
         {
+
+
+
+            case SDMMCInterruptEvent_none:
+            {
+
+                while (!CMSIS_GET(SDMMC, STA, RXFIFOE))
+                {
+                    CMSIS_GET(SDMMC, FIFO, FIFODATA);
+                }
+
+                return SDCmderIterateResult_yield;
+
+            } break;
+
+
 
             case SDMMCInterruptEvent_data_transfer_hold:
             {
@@ -983,9 +984,56 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 return SDCmderIterateResult_again;
             } break;
 
+
+
+            case SDMMCInterruptEvent_completed_transfer                     : bug;
+            case SDMMCInterruptEvent_data_timeout                           : bug;
+            case SDMMCInterruptEvent_data_with_bad_crc                      : bug;
+            case SDMMCInterruptEvent_end_of_busy_signal                     : bug;
+            case SDMMCInterruptEvent_command_sent_with_no_response_expected : bug;
+            case SDMMCInterruptEvent_command_sent_with_good_response        : bug;
+            case SDMMCInterruptEvent_command_timeout                        : bug;
+            case SDMMCInterruptEvent_command_with_bad_crc                   : bug;
+            case SDMMCInterruptEvent_cmd12_aborted_data_transfer            : bug;
+            case SDMMCInterruptEvent_data_block_transferred_successfully    : bug;
+            default                                                         : bug;
+
+        } break;
+
+
+
+        ////////////////////////////////////////
+        //
+        // TODO.
+        //
+        ////////////////////////////////////////
+
+        case SDCmderState_queueing_up_dummy_data_block: switch (interrupt_event)
+        {
+
+
+
             case SDMMCInterruptEvent_none:
             {
-                return SDCmderIterateResult_yield;
+
+                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, TXFIFOHE))
+                {
+                    for (i32 i = 0; i < 8; i += 1) // Fill at least half of the FIFO (which has 16 words).
+                    {
+                        CMSIS_SET(SDMMC, FIFO, FIFODATA, 0xDEADBEEF);
+                    }
+                    while (!CMSIS_GET(SDMMC, STA, DBCKEND));
+                    CMSIS_SET(SDMMC, ICR, DBCKENDC, true);
+                }
+
+                return SDCmderIterateResult_yield; // Wait for the buffered data to be completely transmitted.
+
+            } break;
+
+            case SDMMCInterruptEvent_data_transfer_hold:
+            {
+                cmder->state = SDCmderState_scheduled_stop_transmission;
+                return SDCmderIterateResult_again;
             } break;
 
 
@@ -1113,7 +1161,7 @@ static useret enum SDCmderUpdateResult : u32
 {
     SDCmderUpdateResult_yield,
     SDCmderUpdateResult_ready_for_next_command,
-    SDCmderUpdateResult_waiting_for_user_data,
+    SDCmderUpdateResult_need_user_to_provide_next_data_block,
     SDCmderUpdateResult_command_attempted,
     SDCmderUpdateResult_card_glitch,
     SDCmderUpdateResult_bug = BUG_CODE,
@@ -1155,14 +1203,14 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
             } break;
 
-            case SDCmderIterateResult_waiting_for_user_data:
+            case SDCmderIterateResult_need_user_to_provide_next_data_block:
             {
 
                 #if SDCMDER_LOG_UPDATE_ITERATION
                 log("> WAITING FOR USER DATA");
                 #endif
 
-                return SDCmderUpdateResult_waiting_for_user_data;
+                return SDCmderUpdateResult_need_user_to_provide_next_data_block;
 
             } break;
 
