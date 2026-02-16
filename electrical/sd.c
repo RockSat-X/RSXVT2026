@@ -62,6 +62,7 @@ enum SDTaskState : u32
 {
     SDTaskState_unscheduled,
     SDTaskState_booked,
+    SDTaskState_processing,
     SDTaskState_done,
     SDTaskState_error,
 };
@@ -276,6 +277,7 @@ SD_do
             {
 
                 case SDTaskState_booked:
+                case SDTaskState_processing:
                 {
                     NVIC_SET_PENDING(SDx); // Make sure the SD driver knows what it should be doing.
                 } break;
@@ -637,55 +639,122 @@ _SD_update_once(enum SDHandle handle)
                                 .rca        = driver->initer.rca,
                             };
 
+                        driver->task.state = SDTaskState_processing;
+
                         return SDUpdateOnceResult_again;
 
+                    } break;
+
+                    case SDTaskState_processing : bug;
+                    default                     : bug;
+
+                } break;
+
+
+
+                case SDCmderUpdateResult_waiting_for_user_data: switch (driver->task.state)
+                {
+
+                    case SDTaskState_unscheduled:
+                    {
+                        return SDUpdateOnceResult_yield;
+                    } break;
+
+                    case SDTaskState_booked:
+                    {
+
+                        if (!driver->task.operation)
+                            bug; // Unspecified SD operation..?
+
+                        if (!driver->task.sector)
+                            bug; // No source/destination..?
+
+
+
+                        if
+                        (
+                            (enum SDCmd) driver->task.operation == driver->cmder.cmd &&
+                            driver->task.address   == driver->cmder.argument
+                        )
+                        {
+                            driver->cmder.data = *driver->task.sector;
+                            driver->task.state = SDTaskState_processing;
+                        }
+                        else
+                        {
+                            driver->cmder.now_stop_transferring = true;
+                        }
+
+                        return SDUpdateOnceResult_again;
+
+                    } break;
+
+                    case SDTaskState_processing:
+                    {
+                        driver->task.state      = SDTaskState_done;
+                        driver->cmder.argument += 1;
+                        return SDUpdateOnceResult_yield;
+                    } break;
+
+                    case SDTaskState_done:
+                    {
+                        return SDUpdateOnceResult_yield;
+                    } break;
+
+                    case SDTaskState_error:
+                    {
+                        return SDUpdateOnceResult_yield;
                     } break;
 
                     default: bug;
 
                 } break;
 
-                case SDCmderUpdateResult_waiting_for_user_data:
-                {
-                    sorry
-                } break;
+
+                //case SDCmderUpdateResult_waiting_for_user_data:
+                //{
+                //    driver->cmder.now_stop_transferring = true;
+                //    return SDUpdateOnceResult_again;
+                //} break;
 
                 case SDCmderUpdateResult_command_attempted:
                 {
 
-                    if (driver->task.state != SDTaskState_booked)
-                        bug; // There should've been an SD operation that we were doing...
+                    //if (driver->task.state != SDTaskState_processing)
+                    //    bug; // There should've been an SD operation that we were doing...
 
-                    switch (driver->cmder.error)
-                    {
-
-
-
-                        // The SD task was carried out successfully!
-
-                        case SDCmderError_none:
-                        {
-                            driver->task.state = SDTaskState_done;
-                            return SDUpdateOnceResult_again;
-                        } break;
+                    //switch (driver->cmder.error)
+                    //{
 
 
 
-                        // Something weird happened; indicate it to the user.
+                    //    // The SD task was carried out successfully!
 
-                        case SDCmderError_command_timeout:
-                        case SDCmderError_data_timeout:
-                        case SDCmderError_bad_crc:
-                        {
-                            driver->task.state = SDTaskState_error;
-                            return SDUpdateOnceResult_again;
-                        } break;
+                    //    case SDCmderError_none:
+                    //    {
+                    //        driver->task.state = SDTaskState_done;
+                    //        return SDUpdateOnceResult_again;
+                    //    } break;
 
 
 
-                        default: bug;
+                    //    // Something weird happened; indicate it to the user.
 
-                    }
+                    //    case SDCmderError_command_timeout:
+                    //    case SDCmderError_data_timeout:
+                    //    case SDCmderError_bad_crc:
+                    //    {
+                    //        driver->task.state = SDTaskState_error;
+                    //        return SDUpdateOnceResult_again;
+                    //    } break;
+
+
+
+                    //    default: bug;
+
+                    //}
+
+                    return SDUpdateOnceResult_again;
 
                 } break;
 
