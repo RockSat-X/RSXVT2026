@@ -754,7 +754,16 @@ _SD_update_once(enum SDHandle handle)
 
                     //}
 
-                    return SDUpdateOnceResult_again;
+                    if (driver->task.state == SDTaskState_processing)
+                    {
+                        driver->error = SDDriverError_card_glitch;
+                        driver->state = SDDriverState_error;
+                        return SDUpdateOnceResult_again;
+                    }
+                    else
+                    {
+                        return SDUpdateOnceResult_again;
+                    }
 
                 } break;
 

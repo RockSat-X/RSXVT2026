@@ -798,7 +798,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                             {
                                 if (CMSIS_GET(SDMMC, STA, DTIMEOUT))
                                 {
-                                    break;
+                                    return SDCmderIterateResult_again;
                                 }
                                 else if (SD_CMDS[cmder->cmd].receiving)
                                 {
@@ -841,14 +841,28 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                         if (cmder->cmd == SDCmd_READ_MULTIPLE_BLOCK)
                         {
                             CMSIS_SET(SDMMC, CMD, DTHOLD, true);
-                            while (!CMSIS_GET(SDMMC, STA, DHOLD)) { CMSIS_GET(SDMMC, FIFO, FIFODATA); }
+                            while (!CMSIS_GET(SDMMC, STA, DHOLD))
+                            {
+                                if (CMSIS_GET(SDMMC, STA, DCRCFAIL))
+                                {
+                                    return SDCmderIterateResult_card_glitch;
+                                }
+                                CMSIS_GET(SDMMC, FIFO, FIFODATA);
+                            }
                             cmder->state = SDCmderState_expecting_data_hold_before_scheduling_stop_transmission;
                             return SDCmderIterateResult_again;
                         }
                         else
                         {
                             CMSIS_SET(SDMMC, CMD, DTHOLD, true);
-                            while (!CMSIS_GET(SDMMC, STA, DBCKEND)) { CMSIS_SET(SDMMC, FIFO, FIFODATA, 0xDEADBEEF); }
+                            while (!CMSIS_GET(SDMMC, STA, DBCKEND))
+                            {
+                                if (CMSIS_GET(SDMMC, STA, DCRCFAIL))
+                                {
+                                    return SDCmderIterateResult_card_glitch;
+                                }
+                                CMSIS_SET(SDMMC, FIFO, FIFODATA, 0xDEADBEEF);
+                            }
                             CMSIS_SET(SDMMC, ICR, DBCKENDC, true);
                             CMSIS_SET ( SDMMC  , DCTRL, FIFORST, true );
                             cmder->state = SDCmderState_expecting_data_hold_before_scheduling_stop_transmission;
@@ -936,15 +950,22 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, CPSMACT))
                     bug; // Command-path state-machine should've been done by now.
 
-                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT))
-                    bug; // Data-path state-machine should've been deactivated by now.
-
                 if (cmder->error)
                     bug; // There shouldn't be any errors before this...
 
                 cmder->error = SDCmderError_bad_crc;
-                cmder->state = SDCmderState_ready_for_next_command;
-                return SDCmderIterateResult_command_attempted;
+
+                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT))
+                {
+                    cmder->state = SDCmderState_scheduled_stop_transmission;
+                    return SDCmderIterateResult_again;
+                }
+                else
+                {
+                    cmder->state = SDCmderState_ready_for_next_command;
+                    return SDCmderIterateResult_command_attempted;
+                }
+
 
             } break;
 
