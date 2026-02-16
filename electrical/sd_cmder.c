@@ -902,7 +902,16 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
         ////////////////////////////////////////
         //
-        // TODO.
+        // We're in the process of freezing the DPSM.
+        //
+        // However, if there's data already in the FIFO
+        // of the next data-block (because the DPSM grabbed
+        // it before we could tell it to freeze), the DPSM
+        // won't be frozen until the reception of that
+        // data-block is completed entirely.
+        //
+        // So this is what this state does; it pops data
+        // from the FIFO and immediately discards it.
         //
         ////////////////////////////////////////
 
@@ -914,7 +923,12 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             case SDMMCInterruptEvent_none:
             {
 
-                while (!CMSIS_GET(SDMMC, STA, RXFIFOE))
+                for // Empty the FIFO while ensuring we don't get stuck here indefinitely.
+                (
+                    i32 i = 0;
+                    i < 512 && !CMSIS_GET(SDMMC, STA, RXFIFOE);
+                    i += 1
+                )
                 {
                     CMSIS_GET(SDMMC, FIFO, FIFODATA);
                 }
@@ -927,8 +941,14 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
             case SDMMCInterruptEvent_data_transfer_hold:
             {
+
+                // The DPSM is now finally deactivated; we can move
+                // onto sending STOP_TRANSMISSION to be sure that the
+                // SD card knows the data transfer is over.
+
                 cmder->state = SDCmderState_scheduled_stop_transmission;
                 return SDCmderIterateResult_again;
+
             } break;
 
 
@@ -950,7 +970,20 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
         ////////////////////////////////////////
         //
-        // TODO.
+        // We're in the process of freezing the DPSM.
+        //
+        // Note that the SDMMC has this feature where
+        // the SD clock is automatically stopped when
+        // the peripheral doesn't have enough data in
+        // FIFO to send to the card (in order to prevent
+        // underrun conditions). This, however, ends up
+        // being quirky where the DPSM doesn't get advanced
+        // until the FIFO is at least half-way full.
+        //
+        // This means we have to stuff the FIFO with dummy
+        // data until the SDMMC peripheral decides to start
+        // clocking again. The actual data being put in the
+        // FIFO doesn't actually get transmitted.
         //
         ////////////////////////////////////////
 
@@ -962,24 +995,58 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             case SDMMCInterruptEvent_none:
             {
 
-                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, TXFIFOHE))
+                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, TXFIFOHE)) // FIFO at least half empty?
                 {
                     for (i32 i = 0; i < 8; i += 1) // Fill at least half of the FIFO (which has 16 words).
                     {
                         CMSIS_SET(SDMMC, FIFO, FIFODATA, 0xDEADBEEF);
                     }
-                    while (!CMSIS_GET(SDMMC, STA, DBCKEND));
-                    CMSIS_SET(SDMMC, ICR, DBCKENDC, true);
                 }
 
-                return SDCmderIterateResult_yield; // Wait for the buffered data to be completely transmitted.
+                return SDCmderIterateResult_yield; // Wait for the DPSM to finally update...
 
             } break;
 
+
+
+            case SDMMCInterruptEvent_data_block_transferred_successfully:
+            {
+
+                // I believe this interrupt event happens here now because
+                // the previous data-block transfer hasn't actually finished
+                // yet; all of the data bytes were transferred, but the SDMMC
+                // peripheral is implemented in such a way that the clock stops
+                // right before the CRC. Once we fill the FIFO up with dummy
+                // data and the SD clock begins clocking again, the SD card
+                // finally is able to transmit its CRC to the SDMMC. The DPSM
+                // verifies this and finally triggers the `DBCKEND` event
+                // (only when `DTHOLD` is being used). After this interrupt event
+                // should be the interrupt event in which the DPSM becomes deactivated.
+
+                if (!CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DHOLD))
+                    bug; // This should be the immediate next interrupt event...
+
+                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT))
+                    bug; // Data-path state-machine should've been disabled by now.
+
+                return SDCmderIterateResult_again;
+
+            } break;
+
+
+
             case SDMMCInterruptEvent_data_transfer_hold:
             {
+
+                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DBCKEND))
+                    bug; // This interrupt event should've been handled first...
+
+                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT))
+                    bug; // Data-path state-machine should've been disabled by now.
+
                 cmder->state = SDCmderState_scheduled_stop_transmission;
                 return SDCmderIterateResult_again;
+
             } break;
 
 
@@ -992,7 +1059,6 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             case SDMMCInterruptEvent_command_timeout                        : bug;
             case SDMMCInterruptEvent_command_with_bad_crc                   : bug;
             case SDMMCInterruptEvent_cmd12_aborted_data_transfer            : bug;
-            case SDMMCInterruptEvent_data_block_transferred_successfully    : bug;
             default                                                         : bug;
 
         } break;
@@ -1012,9 +1078,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
             case SDMMCInterruptEvent_none:
             {
-
                 return SDCmderIterateResult_yield; // Nothing new yet.
-
             } break;
 
 
