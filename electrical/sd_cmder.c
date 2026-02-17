@@ -953,7 +953,32 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
 
 
-            case SDMMCInterruptEvent_completed_transfer                     : bug;
+            case SDMMCInterruptEvent_completed_transfer:
+            {
+
+                if (cmder->error)
+                    bug; // No reason for an error.
+
+                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, CPSMACT))
+                    bug; // Command-path state-machine should've been done by now.
+
+                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT))
+                    bug; // Data-path state-machine should've been done by now.
+
+
+
+                // The amount of data that the DPSM was configured to transfer
+                // happened to be the exact amount that we started to begin
+                // freezing the DPSM; this is fine, we can send the STOP_TRANSMISSION
+                // to be extra sure that the SD card knows the data transfer is over.
+
+                cmder->state = SDCmderState_scheduled_stop_transmission;
+                return SDCmderIterateResult_again;
+
+            } break;
+
+
+
             case SDMMCInterruptEvent_data_timeout                           : bug;
             case SDMMCInterruptEvent_data_with_bad_crc                      : bug;
             case SDMMCInterruptEvent_command_sent_with_no_response_expected : bug;

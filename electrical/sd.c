@@ -633,7 +633,7 @@ _SD_update_once(enum SDHandle handle)
                                 .state                    = SDCmderState_scheduled_command,
                                 .cmd                      = (enum SDCmd) driver->task.operation,
                                 .argument                 = driver->task.address,
-                                .total_blocks_to_transfer = 65535, // TODO.
+                                .total_blocks_to_transfer = 65535,
                                 .bytes_per_block          = sizeof(*driver->task.sector),
                                 .block_data               = *driver->task.sector,
                                 .rca                      = driver->initer.rca,
@@ -713,45 +713,36 @@ _SD_update_once(enum SDHandle handle)
                 case SDCmderUpdateResult_command_attempted:
                 {
 
-                    //if (driver->task.state != SDTaskState_processing)
-                    //    bug; // There should've been an SD operation that we were doing...
-
-                    //switch (driver->cmder.error)
-                    //{
-
-
-
-                    //    // The SD task was carried out successfully!
-
-                    //    case SDCmderError_none:
-                    //    {
-                    //        driver->task.state = SDTaskState_done;
-                    //        return SDUpdateOnceResult_again;
-                    //    } break;
-
-
-
-                    //    // Something weird happened; indicate it to the user.
-
-                    //    case SDCmderError_command_timeout:
-                    //    case SDCmderError_data_timeout:
-                    //    case SDCmderError_bad_crc:
-                    //    {
-                    //        driver->task.state = SDTaskState_error;
-                    //        return SDUpdateOnceResult_again;
-                    //    } break;
-
-
-
-                    //    default: bug;
-
-                    //}
-
                     if (driver->task.state == SDTaskState_processing)
                     {
-                        driver->error = SDDriverError_card_glitch;
-                        driver->state = SDDriverState_error;
-                        return SDUpdateOnceResult_again;
+                        switch (driver->cmder.error)
+                        {
+
+                            case SDCmderError_none:
+                            {
+                                driver->task.state      = SDTaskState_done;
+                                driver->cmder.argument += 1;
+                                return SDUpdateOnceResult_yield;
+                            } break;
+
+                            case SDCmderError_command_timeout:
+                            {
+                                sorry
+                            } break;
+
+                            case SDCmderError_data_timeout:
+                            {
+                                sorry
+                            } break;
+
+                            case SDCmderError_bad_crc:
+                            {
+                                sorry
+                            } break;
+
+                            default: bug;
+
+                        }
                     }
                     else
                     {
