@@ -821,7 +821,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
 
 
-                if (cmder->cmd == SDCmd_READ_MULTIPLE_BLOCK || cmder->cmd == SDCmd_WRITE_MULTIPLE_BLOCK)
+                if (SD_CMDS[cmder->cmd].end_with_stop_transmission)
                 {
                     cmder->state = SDCmderState_scheduled_stop_transmission;
                     return SDCmderIterateResult_again;

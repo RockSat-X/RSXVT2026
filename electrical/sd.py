@@ -16,25 +16,25 @@ from deps.stpy.mcus import MCUS
 
 
 SD_CMDS = pxd.SimpleNamespaceTable(
-    ('name'                   , 'code', 'acmd', 'waitresp', 'receiving'),
-    ('GO_IDLE_STATE'          , 0     , False , 'none'    , False      ),
-    ('ALL_SEND_CID'           , 2     , False , 'r2'      , False      ),
-    ('SEND_RELATIVE_ADDR'     , 3     , False , 'r6'      , False      ),
-    ('SWITCH_FUNC'            , 6     , False , 'r1'      , True       ),
-    ('SELECT_DESELECT_CARD'   , 7     , False , 'r1b'     , False      ),
-    ('SEND_IF_COND'           , 8     , False , 'r7'      , False      ),
-    ('SEND_CSD'               , 9     , False , 'r2'      , False      ),
-    ('STOP_TRANSMISSION'      , 12    , False , 'r1b'     , False      ),
-    ('SEND_STATUS_TASK_STATUS', 13    , False , 'r1'      , False      ),
-    ('SET_BLOCK_LEN'          , 16    , False , 'r1'      , False      ),
-    ('READ_SINGLE_BLOCK'      , 17    , False , 'r1'      , True       ),
-    ('READ_MULTIPLE_BLOCK'    , 18    , False , 'r1'      , True       ),
-    ('WRITE_BLOCK'            , 24    , False , 'r1'      , False      ),
-    ('WRITE_MULTIPLE_BLOCK'   , 25    , False , 'r1'      , False      ),
-    ('APP_CMD'                , 55    , False , 'r1'      , False      ),
-    ('SET_BUS_WIDTH'          , 6     , True  , 'r1'      , False      ),
-    ('SD_SEND_OP_COND'        , 41    , True  , 'r3'      , False      ),
-    ('SEND_SCR'               , 51    , True  , 'r1'      , True       ),
+    ('name'                   , 'code', 'acmd', 'waitresp', 'receiving', 'end_with_stop_transmission'),
+    ('GO_IDLE_STATE'          , 0     , False , 'none'    , False      , False                       ),
+    ('ALL_SEND_CID'           , 2     , False , 'r2'      , False      , False                       ),
+    ('SEND_RELATIVE_ADDR'     , 3     , False , 'r6'      , False      , False                       ),
+    ('SWITCH_FUNC'            , 6     , False , 'r1'      , True       , False                       ),
+    ('SELECT_DESELECT_CARD'   , 7     , False , 'r1b'     , False      , False                       ),
+    ('SEND_IF_COND'           , 8     , False , 'r7'      , False      , False                       ),
+    ('SEND_CSD'               , 9     , False , 'r2'      , False      , False                       ),
+    ('STOP_TRANSMISSION'      , 12    , False , 'r1b'     , False      , False                       ),
+    ('SEND_STATUS_TASK_STATUS', 13    , False , 'r1'      , False      , False                       ),
+    ('SET_BLOCK_LEN'          , 16    , False , 'r1'      , False      , False                       ),
+    ('READ_SINGLE_BLOCK'      , 17    , False , 'r1'      , True       , False                       ),
+    ('READ_MULTIPLE_BLOCK'    , 18    , False , 'r1'      , True       , True                        ),
+    ('WRITE_BLOCK'            , 24    , False , 'r1'      , False      , False                       ),
+    ('WRITE_MULTIPLE_BLOCK'   , 25    , False , 'r1'      , False      , True                        ),
+    ('APP_CMD'                , 55    , False , 'r1'      , False      , False                       ),
+    ('SET_BUS_WIDTH'          , 6     , True  , 'r1'      , False      , False                       ),
+    ('SD_SEND_OP_COND'        , 41    , True  , 'r3'      , False      , False                       ),
+    ('SEND_SCR'               , 51    , True  , 'r1'      , True       , False                       ),
 )
 
 
@@ -57,12 +57,13 @@ for mcu in PER_MCU():
 
 Meta.lut('SD_CMDS', (
     (
-        ('char*'              , 'name'         , f'"{cmd.name}"'),
-        ('u8'                 , 'code'         , cmd.code                        ),
-        ('b32'                , 'acmd'         , cmd.acmd                        ),
-        ('enum SDWaitRespType', 'waitresp_type', f'SDWaitRespType_{cmd.waitresp}'),
-        ('enum SDWaitRespCode', 'waitresp_code', f'SDWaitRespCode_{cmd.waitresp}'),
-        ('b32'                , 'receiving'    , cmd.receiving                   ),
+        ('char*'              , 'name'                      , f'"{cmd.name}"'),
+        ('u8'                 , 'code'                      , cmd.code                        ),
+        ('b32'                , 'acmd'                      , cmd.acmd                        ),
+        ('enum SDWaitRespType', 'waitresp_type'             , f'SDWaitRespType_{cmd.waitresp}'),
+        ('enum SDWaitRespCode', 'waitresp_code'             , f'SDWaitRespCode_{cmd.waitresp}'),
+        ('b16'                , 'receiving'                 , cmd.receiving                   ),
+        ('b16'                , 'end_with_stop_transmission', cmd.end_with_stop_transmission  ),
     )
     for cmd in SD_CMDS
 ))
