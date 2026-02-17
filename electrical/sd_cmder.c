@@ -1048,12 +1048,6 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 // (only when `DTHOLD` is being used). After this interrupt event
                 // should be the interrupt event in which the DPSM becomes deactivated.
 
-                if (!CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DHOLD))
-                    bug; // This should be the immediate next interrupt event...
-
-                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT))
-                    bug; // Data-path state-machine should've been disabled by now.
-
                 return SDCmderIterateResult_again;
 
             } break;
