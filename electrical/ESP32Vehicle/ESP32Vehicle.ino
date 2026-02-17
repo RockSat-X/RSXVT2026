@@ -156,6 +156,7 @@ setup(void)
 
 
     // Initialize LoRa stuff.
+    SPI.begin(36, 37, 35, 41);
 
     common_init_lora();
 
@@ -231,6 +232,11 @@ process_payload(struct PacketESP32* payload)
     }
 
     TRAP_INVALID_RING_BUFFER_CONDITION(100);
+
+    //seeding random for packet test
+    
+    randomSeed(esp_random());
+
 
 }
 
@@ -309,11 +315,40 @@ loop(void)
 
         struct PacketESP32* packet = &packet_esp32_buffer[packet_esp32_reader % countof(packet_esp32_buffer)];
 
-        if (esp_now_send(MAIN_ESP32_MAC_ADDRESS, (u8*) packet, sizeof(*packet)) != ESP_OK)
-        {
-            Serial.printf("Send Error!\n");
-            packet_esp32_transmission_busy = false;
-        }
+uint8_t fuzz_buffer[sizeof(PacketESP32) + 16];
+memcpy(fuzz_buffer, packet, sizeof(PacketESP32));
+
+size_t send_size = sizeof(PacketESP32);
+
+// ----- fuzz logic -----
+int test_case = random(0, 10);   // weighted distribution
+
+if (test_case < 7)
+{
+    // 70% correct
+    send_size = sizeof(PacketESP32);
+    Serial.println("Sending CORRECT packet");
+}
+else if (test_case < 9)
+{
+    // 20% short
+    send_size = sizeof(PacketESP32) - random(1, 6);
+    Serial.println("Sending SHORT packet");
+}
+else
+{
+    // 10% long
+    send_size = sizeof(PacketESP32) + random(1, 8);
+    Serial.println("Sending LONG packet");
+}
+
+// ----- transmit -----
+if (esp_now_send(MAIN_ESP32_MAC_ADDRESS, fuzz_buffer, send_size) != ESP_OK)
+{
+    Serial.printf("Send Error!\n");
+    packet_esp32_transmission_busy = false;
+}
+
 
     }
 
