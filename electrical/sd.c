@@ -381,6 +381,7 @@ SD_reinit(enum SDHandle handle)
         HWFC_EN, true                    , // Allow output clock to be halted to prevent FIFO overrun/underrun.
         CLKDIV , STPY_SDx_INITIAL_DIVIDER, // Divide the kernel clock down to the desired bus frequency.
         NEGEDGE, true                    , // Sample on rise, setup on fall. @/pg 307/fig 6.6.6/`SD`.
+        PWRSAV , true                    , // Clock the bus only when it's in use.
     );
 
     CMSIS_SET
