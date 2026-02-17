@@ -52,7 +52,8 @@
 #define offsetof __builtin_offsetof
 #endif
 
-
+//Adding the Serial Peripheral Interface Library (Used to initialize SPI bus)
+#include <SPI.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -877,8 +878,10 @@ ESP32_calculate_crc(u8* data, i32 length)
     }
 
 
+    //initializes SPI class and adds it to packet_lora_radio module
+    SPIClass fspi(FSPI);
 
-    static SX1262 packet_lora_radio = new Module(41, 39, 42, 40);
+    static SX1262 packet_lora_radio = new Module(41, 39, 42, 40, fspi);
 
 
 
@@ -887,12 +890,18 @@ ESP32_calculate_crc(u8* data, i32 length)
     extern void
     common_init_lora()
     {
+        //this assigns the SCK, MISO, MOSI, and CS to specific GPIO pins
+        //ex. SCK is assigned to GPIO36
+        fspi.begin(36, 37, 35, 41);
 
-        if (packet_lora_radio.begin() != RADIOLIB_ERR_NONE)
+        int state = packet_lora_radio.begin();
+
+        //This states the radio's initial state
+        Serial.printf("Radio begin result = %d\n", state);
+
+        if (state != RADIOLIB_ERR_NONE)
         {
-            Serial.printf("Failed to initialize radio.\n");
-            ESP.restart();
-            return;
+            Serial.println("Failed to initialize radio");
         }
 
         packet_lora_radio.setFrequency(915.0);
@@ -911,7 +920,6 @@ ESP32_calculate_crc(u8* data, i32 length)
     }
 
 #endif
-
 
 
 ////////////////////////////////////////////////////////////////////////////////
