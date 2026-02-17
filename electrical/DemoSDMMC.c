@@ -184,7 +184,7 @@ main(void)
                     try_doing_operation
                     (
                         SDHandle_primary,
-                        SDOperation_single_read,
+                        SDOperation_multiple_read,
                         &sector,
                         address
                     );
@@ -294,7 +294,7 @@ main(void)
                         try_doing_operation
                         (
                             SDHandle_primary,
-                            SDOperation_single_write,
+                            SDOperation_multiple_write,
                             &sector,
                             address + sector_index
                         );
@@ -319,7 +319,7 @@ main(void)
                         try_doing_operation
                         (
                             SDHandle_primary,
-                            SDOperation_single_read,
+                            SDOperation_multiple_read,
                             &sector,
                             address + sector_index
                         );

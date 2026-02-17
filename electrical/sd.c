@@ -52,10 +52,12 @@ enum SDDriverError : u32
     SDDriverError_card_glitch,
 };
 
-enum SDOperation : u32
+enum SDOperation : u32 // @/`SD Operations`.
 {
-    SDOperation_single_read  = SDCmd_READ_MULTIPLE_BLOCK,  // TODO.
-    SDOperation_single_write = SDCmd_WRITE_MULTIPLE_BLOCK, // TODO.
+    SDOperation_single_read    = SDCmd_READ_SINGLE_BLOCK,
+    SDOperation_single_write   = SDCmd_WRITE_BLOCK,
+    SDOperation_multiple_read  = SDCmd_READ_MULTIPLE_BLOCK,
+    SDOperation_multiple_write = SDCmd_WRITE_MULTIPLE_BLOCK,
 };
 
 enum SDTaskState : u32
@@ -139,7 +141,7 @@ static struct SDDriver _SD_drivers[SDHandle_COUNT] = {0};
 
 
     static void
-    _SD_profiler_begin(enum SDOperation operation)
+    _SD_profiler_begin(void)
     {
         _SD_profiler.starting_timestamp_us = TIMEKEEPING_COUNTER();
     }
@@ -159,12 +161,14 @@ static struct SDDriver _SD_drivers[SDHandle_COUNT] = {0};
         {
 
             case SDOperation_single_read:
+            case SDOperation_multiple_read:
             {
                 _SD_profiler.amount_of_bytes_successfully_read += sizeof(Sector);
                 _SD_profiler.amount_of_time_reading_us         += elapsed_us;
             } break;
 
             case SDOperation_single_write:
+            case SDOperation_multiple_write:
             {
                 _SD_profiler.amount_of_bytes_successfully_written += sizeof(Sector);
                 _SD_profiler.amount_of_time_writing_us            += elapsed_us;
@@ -252,7 +256,7 @@ SD_do
 
     // Fill out the SD card operation the user would like to do.
 
-    _SD_profiler_begin(operation);
+    _SD_profiler_begin();
 
     {
 
@@ -634,7 +638,31 @@ _SD_update_once(enum SDHandle handle)
                         if (!driver->task.sector)
                             bug; // No source/destination..?
 
-                        enum SDCmd cmd = {0};
+
+
+                        // Determine the amount of blocks to transfer for this operation.
+
+                        i32 total_blocks_to_transfer = {0};
+
+                        switch (driver->task.operation)
+                        {
+
+                           case SDOperation_single_read:
+                           case SDOperation_single_write:
+                           {
+                               total_blocks_to_transfer = 1;
+                           } break;
+
+                           case SDOperation_multiple_read:
+                           case SDOperation_multiple_write:
+                           {
+                               total_blocks_to_transfer = 65535; // As much as SDMMC can support.
+                           } break;
+
+                           default: bug;
+                        }
+
+
 
                         driver->cmder =
                             (struct SDCmder)
@@ -642,7 +670,7 @@ _SD_update_once(enum SDHandle handle)
                                 .state                    = SDCmderState_scheduled_command,
                                 .cmd                      = (enum SDCmd) driver->task.operation,
                                 .argument                 = driver->task.address,
-                                .total_blocks_to_transfer = 4, // TODO Set low for stress-testing purposes.
+                                .total_blocks_to_transfer = total_blocks_to_transfer,
                                 .bytes_per_block          = sizeof(*driver->task.sector),
                                 .block_data               = *driver->task.sector,
                                 .rca                      = driver->initer.rca,
@@ -675,9 +703,6 @@ _SD_update_once(enum SDHandle handle)
                     case SDTaskState_processing:
                     {
 
-                        if ((enum SDCmd) driver->task.operation != driver->cmder.cmd)
-                            bug; // SD-cmder's command not matching up with current task..?
-
                         if (driver->task.address != driver->cmder.argument + (u32) driver->consective_sector_transfer_count)
                             bug; // SD-cmder's sector address not matching up with current task..?
 
@@ -703,26 +728,64 @@ _SD_update_once(enum SDHandle handle)
 
 
 
-                    // There's a new task from the user; we'll see if it's
-                    // consecutive with the last sector transfer we just did.
-                    // If so, we don't have to issue a new SD command; a nice performance boost!
+                    // There's a new task from the user; we'll see whether or not we should
+                    // continue with the current SD command's data transfer. If so, it'll be
+                    // a nice performance boost because we don't have to issue a new command.
 
                     case SDTaskState_booked:
                     {
 
-                        b32 is_consecutive =
-                            (enum SDCmd) driver->task.operation == driver->cmder.cmd &&
-                            driver->task.address == driver->cmder.argument + (u32) driver->consective_sector_transfer_count;
+                        if
+                        (
+                            driver->cmder.cmd != SDCmd_READ_MULTIPLE_BLOCK &&
+                            driver->cmder.cmd != SDCmd_WRITE_MULTIPLE_BLOCK
+                        )
+                            bug; // Unexpected SD-cmder command...
 
-                        if (is_consecutive)
+                        b32 should_process_task =
+                            (
+                                driver->task.address ==
+                                driver->cmder.argument + (u32) driver->consective_sector_transfer_count
+                            );
+
+                        b32 should_stop_requesting = !should_process_task;
+
+                        switch (driver->task.operation) // @/`SD Operations`.
+                        {
+
+                            case SDOperation_single_read:
+                            {
+                                should_process_task    &= driver->cmder.cmd == SDCmd_READ_MULTIPLE_BLOCK;
+                                should_stop_requesting  = true;
+                            } break;
+
+                            case SDOperation_single_write:
+                            {
+                                should_process_task    &= driver->cmder.cmd == SDCmd_WRITE_MULTIPLE_BLOCK;
+                                should_stop_requesting  = true;
+                            } break;
+
+                            case SDOperation_multiple_read:
+                            {
+                                should_process_task &= driver->cmder.cmd == SDCmd_READ_MULTIPLE_BLOCK;
+                            } break;
+
+                            case SDOperation_multiple_write:
+                            {
+                                should_process_task &= driver->cmder.cmd == SDCmd_WRITE_MULTIPLE_BLOCK;
+                            } break;
+
+                            default: bug;
+
+                        }
+
+                        if (should_process_task)
                         {
                             driver->cmder.block_data = *driver->task.sector;
                             driver->task.state       = SDTaskState_processing;
                         }
-                        else
-                        {
-                            driver->cmder.stop_requesting_for_data_blocks = true;
-                        }
+
+                        driver->cmder.stop_requesting_for_data_blocks = should_stop_requesting;
 
                         return SDUpdateOnceResult_again;
 
@@ -751,9 +814,6 @@ _SD_update_once(enum SDHandle handle)
 
                         case SDCmderError_none:
                         {
-
-                            if ((enum SDCmd) driver->task.operation != driver->cmder.cmd)
-                                bug; // SD-cmder's command not matching up with current task..?
 
                             if (driver->task.address != driver->cmder.argument + (u32) driver->consective_sector_transfer_count)
                                 bug; // SD-cmder's sector address not matching up with current task..?
@@ -907,3 +967,38 @@ _SD_driver_interrupt(enum SDHandle handle)
     }
 
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+// @/`SD Operations`:
+//
+// For maximum throughput, hints can be given to the SD driver by indicating
+// whether or not the user is wanting to do just a single read or write, or
+// if there's going to be many consecutive read/writes.
+//
+// If the user uses `SDOperation_single_read` or `SDOperation_single_write`,
+// this means the SD driver will issue a single sector read/write as quicky as
+// possible.
+//
+// If the user uses `SDOperation_multiple_read` or `SDOperation_multiple_write`,
+// the SD driver will set up a data transfer with the SD card to handle long a
+// chain of read/writes of consecutive addresses. However, this has a bit of
+// overhead, so it's only good when you know you're going to be  doing more than
+// just a single sector read/write.
+//
+// If the user knows a single sector is only going to be read/written to (and
+// furthermore know that the next sector is not likely to be next consecutive
+// one), they should favor `SDOperation_single_read`/`SDOperation_single_write`.
+//
+// However, at the end of the day, these are only hints. They only impact the
+// performance of the driver, and not the correctness. Thus, all single-transfer
+// operations can be swapped with multi-transfer operations and it should not
+// break anything.
+//
+// It should also be noted that "consecutive read/write transfers" means
+// entirely consisting of reads or entirely consisting of writes;
+// no mix and matching.
