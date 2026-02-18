@@ -52,8 +52,7 @@
 #define offsetof __builtin_offsetof
 #endif
 
-//Adding the Serial Peripheral Interface Library (Used to initialize SPI bus)
-#include <SPI.h>
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -846,6 +845,7 @@ ESP32_calculate_crc(u8* data, i32 length)
     #include <esp_wifi.h>
     #include <esp_now.h>
     #include <RadioLib.h>
+    #include <SPI.h>
 
 
 
