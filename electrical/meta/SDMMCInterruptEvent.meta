@@ -9,8 +9,12 @@ enum SDMMCInterruptEvent : u32
     SDMMCInterruptEvent_command_timeout,
     SDMMCInterruptEvent_data_with_bad_crc,
     SDMMCInterruptEvent_command_with_bad_crc,
+    SDMMCInterruptEvent_tx_fifo_entirely_empty,
+    SDMMCInterruptEvent_rx_fifo_entirely_full,
+    SDMMCInterruptEvent_rx_fifo_half_full,
+    SDMMCInterruptEvent_tx_fifo_half_empty,
 };
-static constexpr u32 SDMMCInterruptEvent_COUNT = 9;
+static constexpr u32 SDMMCInterruptEvent_COUNT = 13;
 static const struct { char* name; } SDMMCInterruptEvent_TABLE[] =
     {
         { .name = "none"                                   },
@@ -22,4 +26,8 @@ static const struct { char* name; } SDMMCInterruptEvent_TABLE[] =
         { .name = "command_timeout"                        },
         { .name = "data_with_bad_crc"                      },
         { .name = "command_with_bad_crc"                   },
+        { .name = "tx_fifo_entirely_empty"                 },
+        { .name = "rx_fifo_entirely_full"                  },
+        { .name = "rx_fifo_half_full"                      },
+        { .name = "tx_fifo_half_empty"                     },
     };
