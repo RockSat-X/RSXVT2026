@@ -12,7 +12,6 @@
             transferring_user_command
             outwaiting_busy_signal_for_user_command
             undergoing_data_transfer_of_single_data_block
-            waiting_for_complete_transfer_of_data_block
             waiting_for_users_next_data_block
             scheduled_stop_transmission
             transferring_stop_transmission
@@ -60,45 +59,6 @@ struct SDCmder // @/`Scheduling a Command with SD-Cmder`.
 
 
 
-// TODO Seems like using DTEN can result in funny business if the SD clock stops due to the HWFC...?
-//      So to avoid that, the manual data trasnfer is optimized here, or else "data CRC mismatch" will happen.
-//      It's really weird, but hopefully with DMA it's not a big deal.
-
-#pragma GCC push_options
-#pragma GCC optimize ("O3")
-
-    static void
-    _SDCmder_manual_data_transfer(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder, b32 do_entirely)
-    {
-        if (cmder->current_byte_index_of_block_data < cmder->bytes_per_block)
-        {
-            do
-            {
-                if (SD_CMDS[cmder->cmd].receiving)
-                {
-                    if (!CMSIS_GET(SDMMC, STA, RXFIFOE))
-                    {
-                        *(u32*) (cmder->block_data + cmder->current_byte_index_of_block_data) = CMSIS_GET(SDMMC, FIFO, FIFODATA);
-                        cmder->current_byte_index_of_block_data += sizeof(u32);
-                    }
-                }
-                else
-                {
-                    if (!CMSIS_GET(SDMMC, STA, TXFIFOF))
-                    {
-                        CMSIS_SET(SDMMC, FIFO, FIFODATA, *(u32*) (cmder->block_data + cmder->current_byte_index_of_block_data));
-                        cmder->current_byte_index_of_block_data += sizeof(u32);
-                    }
-                }
-            }
-            while (cmder->current_byte_index_of_block_data < cmder->bytes_per_block && do_entirely);
-        }
-    }
-
-#pragma GCC pop_options
-
-
-
 static void
 _SDCmder_set_up_data_path_state_machine(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder, b32 enable)
 {
@@ -133,12 +93,27 @@ _SDCmder_set_up_data_path_state_machine(SDMMC_TypeDef* SDMMC, struct SDCmder* cm
     if (CMSIS_GET(SDMMC, STA, DPSMACT))
         bug; // The DPSM must be inactive in order to be configured.
 
+    if ((u32) cmder->block_data % sizeof(u32))
+        bug; // Unaligned source/destination addresss...
+
 
 
     // We'll just transfer a single data-block; to transfer more data
     // than that, we'll re-enable the DPSM multiple times as needed.
 
     CMSIS_SET(SDMMC, DLEN, DATALENGTH, cmder->bytes_per_block);
+
+    CMSIS_SET
+    (
+        SDMMC    , IDMABASER              ,
+        IDMABASER, (u32) cmder->block_data, // The source/destination for the internal DMA.
+    );
+
+    CMSIS_SET
+    (
+        SDMMC , IDMACTRL,
+        IDMAEN, true    , // Enable internal DMA.
+    );
 
     CMSIS_SET
     (
@@ -186,10 +161,6 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 command_timeout
                 data_with_bad_crc
                 command_with_bad_crc
-                tx_fifo_entirely_empty
-                rx_fifo_entirely_full
-                rx_fifo_half_full
-                tx_fifo_half_empty
             '''
         )
     */
@@ -311,42 +282,6 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
 
 
-    // "Tx FIFO empty".
-
-    else if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, TXFIFOE))
-    {
-        interrupt_event = SDMMCInterruptEvent_tx_fifo_entirely_empty;
-    }
-
-
-
-    // "Rx FIFO full".
-
-    else if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, RXFIFOF))
-    {
-        interrupt_event = SDMMCInterruptEvent_rx_fifo_entirely_full;
-    }
-
-
-
-    // "Rx FIFO half full".
-
-    else if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, RXFIFOHF))
-    {
-        interrupt_event = SDMMCInterruptEvent_rx_fifo_half_full;
-    }
-
-
-
-    // "Tx FIFO half empty".
-
-    else if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, TXFIFOHE))
-    {
-        interrupt_event = SDMMCInterruptEvent_tx_fifo_half_empty;
-    }
-
-
-
     // Nothing notable happened.
 
     else
@@ -396,10 +331,6 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             case SDMMCInterruptEvent_command_timeout                        : bug;
             case SDMMCInterruptEvent_data_with_bad_crc                      : bug;
             case SDMMCInterruptEvent_command_with_bad_crc                   : bug;
-            case SDMMCInterruptEvent_tx_fifo_entirely_empty                 : bug;
-            case SDMMCInterruptEvent_rx_fifo_entirely_full                  : bug;
-            case SDMMCInterruptEvent_rx_fifo_half_full                      : bug;
-            case SDMMCInterruptEvent_tx_fifo_half_empty                     : bug;
             default                                                         : bug;
 
         } break;
@@ -523,10 +454,6 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             case SDMMCInterruptEvent_command_timeout                        : bug;
             case SDMMCInterruptEvent_data_with_bad_crc                      : bug;
             case SDMMCInterruptEvent_command_with_bad_crc                   : bug;
-            case SDMMCInterruptEvent_tx_fifo_entirely_empty                 : bug;
-            case SDMMCInterruptEvent_rx_fifo_entirely_full                  : bug;
-            case SDMMCInterruptEvent_rx_fifo_half_full                      : bug;
-            case SDMMCInterruptEvent_tx_fifo_half_empty                     : bug;
             default                                                         : bug;
 
         } break;
@@ -622,10 +549,6 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             case SDMMCInterruptEvent_completed_transfer                     : bug;
             case SDMMCInterruptEvent_data_timeout                           : bug;
             case SDMMCInterruptEvent_data_with_bad_crc                      : bug;
-            case SDMMCInterruptEvent_tx_fifo_entirely_empty                 : bug;
-            case SDMMCInterruptEvent_rx_fifo_entirely_full                  : bug;
-            case SDMMCInterruptEvent_rx_fifo_half_full                      : bug;
-            case SDMMCInterruptEvent_tx_fifo_half_empty                     : bug;
             default                                                         : bug;
 
         } break;
@@ -723,21 +646,10 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
 
 
-            case SDMMCInterruptEvent_tx_fifo_entirely_empty:
-            case SDMMCInterruptEvent_tx_fifo_half_empty:
-            {
-                _SDCmder_manual_data_transfer(SDMMC, cmder, false);
-                return SDCmderIterateResult_again; // TODO Hopefully this isn't necessary once we use IDMA.
-            } break;
-
-
-
             case SDMMCInterruptEvent_cmd12_aborted_data_transfer : bug;
             case SDMMCInterruptEvent_completed_transfer          : bug;
             case SDMMCInterruptEvent_data_timeout                : bug;
             case SDMMCInterruptEvent_data_with_bad_crc           : bug;
-            case SDMMCInterruptEvent_rx_fifo_entirely_full       : bug;
-            case SDMMCInterruptEvent_rx_fifo_half_full           : bug;
             default                                              : bug;
 
         } break;
@@ -787,15 +699,6 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
 
 
-            case SDMMCInterruptEvent_tx_fifo_entirely_empty:
-            case SDMMCInterruptEvent_tx_fifo_half_empty:
-            {
-                _SDCmder_manual_data_transfer(SDMMC, cmder, false);
-                return SDCmderIterateResult_again; // TODO Hopefully this isn't necessary once we use IDMA.
-            } break;
-
-
-
             case SDMMCInterruptEvent_command_sent_with_no_response_expected : bug;
             case SDMMCInterruptEvent_command_sent_with_good_response        : bug;
             case SDMMCInterruptEvent_command_timeout                        : bug;
@@ -804,8 +707,6 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             case SDMMCInterruptEvent_completed_transfer                     : bug;
             case SDMMCInterruptEvent_data_timeout                           : bug;
             case SDMMCInterruptEvent_data_with_bad_crc                      : bug;
-            case SDMMCInterruptEvent_rx_fifo_entirely_full                  : bug;
-            case SDMMCInterruptEvent_rx_fifo_half_full                      : bug;
             default                                                         : bug;
 
         } break;
@@ -821,10 +722,6 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
         case SDCmderState_undergoing_data_transfer_of_single_data_block: switch (interrupt_event)
         {
 
-            case SDMMCInterruptEvent_tx_fifo_entirely_empty:
-            case SDMMCInterruptEvent_rx_fifo_entirely_full:
-            case SDMMCInterruptEvent_rx_fifo_half_full:
-            case SDMMCInterruptEvent_tx_fifo_half_empty:
             case SDMMCInterruptEvent_none:
             {
 
@@ -834,69 +731,11 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 if (CMSIS_GET(SDMMC, STA, CPSMACT))
                     bug; // Command-path state-machine should've been done by now.
 
-                if (!CMSIS_GET(SDMMC, STA, DPSMACT))
-                    bug; // Data-path state-machine should've been configured and active.
-
                 if (!cmder->block_data)
                     bug; // Missing source/destination..?
 
+                return SDCmderIterateResult_yield;
 
-
-                // TODO We're manually transferring data-blocks for now...
-
-                _SDCmder_manual_data_transfer(SDMMC, cmder, true);
-
-
-
-                // If we've transferred all of the data, we now wait to make
-                // sure the transfer of the data-block is acknowledged as done.
-
-                if (cmder->current_byte_index_of_block_data == cmder->bytes_per_block)
-                {
-
-                    cmder->current_byte_index_of_block_data  = 0;
-                    cmder->blocks_processed_so_far          += 1;
-                    cmder->block_data                        = nullptr;
-
-                    cmder->state = SDCmderState_waiting_for_complete_transfer_of_data_block;
-                    return SDCmderIterateResult_again;
-
-                }
-                else
-                {
-                    return SDCmderIterateResult_yield;
-                }
-
-            } break;
-
-            case SDMMCInterruptEvent_data_timeout                           : bug;
-            case SDMMCInterruptEvent_data_with_bad_crc                      : bug;
-            case SDMMCInterruptEvent_completed_transfer                     : bug;
-            case SDMMCInterruptEvent_command_sent_with_no_response_expected : bug;
-            case SDMMCInterruptEvent_command_sent_with_good_response        : bug;
-            case SDMMCInterruptEvent_command_timeout                        : bug;
-            case SDMMCInterruptEvent_command_with_bad_crc                   : bug;
-            case SDMMCInterruptEvent_cmd12_aborted_data_transfer            : bug;
-            default                                                         : bug;
-
-        } break;
-
-
-
-        ////////////////////////////////////////
-        //
-        // Wait for DPSM to tell us that it has finished transferring the data-block.
-        //
-        ////////////////////////////////////////
-
-        case SDCmderState_waiting_for_complete_transfer_of_data_block: switch (interrupt_event)
-        {
-
-
-
-            case SDMMCInterruptEvent_none:
-            {
-                return SDCmderIterateResult_yield; // Nothing interesting yet.
             } break;
 
 
@@ -913,8 +752,12 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 if (CMSIS_GET(SDMMC, STA, DPSMACT))
                     bug; // Data-path state-machine should've been done by now.
 
-                if (cmder->block_data)
-                    bug; // The source/destination pointer should've stayed cleared out..?
+
+
+                // The IDMA finished transferring the data-block.
+
+                cmder->blocks_processed_so_far += 1;
+                cmder->block_data               = nullptr;
 
 
 
@@ -972,21 +815,11 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
 
 
-            case SDMMCInterruptEvent_tx_fifo_entirely_empty:
-            case SDMMCInterruptEvent_tx_fifo_half_empty:
-            {
-                return SDCmderIterateResult_yield; // TODO Hopefully this isn't necessary once we use IDMA.
-            } break;
-
-
-
             case SDMMCInterruptEvent_command_sent_with_no_response_expected : bug;
             case SDMMCInterruptEvent_command_sent_with_good_response        : bug;
             case SDMMCInterruptEvent_command_timeout                        : bug;
             case SDMMCInterruptEvent_command_with_bad_crc                   : bug;
             case SDMMCInterruptEvent_cmd12_aborted_data_transfer            : bug;
-            case SDMMCInterruptEvent_rx_fifo_entirely_full                  : bug;
-            case SDMMCInterruptEvent_rx_fifo_half_full                      : bug;
             default                                                         : bug;
 
         } break;
@@ -1056,10 +889,6 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             case SDMMCInterruptEvent_command_timeout                        : bug;
             case SDMMCInterruptEvent_command_with_bad_crc                   : bug;
             case SDMMCInterruptEvent_cmd12_aborted_data_transfer            : bug;
-            case SDMMCInterruptEvent_tx_fifo_entirely_empty                 : bug;
-            case SDMMCInterruptEvent_rx_fifo_entirely_full                  : bug;
-            case SDMMCInterruptEvent_rx_fifo_half_full                      : bug;
-            case SDMMCInterruptEvent_tx_fifo_half_empty                     : bug;
             default                                                         : bug;
 
         } break;
@@ -1134,10 +963,6 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             case SDMMCInterruptEvent_completed_transfer                     : bug;
             case SDMMCInterruptEvent_data_timeout                           : bug;
             case SDMMCInterruptEvent_data_with_bad_crc                      : bug;
-            case SDMMCInterruptEvent_tx_fifo_entirely_empty                 : bug;
-            case SDMMCInterruptEvent_rx_fifo_entirely_full                  : bug;
-            case SDMMCInterruptEvent_rx_fifo_half_full                      : bug;
-            case SDMMCInterruptEvent_tx_fifo_half_empty                     : bug;
             default                                                         : bug;
 
         } break;

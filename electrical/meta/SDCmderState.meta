@@ -7,13 +7,12 @@ enum SDCmderState : u32
     SDCmderState_transferring_user_command,
     SDCmderState_outwaiting_busy_signal_for_user_command,
     SDCmderState_undergoing_data_transfer_of_single_data_block,
-    SDCmderState_waiting_for_complete_transfer_of_data_block,
     SDCmderState_waiting_for_users_next_data_block,
     SDCmderState_scheduled_stop_transmission,
     SDCmderState_transferring_stop_transmission,
     SDCmderState_outwaiting_busy_signal_for_stop_transmission,
 };
-static constexpr u32 SDCmderState_COUNT = 12;
+static constexpr u32 SDCmderState_COUNT = 11;
 static const struct { char* name; } SDCmderState_TABLE[] =
     {
         { .name = "ready_for_next_command"                        },
@@ -23,7 +22,6 @@ static const struct { char* name; } SDCmderState_TABLE[] =
         { .name = "transferring_user_command"                     },
         { .name = "outwaiting_busy_signal_for_user_command"       },
         { .name = "undergoing_data_transfer_of_single_data_block" },
-        { .name = "waiting_for_complete_transfer_of_data_block"   },
         { .name = "waiting_for_users_next_data_block"             },
         { .name = "scheduled_stop_transmission"                   },
         { .name = "transferring_stop_transmission"                },
