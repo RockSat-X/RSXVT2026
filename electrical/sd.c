@@ -489,7 +489,7 @@ _SD_update_once(enum SDHandle handle)
                                     .argument                 = driver->initer.command.argument,
                                     .total_blocks_to_transfer = !!driver->initer.command.size,
                                     .bytes_per_block          = driver->initer.command.size,
-                                    .block_data               = driver->initer.command.data,
+                                    .data_block_pointer       = driver->initer.command.data,
                                     .rca                      = driver->initer.rca,
                                 };
 
@@ -661,7 +661,7 @@ _SD_update_once(enum SDHandle handle)
                            case SDOperation_multiple_read:
                            case SDOperation_multiple_write:
                            {
-                               total_blocks_to_transfer = 65535; // As much as SDMMC can support.
+                               total_blocks_to_transfer = 65535; // Arbitrary limit; should still work fine.
                            } break;
 
                            default: bug;
@@ -677,7 +677,7 @@ _SD_update_once(enum SDHandle handle)
                                 .argument                 = driver->task.address,
                                 .total_blocks_to_transfer = total_blocks_to_transfer,
                                 .bytes_per_block          = sizeof(*driver->task.sector),
-                                .block_data               = *driver->task.sector,
+                                .data_block_pointer       = *driver->task.sector,
                                 .rca                      = driver->initer.rca,
                             };
 
@@ -786,8 +786,8 @@ _SD_update_once(enum SDHandle handle)
 
                         if (should_process_task)
                         {
-                            driver->cmder.block_data = *driver->task.sector;
-                            driver->task.state       = SDTaskState_processing;
+                            driver->cmder.data_block_pointer = *driver->task.sector;
+                            driver->task.state               = SDTaskState_processing;
                         }
 
                         driver->cmder.stop_requesting_for_data_blocks = should_stop_requesting;

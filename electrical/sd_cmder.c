@@ -41,7 +41,7 @@ struct SDCmder // @/`Scheduling a Command with SD-Cmder`.
         u32               argument;
         i32               total_blocks_to_transfer;
         i32               bytes_per_block;
-        u8*               block_data;
+        u8*               data_block_pointer;
         b32               stop_requesting_for_data_blocks;
         u16               rca;
     };
@@ -93,7 +93,7 @@ _SDCmder_set_up_data_path_state_machine(SDMMC_TypeDef* SDMMC, struct SDCmder* cm
     if (CMSIS_GET(SDMMC, STA, DPSMACT))
         bug; // The DPSM must be inactive in order to be configured.
 
-    if ((u32) cmder->block_data % sizeof(u32))
+    if ((u32) cmder->data_block_pointer % sizeof(u32))
         bug; // Unaligned source/destination addresss...
 
 
@@ -105,8 +105,8 @@ _SDCmder_set_up_data_path_state_machine(SDMMC_TypeDef* SDMMC, struct SDCmder* cm
 
     CMSIS_SET
     (
-        SDMMC    , IDMABASER              ,
-        IDMABASER, (u32) cmder->block_data, // The source/destination for the internal DMA.
+        SDMMC    , IDMABASER                      ,
+        IDMABASER, (u32) cmder->data_block_pointer, // The source/destination for the internal DMA.
     );
 
     CMSIS_SET
@@ -731,7 +731,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 if (CMSIS_GET(SDMMC, STA, CPSMACT))
                     bug; // Command-path state-machine should've been done by now.
 
-                if (!cmder->block_data)
+                if (!cmder->data_block_pointer)
                     bug; // Missing source/destination..?
 
                 return SDCmderIterateResult_yield;
@@ -757,7 +757,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 // The IDMA finished transferring the data-block.
 
                 cmder->blocks_processed_so_far += 1;
-                cmder->block_data               = nullptr;
+                cmder->data_block_pointer       = nullptr;
 
 
 
@@ -852,7 +852,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
                 // We can now begin the transfer of the next data-block.
 
-                if (cmder->block_data)
+                if (cmder->data_block_pointer)
                 {
                     _SDCmder_set_up_data_path_state_machine(SDMMC, cmder, true);
                     cmder->state = SDCmderState_undergoing_data_transfer_of_single_data_block;
@@ -1086,15 +1086,15 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 //
 // If there's a data transfer associated with the command,
 // then `.total_blocks_to_transfer` should be non-zero and
-// `.bytes_per_block` to a supported size. The `.block_data`
+// `.bytes_per_block` to a supported size. The `.data_block_pointer`
 // field can be provided immediately by the user; if it's null,
-// then the SD-cmder will request the user to update the `.block_data`
+// then the SD-cmder will request the user to update the `.data_block_pointer`
 // with a non-null pointer for it to write/read the data to/from.
 //
 // If the data transfer consists of multiple data-blocks (i.e.
-// `.total_blocks_to_transfer` is greater than one), then the `.block_data`
+// `.total_blocks_to_transfer` is greater than one), then the `.data_block_pointer`
 // field will be set to null once SD-cmder is done with read/writing to it,
-// to which the SD-cmder will then request the user to update `.block_data`
+// to which the SD-cmder will then request the user to update `.data_block_pointer`
 // with the next source/destination for SD-cmder to write/read to/from.
 //
 // To allow for data transfers of "arbitrary" amount of data-blocks,
