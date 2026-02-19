@@ -52,21 +52,43 @@ enum SDDriverError : u32
     SDDriverError_card_glitch,
 };
 
-enum SDOperation : u32 // @/`SD Operations`.
+enum SDDriverJobState : u32
 {
-    SDOperation_single_read    = SDCmd_READ_SINGLE_BLOCK,
-    SDOperation_single_write   = SDCmd_WRITE_BLOCK,
-    SDOperation_multiple_read  = SDCmd_READ_MULTIPLE_BLOCK,
-    SDOperation_multiple_write = SDCmd_WRITE_MULTIPLE_BLOCK,
+    SDDriverJobState_ready_for_user,
+    SDDriverJobState_ready_to_be_processed,
+    SDDriverJobState_processing,
+    SDDriverJobState_success,
+    SDDriverJobState_encountered_issue,
 };
 
-enum SDTaskState : u32
+enum SDDoJobState : u32
 {
-    SDTaskState_unscheduled,
-    SDTaskState_booked,
-    SDTaskState_processing,
-    SDTaskState_done,
-    SDTaskState_error,
+    SDDoJobState_ready_to_be_processed,
+    SDDoJobState_processing,
+    SDDoJobState_attempted,
+};
+
+enum SDDoJobOperation : u32 // @/`SD Operations`.
+{
+    SDDoJobOperation_single_read    = SDCmd_READ_SINGLE_BLOCK,
+    SDDoJobOperation_single_write   = SDCmd_WRITE_BLOCK,
+    SDDoJobOperation_multiple_read  = SDCmd_READ_MULTIPLE_BLOCK,
+    SDDoJobOperation_multiple_write = SDCmd_WRITE_MULTIPLE_BLOCK,
+};
+
+struct SDDoJob
+{
+    struct
+    {
+        enum SDHandle         handle;
+        enum SDDoJobOperation operation;
+        Sector*               sector;
+        u32                   address;
+    };
+    struct
+    {
+        enum SDDoJobState state;
+    };
 };
 
 struct SDDriver
@@ -79,11 +101,11 @@ struct SDDriver
 
     struct
     {
-        volatile enum SDTaskState state;
-        volatile enum SDOperation operation;
-        Sector* volatile          sector;
-        volatile u32              address;
-    } task;
+        volatile enum SDDriverJobState state;
+        volatile enum SDDoJobOperation operation;
+        Sector* volatile               sector;
+        volatile u32                   address;
+    } job;
 
     i32 consective_sector_transfer_count;
 
@@ -149,7 +171,7 @@ static struct SDDriver _SD_drivers[SDHandle_COUNT] = {0};
 
 
     static void
-    _SD_profiler_end(enum SDOperation operation)
+    _SD_profiler_end(enum SDDoJobOperation operation)
     {
 
         u32 ending_timestamp_us = TIMEKEEPING_COUNTER();
@@ -160,15 +182,15 @@ static struct SDDriver _SD_drivers[SDHandle_COUNT] = {0};
         switch (operation)
         {
 
-            case SDOperation_single_read:
-            case SDOperation_multiple_read:
+            case SDDoJobOperation_single_read:
+            case SDDoJobOperation_multiple_read:
             {
                 _SD_profiler.amount_of_bytes_successfully_read += sizeof(Sector);
                 _SD_profiler.amount_of_time_reading_us         += elapsed_us;
             } break;
 
-            case SDOperation_single_write:
-            case SDOperation_multiple_write:
+            case SDDoJobOperation_single_write:
+            case SDDoJobOperation_multiple_write:
             {
                 _SD_profiler.amount_of_bytes_successfully_written += sizeof(Sector);
                 _SD_profiler.amount_of_time_writing_us            += elapsed_us;
@@ -196,7 +218,9 @@ static struct SDDriver _SD_drivers[SDHandle_COUNT] = {0};
 static useret enum SDDoResult : u32
 {
     SDDoResult_success,
-    SDDoResult_task_error,
+    SDDoResult_operation_error,
+    SDDoResult_still_initializing,
+    SDDoResult_working,
     SDDoResult_card_likely_unmounted,
     SDDoResult_unsupported_card,
     SDDoResult_maybe_bus_problem,
@@ -205,135 +229,161 @@ static useret enum SDDoResult : u32
     SDDoResult_card_glitch,
     SDDoResult_bug = BUG_CODE,
 }
-SD_do
-(
-    enum SDHandle    handle,
-    enum SDOperation operation,
-    Sector*          sector,
-    u32              address
-)
+SD_do(struct SDDoJob* job)
 {
+
+    if (!job)
+        bug;
+
+    if (!job->sector)
+        bug; // Source/destination not provided..?
+
+
+
+    enum SDHandle handle = job->handle;
 
     _EXPAND_HANDLE
 
-    if (!sector)
-        bug; // Source/destination not provided..?
-
-    if (driver->task.state != SDTaskState_unscheduled)
-        bug; // Unexpected state...
 
 
-
-    // Make sure the SD driver is still not initializing.
-
-    for (b32 yield = false; !yield;)
+    switch (driver->state)
     {
-        switch (driver->state)
+
+
+
+        // The SD driver is still initializing the SD card.
+
+        case SDDriverState_initer: switch (job->state)
+        {
+            case SDDoJobState_ready_to_be_processed : return SDDoResult_still_initializing;
+            case SDDoJobState_processing            : bug; // There shouldn't be a job already..?
+            case SDDoJobState_attempted             : bug; // "
+            default                                 : bug;
+        } break;
+
+
+
+        // The SD driver can work / is working on the user's job.
+
+        case SDDriverState_active: switch (job->state)
         {
 
-            case SDDriverState_initer:
+
+
+            // The user's job hasn't been assigned to the SD driver yet.
+
+            case SDDoJobState_ready_to_be_processed: switch (driver->job.state)
             {
-                NVIC_SET_PENDING(SDx); // The SD card is still being initialized...
+
+                case SDDriverJobState_ready_for_user:
+                {
+
+                    _SD_profiler_begin();
+
+                    job->state = SDDoJobState_processing;
+
+                    driver->job.operation = job->operation;
+                    driver->job.sector    = job->sector;
+                    driver->job.address   = job->address;
+
+                    // Release memory.
+
+                    driver->job.state = SDDriverJobState_ready_to_be_processed;
+
+                    NVIC_SET_PENDING(SDx); // Alert SD driver of the new job.
+
+                    return SDDoResult_working;
+
+                } break;
+
+                case SDDriverJobState_ready_to_be_processed : bug; // The SD driver already has a job that the user didn't let conclude..?
+                case SDDriverJobState_processing            : bug; // "
+                case SDDriverJobState_success               : bug; // "
+                case SDDriverJobState_encountered_issue     : bug; // "
+                default                                     : bug;
+
             } break;
 
-            case SDDriverState_active:
+
+
+            // The user's job should be currently executed by the SD driver.
+
+            case SDDoJobState_processing:
             {
-                yield = true; // The SD driver is ready to handle tasks now.
+
+                if
+                (
+                    driver->job.operation != job->operation ||
+                    driver->job.sector    != job->sector    ||
+                    driver->job.address   != job->address
+                )
+                    bug; // The job that the SD driver is doing doesn't match the user's job...
+
+                switch (driver->job.state)
+                {
+
+                    case SDDriverJobState_ready_to_be_processed:
+                    case SDDriverJobState_processing:
+                    {
+                        NVIC_SET_PENDING(SDx); // Ensure the SD driver is working on the job.
+                        return SDDoResult_working;
+                    } break;
+
+                    case SDDriverJobState_success:
+                    {
+
+                        _SD_profiler_end(job->operation);
+
+                        driver->job.state = SDDriverJobState_ready_for_user; // Acknowledge the SD driver's completion of the job.
+                        job->state        = SDDoJobState_attempted;
+                        return SDDoResult_success;                           // The user's job completed without any problems.
+
+                    } break;
+
+                    case SDDriverJobState_encountered_issue:
+                    {
+
+                        driver->job.state = SDDriverJobState_ready_for_user; // Acknowledge the SD driver's completion of the job.
+                        job->state        = SDDoJobState_attempted;
+                        return SDDoResult_operation_error;                   // Something bad happened...
+
+                    } break;
+
+                    case SDDriverJobState_ready_for_user : bug;
+                    default                              : bug;
+
+                }
+
             } break;
 
-            case SDDriverState_error:
-            {
-                yield = true; // No point in further waiting.
-            } break;
 
-            case SDDriverState_disabled : bug;
+
+            case SDDoJobState_attempted : bug;
             default                     : bug;
 
-        }
-    }
+        } break;
 
 
 
-    // Fill out the SD card operation the user would like to do.
+        // The SD driver is currently lcoked up.
 
-    _SD_profiler_begin();
-
-    {
-
-        driver->task.operation = operation;
-        driver->task.sector    = sector;
-        driver->task.address   = address;
-
-        // Release memory.
-
-        driver->task.state = SDTaskState_booked;
-
-        NVIC_SET_PENDING(SDx); // Alert SD driver of the new task.
-
-    }
-
-
-
-    // Block until the task has been handled.
-
-    while (true)
-    {
-        switch (driver->state)
+        case SDDriverState_error: switch (driver->error)
         {
+            case SDDriverError_card_likely_unmounted : return SDDoResult_card_likely_unmounted;
+            case SDDriverError_unsupported_card      : return SDDoResult_unsupported_card;
+            case SDDriverError_maybe_bus_problem     : return SDDoResult_maybe_bus_problem;
+            case SDDriverError_voltage_check_failed  : return SDDoResult_voltage_check_failed;
+            case SDDriverError_could_not_ready_card  : return SDDoResult_could_not_ready_card;
+            case SDDriverError_card_glitch           : return SDDoResult_card_glitch;
+            case SDDriverError_none                  : bug;
+            default                                  : bug;
+        } break;
 
-            case SDDriverState_active: switch (driver->task.state)
-            {
 
-                case SDTaskState_booked:
-                case SDTaskState_processing:
-                {
-                    NVIC_SET_PENDING(SDx); // Make sure the SD driver knows what it should be doing.
-                } break;
 
-                case SDTaskState_done:
-                {
+        case SDDriverState_disabled : bug;
+        default                     : bug;
 
-                    // Successfully executed the SD operation!
-
-                    _SD_profiler_end(operation);
-
-                    driver->task.state = SDTaskState_unscheduled;
-                    return SDDoResult_success;
-
-                } break;
-
-                case SDTaskState_error:
-                {
-
-                    // Something went wrong with the task!
-
-                    driver->task.state = SDTaskState_unscheduled;
-                    return SDDoResult_task_error;
-
-                } break;
-
-                case SDTaskState_unscheduled : bug;
-                default                      : bug;
-
-            } break;
-
-            case SDDriverState_error: switch (driver->error)
-            {
-                case SDDriverError_card_likely_unmounted : return SDDoResult_card_likely_unmounted;
-                case SDDriverError_unsupported_card      : return SDDoResult_unsupported_card;
-                case SDDriverError_maybe_bus_problem     : return SDDoResult_maybe_bus_problem;
-                case SDDriverError_voltage_check_failed  : return SDDoResult_voltage_check_failed;
-                case SDDriverError_could_not_ready_card  : return SDDoResult_could_not_ready_card;
-                case SDDriverError_card_glitch           : return SDDoResult_card_glitch;
-                case SDDriverError_none                  : bug;
-                default                                  : bug;
-            } break;
-
-            case SDDriverState_disabled : bug;
-            case SDDriverState_initer   : bug;
-            default                     : bug;
-
-        }
     }
 
 }
@@ -627,20 +677,20 @@ _SD_update_once(enum SDHandle handle)
 
 
 
-                case SDCmderUpdateResult_ready_for_next_command: switch (driver->task.state)
+                case SDCmderUpdateResult_ready_for_next_command: switch (driver->job.state)
                 {
 
-                    case SDTaskState_unscheduled:
-                    case SDTaskState_done:
-                    case SDTaskState_error:
+                    case SDDriverJobState_ready_for_user:
+                    case SDDriverJobState_success:
+                    case SDDriverJobState_encountered_issue:
                     {
                         return SDUpdateOnceResult_yield; // Nothing for the SD-cmder to do yet.
                     } break;
 
-                    case SDTaskState_booked: // There's an SD transfer we can start doing for the user.
+                    case SDDriverJobState_ready_to_be_processed: // There's an SD transfer we can start doing for the user.
                     {
 
-                        if (!driver->task.sector)
+                        if (!driver->job.sector)
                             bug; // No source/destination..?
 
 
@@ -649,17 +699,17 @@ _SD_update_once(enum SDHandle handle)
 
                         i32 total_blocks_to_transfer = {0};
 
-                        switch (driver->task.operation)
+                        switch (driver->job.operation)
                         {
 
-                           case SDOperation_single_read:
-                           case SDOperation_single_write:
+                           case SDDoJobOperation_single_read:
+                           case SDDoJobOperation_single_write:
                            {
                                total_blocks_to_transfer = 1;
                            } break;
 
-                           case SDOperation_multiple_read:
-                           case SDOperation_multiple_write:
+                           case SDDoJobOperation_multiple_read:
+                           case SDDoJobOperation_multiple_write:
                            {
                                total_blocks_to_transfer = 65535; // Arbitrary limit; should still work fine.
                            } break;
@@ -673,45 +723,45 @@ _SD_update_once(enum SDHandle handle)
                             (struct SDCmder)
                             {
                                 .state                    = SDCmderState_scheduled_command,
-                                .cmd                      = (enum SDCmd) driver->task.operation,
-                                .argument                 = driver->task.address,
+                                .cmd                      = (enum SDCmd) driver->job.operation,
+                                .argument                 = driver->job.address,
                                 .total_blocks_to_transfer = total_blocks_to_transfer,
-                                .bytes_per_block          = sizeof(*driver->task.sector),
-                                .data_block_pointer       = *driver->task.sector,
+                                .bytes_per_block          = sizeof(*driver->job.sector),
+                                .data_block_pointer       = *driver->job.sector,
                                 .rca                      = driver->initer.rca,
                             };
 
                         driver->consective_sector_transfer_count = 0;
 
-                        driver->task.state = SDTaskState_processing;
+                        driver->job.state = SDDriverJobState_processing;
 
                         return SDUpdateOnceResult_again;
 
                     } break;
 
-                    case SDTaskState_processing : bug;
-                    default                     : bug;
+                    case SDDriverJobState_processing : bug;
+                    default                          : bug;
 
                 } break;
 
 
 
-                case SDCmderUpdateResult_need_user_to_provide_next_data_block: switch (driver->task.state)
+                case SDCmderUpdateResult_need_user_to_provide_next_data_block: switch (driver->job.state)
                 {
 
 
 
                     // The SD-cmder is currently doing consecutive read/write
                     // transfer right now, and it just finished transferring
-                    // the sector of the current task that we were processing.
+                    // the sector of the current job that we were processing.
 
-                    case SDTaskState_processing:
+                    case SDDriverJobState_processing:
                     {
 
-                        if (driver->task.address != driver->cmder.argument + (u32) driver->consective_sector_transfer_count)
-                            bug; // SD-cmder's sector address not matching up with current task..?
+                        if (driver->job.address != driver->cmder.argument + (u32) driver->consective_sector_transfer_count)
+                            bug; // SD-cmder's sector address not matching up with current job..?
 
-                        driver->task.state                        = SDTaskState_done;
+                        driver->job.state                         = SDDriverJobState_success;
                         driver->consective_sector_transfer_count += 1;
                         return SDUpdateOnceResult_again;
 
@@ -721,23 +771,23 @@ _SD_update_once(enum SDHandle handle)
 
                     // The SD-cmder is currently doing consecutive read/write
                     // transfer right now, and it needs to be given the
-                    // source/destination for the next sector. There's no task available
+                    // source/destination for the next sector. There's no job available
                     // currently, however, so we'll have to wait until the user provides
-                    // us with a new task which will have that source/destination pointer.
+                    // us with a new job which will have that source/destination pointer.
 
-                    case SDTaskState_done:
-                    case SDTaskState_unscheduled:
+                    case SDDriverJobState_success:
+                    case SDDriverJobState_ready_for_user:
                     {
                         return SDUpdateOnceResult_yield;
                     } break;
 
 
 
-                    // There's a new task from the user; we'll see whether or not we should
+                    // There's a new job from the user; we'll see whether or not we should
                     // continue with the current SD command's data transfer. If so, it'll be
                     // a nice performance boost because we don't have to issue a new command.
 
-                    case SDTaskState_booked:
+                    case SDDriverJobState_ready_to_be_processed:
                     {
 
                         if
@@ -747,47 +797,47 @@ _SD_update_once(enum SDHandle handle)
                         )
                             bug; // Unexpected SD-cmder command...
 
-                        b32 should_process_task =
+                        b32 should_process_job =
                             (
-                                driver->task.address ==
+                                driver->job.address ==
                                 driver->cmder.argument + (u32) driver->consective_sector_transfer_count
                             );
 
-                        b32 should_stop_requesting = !should_process_task;
+                        b32 should_stop_requesting = !should_process_job;
 
-                        switch (driver->task.operation) // @/`SD Operations`.
+                        switch (driver->job.operation) // @/`SD Operations`.
                         {
 
-                            case SDOperation_single_read:
+                            case SDDoJobOperation_single_read:
                             {
-                                should_process_task    &= driver->cmder.cmd == SDCmd_READ_MULTIPLE_BLOCK;
+                                should_process_job     &= driver->cmder.cmd == SDCmd_READ_MULTIPLE_BLOCK;
                                 should_stop_requesting  = true;
                             } break;
 
-                            case SDOperation_single_write:
+                            case SDDoJobOperation_single_write:
                             {
-                                should_process_task    &= driver->cmder.cmd == SDCmd_WRITE_MULTIPLE_BLOCK;
+                                should_process_job     &= driver->cmder.cmd == SDCmd_WRITE_MULTIPLE_BLOCK;
                                 should_stop_requesting  = true;
                             } break;
 
-                            case SDOperation_multiple_read:
+                            case SDDoJobOperation_multiple_read:
                             {
-                                should_process_task &= driver->cmder.cmd == SDCmd_READ_MULTIPLE_BLOCK;
+                                should_process_job &= driver->cmder.cmd == SDCmd_READ_MULTIPLE_BLOCK;
                             } break;
 
-                            case SDOperation_multiple_write:
+                            case SDDoJobOperation_multiple_write:
                             {
-                                should_process_task &= driver->cmder.cmd == SDCmd_WRITE_MULTIPLE_BLOCK;
+                                should_process_job &= driver->cmder.cmd == SDCmd_WRITE_MULTIPLE_BLOCK;
                             } break;
 
                             default: bug;
 
                         }
 
-                        if (should_process_task)
+                        if (should_process_job)
                         {
-                            driver->cmder.data_block_pointer = *driver->task.sector;
-                            driver->task.state               = SDTaskState_processing;
+                            driver->cmder.data_block_pointer = *driver->job.sector;
+                            driver->job.state                = SDDriverJobState_processing;
                         }
 
                         driver->cmder.stop_requesting_for_data_blocks = should_stop_requesting;
@@ -798,37 +848,37 @@ _SD_update_once(enum SDHandle handle)
 
 
 
-                    case SDTaskState_error : bug;
-                    default                : bug;
+                    case SDDriverJobState_encountered_issue : bug;
+                    default                                 : bug;
 
                 } break;
 
 
 
-                case SDCmderUpdateResult_command_attempted: switch (driver->task.state)
+                case SDCmderUpdateResult_command_attempted: switch (driver->job.state)
                 {
 
 
 
-                    // The SD-cmder's data transfer ended while we were handling a task.
-                    // This could either be due to the fact that the task's sector was the
+                    // The SD-cmder's data transfer ended while we were handling a job.
+                    // This could either be due to the fact that the job's sector was the
                     // last one in the data transfer anyways, or because an error occured.
 
-                    case SDTaskState_processing: switch (driver->cmder.error)
+                    case SDDriverJobState_processing: switch (driver->cmder.error)
                     {
 
                         case SDCmderError_none:
                         {
 
-                            if (driver->task.address != driver->cmder.argument + (u32) driver->consective_sector_transfer_count)
-                                bug; // SD-cmder's sector address not matching up with current task..?
+                            if (driver->job.address != driver->cmder.argument + (u32) driver->consective_sector_transfer_count)
+                                bug; // SD-cmder's sector address not matching up with current job..?
 
 
 
-                            // The task's sector was indeed the last one in the data transfer;
+                            // The job's sector was indeed the last one in the data transfer;
                             // it just completed successfully is all.
 
-                            driver->task.state = SDTaskState_done;
+                            driver->job.state = SDDriverJobState_success;
                             return SDUpdateOnceResult_again;
 
                         } break;
@@ -837,7 +887,7 @@ _SD_update_once(enum SDHandle handle)
                         case SDCmderError_data_timeout:
                         case SDCmderError_bad_crc:
                         {
-                            driver->task.state = SDTaskState_error; // Something bad happened and the data transfer had to be aborted.
+                            driver->job.state = SDDriverJobState_encountered_issue; // Something bad happened and the data transfer had to be aborted.
                             return SDUpdateOnceResult_again;
                         } break;
 
@@ -847,19 +897,19 @@ _SD_update_once(enum SDHandle handle)
 
 
 
-                    case SDTaskState_booked: switch (driver->cmder.error)
+                    case SDDriverJobState_ready_to_be_processed: switch (driver->cmder.error)
                     {
 
                         case SDCmderError_none:
                         {
-                            return SDUpdateOnceResult_again; // The task will be handled on the next iteration.
+                            return SDUpdateOnceResult_again; // The job will be handled on the next iteration.
                         } break;
 
                         case SDCmderError_command_timeout:
                         case SDCmderError_data_timeout:
                         case SDCmderError_bad_crc:
                         {
-                            driver->task.state = SDTaskState_error; // Previous transfer couldn't conclude correctly for some reason.
+                            driver->job.state = SDDriverJobState_encountered_issue; // Previous transfer couldn't conclude correctly for some reason.
                             return SDUpdateOnceResult_again;
                         } break;
 
@@ -869,10 +919,10 @@ _SD_update_once(enum SDHandle handle)
 
 
 
-                    case SDTaskState_done        : bug;
-                    case SDTaskState_unscheduled : bug;
-                    case SDTaskState_error       : bug;
-                    default                      : bug;
+                    case SDDriverJobState_success           : bug;
+                    case SDDriverJobState_ready_for_user    : bug;
+                    case SDDriverJobState_encountered_issue : bug;
+                    default                                 : bug;
 
                 } break;
 
@@ -985,11 +1035,11 @@ _SD_driver_interrupt(enum SDHandle handle)
 // whether or not the user is wanting to do just a single read or write, or
 // if there's going to be many consecutive read/writes.
 //
-// If the user uses `SDOperation_single_read` or `SDOperation_single_write`,
+// If the user uses `SDDoJobOperation_single_read` or `SDDoJobOperation_single_write`,
 // this means the SD driver will issue a single sector read/write as quicky as
 // possible.
 //
-// If the user uses `SDOperation_multiple_read` or `SDOperation_multiple_write`,
+// If the user uses `SDDoJobOperation_multiple_read` or `SDDoJobOperation_multiple_write`,
 // the SD driver will set up a data transfer with the SD card to handle long a
 // chain of read/writes of consecutive addresses. However, this has a bit of
 // overhead, so it's only good when you know you're going to be  doing more than
@@ -997,7 +1047,7 @@ _SD_driver_interrupt(enum SDHandle handle)
 //
 // If the user knows a single sector is only going to be read/written to (and
 // furthermore know that the next sector is not likely to be next consecutive
-// one), they should favor `SDOperation_single_read`/`SDOperation_single_write`.
+// one), they should favor `SDDoJobOperation_single_read`/`SDDoJobOperation_single_write`.
 //
 // However, at the end of the day, these are only hints. They only impact the
 // performance of the driver, and not the correctness. Thus, all single-transfer

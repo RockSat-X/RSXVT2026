@@ -12,77 +12,66 @@
 
 
 
-static i32 count_successful            = 0; // TODO Metatize.
-static i32 count_task_error            = 0; // "
+static i32 count_success               = 0; // TODO Metatize.
+static i32 count_operation_error       = 0; // "
 static i32 count_card_likely_unmounted = 0; // "
 static i32 count_unsupported_card      = 0; // "
 static i32 count_maybe_bus_problem     = 0; // "
 static i32 count_voltage_check_failed  = 0; // "
 static i32 count_could_not_ready_card  = 0; // "
 static i32 count_card_glitch           = 0; // "
-static i32 count_bugs                  = 0; // "
+static i32 count_bug                   = 0; // "
 
 static useret b32
-try_doing_operation
-(
-    enum SDHandle    handle,
-    enum SDOperation operation,
-    Sector*          sector,
-    u32              address
-)
+try_doing_operation(struct SDDoJob job)
 {
 
-
-
-    // Do the operation.
-
-    enum SDDoResult do_result = SD_do(handle, operation, sector, address);
-
-
-
-    // Interpret the results.
-
-    switch (do_result)
+    while (true)
     {
 
-        case SDDoResult_success:
-        {
-            count_successful += 1;
-        } break;
+        enum SDDoResult do_result = SD_do(&job);
 
-        case SDDoResult_task_error:
+        switch (do_result)
         {
 
-            count_task_error += 1;
+            case SDDoResult_still_initializing:
+            {
+                // SD driver still initializing the SD card.
+            } break;
 
-            SD_reinit(SDHandle_primary);
+            case SDDoResult_working:
+            {
+                // The job is being handled...
+            } break;
 
-        } break;
+            case SDDoResult_success:
+            {
+                count_success += 1;
+                return true;
+            } break;
 
-        {
+            {
 
-            case SDDoResult_card_likely_unmounted : count_card_likely_unmounted += 1; goto SD_DRIVER_ERROR;
-            case SDDoResult_unsupported_card      : count_unsupported_card      += 1; goto SD_DRIVER_ERROR;
-            case SDDoResult_maybe_bus_problem     : count_maybe_bus_problem     += 1; goto SD_DRIVER_ERROR;
-            case SDDoResult_voltage_check_failed  : count_voltage_check_failed  += 1; goto SD_DRIVER_ERROR;
-            case SDDoResult_could_not_ready_card  : count_could_not_ready_card  += 1; goto SD_DRIVER_ERROR;
-            case SDDoResult_card_glitch           : count_card_glitch           += 1; goto SD_DRIVER_ERROR;
-            SD_DRIVER_ERROR:
+                case SDDoResult_operation_error       : count_operation_error       += 1; goto SD_ERROR;
+                case SDDoResult_card_likely_unmounted : count_card_likely_unmounted += 1; goto SD_ERROR;
+                case SDDoResult_unsupported_card      : count_unsupported_card      += 1; goto SD_ERROR;
+                case SDDoResult_maybe_bus_problem     : count_maybe_bus_problem     += 1; goto SD_ERROR;
+                case SDDoResult_voltage_check_failed  : count_voltage_check_failed  += 1; goto SD_ERROR;
+                case SDDoResult_could_not_ready_card  : count_could_not_ready_card  += 1; goto SD_ERROR;
+                case SDDoResult_card_glitch           : count_card_glitch           += 1; goto SD_ERROR;
+                case SDDoResult_bug                   : count_bug                   += 1; goto SD_ERROR;
+                default                               : count_bug                   += 1; goto SD_ERROR;
+                SD_ERROR:
 
-            SD_reinit(SDHandle_primary);
+                SD_reinit(SDHandle_primary);
 
-        } break;
+                return false;
 
-        case SDDoResult_bug:
-        default:
-        {
-            count_bugs += 1;
-            SD_reinit(SDHandle_primary);
-        } break;
+            } break;
+
+        }
 
     }
-
-    return do_result == SDDoResult_success;
 
 }
 
@@ -92,24 +81,24 @@ print_stats(void)
 
     stlink_tx
     (
-        "count_successful            : %d" "\n"
-        "count_task_error            : %d" "\n"
+        "count_success               : %d" "\n"
+        "count_operation_error       : %d" "\n"
         "count_card_likely_unmounted : %d" "\n"
         "count_unsupported_card      : %d" "\n"
         "count_maybe_bus_problem     : %d" "\n"
         "count_voltage_check_failed  : %d" "\n"
         "count_could_not_ready_card  : %d" "\n"
         "count_card_glitch           : %d" "\n"
-        "count_bugs                  : %d" "\n",
-        count_successful,
-        count_task_error,
+        "count_bug                   : %d" "\n",
+        count_success,
+        count_operation_error,
         count_card_likely_unmounted,
         count_unsupported_card,
         count_maybe_bus_problem,
         count_voltage_check_failed,
         count_could_not_ready_card,
         count_card_glitch,
-        count_bugs
+        count_bug
     );
 
     SD_profiler_report();
@@ -183,10 +172,13 @@ main(void)
                 b32 success =
                     try_doing_operation
                     (
-                        SDHandle_primary,
-                        SDOperation_multiple_read,
-                        &sector,
-                        address
+                        (struct SDDoJob)
+                        {
+                            .handle    = SDHandle_primary,
+                            .operation = SDDoJobOperation_multiple_read,
+                            .sector    = &sector,
+                            .address   = address
+                        }
                     );
 
                 stlink_tx("\n[0x%08X]\n", address);
@@ -258,10 +250,13 @@ main(void)
                     b32 success =
                         try_doing_operation
                         (
-                            SDHandle_primary,
-                            SDOperation_single_read,
-                            &sector,
-                            address
+                            (struct SDDoJob)
+                            {
+                                .handle    = SDHandle_primary,
+                                .operation = SDDoJobOperation_single_read,
+                                .sector    = &sector,
+                                .address   = address
+                            }
                         );
 
                     if (!success)
@@ -293,10 +288,13 @@ main(void)
                     b32 success =
                         try_doing_operation
                         (
-                            SDHandle_primary,
-                            SDOperation_multiple_write,
-                            &sector,
-                            address + sector_index
+                            (struct SDDoJob)
+                            {
+                                .handle    = SDHandle_primary,
+                                .operation = SDDoJobOperation_multiple_write,
+                                .sector    = &sector,
+                                .address   = address + sector_index
+                            }
                         );
 
                     if (!success)
@@ -318,10 +316,13 @@ main(void)
                     b32 success =
                         try_doing_operation
                         (
-                            SDHandle_primary,
-                            SDOperation_multiple_read,
-                            &sector,
-                            address + sector_index
+                            (struct SDDoJob)
+                            {
+                                .handle    = SDHandle_primary,
+                                .operation = SDDoJobOperation_multiple_read,
+                                .sector    = &sector,
+                                .address   = address + sector_index
+                            }
                         );
 
                     if (!success)
