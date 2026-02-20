@@ -664,34 +664,20 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
 
 
-
         ////////////////////////////////////////
         //
-        // Wait for the card to no longer signal that it's busy.
+        // Wait for the card to no longer signal that it's busy from the user's command.
         //
         ////////////////////////////////////////
 
-        case SDCmderState_outwaiting_busy_signal_for_user_command      :
-        case SDCmderState_outwaiting_busy_signal_for_stop_transmission : switch (interrupt_event)
+        case SDCmderState_outwaiting_busy_signal_for_user_command: switch (interrupt_event)
         {
-
-
 
             case SDMMCInterruptEvent_none:
             {
                 if (CMSIS_GET(SDMMC, STA, BUSYD0))
                 {
                     return SDCmderIterateResult_yield; // Still busy...
-                }
-                else if (cmder->state == SDCmderState_outwaiting_busy_signal_for_stop_transmission) // Stopping data transfer?
-                {
-
-                    if (CMSIS_GET(SDMMC, STA, DPSMACT))
-                        bug; // Data-path state-machine should've been disabled by now.
-
-                    cmder->state = SDCmderState_ready_for_next_command;
-                    return SDCmderIterateResult_command_attempted;
-
                 }
                 else if (cmder->total_blocks_to_transfer) // Now move onto receiving/transmitting data-blocks?
                 {
@@ -704,8 +690,6 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                     return SDCmderIterateResult_command_attempted;
                 }
             } break;
-
-
 
             case SDMMCInterruptEvent_command_sent_with_no_response_expected : bug;
             case SDMMCInterruptEvent_command_sent_with_good_response        : bug;
@@ -981,6 +965,70 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
 
             case SDMMCInterruptEvent_command_sent_with_no_response_expected : bug;
+            case SDMMCInterruptEvent_completed_transfer                     : bug;
+            case SDMMCInterruptEvent_data_timeout                           : bug;
+            case SDMMCInterruptEvent_data_with_bad_crc                      : bug;
+            default                                                         : bug;
+
+        } break;
+
+
+
+
+        ////////////////////////////////////////
+        //
+        // Wait for the card to no longer signal that it's busy from STOP_TRANSMISSION.
+        //
+        ////////////////////////////////////////
+
+        case SDCmderState_outwaiting_busy_signal_for_stop_transmission: switch (interrupt_event)
+        {
+
+
+
+            case SDMMCInterruptEvent_none:
+            {
+
+                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, CPSMACT))
+                    bug; // Command-path state-machine shouldn't still be enabled...
+
+                if (CMSIS_GET(SDMMC, STA, BUSYD0))
+                {
+                    return SDCmderIterateResult_yield; // Still busy...
+                }
+                else if (CMSIS_GET(SDMMC, STA, DPSMACT))
+                {
+                    return SDCmderIterateResult_yield; // Still waiting for the DPSM to be turned off...
+                }
+                else // We successfully sent STOP_TRANSMISSION!
+                {
+                    cmder->state = SDCmderState_ready_for_next_command;
+                    return SDCmderIterateResult_command_attempted;
+                }
+
+            } break;
+
+
+
+            case SDMMCInterruptEvent_cmd12_aborted_data_transfer:
+            {
+
+                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, CPSMACT))
+                    bug; // Command-path state-machine shouldn't still be enabled...
+
+                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT))
+                    bug; // Data-path state-machine should've been disabled by now.
+
+                return SDCmderIterateResult_again;
+
+            } break;
+
+
+
+            case SDMMCInterruptEvent_command_sent_with_no_response_expected : bug;
+            case SDMMCInterruptEvent_command_sent_with_good_response        : bug;
+            case SDMMCInterruptEvent_command_timeout                        : bug;
+            case SDMMCInterruptEvent_command_with_bad_crc                   : bug;
             case SDMMCInterruptEvent_completed_transfer                     : bug;
             case SDMMCInterruptEvent_data_timeout                           : bug;
             case SDMMCInterruptEvent_data_with_bad_crc                      : bug;
