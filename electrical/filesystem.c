@@ -1,45 +1,36 @@
-#define FFCONF_DEF         80386
-#define FF_FS_READONLY     0
-#define FF_FS_MINIMIZE     0
-#define FF_USE_FIND        0
-#define FF_USE_MKFS        1
-#define FF_USE_FASTSEEK    0
-#define FF_USE_EXPAND      0
-#define FF_USE_CHMOD       0
-#define FF_USE_LABEL       0
-#define FF_USE_FORWARD     0
-#define FF_USE_STRFUNC     0
-#define FF_PRINT_LLI       0
-#define FF_PRINT_FLOAT     0
-#define FF_STRF_ENCODE     0
-#define FF_CODE_PAGE       932
-#define FF_USE_LFN         0
-#define FF_MAX_LFN         255
-#define FF_LFN_UNICODE     0
-#define FF_LFN_BUF         255
-#define FF_SFN_BUF         12
-#define FF_FS_RPATH        0
-#define FF_PATH_DEPTH      10
-#define FF_VOLUMES         1
-#define FF_STR_VOLUME_ID   0
-#define FF_VOLUME_STRS     "RAM","NAND","CF","SD","SD2","USB","USB2","USB3"
-#define FF_MULTI_PARTITION 0
-#define FF_MIN_SS          512
-#define FF_MAX_SS          512
-#define FF_LBA64           0
-#define FF_MIN_GPT         0x10000000
-#define FF_USE_TRIM        0
-#define FF_FS_TINY         0
-#define FF_FS_EXFAT        0
-#define FF_FS_NORTC        1
-#define FF_NORTC_MON       1
-#define FF_NORTC_MDAY      1
-#define FF_NORTC_YEAR      2025
-#define FF_FS_CRTIME       0
-#define FF_FS_NOFSINFO     0
-#define FF_FS_LOCK         0
-#define FF_FS_REENTRANT    0
-#define FF_FS_TIMEOUT      1000
+#define FFCONF_DEF         80386 // Current FatFs revision we're using.
+#define FF_FS_READONLY     false // Allow the file-system to be mutated.
+#define FF_FS_MINIMIZE     0     // "0: Basic functions are fully enabled."
+#define FF_USE_FIND        false // For `f_findfirst` and `f_findnext`.
+#define FF_USE_MKFS        true  // For `f_mkfs`.
+#define FF_USE_EXPAND      false // For `f_expand`.
+#define FF_USE_CHMOD       false // For `f_chmod`.
+#define FF_USE_LABEL       false // For `f_getlabel` and `f_setlabel`.
+#define FF_USE_FORWARD     false // For `f_forward`.
+#define FF_USE_STRFUNC     false // For `f_gets`, `f_putc`, `f_puts`, and `f_printf`.
+#define FF_USE_FASTSEEK    false // Whether or not to implement the fast-seek optimization.
+#define FF_USE_LFN         false // For long-file-name support.
+#define FF_CODE_PAGE       437   // Set OEM code page to U.S (437).
+#define FF_FS_RPATH        0     // For relative path features (`f_chdir`, `f_chdrive`, and `f_getcwd`).
+#define FF_VOLUMES         1     // We currently only support mounting one file-system.
+#define FF_STR_VOLUME_ID   false // For representing volume IDs as arbitrary strings.
+#define FF_MULTI_PARTITION false // For supporting multiple volumes on the physical drive.
+#define FF_MIN_SS          512   // Minimum sector size in bytes.
+#define FF_MAX_SS          512   // Maximum sector size in bytes.
+#define FF_LBA64           false // For representing sector addresses as 64-bit integers.
+#define FF_USE_TRIM        false // For supporting ATA-TRIM.
+#define FF_FS_TINY         false // Whether or not file objects should share a common sector buffer.
+#define FF_FS_EXFAT        false // Whether or not to use ExFAT.
+#define FF_FS_NORTC        true  // Whether or not real-time-clock is unavailable.
+#define FF_NORTC_MON       3     // " Default month.
+#define FF_NORTC_MDAY      15    // " Default day.
+#define FF_NORTC_YEAR      2005  // " Default year.
+#define FF_FS_CRTIME       false // For having file creation time be included in FILINFO.
+#define FF_FS_NOFSINFO     0b00  // Settings on how we should trust the FSINFO data concerning cluster allocation.
+#define FF_FS_LOCK         false // Whether or not locks should be implemented to ensure consistent file operations.
+#define FF_FS_REENTRANT    false // Whether or not FatFs should consider reentrancy of common file operations.
+
+static_assert(FF_MIN_SS == FF_MAX_SS && FF_MIN_SS == sizeof(Sector));
 
 
 
@@ -275,13 +266,6 @@ disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
 
 
 
-        case GET_SECTOR_SIZE:
-        {
-            sorry
-        } break;
-
-
-
         // "Retrieves erase block size in unit of sector of the flash memory media into
         // the DWORD variable that pointed by buff. The allowable value is 1 to 32768 in power of 2.
         // Return 1 if it is unknown or in non-flash memory media. This command is used by f_mkfs
@@ -302,9 +286,12 @@ disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
 
 
 
-        case CTRL_TRIM:
+        case GET_SECTOR_SIZE: // When the size of the medium's sector can vary, which we don't support.
+        case CTRL_TRIM:       // Stuff for ATA-TRIM, which we don't support.
         {
-            sorry
+            static_assert(FF_MAX_SS == FF_MIN_SS); // @/url:`elm-chan.org/fsw/ff/doc/appnote.html`.
+            static_assert(FF_USE_TRIM != 1      ); // "
+            return RES_PARERR;
         } break;
 
 
@@ -313,104 +300,6 @@ disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
         {
             return RES_PARERR; // "The command code or parameter is invalid."
         } break;
-
-    }
-
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-struct f_PrintfCallbackContext
-{
-    FIL*    fp;
-    FRESULT result;
-};
-
-static void
-f_printf_callback(char character, void* void_context)
-{
-
-    struct f_PrintfCallbackContext* context = void_context;
-
-    if (context->result == FR_OK)
-    {
-
-        // "If the return value is equal to btw, the function return code should be FR_OK."
-        //
-        // That is, if `f_write` for some reason wrote less than it should,
-        // this implies an error condition in the `FRESULT` return value.
-        //
-        // @/url:`elm-chan.org/fsw/ff/doc/write.html`.
-
-        UINT bytes_written = {0};
-
-        context->result =
-            f_write
-            (
-                context->fp,
-                &character,
-                sizeof(character),
-                &bytes_written
-            );
-
-    }
-    else
-    {
-        // An error condition has happened;
-        // no longer trying to do any writes.
-    }
-
-}
-
-extern int __attribute__((format(printf, 2, 3)))
-f_printf(FIL* fp, const TCHAR* fmt, ...)
-{
-
-    va_list arguments = {0};
-    va_start(arguments);
-
-    struct f_PrintfCallbackContext context =
-        {
-            .fp     = fp,
-            .result = FR_OK,
-        };
-
-    int formatting_result =
-        vfctprintf
-        (
-            &f_printf_callback,
-            &context,
-            fmt,
-            arguments
-        );
-
-    va_end(arguments);
-
-    if (context.result == FR_OK)
-    {
-
-        // "When the string was written successfuly,
-        // it returns number of character encoding units written to the file."
-        //
-        // If `vfctprintf` itself failed, it would've returned a negative number.
-        //
-        // @/url:`elm-chan.org/fsw/ff/doc/printf.html`.
-
-        return formatting_result;
-
-    }
-    else
-    {
-
-        // "When the function failed due to disk full or an error,
-        // a negative value will be returned."
-        // @/url:`elm-chan.org/fsw/ff/doc/printf.html`.
-
-        return -1;
 
     }
 

@@ -434,8 +434,15 @@ main(void)
 
             if (fr != FR_OK) panic;
 
-            /* Append a line */
-            f_printf(&fil, "%02u/%02u/%u, %2u:%02u\n", 1, 2, 3, 4, 5);
+            u8 data[] = "what's up?";
+            fr =
+                f_write
+                (
+                  &fil,
+                  data,
+                  sizeof(data),
+                  &(UINT) {0}
+                );
 
             /* Close the file */
             f_close(&fil);
