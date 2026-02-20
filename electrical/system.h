@@ -26,7 +26,6 @@
 
 
 
-
 #define false                   0
 #define true                    1
 #define STRINGIFY_(X)           #X
@@ -556,6 +555,7 @@ halt_(b32 panicking) // @/`Halting`.
         driver_type,
         cmsis_name,
         common_name,
+        expansions,
         terms,
     ):
 
@@ -736,8 +736,12 @@ halt_(b32 panicking) // @/`Halting`.
             Meta.line(f'''
                 if (!(0 <= handle && handle < {driver_type}Handle_COUNT))
                     panic;
-                auto const driver = &_{driver_type.upper()}_drivers[handle];
             ''')
+
+            for identifier, value in expansions:
+                Meta.line(f'''
+                    auto const {identifier} = {value};
+                ''')
 
             for field_identifier in lookup_table_fields:
 
@@ -746,6 +750,17 @@ halt_(b32 panicking) // @/`Halting`.
                 ''')
 
 */
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// Ring-buffers.
+//
+
+
+
+#include "ringbuffer.c"
 
 
 
@@ -883,7 +898,9 @@ ESP32_calculate_crc(u8* data, i32 length)
 
         if (state != RADIOLIB_ERR_NONE)
         {
-            Serial.println("Failed to initialize radio");
+            Serial.printf("Failed to initialize radio.\n");
+            ESP.restart();
+            return;
         }
 
         //915 MHz Center Frequency
