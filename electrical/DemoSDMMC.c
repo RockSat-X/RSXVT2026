@@ -1,5 +1,5 @@
 #define SD_PROFILER_ENABLE true
-#define DEMO_MODE          1 // See below for different kinds of tests.
+#define DEMO_MODE          2 // See below for different kinds of tests.
 
 #include "system.h"
 #include "uxart.c"
@@ -415,6 +415,9 @@ main(void)
             FRESULT fr;
             FATFS   fs;
             FIL     fil;
+
+            fr = f_mkfs("", NULL, (Sector) {0}, sizeof(Sector));
+            if (fr != FR_OK) panic;
 
             /* Open or create a log file and ready to append */
             f_mount(&fs, "", 0);
