@@ -175,9 +175,10 @@ main(void)
                         (struct SDDoJob)
                         {
                             .handle    = SDHandle_primary,
-                            .operation = SDDoJobOperation_multiple_read,
+                            .operation = SDDoJobOperation_consecutive_read,
                             .sector    = &sector,
-                            .address   = address
+                            .address   = address,
+                            .count     = 1,
                         }
                     );
 
@@ -224,6 +225,8 @@ main(void)
         case 1:
         {
 
+            static Sector cluster_buffer[64] = {0};
+
             for (u32 address = 0;; address += 1)
             {
 
@@ -253,9 +256,10 @@ main(void)
                             (struct SDDoJob)
                             {
                                 .handle    = SDHandle_primary,
-                                .operation = SDDoJobOperation_single_read,
+                                .operation = SDDoJobOperation_random_read,
                                 .sector    = &sector,
-                                .address   = address
+                                .address   = address,
+                                .count     = 1,
                             }
                         );
 
@@ -275,31 +279,49 @@ main(void)
 
                 // Fill out bunch of sectors with data we can predict.
 
-                for (u32 sector_index = 0; sector_index < amount_of_sectors_to_test; sector_index += 1)
                 {
 
-                    Sector sector = {0};
-
-                    for (u32 byte_index = 0; byte_index < countof(sector); byte_index += 1)
+                    for
+                    (
+                        i32 cluster_index = 0;
+                        cluster_index < (i32) (amount_of_sectors_to_test + countof(cluster_buffer) - 1) / countof(cluster_buffer);
+                        cluster_index += 1
+                    )
                     {
-                        sector[byte_index] += (u8) (counter * (sector_index + 1) + byte_index);
-                    }
 
-                    b32 success =
-                        try_doing_operation
-                        (
-                            (struct SDDoJob)
+                        i32 sectors_in_cluster = (i32) amount_of_sectors_to_test - cluster_index * countof(cluster_buffer);
+
+                        if (sectors_in_cluster > countof(cluster_buffer))
+                        {
+                            sectors_in_cluster = countof(cluster_buffer);
+                        }
+
+                        for (i32 sector_index = 0; sector_index < sectors_in_cluster; sector_index += 1)
+                        {
+                            for (i32 byte_index = 0; byte_index < countof(cluster_buffer[sector_index]); byte_index += 1)
                             {
-                                .handle    = SDHandle_primary,
-                                .operation = SDDoJobOperation_multiple_write,
-                                .sector    = &sector,
-                                .address   = address + sector_index
+                                cluster_buffer[sector_index][byte_index] = (u8) (counter + (cluster_index * countof(cluster_buffer) + sector_index) * 3 + byte_index);
                             }
-                        );
+                        }
 
-                    if (!success)
-                    {
-                        goto STRESS_FAILED;
+                        b32 success =
+                            try_doing_operation
+                            (
+                                (struct SDDoJob)
+                                {
+                                    .handle    = SDHandle_primary,
+                                    .operation = SDDoJobOperation_consecutive_write,
+                                    .sector    = (Sector*) { cluster_buffer },
+                                    .address   = address + (u32) cluster_index * countof(cluster_buffer),
+                                    .count     = sectors_in_cluster,
+                                }
+                            );
+
+                        if (!success)
+                        {
+                            goto STRESS_FAILED;
+                        }
+
                     }
 
                 }
@@ -308,32 +330,54 @@ main(void)
 
                 // Read in the sectors with data we should be expecting.
 
-                for (u32 sector_index = 0; sector_index < amount_of_sectors_to_test; sector_index += 1)
                 {
 
-                    Sector sector = {0};
+                    for
+                    (
+                        i32 cluster_index = 0;
+                        cluster_index < (i32) (amount_of_sectors_to_test + countof(cluster_buffer) - 1) / countof(cluster_buffer);
+                        cluster_index += 1
+                    )
+                    {
 
-                    b32 success =
-                        try_doing_operation
-                        (
-                            (struct SDDoJob)
+                        i32 sectors_in_cluster = (i32) amount_of_sectors_to_test - cluster_index * countof(cluster_buffer);
+
+                        if (sectors_in_cluster > countof(cluster_buffer))
+                        {
+                            sectors_in_cluster = countof(cluster_buffer);
+                        }
+
+                        b32 success =
+                            try_doing_operation
+                            (
+                                (struct SDDoJob)
+                                {
+                                    .handle    = SDHandle_primary,
+                                    .operation = SDDoJobOperation_consecutive_read,
+                                    .sector    = (Sector*) { cluster_buffer },
+                                    .address   = address + (u32) cluster_index * countof(cluster_buffer),
+                                    .count     = sectors_in_cluster,
+                                }
+                            );
+
+                        if (!success)
+                        {
+                            goto STRESS_FAILED;
+                        }
+
+                        for (i32 sector_index = 0; sector_index < sectors_in_cluster; sector_index += 1)
+                        {
+                            for (i32 byte_index = 0; byte_index < countof(cluster_buffer[sector_index]); byte_index += 1)
                             {
-                                .handle    = SDHandle_primary,
-                                .operation = SDDoJobOperation_multiple_read,
-                                .sector    = &sector,
-                                .address   = address + sector_index
+
+                                u8 byte = cluster_buffer[sector_index][byte_index];
+
+                                if (byte != (u8) (counter + (cluster_index * countof(cluster_buffer) + sector_index) * 3 + byte_index))
+                                    panic;
+
                             }
-                        );
+                        }
 
-                    if (!success)
-                    {
-                        goto STRESS_FAILED;
-                    }
-
-                    for (u32 byte_index = 0; byte_index < countof(sector); byte_index += 1)
-                    {
-                        if (sector[byte_index] != (u8) (counter * (sector_index + 1) + byte_index))
-                            panic;
                     }
 
                 }

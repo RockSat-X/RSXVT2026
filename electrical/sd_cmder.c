@@ -42,6 +42,7 @@ struct SDCmder // @/`Scheduling a Command with SD-Cmder`.
         i32               total_blocks_to_transfer;
         i32               bytes_per_block;
         u8*               data_block_pointer;
+        i32               data_block_count;
         b32               stop_requesting_for_data_blocks;
         u16               rca;
     };
@@ -63,17 +64,32 @@ static void
 _SDCmder_set_up_data_path_state_machine(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder, b32 enable)
 {
 
+    if (CMSIS_GET(SDMMC, STA, CPSMACT))
+        bug; // The command-path state-machine isn't expected to be active.
+
+    if (CMSIS_GET(SDMMC, STA, DPSMACT))
+        bug; // The DPSM must be inactive in order to be configured.
+
     if (cmder->total_blocks_to_transfer <= 0)
         bug; // Can't be transferring nothing!
-
-    if (cmder->blocks_processed_so_far >= cmder->total_blocks_to_transfer)
-        bug; // Transferring more data-blocks than expected...
 
     if (cmder->bytes_per_block == 0)
         bug; // Avoid undefined behavior with `__builtin_ctz`.
 
+    if (!cmder->data_block_pointer)
+        bug; // No source/destination given...
+
+    if ((u32) cmder->data_block_pointer % sizeof(u32))
+        bug; // Unaligned source/destination addresss...
+
+    if (cmder->data_block_count <= 0)
+        bug; // Non-sensical amount of data-blocks given/expected...
+
+    if (cmder->blocks_processed_so_far + cmder->data_block_count > cmder->total_blocks_to_transfer)
+        bug; // Transferring more data-blocks than expected...
+
     i32 bytes_per_block_pow2 = __builtin_ctz((u32) cmder->bytes_per_block); // Get size of the data-block.
-    i32 data_length          = cmder->total_blocks_to_transfer * cmder->bytes_per_block;
+    i32 data_length          = cmder->data_block_count * cmder->bytes_per_block;
 
     if (!IS_POWER_OF_TWO(cmder->bytes_per_block) || bytes_per_block_pow2 > 14)
         bug; // Must be a power of two no greater than 2^14 = 16384 bytes.
@@ -87,21 +103,13 @@ _SDCmder_set_up_data_path_state_machine(SDMMC_TypeDef* SDMMC, struct SDCmder* cm
     if (data_length <= 0)
         bug; // Can't transfer no data...
 
-    if (CMSIS_GET(SDMMC, STA, CPSMACT))
-        bug; // The command-path state-machine isn't expected to be active.
-
-    if (CMSIS_GET(SDMMC, STA, DPSMACT))
-        bug; // The DPSM must be inactive in order to be configured.
-
-    if ((u32) cmder->data_block_pointer % sizeof(u32))
-        bug; // Unaligned source/destination addresss...
 
 
-
-    // We'll just transfer a single data-block; to transfer more data
-    // than that, we'll re-enable the DPSM multiple times as needed.
-
-    CMSIS_SET(SDMMC, DLEN, DATALENGTH, cmder->bytes_per_block);
+    CMSIS_SET
+    (
+        SDMMC     , DLEN       ,
+        DATALENGTH, data_length, // Amount of bytes to transfer.
+    );
 
     CMSIS_SET
     (
@@ -734,6 +742,9 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 if (!cmder->data_block_pointer)
                     bug; // Missing source/destination..?
 
+                if (cmder->data_block_count <= 0)
+                    bug; // Non-sensical transfer amount..?
+
                 return SDCmderIterateResult_yield;
 
             } break;
@@ -752,12 +763,19 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 if (CMSIS_GET(SDMMC, STA, DPSMACT))
                     bug; // Data-path state-machine should've been done by now.
 
+                if (!cmder->data_block_pointer)
+                    bug; // Missing source/destination..?
+
+                if (cmder->data_block_count <= 0)
+                    bug; // Non-sensical transfer amount..?
+
 
 
                 // The IDMA finished transferring the data-block.
 
-                cmder->blocks_processed_so_far += 1;
+                cmder->blocks_processed_so_far += cmder->data_block_count;
                 cmder->data_block_pointer       = nullptr;
+                cmder->data_block_count         = 0;
 
 
 
@@ -847,6 +865,9 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
                 if (CMSIS_GET(SDMMC, STA, DPSMACT))
                     bug; // Data-path state-machine should've been done by now.
+
+                if (!iff(cmder->data_block_pointer, cmder->data_block_count >= 1))
+                    bug; // If a data-block pointer is given, there must be a valid amount (and vice-versa).
 
 
 
@@ -1084,26 +1105,28 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 // which SD command to execute and the 32-bit argument that
 // goes along with it.
 //
-// If there's a data transfer associated with the command,
-// then `.total_blocks_to_transfer` should be non-zero and
-// `.bytes_per_block` to a supported size. The `.data_block_pointer`
-// field can be provided immediately by the user; if it's null,
-// then the SD-cmder will request the user to update the `.data_block_pointer`
-// with a non-null pointer for it to write/read the data to/from.
+// If there is a data-transfer associated with the command,
+// then `.total_blocks_to_transfer` should be set to some positive integer.
+// The size of each data-block in the data-transfer is determined
+// by `.bytes_per_block`.
 //
-// If the data transfer consists of multiple data-blocks (i.e.
-// `.total_blocks_to_transfer` is greater than one), then the `.data_block_pointer`
-// field will be set to null once SD-cmder is done with read/writing to it,
-// to which the SD-cmder will then request the user to update `.data_block_pointer`
-// with the next source/destination for SD-cmder to write/read to/from.
+// The user should immediately provide `.data_block_pointer` so that
+// SD-cmder knows the source/destination of the data. The user should
+// also set `.data_block_count` to some positive integer to indicate
+// the amount of data-blocks as pointed by `.data_block_pointer`.
 //
-// To allow for data transfers of "arbitrary" amount of data-blocks,
-// the user can set `.total_blocks_to_transfer` to the maximum supported
-// value and then use `.stop_requesting_for_data_blocks` to indicate no
-// more data-blocks should be requested from the user and that the command
-// can be wrapped up now. Note that there is an upper limit to the amount
-// of data-blocks that can be transferred due to how the SDMMC peripheral
-// works, so this should be accounted for by the user.
+// If the initial value of `.data_block_count` is less than
+// `.total_blocks_to_transfer`, then after some time, SD-cmder will
+// request the user to update the `.data_block_pointer` and `.data_block_count`
+// with a new source/destination and length. This repeats until all data-blocks
+// are finally transferred, or if the user wants to end the data-transfer early,
+// then they should set `.stop_requesting_for_data_blocks` to `true`.
+//
+// So for the best performance, `.data_block_count` should be
+// as large as possible so that SDMMC's IDMA can automatically
+// transfer as much data in one go without bothering the CPU so often.
+// Obviously, this comes at the trade-off of requiring the user to have
+// a large buffer reserved for `.data_block_pointer`.
 //
 // The `.rca` field should also be filled with the SD card's
 // relative card address; this is needed for ACMDs where they're
