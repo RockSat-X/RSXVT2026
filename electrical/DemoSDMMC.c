@@ -407,51 +407,120 @@ main(void)
         ////////////////////////////////////////////////////////////////////////////////
         //
         // Test the file-system.
+        // Data on the SD card will be overwritten.
         //
 
         case 2:
         {
 
-            FRESULT fr;
-            FATFS   fs;
-            FIL     fil;
+            FRESULT fatfs_error = {0};
 
-            fr = f_mkfs("", NULL, (Sector) {0}, sizeof(Sector));
-            if (fr != FR_OK) panic;
 
-            /* Open or create a log file and ready to append */
-            f_mount(&fs, "", 0);
-            {
-                /* Opens an existing file. If not exist, creates a new file. */
-                fr = f_open(&fil, "logfile.txt", FA_WRITE | FA_OPEN_ALWAYS);
-                if (fr == FR_OK) {
-                    /* Seek to end of the file to append data */
-                    fr = f_lseek(&fil, f_size(&fil));
-                    if (fr != FR_OK)
-                        f_close(&fil);
-                }
-            }
 
-            if (fr != FR_OK) panic;
+            // Format the SD card with the default file-system.
 
-            u8 data[] = "what's up?";
-            fr =
-                f_write
+            fatfs_error =
+                f_mkfs
                 (
-                  &fil,
-                  data,
-                  sizeof(data),
-                  &(UINT) {0}
+                    "",
+                    nullptr,
+                    (Sector) {0},
+                    sizeof(Sector)
                 );
 
-            /* Close the file */
-            f_close(&fil);
+            if (fatfs_error)
+                panic;
+
+
+
+            // Mount the file-system.
+
+            FATFS fatfs_system_handle = {0};
+
+            fatfs_error =
+                f_mount
+                (
+                    &fatfs_system_handle,
+                    "", // "The string without drive number means the default drive."
+                    1   // "1: Force mounted the volume to check if it is ready to work."
+                );
+
+            if (fatfs_error)
+                panic;
+
+
+
+            // Create a file.
+
+            FIL fatfs_file_handle = {0};
+
+            fatfs_error =
+                f_open
+                (
+                    &fatfs_file_handle,
+                    "logfile.txt",
+                    FA_WRITE | FA_OPEN_ALWAYS
+                );
+
+            if (fatfs_error)
+                panic;
+
+
+
+            // Go to the end of the file.
+
+            fatfs_error =
+                f_lseek
+                (
+                    &fatfs_file_handle,
+                    f_size(&fatfs_file_handle)
+                );
+
+            if (fatfs_error)
+                panic;
+
+
+
+            // Write some data.
+
+            u8   data[]        = "what's up?";
+            UINT bytes_written = {0};
+
+            fatfs_error =
+                f_write
+                (
+                  &fatfs_file_handle,
+                  data,
+                  sizeof(data),
+                  &bytes_written
+                );
+
+            if (fatfs_error)
+                panic;
+
+            if (bytes_written != sizeof(data))
+                panic;
+
+
+
+            // Release the file.
+
+            fatfs_error = f_close(&fatfs_file_handle);
+
+            if (fatfs_error)
+                panic;
+
+
+
+            // Done.
 
             for (;;)
             {
                 GPIO_TOGGLE(led_green);
                 spinlock_nop(100'000'000);
             }
+
+
 
         } break;
 
