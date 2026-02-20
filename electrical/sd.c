@@ -177,13 +177,13 @@ static struct SDDriver _SD_drivers[SDHandle_COUNT] = {0};
 
         if (writing)
         {
-            _SD_profiler.amount_of_bytes_successfully_read += sizeof(Sector) * count;
-            _SD_profiler.amount_of_time_reading_us         += elapsed_us;
+            _SD_profiler.amount_of_bytes_successfully_written += sizeof(Sector) * count;
+            _SD_profiler.amount_of_time_writing_us            += elapsed_us;
         }
         else
         {
-            _SD_profiler.amount_of_bytes_successfully_written += sizeof(Sector) * count;
-            _SD_profiler.amount_of_time_writing_us            += elapsed_us;
+            _SD_profiler.amount_of_bytes_successfully_read += sizeof(Sector) * count;
+            _SD_profiler.amount_of_time_reading_us         += elapsed_us;
         }
 
     }
