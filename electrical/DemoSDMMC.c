@@ -1,4 +1,5 @@
 #define SD_PROFILER_ENABLE true
+#define DEMO_MODE          1 // See below for different kinds of tests.
 
 #include "system.h"
 #include "uxart.c"
@@ -8,22 +9,18 @@
 
 
 
-#define DEMO_MODE 1 // See below for different kinds of tests.
-
-
-
-static i32 count_success               = 0; // TODO Metatize.
-static i32 count_operation_error       = 0; // "
-static i32 count_card_likely_unmounted = 0; // "
-static i32 count_unsupported_card      = 0; // "
-static i32 count_maybe_bus_problem     = 0; // "
-static i32 count_voltage_check_failed  = 0; // "
-static i32 count_could_not_ready_card  = 0; // "
-static i32 count_card_glitch           = 0; // "
-static i32 count_bug                   = 0; // "
+static i32 count_success               = 0;
+static i32 count_transfer_error        = 0;
+static i32 count_card_likely_unmounted = 0;
+static i32 count_unsupported_card      = 0;
+static i32 count_maybe_bus_problem     = 0;
+static i32 count_voltage_check_failed  = 0;
+static i32 count_could_not_ready_card  = 0;
+static i32 count_card_glitch           = 0;
+static i32 count_bug                   = 0;
 
 static useret b32
-try_doing_operation(struct SDDoJob job)
+try_doing_transfer(struct SDDoJob job)
 {
 
     while (true)
@@ -52,7 +49,7 @@ try_doing_operation(struct SDDoJob job)
 
             {
 
-                case SDDoResult_operation_error       : count_operation_error       += 1; goto SD_ERROR;
+                case SDDoResult_transfer_error        : count_transfer_error        += 1; goto SD_ERROR;
                 case SDDoResult_card_likely_unmounted : count_card_likely_unmounted += 1; goto SD_ERROR;
                 case SDDoResult_unsupported_card      : count_unsupported_card      += 1; goto SD_ERROR;
                 case SDDoResult_maybe_bus_problem     : count_maybe_bus_problem     += 1; goto SD_ERROR;
@@ -82,7 +79,7 @@ print_stats(void)
     stlink_tx
     (
         "count_success               : %d" "\n"
-        "count_operation_error       : %d" "\n"
+        "count_transfer_error        : %d" "\n"
         "count_card_likely_unmounted : %d" "\n"
         "count_unsupported_card      : %d" "\n"
         "count_maybe_bus_problem     : %d" "\n"
@@ -91,7 +88,7 @@ print_stats(void)
         "count_card_glitch           : %d" "\n"
         "count_bug                   : %d" "\n",
         count_success,
-        count_operation_error,
+        count_transfer_error,
         count_card_likely_unmounted,
         count_unsupported_card,
         count_maybe_bus_problem,
@@ -170,15 +167,16 @@ main(void)
                 Sector sector = {0};
 
                 b32 success =
-                    try_doing_operation
+                    try_doing_transfer
                     (
                         (struct SDDoJob)
                         {
-                            .handle    = SDHandle_primary,
-                            .operation = SDDoJobOperation_consecutive_read,
-                            .sector    = &sector,
-                            .address   = address,
-                            .count     = 1,
+                            .handle        = SDHandle_primary,
+                            .writing       = false,
+                            .random_access = false,
+                            .sector        = &sector,
+                            .address       = address,
+                            .count         = 1,
                         }
                     );
 
@@ -251,15 +249,16 @@ main(void)
                     Sector sector = {0};
 
                     b32 success =
-                        try_doing_operation
+                        try_doing_transfer
                         (
                             (struct SDDoJob)
                             {
-                                .handle    = SDHandle_primary,
-                                .operation = SDDoJobOperation_random_read,
-                                .sector    = &sector,
-                                .address   = address,
-                                .count     = 1,
+                                .handle        = SDHandle_primary,
+                                .writing       = false,
+                                .random_access = true,
+                                .sector        = &sector,
+                                .address       = address,
+                                .count         = 1,
                             }
                         );
 
@@ -305,15 +304,16 @@ main(void)
                         }
 
                         b32 success =
-                            try_doing_operation
+                            try_doing_transfer
                             (
                                 (struct SDDoJob)
                                 {
-                                    .handle    = SDHandle_primary,
-                                    .operation = SDDoJobOperation_consecutive_write,
-                                    .sector    = (Sector*) { cluster_buffer },
-                                    .address   = address + (u32) cluster_index * countof(cluster_buffer),
-                                    .count     = sectors_in_cluster,
+                                    .handle        = SDHandle_primary,
+                                    .writing       = true,
+                                    .random_access = false,
+                                    .sector        = (Sector*) { cluster_buffer },
+                                    .address       = address + (u32) cluster_index * countof(cluster_buffer),
+                                    .count         = sectors_in_cluster,
                                 }
                             );
 
@@ -348,15 +348,16 @@ main(void)
                         }
 
                         b32 success =
-                            try_doing_operation
+                            try_doing_transfer
                             (
                                 (struct SDDoJob)
                                 {
-                                    .handle    = SDHandle_primary,
-                                    .operation = SDDoJobOperation_consecutive_read,
-                                    .sector    = (Sector*) { cluster_buffer },
-                                    .address   = address + (u32) cluster_index * countof(cluster_buffer),
-                                    .count     = sectors_in_cluster,
+                                    .handle        = SDHandle_primary,
+                                    .writing       = false,
+                                    .random_access = false,
+                                    .sector        = (Sector*) { cluster_buffer },
+                                    .address       = address + (u32) cluster_index * countof(cluster_buffer),
+                                    .count         = sectors_in_cluster,
                                 }
                             );
 

@@ -68,23 +68,16 @@ enum SDDoJobState : u32
     SDDoJobState_attempted,
 };
 
-enum SDDoJobOperation : u32 // @/`SD Operations`.
-{
-    SDDoJobOperation_random_read       = SDCmd_READ_SINGLE_BLOCK,
-    SDDoJobOperation_random_write      = SDCmd_WRITE_BLOCK,
-    SDDoJobOperation_consecutive_read  = SDCmd_READ_MULTIPLE_BLOCK,
-    SDDoJobOperation_consecutive_write = SDCmd_WRITE_MULTIPLE_BLOCK,
-};
-
 struct SDDoJob
 {
     struct
     {
-        enum SDHandle         handle;
-        enum SDDoJobOperation operation;
-        Sector*               sector;
-        u32                   address;
-        i32                   count;
+        enum SDHandle handle;
+        b16           writing;
+        b16           random_access; // @/`SD Random-Access`.
+        u32           address;
+        Sector*       sector;
+        i32           count;
     };
     struct
     {
@@ -103,9 +96,10 @@ struct SDDriver
     struct
     {
         volatile enum SDDriverJobState state;
-        volatile enum SDDoJobOperation operation;
-        Sector* volatile               sector;
+        volatile b16                   writing;
+        volatile b16                   random_access;
         volatile u32                   address;
+        Sector* volatile               sector;
         volatile i32                   count;
     } job;
 
@@ -173,7 +167,7 @@ static struct SDDriver _SD_drivers[SDHandle_COUNT] = {0};
 
 
     static void
-    _SD_profiler_end(enum SDDoJobOperation operation, i32 count)
+    _SD_profiler_end(b32 writing, i32 count)
     {
 
         u32 ending_timestamp_us = TIMEKEEPING_COUNTER();
@@ -181,25 +175,15 @@ static struct SDDriver _SD_drivers[SDHandle_COUNT] = {0};
 
         static_assert(sizeof(TIMEKEEPING_COUNTER_TYPE) == sizeof(u32));
 
-        switch (operation)
+        if (writing)
         {
-
-            case SDDoJobOperation_random_read:
-            case SDDoJobOperation_consecutive_read:
-            {
-                _SD_profiler.amount_of_bytes_successfully_read += sizeof(Sector) * count;
-                _SD_profiler.amount_of_time_reading_us         += elapsed_us;
-            } break;
-
-            case SDDoJobOperation_random_write:
-            case SDDoJobOperation_consecutive_write:
-            {
-                _SD_profiler.amount_of_bytes_successfully_written += sizeof(Sector) * count;
-                _SD_profiler.amount_of_time_writing_us            += elapsed_us;
-            } break;
-
-            default: bug;
-
+            _SD_profiler.amount_of_bytes_successfully_read += sizeof(Sector) * count;
+            _SD_profiler.amount_of_time_reading_us         += elapsed_us;
+        }
+        else
+        {
+            _SD_profiler.amount_of_bytes_successfully_written += sizeof(Sector) * count;
+            _SD_profiler.amount_of_time_writing_us            += elapsed_us;
         }
 
     }
@@ -220,7 +204,7 @@ static struct SDDriver _SD_drivers[SDHandle_COUNT] = {0};
 static useret enum SDDoResult : u32
 {
     SDDoResult_success,
-    SDDoResult_operation_error,
+    SDDoResult_transfer_error,
     SDDoResult_still_initializing,
     SDDoResult_working,
     SDDoResult_card_likely_unmounted,
@@ -287,10 +271,11 @@ SD_do(struct SDDoJob* job)
 
                     job->state = SDDoJobState_processing;
 
-                    driver->job.operation = job->operation;
-                    driver->job.sector    = job->sector;
-                    driver->job.address   = job->address;
-                    driver->job.count     = job->count;
+                    driver->job.writing       = job->writing;
+                    driver->job.random_access = job->random_access;
+                    driver->job.sector        = job->sector;
+                    driver->job.address       = job->address;
+                    driver->job.count         = job->count;
 
                     // Release memory.
 
@@ -319,10 +304,11 @@ SD_do(struct SDDoJob* job)
 
                 if
                 (
-                    driver->job.operation != job->operation ||
-                    driver->job.sector    != job->sector    ||
-                    driver->job.address   != job->address   ||
-                    driver->job.count     != job->count
+                    driver->job.writing       != job->writing       ||
+                    driver->job.random_access != job->random_access ||
+                    driver->job.sector        != job->sector        ||
+                    driver->job.address       != job->address       ||
+                    driver->job.count         != job->count
                 )
                     bug; // The job that the SD driver is doing doesn't match the user's job...
 
@@ -339,7 +325,7 @@ SD_do(struct SDDoJob* job)
                     case SDDriverJobState_success:
                     {
 
-                        _SD_profiler_end(job->operation, job->count);
+                        _SD_profiler_end(job->writing, job->count);
 
                         driver->job.state = SDDriverJobState_ready_for_user; // Acknowledge the SD driver's completion of the job.
                         job->state        = SDDoJobState_attempted;
@@ -352,7 +338,7 @@ SD_do(struct SDDoJob* job)
 
                         driver->job.state = SDDriverJobState_ready_for_user; // Acknowledge the SD driver's completion of the job.
                         job->state        = SDDoJobState_attempted;
-                        return SDDoResult_operation_error;                   // Something bad happened...
+                        return SDDoResult_transfer_error;                    // Something bad happened...
 
                     } break;
 
@@ -703,48 +689,60 @@ _SD_update_once(enum SDHandle handle)
 
 
 
-                        // Determine the amount of blocks to transfer for this operation.
+                        // Determine the amount of blocks to transfer for this command.
 
-                        i32        total_blocks_to_transfer = {0};
-                        enum SDCmd operation_cmd            = {0};
+                        i32 total_blocks_to_transfer = {0};
 
-                        switch (driver->job.operation)
+                        if (driver->job.random_access)
                         {
-
-                            case SDDoJobOperation_random_read:
-                            case SDDoJobOperation_random_write:
-                            {
-                                 total_blocks_to_transfer = driver->job.count;
-                                 operation_cmd            =
-                                     driver->job.count == 1
-                                         ? driver->job.operation == SDDoJobOperation_random_read ? SDCmd_READ_SINGLE_BLOCK : SDCmd_WRITE_BLOCK
-                                         : driver->job.operation == SDDoJobOperation_random_read ? SDCmd_READ_MULTIPLE_BLOCK : SDCmd_WRITE_MULTIPLE_BLOCK;
-                            } break;
-
-                            case SDDoJobOperation_consecutive_read:
-                            case SDDoJobOperation_consecutive_write:
-                            {
-
-                                // An upper limit of 2^30 sectors is 512 GiB,
-                                // which for all intents and purposes,
-                                // is an amount of data that the user will never practically reach.
-
-                                total_blocks_to_transfer = (1 << 30);
-                                operation_cmd            = (enum SDCmd) driver->job.operation;
-
-                            } break;
-
-                            default: bug;
-
+                             total_blocks_to_transfer = driver->job.count;
+                        }
+                        else
+                        {
+                            // An upper limit of 2^30 sectors is 512 GiB,
+                            // which for all intents and purposes,
+                            // is an amount of data that the user will never practically reach.
+                            total_blocks_to_transfer = (1 << 30);
                         }
 
 
+
+                        // Determine the actual SD command to be done.
+
+                        enum SDCmd cmd = {0};
+
+                        if (driver->job.random_access && total_blocks_to_transfer == 1)
+                        {
+                            if (driver->job.writing)
+                            {
+                                 cmd = SDCmd_WRITE_BLOCK;
+                            }
+                            else
+                            {
+                                 cmd = SDCmd_READ_SINGLE_BLOCK;
+                            }
+                        }
+                        else
+                        {
+                            if (driver->job.writing)
+                            {
+                                 cmd = SDCmd_WRITE_MULTIPLE_BLOCK;
+                            }
+                            else
+                            {
+                                 cmd = SDCmd_READ_MULTIPLE_BLOCK;
+                            }
+                        }
+
+
+
+                        // Provide SD-cmder with the parameters of the command to carry out.
 
                         driver->cmder =
                             (struct SDCmder)
                             {
                                 .state                    = SDCmderState_scheduled_command,
-                                .cmd                      = operation_cmd,
+                                .cmd                      = cmd,
                                 .argument                 = driver->job.address,
                                 .total_blocks_to_transfer = total_blocks_to_transfer,
                                 .bytes_per_block          = sizeof(*driver->job.sector),
@@ -783,17 +781,12 @@ _SD_update_once(enum SDHandle handle)
                         if (driver->job.address != driver->cmder.argument + (u32) driver->consective_sector_transfer_count)
                             bug; // SD-cmder's sector address not matching up with current job..?
 
-                        switch (driver->job.operation)
-                        {
-                            case SDDoJobOperation_random_read       : bug; // Random transfer shouldn't have continued the data-transfer...
-                            case SDDoJobOperation_random_write      : bug; // "
-                            case SDDoJobOperation_consecutive_read  : break;
-                            case SDDoJobOperation_consecutive_write : break;
-                            default                                 : bug;
-                        }
+                        if (driver->job.random_access)
+                            bug; // Random-access transfers shouldn't have continued the data-transfer...
 
                         driver->job.state                         = SDDriverJobState_success;
                         driver->consective_sector_transfer_count += driver->job.count;
+
                         return SDUpdateOnceResult_again;
 
                     } break;
@@ -838,26 +831,12 @@ _SD_update_once(enum SDHandle handle)
                                 driver->cmder.argument + (u32) driver->consective_sector_transfer_count
                             );
 
-                        b32 same_transfer_direction = {0};
-
-                        switch (driver->job.operation)
-                        {
-
-                            case SDDoJobOperation_random_read:
-                            case SDDoJobOperation_consecutive_read:
-                            {
-                                same_transfer_direction = driver->cmder.cmd == SDCmd_READ_MULTIPLE_BLOCK;
-                            } break;
-
-                            case SDDoJobOperation_random_write:
-                            case SDDoJobOperation_consecutive_write:
-                            {
-                                same_transfer_direction = driver->cmder.cmd == SDCmd_WRITE_MULTIPLE_BLOCK;
-                            } break;
-
-                            default: bug;
-
-                        }
+                        b32 same_transfer_direction =
+                            (
+                                driver->job.writing
+                                    ? SDCmd_WRITE_MULTIPLE_BLOCK
+                                    : SDCmd_READ_MULTIPLE_BLOCK
+                            ) ==  driver->cmder.cmd;
 
                         b32 should_process_job = is_consecutive && same_transfer_direction;
 
@@ -872,30 +851,13 @@ _SD_update_once(enum SDHandle handle)
 
                         // Determine whether or not SD-cmder should wrap up the command.
 
-                        if (should_process_job)
+                        if (!should_process_job || driver->job.random_access) // @/`SD Random-Access`.
                         {
-                            switch (driver->job.operation) // @/`SD Operations`.
-                            {
-
-                                case SDDoJobOperation_random_read:
-                                case SDDoJobOperation_random_write:
-                                {
-                                    driver->cmder.stop_requesting_for_data_blocks = true;
-                                } break;
-
-                                case SDDoJobOperation_consecutive_read:
-                                case SDDoJobOperation_consecutive_write:
-                                {
-                                    // SD-cmder can keep expecting more consecutive data-block transfers.
-                                } break;
-
-                                default: bug;
-
-                            }
+                            driver->cmder.stop_requesting_for_data_blocks = true;
                         }
                         else
                         {
-                            driver->cmder.stop_requesting_for_data_blocks = true;
+                            // SD-cmder can keep expecting more consecutive data-block transfers.
                         }
 
 
@@ -1087,30 +1049,26 @@ _SD_driver_interrupt(enum SDHandle handle)
 
 
 
-// @/`SD Operations`:
+// @/`SD Random-Access`:
 //
 // For maximum throughput, hints can be given to the SD driver by indicating
 // whether or not the user is wanting to do just a single read or write, or
 // if there's going to be many consecutive read/writes.
 //
-// If the user uses `SDDoJobOperation_random_read` or `SDDoJobOperation_random_write`,
-// this means the SD driver will issue a single sector read/write as quicky as
-// possible.
+// If the user sets `.random_access`, then the SD driver will assume that after
+// the data transfer is done, the address of the next data transfer will be
+// somewhere else entirely, and thus can plan for that accordingly.
 //
-// If the user uses `SDDoJobOperation_consecutive_read` or `SDDoJobOperation_consecutive_write`,
-// the SD driver will set up a data transfer with the SD card to handle long a
-// chain of read/writes of consecutive addresses. However, this has a bit of
-// overhead, so it's only good when you know you're going to be doing more than
-// just a single sector read/write.
+// What this practically means is how the SD driver determines whether or not
+// it should use `READ_SINGLE_BLOCK`/`WRITE_BLOCK` or `READ_MULTIPLE_BLOCK`/`WRITE_MULTIPLE_BLOCK`
+// for the user's job. The latter pair of commands have the benefit of removing
+// the overhead of having to repeatedly send SD commands, but are terrible for
+// doing just a single sector read/write.
 //
-// If the user knows a single sector is only going to be read/written to (and
-// furthermore know that the next sector is not likely to be next consecutive
-// one), they should favor `SDDoJobOperation_random_read`/`SDDoJobOperation_random_write`.
-//
-// However, at the end of the day, these are only hints. They only impact the
-// performance of the driver, and not the correctness. Thus, all single-transfer
-// operations can be swapped with multi-transfer operations and it should not
-// break anything.
+// All in all, `.random_access` is only a hint, and can be ignored entirely.
+// It should not impact the correctness of the program, just performance.
+// Because of zero-initialization, if `.random_access` is not specified, the
+// SD driver assume all read/write transfers are consecutive.
 //
 // It should also be noted that "consecutive read/write transfers" means
 // entirely consisting of reads or entirely consisting of writes;
