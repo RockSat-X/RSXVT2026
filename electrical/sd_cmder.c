@@ -365,10 +365,10 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 if (cmder->cmd == SDCmd_STOP_TRANSMISSION)
                     bug; // STOP_TRANSMISSION is already handled automatically.
 
-                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, CPSMACT))
+                if (CMSIS_GET(SDMMC, STA, CPSMACT))
                     bug; // The command-path state-machine shouldn't be active.
 
-                if (!implies(CMSIS_GET_FROM(interrupt_status, SDMMC, STA, CPSMACT), cmder->state == SDCmderState_scheduled_stop_transmission))
+                if (!implies(CMSIS_GET(SDMMC, STA, CPSMACT), cmder->state == SDCmderState_scheduled_stop_transmission))
                     bug; // The data-path state-machine begin active still is only okay for STOP_TRANSMISSION commands...
 
                 if (CMSIS_GET(SDMMC, CMD, CPSMEN))
@@ -485,7 +485,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 if (cmder->error)
                     bug; // No reason for an error yet...
 
-                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT))
+                if (CMSIS_GET(SDMMC, STA, DPSMACT))
                     bug; // The data-path state-machine shouldn't have been active for APP_CMD itself.
 
                 return SDCmderIterateResult_yield; // Nothing new yet.
@@ -500,10 +500,10 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 if (cmder->error)
                     bug; // No reason for an error already...
 
-                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, CPSMACT))
+                if (CMSIS_GET(SDMMC, STA, CPSMACT))
                     bug; // Command-path state-machine should've been done by now.
 
-                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT))
+                if (CMSIS_GET(SDMMC, STA, DPSMACT))
                     bug; // The data-path state-machine shouldn't have been active for APP_CMD itself.
 
                 if (!(SDMMC->RESP1 & (1 << 5)))
@@ -531,10 +531,10 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             case SDMMCInterruptEvent_command_with_bad_crc:
             {
 
-                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, CPSMACT))
+                if (CMSIS_GET(SDMMC, STA, CPSMACT))
                     bug; // Command-path state-machine should've turned itself off.
 
-                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT))
+                if (CMSIS_GET(SDMMC, STA, DPSMACT))
                     bug; // The data-path state-machine shouldn't have been active for APP_CMD itself.
 
                 if (cmder->error)
@@ -593,7 +593,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 if (cmder->error)
                     bug; // No reason for an error already...
 
-                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, CPSMACT))
+                if (CMSIS_GET(SDMMC, STA, CPSMACT))
                     bug; // Command-path state-machine should've been done by now.
 
                 if
@@ -634,7 +634,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
 
 
-                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT))
+                if (CMSIS_GET(SDMMC, STA, DPSMACT))
                 {
 
                     // Because we were expecting a data transfer, the DPSM is still active.
@@ -799,7 +799,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             case SDMMCInterruptEvent_data_with_bad_crc:
             {
 
-                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, CPSMACT))
+                if (CMSIS_GET(SDMMC, STA, CPSMACT))
                     bug; // Command-path state-machine should've been done by now.
 
                 if (cmder->error)
@@ -921,7 +921,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             case SDMMCInterruptEvent_cmd12_aborted_data_transfer:
             {
 
-                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT))
+                if (CMSIS_GET(SDMMC, STA, DPSMACT))
                     bug; // Data-path state-machine should've been disabled by now.
 
                 return SDCmderIterateResult_again; // We still have to wait for the CPSM to be done with STOP_TRANSMISSION.
@@ -933,7 +933,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             case SDMMCInterruptEvent_command_sent_with_good_response:
             {
 
-                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, CPSMACT))
+                if (CMSIS_GET(SDMMC, STA, CPSMACT))
                     bug; // Command-path state-machine shouldn't be enabled...
 
                 cmder->state = SDCmderState_outwaiting_busy_signal_for_stop_transmission;
@@ -947,18 +947,16 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             case SDMMCInterruptEvent_command_with_bad_crc:
             {
 
-                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, CPSMACT))
+                if (CMSIS_GET(SDMMC, STA, CPSMACT))
                     bug; // Command-path state-machine shouldn't still be enabled...
 
-                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT))
-                {
-                    bug; // We tried to disable the DPSM with STOP_TRANSMISSION, but it still didn't work...
-                }
-                else
-                {
-                    cmder->state = SDCmderState_ready_for_next_command;
-                    return SDCmderIterateResult_command_attempted;
-                }
+                cmder->error =
+                    interrupt_event == SDMMCInterruptEvent_command_timeout
+                        ? SDCmderError_command_timeout
+                        : SDCmderError_bad_crc;
+
+                cmder->state = SDCmderState_outwaiting_busy_signal_for_stop_transmission;
+                return SDCmderIterateResult_again;
 
             } break;
 
@@ -971,7 +969,6 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             default                                                         : bug;
 
         } break;
-
 
 
 
@@ -989,18 +986,18 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             case SDMMCInterruptEvent_none:
             {
 
-                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, CPSMACT))
+                if (CMSIS_GET(SDMMC, STA, CPSMACT))
                     bug; // Command-path state-machine shouldn't still be enabled...
 
                 if (CMSIS_GET(SDMMC, STA, BUSYD0))
                 {
                     return SDCmderIterateResult_yield; // Still busy...
                 }
-                else if (CMSIS_GET(SDMMC, STA, DPSMACT))
+                else if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT)) // Reading from `interrupt_status` to ensure `cmd12_aborted_data_transfer` was handled.
                 {
                     return SDCmderIterateResult_yield; // Still waiting for the DPSM to be turned off...
                 }
-                else // We successfully sent STOP_TRANSMISSION!
+                else
                 {
                     cmder->state = SDCmderState_ready_for_next_command;
                     return SDCmderIterateResult_command_attempted;
@@ -1013,10 +1010,10 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             case SDMMCInterruptEvent_cmd12_aborted_data_transfer:
             {
 
-                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, CPSMACT))
+                if (CMSIS_GET(SDMMC, STA, CPSMACT))
                     bug; // Command-path state-machine shouldn't still be enabled...
 
-                if (CMSIS_GET_FROM(interrupt_status, SDMMC, STA, DPSMACT))
+                if (CMSIS_GET(SDMMC, STA, DPSMACT))
                     bug; // Data-path state-machine should've been disabled by now.
 
                 return SDCmderIterateResult_again;
@@ -1030,7 +1027,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             case SDMMCInterruptEvent_command_timeout                        : bug;
             case SDMMCInterruptEvent_command_with_bad_crc                   : bug;
             case SDMMCInterruptEvent_completed_transfer                     : bug;
-            case SDMMCInterruptEvent_data_timeout                           : bug;
+            case SDMMCInterruptEvent_data_timeout                           : bug; // @/`SD Bus Anomalies`.
             case SDMMCInterruptEvent_data_with_bad_crc                      : bug;
             default                                                         : bug;
 
@@ -1180,3 +1177,26 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 // relative card address; this is needed for ACMDs where they're
 // prefixed with APP_CMD and the argument for that is the RCA.
 // @/pg 67/sec 4.2.2/`SD`.
+
+
+
+// @/`SD Bus Anomalies`:
+//
+// The SD-cmder is written to be as robust as possible towards error conditions.
+// As an example, the SD card can be ejected and reinserted repeatedly and the
+// SD-cmder (and the SD driver as a whole) is capable of recovering from such
+// bus errors. However, there are certain unavoidable conditions we cannot handle.
+//
+// One example that I can think that might be happening (this is speculative)
+// is if the D0 data-line is pulled low when the DPSM is in a certain state.
+// If the stars are aligned, the DPSM thinks this low D0 signal indicates a
+// start bit, but the reality could be that it was just stray noise that was
+// somehow injected (or perhaps due to the card being ejected/inserted).
+// Either way, the DPSM might end up issuing a data-timeout error condition
+// even though it shouldn't have. There isn't really a good way to determine
+// whether or not this error condition is really due to a bug within the code
+// (to which we'd like to flag it as so) or because of some obscure hardware issue.
+//
+// Either way, it's a rare error condition, and the user will be notified of the
+// bug, and hopefully resetting the SDMMC peripheral will put everything back in
+// its place.
