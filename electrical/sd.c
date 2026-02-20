@@ -797,42 +797,38 @@ _SD_update_once(enum SDHandle handle)
                         )
                             bug; // Unexpected SD-cmder command...
 
-                        b32 should_process_job =
+
+
+                        // Determine whether or not we should pass SD-cmder the user's data-block pointer.
+
+                        b32 is_consecutive =
                             (
                                 driver->job.address ==
                                 driver->cmder.argument + (u32) driver->consective_sector_transfer_count
                             );
 
-                        b32 should_stop_requesting = !should_process_job;
+                        b32 same_transfer_direction = {0};
 
-                        switch (driver->job.operation) // @/`SD Operations`.
+                        switch (driver->job.operation)
                         {
 
                             case SDDoJobOperation_single_read:
+                            case SDDoJobOperation_multiple_read:
                             {
-                                should_process_job     &= driver->cmder.cmd == SDCmd_READ_MULTIPLE_BLOCK;
-                                should_stop_requesting  = true;
+                                same_transfer_direction = driver->cmder.cmd == SDCmd_READ_MULTIPLE_BLOCK;
                             } break;
 
                             case SDDoJobOperation_single_write:
-                            {
-                                should_process_job     &= driver->cmder.cmd == SDCmd_WRITE_MULTIPLE_BLOCK;
-                                should_stop_requesting  = true;
-                            } break;
-
-                            case SDDoJobOperation_multiple_read:
-                            {
-                                should_process_job &= driver->cmder.cmd == SDCmd_READ_MULTIPLE_BLOCK;
-                            } break;
-
                             case SDDoJobOperation_multiple_write:
                             {
-                                should_process_job &= driver->cmder.cmd == SDCmd_WRITE_MULTIPLE_BLOCK;
+                                same_transfer_direction = driver->cmder.cmd == SDCmd_WRITE_MULTIPLE_BLOCK;
                             } break;
 
                             default: bug;
 
                         }
+
+                        b32 should_process_job = is_consecutive && same_transfer_direction;
 
                         if (should_process_job)
                         {
@@ -840,7 +836,37 @@ _SD_update_once(enum SDHandle handle)
                             driver->job.state                = SDDriverJobState_processing;
                         }
 
-                        driver->cmder.stop_requesting_for_data_blocks = should_stop_requesting;
+
+
+                        // Determine whether or not SD-cmder should wrap up the command.
+
+                        if (should_process_job)
+                        {
+                            switch (driver->job.operation) // @/`SD Operations`.
+                            {
+
+                                case SDDoJobOperation_single_read:
+                                case SDDoJobOperation_single_write:
+                                {
+                                    driver->cmder.stop_requesting_for_data_blocks = true;
+                                } break;
+
+                                case SDDoJobOperation_multiple_read:
+                                case SDDoJobOperation_multiple_write:
+                                {
+                                    // SD-cmder can keep expecting more consecutive data-block transfers.
+                                } break;
+
+                                default: bug;
+
+                            }
+                        }
+                        else
+                        {
+                            driver->cmder.stop_requesting_for_data_blocks = true;
+                        }
+
+
 
                         return SDUpdateOnceResult_again;
 
