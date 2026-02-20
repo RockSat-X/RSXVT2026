@@ -38,7 +38,7 @@ struct SDIniter
 {
     enum SDIniterState state;
     u16                rca; // Relative card address. @/pg 67/sec 4.2.2/`SD`.
-    i32                capacity_sector_count;
+    u32                capacity_sector_count;
 
     struct
     {
@@ -356,7 +356,7 @@ _SDIniter_handle_feedback(struct SDIniter* initer)
                         }
                         else
                         {
-                            initer->capacity_sector_count = ((i32) csd.v2_C_SIZE + 1) * 1024; // @/pg 260/sec 5.3.3/`SD`.
+                            initer->capacity_sector_count = (csd.v2_C_SIZE + 1U) * 1024U; // @/pg 260/sec 5.3.3/`SD`.
                             initer->state                 = SDIniterState_execute_SELECT_DESELECT_CARD;
                             return SDIniterHandleFeedbackResult_okay;
                         }
