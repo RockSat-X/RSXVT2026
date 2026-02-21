@@ -74,7 +74,7 @@ struct SDDoJob
     {
         enum SDHandle handle;
         b16           writing;
-        b16           random_access; // @/`SD Random-Access`.
+        b16           consecutive_caching; // @/`SD Consecutive Caching`.
         u32           address;
         Sector*       sector;
         i32           count;
@@ -97,13 +97,13 @@ struct SDDriver
     {
         volatile enum SDDriverJobState state;
         volatile b16                   writing;
-        volatile b16                   random_access;
+        volatile b16                   consecutive_caching;
         volatile u32                   address;
         Sector* volatile               sector;
         volatile i32                   count;
     } job;
 
-    i32 consective_sector_transfer_count;
+    i32 consecutive_sector_transfer_count;
 
 };
 
@@ -221,11 +221,14 @@ SD_do(struct SDDoJob* job)
     if (!job)
         bug;
 
-    if (!job->sector)
-        bug; // Source/destination not provided..?
-
-    if (job->count <= 0)
+    if (job->count <= -1)
         bug; // Non-sensical amount of sectors to transfer...
+
+    if (!iff(job->count, job->sector))
+        bug; // Either forgot to provide the source/destination or for some reason isn't transferring any data..?
+
+    if (!implies(job->count == 0, !job->consecutive_caching))
+        bug; // Syncing should be the only reason why user should be trying to transfer zero data...
 
 
 
@@ -271,11 +274,11 @@ SD_do(struct SDDoJob* job)
 
                     job->state = SDDoJobState_processing;
 
-                    driver->job.writing       = job->writing;
-                    driver->job.random_access = job->random_access;
-                    driver->job.sector        = job->sector;
-                    driver->job.address       = job->address;
-                    driver->job.count         = job->count;
+                    driver->job.writing             = job->writing;
+                    driver->job.consecutive_caching = job->consecutive_caching;
+                    driver->job.sector              = job->sector;
+                    driver->job.address             = job->address;
+                    driver->job.count               = job->count;
 
                     // Release memory.
 
@@ -304,11 +307,11 @@ SD_do(struct SDDoJob* job)
 
                 if
                 (
-                    driver->job.writing       != job->writing       ||
-                    driver->job.random_access != job->random_access ||
-                    driver->job.sector        != job->sector        ||
-                    driver->job.address       != job->address       ||
-                    driver->job.count         != job->count
+                    driver->job.writing             != job->writing             ||
+                    driver->job.consecutive_caching != job->consecutive_caching ||
+                    driver->job.sector              != job->sector              ||
+                    driver->job.address             != job->address             ||
+                    driver->job.count               != job->count
                 )
                     bug; // The job that the SD driver is doing doesn't match the user's job...
 
@@ -684,78 +687,85 @@ _SD_update_once(enum SDHandle handle)
                     case SDDriverJobState_ready_to_be_processed: // There's an SD transfer we can start doing for the user.
                     {
 
-                        if (!driver->job.sector)
-                            bug; // No source/destination..?
-
 
 
                         // Determine the amount of blocks to transfer for this command.
 
                         i32 total_blocks_to_transfer = {0};
 
-                        if (driver->job.random_access)
-                        {
-                             total_blocks_to_transfer = driver->job.count;
-                        }
-                        else
+                        if (driver->job.consecutive_caching)
                         {
                             // An upper limit of 2^30 sectors is 512 GiB,
                             // which for all intents and purposes,
                             // is an amount of data that the user will never practically reach.
                             total_blocks_to_transfer = (1 << 30);
                         }
-
-
-
-                        // Determine the actual SD command to be done.
-
-                        enum SDCmd cmd = {0};
-
-                        if (driver->job.random_access && total_blocks_to_transfer == 1)
-                        {
-                            if (driver->job.writing)
-                            {
-                                 cmd = SDCmd_WRITE_BLOCK;
-                            }
-                            else
-                            {
-                                 cmd = SDCmd_READ_SINGLE_BLOCK;
-                            }
-                        }
                         else
                         {
-                            if (driver->job.writing)
-                            {
-                                 cmd = SDCmd_WRITE_MULTIPLE_BLOCK;
-                            }
-                            else
-                            {
-                                 cmd = SDCmd_READ_MULTIPLE_BLOCK;
-                            }
+                             total_blocks_to_transfer = driver->job.count;
                         }
 
 
 
-                        // Provide SD-cmder with the parameters of the command to carry out.
+                        // Schedule a command if there's an actual data transfer to be done.
 
-                        driver->cmder =
-                            (struct SDCmder)
+                        if (total_blocks_to_transfer)
+                        {
+
+                            enum SDCmd cmd = {0};
+
+                            if (driver->job.consecutive_caching || total_blocks_to_transfer >= 2)
                             {
-                                .state                    = SDCmderState_scheduled_command,
-                                .cmd                      = cmd,
-                                .argument                 = driver->job.address,
-                                .total_blocks_to_transfer = total_blocks_to_transfer,
-                                .bytes_per_block          = sizeof(*driver->job.sector),
-                                .data_block_pointer       = *driver->job.sector,
-                                .data_block_count         = driver->job.count,
-                                .rca                      = driver->initer.rca,
-                            };
+                                if (driver->job.writing)
+                                {
+                                     cmd = SDCmd_WRITE_MULTIPLE_BLOCK;
+                                }
+                                else
+                                {
+                                     cmd = SDCmd_READ_MULTIPLE_BLOCK;
+                                }
+                            }
+                            else
+                            {
+                                if (driver->job.writing)
+                                {
+                                     cmd = SDCmd_WRITE_BLOCK;
+                                }
+                                else
+                                {
+                                     cmd = SDCmd_READ_SINGLE_BLOCK;
+                                }
+                            }
 
-                        driver->consective_sector_transfer_count = 0;
 
-                        driver->job.state = SDDriverJobState_processing;
 
-                        return SDUpdateOnceResult_again;
+                            // Provide SD-cmder with the parameters of the command to carry out.
+
+                            driver->cmder =
+                                (struct SDCmder)
+                                {
+                                    .state                    = SDCmderState_scheduled_command,
+                                    .cmd                      = cmd,
+                                    .argument                 = driver->job.address,
+                                    .total_blocks_to_transfer = total_blocks_to_transfer,
+                                    .bytes_per_block          = sizeof(*driver->job.sector),
+                                    .data_block_pointer       = *driver->job.sector,
+                                    .data_block_count         = driver->job.count,
+                                    .rca                      = driver->initer.rca,
+                                };
+
+                            driver->consecutive_sector_transfer_count = 0;
+
+                            driver->job.state = SDDriverJobState_processing;
+
+                            return SDUpdateOnceResult_again;
+
+                        }
+                        else // No data transfer associated with this job; we're already done!
+                        {
+                            driver->job.state = SDDriverJobState_success;
+                            return SDUpdateOnceResult_again;
+                        }
 
                     } break;
 
@@ -778,14 +788,14 @@ _SD_update_once(enum SDHandle handle)
                     case SDDriverJobState_processing:
                     {
 
-                        if (driver->job.address != driver->cmder.argument + (u32) driver->consective_sector_transfer_count)
+                        if (driver->job.address != driver->cmder.argument + (u32) driver->consecutive_sector_transfer_count)
                             bug; // SD-cmder's sector address not matching up with current job..?
 
-                        if (driver->job.random_access)
-                            bug; // Random-access transfers shouldn't have continued the data-transfer...
+                        if (!driver->job.consecutive_caching)
+                            bug; // Non-consecutive-caching transfers should've ended the data-transfer...
 
-                        driver->job.state                         = SDDriverJobState_success;
-                        driver->consective_sector_transfer_count += driver->job.count;
+                        driver->job.state                          = SDDriverJobState_success;
+                        driver->consecutive_sector_transfer_count += driver->job.count;
 
                         return SDUpdateOnceResult_again;
 
@@ -828,7 +838,7 @@ _SD_update_once(enum SDHandle handle)
                         b32 is_consecutive =
                             (
                                 driver->job.address ==
-                                driver->cmder.argument + (u32) driver->consective_sector_transfer_count
+                                driver->cmder.argument + (u32) driver->consecutive_sector_transfer_count
                             );
 
                         b32 same_transfer_direction =
@@ -838,7 +848,12 @@ _SD_update_once(enum SDHandle handle)
                                     : SDCmd_READ_MULTIPLE_BLOCK
                             ) ==  driver->cmder.cmd;
 
-                        b32 should_process_job = is_consecutive && same_transfer_direction;
+                        b32 should_process_job =
+                            (
+                                is_consecutive
+                                && same_transfer_direction
+                                && driver->job.count >= 1
+                            );
 
                         if (should_process_job)
                         {
@@ -851,7 +866,7 @@ _SD_update_once(enum SDHandle handle)
 
                         // Determine whether or not SD-cmder should wrap up the command.
 
-                        if (!should_process_job || driver->job.random_access) // @/`SD Random-Access`.
+                        if (!should_process_job || !driver->job.consecutive_caching) // @/`SD Consecutive Caching`.
                         {
                             driver->cmder.stop_requesting_for_data_blocks = true;
                         }
@@ -890,7 +905,7 @@ _SD_update_once(enum SDHandle handle)
                         case SDCmderError_none:
                         {
 
-                            if (driver->job.address != driver->cmder.argument + (u32) driver->consective_sector_transfer_count)
+                            if (driver->job.address != driver->cmder.argument + (u32) driver->consecutive_sector_transfer_count)
                                 bug; // SD-cmder's sector address not matching up with current job..?
 
 
@@ -1049,27 +1064,32 @@ _SD_driver_interrupt(enum SDHandle handle)
 
 
 
-// @/`SD Random-Access`:
+// @/`SD Consecutive Caching`:
 //
-// For maximum throughput, hints can be given to the SD driver by indicating
-// whether or not the user is wanting to do just a single read or write, or
-// if there's going to be many consecutive read/writes.
+// For maximum throughput, the user should do read/write transfers of sectors
+// that are all consecutive in their addresses. This is done by setting the
+// field `.consecutive_caching` to `true`.
 //
-// If the user sets `.random_access`, then the SD driver will assume that after
-// the data transfer is done, the address of the next data transfer will be
-// somewhere else entirely, and thus can plan for that accordingly.
+// If `.consecutive_caching` is `false`, then the SD driver will transfer just
+// a single sector. In fact, if the user is reading/writing sectors that are
+// random-access (i.e. jumping all around the address space), then this will
+// be the fastest way to do so.
 //
-// What this practically means is how the SD driver determines whether or not
-// it should use `READ_SINGLE_BLOCK`/`WRITE_BLOCK` or `READ_MULTIPLE_BLOCK`/`WRITE_MULTIPLE_BLOCK`
-// for the user's job. The latter pair of commands have the benefit of removing
-// the overhead of having to repeatedly send SD commands, but are terrible for
-// doing just a single sector read/write.
+// In most scenarios, however, the user (often through the file-system driver) is
+// reading/writing many sectors that are one after another. Rather than issuing
+// a new read/write command to transfer a single sector, a single command
+// can be issued and many sectors can be transferred all at once without any
+// further overhead from reissuing another command. To do this,
+// `.consecutive_caching` should be set to `true`.
 //
-// All in all, `.random_access` is only a hint, and can be ignored entirely.
-// It should not impact the correctness of the program, just performance.
-// Because of zero-initialization, if `.random_access` is not specified, the
-// SD driver assume all read/write transfers are consecutive.
+// The caveat, however, is the fact that the SD card may not commit all data
+// it receives (that is, when writing sectors) until the data transfer is
+// concluded properly. This means if the card is ejected, data might be lost,
+// even if the user has stopped writing any new data for a while. This is the
+// danger of `.consecutive_caching`. To have the data be all properly flushed
+// and synced, the user should schedule another job for the SD driver with
+// `.consecutive_caching` set to `false` and `.count` to zero.
 //
-// It should also be noted that "consecutive read/write transfers" means
-// entirely consisting of reads or entirely consisting of writes;
-// no mix and matching.
+// It should be noted that syncing of the data does not need to be done for
+// read transfers, or for any past transfers that already had
+// `.consecutive_caching` set to `false`.

@@ -135,12 +135,12 @@ disk_transfer(BYTE pdrv, const BYTE* buff, LBA_t sector, UINT count, b32 writing
 
     struct SDDoJob job =
         {
-            .handle        = (enum SDHandle) { 0 }, // We're assuming the first SD driver handle.
-            .writing       = !!writing,
-            .random_access = false, // TODO Have a heuristic?
-            .sector        = (Sector*) buff,
-            .address       = sector,
-            .count         = (i32) count,
+            .handle              = (enum SDHandle) { 0 }, // We're assuming the first SD driver handle.
+            .writing             = !!writing,
+            .consecutive_caching = true, // TODO Have a heuristic?
+            .sector              = (Sector*) buff,
+            .address             = sector,
+            .count               = (i32) count,
         };
 
     while (true)
@@ -154,6 +154,8 @@ disk_transfer(BYTE pdrv, const BYTE* buff, LBA_t sector, UINT count, b32 writing
             case SDDoResult_still_initializing:
             {
 
+                // @/`FatFs Still Initializing`:
+                //
                 // `RES_NOTRDY` : "The device has not been initialized."
                 //
                 // Although it seems like FatFs does not make use of `RES_NOTRDY`,
@@ -243,7 +245,63 @@ disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
 
         case CTRL_SYNC:
         {
-            return RES_OK; // All writes are completed within `disk_write`.
+
+            struct SDDoJob job =
+                {
+                    .handle              = (enum SDHandle) { 0 }, // We're assuming the first SD driver handle.
+                    .consecutive_caching = false,
+                    .count               = 0,
+                };
+
+            while (true)
+            {
+
+                enum SDDoResult do_result = SD_do(&job);
+
+                switch (do_result)
+                {
+
+                    case SDDoResult_still_initializing:
+                    {
+                        return RES_NOTRDY; // @/`FatFs Still Initializing`.
+                    } break;
+
+
+
+                    case SDDoResult_working:
+                    {
+                        // Still busy syncing...
+                    } break;
+
+
+
+                    case SDDoResult_success:
+                    {
+                        return RES_OK; // Yippee!
+                    } break;
+
+
+
+                    case SDDoResult_transfer_error:
+                    case SDDoResult_card_likely_unmounted:
+                    case SDDoResult_unsupported_card:
+                    case SDDoResult_maybe_bus_problem:
+                    case SDDoResult_voltage_check_failed:
+                    case SDDoResult_could_not_ready_card:
+                    case SDDoResult_card_glitch:
+                    case SDDoResult_bug:
+                    {
+                        return RES_ERROR; // "An unrecoverable hard error occured during the read operation."
+                    } break;
+
+
+
+                    default: panic;
+
+                }
+
+            }
+
         } break;
 
 

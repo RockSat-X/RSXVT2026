@@ -171,12 +171,12 @@ main(void)
                     (
                         (struct SDDoJob)
                         {
-                            .handle        = SDHandle_primary,
-                            .writing       = false,
-                            .random_access = false,
-                            .sector        = &sector,
-                            .address       = address,
-                            .count         = 1,
+                            .handle              = SDHandle_primary,
+                            .writing             = false,
+                            .consecutive_caching = true,
+                            .sector              = &sector,
+                            .address             = address,
+                            .count               = 1,
                         }
                     );
 
@@ -253,12 +253,12 @@ main(void)
                         (
                             (struct SDDoJob)
                             {
-                                .handle        = SDHandle_primary,
-                                .writing       = false,
-                                .random_access = true,
-                                .sector        = &sector,
-                                .address       = address,
-                                .count         = 1,
+                                .handle              = SDHandle_primary,
+                                .writing             = false,
+                                .consecutive_caching = false,
+                                .sector              = &sector,
+                                .address             = address,
+                                .count               = 1,
                             }
                         );
 
@@ -308,12 +308,12 @@ main(void)
                             (
                                 (struct SDDoJob)
                                 {
-                                    .handle        = SDHandle_primary,
-                                    .writing       = true,
-                                    .random_access = false,
-                                    .sector        = (Sector*) { cluster_buffer },
-                                    .address       = address + (u32) cluster_index * countof(cluster_buffer),
-                                    .count         = sectors_in_cluster,
+                                    .handle              = SDHandle_primary,
+                                    .writing             = true,
+                                    .consecutive_caching = true,
+                                    .sector              = (Sector*) { cluster_buffer },
+                                    .address             = address + (u32) cluster_index * countof(cluster_buffer),
+                                    .count               = sectors_in_cluster,
                                 }
                             );
 
@@ -352,12 +352,12 @@ main(void)
                             (
                                 (struct SDDoJob)
                                 {
-                                    .handle        = SDHandle_primary,
-                                    .writing       = false,
-                                    .random_access = false,
-                                    .sector        = (Sector*) { cluster_buffer },
-                                    .address       = address + (u32) cluster_index * countof(cluster_buffer),
-                                    .count         = sectors_in_cluster,
+                                    .handle              = SDHandle_primary,
+                                    .writing             = false,
+                                    .consecutive_caching = true,
+                                    .sector              = (Sector*) { cluster_buffer },
+                                    .address             = address + (u32) cluster_index * countof(cluster_buffer),
+                                    .count               = sectors_in_cluster,
                                 }
                             );
 
