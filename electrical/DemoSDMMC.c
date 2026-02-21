@@ -13,20 +13,9 @@ static Sector cluster_buffer[64] = {0};
 
 
 
-static i32 count_success               = 0;
-static i32 count_transfer_error        = 0;
-static i32 count_card_likely_unmounted = 0;
-static i32 count_unsupported_card      = 0;
-static i32 count_maybe_bus_problem     = 0;
-static i32 count_voltage_check_failed  = 0;
-static i32 count_could_not_ready_card  = 0;
-static i32 count_card_glitch           = 0;
-static i32 count_bug                   = 0;
-
 static useret b32
 try_doing_transfer(struct SDDoJob job)
 {
-
     while (true)
     {
 
@@ -47,65 +36,26 @@ try_doing_transfer(struct SDDoJob job)
 
             case SDDoResult_success:
             {
-                count_success += 1;
                 return true;
             } break;
 
+            case SDDoResult_transfer_error:
+            case SDDoResult_card_likely_unmounted:
+            case SDDoResult_unsupported_card:
+            case SDDoResult_maybe_bus_problem:
+            case SDDoResult_voltage_check_failed:
+            case SDDoResult_could_not_ready_card:
+            case SDDoResult_card_glitch:
+            case SDDoResult_bug:
+            default:
             {
-
-                case SDDoResult_transfer_error        : count_transfer_error        += 1; goto SD_ERROR;
-                case SDDoResult_card_likely_unmounted : count_card_likely_unmounted += 1; goto SD_ERROR;
-                case SDDoResult_unsupported_card      : count_unsupported_card      += 1; goto SD_ERROR;
-                case SDDoResult_maybe_bus_problem     : count_maybe_bus_problem     += 1; goto SD_ERROR;
-                case SDDoResult_voltage_check_failed  : count_voltage_check_failed  += 1; goto SD_ERROR;
-                case SDDoResult_could_not_ready_card  : count_could_not_ready_card  += 1; goto SD_ERROR;
-                case SDDoResult_card_glitch           : count_card_glitch           += 1; goto SD_ERROR;
-                case SDDoResult_bug                   : count_bug                   += 1; goto SD_ERROR;
-                default                               : count_bug                   += 1; goto SD_ERROR;
-                SD_ERROR:
-
                 SD_reinit(SDHandle_primary);
-
                 return false;
-
             } break;
 
         }
 
     }
-
-}
-
-static void
-print_stats(void)
-{
-
-    #if DEMO_MODE != 2 // TODO Currently not updated with the file-system demo.
-        stlink_tx
-        (
-            "count_success               : %d" "\n"
-            "count_transfer_error        : %d" "\n"
-            "count_card_likely_unmounted : %d" "\n"
-            "count_unsupported_card      : %d" "\n"
-            "count_maybe_bus_problem     : %d" "\n"
-            "count_voltage_check_failed  : %d" "\n"
-            "count_could_not_ready_card  : %d" "\n"
-            "count_card_glitch           : %d" "\n"
-            "count_bug                   : %d" "\n",
-            count_success,
-            count_transfer_error,
-            count_card_likely_unmounted,
-            count_unsupported_card,
-            count_maybe_bus_problem,
-            count_voltage_check_failed,
-            count_could_not_ready_card,
-            count_card_glitch,
-            count_bug
-        );
-    #endif
-
-    SD_profiler_report();
-
 }
 
 
@@ -187,7 +137,7 @@ main(void)
                     );
 
                 stlink_tx("\n[0x%08X]\n", address);
-                print_stats();
+                SD_profiler_report();
 
                 if (success)
                 {
@@ -391,14 +341,14 @@ main(void)
 
                 // Bit of breather...
 
-                print_stats();
+                SD_profiler_report();
                 GPIO_TOGGLE(led_green);
                 spinlock_nop(50'000'000);
 
                 continue;
                 STRESS_FAILED:;
 
-                print_stats();
+                SD_profiler_report();
                 stlink_tx("Failed!\n");
                 spinlock_nop(200'000'000);
 
@@ -579,7 +529,7 @@ main(void)
                     if (fatfs_error)
                         panic;
 
-                    print_stats();
+                    SD_profiler_report();
                     GPIO_TOGGLE(led_green);
 
                 }
@@ -689,7 +639,7 @@ main(void)
                     if (fatfs_error)
                         panic;
 
-                    print_stats();
+                    SD_profiler_report();
                     GPIO_TOGGLE(led_green);
 
                 }

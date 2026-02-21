@@ -124,6 +124,20 @@ static struct SDDriver _SD_drivers[SDHandle_COUNT] = {0};
         i64 amount_of_bytes_successfully_written;
         i64 amount_of_time_writing_us;
         u32 starting_timestamp_us;
+        struct
+        {
+            i32 count_still_initializing;
+            i32 count_working;
+            i32 count_success;
+            i32 count_transfer_error;
+            i32 count_card_likely_unmounted;
+            i32 count_unsupported_card;
+            i32 count_maybe_bus_problem;
+            i32 count_voltage_check_failed;
+            i32 count_could_not_ready_card;
+            i32 count_card_glitch;
+            i32 count_bug;
+        };
     };
 
     struct SDProfiler _SD_profiler = {0};
@@ -136,8 +150,32 @@ static struct SDDriver _SD_drivers[SDHandle_COUNT] = {0};
 
         stlink_tx
         (
-            "Average read  throughput : %.2f KiB/s" "\n"
-            "Average write throughput : %.2f KiB/s" "\n",
+            "============================="            "\n"
+            "count_still_initializing    : %d"         "\n"
+            "count_working               : %d"         "\n"
+            "count_success               : %d"         "\n"
+            "count_transfer_error        : %d"         "\n"
+            "count_card_likely_unmounted : %d"         "\n"
+            "count_unsupported_card      : %d"         "\n"
+            "count_maybe_bus_problem     : %d"         "\n"
+            "count_voltage_check_failed  : %d"         "\n"
+            "count_could_not_ready_card  : %d"         "\n"
+            "count_card_glitch           : %d"         "\n"
+            "count_bug                   : %d"         "\n"
+            "Average read  throughput    : %.2f KiB/s" "\n"
+            "Average write throughput    : %.2f KiB/s" "\n"
+            "\n",
+            _SD_profiler.count_still_initializing,
+            _SD_profiler.count_working,
+            _SD_profiler.count_success,
+            _SD_profiler.count_transfer_error,
+            _SD_profiler.count_card_likely_unmounted,
+            _SD_profiler.count_unsupported_card,
+            _SD_profiler.count_maybe_bus_problem,
+            _SD_profiler.count_voltage_check_failed,
+            _SD_profiler.count_could_not_ready_card,
+            _SD_profiler.count_card_glitch,
+            _SD_profiler.count_bug,
             (f32) _SD_profiler.amount_of_bytes_successfully_read    / 1024.0f / ((f32) _SD_profiler.amount_of_time_reading_us / 1'000'000.0f),
             (f32) _SD_profiler.amount_of_bytes_successfully_written / 1024.0f / ((f32) _SD_profiler.amount_of_time_writing_us / 1'000'000.0f)
         );
@@ -155,43 +193,6 @@ static struct SDDriver _SD_drivers[SDHandle_COUNT] = {0};
         }
 
     }
-
-
-
-    static void
-    _SD_profiler_begin(void)
-    {
-        _SD_profiler.starting_timestamp_us = TIMEKEEPING_COUNTER();
-    }
-
-
-
-    static void
-    _SD_profiler_end(b32 writing, i32 count)
-    {
-
-        u32 ending_timestamp_us = TIMEKEEPING_COUNTER();
-        u32 elapsed_us          = ending_timestamp_us - _SD_profiler.starting_timestamp_us;
-
-        static_assert(sizeof(TIMEKEEPING_COUNTER_TYPE) == sizeof(u32));
-
-        if (writing)
-        {
-            _SD_profiler.amount_of_bytes_successfully_written += sizeof(Sector) * count;
-            _SD_profiler.amount_of_time_writing_us            += elapsed_us;
-        }
-        else
-        {
-            _SD_profiler.amount_of_bytes_successfully_read += sizeof(Sector) * count;
-            _SD_profiler.amount_of_time_reading_us         += elapsed_us;
-        }
-
-    }
-
-#else
-
-    #define _SD_profiler_begin(...)
-    #define _SD_profiler_end(...)
 
 #endif
 
@@ -215,7 +216,7 @@ static useret enum SDDoResult : u32
     SDDoResult_card_glitch,
     SDDoResult_bug = BUG_CODE,
 }
-SD_do(struct SDDoJob* job)
+SD_do_(struct SDDoJob* job)
 {
 
     if (!job)
@@ -269,8 +270,6 @@ SD_do(struct SDDoJob* job)
 
                 case SDDriverJobState_ready_for_user:
                 {
-
-                    _SD_profiler_begin();
 
                     job->state = SDDoJobState_processing;
 
@@ -327,22 +326,16 @@ SD_do(struct SDDoJob* job)
 
                     case SDDriverJobState_success:
                     {
-
-                        _SD_profiler_end(job->writing, job->count);
-
                         driver->job.state = SDDriverJobState_ready_for_user; // Acknowledge the SD driver's completion of the job.
                         job->state        = SDDoJobState_attempted;
                         return SDDoResult_success;                           // The user's job completed without any problems.
-
                     } break;
 
                     case SDDriverJobState_encountered_issue:
                     {
-
                         driver->job.state = SDDriverJobState_ready_for_user; // Acknowledge the SD driver's completion of the job.
                         job->state        = SDDoJobState_attempted;
                         return SDDoResult_transfer_error;                    // Something bad happened...
-
                     } break;
 
                     case SDDriverJobState_ready_for_user : bug;
@@ -381,6 +374,80 @@ SD_do(struct SDDoJob* job)
         default                     : bug;
 
     }
+
+}
+
+static useret enum SDDoResult
+SD_do(struct SDDoJob* job)
+{
+
+
+
+    // Profiler prologue.
+
+    #if SD_PROFILER_ENABLE
+    {
+        if (job->state == SDDoJobState_ready_to_be_processed)
+        {
+            _SD_profiler.starting_timestamp_us = TIMEKEEPING_COUNTER();
+        }
+    }
+    #endif
+
+
+
+    // Do stuff.
+
+    enum SDDoResult result = SD_do_(job);
+
+
+
+    // Profiler epilogue.
+
+    #if SD_PROFILER_ENABLE
+    {
+
+        u32 ending_timestamp_us = TIMEKEEPING_COUNTER();
+        u32 elapsed_us          = ending_timestamp_us - _SD_profiler.starting_timestamp_us;
+
+        static_assert(sizeof(TIMEKEEPING_COUNTER_TYPE) == sizeof(u32));
+
+        switch (result)
+        {
+
+            case SDDoResult_still_initializing    : _SD_profiler.count_still_initializing    += 1; break;
+            case SDDoResult_working               : _SD_profiler.count_working               += 1; break;
+            case SDDoResult_success               : _SD_profiler.count_success               += 1; break;
+            case SDDoResult_transfer_error        : _SD_profiler.count_transfer_error        += 1; break;
+            case SDDoResult_card_likely_unmounted : _SD_profiler.count_card_likely_unmounted += 1; break;
+            case SDDoResult_unsupported_card      : _SD_profiler.count_unsupported_card      += 1; break;
+            case SDDoResult_maybe_bus_problem     : _SD_profiler.count_maybe_bus_problem     += 1; break;
+            case SDDoResult_voltage_check_failed  : _SD_profiler.count_voltage_check_failed  += 1; break;
+            case SDDoResult_could_not_ready_card  : _SD_profiler.count_could_not_ready_card  += 1; break;
+            case SDDoResult_card_glitch           : _SD_profiler.count_card_glitch           += 1; break;
+            case SDDoResult_bug                   : _SD_profiler.count_bug                   += 1; break;
+            default                               : _SD_profiler.count_bug                   += 1; break;
+
+        }
+
+        if (result == SDDoResult_success)
+        {
+            if (job->writing)
+            {
+                _SD_profiler.amount_of_bytes_successfully_written += sizeof(Sector) * job->count;
+                _SD_profiler.amount_of_time_writing_us            += elapsed_us;
+            }
+            else
+            {
+                _SD_profiler.amount_of_bytes_successfully_read += sizeof(Sector) * job->count;
+                _SD_profiler.amount_of_time_reading_us         += elapsed_us;
+            }
+        }
+
+    }
+    #endif
+
+    return result;
 
 }
 
