@@ -63,7 +63,7 @@ static_assert(FF_MIN_SS == FF_MAX_SS && FF_MIN_SS == sizeof(Sector));
 
 
 
-static enum FileSystemDiskInitializeImplementationResult : u32
+static useret enum FileSystemDiskInitializeImplementationResult : u32
 {
     FileSystemDiskInitializeImplementationResult_ready,
     FileSystemDiskInitializeImplementationResult_yield,
@@ -140,7 +140,7 @@ disk_initialize(BYTE pdrv)
 
 
 
-static enum FileSystemDiskStatusImplementationResult : u32
+static useret enum FileSystemDiskStatusImplementationResult : u32
 {
     FileSystemDiskStatusImplementationResult_still_initializing,
     FileSystemDiskStatusImplementationResult_ready,
@@ -214,7 +214,7 @@ disk_status(BYTE pdrv)
 
 
 
-static enum FileSystemDiskTransferImplementationResult : u32
+static useret enum FileSystemDiskTransferImplementationResult : u32
 {
     FileSystemDiskTransferImplementationResult_success,
     FileSystemDiskTransferImplementationResult_still_initializing,
@@ -353,7 +353,7 @@ disk_read(BYTE pdrv, BYTE* buff, LBA_t sector, UINT count)
 
 
 
-static enum FileSystemDiskIOCTLImplementationResult : u32
+static useret enum FileSystemDiskIOCTLImplementationResult : u32
 {
     FileSystemDiskIOCTLImplementationResult_success,
     FileSystemDiskIOCTLImplementationResult_still_initializing,
