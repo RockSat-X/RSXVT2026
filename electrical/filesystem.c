@@ -63,14 +63,14 @@ static_assert(FF_MIN_SS == FF_MAX_SS && FF_MIN_SS == sizeof(Sector));
 
 
 
-static enum DiskInitializeImplementationResult : u32
+static enum FileSystemDiskInitializeImplementationResult : u32
 {
-    DiskInitializeImplementationResult_ready,
-    DiskInitializeImplementationResult_yield,
-    DiskInitializeImplementationResult_driver_error,
-    DiskInitializeImplementationResult_bug = BUG_CODE,
+    FileSystemDiskInitializeImplementationResult_ready,
+    FileSystemDiskInitializeImplementationResult_yield,
+    FileSystemDiskInitializeImplementationResult_driver_error,
+    FileSystemDiskInitializeImplementationResult_bug = BUG_CODE,
 }
-disk_initialize_implementation(BYTE pdrv)
+FILESYSTEM_disk_initialize_implementation(BYTE pdrv)
 {
 
     if (pdrv) // "Always zero at single drive system."
@@ -81,18 +81,18 @@ disk_initialize_implementation(BYTE pdrv)
 
         case SDDriverState_initer:
         {
-            return DiskInitializeImplementationResult_yield;
+            return FileSystemDiskInitializeImplementationResult_yield;
         } break;
 
         case SDDriverState_active:
         {
-            return DiskInitializeImplementationResult_ready;
+            return FileSystemDiskInitializeImplementationResult_ready;
         } break;
 
         case SDDriverState_disabled:
         case SDDriverState_error:
         {
-            return DiskInitializeImplementationResult_driver_error;
+            return FileSystemDiskInitializeImplementationResult_driver_error;
         } break;
 
         default: bug;
@@ -107,23 +107,23 @@ disk_initialize(BYTE pdrv)
     while (true)
     {
 
-        enum DiskInitializeImplementationResult result = disk_initialize_implementation(pdrv);
+        enum FileSystemDiskInitializeImplementationResult result = FILESYSTEM_disk_initialize_implementation(pdrv);
 
         switch (result)
         {
 
-            case DiskInitializeImplementationResult_ready:
+            case FileSystemDiskInitializeImplementationResult_ready:
             {
                 return 0; // We're all good to go!
             } break;
 
-            case DiskInitializeImplementationResult_yield:
+            case FileSystemDiskInitializeImplementationResult_yield:
             {
                 // We'll keep on spin-locking until the SD driver is ready...
             } break;
 
-            case DiskInitializeImplementationResult_driver_error:
-            case DiskInitializeImplementationResult_bug:
+            case FileSystemDiskInitializeImplementationResult_driver_error:
+            case FileSystemDiskInitializeImplementationResult_bug:
             default:
             {
                 return STA_NOINIT | STA_NODISK; // User needs to reinitialize the SD driver.
@@ -140,14 +140,14 @@ disk_initialize(BYTE pdrv)
 
 
 
-static enum DiskStatusImplementationResult : u32
+static enum FileSystemDiskStatusImplementationResult : u32
 {
-    DiskStatusImplementationResult_still_initializing,
-    DiskStatusImplementationResult_ready,
-    DiskStatusImplementationResult_driver_error,
-    DiskStatusImplementationResult_bug = BUG_CODE,
+    FileSystemDiskStatusImplementationResult_still_initializing,
+    FileSystemDiskStatusImplementationResult_ready,
+    FileSystemDiskStatusImplementationResult_driver_error,
+    FileSystemDiskStatusImplementationResult_bug = BUG_CODE,
 }
-disk_status_implementation(BYTE pdrv)
+FILESYSTEM_disk_status_implementation(BYTE pdrv)
 {
 
     if (pdrv) // "Always zero at single drive system."
@@ -158,18 +158,18 @@ disk_status_implementation(BYTE pdrv)
 
         case SDDriverState_initer:
         {
-            return DiskStatusImplementationResult_still_initializing;
+            return FileSystemDiskStatusImplementationResult_still_initializing;
         } break;
 
         case SDDriverState_active:
         {
-            return DiskStatusImplementationResult_ready;
+            return FileSystemDiskStatusImplementationResult_ready;
         } break;
 
         case SDDriverState_disabled:
         case SDDriverState_error:
         {
-            return DiskStatusImplementationResult_driver_error;
+            return FileSystemDiskStatusImplementationResult_driver_error;
         } break;
 
         default: bug;
@@ -182,23 +182,23 @@ extern DSTATUS
 disk_status(BYTE pdrv)
 {
 
-    enum DiskStatusImplementationResult result = disk_status_implementation(pdrv);
+    enum FileSystemDiskStatusImplementationResult result = FILESYSTEM_disk_status_implementation(pdrv);
 
     switch (result)
     {
 
-        case DiskStatusImplementationResult_still_initializing:
+        case FileSystemDiskStatusImplementationResult_still_initializing:
         {
             return STA_NOINIT;
         } break;
 
-        case DiskStatusImplementationResult_ready:
+        case FileSystemDiskStatusImplementationResult_ready:
         {
             return 0;
         } break;
 
-        case DiskStatusImplementationResult_driver_error:
-        case DiskStatusImplementationResult_bug:
+        case FileSystemDiskStatusImplementationResult_driver_error:
+        case FileSystemDiskStatusImplementationResult_bug:
         default:
         {
             return STA_NOINIT | STA_NODISK; // User needs to reinitialize the SD driver.
@@ -214,15 +214,15 @@ disk_status(BYTE pdrv)
 
 
 
-static enum DiskTransferImplementationResult : u32
+static enum FileSystemDiskTransferImplementationResult : u32
 {
-    DiskTransferImplementationResult_success,
-    DiskTransferImplementationResult_still_initializing,
-    DiskTransferImplementationResult_transfer_error,
-    DiskTransferImplementationResult_driver_error,
-    DiskTransferImplementationResult_bug = BUG_CODE,
+    FileSystemDiskTransferImplementationResult_success,
+    FileSystemDiskTransferImplementationResult_still_initializing,
+    FileSystemDiskTransferImplementationResult_transfer_error,
+    FileSystemDiskTransferImplementationResult_driver_error,
+    FileSystemDiskTransferImplementationResult_bug = BUG_CODE,
 }
-disk_transfer_implementation(BYTE pdrv, const BYTE* buff, LBA_t sector, UINT count, b32 writing)
+FILESYSTEM_disk_transfer_implementation(BYTE pdrv, const BYTE* buff, LBA_t sector, UINT count, b32 writing)
 {
 
     if (pdrv) // "Always zero at single drive system."
@@ -248,7 +248,7 @@ disk_transfer_implementation(BYTE pdrv, const BYTE* buff, LBA_t sector, UINT cou
 
             case SDDoResult_still_initializing:
             {
-                return DiskTransferImplementationResult_still_initializing;
+                return FileSystemDiskTransferImplementationResult_still_initializing;
             } break;
 
             case SDDoResult_working:
@@ -258,12 +258,12 @@ disk_transfer_implementation(BYTE pdrv, const BYTE* buff, LBA_t sector, UINT cou
 
             case SDDoResult_success:
             {
-                return DiskTransferImplementationResult_success;
+                return FileSystemDiskTransferImplementationResult_success;
             } break;
 
             case SDDoResult_transfer_error:
             {
-                return DiskTransferImplementationResult_transfer_error;
+                return FileSystemDiskTransferImplementationResult_transfer_error;
             } break;
 
             case SDDoResult_card_likely_unmounted:
@@ -273,7 +273,7 @@ disk_transfer_implementation(BYTE pdrv, const BYTE* buff, LBA_t sector, UINT cou
             case SDDoResult_could_not_ready_card:
             case SDDoResult_card_glitch:
             {
-                return DiskTransferImplementationResult_driver_error;
+                return FileSystemDiskTransferImplementationResult_driver_error;
             } break;
 
             case SDDoResult_bug : bug;
@@ -289,24 +289,24 @@ extern DRESULT
 disk_write(BYTE pdrv, const BYTE* buff, LBA_t sector, UINT count)
 {
 
-    enum DiskTransferImplementationResult result = disk_transfer_implementation(pdrv, buff, sector, count, true);
+    enum FileSystemDiskTransferImplementationResult result = FILESYSTEM_disk_transfer_implementation(pdrv, buff, sector, count, true);
 
     switch (result)
     {
 
-        case DiskTransferImplementationResult_still_initializing:
+        case FileSystemDiskTransferImplementationResult_still_initializing:
         {
             return RES_NOTRDY;
         } break;
 
-        case DiskTransferImplementationResult_success:
+        case FileSystemDiskTransferImplementationResult_success:
         {
             return RES_OK;
         } break;
 
-        case DiskTransferImplementationResult_transfer_error:
-        case DiskTransferImplementationResult_driver_error:
-        case DiskTransferImplementationResult_bug:
+        case FileSystemDiskTransferImplementationResult_transfer_error:
+        case FileSystemDiskTransferImplementationResult_driver_error:
+        case FileSystemDiskTransferImplementationResult_bug:
         default:
         {
             return RES_ERROR;
@@ -320,24 +320,24 @@ extern DRESULT
 disk_read(BYTE pdrv, BYTE* buff, LBA_t sector, UINT count)
 {
 
-    enum DiskTransferImplementationResult result = disk_transfer_implementation(pdrv, buff, sector, count, false);
+    enum FileSystemDiskTransferImplementationResult result = FILESYSTEM_disk_transfer_implementation(pdrv, buff, sector, count, false);
 
     switch (result)
     {
 
-        case DiskTransferImplementationResult_still_initializing:
+        case FileSystemDiskTransferImplementationResult_still_initializing:
         {
             return RES_NOTRDY;
         } break;
 
-        case DiskTransferImplementationResult_success:
+        case FileSystemDiskTransferImplementationResult_success:
         {
             return RES_OK;
         } break;
 
-        case DiskTransferImplementationResult_transfer_error:
-        case DiskTransferImplementationResult_driver_error:
-        case DiskTransferImplementationResult_bug:
+        case FileSystemDiskTransferImplementationResult_transfer_error:
+        case FileSystemDiskTransferImplementationResult_driver_error:
+        case FileSystemDiskTransferImplementationResult_bug:
         default:
         {
             return RES_ERROR;
@@ -353,16 +353,16 @@ disk_read(BYTE pdrv, BYTE* buff, LBA_t sector, UINT count)
 
 
 
-static enum DiskIOCTLImplementationResult : u32
+static enum FileSystemDiskIOCTLImplementationResult : u32
 {
-    DiskIOCTLImplementationResult_success,
-    DiskIOCTLImplementationResult_still_initializing,
-    DiskIOCTLImplementationResult_transfer_error,
-    DiskIOCTLImplementationResult_driver_error,
-    DiskIOCTLImplementationResult_unsupported_command,
-    DiskIOCTLImplementationResult_bug = BUG_CODE,
+    FileSystemDiskIOCTLImplementationResult_success,
+    FileSystemDiskIOCTLImplementationResult_still_initializing,
+    FileSystemDiskIOCTLImplementationResult_transfer_error,
+    FileSystemDiskIOCTLImplementationResult_driver_error,
+    FileSystemDiskIOCTLImplementationResult_unsupported_command,
+    FileSystemDiskIOCTLImplementationResult_bug = BUG_CODE,
 }
-disk_ioctl_implementation(BYTE pdrv, BYTE cmd, void* buff)
+FILESYSTEM_disk_ioctl_implementation(BYTE pdrv, BYTE cmd, void* buff)
 {
 
     if (pdrv) // "Always zero at single drive system."
@@ -400,7 +400,7 @@ disk_ioctl_implementation(BYTE pdrv, BYTE cmd, void* buff)
 
                     case SDDoResult_still_initializing:
                     {
-                        return DiskIOCTLImplementationResult_still_initializing;
+                        return FileSystemDiskIOCTLImplementationResult_still_initializing;
                     } break;
 
                     case SDDoResult_working:
@@ -410,12 +410,12 @@ disk_ioctl_implementation(BYTE pdrv, BYTE cmd, void* buff)
 
                     case SDDoResult_success:
                     {
-                        return DiskIOCTLImplementationResult_success;
+                        return FileSystemDiskIOCTLImplementationResult_success;
                     } break;
 
                     case SDDoResult_transfer_error:
                     {
-                        return DiskIOCTLImplementationResult_transfer_error;
+                        return FileSystemDiskIOCTLImplementationResult_transfer_error;
                     } break;
 
                     case SDDoResult_card_likely_unmounted:
@@ -426,7 +426,7 @@ disk_ioctl_implementation(BYTE pdrv, BYTE cmd, void* buff)
                     case SDDoResult_card_glitch:
                     case SDDoResult_bug:
                     {
-                        return DiskIOCTLImplementationResult_driver_error;
+                        return FileSystemDiskIOCTLImplementationResult_driver_error;
                     } break;
 
                     default: bug;
@@ -451,7 +451,7 @@ disk_ioctl_implementation(BYTE pdrv, BYTE cmd, void* buff)
 
             *(LBA_t*) buff = (u32) _SD_drivers[pdrv].initer.capacity_sector_count;
 
-            return DiskIOCTLImplementationResult_success;
+            return FileSystemDiskIOCTLImplementationResult_success;
 
         } break;
 
@@ -471,7 +471,7 @@ disk_ioctl_implementation(BYTE pdrv, BYTE cmd, void* buff)
 
             *(DWORD*) buff = 1; // TODO Maybe determine the actual erase block size?
 
-            return DiskIOCTLImplementationResult_success;
+            return FileSystemDiskIOCTLImplementationResult_success;
 
         } break;
 
@@ -485,7 +485,7 @@ disk_ioctl_implementation(BYTE pdrv, BYTE cmd, void* buff)
             static_assert(FF_MAX_SS == FF_MIN_SS); // @/url:`elm-chan.org/fsw/ff/doc/appnote.html`.
             static_assert(FF_USE_TRIM != 1      ); // "
 
-            return DiskIOCTLImplementationResult_unsupported_command;
+            return FileSystemDiskIOCTLImplementationResult_unsupported_command;
 
         } break;
 
@@ -497,33 +497,33 @@ extern DRESULT
 disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
 {
 
-    enum DiskIOCTLImplementationResult result = disk_ioctl_implementation(pdrv, cmd, buff);
+    enum FileSystemDiskIOCTLImplementationResult result = FILESYSTEM_disk_ioctl_implementation(pdrv, cmd, buff);
 
     switch (result)
     {
 
-        case DiskIOCTLImplementationResult_success:
+        case FileSystemDiskIOCTLImplementationResult_success:
         {
             return RES_OK;
         } break;
 
-        case DiskIOCTLImplementationResult_still_initializing:
+        case FileSystemDiskIOCTLImplementationResult_still_initializing:
         {
             return RES_NOTRDY;
         } break;
 
-        case DiskIOCTLImplementationResult_transfer_error:
-        case DiskIOCTLImplementationResult_driver_error:
+        case FileSystemDiskIOCTLImplementationResult_transfer_error:
+        case FileSystemDiskIOCTLImplementationResult_driver_error:
         {
             return RES_ERROR;
         } break;
 
-        case DiskIOCTLImplementationResult_unsupported_command:
+        case FileSystemDiskIOCTLImplementationResult_unsupported_command:
         {
             return RES_PARERR;
         } break;
 
-        case DiskIOCTLImplementationResult_bug:
+        case FileSystemDiskIOCTLImplementationResult_bug:
         default:
         {
             return RES_ERROR;
