@@ -60,8 +60,12 @@ struct SDCmder // @/`Scheduling a Command with SD-Cmder`.
 
 
 
-static void
-_SDCmder_set_up_data_path_state_machine(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder, b32 enable)
+static useret enum SDCmderSetUpDPSMResult : u32
+{
+    SDCmderSetUpDPSMResult_okay,
+    SDCmderSetUpDPSMResult_bug = BUG_CODE,
+}
+_SDCmder_set_up_dpsm(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder, b32 enable)
 {
 
     if (CMSIS_GET(SDMMC, STA, CPSMACT))
@@ -130,6 +134,8 @@ _SDCmder_set_up_data_path_state_machine(SDMMC_TypeDef* SDMMC, struct SDCmder* cm
         DTDIR     , !!SD_CMDS[cmder->cmd].receiving, // Whether we are receiving or transmitting data-blocks.
         DTEN      , !!enable                       , // Whether the DPSM should be activated with or without the CPSM.
     );
+
+    return SDCmderSetUpDPSMResult_okay;
 
 }
 
@@ -421,7 +427,16 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
                 if (actually_transferring)
                 {
-                    _SDCmder_set_up_data_path_state_machine(SDMMC, cmder, false);
+
+                    enum SDCmderSetUpDPSMResult result = _SDCmder_set_up_dpsm(SDMMC, cmder, false);
+
+                    switch (result)
+                    {
+                        case SDCmderSetUpDPSMResult_okay : break;
+                        case SDCmderSetUpDPSMResult_bug  : bug;
+                        default                          : bug;
+                    }
+
                 }
 
 
@@ -859,9 +874,20 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
                 if (cmder->data_block_pointer)
                 {
-                    _SDCmder_set_up_data_path_state_machine(SDMMC, cmder, true);
+
+                    enum SDCmderSetUpDPSMResult result = _SDCmder_set_up_dpsm(SDMMC, cmder, true);
+
+                    switch (result)
+                    {
+                        case SDCmderSetUpDPSMResult_okay : break;
+                        case SDCmderSetUpDPSMResult_bug  : bug;
+                        default                          : bug;
+                    }
+
                     cmder->state = SDCmderState_undergoing_data_transfer_of_data_blocks;
+
                     return SDCmderIterateResult_again;
+
                 }
 
 
