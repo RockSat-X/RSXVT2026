@@ -11,7 +11,7 @@
             scheduled_amcd_prefixed_command
             transferring_user_command
             outwaiting_busy_signal_for_user_command
-            undergoing_data_transfer_of_single_data_block
+            undergoing_data_transfer_of_data_blocks
             waiting_for_users_next_data_block
             scheduled_stop_transmission
             transferring_stop_transmission
@@ -681,7 +681,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 }
                 else if (cmder->total_blocks_to_transfer) // Now move onto receiving/transmitting data-blocks?
                 {
-                    cmder->state = SDCmderState_undergoing_data_transfer_of_single_data_block;
+                    cmder->state = SDCmderState_undergoing_data_transfer_of_data_blocks;
                     return SDCmderIterateResult_again;
                 }
                 else // The caller's desired command has been successfully executed.
@@ -711,7 +711,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
         //
         ////////////////////////////////////////
 
-        case SDCmderState_undergoing_data_transfer_of_single_data_block: switch (interrupt_event)
+        case SDCmderState_undergoing_data_transfer_of_data_blocks: switch (interrupt_event)
         {
 
             case SDMMCInterruptEvent_none:
@@ -860,7 +860,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 if (cmder->data_block_pointer)
                 {
                     _SDCmder_set_up_data_path_state_machine(SDMMC, cmder, true);
-                    cmder->state = SDCmderState_undergoing_data_transfer_of_single_data_block;
+                    cmder->state = SDCmderState_undergoing_data_transfer_of_data_blocks;
                     return SDCmderIterateResult_again;
                 }
 
