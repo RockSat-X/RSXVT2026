@@ -1,3 +1,10 @@
+////////////////////////////////////////////////////////////////////////////////
+//
+// Some FatFs configurations.
+//
+
+
+
 #define FFCONF_DEF         80386 // Current FatFs revision we're using.
 #define FF_FS_READONLY     false // Allow the file-system to be mutated.
 #define FF_FS_MINIMIZE     0     // "0: Basic functions are fully enabled."
@@ -50,77 +57,152 @@ static_assert(FF_MIN_SS == FF_MAX_SS && FF_MIN_SS == sizeof(Sector));
 
 
 ////////////////////////////////////////////////////////////////////////////////
+//
+// Routine for FatFs to initialize the storage medium.
+//
 
 
 
-extern DSTATUS
-disk_initialize(BYTE pdrv)
+static enum DiskInitializeImplementationResult : u32
 {
-
-    if (pdrv)  // "Always zero at single drive system."
-        panic; // We currently don't support multiple file-systems.
-
-    while (true)
-    {
-        switch (_SD_drivers[pdrv].state)
-        {
-
-            case SDDriverState_initer:
-            {
-                // Keep waiting for the SD driver to finish initializing...
-            } break;
-
-            case SDDriverState_active:
-            {
-                return 0; // The SD driver is ready for transfers.
-            } break;
-
-            case SDDriverState_disabled:
-            case SDDriverState_error:
-            {
-                return STA_NOINIT; // The user needs to reinitialize the SD driver...
-            } break;
-
-            default: panic;
-
-        }
-    }
-
+    DiskInitializeImplementationResult_ready,
+    DiskInitializeImplementationResult_yield,
+    DiskInitializeImplementationResult_driver_error,
+    DiskInitializeImplementationResult_bug = BUG_CODE,
 }
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-extern DSTATUS
-disk_status(BYTE pdrv)
+disk_initialize_implementation(BYTE pdrv)
 {
 
-    if (pdrv)  // "Always zero at single drive system."
-        panic; // We currently don't support multiple file-systems.
+    if (pdrv) // "Always zero at single drive system."
+        bug;  // We currently don't support multiple file-systems.
 
     switch (_SD_drivers[pdrv].state)
     {
 
         case SDDriverState_initer:
         {
-            return STA_NOINIT; // "Indicates that the device has not been initialized and not ready to work."
+            return DiskInitializeImplementationResult_yield;
         } break;
 
         case SDDriverState_active:
         {
-            return 0; // Everything's all good.
+            return DiskInitializeImplementationResult_ready;
         } break;
 
         case SDDriverState_disabled:
         case SDDriverState_error:
         {
-            return STA_NOINIT; // Something went wrong with the SD driver...
+            return DiskInitializeImplementationResult_driver_error;
         } break;
 
-        default: panic;
+        default: bug;
+
+    }
+
+}
+
+extern DSTATUS
+disk_initialize(BYTE pdrv)
+{
+    while (true)
+    {
+
+        enum DiskInitializeImplementationResult result = disk_initialize_implementation(pdrv);
+
+        switch (result)
+        {
+
+            case DiskInitializeImplementationResult_ready:
+            {
+                return 0; // We're all good to go!
+            } break;
+
+            case DiskInitializeImplementationResult_yield:
+            {
+                // We'll keep on spin-locking until the SD driver is ready...
+            } break;
+
+            case DiskInitializeImplementationResult_driver_error:
+            case DiskInitializeImplementationResult_bug:
+            default:
+            {
+                return STA_NOINIT | STA_NODISK; // User needs to reinitialize the SD driver.
+            } break;
+
+        }
+
+    }
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+static enum DiskStatusImplementationResult : u32
+{
+    DiskStatusImplementationResult_still_initializing,
+    DiskStatusImplementationResult_ready,
+    DiskStatusImplementationResult_driver_error,
+    DiskStatusImplementationResult_bug = BUG_CODE,
+}
+disk_status_implementation(BYTE pdrv)
+{
+
+    if (pdrv) // "Always zero at single drive system."
+        bug;  // We currently don't support multiple file-systems.
+
+    switch (_SD_drivers[pdrv].state)
+    {
+
+        case SDDriverState_initer:
+        {
+            return DiskStatusImplementationResult_still_initializing;
+        } break;
+
+        case SDDriverState_active:
+        {
+            return DiskStatusImplementationResult_ready;
+        } break;
+
+        case SDDriverState_disabled:
+        case SDDriverState_error:
+        {
+            return DiskStatusImplementationResult_driver_error;
+        } break;
+
+        default: bug;
+
+    }
+
+}
+
+extern DSTATUS
+disk_status(BYTE pdrv)
+{
+
+    enum DiskStatusImplementationResult result = disk_status_implementation(pdrv);
+
+    switch (result)
+    {
+
+        case DiskStatusImplementationResult_still_initializing:
+        {
+            return STA_NOINIT;
+        } break;
+
+        case DiskStatusImplementationResult_ready:
+        {
+            return 0;
+        } break;
+
+        case DiskStatusImplementationResult_driver_error:
+        case DiskStatusImplementationResult_bug:
+        default:
+        {
+            return STA_NOINIT | STA_NODISK; // User needs to reinitialize the SD driver.
+        } break;
 
     }
 
@@ -132,20 +214,25 @@ disk_status(BYTE pdrv)
 
 
 
-static DRESULT
-disk_transfer(BYTE pdrv, const BYTE* buff, LBA_t sector, UINT count, b32 writing)
+static enum DiskTransferImplementationResult : u32
+{
+    DiskTransferImplementationResult_success,
+    DiskTransferImplementationResult_still_initializing,
+    DiskTransferImplementationResult_transfer_error,
+    DiskTransferImplementationResult_driver_error,
+    DiskTransferImplementationResult_bug = BUG_CODE,
+}
+disk_transfer_implementation(BYTE pdrv, const BYTE* buff, LBA_t sector, UINT count, b32 writing)
 {
 
-    if (pdrv)  // "Always zero at single drive system."
-        panic; // We currently don't support multiple file-systems.
-
-
+    if (pdrv) // "Always zero at single drive system."
+        bug;  // We currently don't support multiple file-systems.
 
     struct SDDoJob job =
         {
             .handle              = (enum SDHandle) { 0 }, // We're assuming the first SD driver handle.
             .writing             = !!writing,
-            .consecutive_caching = true, // TODO Have a heuristic?
+            .consecutive_caching = true,
             .sector              = (Sector*) buff,
             .address             = sector,
             .count               = (i32) count,
@@ -161,52 +248,36 @@ disk_transfer(BYTE pdrv, const BYTE* buff, LBA_t sector, UINT count, b32 writing
 
             case SDDoResult_still_initializing:
             {
-
-                // @/`FatFs Still Initializing`:
-                //
-                // `RES_NOTRDY` : "The device has not been initialized."
-                //
-                // Although it seems like FatFs does not make use of `RES_NOTRDY`,
-                // so we could probably also return `RES_ERROR` here too since I expect
-                // `disk_initialize` to have the SD driver be fully initialized by then.
-                //
-                // @/url:`elm-chan.org/fsw/ff/doc/dread.html`.
-
-                return RES_NOTRDY;
-
+                return DiskTransferImplementationResult_still_initializing;
             } break;
-
-
 
             case SDDoResult_working:
             {
                 // The job is being handled...
             } break;
 
-
-
             case SDDoResult_success:
             {
-                return RES_OK; // Yippee!
+                return DiskTransferImplementationResult_success;
             } break;
 
-
-
             case SDDoResult_transfer_error:
+            {
+                return DiskTransferImplementationResult_transfer_error;
+            } break;
+
             case SDDoResult_card_likely_unmounted:
             case SDDoResult_unsupported_card:
             case SDDoResult_maybe_bus_problem:
             case SDDoResult_voltage_check_failed:
             case SDDoResult_could_not_ready_card:
             case SDDoResult_card_glitch:
-            case SDDoResult_bug:
             {
-                return RES_ERROR; // "An unrecoverable hard error occured during the read operation."
+                return DiskTransferImplementationResult_driver_error;
             } break;
 
-
-
-            default: panic;
+            case SDDoResult_bug : bug;
+            default             : bug;
 
         }
 
@@ -217,13 +288,63 @@ disk_transfer(BYTE pdrv, const BYTE* buff, LBA_t sector, UINT count, b32 writing
 extern DRESULT
 disk_write(BYTE pdrv, const BYTE* buff, LBA_t sector, UINT count)
 {
-    return disk_transfer(pdrv, buff, sector, count, true);
+
+    enum DiskTransferImplementationResult result = disk_transfer_implementation(pdrv, buff, sector, count, true);
+
+    switch (result)
+    {
+
+        case DiskTransferImplementationResult_still_initializing:
+        {
+            return RES_NOTRDY;
+        } break;
+
+        case DiskTransferImplementationResult_success:
+        {
+            return RES_OK;
+        } break;
+
+        case DiskTransferImplementationResult_transfer_error:
+        case DiskTransferImplementationResult_driver_error:
+        case DiskTransferImplementationResult_bug:
+        default:
+        {
+            return RES_ERROR;
+        } break;
+
+    }
+
 }
 
 extern DRESULT
 disk_read(BYTE pdrv, BYTE* buff, LBA_t sector, UINT count)
 {
-    return disk_transfer(pdrv, buff, sector, count, false);
+
+    enum DiskTransferImplementationResult result = disk_transfer_implementation(pdrv, buff, sector, count, false);
+
+    switch (result)
+    {
+
+        case DiskTransferImplementationResult_still_initializing:
+        {
+            return RES_NOTRDY;
+        } break;
+
+        case DiskTransferImplementationResult_success:
+        {
+            return RES_OK;
+        } break;
+
+        case DiskTransferImplementationResult_transfer_error:
+        case DiskTransferImplementationResult_driver_error:
+        case DiskTransferImplementationResult_bug:
+        default:
+        {
+            return RES_ERROR;
+        } break;
+
+    }
+
 }
 
 
@@ -232,12 +353,20 @@ disk_read(BYTE pdrv, BYTE* buff, LBA_t sector, UINT count)
 
 
 
-extern DRESULT
-disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
+static enum DiskIOCTLImplementationResult : u32
+{
+    DiskIOCTLImplementationResult_success,
+    DiskIOCTLImplementationResult_still_initializing,
+    DiskIOCTLImplementationResult_transfer_error,
+    DiskIOCTLImplementationResult_driver_error,
+    DiskIOCTLImplementationResult_unsupported_command,
+    DiskIOCTLImplementationResult_bug = BUG_CODE,
+}
+disk_ioctl_implementation(BYTE pdrv, BYTE cmd, void* buff)
 {
 
-    if (pdrv)  // "Always zero at single drive system."
-        panic; // We currently don't support multiple file-systems.
+    if (pdrv) // "Always zero at single drive system."
+        bug;  // We currently don't support multiple file-systems.
 
     switch (cmd)
     {
@@ -271,26 +400,24 @@ disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
 
                     case SDDoResult_still_initializing:
                     {
-                        return RES_NOTRDY; // @/`FatFs Still Initializing`.
+                        return DiskIOCTLImplementationResult_still_initializing;
                     } break;
-
-
 
                     case SDDoResult_working:
                     {
                         // Still busy syncing...
                     } break;
 
-
-
                     case SDDoResult_success:
                     {
-                        return RES_OK; // Yippee!
+                        return DiskIOCTLImplementationResult_success;
                     } break;
 
-
-
                     case SDDoResult_transfer_error:
+                    {
+                        return DiskIOCTLImplementationResult_transfer_error;
+                    } break;
+
                     case SDDoResult_card_likely_unmounted:
                     case SDDoResult_unsupported_card:
                     case SDDoResult_maybe_bus_problem:
@@ -299,12 +426,10 @@ disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
                     case SDDoResult_card_glitch:
                     case SDDoResult_bug:
                     {
-                        return RES_ERROR; // "An unrecoverable hard error occured during the read operation."
+                        return DiskIOCTLImplementationResult_driver_error;
                     } break;
 
-
-
-                    default: panic;
+                    default: bug;
 
                 }
 
@@ -326,7 +451,7 @@ disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
 
             *(LBA_t*) buff = (u32) _SD_drivers[pdrv].initer.capacity_sector_count;
 
-            return RES_OK;
+            return DiskIOCTLImplementationResult_success;
 
         } break;
 
@@ -346,7 +471,7 @@ disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
 
             *(DWORD*) buff = 1; // TODO Maybe determine the actual erase block size?
 
-            return RES_OK;
+            return DiskIOCTLImplementationResult_success;
 
         } break;
 
@@ -354,17 +479,54 @@ disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
 
         case GET_SECTOR_SIZE: // When the size of the medium's sector can vary, which we don't support.
         case CTRL_TRIM:       // Stuff for ATA-TRIM, which we don't support.
+        default:
         {
+
             static_assert(FF_MAX_SS == FF_MIN_SS); // @/url:`elm-chan.org/fsw/ff/doc/appnote.html`.
             static_assert(FF_USE_TRIM != 1      ); // "
+
+            return DiskIOCTLImplementationResult_unsupported_command;
+
+        } break;
+
+    }
+
+}
+
+extern DRESULT
+disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
+{
+
+    enum DiskIOCTLImplementationResult result = disk_ioctl_implementation(pdrv, cmd, buff);
+
+    switch (result)
+    {
+
+        case DiskIOCTLImplementationResult_success:
+        {
+            return RES_OK;
+        } break;
+
+        case DiskIOCTLImplementationResult_still_initializing:
+        {
+            return RES_NOTRDY;
+        } break;
+
+        case DiskIOCTLImplementationResult_transfer_error:
+        case DiskIOCTLImplementationResult_driver_error:
+        {
+            return RES_ERROR;
+        } break;
+
+        case DiskIOCTLImplementationResult_unsupported_command:
+        {
             return RES_PARERR;
         } break;
 
-
-
+        case DiskIOCTLImplementationResult_bug:
         default:
         {
-            return RES_PARERR; // "The command code or parameter is invalid."
+            return RES_ERROR;
         } break;
 
     }
