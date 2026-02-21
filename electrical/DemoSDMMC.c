@@ -361,74 +361,39 @@ main(void)
         ////////////////////////////////////////////////////////////////////////////////
         //
         // Test the file-system.
-        // Data on the SD card will be overwritten.
+        // New data will be written to the SD card;
+        // existing data should stay intact (if there aren't any bugs).
         //
 
         case 2:
         {
 
+
+
+            // Set up the file-system.
+
             {
                 enum FileSystemReinitResult result = FILESYSTEM_reinit(SDHandle_primary);
                 switch (result)
                 {
-                    case FileSystemReinitResult_success        : break;
-                    case FileSystemReinitResult_transfer_error : panic;
-                    case FileSystemReinitResult_bug            : panic;
-                    default                                    : panic;
-
+                    case FileSystemReinitResult_success            : break;
+                    case FileSystemReinitResult_couldnt_ready_card : panic;
+                    case FileSystemReinitResult_transfer_error     : panic;
+                    case FileSystemReinitResult_bug                : panic;
+                    default                                        : panic;
                 }
             }
 
-            FRESULT fatfs_error = {0};
 
 
+            // Begin generating dummy log data.
 
-            // Stress test the file-system.
-
-            i32 file_count = 0;
-
-            while (true)
+            for (i32 cluster_index = 0;; cluster_index += 1)
             {
 
-                if (stlink_rx(&(u8) {0}))
-                {
-                    for(;;);
-                }
 
 
-
-                // Create a new file.
-
-                {
-
-                    FIL file_handle = {0};
-
-                    char file_name[32] = {0};
-                    snprintf_(file_name, countof(file_name), "my_file_%d.txt", file_count);
-
-                    fatfs_error =
-                        f_open
-                        (
-                            &file_handle,
-                            file_name,
-                            FA_CREATE_NEW
-                        );
-
-                    if (fatfs_error)
-                        panic;
-
-                    fatfs_error = f_close(&file_handle);
-
-                    if (fatfs_error)
-                        panic;
-
-                }
-
-                file_count += 1;
-
-
-
-                // Write new data to every file so far.
+                // Fill cluster with predictable data.
 
                 #define DUMB_HASH(A, B, C, D)                                 \
                     ((u8) (((((((((((u32) (A)) * 0x9E37'79B1) ^ ((u32) (B)))  \
@@ -436,192 +401,48 @@ main(void)
                                                * 0x9E37'79B1) ^ ((u32) (D)))  \
                                                * 0x9E37'79B1) >> 24) & 0xFF))
 
-                for (i32 file_index = 0; file_index < file_count; file_index += 1)
+                for (i32 sector_index = 0; sector_index < countof(cluster_buffer); sector_index += 1)
                 {
-
-
-
-                    // Open the file.
-
-                    FIL file_handle = {0};
-
-                    char file_name[32] = {0};
-                    snprintf_(file_name, countof(file_name), "my_file_%d.txt", file_index);
-
-                    fatfs_error =
-                        f_open
-                        (
-                            &file_handle,
-                            file_name,
-                            FA_WRITE
-                        );
-
-                    if (fatfs_error)
-                        panic;
-
-
-
-                    // Write a bunch of sectors.
-
-                    UINT bytes_written = {0};
-
-                    for (i32 cluster_index = 0; cluster_index < file_count; cluster_index += 1)
+                    for (i32 byte_index = 0; byte_index < countof(cluster_buffer[sector_index]); byte_index += 1)
                     {
-                        for (i32 sector_index = 0; sector_index < countof(cluster_buffer); sector_index += 1)
-                        {
-                            for (i32 byte_index = 0; byte_index < countof(cluster_buffer[sector_index]); byte_index += 1)
-                            {
-                                cluster_buffer[sector_index][byte_index] =
-                                    DUMB_HASH
-                                    (
-                                        file_count + file_index,
-                                        cluster_index,
-                                        sector_index,
-                                        byte_index
-                                    );
-                            }
-                        }
-
-                        fatfs_error =
-                            f_write
+                        cluster_buffer[sector_index][byte_index] =
+                            DUMB_HASH
                             (
-                              &file_handle,
-                              cluster_buffer,
-                              sizeof(cluster_buffer),
-                              &bytes_written
+                                _FILESYSTEM_driver.file_index,
+                                cluster_index,
+                                sector_index,
+                                byte_index
                             );
-
-                        if (fatfs_error)
-                            panic;
-
-                        if (bytes_written != sizeof(cluster_buffer))
-                            panic;
-
                     }
-
-
-
-                    // Close the file.
-
-                    fatfs_error = f_close(&file_handle);
-
-                    if (fatfs_error)
-                        panic;
-
-                    SD_profiler_report();
-                    GPIO_TOGGLE(led_green);
-
                 }
 
 
 
-                // Read in all of the file data we should be expecting.
+                // Try saving the data.
 
-                for (i32 file_index = 0; file_index < file_count; file_index += 1)
+                enum FileSystemSaveResult result =
+                    FILESYSTEM_save
+                    (
+                        SDHandle_primary,
+                        cluster_buffer,
+                        countof(cluster_buffer)
+                    );
+
+                switch (result)
                 {
-
-
-
-                    // Open the file.
-
-                    FIL file_handle = {0};
-
-                    char file_name[32] = {0};
-                    snprintf_(file_name, countof(file_name), "my_file_%d.txt", file_index);
-
-                    fatfs_error =
-                        f_open
-                        (
-                            &file_handle,
-                            file_name,
-                            FA_READ
-                        );
-
-                    if (fatfs_error)
-                        panic;
-
-
-
-                    // Check the data.
-
-                    i32 amount_of_data_remaining = file_count * sizeof(cluster_buffer);
-                    i32 cluster_index            = 0;
-
-                    while (true)
-                    {
-
-                        UINT bytes_read = {0};
-
-                        fatfs_error =
-                            f_read
-                            (
-                              &file_handle,
-                              cluster_buffer,
-                              sizeof(cluster_buffer),
-                              &bytes_read
-                            );
-
-                        if (fatfs_error)
-                            panic;
-
-                        amount_of_data_remaining -= (i32) bytes_read;
-
-                        if (amount_of_data_remaining <= -1)
-                            panic;
-
-                        if (bytes_read)
-                        {
-
-                            if (bytes_read != sizeof(cluster_buffer))
-                                panic;
-
-                            for (i32 sector_index = 0; sector_index < countof(cluster_buffer); sector_index += 1)
-                            {
-                                for (i32 byte_index = 0; byte_index < countof(cluster_buffer[sector_index]); byte_index += 1)
-                                {
-
-                                    u8 digest =
-                                        DUMB_HASH
-                                        (
-                                            file_count + file_index,
-                                            cluster_index,
-                                            sector_index,
-                                            byte_index
-                                        );
-
-                                    if (cluster_buffer[sector_index][byte_index] != digest)
-                                        panic;
-
-                                }
-                            }
-
-                            cluster_index += 1;
-
-                        }
-                        else
-                        {
-
-                            if (amount_of_data_remaining)
-                                panic;
-
-                            break;
-                        }
-
-                    }
-
-
-
-                    // Close the file.
-
-                    fatfs_error = f_close(&file_handle);
-
-                    if (fatfs_error)
-                        panic;
-
-                    SD_profiler_report();
-                    GPIO_TOGGLE(led_green);
-
+                    case FileSystemSaveResult_success         : break;
+                    case FileSystemSaveResult_transfer_error  : panic;
+                    case FileSystemSaveResult_filesystem_full : panic;
+                    case FileSystemSaveResult_bug             : panic;
+                    default                                   : panic;
                 }
+
+
+
+                // Heartbeat.
+
+                SD_profiler_report();
+                GPIO_TOGGLE(led_green);
 
             }
 

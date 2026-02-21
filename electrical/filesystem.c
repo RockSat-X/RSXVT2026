@@ -63,6 +63,9 @@ static_assert(FF_MIN_SS == FF_MAX_SS && FF_MIN_SS == sizeof(Sector));
 struct FileSystemDriver
 {
     FATFS fatfs;
+    i32   file_index;
+    char  file_name[16];
+    FIL   file_info;
 };
 
 static struct FileSystemDriver _FILESYSTEM_driver = {0};
@@ -552,6 +555,7 @@ disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
 static useret enum FileSystemReinitResult : u32
 {
     FileSystemReinitResult_success,
+    FileSystemReinitResult_couldnt_ready_card,
     FileSystemReinitResult_transfer_error,
     FileSystemReinitResult_bug = BUG_CODE,
 }
@@ -573,39 +577,45 @@ FILESYSTEM_reinit(enum SDHandle sd_handle)
 
     // Format the SD card with the default file-system.
 
-    FRESULT formatting_result =
-        f_mkfs
-        (
-            "",
-            nullptr,
-            (Sector) {0},
-            sizeof(Sector)
-        );
-
-    switch (formatting_result)
+    #if 0
     {
-        case FR_OK                  : break;
-        case FR_DISK_ERR            : return FileSystemReinitResult_transfer_error;
-        case FR_NOT_READY           : bug; // Shouldn't happen in practice.
-        case FR_WRITE_PROTECTED     : bug; // "
-        case FR_INVALID_DRIVE       : bug; // "
-        case FR_MKFS_ABORTED        : bug; // "
-        case FR_INVALID_PARAMETER   : bug; // "
-        case FR_NOT_ENOUGH_CORE     : bug; // "
-        case FR_NOT_ENABLED         : bug; // Not "valid" return value according to documentation.
-        case FR_NO_FILESYSTEM       : bug; // "
-        case FR_INT_ERR             : bug; // "
-        case FR_NO_FILE             : bug; // "
-        case FR_NO_PATH             : bug; // "
-        case FR_INVALID_NAME        : bug; // "
-        case FR_DENIED              : bug; // "
-        case FR_EXIST               : bug; // "
-        case FR_INVALID_OBJECT      : bug; // "
-        case FR_TIMEOUT             : bug; // "
-        case FR_LOCKED              : bug; // "
-        case FR_TOO_MANY_OPEN_FILES : bug; // "
-        default                     : bug; // "
+
+        FRESULT formatting_result =
+            f_mkfs
+            (
+                "",
+                nullptr,
+                (Sector) {0},
+                sizeof(Sector)
+            );
+
+        switch (formatting_result)
+        {
+            case FR_OK                  : break;
+            case FR_DISK_ERR            : return FileSystemReinitResult_transfer_error;
+            case FR_NOT_READY           : return FileSystemReinitResult_couldnt_ready_card;
+            case FR_WRITE_PROTECTED     : bug; // Shouldn't happen in practice.
+            case FR_INVALID_DRIVE       : bug; // "
+            case FR_MKFS_ABORTED        : bug; // "
+            case FR_INVALID_PARAMETER   : bug; // "
+            case FR_NOT_ENOUGH_CORE     : bug; // "
+            case FR_NOT_ENABLED         : bug; // Not "valid" return value according to documentation.
+            case FR_NO_FILESYSTEM       : bug; // "
+            case FR_INT_ERR             : bug; // "
+            case FR_NO_FILE             : bug; // "
+            case FR_NO_PATH             : bug; // "
+            case FR_INVALID_NAME        : bug; // "
+            case FR_DENIED              : bug; // "
+            case FR_EXIST               : bug; // "
+            case FR_INVALID_OBJECT      : bug; // "
+            case FR_TIMEOUT             : bug; // "
+            case FR_LOCKED              : bug; // "
+            case FR_TOO_MANY_OPEN_FILES : bug; // "
+            default                     : bug; // "
+        }
+
     }
+    #endif
 
 
 
@@ -623,8 +633,8 @@ FILESYSTEM_reinit(enum SDHandle sd_handle)
     {
         case FR_OK                  : break;
         case FR_DISK_ERR            : return FileSystemReinitResult_transfer_error;
-        case FR_NOT_READY           : bug; // Shouldn't happen in practice...
-        case FR_NOT_ENABLED         : bug; // "
+        case FR_NOT_READY           : return FileSystemReinitResult_couldnt_ready_card;
+        case FR_NOT_ENABLED         : bug; // Shouldn't happen in practice...
         case FR_NO_FILESYSTEM       : bug; // "
         case FR_INVALID_DRIVE       : bug; // "
         case FR_INT_ERR             : bug; // Not "valid" return value according to documentation.
@@ -646,8 +656,234 @@ FILESYSTEM_reinit(enum SDHandle sd_handle)
 
 
 
+    // Create the log file.
+
+    for (b32 yield = false; !yield;)
+    {
+
+
+
+        // Determine file name.
+
+        i32 format_result =
+            snprintf_
+            (
+                _FILESYSTEM_driver.file_name,
+                countof(_FILESYSTEM_driver.file_name),
+                "log_%d.bin",
+                _FILESYSTEM_driver.file_index
+            );
+
+        if (format_result <= 0)
+            bug; // Formatting error..?
+
+
+
+        // Try making the file.
+
+        FRESULT creation_result =
+            f_open
+            (
+                &_FILESYSTEM_driver.file_info,
+                _FILESYSTEM_driver.file_name,
+                FA_WRITE | FA_CREATE_NEW
+            );
+
+        switch (creation_result)
+        {
+
+
+
+            // Made the file successfully; we now synchronize to ensure
+            // that the file gets properly committed.
+
+            case FR_OK:
+            {
+
+                FRESULT sync_result = f_sync(&_FILESYSTEM_driver.file_info);
+
+                switch (sync_result)
+                {
+
+                    case FR_OK:
+                    {
+                        yield = true;
+                    } break;
+
+                    case FR_DISK_ERR            : return FileSystemReinitResult_transfer_error;
+                    case FR_INVALID_OBJECT      : bug; // Shouldn't happen in practice...
+                    case FR_INT_ERR             : bug; // We don't use any thread control features...
+                    case FR_TIMEOUT             : bug; // "
+                    case FR_NOT_READY           : bug; // Not "valid" return value according to documentation.
+                    case FR_NOT_ENABLED         : bug; // "
+                    case FR_NO_FILESYSTEM       : bug; // "
+                    case FR_INVALID_DRIVE       : bug; // "
+                    case FR_NO_FILE             : bug; // "
+                    case FR_NO_PATH             : bug; // "
+                    case FR_INVALID_NAME        : bug; // "
+                    case FR_DENIED              : bug; // "
+                    case FR_EXIST               : bug; // "
+                    case FR_WRITE_PROTECTED     : bug; // "
+                    case FR_MKFS_ABORTED        : bug; // "
+                    case FR_LOCKED              : bug; // "
+                    case FR_NOT_ENOUGH_CORE     : bug; // "
+                    case FR_TOO_MANY_OPEN_FILES : bug; // "
+                    case FR_INVALID_PARAMETER   : bug; // "
+                    default                     : bug; // "
+
+                }
+
+            } break;
+
+
+
+            // There's already a file of the same name;
+            // we'll just have to try again with the next name.
+
+            case FR_EXIST:
+            {
+                _FILESYSTEM_driver.file_index += 1;
+            } break;
+
+
+
+            case FR_DISK_ERR            : return FileSystemReinitResult_transfer_error;
+            case FR_NOT_READY           : bug; // The SD card should've been initialized by now...
+            case FR_NOT_ENABLED         : bug; // Shouldn't happen in practice...
+            case FR_NO_FILESYSTEM       : bug; // "
+            case FR_INVALID_DRIVE       : bug; // "
+            case FR_NO_FILE             : bug; // "
+            case FR_NO_PATH             : bug; // "
+            case FR_INVALID_NAME        : bug; // "
+            case FR_DENIED              : bug; // "
+            case FR_INVALID_OBJECT      : bug; // "
+            case FR_WRITE_PROTECTED     : bug; // "
+            case FR_LOCKED              : bug; // "
+            case FR_NOT_ENOUGH_CORE     : bug; // "
+            case FR_TOO_MANY_OPEN_FILES : bug; // "
+            case FR_INT_ERR             : bug; // We don't use any thread control features...
+            case FR_TIMEOUT             : bug; // "
+            case FR_MKFS_ABORTED        : bug; // Not "valid" return value according to documentation.
+            case FR_INVALID_PARAMETER   : bug; // "
+            default                     : bug; // "
+
+        }
+
+    }
+
+
+
     // We're ready to go!
 
     return FileSystemReinitResult_success;
+
+}
+
+
+
+static useret enum FileSystemSaveResult : u32
+{
+    FileSystemSaveResult_success,
+    FileSystemSaveResult_transfer_error,
+    FileSystemSaveResult_filesystem_full,
+    FileSystemSaveResult_bug = BUG_CODE,
+}
+FILESYSTEM_save(enum SDHandle sd_handle, Sector* data, i32 count)
+{
+
+    if (sd_handle != (enum SDHandle) {0})
+        bug;  // We currently don't support multiple file-systems.
+
+    if (!data)
+        bug; // Missing data..?
+
+    if (count <= 0)
+        bug; // Why would user transfer no data..?
+
+
+
+    UINT    bytes_expected = (u32) (sizeof(*data) * count);
+    UINT    bytes_written  = {0};
+    FRESULT write_result   =
+        f_write
+        (
+          &_FILESYSTEM_driver.file_info,
+          data,
+          bytes_expected,
+          &bytes_written
+        );
+
+    switch (write_result)
+    {
+
+        case FR_OK:
+        {
+            if (bytes_written == bytes_expected)
+            {
+
+                // Make sure all of the data has been committed to avoid data loss on media removal.
+
+                FRESULT sync_result = f_sync(&_FILESYSTEM_driver.file_info);
+
+                switch (sync_result)
+                {
+
+                    case FR_OK:
+                    {
+                        return FileSystemSaveResult_success;
+                    } break;
+
+                    case FR_DISK_ERR            : return FileSystemSaveResult_transfer_error;
+                    case FR_INVALID_OBJECT      : bug; // Shouldn't happen in practice...
+                    case FR_INT_ERR             : bug; // We don't use any thread control features...
+                    case FR_TIMEOUT             : bug; // "
+                    case FR_NOT_READY           : bug; // Not "valid" return value according to documentation.
+                    case FR_NOT_ENABLED         : bug; // "
+                    case FR_NO_FILESYSTEM       : bug; // "
+                    case FR_INVALID_DRIVE       : bug; // "
+                    case FR_NO_FILE             : bug; // "
+                    case FR_NO_PATH             : bug; // "
+                    case FR_INVALID_NAME        : bug; // "
+                    case FR_DENIED              : bug; // "
+                    case FR_EXIST               : bug; // "
+                    case FR_WRITE_PROTECTED     : bug; // "
+                    case FR_MKFS_ABORTED        : bug; // "
+                    case FR_LOCKED              : bug; // "
+                    case FR_NOT_ENOUGH_CORE     : bug; // "
+                    case FR_TOO_MANY_OPEN_FILES : bug; // "
+                    case FR_INVALID_PARAMETER   : bug; // "
+                    default                     : bug; // "
+
+                }
+
+            }
+            else // The file data write was incomplete...
+            {
+                return FileSystemSaveResult_filesystem_full;
+            }
+        } break;
+
+        case FR_DISK_ERR            : return FileSystemSaveResult_transfer_error;
+        case FR_INVALID_OBJECT      : bug; // Shouldn't happen in practice...
+        case FR_DENIED              : bug; // "
+        case FR_INT_ERR             : bug; // We don't use any thread control features...
+        case FR_TIMEOUT             : bug; // "
+        case FR_NOT_READY           : bug; // Not "valid" return value according to documentation.
+        case FR_NOT_ENABLED         : bug; // "
+        case FR_NO_FILESYSTEM       : bug; // "
+        case FR_INVALID_DRIVE       : bug; // "
+        case FR_NO_FILE             : bug; // "
+        case FR_NO_PATH             : bug; // "
+        case FR_INVALID_NAME        : bug; // "
+        case FR_EXIST               : bug; // "
+        case FR_WRITE_PROTECTED     : bug; // "
+        case FR_MKFS_ABORTED        : bug; // "
+        case FR_LOCKED              : bug; // "
+        case FR_NOT_ENOUGH_CORE     : bug; // "
+        case FR_TOO_MANY_OPEN_FILES : bug; // "
+        case FR_INVALID_PARAMETER   : bug; // "
+        default                     : bug; // "
+
+    }
 
 }
