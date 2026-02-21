@@ -450,65 +450,77 @@ main(void)
 
 
 
-            // Create a file.
+            // Make a bunch of files.
 
-            FIL fatfs_file_handle = {0};
-
-            fatfs_error =
-                f_open
-                (
-                    &fatfs_file_handle,
-                    "logfile.txt",
-                    FA_WRITE | FA_OPEN_ALWAYS
-                );
-
-            if (fatfs_error)
-                panic;
+            for (i32 i = 0; i < 26; i += 1)
+            {
 
 
 
-            // Go to the end of the file.
+                // Create a file.
 
-            fatfs_error =
-                f_lseek
-                (
-                    &fatfs_file_handle,
-                    f_size(&fatfs_file_handle)
-                );
+                FIL fatfs_file_handle = {0};
 
-            if (fatfs_error)
-                panic;
+                char file_name[32] = {0};
+                snprintf_(file_name, countof(file_name), "my_file_%d.txt", i);
 
+                fatfs_error =
+                    f_open
+                    (
+                        &fatfs_file_handle,
+                        file_name,
+                        FA_WRITE | FA_OPEN_ALWAYS
+                    );
 
-
-            // Write some data.
-
-            u8   data[]        = "what's up?";
-            UINT bytes_written = {0};
-
-            fatfs_error =
-                f_write
-                (
-                  &fatfs_file_handle,
-                  data,
-                  sizeof(data),
-                  &bytes_written
-                );
-
-            if (fatfs_error)
-                panic;
-
-            if (bytes_written != sizeof(data))
-                panic;
+                if (fatfs_error)
+                    panic;
 
 
 
-            // Release the file.
+                // Go to the end of the file.
 
-            fatfs_error = f_close(&fatfs_file_handle);
+                fatfs_error =
+                    f_lseek
+                    (
+                        &fatfs_file_handle,
+                        f_size(&fatfs_file_handle)
+                    );
 
-            if (fatfs_error)
-                panic;
+                if (fatfs_error)
+                    panic;
+
+
+
+                // Write some data.
+
+                u8   data[]        = "what's up?";
+                UINT bytes_written = {0};
+
+                fatfs_error =
+                    f_write
+                    (
+                      &fatfs_file_handle,
+                      data,
+                      sizeof(data) - 1,
+                      &bytes_written
+                    );
+
+                if (fatfs_error)
+                    panic;
+
+                if (bytes_written != sizeof(data) - 1)
+                    panic;
+
+
+
+                // Release the file.
+
+                fatfs_error = f_close(&fatfs_file_handle);
+
+                if (fatfs_error)
+                    panic;
+
+            }
 
 
 

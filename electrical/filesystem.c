@@ -9,7 +9,6 @@
 #define FF_USE_FORWARD     false // For `f_forward`.
 #define FF_USE_STRFUNC     false // For `f_gets`, `f_putc`, `f_puts`, and `f_printf`.
 #define FF_USE_FASTSEEK    false // Whether or not to implement the fast-seek optimization.
-#define FF_USE_LFN         false // For long-file-name support.
 #define FF_CODE_PAGE       437   // Set OEM code page to U.S (437).
 #define FF_FS_RPATH        0     // For relative path features (`f_chdir`, `f_chdrive`, and `f_getcwd`).
 #define FF_VOLUMES         1     // We currently only support mounting one file-system.
@@ -20,7 +19,13 @@
 #define FF_LBA64           false // For representing sector addresses as 64-bit integers.
 #define FF_USE_TRIM        false // For supporting ATA-TRIM.
 #define FF_FS_TINY         false // Whether or not file objects should share a common sector buffer.
-#define FF_FS_EXFAT        false // Whether or not to use ExFAT.
+#define FF_FS_EXFAT        true  // Whether or not to use ExFAT.
+#define FF_USE_LFN         true  // For long-file-name support, as required by exFAT.
+#define FF_LFN_UNICODE     2     // Character encoding to be used for the API; value of 2 implies UTF-8.
+#define FF_LFN_BUF         255   // Amount of bytes allocated in FILINFO for the long-file-name.
+#define FF_SFN_BUF         12    // "                                    for the short-file-name.
+#define FF_MAX_LFN         255   // Buffer size for processing long-file-names, where 255 provides full support.
+#define FF_PATH_DEPTH      10    // For exFAT, the maximum nested directory chain to be supported.
 #define FF_FS_NORTC        true  // Whether or not real-time-clock is unavailable.
 #define FF_NORTC_MON       3     // " Default month.
 #define FF_NORTC_MDAY      15    // " Default day.
@@ -36,6 +41,9 @@ static_assert(FF_MIN_SS == FF_MAX_SS && FF_MIN_SS == sizeof(Sector));
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wswitch-default"
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#include <deps/FatFs/source/ffunicode.c>
 #include <deps/FatFs/source/ff.c>
 #pragma GCC diagnostic pop
 
