@@ -378,8 +378,8 @@ main(void)
                 (
                     "",
                     nullptr,
-                    (Sector) {0},
-                    sizeof(Sector)
+                    cluster_buffer,
+                    sizeof(cluster_buffer)
                 );
 
             if (fatfs_error)
