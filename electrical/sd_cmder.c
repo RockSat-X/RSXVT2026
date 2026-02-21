@@ -368,7 +368,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 if (CMSIS_GET(SDMMC, STA, CPSMACT))
                     bug; // The command-path state-machine shouldn't be active.
 
-                if (!implies(CMSIS_GET(SDMMC, STA, CPSMACT), cmder->state == SDCmderState_scheduled_stop_transmission))
+                if (!implies(CMSIS_GET(SDMMC, STA, DPSMACT), cmder->state == SDCmderState_scheduled_stop_transmission))
                     bug; // The data-path state-machine begin active still is only okay for STOP_TRANSMISSION commands...
 
                 if (CMSIS_GET(SDMMC, CMD, CPSMEN))
