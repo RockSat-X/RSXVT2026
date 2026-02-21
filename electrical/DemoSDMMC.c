@@ -367,40 +367,19 @@ main(void)
         case 2:
         {
 
+            {
+                enum FileSystemReinitResult result = FILESYSTEM_reinit(SDHandle_primary);
+                switch (result)
+                {
+                    case FileSystemReinitResult_success        : break;
+                    case FileSystemReinitResult_transfer_error : panic;
+                    case FileSystemReinitResult_bug            : panic;
+                    default                                    : panic;
+
+                }
+            }
+
             FRESULT fatfs_error = {0};
-
-
-
-            // Format the SD card with the default file-system.
-
-            fatfs_error =
-                f_mkfs
-                (
-                    "",
-                    nullptr,
-                    cluster_buffer,
-                    sizeof(cluster_buffer)
-                );
-
-            if (fatfs_error)
-                panic;
-
-
-
-            // Mount the file-system.
-
-            FATFS fatfs_system_handle = {0};
-
-            fatfs_error =
-                f_mount
-                (
-                    &fatfs_system_handle,
-                    "", // "The string without drive number means the default drive."
-                    1   // "1: Force mounted the volume to check if it is ready to work."
-                );
-
-            if (fatfs_error)
-                panic;
 
 
 

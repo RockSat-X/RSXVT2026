@@ -57,9 +57,19 @@ static_assert(FF_MIN_SS == FF_MAX_SS && FF_MIN_SS == sizeof(Sector));
 
 
 ////////////////////////////////////////////////////////////////////////////////
-//
-// Routine for FatFs to initialize the storage medium.
-//
+
+
+
+struct FileSystemDriver
+{
+    FATFS fatfs;
+};
+
+static struct FileSystemDriver _FILESYSTEM_driver = {0};
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -530,5 +540,114 @@ disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
         } break;
 
     }
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+static useret enum FileSystemReinitResult : u32
+{
+    FileSystemReinitResult_success,
+    FileSystemReinitResult_transfer_error,
+    FileSystemReinitResult_bug = BUG_CODE,
+}
+FILESYSTEM_reinit(enum SDHandle sd_handle)
+{
+
+    if (sd_handle != (enum SDHandle) {0})
+        bug;  // We currently don't support multiple file-systems.
+
+
+
+    // Reinitialize and recover the driver from any error conditions.
+
+    SD_reinit(sd_handle);
+
+    _FILESYSTEM_driver = (struct FileSystemDriver) {0};
+
+
+
+    // Format the SD card with the default file-system.
+
+    FRESULT formatting_result =
+        f_mkfs
+        (
+            "",
+            nullptr,
+            (Sector) {0},
+            sizeof(Sector)
+        );
+
+    switch (formatting_result)
+    {
+        case FR_OK                  : break;
+        case FR_DISK_ERR            : return FileSystemReinitResult_transfer_error;
+        case FR_NOT_READY           : bug; // Shouldn't happen in practice.
+        case FR_WRITE_PROTECTED     : bug; // "
+        case FR_INVALID_DRIVE       : bug; // "
+        case FR_MKFS_ABORTED        : bug; // "
+        case FR_INVALID_PARAMETER   : bug; // "
+        case FR_NOT_ENOUGH_CORE     : bug; // "
+        case FR_NOT_ENABLED         : bug; // Not "valid" return value according to documentation.
+        case FR_NO_FILESYSTEM       : bug; // "
+        case FR_INT_ERR             : bug; // "
+        case FR_NO_FILE             : bug; // "
+        case FR_NO_PATH             : bug; // "
+        case FR_INVALID_NAME        : bug; // "
+        case FR_DENIED              : bug; // "
+        case FR_EXIST               : bug; // "
+        case FR_INVALID_OBJECT      : bug; // "
+        case FR_TIMEOUT             : bug; // "
+        case FR_LOCKED              : bug; // "
+        case FR_TOO_MANY_OPEN_FILES : bug; // "
+        default                     : bug; // "
+    }
+
+
+
+    // Mount the file-system.
+
+    FRESULT mounting_result =
+        f_mount
+        (
+            &_FILESYSTEM_driver.fatfs,
+            "", // "The string without drive number means the default drive."
+            1   // "1: Force mounted the volume to check if it is ready to work."
+        );
+
+    switch (mounting_result)
+    {
+        case FR_OK                  : break;
+        case FR_DISK_ERR            : return FileSystemReinitResult_transfer_error;
+        case FR_NOT_READY           : bug; // Shouldn't happen in practice...
+        case FR_NOT_ENABLED         : bug; // "
+        case FR_NO_FILESYSTEM       : bug; // "
+        case FR_INVALID_DRIVE       : bug; // "
+        case FR_INT_ERR             : bug; // Not "valid" return value according to documentation.
+        case FR_NO_FILE             : bug; // "
+        case FR_NO_PATH             : bug; // "
+        case FR_INVALID_NAME        : bug; // "
+        case FR_DENIED              : bug; // "
+        case FR_EXIST               : bug; // "
+        case FR_INVALID_OBJECT      : bug; // "
+        case FR_WRITE_PROTECTED     : bug; // "
+        case FR_MKFS_ABORTED        : bug; // "
+        case FR_TIMEOUT             : bug; // "
+        case FR_LOCKED              : bug; // "
+        case FR_NOT_ENOUGH_CORE     : bug; // "
+        case FR_TOO_MANY_OPEN_FILES : bug; // "
+        case FR_INVALID_PARAMETER   : bug; // "
+        default                     : bug; // "
+    }
+
+
+
+    // We're ready to go!
+
+    return FileSystemReinitResult_success;
 
 }
