@@ -9,7 +9,7 @@
 
 
 
-static Sector cluster_buffer[64] = {0};
+static Sector cluster_buffer[64] = {0}; // @/`Cluster Size for verifyLog`.
 
 
 
@@ -395,10 +395,10 @@ main(void)
 
                 // Fill cluster with predictable data.
 
-                #define DUMB_HASH(A, B, C, D)                                 \
-                    ((u8) (((((((((((u32) (A)) * 0x9E37'79B1) ^ ((u32) (B)))  \
-                                               * 0x9E37'79B1) ^ ((u32) (C)))  \
-                                               * 0x9E37'79B1) ^ ((u32) (D)))  \
+                #define DUMB_HASH(A, B, C, D) /* @/`Dumb hash for verifyLog`. */ \
+                    ((u8) (((((((((((u32) (A)) * 0x9E37'79B1) ^ ((u32) (B)))     \
+                                               * 0x9E37'79B1) ^ ((u32) (C)))     \
+                                               * 0x9E37'79B1) ^ ((u32) (D)))     \
                                                * 0x9E37'79B1) >> 24) & 0xFF))
 
                 for (i32 sector_index = 0; sector_index < countof(cluster_buffer); sector_index += 1)
@@ -441,8 +441,11 @@ main(void)
 
                 // Heartbeat.
 
-                SD_profiler_report();
-                GPIO_TOGGLE(led_green);
+                if (cluster_index % 8 == 0)
+                {
+                    SD_profiler_report();
+                    GPIO_TOGGLE(led_green);
+                }
 
             }
 

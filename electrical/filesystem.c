@@ -670,7 +670,7 @@ FILESYSTEM_reinit(enum SDHandle sd_handle)
             (
                 _FILESYSTEM_driver.file_name,
                 countof(_FILESYSTEM_driver.file_name),
-                "log_%d.bin",
+                "%03d.log", // @/`File Name for verifyLog`.
                 _FILESYSTEM_driver.file_index
             );
 
