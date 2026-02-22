@@ -866,6 +866,7 @@ ESP32_calculate_crc(u8* data, i32 length)
     #include <esp_wifi.h>
     #include <esp_now.h>
     #include <RadioLib.h>
+    #include <SPI.h>
 
 
 
@@ -897,9 +898,12 @@ ESP32_calculate_crc(u8* data, i32 length)
 
     }
 
+    //Initializes SPI class and calls the fspi bus peripheral
+    SPIClass fspi(FSPI);
 
-
-    static SX1262 packet_lora_radio = new Module(41, 39, 42, 40);
+    //Initializes lora radio signals with pin mapping for NSS, DIO1, RESET, BUSY, and fspi bus
+    //ex. NSS assigned to GPIO41 (NSS must be same as fspi pin mapping) 
+    static SX1262 packet_lora_radio = new Module(41, 39, 42, 40, fspi);
 
 
 
@@ -908,22 +912,47 @@ ESP32_calculate_crc(u8* data, i32 length)
     extern void
     common_init_lora()
     {
+        //Creates an instance of the SPI for the fspi hardware controller
+        //Assigns the SX1262 signals (SCK, MISO, MOSI, and NSS) to specific GPIO pins of the ESP32S3
+        //ex. SCK is assigned to GPIO36
+        fspi.begin(36, 37, 35, 41);
 
-        if (packet_lora_radio.begin() != RADIOLIB_ERR_NONE)
+        if (state != RADIOLIB_ERR_NONE)
         {
             Serial.printf("Failed to initialize radio.\n");
             ESP.restart();
             return;
         }
 
+        //915 MHz Center Frequency
         packet_lora_radio.setFrequency(915.0);
+
+        //7.8kHz Bandwidth (Narrow)
+        //Slower data rate but longer range compare to a larger bandwidth
         packet_lora_radio.setBandwidth(7.8);
+
+        //6 (less than 22 kbps) Usually ranges from 7-12 (22-250 kbps)
+        //May need to be reconfigured depending on range/speed desired
+        //What's essential to know: The higher the spreading factor means slower data rate but further transmission and vice versa
         packet_lora_radio.setSpreadingFactor(6);
+
+        //(4/5) Coding Rate 
+        //Adds foward error correction
         packet_lora_radio.setCodingRate(5);
+
+        //22 dBm (Max power)
+        //Dont go above this
         packet_lora_radio.setOutputPower(22);
+
+        //8 Symbol Preamble Length
         packet_lora_radio.setPreambleLength(8);
+
+        //0x34 LoRaWAN Public Network sync word
         packet_lora_radio.setSyncWord(0x34);
+
+        //Adds Error Detection to packets
         packet_lora_radio.setCRC(true);
+
 
         extern void packet_lora_callback(void);
 
