@@ -63,7 +63,7 @@ static_assert(FF_MIN_SS == FF_MAX_SS && FF_MIN_SS == sizeof(Sector));
 struct FileSystemDriver
 {
     FATFS fatfs;
-    i32   file_index;
+    i32   file_number;
     char  file_name[16];
     FIL   file_info;
 };
@@ -670,8 +670,8 @@ FILESYSTEM_reinit(enum SDHandle sd_handle)
             (
                 _FILESYSTEM_driver.file_name,
                 countof(_FILESYSTEM_driver.file_name),
-                "%03d.log", // @/`File Name for verifyLog`.
-                _FILESYSTEM_driver.file_index
+                "%03d.log", // @/`File Name for verifyLogs`.
+                _FILESYSTEM_driver.file_number
             );
 
         if (format_result <= 0)
@@ -712,8 +712,8 @@ FILESYSTEM_reinit(enum SDHandle sd_handle)
 
                     case FR_DISK_ERR            : return FileSystemReinitResult_transfer_error;
                     case FR_INVALID_OBJECT      : bug; // Shouldn't happen in practice...
-                    case FR_INT_ERR             : bug; // We don't use any thread control features...
-                    case FR_TIMEOUT             : bug; // "
+                    case FR_INT_ERR             : bug; // TODO.
+                    case FR_TIMEOUT             : bug; // We don't use any thread control features...
                     case FR_NOT_READY           : bug; // Not "valid" return value according to documentation.
                     case FR_NOT_ENABLED         : bug; // "
                     case FR_NO_FILESYSTEM       : bug; // "
@@ -742,7 +742,7 @@ FILESYSTEM_reinit(enum SDHandle sd_handle)
 
             case FR_EXIST:
             {
-                _FILESYSTEM_driver.file_index += 1;
+                _FILESYSTEM_driver.file_number += 1;
             } break;
 
 
@@ -761,8 +761,8 @@ FILESYSTEM_reinit(enum SDHandle sd_handle)
             case FR_LOCKED              : bug; // "
             case FR_NOT_ENOUGH_CORE     : bug; // "
             case FR_TOO_MANY_OPEN_FILES : bug; // "
-            case FR_INT_ERR             : bug; // We don't use any thread control features...
-            case FR_TIMEOUT             : bug; // "
+            case FR_INT_ERR             : bug; // TODO
+            case FR_TIMEOUT             : bug; // We don't use any thread control features...
             case FR_MKFS_ABORTED        : bug; // Not "valid" return value according to documentation.
             case FR_INVALID_PARAMETER   : bug; // "
             default                     : bug; // "
