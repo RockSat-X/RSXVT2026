@@ -7,7 +7,7 @@ MEMORY
 {
     #if TARGET_MCU_IS_STM32H533RET6 || TARGET_MCU_IS_STM32H533VET6 /* @/pg 117/fig 3/`H533rm`. */
         SRAM     (rw) : ORIGIN = 0x0A000000, LENGTH = 256K /* TODO Verify that we have this much memory. */
-        FLASH    (rx) : ORIGIN = 0x08000000, LENGTH = 64K
+        FLASH    (rx) : ORIGIN = 0x08000000, LENGTH = 512K
     #endif
 }
 

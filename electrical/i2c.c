@@ -13,7 +13,7 @@ enum I2CMasterCallbackEvent : u32
     I2CMasterCallbackEvent_transfer_successful,
     I2CMasterCallbackEvent_transfer_unacknowledged,
     I2CMasterCallbackEvent_clock_stretch_timeout,
-    I2CMasterCallbackEvent_bug,
+    I2CMasterCallbackEvent_bug = BUG_CODE,
 };
 
 typedef void I2CMasterCallback(enum I2CMasterCallbackEvent event);
@@ -26,7 +26,7 @@ enum I2CSlaveCallbackEvent : u32
     I2CSlaveCallbackEvent_ready_to_transmit_data,
     I2CSlaveCallbackEvent_stop_signaled,
     I2CSlaveCallbackEvent_clock_stretch_timeout,
-    I2CSlaveCallbackEvent_bug,
+    I2CSlaveCallbackEvent_bug = BUG_CODE,
 };
 
 typedef void I2CSlaveCallback(enum I2CSlaveCallbackEvent event, u8* data);
@@ -156,7 +156,7 @@ enum I2CMasterState : u32
     I2CMasterState_scheduled_transfer,
     I2CMasterState_transferring,
     I2CMasterState_stopping,
-    I2CMasterState_bug,
+    I2CMasterState_bug = BUG_CODE,
 };
 
 enum I2CSlaveState : u32
@@ -165,7 +165,7 @@ enum I2CSlaveState : u32
     I2CSlaveState_receiving_data,
     I2CSlaveState_sending_data,
     I2CSlaveState_stopping,
-    I2CSlaveState_bug,
+    I2CSlaveState_bug = BUG_CODE,
 };
 
 enum I2CMasterError : u32
@@ -226,7 +226,7 @@ static useret enum I2CTransferResult : u32
     I2CTransferResult_transfer_ongoing,
     I2CTransferResult_no_acknowledge,
     I2CTransferResult_clock_stretch_timeout,
-    I2CTransferResult_bug,
+    I2CTransferResult_bug = BUG_CODE,
 }
 I2C_transfer
 (
@@ -249,8 +249,8 @@ I2C_transfer
     {
         case I2CDriverMode_master_blocking : break;
         case I2CDriverMode_master_callback : break;
-        case I2CDriverMode_slave           : return I2CTransferResult_bug;
-        default                            : return I2CTransferResult_bug;
+        case I2CDriverMode_slave           : bug;
+        default                            : bug;
     }
 
 
@@ -259,28 +259,28 @@ I2C_transfer
     // We have no meaning for null-pointers as of now.
 
     if (!pointer)
-        return I2CTransferResult_bug;
+        bug;
 
 
 
     // Catch bad math.
 
     if (amount <= 0)
-        return I2CTransferResult_bug;
+        bug;
 
 
 
     // Ensure I2C has been initialized.
 
     if (!CMSIS_GET(I2Cx, CR1, PE))
-        return I2CTransferResult_bug;
+        bug;
 
 
 
     // There shouldn't be any transfers on the bus of right now.
 
     if (CMSIS_GET(I2Cx, ISR, BUSY))
-        return I2CTransferResult_bug;
+        bug;
 
 
 
@@ -293,7 +293,7 @@ I2C_transfer
         {
 
             if (!(0b0000'1000 <= address && address <= 0b0111'0111))
-                return I2CTransferResult_bug;
+                bug;
 
         } break;
 
@@ -301,11 +301,11 @@ I2C_transfer
         {
 
             if (address >= (1 << 10))
-                return I2CTransferResult_bug;
+                bug;
 
         } break;
 
-        default: return I2CTransferResult_bug;
+        default: bug;
 
     }
 
@@ -354,11 +354,11 @@ I2C_transfer
         // be trying to schedule I2C transfers until it knows that
         // the next transfer can be queued up.
 
-        case I2CMasterState_scheduled_transfer : return I2CTransferResult_bug;
-        case I2CMasterState_transferring       : return I2CTransferResult_bug;
-        case I2CMasterState_stopping           : return I2CTransferResult_bug;
-        case I2CMasterState_bug                : return I2CTransferResult_bug;
-        default                                : return I2CTransferResult_bug;
+        case I2CMasterState_scheduled_transfer : bug;
+        case I2CMasterState_transferring       : bug;
+        case I2CMasterState_stopping           : bug;
+        case I2CMasterState_bug                : bug;
+        default                                : bug;
 
     }
 
@@ -386,7 +386,7 @@ I2C_transfer
                 case I2CMasterError_none                  : return I2CTransferResult_transfer_done;
                 case I2CMasterError_no_acknowledge        : return I2CTransferResult_no_acknowledge;
                 case I2CMasterError_clock_stretch_timeout : return I2CTransferResult_clock_stretch_timeout;
-                default                                   : return I2CTransferResult_bug;
+                default                                   : bug;
             } break;
 
 
@@ -402,8 +402,8 @@ I2C_transfer
 
 
 
-            case I2CMasterState_bug : return I2CTransferResult_bug;
-            default                 : return I2CTransferResult_bug;
+            case I2CMasterState_bug : bug;
+            default                 : bug;
 
         } break;
 
@@ -421,8 +421,8 @@ I2C_transfer
 
 
 
-        case I2CDriverMode_slave : return I2CTransferResult_bug;
-        default                  : return I2CTransferResult_bug;
+        case I2CDriverMode_slave : bug;
+        default                  : bug;
 
     }
 
@@ -516,7 +516,7 @@ I2C_reinit(enum I2CHandle handle)
 
 
 
-        default: return I2CReinitResult_bug;
+        default: bug;
 
     }
 
@@ -628,7 +628,7 @@ _I2C_update_once(enum I2CHandle handle)
 
     else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, ALERT))
     {
-        return I2CUpdateOnceResult_bug; // Shouldn't happen; this feature isn't used.
+        bug; // Shouldn't happen; this feature isn't used.
     }
 
 
@@ -639,7 +639,7 @@ _I2C_update_once(enum I2CHandle handle)
 
     else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, PECERR))
     {
-        return I2CUpdateOnceResult_bug; // Shouldn't happen; this feature isn't used.
+        bug; // Shouldn't happen; this feature isn't used.
     }
 
 
@@ -650,7 +650,7 @@ _I2C_update_once(enum I2CHandle handle)
 
     else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, TCR))
     {
-        return I2CUpdateOnceResult_bug; // Shouldn't happen; this feature isn't used.
+        bug; // Shouldn't happen; this feature isn't used.
     }
 
 
@@ -661,7 +661,7 @@ _I2C_update_once(enum I2CHandle handle)
 
     else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, OVR))
     {
-        return I2CUpdateOnceResult_bug; // Shouldn't happen; clock-stretching is enabled by default.
+        bug; // Shouldn't happen; clock-stretching is enabled by default.
     }
 
 
@@ -787,10 +787,10 @@ _I2C_update_once(enum I2CHandle handle)
             {
 
                 if (interrupt_event)
-                    return I2CUpdateOnceResult_bug; // We shouldn't have unhandled interrupt events...
+                    bug; // We shouldn't have unhandled interrupt events...
 
                 if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, BUSY))
-                    return I2CUpdateOnceResult_bug; // There shouldn't be any transfers on the bus of right now.
+                    bug; // There shouldn't be any transfers on the bus of right now.
 
 
 
@@ -817,19 +817,19 @@ _I2C_update_once(enum I2CHandle handle)
             {
 
                 if (interrupt_event)
-                    return I2CUpdateOnceResult_bug; // We shouldn't have unhandled interrupt events...
+                    bug; // We shouldn't have unhandled interrupt events...
 
                 if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, BUSY))
-                    return I2CUpdateOnceResult_bug; // There shouldn't be any transfers on the bus of right now.
+                    bug; // There shouldn't be any transfers on the bus of right now.
 
                 if (!(1 <= driver->master.amount && driver->master.amount <= 255))
-                    return I2CUpdateOnceResult_bug; // We currently don't handle transfer sizes larger than this.
+                    bug; // We currently don't handle transfer sizes larger than this.
 
                 if (CMSIS_GET(I2Cx, CR2, START))
-                    return I2CUpdateOnceResult_bug; // We shouldn't be already trying to start the transfer...
+                    bug; // We shouldn't be already trying to start the transfer...
 
                 if (driver->master.error)
-                    return I2CUpdateOnceResult_bug; // Any errors should've been acknowledged before the next transfer is done.
+                    bug; // Any errors should've been acknowledged before the next transfer is done.
 
 
 
@@ -849,7 +849,7 @@ _I2C_update_once(enum I2CHandle handle)
                         sadd = driver->master.address;
                     } break;
 
-                    default: return I2CUpdateOnceResult_bug;
+                    default: bug;
                 }
 
                 b32 read_operation =
@@ -894,7 +894,7 @@ _I2C_update_once(enum I2CHandle handle)
                 {
 
                     if (driver->master.error)
-                        return I2CUpdateOnceResult_bug; // There's no reason to get an error right now...
+                        bug; // There's no reason to get an error right now...
 
                     return I2CUpdateOnceResult_yield;
 
@@ -908,7 +908,7 @@ _I2C_update_once(enum I2CHandle handle)
                 {
 
                     if (driver->master.error)
-                        return I2CUpdateOnceResult_bug; // There shouldn't have been any other errors before this.
+                        bug; // There shouldn't have been any other errors before this.
 
 
 
@@ -936,10 +936,10 @@ _I2C_update_once(enum I2CHandle handle)
                 {
 
                     if (driver->master.error)
-                        return I2CUpdateOnceResult_bug; // There shouldn't have been any other errors before this.
+                        bug; // There shouldn't have been any other errors before this.
 
                     if (!(0 <= driver->master.progress && driver->master.progress < driver->master.amount))
-                        return I2CUpdateOnceResult_bug; // Hardware is giving us an unexpected amount of data...
+                        bug; // Hardware is giving us an unexpected amount of data...
 
 
 
@@ -962,10 +962,10 @@ _I2C_update_once(enum I2CHandle handle)
                 {
 
                     if (driver->master.error)
-                        return I2CUpdateOnceResult_bug; // There shouldn't have been any other errors before this.
+                        bug; // There shouldn't have been any other errors before this.
 
                     if (!(0 <= driver->master.progress && driver->master.progress < driver->master.amount))
-                        return I2CUpdateOnceResult_bug; // Hardware is demanding us an unexpected amount of data...
+                        bug; // Hardware is demanding us an unexpected amount of data...
 
 
                     // Pop a byte from the source and push it into the TX-register.
@@ -988,10 +988,10 @@ _I2C_update_once(enum I2CHandle handle)
                 {
 
                     if (driver->master.error)
-                        return I2CUpdateOnceResult_bug; // But the hardware said that the transfer was completed successfully!
+                        bug; // But the hardware said that the transfer was completed successfully!
 
                     if (driver->master.progress != driver->master.amount)
-                        return I2CUpdateOnceResult_bug; // Hardware says we finished the transfer, but software disagrees...
+                        bug; // Hardware says we finished the transfer, but software disagrees...
 
 
 
@@ -1057,7 +1057,7 @@ _I2C_update_once(enum I2CHandle handle)
                             {
 
                                 if (driver->master.error)
-                                    return I2CUpdateOnceResult_bug; // But the hardware said that the transfer was completed successfully!
+                                    bug; // But the hardware said that the transfer was completed successfully!
 
                                 I2Cx_CALLBACK.master(I2CMasterCallbackEvent_transfer_successful);
 
@@ -1069,7 +1069,7 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-                        default: return I2CUpdateOnceResult_bug;
+                        default: bug;
 
                     }
 
@@ -1084,7 +1084,7 @@ _I2C_update_once(enum I2CHandle handle)
                 {
 
                     if (driver->master.error)
-                        return I2CUpdateOnceResult_bug; // There shouldn't have been any other errors before this.
+                        bug; // There shouldn't have been any other errors before this.
 
 
 
@@ -1101,9 +1101,9 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-                case I2CInterruptEvent_stop_signaled : return I2CUpdateOnceResult_bug;
-                case I2CInterruptEvent_address_match : return I2CUpdateOnceResult_bug;
-                default                              : return I2CUpdateOnceResult_bug;
+                case I2CInterruptEvent_stop_signaled : bug;
+                case I2CInterruptEvent_address_match : bug;
+                default                              : bug;
 
             } break;
 
@@ -1133,10 +1133,10 @@ _I2C_update_once(enum I2CHandle handle)
                 {
 
                     if (!iff(driver->master.progress == driver->master.amount, !driver->master.error))
-                        return I2CUpdateOnceResult_bug; // Error, but we transferred all expected data?
+                        bug; // Error, but we transferred all expected data?
 
                     if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, BUSY))
-                        return I2CUpdateOnceResult_bug; // The bus should be no longer busy now.
+                        bug; // The bus should be no longer busy now.
 
 
 
@@ -1159,7 +1159,7 @@ _I2C_update_once(enum I2CHandle handle)
                             case I2CMasterError_none                  : callback_event = I2CMasterCallbackEvent_transfer_successful;     break;
                             case I2CMasterError_no_acknowledge        : callback_event = I2CMasterCallbackEvent_transfer_unacknowledged; break;
                             case I2CMasterError_clock_stretch_timeout : callback_event = I2CMasterCallbackEvent_clock_stretch_timeout;   break;
-                            default                                   : return I2CUpdateOnceResult_bug;
+                            default                                   : bug;
                         }
 
                         I2Cx_CALLBACK.master(callback_event);
@@ -1186,19 +1186,19 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-                case I2CInterruptEvent_transfer_completed_successfully : return I2CUpdateOnceResult_bug;
-                case I2CInterruptEvent_data_available_to_read          : return I2CUpdateOnceResult_bug;
-                case I2CInterruptEvent_ready_to_transmit_data          : return I2CUpdateOnceResult_bug;
-                case I2CInterruptEvent_nack_signaled                   : return I2CUpdateOnceResult_bug;
-                case I2CInterruptEvent_address_match                   : return I2CUpdateOnceResult_bug;
-                default                                                : return I2CUpdateOnceResult_bug;
+                case I2CInterruptEvent_transfer_completed_successfully : bug;
+                case I2CInterruptEvent_data_available_to_read          : bug;
+                case I2CInterruptEvent_ready_to_transmit_data          : bug;
+                case I2CInterruptEvent_nack_signaled                   : bug;
+                case I2CInterruptEvent_address_match                   : bug;
+                default                                                : bug;
 
             } break;
 
 
 
-            case I2CMasterState_bug : return I2CUpdateOnceResult_bug;
-            default                 : return I2CUpdateOnceResult_bug;
+            case I2CMasterState_bug : bug;
+            default                 : bug;
 
         } break;
 
@@ -1231,10 +1231,10 @@ _I2C_update_once(enum I2CHandle handle)
                 {
 
                     if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, ADDCODE) != I2Cx_SLAVE_ADDRESS)
-                        return I2CUpdateOnceResult_bug; // Address must match with what we were configured with.
+                        bug; // Address must match with what we were configured with.
 
                     if (!CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, TXE))
-                        return I2CUpdateOnceResult_bug; // There shouldn't be anything still in the TX-register.
+                        bug; // There shouldn't be anything still in the TX-register.
 
 
 
@@ -1272,12 +1272,12 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-                case I2CInterruptEvent_nack_signaled                   : return I2CUpdateOnceResult_bug;
-                case I2CInterruptEvent_stop_signaled                   : return I2CUpdateOnceResult_bug;
-                case I2CInterruptEvent_data_available_to_read          : return I2CUpdateOnceResult_bug;
-                case I2CInterruptEvent_ready_to_transmit_data          : return I2CUpdateOnceResult_bug;
-                case I2CInterruptEvent_transfer_completed_successfully : return I2CUpdateOnceResult_bug;
-                default                                                : return I2CUpdateOnceResult_bug;
+                case I2CInterruptEvent_nack_signaled                   : bug;
+                case I2CInterruptEvent_stop_signaled                   : bug;
+                case I2CInterruptEvent_data_available_to_read          : bug;
+                case I2CInterruptEvent_ready_to_transmit_data          : bug;
+                case I2CInterruptEvent_transfer_completed_successfully : bug;
+                default                                                : bug;
 
             } break;
 
@@ -1363,11 +1363,11 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-                case I2CInterruptEvent_nack_signaled                   : return I2CUpdateOnceResult_bug;
-                case I2CInterruptEvent_ready_to_transmit_data          : return I2CUpdateOnceResult_bug;
-                case I2CInterruptEvent_address_match                   : return I2CUpdateOnceResult_bug;
-                case I2CInterruptEvent_transfer_completed_successfully : return I2CUpdateOnceResult_bug;
-                default                                                : return I2CUpdateOnceResult_bug;
+                case I2CInterruptEvent_nack_signaled                   : bug;
+                case I2CInterruptEvent_ready_to_transmit_data          : bug;
+                case I2CInterruptEvent_address_match                   : bug;
+                case I2CInterruptEvent_transfer_completed_successfully : bug;
+                default                                                : bug;
 
             } break;
 
@@ -1457,11 +1457,11 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-                case I2CInterruptEvent_address_match                   : return I2CUpdateOnceResult_bug;
-                case I2CInterruptEvent_data_available_to_read          : return I2CUpdateOnceResult_bug;
-                case I2CInterruptEvent_stop_signaled                   : return I2CUpdateOnceResult_bug;
-                case I2CInterruptEvent_transfer_completed_successfully : return I2CUpdateOnceResult_bug;
-                default                                                : return I2CUpdateOnceResult_bug;
+                case I2CInterruptEvent_address_match                   : bug;
+                case I2CInterruptEvent_data_available_to_read          : bug;
+                case I2CInterruptEvent_stop_signaled                   : bug;
+                case I2CInterruptEvent_transfer_completed_successfully : bug;
+                default                                                : bug;
 
             } break;
 
@@ -1517,25 +1517,25 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-                case I2CInterruptEvent_nack_signaled                   : return I2CUpdateOnceResult_bug;
-                case I2CInterruptEvent_data_available_to_read          : return I2CUpdateOnceResult_bug;
-                case I2CInterruptEvent_ready_to_transmit_data          : return I2CUpdateOnceResult_bug;
-                case I2CInterruptEvent_address_match                   : return I2CUpdateOnceResult_bug;
-                case I2CInterruptEvent_transfer_completed_successfully : return I2CUpdateOnceResult_bug;
-                default                                                : return I2CUpdateOnceResult_bug;
+                case I2CInterruptEvent_nack_signaled                   : bug;
+                case I2CInterruptEvent_data_available_to_read          : bug;
+                case I2CInterruptEvent_ready_to_transmit_data          : bug;
+                case I2CInterruptEvent_address_match                   : bug;
+                case I2CInterruptEvent_transfer_completed_successfully : bug;
+                default                                                : bug;
 
             } break;
 
 
 
-            case I2CSlaveState_bug : return I2CUpdateOnceResult_bug;
-            default                : return I2CUpdateOnceResult_bug;
+            case I2CSlaveState_bug : bug;
+            default                : bug;
 
         } break;
 
 
 
-        default: return I2CUpdateOnceResult_bug;
+        default: bug;
 
     }
 
@@ -1579,8 +1579,7 @@ _I2C_driver_interrupt(enum I2CHandle handle)
 
                 // Shut down the driver!
 
-                CMSIS_PUT(I2Cx_RESET, true );
-                CMSIS_PUT(I2Cx_RESET, false);
+                CMSIS_PUT(I2Cx_RESET, true);
 
                 NVIC_DISABLE(I2Cx_EV);
                 NVIC_DISABLE(I2Cx_ER);

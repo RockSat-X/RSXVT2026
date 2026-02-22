@@ -1276,15 +1276,15 @@ INTERRUPT_DCMI_PSSI(void)
                 // Shut down the peripherals and wait
                 // for the user to reinitialize everything.
 
-                CMSIS_SET(RCC, AHB1RSTR, GPDMA1RST   , true );
-                CMSIS_SET(RCC, AHB2RSTR, DCMI_PSSIRST, true );
-                CMSIS_SET(RCC, AHB1RSTR, GPDMA1RST   , false);
-                CMSIS_SET(RCC, AHB2RSTR, DCMI_PSSIRST, false);
+                CMSIS_SET(RCC, AHB1RSTR, GPDMA1RST   , true);
+                CMSIS_SET(RCC, AHB2RSTR, DCMI_PSSIRST, true);
 
                 NVIC_DISABLE(GPDMA1_Channel7);
                 NVIC_DISABLE(DCMI_PSSI);
 
                 _OVCAM_driver = (struct OVCAMDriver) {0};
+
+                yield = true;
 
             } break;
 

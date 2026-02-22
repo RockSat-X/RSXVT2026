@@ -43,6 +43,30 @@ struct RingBufferRaw
 
 
 
+#define RingBuffer_amount_in_queue(RING_BUFFER) \
+    RingBuffer_amount_in_queue_                 \
+    (                                           \
+        &(RING_BUFFER)->ring_buffer_raw         \
+    )                                           \
+
+static useret u32
+RingBuffer_amount_in_queue_
+(
+    struct RingBufferRaw* ring_buffer_raw
+)
+{
+    u32 observed_reader = ring_buffer_raw->reader;
+    u32 observed_writer = ring_buffer_raw->writer;
+    u32 amount_in_queue = observed_writer - observed_reader;
+    return amount_in_queue;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
 #define RingBuffer_writing_pointer(RING_BUFFER) \
     (                                           \
         (typeof(&(RING_BUFFER)->elements[0]))   \

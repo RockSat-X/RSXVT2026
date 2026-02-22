@@ -68,26 +68,26 @@ static constexpr u32 SDCmd_COUNT = 18;
     };
     static constexpr u32 SDWaitRespCode_COUNT = 7;
 #endif
-static const struct { u8 code; b32 acmd; enum SDWaitRespType waitresp_type; enum SDWaitRespCode waitresp_code; b32 receiving; } SD_CMDS[] =
+static const struct { char* name; u8 code; b32 acmd; enum SDWaitRespType waitresp_type; enum SDWaitRespCode waitresp_code; b16 receiving; b16 end_with_stop_transmission; } SD_CMDS[] =
     {
-        { .code = 0 , .acmd = false, .waitresp_type = SDWaitRespType_none, .waitresp_code = SDWaitRespCode_none, .receiving = false },
-        { .code = 2 , .acmd = false, .waitresp_type = SDWaitRespType_r2  , .waitresp_code = SDWaitRespCode_r2  , .receiving = false },
-        { .code = 3 , .acmd = false, .waitresp_type = SDWaitRespType_r6  , .waitresp_code = SDWaitRespCode_r6  , .receiving = false },
-        { .code = 6 , .acmd = false, .waitresp_type = SDWaitRespType_r1  , .waitresp_code = SDWaitRespCode_r1  , .receiving = true  },
-        { .code = 7 , .acmd = false, .waitresp_type = SDWaitRespType_r1b , .waitresp_code = SDWaitRespCode_r1b , .receiving = false },
-        { .code = 8 , .acmd = false, .waitresp_type = SDWaitRespType_r7  , .waitresp_code = SDWaitRespCode_r7  , .receiving = false },
-        { .code = 9 , .acmd = false, .waitresp_type = SDWaitRespType_r2  , .waitresp_code = SDWaitRespCode_r2  , .receiving = false },
-        { .code = 12, .acmd = false, .waitresp_type = SDWaitRespType_r1b , .waitresp_code = SDWaitRespCode_r1b , .receiving = false },
-        { .code = 13, .acmd = false, .waitresp_type = SDWaitRespType_r1  , .waitresp_code = SDWaitRespCode_r1  , .receiving = false },
-        { .code = 16, .acmd = false, .waitresp_type = SDWaitRespType_r1  , .waitresp_code = SDWaitRespCode_r1  , .receiving = false },
-        { .code = 17, .acmd = false, .waitresp_type = SDWaitRespType_r1  , .waitresp_code = SDWaitRespCode_r1  , .receiving = true  },
-        { .code = 18, .acmd = false, .waitresp_type = SDWaitRespType_r1  , .waitresp_code = SDWaitRespCode_r1  , .receiving = true  },
-        { .code = 24, .acmd = false, .waitresp_type = SDWaitRespType_r1  , .waitresp_code = SDWaitRespCode_r1  , .receiving = false },
-        { .code = 25, .acmd = false, .waitresp_type = SDWaitRespType_r1  , .waitresp_code = SDWaitRespCode_r1  , .receiving = false },
-        { .code = 55, .acmd = false, .waitresp_type = SDWaitRespType_r1  , .waitresp_code = SDWaitRespCode_r1  , .receiving = false },
-        { .code = 6 , .acmd = true , .waitresp_type = SDWaitRespType_r1  , .waitresp_code = SDWaitRespCode_r1  , .receiving = false },
-        { .code = 41, .acmd = true , .waitresp_type = SDWaitRespType_r3  , .waitresp_code = SDWaitRespCode_r3  , .receiving = false },
-        { .code = 51, .acmd = true , .waitresp_type = SDWaitRespType_r1  , .waitresp_code = SDWaitRespCode_r1  , .receiving = true  },
+        { .name = "GO_IDLE_STATE"          , .code = 0 , .acmd = false, .waitresp_type = SDWaitRespType_none, .waitresp_code = SDWaitRespCode_none, .receiving = false, .end_with_stop_transmission = false },
+        { .name = "ALL_SEND_CID"           , .code = 2 , .acmd = false, .waitresp_type = SDWaitRespType_r2  , .waitresp_code = SDWaitRespCode_r2  , .receiving = false, .end_with_stop_transmission = false },
+        { .name = "SEND_RELATIVE_ADDR"     , .code = 3 , .acmd = false, .waitresp_type = SDWaitRespType_r6  , .waitresp_code = SDWaitRespCode_r6  , .receiving = false, .end_with_stop_transmission = false },
+        { .name = "SWITCH_FUNC"            , .code = 6 , .acmd = false, .waitresp_type = SDWaitRespType_r1  , .waitresp_code = SDWaitRespCode_r1  , .receiving = true , .end_with_stop_transmission = false },
+        { .name = "SELECT_DESELECT_CARD"   , .code = 7 , .acmd = false, .waitresp_type = SDWaitRespType_r1b , .waitresp_code = SDWaitRespCode_r1b , .receiving = false, .end_with_stop_transmission = false },
+        { .name = "SEND_IF_COND"           , .code = 8 , .acmd = false, .waitresp_type = SDWaitRespType_r7  , .waitresp_code = SDWaitRespCode_r7  , .receiving = false, .end_with_stop_transmission = false },
+        { .name = "SEND_CSD"               , .code = 9 , .acmd = false, .waitresp_type = SDWaitRespType_r2  , .waitresp_code = SDWaitRespCode_r2  , .receiving = false, .end_with_stop_transmission = false },
+        { .name = "STOP_TRANSMISSION"      , .code = 12, .acmd = false, .waitresp_type = SDWaitRespType_r1b , .waitresp_code = SDWaitRespCode_r1b , .receiving = false, .end_with_stop_transmission = false },
+        { .name = "SEND_STATUS_TASK_STATUS", .code = 13, .acmd = false, .waitresp_type = SDWaitRespType_r1  , .waitresp_code = SDWaitRespCode_r1  , .receiving = false, .end_with_stop_transmission = false },
+        { .name = "SET_BLOCK_LEN"          , .code = 16, .acmd = false, .waitresp_type = SDWaitRespType_r1  , .waitresp_code = SDWaitRespCode_r1  , .receiving = false, .end_with_stop_transmission = false },
+        { .name = "READ_SINGLE_BLOCK"      , .code = 17, .acmd = false, .waitresp_type = SDWaitRespType_r1  , .waitresp_code = SDWaitRespCode_r1  , .receiving = true , .end_with_stop_transmission = false },
+        { .name = "READ_MULTIPLE_BLOCK"    , .code = 18, .acmd = false, .waitresp_type = SDWaitRespType_r1  , .waitresp_code = SDWaitRespCode_r1  , .receiving = true , .end_with_stop_transmission = true  },
+        { .name = "WRITE_BLOCK"            , .code = 24, .acmd = false, .waitresp_type = SDWaitRespType_r1  , .waitresp_code = SDWaitRespCode_r1  , .receiving = false, .end_with_stop_transmission = false },
+        { .name = "WRITE_MULTIPLE_BLOCK"   , .code = 25, .acmd = false, .waitresp_type = SDWaitRespType_r1  , .waitresp_code = SDWaitRespCode_r1  , .receiving = false, .end_with_stop_transmission = true  },
+        { .name = "APP_CMD"                , .code = 55, .acmd = false, .waitresp_type = SDWaitRespType_r1  , .waitresp_code = SDWaitRespCode_r1  , .receiving = false, .end_with_stop_transmission = false },
+        { .name = "SET_BUS_WIDTH"          , .code = 6 , .acmd = true , .waitresp_type = SDWaitRespType_r1  , .waitresp_code = SDWaitRespCode_r1  , .receiving = false, .end_with_stop_transmission = false },
+        { .name = "SD_SEND_OP_COND"        , .code = 41, .acmd = true , .waitresp_type = SDWaitRespType_r3  , .waitresp_code = SDWaitRespCode_r3  , .receiving = false, .end_with_stop_transmission = false },
+        { .name = "SEND_SCR"               , .code = 51, .acmd = true , .waitresp_type = SDWaitRespType_r1  , .waitresp_code = SDWaitRespCode_r1  , .receiving = true , .end_with_stop_transmission = false },
     };
 enum SDCardSpecificDataVersion : u32
 {

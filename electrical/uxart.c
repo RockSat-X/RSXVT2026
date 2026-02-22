@@ -9,13 +9,6 @@
 
 
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wundef"
-#include <printf/printf.c>
-#pragma GCC diagnostic pop
-
-
-
 enum UXARTMode : u32
 {
     UXARTMode_full_duplex,
@@ -118,6 +111,7 @@ UXART_init(enum UXARTHandle handle)
     // Enable the interrupts.
 
     NVIC_ENABLE(UXARTx);
+    NVIC_SET_PENDING(UXARTx); // So logs can be handled if any.
 
 }
 
@@ -248,6 +242,63 @@ _UXART_driver_interrupt(enum UXARTHandle handle)
         TCIE  , !enable_receiver, // The receiver once the transmitter is done.
     );
 
+    b32 theres_still_stuff_to_transmit = false;
+
+
+
+    // If the UXART handle is used for logging, we see
+    // if there's any log entries that should be handled.
+
+    #if TARGET_USES_LOG
+    {
+        if (handle == LOG_UXART_HANDLE)
+        {
+
+            LogEntry* log_entry = RingBuffer_reading_pointer(&_LOG_driver.entries);
+
+            while (true)
+            {
+                if (!log_entry)
+                {
+                    break; // No log to transmit right now.
+                }
+                else if (!CMSIS_GET(UXARTx, ISR, TXE_TXFNF))
+                {
+
+                    theres_still_stuff_to_transmit = true;
+
+                    break; // No space in the TX-FIFO.
+
+                }
+                else
+                {
+
+                    u8 data = (*log_entry)[_LOG_driver.bytes_of_current_entry_transmitted_so_far];
+
+                    if (data == '\0') // Move onto next log?
+                    {
+
+                        if (!RingBuffer_pop(&_LOG_driver.entries, nullptr))
+                            sorry
+
+                        log_entry = RingBuffer_reading_pointer(&_LOG_driver.entries);
+
+                        _LOG_driver.bytes_of_current_entry_transmitted_so_far = 0;
+
+                    }
+                    else // Push next byte of log message into TX-FIFO.
+                    {
+                        _LOG_driver.bytes_of_current_entry_transmitted_so_far += 1;
+                        CMSIS_SET(UXARTx, TDR, TDR, data);
+                    }
+
+                }
+            }
+
+        }
+    }
+    #endif
+
 
 
     // We fill the UXART's TX-FIFO until it's full;
@@ -270,13 +321,15 @@ _UXART_driver_interrupt(enum UXARTHandle handle)
 
     }
 
+    theres_still_stuff_to_transmit |= !!RingBuffer_reading_pointer(&driver->transmission);
+
 
 
     // If there's still stuff left to transmit,
     // set the interrupt to trigger for whenever
     // the TX-FIFO is empty again.
 
-    CMSIS_SET(UXARTx, CR1, TXFEIE, !!RingBuffer_reading_pointer(&driver->transmission));
+    CMSIS_SET(UXARTx, CR1, TXFEIE, !!theres_still_stuff_to_transmit);
 
 
 

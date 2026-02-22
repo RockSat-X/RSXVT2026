@@ -1724,6 +1724,20 @@
             GPIOCEN, true   ,
         );
         CMSIS_SET(GPIOA, ODR, OD5, false);
+        CMSIS_SET
+        (
+            GPIOB   , OSPEEDR,
+            OSPEED2 , 0b11   ,
+            OSPEED13, 0b11   ,
+        );
+        CMSIS_SET
+        (
+            GPIOC   , OSPEEDR,
+            OSPEED9 , 0b11   ,
+            OSPEED10, 0b11   ,
+            OSPEED11, 0b11   ,
+            OSPEED12, 0b11   ,
+        );
         CMSIS_WRITE
         (
             GPIO_AFRL, GPIOA->AFR[0],
@@ -1840,20 +1854,38 @@
         (
             RCC    , PLL1CFGR,
             PLL1SRC, 0b01    ,
-            PLL1M  , 8       ,
-            PLL1RGE, 2       ,
+            PLL1M  , 3       ,
+            PLL1RGE, 3       ,
             PLL1PEN, true    ,
-            PLL1QEN, true    ,
         );
         CMSIS_SET
         (
             RCC  , PLL1DIVR,
-            PLL1N, 125 - 1 ,
+            PLL1N, 45 - 1  ,
             PLL1P, 2 - 1   ,
-            PLL1Q, 50 - 1  ,
         );
-        CMSIS_SET(RCC, CR, PLL1ON, true);
+        CMSIS_SET
+        (
+            RCC    , PLL2CFGR,
+            PLL2SRC, 0b01    ,
+            PLL2M  , 3       ,
+            PLL2RGE, 3       ,
+            PLL2REN, true    ,
+        );
+        CMSIS_SET
+        (
+            RCC  , PLL2DIVR,
+            PLL2N, 45 - 1  ,
+            PLL2R, 2 - 1   ,
+        );
+        CMSIS_SET
+        (
+            RCC   , CR  ,
+            PLL1ON, true,
+            PLL2ON, true,
+        );
         while (!CMSIS_GET(RCC, CR, PLL1RDY));
+        while (!CMSIS_GET(RCC, CR, PLL2RDY));
 
 
 
@@ -1879,7 +1911,16 @@
 
 
         #define STPY_USART2_KERNEL_SOURCE 0b000
-        #define STPY_USART2_BAUD_DIVIDER 250
+        #define STPY_USART2_BAUD_DIVIDER 240
+
+
+
+        /////////////////////////////////// Timers ///////////////////////////////////
+
+
+
+        #define STPY_GLOBAL_TIMER_PRESCALER false
+        #define STPY_TIM2_DIVIDER (240 - 1)
 
 
 
@@ -1887,26 +1928,27 @@
 
 
 
-        #define STPY_SDMMC1_KERNEL_SOURCE 0b0
-        #define STPY_SDMMC1_INITIAL_DIVIDER 0x032
-        #define STPY_SDMMC1_INITIAL_DATATIME 1000
+        #define STPY_SDMMC1_KERNEL_SOURCE 0b1
+        #define STPY_SDMMC1_INITIAL_DIVIDER 0x12c
+        #define STPY_SDMMC1_INITIAL_DATATIME 20000
         #define STPY_SDMMC1_FULL_DIVIDER 0x005
-        #define STPY_SDMMC1_FULL_DATATIME 10000
+        #define STPY_SDMMC1_FULL_DATATIME 1200000
 
     }
     #define STPY_0             (          0)
-    #define STPY_CPU_CK        (250'000'000)
+    #define STPY_CPU_CK        (240'000'000)
     #define STPY_HSI_CK        ( 32'000'000)
     #define STPY_HSI48_CK      ( 48'000'000)
     #define STPY_CSI_CK        (  4'000'000)
-    #define STPY_AXI_AHB_CK    (250'000'000)
-    #define STPY_PLL1P_CK      (250'000'000)
-    #define STPY_PLL1Q_CK      ( 10'000'000)
-    #define STPY_PLL1_VCO_FREQ (500'000'000)
-    #define STPY_APB1_CK       (250'000'000)
-    #define STPY_APB2_CK       (250'000'000)
-    #define STPY_APB3_CK       (250'000'000)
-    #define STPY_SYS_CK        (250'000'000)
+    #define STPY_AXI_AHB_CK    (240'000'000)
+    #define STPY_PLL1P_CK      (240'000'000)
+    #define STPY_PLL2R_CK      (240'000'000)
+    #define STPY_PLL1_VCO_FREQ (480'000'000)
+    #define STPY_PLL2_VCO_FREQ (480'000'000)
+    #define STPY_APB1_CK       (240'000'000)
+    #define STPY_APB2_CK       (240'000'000)
+    #define STPY_APB3_CK       (240'000'000)
+    #define STPY_SYS_CK        (240'000'000)
 #endif
 #if TARGET_NAME_IS_MainFlightComputer
 #endif
@@ -3071,9 +3113,9 @@
 
         #define STPY_SDMMC1_KERNEL_SOURCE 0b0
         #define STPY_SDMMC1_INITIAL_DIVIDER 0x032
-        #define STPY_SDMMC1_INITIAL_DATATIME 1000
+        #define STPY_SDMMC1_INITIAL_DATATIME 5000
         #define STPY_SDMMC1_FULL_DIVIDER 0x005
-        #define STPY_SDMMC1_FULL_DATATIME 10000
+        #define STPY_SDMMC1_FULL_DATATIME 50000
 
     }
     #define STPY_0             (          0)
