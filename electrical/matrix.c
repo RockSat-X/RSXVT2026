@@ -50,28 +50,28 @@ MATRIX_multiply(struct Matrix* dst, struct Matrix* lhs, struct Matrix* rhs)
 {
 
     if (!dst)
-        panic;
+        sorry
 
     if (!lhs)
-        panic;
+        sorry
 
     if (!rhs)
-        panic;
+        sorry
 
     if (dst == lhs)
-        panic;
+        sorry
 
     if (dst == rhs)
-        panic;
+        sorry
 
     if (dst->rows != lhs->rows)
-        panic;
+        sorry
 
     if (dst->columns != rhs->columns)
-        panic;
+        sorry
 
     if (lhs->columns != rhs->rows)
-        panic;
+        sorry
 
     for (i32 i = 0; i < lhs->rows; i += 1)
     {
@@ -102,16 +102,16 @@ MATRIX_multiply_add(struct Matrix* accumulator, struct Matrix* addend, f32 facto
 {
 
     if (!accumulator)
-        panic;
+        sorry
 
     if (!addend)
-        panic;
+        sorry
 
     if (accumulator->rows != addend->rows)
-        panic;
+        sorry
 
     if (accumulator->columns != addend->columns)
-        panic;
+        sorry
 
     for (i32 i = 0; i < accumulator->rows; i += 1)
     {
@@ -134,7 +134,7 @@ MATRIX_stlink_tx(struct Matrix* matrix)
 {
 
     if (!matrix)
-        panic;
+        sorry
 
     for (i32 i = 0; i < matrix->rows; i += 1)
     {

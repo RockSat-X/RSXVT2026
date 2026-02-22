@@ -171,7 +171,7 @@
 #undef _EXPAND_HANDLE
 #define _EXPAND_HANDLE\
     if (!(0 <= handle && handle < I2CHandle_COUNT))\
-        panic;\
+        sorry\
     auto const driver = &_I2C_drivers[handle];\
     auto const I2Cx_DRIVER_MODE = I2C_TABLE[handle].I2Cx_DRIVER_MODE;\
     auto const I2Cx_SLAVE_ADDRESS = I2C_TABLE[handle].I2Cx_SLAVE_ADDRESS;\

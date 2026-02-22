@@ -75,7 +75,7 @@
 #undef _EXPAND_HANDLE
 #define _EXPAND_HANDLE\
     if (!(0 <= handle && handle < SDHandle_COUNT))\
-        panic;\
+        sorry\
     auto const driver = &_SD_drivers[handle];\
     auto const SDx = SD_TABLE[handle].SDx;\
     auto const NVICInterrupt_SDx = SD_TABLE[handle].NVICInterrupt_SDx;\

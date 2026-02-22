@@ -149,7 +149,7 @@ _SPI_driver_interrupt(enum SPIHandle handle)
 
         if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, MODF))
         {
-            panic; // This error should only happen in SPI master mode.
+            sorry // This error should only happen in SPI master mode.
         }
 
 
@@ -158,7 +158,7 @@ _SPI_driver_interrupt(enum SPIHandle handle)
 
         else if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, TIFRE))
         {
-            panic; // This error should only happen when using TI mode.
+            sorry // This error should only happen when using TI mode.
         }
 
 
@@ -256,7 +256,7 @@ _SPI_driver_interrupt(enum SPIHandle handle)
         {
 
             if (interrupt_status & interrupt_enable)
-                panic; // We overlooked handling an interrupt event...
+                sorry // We overlooked handling an interrupt event...
 
             yield = true;
 

@@ -27,8 +27,8 @@ reinitialize_i2c_driver(enum I2CHandle handle)
     switch (result)
     {
         case I2CReinitResult_success : break;
-        case I2CReinitResult_bug     : panic;
-        default                      : panic;
+        case I2CReinitResult_bug     : sorry
+        default                      : sorry
     }
 
 }
@@ -88,7 +88,7 @@ main(void)
                         end_address   = (1 << 10) - 1;
                     } break;
 
-                    default: panic;
+                    default: sorry
                 }
 
 
@@ -158,8 +158,8 @@ main(void)
                             spinlock_nop(1'000'000);
                         } break;
 
-                        case I2CTransferResult_transfer_ongoing : panic;
-                        default                                 : panic;
+                        case I2CTransferResult_transfer_ongoing : sorry
+                        default                                 : sorry
                     }
 
 
@@ -257,8 +257,8 @@ main(void)
                             spinlock_nop(1'000'000);
                         } break;
 
-                        case I2CTransferResult_transfer_ongoing : panic;
-                        default                                 : panic;
+                        case I2CTransferResult_transfer_ongoing : sorry
+                        default                                 : sorry
                     }
 
 
@@ -334,8 +334,8 @@ main(void)
                             spinlock_nop(1'000'000);
                         } break;
 
-                        case I2CTransferResult_transfer_ongoing : panic;
-                        default                                 : panic;
+                        case I2CTransferResult_transfer_ongoing : sorry
+                        default                                 : sorry
                     }
 
 
@@ -356,7 +356,7 @@ main(void)
 
 
 
-        default: panic;
+        default: sorry
 
     }
 
@@ -483,7 +483,7 @@ INTERRUPT_I2Cx_bee(enum I2CSlaveCallbackEvent event, u8* data)
 
 
 
-        default : panic;
+        default : sorry
 
     }
 

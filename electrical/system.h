@@ -114,23 +114,27 @@ typedef double             f64; static_assert(sizeof(f64) == 8);
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// @/`Halting`.
+// @/`Error Handling with Bugs and Sorrys`.
 //
 
 
 
-#define sorry halt_(false);
-#define panic halt_(true)
+#define BUG_CODE 0xDEADC0DE // Large arbitrary value that an enum will unlikely overlap with.
+#define sorry    sorry_();  // This syntax makes `sorry` pop out more obviously.
 
-#define BUG_CODE 0xDEADC0DE // TODO Document.
-#if 0
-    #define bug return BUG_CODE
+#if 1
+    #define bug                                                                  \
+        do                                                                       \
+        {                                                                        \
+            sorry            /* Halt the CPU to make debugging issues easier. */ \
+            return BUG_CODE; /* Here for type-checking reasons. */               \
+        }                                                                        \
+        while (false)
 #else
-    #define bug halt_(false)
+    #define bug return BUG_CODE // Bugs are bubbled up and handled by the caller.
 #endif
 
-extern noret void
-halt_(b32 panicking);
+static noret void sorry_(void);
 
 
 
@@ -210,14 +214,14 @@ extern nullptr_t INITIAL_STACK_ADDRESS[];
 #define configMINIMAL_STACK_SIZE              (256 / sizeof(StackType_t))
 #define configTASK_NOTIFICATION_ARRAY_ENTRIES 1
 
-#define configASSERT(CONDITION) \
-    do                          \
-    {                           \
-        if (!(CONDITION))       \
-        {                       \
-            panic;              \
-        }                       \
-    }                           \
+#define configASSERT(CONDITION) /* TODO Have a switch? */ \
+    do                                                    \
+    {                                                     \
+        if (!(CONDITION))                                 \
+        {                                                 \
+            sorry                                         \
+        }                                                 \
+    }                                                     \
     while (false)
 
 #define configMAX_PRIORITIES 8 // @/`FreeRTOS Max Priorities`.
@@ -349,7 +353,7 @@ static_assert(configMAX_SYSCALL_INTERRUPT_PRIORITY <= 255);
 
             Meta.line('''
                 vTaskStartScheduler();
-                panic;
+                for(;;);
             ''')
 
 */
@@ -436,7 +440,7 @@ INTERRUPT_UsageFault(void)
     u32 usage_fault_status = CMSIS_GET(SCB, CFSR, USGFAULTSR);
     b32 stack_overflow     = (usage_fault_status >> 4) & 1; // This is only defined on Armv8-M.
 
-    panic; // See the values above to determine what caused this UsageFault.
+    sorry // See the values above to determine what caused this UsageFault.
 
 }
 
@@ -457,7 +461,7 @@ INTERRUPT_BusFault(void)
     // @/pg 1471/sec D1.2.6/`Armv8-M`.
     u32 bus_fault_address = SCB->BFAR;
 
-    panic; // See the values above to determine what caused this BusFault.
+    sorry // See the values above to determine what caused this BusFault.
 
 }
 
@@ -474,12 +478,12 @@ INTERRUPT_Default(void)
     {
         case HardFault_IRQn:
         {
-            panic; // There was a HardFault for some unhandled reason...
+            sorry // There was a HardFault for some unhandled reason...
         } break;
 
         default:
         {
-            panic; // TODO.
+            sorry // TODO.
         } break;
     }
 
@@ -520,8 +524,8 @@ spinlock_nop(u32 count)
 
 
 
-extern noret void
-halt_(b32 panicking) // @/`Halting`.
+static noret void
+sorry_(void) // @/`Halting`.
 {
 
     __disable_irq();
@@ -549,19 +553,19 @@ halt_(b32 panicking) // @/`Halting`.
                     spinlock_nop(i);
 
                     GPIO_INACTIVE(led_green);
-                    spinlock_nop(i * (panicking ? 1 : 4));
+                    spinlock_nop(i);
 
                 #else
 
-                    GPIO_SET(led_channel_red  , panicking );
-                    GPIO_SET(led_channel_green, false     );
-                    GPIO_SET(led_channel_blue , !panicking);
+                    GPIO_ACTIVE  (led_channel_red  );
+                    GPIO_INACTIVE(led_channel_green);
+                    GPIO_INACTIVE(led_channel_blue );
                     spinlock_nop(i);
 
                     GPIO_INACTIVE(led_channel_red  );
                     GPIO_INACTIVE(led_channel_green);
                     GPIO_INACTIVE(led_channel_blue );
-                    spinlock_nop(i * (panicking ? 1 : 4));
+                    spinlock_nop(i);
 
                 #endif
 
@@ -762,8 +766,8 @@ halt_(b32 panicking) // @/`Halting`.
 
             Meta.line(f'''
                 if (!(0 <= handle && handle < {driver_type}Handle_COUNT))
-                    panic;
-            ''')
+                    sorry
+            ''') # TODO Replace sorry with bug.
 
             for identifier, value in expansions:
                 Meta.line(f'''
@@ -1013,12 +1017,11 @@ pack_pop
 
 
 
-// @/`Halting`:
+// @/`Error Handling with Bugs and Sorrys`:
 //
-// A `sorry` is used for code-paths that haven't been
-// implemented yet. Eventually, when we want things to
-// be production-ready, we replace all `sorry`s that we
-// can with proper code, or at the very least, a `panic`.
+// There are two main ways handling run-time errors.
+//
+// The most brute-forced way is with a `sorry`.
 // e.g:
 // >
 // >    if (is_sd_card_mounted_yet())
@@ -1030,43 +1033,58 @@ pack_pop
 // >        sorry   <- be written without the terminating semicolon. This is
 // >    }              purely aesthetic; it makes `sorry` look very out-of-place.
 // >
-// >
 //
-// A `panic` is for absolute irrecoverable error conditions,
-// like stack overflows or a function given ill-formed parameters.
-// In other words, stuff like: "something horrible happened.
-// I don't know how we got here. We need to reset!". It is useful
-// to make this distinction from `sorry` because we can scan through
-// the code-base and see what stuff is work-in-progress or just an
-// irrecoverable error condition.
+// When a `sorry` is executed, the CPU is halted and the implementation of `sorry`
+// will have the MCU do something to indicate the error condition (e.g. blinking LED).
+// This way of error handling makes it very easy to debug stuff, because the
+// offending line (or at least when we detected the error) can be inspected right
+// where the CPU was halted. The `sorry` makes no assumption on where it can be
+// called, so it can be used within an interrupt routine or before the MCU is even
+// fully initialized.
+//
+// The obvious disadvantage of this method is that it is absolutely destructive.
+// A small error would just completely halt the entire MCU, which is not desirable
+// in any production context.
+//
+// The proper way to handle errors gracefully is to use the `bug` macro.
 // e.g:
 // >
-// >    switch (option)
+// >    if (is_sd_card_mounted_yet())
 // >    {
-// >        case Option_A: ...     The compiler will enforce switch-statements to be exhaustive
-// >        case Option_B: ...     for enumerations. The compiler will also enforce all
-// >        case Option_C: ...     switch-statements to have a `default` case even if we are
-// >        default: panic;     <- exhaustive. In the event that the enumeration `option` is
-// >    }                          somehow not any of the valid values, we will trigger a `panic`
-// >                               rather than have the switch-statement silently pass.
+// >        do_stuff();
+// >    }
+// >    else
+// >    {
+// >        bug;
+// >    }
 // >
 //
-// When a `sorry` or `panic` is triggered during deployment,
-// the microcontroller will undergo a reset through the
-// watchdog timer (TODO). During development, however, we'd
-// like for the controller to actually stop dead in its track
-// (rather than reset) so that we can debug. To make it even
-// more useful, the microcontroller can also blink an LED
-// indicating whether or not a `panic` or a `sorry` condition
-// has occured; how this is implemented, if at all, is
-// entirely dependent upon the target.
+// The difference is that the procedure that `bug` is used in must have an integral
+// error code as a return value, because that's what all `bug` does really:
+// return the error code `BUG_CODE`.
 //
-// A `bug` is a less extreme version of `panic` where the function
-// that the `bug` gets triggered in will return immediately via `ret(bug)`. TODO Deprecate
-// This allows us to bubble up the error to handle gracefully by the caller
-// if possible rather than blowing up the entire program like `panic` will.
-// The `bug` macro also allows for us to halt right at where it's triggered
-// for debugging purposes.
+// The reason why the `bug` macro is useful is because during development,
+// it can be synonymous with `sorry`. This will make the CPU halt whenever
+// a bug error condition happens, and debugging can be done easily from there
+// on out. For production, however, the `bug` macro will turn into a simple
+// return statement. How the error condition will be handled will be up to
+// the caller.
+//
+// The procedure's return type could just be a boolean where zero
+// indicates success (no bug) or non-zero where a bug did happen,
+// but the most general approach is to have a dedicated enumeration
+// for that procedure's return error code. By doing this, more specific
+// error conditions can be expressed, with `BUG_CODE` being the most vague
+// and "catastrophic" (as in this shouldn't have happened at all!).
+//
+// Thus `bug` should be used whenever the programmer expects such an
+// error condition to never happen, but if it were to, it's worthwhile to
+// halt the MCU for and debug. Other "explainable" error conditions like
+// "the SD card not being able to be initialized" should just be a separate
+// error code.
+//
+// The `sorry` macro is still useful as a temporary measure for error handling;
+// once things become more production-ready, they become replaced with `bug`.
 
 
 

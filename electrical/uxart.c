@@ -126,7 +126,7 @@ _UXART_push_byte_for_transmission(char byte, void* void_handle)
     _EXPAND_HANDLE
 
     if (!CMSIS_GET(UXARTx, CR1, UE))
-        panic;
+        sorry
 
 
     // Push into the transmission ring-buffer.
@@ -149,10 +149,10 @@ UXART_tx_bytes(enum UXARTHandle handle, u8* bytes, i32 length)
     _EXPAND_HANDLE
 
     if (!bytes)
-        panic;
+        sorry
 
     if (length < 0)
-        panic;
+        sorry
 
 
 

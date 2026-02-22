@@ -284,7 +284,7 @@ STEPPER_push_angular_velocities(f32 (*angular_velocities)[StepperInstanceHandle_
             struct StepperInstance* instance = &_STEPPER_driver.instances[handle];
 
             if (!RingBuffer_push(&instance->angular_velocities, &(*angular_velocities)[handle]))
-                panic;
+                sorry
 
         }
     }
@@ -379,7 +379,7 @@ _STEPPER_update_uart(void)
             // However, our code handles this automatically,
             // so there should be no reason for it to be set.
             // @/pg 19/sec 4.1.2/`TMC2209`.
-            panic;
+            sorry
 
         switch (_STEPPER_driver.uart.state)
         {
@@ -524,7 +524,7 @@ _STEPPER_update_uart(void)
 
 
 
-                default: panic;
+                default: sorry
 
             } break;
 
@@ -583,8 +583,8 @@ _STEPPER_update_uart(void)
 
 
 
-                    case StepperInstanceState_delaying_enable : panic;
-                    default                                   : panic;
+                    case StepperInstanceState_delaying_enable : sorry
+                    default                                   : sorry
 
                 }
 
@@ -876,7 +876,7 @@ _STEPPER_update_uart(void)
 
 
 
-            default: panic;
+            default: sorry
 
         }
     }
@@ -932,7 +932,7 @@ INTERRUPT_STEPPER_TIMx_update_event(void)
                 STEPPER_partial_reinit(); // Something bad happened, so let's restart everything!
             } break;
 
-            default: panic;
+            default: sorry
 
         }
 

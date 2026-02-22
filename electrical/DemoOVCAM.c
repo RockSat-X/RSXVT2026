@@ -15,9 +15,9 @@ reinitialize_ovcam(void)
     switch (result)
     {
         case OVCAMReinitResult_success                       : break;
-        case OVCAMReinitResult_failed_to_initialize_with_i2c : panic;
-        case OVCAMReinitResult_bug                           : panic;
-        default                                              : panic;
+        case OVCAMReinitResult_failed_to_initialize_with_i2c : sorry
+        case OVCAMReinitResult_bug                           : sorry
+        default                                              : sorry
     }
 
 }
@@ -43,7 +43,7 @@ try_swap(void)
             reinitialize_ovcam(); // Something bad happened, so we'll reinitialize everything.
         } break;
 
-        default: panic;
+        default: sorry
 
     }
 
@@ -143,7 +143,7 @@ main(void)
                     );
 
                 if (result != I2CTransferResult_transfer_done)
-                    panic;
+                    sorry
 
             }
 

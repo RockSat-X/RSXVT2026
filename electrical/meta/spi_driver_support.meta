@@ -59,7 +59,7 @@
 #undef _EXPAND_HANDLE
 #define _EXPAND_HANDLE\
     if (!(0 <= handle && handle < SPIHandle_COUNT))\
-        panic;\
+        sorry\
     auto const driver = &_SPI_drivers[handle];\
     auto const SPIx = SPI_TABLE[handle].SPIx;\
     auto const NVICInterrupt_SPIx = SPI_TABLE[handle].NVICInterrupt_SPIx;\

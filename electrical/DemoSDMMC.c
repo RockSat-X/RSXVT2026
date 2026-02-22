@@ -328,7 +328,7 @@ main(void)
                                 u8 byte = cluster_buffer[sector_index][byte_index];
 
                                 if (byte != (u8) (counter + (cluster_index * countof(cluster_buffer) + sector_index) * 3 + byte_index))
-                                    panic;
+                                    sorry
 
                             }
                         }
@@ -377,10 +377,10 @@ main(void)
                 switch (result)
                 {
                     case FileSystemReinitResult_success            : break;
-                    case FileSystemReinitResult_couldnt_ready_card : panic;
-                    case FileSystemReinitResult_transfer_error     : panic;
-                    case FileSystemReinitResult_bug                : panic;
-                    default                                        : panic;
+                    case FileSystemReinitResult_couldnt_ready_card : sorry
+                    case FileSystemReinitResult_transfer_error     : sorry
+                    case FileSystemReinitResult_bug                : sorry
+                    default                                        : sorry
                 }
             }
 
@@ -431,10 +431,10 @@ main(void)
                 switch (result)
                 {
                     case FileSystemSaveResult_success         : break;
-                    case FileSystemSaveResult_transfer_error  : panic;
-                    case FileSystemSaveResult_filesystem_full : panic;
-                    case FileSystemSaveResult_bug             : panic;
-                    default                                   : panic;
+                    case FileSystemSaveResult_transfer_error  : sorry
+                    case FileSystemSaveResult_filesystem_full : sorry
+                    case FileSystemSaveResult_bug             : sorry
+                    default                                   : sorry
                 }
 
 
@@ -453,7 +453,7 @@ main(void)
 
 
 
-        default: panic;
+        default: sorry
 
     }
 
