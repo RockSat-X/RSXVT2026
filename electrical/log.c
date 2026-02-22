@@ -58,10 +58,11 @@ struct LogDriver
 
     static struct LogDriver _LOG_driver = // Very first log will be a delimiter to help know when it has started.
         {
-            .entries.writer      = 1,
-            .entries.elements[0] = { "\x1B[2J\n" ">>>> " STRINGIFY(TARGET_NAME) " <<<<\n" },
+            .entries.atomic_writer = 1,
+            .entries.elements[0]   = { "\x1B[2J\n" ">>>> " STRINGIFY(TARGET_NAME) " <<<<\n" },
 
         };
+
 #endif
 
 
@@ -76,7 +77,7 @@ struct LogDriver
         log_                                                          \
         (                                                             \
             "%u [" __FILE_NAME__ ":" STRINGIFY(__LINE__) "] " FORMAT, \
-            _LOG_driver.entries.writer __VA_OPT__(,)                  \
+            _LOG_driver.entries.atomic_writer __VA_OPT__(,)           \
             __VA_ARGS__                                               \
         )
 
