@@ -571,6 +571,7 @@ static useret enum FileSystemReinitResult : u32
     FileSystemReinitResult_success,
     FileSystemReinitResult_couldnt_ready_card,
     FileSystemReinitResult_transfer_error,
+    FileSystemReinitResult_missing_filesystem,
     FileSystemReinitResult_bug = BUG_CODE,
 }
 FILESYSTEM_reinit(enum SDHandle sd_handle)
@@ -648,8 +649,8 @@ FILESYSTEM_reinit(enum SDHandle sd_handle)
         case FR_OK                  : break;
         case FR_DISK_ERR            : return FileSystemReinitResult_transfer_error;
         case FR_NOT_READY           : return FileSystemReinitResult_couldnt_ready_card;
+        case FR_NO_FILESYSTEM       : return FileSystemReinitResult_missing_filesystem;
         case FR_NOT_ENABLED         : bug; // Shouldn't happen in practice...
-        case FR_NO_FILESYSTEM       : bug; // "
         case FR_INVALID_DRIVE       : bug; // "
         case FR_INT_ERR             : bug; // Not "valid" return value according to documentation.
         case FR_NO_FILE             : bug; // "

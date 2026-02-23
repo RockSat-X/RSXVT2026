@@ -381,6 +381,7 @@ main(void)
                     case FileSystemReinitResult_success            : break;
                     case FileSystemReinitResult_couldnt_ready_card : goto FILESYSTEM_ERROR;
                     case FileSystemReinitResult_transfer_error     : goto FILESYSTEM_ERROR;
+                    case FileSystemReinitResult_missing_filesystem : goto FILESYSTEM_ERROR;
                     case FileSystemReinitResult_bug                : goto FILESYSTEM_ERROR;
                     default                                        : goto FILESYSTEM_ERROR;
                 }
