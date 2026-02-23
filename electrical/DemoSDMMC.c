@@ -378,12 +378,13 @@ main(void)
 
                 switch (reinit_result)
                 {
-                    case FileSystemReinitResult_success            : break;
-                    case FileSystemReinitResult_couldnt_ready_card : goto FILESYSTEM_ERROR;
-                    case FileSystemReinitResult_transfer_error     : goto FILESYSTEM_ERROR;
-                    case FileSystemReinitResult_missing_filesystem : goto FILESYSTEM_ERROR;
-                    case FileSystemReinitResult_bug                : goto FILESYSTEM_ERROR;
-                    default                                        : goto FILESYSTEM_ERROR;
+                    case FileSystemReinitResult_success              : break;
+                    case FileSystemReinitResult_couldnt_ready_card   : goto FILESYSTEM_ERROR;
+                    case FileSystemReinitResult_transfer_error       : goto FILESYSTEM_ERROR;
+                    case FileSystemReinitResult_missing_filesystem   : goto FILESYSTEM_ERROR;
+                    case FileSystemReinitResult_fatfs_internal_error : goto FILESYSTEM_ERROR;
+                    case FileSystemReinitResult_bug                  : goto FILESYSTEM_ERROR;
+                    default                                          : goto FILESYSTEM_ERROR;
                 }
 
 
@@ -434,11 +435,12 @@ main(void)
 
                     switch (save_result)
                     {
-                        case FileSystemSaveResult_success         : break;
-                        case FileSystemSaveResult_transfer_error  : goto FILESYSTEM_ERROR;
-                        case FileSystemSaveResult_filesystem_full : goto FILESYSTEM_ERROR;
-                        case FileSystemSaveResult_bug             : goto FILESYSTEM_ERROR;
-                        default                                   : goto FILESYSTEM_ERROR;
+                        case FileSystemSaveResult_success              : break;
+                        case FileSystemSaveResult_transfer_error       : goto FILESYSTEM_ERROR;
+                        case FileSystemSaveResult_filesystem_full      : goto FILESYSTEM_ERROR;
+                        case FileSystemSaveResult_fatfs_internal_error : goto FILESYSTEM_ERROR;
+                        case FileSystemSaveResult_bug                  : goto FILESYSTEM_ERROR;
+                        default                                        : goto FILESYSTEM_ERROR;
                     }
 
 

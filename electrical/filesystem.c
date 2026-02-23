@@ -572,6 +572,7 @@ static useret enum FileSystemReinitResult : u32
     FileSystemReinitResult_couldnt_ready_card,
     FileSystemReinitResult_transfer_error,
     FileSystemReinitResult_missing_filesystem,
+    FileSystemReinitResult_fatfs_internal_error,
     FileSystemReinitResult_bug = BUG_CODE,
 }
 FILESYSTEM_reinit(enum SDHandle sd_handle)
@@ -587,6 +588,24 @@ FILESYSTEM_reinit(enum SDHandle sd_handle)
     SD_reinit(sd_handle);
 
     _FILESYSTEM_driver = (struct FileSystemDriver) {0};
+
+
+
+    // Clear FatFs's state.
+
+    memzero(&DirBuf);
+    memzero(&FatFs);
+    memzero(&Fsid);
+    memzero(&LfnBuf);
+
+
+
+    // Globals not defined by FatFs due to our settings:
+
+    static_assert(FF_CODE_PAGE != 0); // `CodePage`, `DbcTbl`, `ExCvt`.
+    static_assert(FF_FS_RPATH  == 0); // `CurrVol`.
+    static_assert(!FF_FS_LOCK);       // `Files`.
+    static_assert(!FF_FS_REENTRANT);  // `SysLock`, `SysLockVolume`, `Mutex`.
 
 
 
@@ -609,6 +628,7 @@ FILESYSTEM_reinit(enum SDHandle sd_handle)
             case FR_OK                  : break;
             case FR_DISK_ERR            : return FileSystemReinitResult_transfer_error;
             case FR_NOT_READY           : return FileSystemReinitResult_couldnt_ready_card;
+            case FR_INT_ERR             : return FileSystemReinitResult_fatfs_internal_error;
             case FR_WRITE_PROTECTED     : bug; // Shouldn't happen in practice.
             case FR_INVALID_DRIVE       : bug; // "
             case FR_MKFS_ABORTED        : bug; // "
@@ -616,7 +636,6 @@ FILESYSTEM_reinit(enum SDHandle sd_handle)
             case FR_NOT_ENOUGH_CORE     : bug; // "
             case FR_NOT_ENABLED         : bug; // Not "valid" return value according to documentation.
             case FR_NO_FILESYSTEM       : bug; // "
-            case FR_INT_ERR             : bug; // "
             case FR_NO_FILE             : bug; // "
             case FR_NO_PATH             : bug; // "
             case FR_INVALID_NAME        : bug; // "
@@ -650,10 +669,10 @@ FILESYSTEM_reinit(enum SDHandle sd_handle)
         case FR_DISK_ERR            : return FileSystemReinitResult_transfer_error;
         case FR_NOT_READY           : return FileSystemReinitResult_couldnt_ready_card;
         case FR_NO_FILESYSTEM       : return FileSystemReinitResult_missing_filesystem;
+        case FR_INT_ERR             : return FileSystemReinitResult_fatfs_internal_error;
         case FR_NOT_ENABLED         : bug; // Shouldn't happen in practice...
         case FR_INVALID_DRIVE       : bug; // "
-        case FR_INT_ERR             : bug; // Not "valid" return value according to documentation.
-        case FR_NO_FILE             : bug; // "
+        case FR_NO_FILE             : bug; // Not "valid" return value according to documentation.
         case FR_NO_PATH             : bug; // "
         case FR_INVALID_NAME        : bug; // "
         case FR_DENIED              : bug; // "
@@ -726,8 +745,8 @@ FILESYSTEM_reinit(enum SDHandle sd_handle)
                     } break;
 
                     case FR_DISK_ERR            : return FileSystemReinitResult_transfer_error;
+                    case FR_INT_ERR             : return FileSystemReinitResult_fatfs_internal_error;
                     case FR_INVALID_OBJECT      : bug; // Shouldn't happen in practice...
-                    case FR_INT_ERR             : bug; // TODO.
                     case FR_TIMEOUT             : bug; // We don't use any thread control features...
                     case FR_NOT_READY           : bug; // Not "valid" return value according to documentation.
                     case FR_NOT_ENABLED         : bug; // "
@@ -763,6 +782,7 @@ FILESYSTEM_reinit(enum SDHandle sd_handle)
 
 
             case FR_DISK_ERR            : return FileSystemReinitResult_transfer_error;
+            case FR_INT_ERR             : return FileSystemReinitResult_fatfs_internal_error;
             case FR_NOT_READY           : bug; // The SD card should've been initialized by now...
             case FR_NOT_ENABLED         : bug; // Shouldn't happen in practice...
             case FR_NO_FILESYSTEM       : bug; // "
@@ -776,7 +796,6 @@ FILESYSTEM_reinit(enum SDHandle sd_handle)
             case FR_LOCKED              : bug; // "
             case FR_NOT_ENOUGH_CORE     : bug; // "
             case FR_TOO_MANY_OPEN_FILES : bug; // "
-            case FR_INT_ERR             : bug; // TODO
             case FR_TIMEOUT             : bug; // We don't use any thread control features...
             case FR_MKFS_ABORTED        : bug; // Not "valid" return value according to documentation.
             case FR_INVALID_PARAMETER   : bug; // "
@@ -801,6 +820,7 @@ static useret enum FileSystemSaveResult : u32
     FileSystemSaveResult_success,
     FileSystemSaveResult_transfer_error,
     FileSystemSaveResult_filesystem_full,
+    FileSystemSaveResult_fatfs_internal_error,
     FileSystemSaveResult_bug = BUG_CODE,
 }
 FILESYSTEM_save(enum SDHandle sd_handle, Sector* data, i32 count)
@@ -849,9 +869,9 @@ FILESYSTEM_save(enum SDHandle sd_handle, Sector* data, i32 count)
                     } break;
 
                     case FR_DISK_ERR            : return FileSystemSaveResult_transfer_error;
+                    case FR_INT_ERR             : return FileSystemSaveResult_fatfs_internal_error;
                     case FR_INVALID_OBJECT      : bug; // Shouldn't happen in practice...
-                    case FR_INT_ERR             : bug; // We don't use any thread control features...
-                    case FR_TIMEOUT             : bug; // "
+                    case FR_TIMEOUT             : bug; // We don't use any thread control features...
                     case FR_NOT_READY           : bug; // Not "valid" return value according to documentation.
                     case FR_NOT_ENABLED         : bug; // "
                     case FR_NO_FILESYSTEM       : bug; // "
@@ -879,10 +899,10 @@ FILESYSTEM_save(enum SDHandle sd_handle, Sector* data, i32 count)
         } break;
 
         case FR_DISK_ERR            : return FileSystemSaveResult_transfer_error;
+        case FR_INT_ERR             : return FileSystemSaveResult_fatfs_internal_error;
         case FR_INVALID_OBJECT      : bug; // Shouldn't happen in practice...
         case FR_DENIED              : bug; // "
-        case FR_INT_ERR             : bug; // We don't use any thread control features...
-        case FR_TIMEOUT             : bug; // "
+        case FR_TIMEOUT             : bug; // We don't use any thread control features...
         case FR_NOT_READY           : bug; // Not "valid" return value according to documentation.
         case FR_NOT_ENABLED         : bug; // "
         case FR_NO_FILESYSTEM       : bug; // "
