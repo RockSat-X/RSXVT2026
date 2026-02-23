@@ -27,7 +27,7 @@
 
 */
 
-typedef u8 Sector[512];
+typedef u8 Sector[512] __attribute__ ((aligned(4))); // Alignment of 32-bit words because things like SDMMC's IDMA assume this.
 
 enum SDDriverState : u32
 {
@@ -72,7 +72,7 @@ struct SDDoJob
         b16           writing;
         b16           consecutive_caching; // @/`SD Consecutive Caching`.
         u32           address;
-        Sector*       sector;
+        Sector*       sector; // Must be 32-bit word aligned.
         i32           count;
     };
     struct
