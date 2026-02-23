@@ -89,7 +89,14 @@ FILESYSTEM_disk_initialize_implementation(BYTE pdrv)
     if (pdrv) // "Always zero at single drive system."
         bug;  // We currently don't support multiple file-systems.
 
-    switch (_SD_drivers[pdrv].state)
+    enum SDDriverState observed_state =
+        atomic_load_explicit
+        (
+            &_SD_drivers[pdrv].atomic_state,
+            memory_order_acquire // Might need to read the error code.
+        );
+
+    switch (observed_state)
     {
 
         case SDDriverState_initer:
@@ -166,7 +173,14 @@ FILESYSTEM_disk_status_implementation(BYTE pdrv)
     if (pdrv) // "Always zero at single drive system."
         bug;  // We currently don't support multiple file-systems.
 
-    switch (_SD_drivers[pdrv].state)
+    enum SDDriverState observed_state =
+        atomic_load_explicit
+        (
+            &_SD_drivers[pdrv].atomic_state,
+            memory_order_acquire // Might need to read the error code.
+        );
+
+    switch (observed_state)
     {
 
         case SDDriverState_initer:

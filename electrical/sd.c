@@ -88,10 +88,10 @@ struct SDDoJob
 struct SDDriver
 {
 
-    volatile enum SDDriverState state;
-    struct SDIniter             initer;
-    struct SDCmder              cmder;
-    volatile enum SDDriverError error;
+    _Atomic enum SDDriverState atomic_state;
+    struct SDIniter            initer;
+    struct SDCmder             cmder;
+    enum SDDriverError         error;
 
     struct
     {
@@ -239,7 +239,14 @@ SD_do_(struct SDDoJob* job)
 
 
 
-    switch (driver->state)
+    enum SDDriverState observed_driver_state =
+        atomic_load_explicit
+        (
+            &driver->atomic_state,
+            memory_order_acquire // Might need to read the error code.
+        );
+
+    switch (observed_driver_state)
     {
 
 
@@ -529,7 +536,12 @@ SD_reinit(enum SDHandle handle)
 
     // Further SD card initialization is done within the interrupt handler.
 
-    driver->state = SDDriverState_initer;
+    atomic_store_explicit
+    (
+        &driver->atomic_state,
+        SDDriverState_initer,
+        memory_order_relaxed
+    );
 
     NVIC_ENABLE(SDx);
     NVIC_SET_PENDING(SDx);
@@ -553,7 +565,14 @@ _SD_update_once(enum SDHandle handle)
 
     _EXPAND_HANDLE
 
-    switch (driver->state)
+    enum SDDriverState observed_driver_state =
+        atomic_load_explicit
+        (
+            &driver->atomic_state,
+            memory_order_relaxed
+        );
+
+    switch (observed_driver_state)
     {
 
 
@@ -643,8 +662,16 @@ _SD_update_once(enum SDHandle handle)
 
                         case SDIniterUpdateResult_done:
                         {
-                            driver->state = SDDriverState_active;
+
+                            atomic_store_explicit
+                            (
+                                &driver->atomic_state,
+                                SDDriverState_active,
+                                memory_order_relaxed
+                            );
+
                             return SDUpdateOnceResult_again;
+
                         } break;
 
 
@@ -660,7 +687,12 @@ _SD_update_once(enum SDHandle handle)
                             case SDIniterUpdateResult_card_glitch           : driver->error = SDDriverError_card_glitch;           goto SD_INITER_ERROR;
                             SD_INITER_ERROR:;
 
-                            driver->state = SDDriverState_error;
+                            atomic_store_explicit
+                            (
+                                &driver->atomic_state,
+                                SDDriverState_error,
+                                memory_order_relaxed
+                            );
 
                             return SDUpdateOnceResult_again;
 
@@ -701,9 +733,18 @@ _SD_update_once(enum SDHandle handle)
 
                 case SDCmderUpdateResult_card_glitch:
                 {
+
                     driver->error = SDDriverError_card_glitch;
-                    driver->state = SDDriverState_error;
+
+                    atomic_store_explicit
+                    (
+                        &driver->atomic_state,
+                        SDDriverState_error,
+                        memory_order_release // Have the write for the error code be done.
+                    );
+
                     return SDUpdateOnceResult_again;
+
                 } break;
 
 
@@ -1032,9 +1073,18 @@ _SD_update_once(enum SDHandle handle)
 
                 case SDCmderUpdateResult_card_glitch:
                 {
+
                     driver->error = SDDriverError_card_glitch;
-                    driver->state = SDDriverState_error;
+
+                    atomic_store_explicit
+                    (
+                        &driver->atomic_state,
+                        SDDriverState_error,
+                        memory_order_release // Have the write for the error code be done.
+                    );
+
                     return SDUpdateOnceResult_again;
+
                 } break;
 
 
