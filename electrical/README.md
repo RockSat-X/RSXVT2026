@@ -27,5 +27,25 @@ careful documentation and testing will be done to validate them.
 
 
 
+- `sd_cmder.c`
+> The state-machine implementation for handling SDMMC transfers is **production-ready**.
+> The implementation is harden towards hardware issues,
+> such as unexpected SD card ejection/reinsertion.
+> Hardware issues such as card glitches are still possible,
+> but the state-machine is designed to be easily resettable in such rare events.
+> Issues concerning usage and behavior of the SD-cmder are unlikely.
+>
+> \- *Phuc Doan. Feburary 23rd, 2026.*
+
+
+
+- `sd.c`
+> The API for doing read/writes to SD cards is **production-ready**.
+> Issues concerning usage and behavior of the SD API are unlikely.
+>
+> \- *Phuc Doan. Feburary 23rd, 2026.*
+
+
+
 Files not listed above are not considered **production-ready**.
 This does not mean they are unusable, just that development is still undergoing.
