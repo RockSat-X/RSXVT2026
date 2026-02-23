@@ -1,5 +1,6 @@
-#define SD_PROFILER_ENABLE true
-#define DEMO_MODE          2 // See below for different kinds of tests.
+#define SD_PROFILER_ENABLE         true
+#define FILESYSTEM_PROFILER_ENABLE true
+#define DEMO_MODE                  2 // See below for different kinds of tests.
 
 #include "system.h"
 #include "uxart.c"
@@ -450,6 +451,7 @@ main(void)
                     if (cluster_index % 8 == 0)
                     {
                         stlink_tx(SD_profiler_compile_report());
+                        stlink_tx(FILESYSTEM_profiler_compile_report());
                         GPIO_TOGGLE(led_green);
                     }
 
@@ -459,7 +461,9 @@ main(void)
 
                 FILESYSTEM_ERROR:;
 
-                stlink_tx("Filesystem error!\n");
+                stlink_tx(SD_profiler_compile_report());
+                stlink_tx(FILESYSTEM_profiler_compile_report());
+                stlink_tx("Failed!\n");
                 spinlock_nop(200'000'000);
 
             }

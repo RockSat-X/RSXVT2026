@@ -1,7 +1,4 @@
 ////////////////////////////////////////////////////////////////////////////////
-//
-// Some FatFs configurations.
-//
 
 
 
@@ -69,6 +66,98 @@ struct FileSystemDriver
 };
 
 static struct FileSystemDriver _FILESYSTEM_driver = {0};
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef FILESYSTEM_PROFILER_ENABLE
+#define FILESYSTEM_PROFILER_ENABLE false
+#endif
+#if FILESYSTEM_PROFILER_ENABLE
+
+    struct FileSystemProfiler
+    {
+
+        i64 total_bytes_logged;
+        i64 total_time_us;
+        u32 previous_timestamp_us;
+
+        struct
+        {
+            i32 bytes_written;
+            i32 time_spent_us;
+        } throughput_per_log;
+
+        struct
+        {
+            i32 count_reinit_success;
+            i32 count_save_success;
+            i32 count_couldnt_ready_card;
+            i32 count_missing_filesystem;
+            i32 count_filesystem_full;
+            i32 count_fatfs_internal_error;
+            i32 count_transfer_error;
+            i32 count_bug;
+
+        };
+
+        char report_buffer[1024];
+
+    };
+
+    static struct FileSystemProfiler _FILESYSTEM_profiler = {0};
+
+
+
+    static useret char*
+    FILESYSTEM_profiler_compile_report(void)
+    {
+
+        snprintf_
+        (
+            _FILESYSTEM_profiler.report_buffer,
+            sizeof(_FILESYSTEM_profiler.report_buffer),
+            "==== FileSystem Profiler (%s) =="        "\n"
+            "reinit_success             : %d"         "\n"
+            "save_success               : %d"         "\n"
+            "couldnt_ready_card         : %d"         "\n"
+            "missing_filesystem         : %d"         "\n"
+            "filesystem_full            : %d"         "\n"
+            "fatfs_internal_error       : %d"         "\n"
+            "transfer_error             : %d"         "\n"
+            "bug                        : %d"         "\n"
+            "Total bytes logged         : %.2f MiB"   "\n"
+            "Overall logging throughput : %.2f MiB/s" "\n"
+            "Throughput per log         : %.2f MiB/s" "\n"
+            "\n",
+            _FILESYSTEM_driver.file_name,
+            _FILESYSTEM_profiler.count_reinit_success,
+            _FILESYSTEM_profiler.count_save_success,
+            _FILESYSTEM_profiler.count_couldnt_ready_card,
+            _FILESYSTEM_profiler.count_missing_filesystem,
+            _FILESYSTEM_profiler.count_filesystem_full,
+            _FILESYSTEM_profiler.count_fatfs_internal_error,
+            _FILESYSTEM_profiler.count_transfer_error,
+            _FILESYSTEM_profiler.count_bug,
+            (f32) _FILESYSTEM_profiler.total_bytes_logged / (1024.0f * 1024.0f),
+            (f32) _FILESYSTEM_profiler.total_bytes_logged / (1024.0f * 1024.0f) / ((f32) _FILESYSTEM_profiler.total_time_us / 1'000'000.0f),
+            (f32) _FILESYSTEM_profiler.throughput_per_log.bytes_written / (1024.0f * 1024.0f) / ((f32) _FILESYSTEM_profiler.throughput_per_log.time_spent_us / 1'000'000.0f)
+        );
+
+        if (_FILESYSTEM_profiler.throughput_per_log.time_spent_us >= 5'000'000)
+        {
+            _FILESYSTEM_profiler.throughput_per_log.bytes_written /= 2;
+            _FILESYSTEM_profiler.throughput_per_log.time_spent_us /= 2;
+        }
+
+        return _FILESYSTEM_profiler.report_buffer;
+
+    }
+
+#endif
 
 
 
@@ -575,7 +664,7 @@ static useret enum FileSystemReinitResult : u32
     FileSystemReinitResult_fatfs_internal_error,
     FileSystemReinitResult_bug = BUG_CODE,
 }
-FILESYSTEM_reinit(enum SDHandle sd_handle)
+FILESYSTEM_reinit_(enum SDHandle sd_handle)
 {
 
     if (sd_handle != (enum SDHandle) {0})
@@ -813,6 +902,41 @@ FILESYSTEM_reinit(enum SDHandle sd_handle)
 
 }
 
+static useret enum FileSystemReinitResult
+FILESYSTEM_reinit(enum SDHandle sd_handle)
+{
+
+
+
+    // Do stuff.
+
+    enum FileSystemReinitResult result = FILESYSTEM_reinit_(sd_handle);
+
+
+
+    // Profiler epilogue.
+
+    #if FILESYSTEM_PROFILER_ENABLE
+    {
+        switch (result)
+        {
+            case FileSystemReinitResult_success              : _FILESYSTEM_profiler.count_reinit_success       += 1; break;
+            case FileSystemReinitResult_couldnt_ready_card   : _FILESYSTEM_profiler.count_couldnt_ready_card   += 1; break;
+            case FileSystemReinitResult_transfer_error       : _FILESYSTEM_profiler.count_transfer_error       += 1; break;
+            case FileSystemReinitResult_missing_filesystem   : _FILESYSTEM_profiler.count_missing_filesystem   += 1; break;
+            case FileSystemReinitResult_fatfs_internal_error : _FILESYSTEM_profiler.count_fatfs_internal_error += 1; break;
+            case FileSystemReinitResult_bug                  : _FILESYSTEM_profiler.count_bug                  += 1; break;
+            default                                          : bug;
+        }
+    }
+    #endif
+
+
+
+    return result;
+
+}
+
 
 
 static useret enum FileSystemSaveResult : u32
@@ -823,7 +947,7 @@ static useret enum FileSystemSaveResult : u32
     FileSystemSaveResult_fatfs_internal_error,
     FileSystemSaveResult_bug = BUG_CODE,
 }
-FILESYSTEM_save(enum SDHandle sd_handle, Sector* data, i32 count)
+FILESYSTEM_save_(enum SDHandle sd_handle, Sector* data, i32 count)
 {
 
     if (sd_handle != (enum SDHandle) {0})
@@ -920,5 +1044,66 @@ FILESYSTEM_save(enum SDHandle sd_handle, Sector* data, i32 count)
         default                     : bug; // "
 
     }
+
+}
+
+static useret enum FileSystemSaveResult
+FILESYSTEM_save(enum SDHandle sd_handle, Sector* data, i32 count)
+{
+
+
+
+    // Profiler prologue.
+
+    #if FILESYSTEM_PROFILER_ENABLE
+
+        u32 starting_timestamp_us = TIMEKEEPING_COUNTER();
+
+    #endif
+
+
+
+    // Do stuff.
+
+    enum FileSystemSaveResult result = FILESYSTEM_save_(sd_handle, data, count);
+
+
+
+    // Profiler epilogue.
+
+    #if FILESYSTEM_PROFILER_ENABLE
+    {
+
+        u32 ending_timestamp_us = TIMEKEEPING_COUNTER();
+        u32 elapsed_us          = ending_timestamp_us - starting_timestamp_us;
+
+        static_assert(sizeof(TIMEKEEPING_COUNTER_TYPE) == sizeof(u32));
+
+        switch (result)
+        {
+            case FileSystemSaveResult_success              : _FILESYSTEM_profiler.count_save_success         += 1; break;
+            case FileSystemSaveResult_filesystem_full      : _FILESYSTEM_profiler.count_filesystem_full      += 1; break;
+            case FileSystemSaveResult_transfer_error       : _FILESYSTEM_profiler.count_transfer_error       += 1; break;
+            case FileSystemSaveResult_fatfs_internal_error : _FILESYSTEM_profiler.count_fatfs_internal_error += 1; break;
+            case FileSystemSaveResult_bug                  : _FILESYSTEM_profiler.count_bug                  += 1; break;
+            default                                        : bug;
+        }
+
+        if (result == FileSystemSaveResult_success)
+        {
+            _FILESYSTEM_profiler.total_bytes_logged               += sizeof(*data) * count;
+            _FILESYSTEM_profiler.throughput_per_log.bytes_written += sizeof(*data) * count;
+            _FILESYSTEM_profiler.throughput_per_log.time_spent_us += (i32) elapsed_us;
+        }
+
+        _FILESYSTEM_profiler.total_time_us         += ending_timestamp_us - _FILESYSTEM_profiler.previous_timestamp_us;
+        _FILESYSTEM_profiler.previous_timestamp_us  = ending_timestamp_us;
+
+    }
+    #endif
+
+
+
+    return result;
 
 }
