@@ -1,36 +1,28 @@
 #define SDCMDER_LOG_UPDATE_ITERATION  false
 #define SDCMDER_LOG_EXECUTED_COMMANDS false
 
-#include "SDCmderState.meta"
-/* #meta
-    make_named_enums(
-        '''
-            ready_for_next_command
-            scheduled_command
-            transferring_acmd_prefix
-            scheduled_amcd_prefixed_command
-            transferring_user_command
-            outwaiting_busy_signal_for_user_command
-            undergoing_data_transfer_of_data_blocks
-            waiting_for_users_next_data_block
-            scheduled_stop_transmission
-            transferring_stop_transmission
-            outwaiting_busy_signal_for_stop_transmission
-        '''
-    )
-*/
+enum SDCmderState : u32
+{
+    SDCmderState_ready_for_next_command,
+    SDCmderState_scheduled_command,
+    SDCmderState_transferring_acmd_prefix,
+    SDCmderState_scheduled_amcd_prefixed_command,
+    SDCmderState_transferring_user_command,
+    SDCmderState_outwaiting_busy_signal_for_user_command,
+    SDCmderState_undergoing_data_transfer_of_data_blocks,
+    SDCmderState_waiting_for_users_next_data_block,
+    SDCmderState_scheduled_stop_transmission,
+    SDCmderState_transferring_stop_transmission,
+    SDCmderState_outwaiting_busy_signal_for_stop_transmission,
+};
 
-#include "SDCmderError.meta"
-/* #meta
-    make_named_enums(
-        '''
-            none
-            command_timeout
-            data_timeout
-            bad_crc
-        '''
-    )
-*/
+enum SDCmderError : u32
+{
+    SDCmderError_none,
+    SDCmderError_command_timeout,
+    SDCmderError_data_timeout,
+    SDCmderError_bad_crc,
+};
 
 struct SDCmder // @/`Scheduling a Command with SD-Cmder`.
 {
@@ -162,22 +154,18 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
 
 
-    #include "SDMMCInterruptEvent.meta"
-    /* #meta
-        make_named_enums(
-            '''
-                none
-                cmd12_aborted_data_transfer
-                completed_transfer
-                command_sent_with_no_response_expected
-                command_sent_with_good_response
-                data_timeout
-                command_timeout
-                data_with_bad_crc
-                command_with_bad_crc
-            '''
-        )
-    */
+    enum SDMMCInterruptEvent : u32
+    {
+        SDMMCInterruptEvent_none,
+        SDMMCInterruptEvent_cmd12_aborted_data_transfer,
+        SDMMCInterruptEvent_completed_transfer,
+        SDMMCInterruptEvent_command_sent_with_no_response_expected,
+        SDMMCInterruptEvent_command_sent_with_good_response,
+        SDMMCInterruptEvent_data_timeout,
+        SDMMCInterruptEvent_command_timeout,
+        SDMMCInterruptEvent_data_with_bad_crc,
+        SDMMCInterruptEvent_command_with_bad_crc,
+    };
 
     enum SDMMCInterruptEvent interrupt_event  = {0};
     u32                      interrupt_status = SDMMC->STA;
@@ -307,12 +295,6 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
         interrupt_event = SDMMCInterruptEvent_none;
 
     }
-
-
-
-    #if SDCMDER_LOG_UPDATE_ITERATION
-    log("(%s) :: (%s)", SDCmderState_TABLE[cmder->state].name, SDMMCInterruptEvent_TABLE[interrupt_event].name);
-    #endif
 
 
 
@@ -458,10 +440,6 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                     CMDTRANS, !!actually_transferring              , // If needed, the CPSM will send a DataEnable signal to DPSM to begin transferring.
                     CPSMEN  , true                                 , // Enable command-path state-machine.
                 );
-
-                #if SDCMDER_LOG_EXECUTED_COMMANDS
-                log("Executing :: (%s)", SD_CMDS[actual_cmd].name);
-                #endif
 
 
 
@@ -1091,70 +1069,14 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
         switch (result)
         {
-
-            case SDCmderIterateResult_again:
-            {
-                // The state-machine still needs to be updated.
-            } break;
-
-            case SDCmderIterateResult_yield:
-            {
-
-                #if SDCMDER_LOG_UPDATE_ITERATION
-                log("> YIELDING");
-                #endif
-
-                return SDCmderUpdateResult_yield; // No further updates can be done right now.
-
-            } break;
-
-            case SDCmderIterateResult_ready_for_next_command:
-            {
-
-                #if SDCMDER_LOG_UPDATE_ITERATION
-                log("> READY");
-                #endif
-
-                return SDCmderUpdateResult_ready_for_next_command;
-
-            } break;
-
-            case SDCmderIterateResult_need_user_to_provide_next_data_block:
-            {
-
-                #if SDCMDER_LOG_UPDATE_ITERATION
-                log("> WAITING FOR USER DATA");
-                #endif
-
-                return SDCmderUpdateResult_need_user_to_provide_next_data_block;
-
-            } break;
-
-            case SDCmderIterateResult_command_attempted:
-            {
-
-                #if SDCMDER_LOG_UPDATE_ITERATION
-                log("> ATTEMPTED :: (%s)", SDCmderError_TABLE[cmder->error].name);
-                #endif
-
-                return SDCmderUpdateResult_command_attempted;
-
-            } break;
-
-            case SDCmderIterateResult_card_glitch:
-            {
-
-                #if SDCMDER_LOG_UPDATE_ITERATION
-                log("> CARD GLITCH");
-                #endif
-
-                return SDCmderUpdateResult_card_glitch;
-
-            } break;
-
-            case SDCmderIterateResult_bug : bug;
-            default                       : bug;
-
+            case SDCmderIterateResult_again                                : break; // The state-machine still needs to be updated.
+            case SDCmderIterateResult_yield                                : return SDCmderUpdateResult_yield; // No further updates can be done right now.
+            case SDCmderIterateResult_ready_for_next_command               : return SDCmderUpdateResult_ready_for_next_command;
+            case SDCmderIterateResult_need_user_to_provide_next_data_block : return SDCmderUpdateResult_need_user_to_provide_next_data_block;
+            case SDCmderIterateResult_command_attempted                    : return SDCmderUpdateResult_command_attempted;
+            case SDCmderIterateResult_card_glitch                          : return SDCmderUpdateResult_card_glitch;
+            case SDCmderIterateResult_bug                                  : bug;
+            default                                                        : bug;
         }
 
     }

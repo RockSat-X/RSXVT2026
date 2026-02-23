@@ -5,7 +5,7 @@
 
 
 
-/* #meta global CMSIS_SET, CMSIS_WRITE, CMSIS_SPINLOCK, CMSIS_TUPLE, make_named_enums
+/* #meta global CMSIS_SET, CMSIS_WRITE, CMSIS_SPINLOCK, CMSIS_TUPLE
 
     from deps.stpy.cmsis_tools import get_cmsis_tools
 
@@ -14,21 +14,6 @@
     CMSIS_WRITE    = cmsis_tools.CMSIS_WRITE
     CMSIS_SPINLOCK = cmsis_tools.CMSIS_SPINLOCK
     CMSIS_TUPLE    = cmsis_tools.CMSIS_TUPLE
-
-    def make_named_enums(members_string):
-
-        members = members_string.split()
-
-        enumeration_name = Meta.meta_directive.include_file_path.stem
-
-        Meta.enums(enumeration_name, 'u32', members)
-
-        Meta.lut(f'{enumeration_name}_TABLE', (
-            (
-                ('char*', 'name', f'"{member}"',),
-            )
-            for member in members
-        ))
 
 */
 
@@ -797,7 +782,6 @@ sorry_(void) // @/`Halting`.
 #pragma GCC diagnostic pop
 
 #include "ringbuffer.c"
-#include "log.c"
 
 
 
