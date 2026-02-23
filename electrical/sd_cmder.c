@@ -1026,12 +1026,12 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
 
 
+            case SDMMCInterruptEvent_data_timeout                           : return SDCmderIterateResult_card_glitch; // @/`SD Bus Anomalies`.
             case SDMMCInterruptEvent_command_sent_with_no_response_expected : bug;
             case SDMMCInterruptEvent_command_sent_with_good_response        : bug;
             case SDMMCInterruptEvent_command_timeout                        : bug;
             case SDMMCInterruptEvent_command_with_bad_crc                   : bug;
             case SDMMCInterruptEvent_completed_transfer                     : bug;
-            case SDMMCInterruptEvent_data_timeout                           : bug; // @/`SD Bus Anomalies`.
             case SDMMCInterruptEvent_data_with_bad_crc                      : bug;
             default                                                         : bug;
 
@@ -1141,10 +1141,12 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 // start bit, but the reality could be that it was just stray noise that was
 // somehow injected (or perhaps due to the card being ejected/inserted).
 // Either way, the DPSM might end up issuing a data-timeout error condition
-// even though it shouldn't have. There isn't really a good way to determine
-// whether or not this error condition is really due to a bug within the code
-// (to which we'd like to flag it as so) or because of some obscure hardware issue.
+// even though it shouldn't have. Furthermore, I'm currently seeing that, when this
+// happens, the SDMMC peripheral is stuck thinking that the D0 line is busy when
+// it's actually not. There isn't really a good way to determine whether or not
+// this error condition is really due to a bug within the code (to which we'd like
+// to flag it as so) or because of some obscure hardware issue.
 //
-// Either way, it's a rare error condition, and the user will be notified of the
-// bug, and hopefully resetting the SDMMC peripheral will put everything back in
-// its place.
+// Either way, it's a rare error condition (ideally), and the user will be notified
+// of the bug, and hopefully resetting the SDMMC peripheral will put everything back
+// in its place.
