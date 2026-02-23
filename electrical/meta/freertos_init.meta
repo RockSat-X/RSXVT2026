@@ -97,7 +97,7 @@
                 &captain_allears_buffer
             );
         vTaskStartScheduler();
-        panic;
+        for(;;);
     }
 #endif
 #if TARGET_NAME_IS_DemoI2C
@@ -174,7 +174,7 @@
                 &heartbeat_buffer
             );
         vTaskStartScheduler();
-        panic;
+        for(;;);
     }
 #endif
 #if TARGET_NAME_IS_VehicleFlightComputer_R1
@@ -261,7 +261,7 @@
                 &esp32_buffer
             );
         vTaskStartScheduler();
-        panic;
+        for(;;);
     }
 #endif
 #if TARGET_NAME_IS_VehicleFlightComputer_R2
@@ -271,7 +271,7 @@
     FREERTOS_init(void)
     {
         vTaskStartScheduler();
-        panic;
+        for(;;);
     }
 #endif
 #if TARGET_NAME_IS_DebugBoard
@@ -281,7 +281,7 @@
     FREERTOS_init(void)
     {
         vTaskStartScheduler();
-        panic;
+        for(;;);
     }
 #endif
 #if TARGET_NAME_IS_MainCameraSystem

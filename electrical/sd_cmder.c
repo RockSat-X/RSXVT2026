@@ -1,36 +1,28 @@
 #define SDCMDER_LOG_UPDATE_ITERATION  false
 #define SDCMDER_LOG_EXECUTED_COMMANDS false
 
-#include "SDCmderState.meta"
-/* #meta
-    make_named_enums(
-        '''
-            ready_for_next_command
-            scheduled_command
-            transferring_acmd_prefix
-            scheduled_amcd_prefixed_command
-            transferring_user_command
-            outwaiting_busy_signal_for_user_command
-            undergoing_data_transfer_of_data_blocks
-            waiting_for_users_next_data_block
-            scheduled_stop_transmission
-            transferring_stop_transmission
-            outwaiting_busy_signal_for_stop_transmission
-        '''
-    )
-*/
+enum SDCmderState : u32
+{
+    SDCmderState_ready_for_next_command,
+    SDCmderState_scheduled_command,
+    SDCmderState_transferring_acmd_prefix,
+    SDCmderState_scheduled_amcd_prefixed_command,
+    SDCmderState_transferring_user_command,
+    SDCmderState_outwaiting_busy_signal_for_user_command,
+    SDCmderState_undergoing_data_transfer_of_data_blocks,
+    SDCmderState_waiting_for_users_next_data_block,
+    SDCmderState_scheduled_stop_transmission,
+    SDCmderState_transferring_stop_transmission,
+    SDCmderState_outwaiting_busy_signal_for_stop_transmission,
+};
 
-#include "SDCmderError.meta"
-/* #meta
-    make_named_enums(
-        '''
-            none
-            command_timeout
-            data_timeout
-            bad_crc
-        '''
-    )
-*/
+enum SDCmderError : u32
+{
+    SDCmderError_none,
+    SDCmderError_command_timeout,
+    SDCmderError_data_timeout,
+    SDCmderError_bad_crc,
+};
 
 struct SDCmder // @/`Scheduling a Command with SD-Cmder`.
 {
@@ -162,22 +154,18 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
 
 
-    #include "SDMMCInterruptEvent.meta"
-    /* #meta
-        make_named_enums(
-            '''
-                none
-                cmd12_aborted_data_transfer
-                completed_transfer
-                command_sent_with_no_response_expected
-                command_sent_with_good_response
-                data_timeout
-                command_timeout
-                data_with_bad_crc
-                command_with_bad_crc
-            '''
-        )
-    */
+    enum SDMMCInterruptEvent : u32
+    {
+        SDMMCInterruptEvent_none,
+        SDMMCInterruptEvent_cmd12_aborted_data_transfer,
+        SDMMCInterruptEvent_completed_transfer,
+        SDMMCInterruptEvent_command_sent_with_no_response_expected,
+        SDMMCInterruptEvent_command_sent_with_good_response,
+        SDMMCInterruptEvent_data_timeout,
+        SDMMCInterruptEvent_command_timeout,
+        SDMMCInterruptEvent_data_with_bad_crc,
+        SDMMCInterruptEvent_command_with_bad_crc,
+    };
 
     enum SDMMCInterruptEvent interrupt_event  = {0};
     u32                      interrupt_status = SDMMC->STA;
@@ -307,12 +295,6 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
         interrupt_event = SDMMCInterruptEvent_none;
 
     }
-
-
-
-    #if SDCMDER_LOG_UPDATE_ITERATION
-    log("(%s) :: (%s)", SDCmderState_TABLE[cmder->state].name, SDMMCInterruptEvent_TABLE[interrupt_event].name);
-    #endif
 
 
 
@@ -459,10 +441,6 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                     CPSMEN  , true                                 , // Enable command-path state-machine.
                 );
 
-                #if SDCMDER_LOG_EXECUTED_COMMANDS
-                log("Executing :: (%s)", SD_CMDS[actual_cmd].name);
-                #endif
-
 
 
                 return SDCmderIterateResult_again;
@@ -519,7 +497,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                     bug; // Command-path state-machine should've been done by now.
 
                 if (CMSIS_GET(SDMMC, STA, DPSMACT))
-                    bug; // The data-path state-machine shouldn't have been active for APP_CMD itself.
+                    return SDCmderIterateResult_card_glitch; // The data-path state-machine shouldn't have been active for APP_CMD itself. @/`SD Bus Anomalies`.
 
                 if (!(SDMMC->RESP1 & (1 << 5)))
                     return SDCmderIterateResult_card_glitch; // Next command not being recognized as ACMD..? @/pg 148/tbl 4-42/`SD`.
@@ -550,7 +528,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                     bug; // Command-path state-machine should've turned itself off.
 
                 if (CMSIS_GET(SDMMC, STA, DPSMACT))
-                    bug; // The data-path state-machine shouldn't have been active for APP_CMD itself.
+                    return SDCmderIterateResult_card_glitch; // The data-path state-machine shouldn't have been active for APP_CMD itself. @/`SD Bus Anomalies`.
 
                 if (cmder->error)
                     bug; // There shouldn't be any errors before this...
@@ -988,9 +966,9 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
 
 
+            case SDMMCInterruptEvent_data_timeout                           : return SDCmderIterateResult_card_glitch; // @/`SD Bus Anomalies`.
             case SDMMCInterruptEvent_command_sent_with_no_response_expected : bug;
             case SDMMCInterruptEvent_completed_transfer                     : bug;
-            case SDMMCInterruptEvent_data_timeout                           : bug;
             case SDMMCInterruptEvent_data_with_bad_crc                      : bug;
             default                                                         : bug;
 
@@ -1048,12 +1026,12 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
 
 
+            case SDMMCInterruptEvent_data_timeout                           : return SDCmderIterateResult_card_glitch; // @/`SD Bus Anomalies`.
             case SDMMCInterruptEvent_command_sent_with_no_response_expected : bug;
             case SDMMCInterruptEvent_command_sent_with_good_response        : bug;
             case SDMMCInterruptEvent_command_timeout                        : bug;
             case SDMMCInterruptEvent_command_with_bad_crc                   : bug;
             case SDMMCInterruptEvent_completed_transfer                     : bug;
-            case SDMMCInterruptEvent_data_timeout                           : bug; // @/`SD Bus Anomalies`.
             case SDMMCInterruptEvent_data_with_bad_crc                      : bug;
             default                                                         : bug;
 
@@ -1091,70 +1069,14 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
         switch (result)
         {
-
-            case SDCmderIterateResult_again:
-            {
-                // The state-machine still needs to be updated.
-            } break;
-
-            case SDCmderIterateResult_yield:
-            {
-
-                #if SDCMDER_LOG_UPDATE_ITERATION
-                log("> YIELDING");
-                #endif
-
-                return SDCmderUpdateResult_yield; // No further updates can be done right now.
-
-            } break;
-
-            case SDCmderIterateResult_ready_for_next_command:
-            {
-
-                #if SDCMDER_LOG_UPDATE_ITERATION
-                log("> READY");
-                #endif
-
-                return SDCmderUpdateResult_ready_for_next_command;
-
-            } break;
-
-            case SDCmderIterateResult_need_user_to_provide_next_data_block:
-            {
-
-                #if SDCMDER_LOG_UPDATE_ITERATION
-                log("> WAITING FOR USER DATA");
-                #endif
-
-                return SDCmderUpdateResult_need_user_to_provide_next_data_block;
-
-            } break;
-
-            case SDCmderIterateResult_command_attempted:
-            {
-
-                #if SDCMDER_LOG_UPDATE_ITERATION
-                log("> ATTEMPTED :: (%s)", SDCmderError_TABLE[cmder->error].name);
-                #endif
-
-                return SDCmderUpdateResult_command_attempted;
-
-            } break;
-
-            case SDCmderIterateResult_card_glitch:
-            {
-
-                #if SDCMDER_LOG_UPDATE_ITERATION
-                log("> CARD GLITCH");
-                #endif
-
-                return SDCmderUpdateResult_card_glitch;
-
-            } break;
-
-            case SDCmderIterateResult_bug : bug;
-            default                       : bug;
-
+            case SDCmderIterateResult_again                                : break; // The state-machine still needs to be updated.
+            case SDCmderIterateResult_yield                                : return SDCmderUpdateResult_yield; // No further updates can be done right now.
+            case SDCmderIterateResult_ready_for_next_command               : return SDCmderUpdateResult_ready_for_next_command;
+            case SDCmderIterateResult_need_user_to_provide_next_data_block : return SDCmderUpdateResult_need_user_to_provide_next_data_block;
+            case SDCmderIterateResult_command_attempted                    : return SDCmderUpdateResult_command_attempted;
+            case SDCmderIterateResult_card_glitch                          : return SDCmderUpdateResult_card_glitch;
+            case SDCmderIterateResult_bug                                  : bug;
+            default                                                        : bug;
         }
 
     }
@@ -1219,10 +1141,12 @@ SDCmder_update(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 // start bit, but the reality could be that it was just stray noise that was
 // somehow injected (or perhaps due to the card being ejected/inserted).
 // Either way, the DPSM might end up issuing a data-timeout error condition
-// even though it shouldn't have. There isn't really a good way to determine
-// whether or not this error condition is really due to a bug within the code
-// (to which we'd like to flag it as so) or because of some obscure hardware issue.
+// even though it shouldn't have. Furthermore, I'm currently seeing that, when this
+// happens, the SDMMC peripheral is stuck thinking that the D0 line is busy when
+// it's actually not. There isn't really a good way to determine whether or not
+// this error condition is really due to a bug within the code (to which we'd like
+// to flag it as so) or because of some obscure hardware issue.
 //
-// Either way, it's a rare error condition, and the user will be notified of the
-// bug, and hopefully resetting the SDMMC peripheral will put everything back in
-// its place.
+// Either way, it's a rare error condition (ideally), and the user will be notified
+// of the bug, and hopefully resetting the SDMMC peripheral will put everything back
+// in its place.

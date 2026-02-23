@@ -111,7 +111,6 @@ UXART_init(enum UXARTHandle handle)
     // Enable the interrupts.
 
     NVIC_ENABLE(UXARTx);
-    NVIC_SET_PENDING(UXARTx); // So logs can be handled if any.
 
 }
 
@@ -126,7 +125,7 @@ _UXART_push_byte_for_transmission(char byte, void* void_handle)
     _EXPAND_HANDLE
 
     if (!CMSIS_GET(UXARTx, CR1, UE))
-        panic;
+        sorry
 
 
     // Push into the transmission ring-buffer.
@@ -149,10 +148,10 @@ UXART_tx_bytes(enum UXARTHandle handle, u8* bytes, i32 length)
     _EXPAND_HANDLE
 
     if (!bytes)
-        panic;
+        sorry
 
     if (length < 0)
-        panic;
+        sorry
 
 
 
@@ -243,61 +242,6 @@ _UXART_driver_interrupt(enum UXARTHandle handle)
     );
 
     b32 theres_still_stuff_to_transmit = false;
-
-
-
-    // If the UXART handle is used for logging, we see
-    // if there's any log entries that should be handled.
-
-    #if TARGET_USES_LOG
-    {
-        if (handle == LOG_UXART_HANDLE)
-        {
-
-            LogEntry* log_entry = RingBuffer_reading_pointer(&_LOG_driver.entries);
-
-            while (true)
-            {
-                if (!log_entry)
-                {
-                    break; // No log to transmit right now.
-                }
-                else if (!CMSIS_GET(UXARTx, ISR, TXE_TXFNF))
-                {
-
-                    theres_still_stuff_to_transmit = true;
-
-                    break; // No space in the TX-FIFO.
-
-                }
-                else
-                {
-
-                    u8 data = (*log_entry)[_LOG_driver.bytes_of_current_entry_transmitted_so_far];
-
-                    if (data == '\0') // Move onto next log?
-                    {
-
-                        if (!RingBuffer_pop(&_LOG_driver.entries, nullptr))
-                            sorry
-
-                        log_entry = RingBuffer_reading_pointer(&_LOG_driver.entries);
-
-                        _LOG_driver.bytes_of_current_entry_transmitted_so_far = 0;
-
-                    }
-                    else // Push next byte of log message into TX-FIFO.
-                    {
-                        _LOG_driver.bytes_of_current_entry_transmitted_so_far += 1;
-                        CMSIS_SET(UXARTx, TDR, TDR, data);
-                    }
-
-                }
-            }
-
-        }
-    }
-    #endif
 
 
 

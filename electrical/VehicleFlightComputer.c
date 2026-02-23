@@ -61,8 +61,8 @@ main(void)
         switch (result)
         {
             case I2CReinitResult_success : break;
-            case I2CReinitResult_bug     : panic;
-            default                      : panic;
+            case I2CReinitResult_bug     : sorry
+            default                      : sorry
         }
     }
     SPI_reinit(SPIHandle_openmv);
@@ -355,7 +355,7 @@ FREERTOS_TASK(logger, 2048, 0)
                 }
 
                 if (!RingBuffer_pop(SPI_ring_buffer(SPIHandle_openmv), nullptr))
-                    panic;
+                    sorry
 
             }
             else
@@ -747,9 +747,9 @@ INTERRUPT_I2Cx_vehicle_interface(enum I2CSlaveCallbackEvent event, u8* data)
 
 
 
-        case I2CTransferResult_clock_stretch_timeout : panic;
-        case I2CSlaveCallbackEvent_bug               : panic;
-        default                                      : panic;
+        case I2CTransferResult_clock_stretch_timeout : sorry
+        case I2CSlaveCallbackEvent_bug               : sorry
+        default                                      : sorry
 
     }
 

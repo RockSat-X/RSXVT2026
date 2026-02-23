@@ -1,7 +1,3 @@
-#ifndef SD_PROFILER_ENABLE
-#define SD_PROFILER_ENABLE false
-#endif
-
 #include "sd.meta"
 #include "sd_initer.c"
 #include "sd_cmder.c"
@@ -31,7 +27,7 @@
 
 */
 
-typedef u8 Sector[512];
+typedef u8 Sector[512] __attribute__ ((aligned(4))); // Alignment of 32-bit words because things like SDMMC's IDMA assume this.
 
 enum SDDriverState : u32
 {
@@ -76,7 +72,7 @@ struct SDDoJob
         b16           writing;
         b16           consecutive_caching; // @/`SD Consecutive Caching`.
         u32           address;
-        Sector*       sector;
+        Sector*       sector; // Must be 32-bit word aligned.
         i32           count;
     };
     struct
@@ -88,19 +84,19 @@ struct SDDoJob
 struct SDDriver
 {
 
-    volatile enum SDDriverState state;
-    struct SDIniter             initer;
-    struct SDCmder              cmder;
-    volatile enum SDDriverError error;
+    _Atomic enum SDDriverState atomic_state;
+    struct SDIniter            initer;
+    struct SDCmder             cmder;
+    enum SDDriverError         error;
 
     struct
     {
-        volatile enum SDDriverJobState state;
-        volatile b16                   writing;
-        volatile b16                   consecutive_caching;
-        volatile u32                   address;
-        Sector* volatile               sector;
-        volatile i32                   count;
+        _Atomic enum SDDriverJobState atomic_state;
+        b16                           writing;
+        b16                           consecutive_caching;
+        u32                           address;
+        Sector*                       sector;
+        i32                           count;
     } job;
 
     i32 consecutive_sector_transfer_count;
@@ -115,7 +111,21 @@ static struct SDDriver _SD_drivers[SDHandle_COUNT] = {0};
 
 
 
+#ifndef SD_PROFILER_ENABLE
+#define SD_PROFILER_ENABLE false
+#endif
 #if SD_PROFILER_ENABLE
+
+
+
+    // The SD profiler currently only supports
+    // a single SD driver instance at a time.
+    // Multiple SD profilers can be implemented,
+    // but it's an unlikely use-case.
+
+    static_assert(SDHandle_COUNT == 1);
+
+
 
     struct SDProfiler
     {
@@ -138,32 +148,49 @@ static struct SDDriver _SD_drivers[SDHandle_COUNT] = {0};
             i32 count_card_glitch;
             i32 count_bug;
         };
+        char report_buffer[1024];
     };
 
     struct SDProfiler _SD_profiler = {0};
 
 
 
-    static void
-    SD_profiler_report(void)
+    // The SD profiler is good for gauging the approximate maximum
+    // read/write throughput of the SD card, but it should not be
+    // used for determining the actual *file* read/write speed.
+    //
+    // This is because the profiler is only measuring how long it
+    // takes for read/write of sector(s) to be done, so stuff like
+    // the SD card's garbage collection throttling the write speed can
+    // be observed, but for something involving the file-system, a
+    // profiler working at the file-system abstraction is needed.
+    //
+    // This SD driver profiler is not differentiating read/writes
+    // that is for actual user data versus read/writes that is just
+    // for getting the file-system infrastructure to work.
+
+    static useret char*
+    SD_profiler_compile_report(void)
     {
 
-        stlink_tx
+        snprintf_
         (
-            "============================="            "\n"
-            "count_still_initializing    : %d"         "\n"
-            "count_working               : %d"         "\n"
-            "count_success               : %d"         "\n"
-            "count_transfer_error        : %d"         "\n"
-            "count_card_likely_unmounted : %d"         "\n"
-            "count_unsupported_card      : %d"         "\n"
-            "count_maybe_bus_problem     : %d"         "\n"
-            "count_voltage_check_failed  : %d"         "\n"
-            "count_could_not_ready_card  : %d"         "\n"
-            "count_card_glitch           : %d"         "\n"
-            "count_bug                   : %d"         "\n"
-            "Average read  throughput    : %.2f KiB/s" "\n"
-            "Average write throughput    : %.2f KiB/s" "\n"
+            _SD_profiler.report_buffer,
+            sizeof(_SD_profiler.report_buffer),
+            "==== SD Profiler ==============="      "\n"
+            "still_initializing       : %d"         "\n"
+            "working                  : %d"         "\n"
+            "success                  : %d"         "\n"
+            "transfer_error           : %d"         "\n"
+            "card_likely_unmounted    : %d"         "\n"
+            "unsupported_card         : %d"         "\n"
+            "maybe_bus_problem        : %d"         "\n"
+            "voltage_check_failed     : %d"         "\n"
+            "could_not_ready_card     : %d"         "\n"
+            "card_glitch              : %d"         "\n"
+            "bug                      : %d"         "\n"
+            "Average read  throughput : %.2f MiB/s" "\n"
+            "Average write throughput : %.2f MiB/s" "\n"
             "\n",
             _SD_profiler.count_still_initializing,
             _SD_profiler.count_working,
@@ -176,8 +203,8 @@ static struct SDDriver _SD_drivers[SDHandle_COUNT] = {0};
             _SD_profiler.count_could_not_ready_card,
             _SD_profiler.count_card_glitch,
             _SD_profiler.count_bug,
-            (f32) _SD_profiler.amount_of_bytes_successfully_read    / 1024.0f / ((f32) _SD_profiler.amount_of_time_reading_us / 1'000'000.0f),
-            (f32) _SD_profiler.amount_of_bytes_successfully_written / 1024.0f / ((f32) _SD_profiler.amount_of_time_writing_us / 1'000'000.0f)
+            (f32) _SD_profiler.amount_of_bytes_successfully_read    / (1024.0f * 1024.0f) / ((f32) _SD_profiler.amount_of_time_reading_us / 1'000'000.0f),
+            (f32) _SD_profiler.amount_of_bytes_successfully_written / (1024.0f * 1024.0f) / ((f32) _SD_profiler.amount_of_time_writing_us / 1'000'000.0f)
         );
 
         if (_SD_profiler.amount_of_time_reading_us >= 5'000'000)
@@ -191,6 +218,8 @@ static struct SDDriver _SD_drivers[SDHandle_COUNT] = {0};
             _SD_profiler.amount_of_bytes_successfully_written /= 2;
             _SD_profiler.amount_of_time_writing_us            /= 2;
         }
+
+        return _SD_profiler.report_buffer;
 
     }
 
@@ -239,7 +268,27 @@ SD_do_(struct SDDoJob* job)
 
 
 
-    switch (driver->state)
+    // We get the current status of the SD driver.
+
+    enum SDDriverState observed_driver_state =
+        atomic_load_explicit
+        (
+            &driver->atomic_state,
+            memory_order_acquire // Acquire for `driver->error` and `driver->job.atomic_state`.
+        );
+
+    enum SDDriverJobState observed_job_state =
+        atomic_load_explicit
+        (
+            &driver->job.atomic_state,
+            memory_order_relaxed // No synchronization needed.
+        );
+
+
+
+    // See if the user's job can be processed or is done processing.
+
+    switch (observed_driver_state)
     {
 
 
@@ -265,13 +314,13 @@ SD_do_(struct SDDoJob* job)
 
             // The user's job hasn't been assigned to the SD driver yet.
 
-            case SDDoJobState_ready_to_be_processed: switch (driver->job.state)
+            case SDDoJobState_ready_to_be_processed: switch (observed_job_state)
             {
 
                 case SDDriverJobState_ready_for_user:
                 {
 
-                    job->state = SDDoJobState_processing;
+                    // Fill out the job details.
 
                     driver->job.writing             = job->writing;
                     driver->job.consecutive_caching = job->consecutive_caching;
@@ -279,12 +328,24 @@ SD_do_(struct SDDoJob* job)
                     driver->job.address             = job->address;
                     driver->job.count               = job->count;
 
-                    // Release memory.
 
-                    driver->job.state = SDDriverJobState_ready_to_be_processed;
 
-                    NVIC_SET_PENDING(SDx); // Alert SD driver of the new job.
+                    // Release the job details to the SD driver to now handle.
 
+                    atomic_store_explicit
+                    (
+                        &driver->job.atomic_state,
+                        SDDriverJobState_ready_to_be_processed,
+                        memory_order_release
+                    );
+
+                    NVIC_SET_PENDING(SDx);
+
+
+
+                    // The user's job is now in the works.
+
+                    job->state = SDDoJobState_processing;
                     return SDDoResult_working;
 
                 } break;
@@ -314,7 +375,7 @@ SD_do_(struct SDDoJob* job)
                 )
                     bug; // The job that the SD driver is doing doesn't match the user's job...
 
-                switch (driver->job.state)
+                switch (observed_job_state)
                 {
 
                     case SDDriverJobState_ready_to_be_processed:
@@ -326,16 +387,32 @@ SD_do_(struct SDDoJob* job)
 
                     case SDDriverJobState_success:
                     {
-                        driver->job.state = SDDriverJobState_ready_for_user; // Acknowledge the SD driver's completion of the job.
-                        job->state        = SDDoJobState_attempted;
-                        return SDDoResult_success;                           // The user's job completed without any problems.
+
+                        atomic_store_explicit
+                        (
+                            &driver->job.atomic_state,
+                            SDDriverJobState_ready_for_user,
+                            memory_order_release // Acknowledge the SD driver's successful completion of the job.
+                        );
+
+                        job->state = SDDoJobState_attempted;
+                        return SDDoResult_success;
+
                     } break;
 
                     case SDDriverJobState_encountered_issue:
                     {
-                        driver->job.state = SDDriverJobState_ready_for_user; // Acknowledge the SD driver's completion of the job.
-                        job->state        = SDDoJobState_attempted;
-                        return SDDoResult_transfer_error;                    // Something bad happened...
+
+                        atomic_store_explicit
+                        (
+                            &driver->job.atomic_state,
+                            SDDriverJobState_ready_for_user,
+                            memory_order_release // Acknowledge the SD driver's failure of the job.
+                        );
+
+                        job->state = SDDoJobState_attempted;
+                        return SDDoResult_transfer_error;
+
                     } break;
 
                     case SDDriverJobState_ready_for_user : bug;
@@ -447,6 +524,8 @@ SD_do(struct SDDoJob* job)
     }
     #endif
 
+
+
     return result;
 
 }
@@ -529,7 +608,12 @@ SD_reinit(enum SDHandle handle)
 
     // Further SD card initialization is done within the interrupt handler.
 
-    driver->state = SDDriverState_initer;
+    atomic_store_explicit
+    (
+        &driver->atomic_state,
+        SDDriverState_initer,
+        memory_order_relaxed
+    );
 
     NVIC_ENABLE(SDx);
     NVIC_SET_PENDING(SDx);
@@ -553,7 +637,21 @@ _SD_update_once(enum SDHandle handle)
 
     _EXPAND_HANDLE
 
-    switch (driver->state)
+    enum SDDriverState observed_driver_state =
+        atomic_load_explicit
+        (
+            &driver->atomic_state,
+            memory_order_relaxed
+        );
+
+    enum SDDriverJobState observed_job_state =
+        atomic_load_explicit
+        (
+            &driver->job.atomic_state,
+            memory_order_acquire // Ensure job detail is filled out completely.
+        );
+
+    switch (observed_driver_state)
     {
 
 
@@ -643,8 +741,16 @@ _SD_update_once(enum SDHandle handle)
 
                         case SDIniterUpdateResult_done:
                         {
-                            driver->state = SDDriverState_active;
+
+                            atomic_store_explicit
+                            (
+                                &driver->atomic_state,
+                                SDDriverState_active,
+                                memory_order_relaxed
+                            );
+
                             return SDUpdateOnceResult_again;
+
                         } break;
 
 
@@ -660,7 +766,12 @@ _SD_update_once(enum SDHandle handle)
                             case SDIniterUpdateResult_card_glitch           : driver->error = SDDriverError_card_glitch;           goto SD_INITER_ERROR;
                             SD_INITER_ERROR:;
 
-                            driver->state = SDDriverState_error;
+                            atomic_store_explicit
+                            (
+                                &driver->atomic_state,
+                                SDDriverState_error,
+                                memory_order_relaxed
+                            );
 
                             return SDUpdateOnceResult_again;
 
@@ -701,9 +812,18 @@ _SD_update_once(enum SDHandle handle)
 
                 case SDCmderUpdateResult_card_glitch:
                 {
+
                     driver->error = SDDriverError_card_glitch;
-                    driver->state = SDDriverState_error;
+
+                    atomic_store_explicit
+                    (
+                        &driver->atomic_state,
+                        SDDriverState_error,
+                        memory_order_release // Have the write for the error code be done.
+                    );
+
                     return SDUpdateOnceResult_again;
+
                 } break;
 
 
@@ -741,7 +861,7 @@ _SD_update_once(enum SDHandle handle)
 
 
 
-                case SDCmderUpdateResult_ready_for_next_command: switch (driver->job.state)
+                case SDCmderUpdateResult_ready_for_next_command: switch (observed_job_state)
                 {
 
                     case SDDriverJobState_ready_for_user:
@@ -823,15 +943,32 @@ _SD_update_once(enum SDHandle handle)
 
                             driver->consecutive_sector_transfer_count = 0;
 
-                            driver->job.state = SDDriverJobState_processing;
+
+
+                            // The SD driver has now picked up the user's job.
+
+                            atomic_store_explicit
+                            (
+                                &driver->job.atomic_state,
+                                SDDriverJobState_processing,
+                                memory_order_relaxed // No synchronization needed.
+                            );
 
                             return SDUpdateOnceResult_again;
 
                         }
                         else // No data transfer associated with this job; we're already done!
                         {
-                            driver->job.state = SDDriverJobState_success;
+
+                            atomic_store_explicit
+                            (
+                                &driver->job.atomic_state,
+                                SDDriverJobState_success,
+                                memory_order_relaxed // No synchronization needed.
+                            );
+
                             return SDUpdateOnceResult_again;
+
                         }
 
                     } break;
@@ -843,7 +980,7 @@ _SD_update_once(enum SDHandle handle)
 
 
 
-                case SDCmderUpdateResult_need_user_to_provide_next_data_block: switch (driver->job.state)
+                case SDCmderUpdateResult_need_user_to_provide_next_data_block: switch (observed_job_state)
                 {
 
 
@@ -861,7 +998,13 @@ _SD_update_once(enum SDHandle handle)
                         if (!driver->job.consecutive_caching)
                             bug; // Non-consecutive-caching transfers should've ended the data-transfer...
 
-                        driver->job.state                          = SDDriverJobState_success;
+                        atomic_store_explicit
+                        (
+                            &driver->job.atomic_state,
+                            SDDriverJobState_success,
+                            memory_order_relaxed // No synchronization needed.
+                        );
+
                         driver->consecutive_sector_transfer_count += driver->job.count;
 
                         return SDUpdateOnceResult_again;
@@ -924,9 +1067,17 @@ _SD_update_once(enum SDHandle handle)
 
                         if (should_process_job)
                         {
+
                             driver->cmder.data_block_pointer = *driver->job.sector;
                             driver->cmder.data_block_count   = driver->job.count;
-                            driver->job.state                = SDDriverJobState_processing;
+
+                            atomic_store_explicit
+                            (
+                                &driver->job.atomic_state,
+                                SDDriverJobState_processing,
+                                memory_order_relaxed // No synchronization needed.
+                            );
+
                         }
 
 
@@ -957,7 +1108,7 @@ _SD_update_once(enum SDHandle handle)
 
 
 
-                case SDCmderUpdateResult_command_attempted: switch (driver->job.state)
+                case SDCmderUpdateResult_command_attempted: switch (observed_job_state)
                 {
 
 
@@ -980,7 +1131,13 @@ _SD_update_once(enum SDHandle handle)
                             // The job's sector was indeed the last one in the data transfer;
                             // it just completed successfully is all.
 
-                            driver->job.state = SDDriverJobState_success;
+                            atomic_store_explicit
+                            (
+                                &driver->job.atomic_state,
+                                SDDriverJobState_success,
+                                memory_order_relaxed // No synchronization needed.
+                            );
+
                             return SDUpdateOnceResult_again;
 
                         } break;
@@ -989,8 +1146,16 @@ _SD_update_once(enum SDHandle handle)
                         case SDCmderError_data_timeout:
                         case SDCmderError_bad_crc:
                         {
-                            driver->job.state = SDDriverJobState_encountered_issue; // Something bad happened and the data transfer had to be aborted.
+
+                            atomic_store_explicit
+                            (
+                                &driver->job.atomic_state,
+                                SDDriverJobState_encountered_issue,
+                                memory_order_relaxed // No synchronization needed.
+                            );
+
                             return SDUpdateOnceResult_again;
+
                         } break;
 
                         default: bug;
@@ -1011,8 +1176,21 @@ _SD_update_once(enum SDHandle handle)
                         case SDCmderError_data_timeout:
                         case SDCmderError_bad_crc:
                         {
-                            driver->job.state = SDDriverJobState_encountered_issue; // Previous transfer couldn't conclude correctly for some reason.
+
+                            // Previous transfer couldn't conclude correctly for some reason.
+                            // An example of this would be doing consecutive transfers, and the user
+                            // wants to synchronize the SD card, so we then send the `STOP_TRANSMISSION`,
+                            // but it then that command failed.
+
+                            atomic_store_explicit
+                            (
+                                &driver->job.atomic_state,
+                                SDDriverJobState_encountered_issue,
+                                memory_order_relaxed // No synchronization needed.
+                            );
+
                             return SDUpdateOnceResult_again;
+
                         } break;
 
                         default: bug;
@@ -1032,9 +1210,18 @@ _SD_update_once(enum SDHandle handle)
 
                 case SDCmderUpdateResult_card_glitch:
                 {
+
                     driver->error = SDDriverError_card_glitch;
-                    driver->state = SDDriverState_error;
+
+                    atomic_store_explicit
+                    (
+                        &driver->atomic_state,
+                        SDDriverState_error,
+                        memory_order_release // Have the write for the error code be done.
+                    );
+
                     return SDUpdateOnceResult_again;
+
                 } break;
 
 
