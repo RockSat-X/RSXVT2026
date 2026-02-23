@@ -137,7 +137,7 @@ main(void)
                     );
 
                 stlink_tx("\n[0x%08X]\n", address);
-                SD_profiler_report();
+                stlink_tx(SD_profiler_compile_report());
 
                 if (success)
                 {
@@ -341,14 +341,14 @@ main(void)
 
                 // Bit of breather...
 
-                SD_profiler_report();
+                stlink_tx(SD_profiler_compile_report());
                 GPIO_TOGGLE(led_green);
                 spinlock_nop(50'000'000);
 
                 continue;
                 STRESS_FAILED:;
 
-                SD_profiler_report();
+                stlink_tx(SD_profiler_compile_report());
                 stlink_tx("Failed!\n");
                 spinlock_nop(200'000'000);
 
@@ -443,7 +443,7 @@ main(void)
 
                 if (cluster_index % 8 == 0)
                 {
-                    SD_profiler_report();
+                    stlink_tx(SD_profiler_compile_report());
                     GPIO_TOGGLE(led_green);
                 }
 

@@ -1,7 +1,3 @@
-#ifndef SD_PROFILER_ENABLE
-#define SD_PROFILER_ENABLE false
-#endif
-
 #include "sd.meta"
 #include "sd_initer.c"
 #include "sd_cmder.c"
@@ -115,7 +111,21 @@ static struct SDDriver _SD_drivers[SDHandle_COUNT] = {0};
 
 
 
+#ifndef SD_PROFILER_ENABLE
+#define SD_PROFILER_ENABLE false
+#endif
 #if SD_PROFILER_ENABLE
+
+
+
+    // The SD profiler currently only supports
+    // a single SD driver instance at a time.
+    // Multiple SD profilers can be implemented,
+    // but it's an unlikely use-case.
+
+    static_assert(SDHandle_COUNT == 1);
+
+
 
     struct SDProfiler
     {
@@ -138,18 +148,35 @@ static struct SDDriver _SD_drivers[SDHandle_COUNT] = {0};
             i32 count_card_glitch;
             i32 count_bug;
         };
+        char report_buffer[1024];
     };
 
     struct SDProfiler _SD_profiler = {0};
 
 
 
-    static void
-    SD_profiler_report(void)
+    // The SD profiler is good for gauging the approximate maximum
+    // read/write throughput of the SD card, but it should not be
+    // used for determining the actual *file* read/write speed.
+    //
+    // This is because the profiler is only measuring how long it
+    // takes for read/write of sector(s) to be done, so stuff like
+    // the SD card's garbage collection throttling the write speed can
+    // be observed, but for something involving the file-system, a
+    // profiler working at the file-system abstraction is needed.
+    //
+    // This SD driver profiler is not differentiating read/writes
+    // that is for actual user data versus read/writes that is just
+    // for getting the file-system infrastructure to work.
+
+    static useret char*
+    SD_profiler_compile_report(void)
     {
 
-        stlink_tx
+        snprintf_
         (
+            _SD_profiler.report_buffer,
+            sizeof(_SD_profiler.report_buffer),
             "============================="            "\n"
             "count_still_initializing    : %d"         "\n"
             "count_working               : %d"         "\n"
@@ -191,6 +218,8 @@ static struct SDDriver _SD_drivers[SDHandle_COUNT] = {0};
             _SD_profiler.amount_of_bytes_successfully_written /= 2;
             _SD_profiler.amount_of_time_writing_us            /= 2;
         }
+
+        return _SD_profiler.report_buffer;
 
     }
 
@@ -494,6 +523,8 @@ SD_do(struct SDDoJob* job)
 
     }
     #endif
+
+
 
     return result;
 
