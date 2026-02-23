@@ -104,8 +104,32 @@ typedef double             f64; static_assert(sizeof(f64) == 8);
 
 
 
+static volatile struct
+{
+
+    // When `sorry` gets triggered, the debugger might show the location
+    // at a completely irrelevant line. This is very likely due to optimizations,
+    // so to aid with debugging, the file name and line number will be saved for inspection.
+
+    char* file_name;
+    i32   line_number;
+
+} SORRY = {0};
+
+static noret
+void sorry_(void);
+
+#define sorry                                           \
+    do                                                  \
+    {                                                   \
+        SORRY = (typeof(SORRY)) { __FILE__, __LINE__ }; \
+        sorry_();                                       \
+    }                                                   \
+    while (false); /* Semicolon on purpose. */
+
+
+
 #define BUG_CODE 0xDEADC0DE // Large arbitrary value that an enum will unlikely overlap with.
-#define sorry    sorry_();  // This syntax makes `sorry` pop out more obviously.
 
 #if 1
     #define bug                                                                  \
@@ -118,8 +142,6 @@ typedef double             f64; static_assert(sizeof(f64) == 8);
 #else
     #define bug return BUG_CODE // Bugs are bubbled up and handled by the caller.
 #endif
-
-static noret void sorry_(void);
 
 
 
