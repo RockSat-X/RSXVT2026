@@ -189,8 +189,8 @@ static struct SDDriver _SD_drivers[SDHandle_COUNT] = {0};
             "could_not_ready_card     : %d"         "\n"
             "card_glitch              : %d"         "\n"
             "bug                      : %d"         "\n"
-            "Average read  throughput : %.2f KiB/s" "\n"
-            "Average write throughput : %.2f KiB/s" "\n"
+            "Average read  throughput : %.2f MiB/s" "\n"
+            "Average write throughput : %.2f MiB/s" "\n"
             "\n",
             _SD_profiler.count_still_initializing,
             _SD_profiler.count_working,
@@ -203,8 +203,8 @@ static struct SDDriver _SD_drivers[SDHandle_COUNT] = {0};
             _SD_profiler.count_could_not_ready_card,
             _SD_profiler.count_card_glitch,
             _SD_profiler.count_bug,
-            (f32) _SD_profiler.amount_of_bytes_successfully_read    / 1024.0f / ((f32) _SD_profiler.amount_of_time_reading_us / 1'000'000.0f),
-            (f32) _SD_profiler.amount_of_bytes_successfully_written / 1024.0f / ((f32) _SD_profiler.amount_of_time_writing_us / 1'000'000.0f)
+            (f32) _SD_profiler.amount_of_bytes_successfully_read    / (1024.0f * 1024.0f) / ((f32) _SD_profiler.amount_of_time_reading_us / 1'000'000.0f),
+            (f32) _SD_profiler.amount_of_bytes_successfully_written / (1024.0f * 1024.0f) / ((f32) _SD_profiler.amount_of_time_writing_us / 1'000'000.0f)
         );
 
         if (_SD_profiler.amount_of_time_reading_us >= 5'000'000)
