@@ -177,20 +177,20 @@ static struct SDDriver _SD_drivers[SDHandle_COUNT] = {0};
         (
             _SD_profiler.report_buffer,
             sizeof(_SD_profiler.report_buffer),
-            "============================="            "\n"
-            "count_still_initializing    : %d"         "\n"
-            "count_working               : %d"         "\n"
-            "count_success               : %d"         "\n"
-            "count_transfer_error        : %d"         "\n"
-            "count_card_likely_unmounted : %d"         "\n"
-            "count_unsupported_card      : %d"         "\n"
-            "count_maybe_bus_problem     : %d"         "\n"
-            "count_voltage_check_failed  : %d"         "\n"
-            "count_could_not_ready_card  : %d"         "\n"
-            "count_card_glitch           : %d"         "\n"
-            "count_bug                   : %d"         "\n"
-            "Average read  throughput    : %.2f KiB/s" "\n"
-            "Average write throughput    : %.2f KiB/s" "\n"
+            "==== SD Profiler ==============="      "\n"
+            "still_initializing       : %d"         "\n"
+            "working                  : %d"         "\n"
+            "success                  : %d"         "\n"
+            "transfer_error           : %d"         "\n"
+            "card_likely_unmounted    : %d"         "\n"
+            "unsupported_card         : %d"         "\n"
+            "maybe_bus_problem        : %d"         "\n"
+            "voltage_check_failed     : %d"         "\n"
+            "could_not_ready_card     : %d"         "\n"
+            "card_glitch              : %d"         "\n"
+            "bug                      : %d"         "\n"
+            "Average read  throughput : %.2f KiB/s" "\n"
+            "Average write throughput : %.2f KiB/s" "\n"
             "\n",
             _SD_profiler.count_still_initializing,
             _SD_profiler.count_working,
