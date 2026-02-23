@@ -497,7 +497,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                     bug; // Command-path state-machine should've been done by now.
 
                 if (CMSIS_GET(SDMMC, STA, DPSMACT))
-                    bug; // The data-path state-machine shouldn't have been active for APP_CMD itself.
+                    return SDCmderIterateResult_card_glitch; // The data-path state-machine shouldn't have been active for APP_CMD itself. @/`SD Bus Anomalies`.
 
                 if (!(SDMMC->RESP1 & (1 << 5)))
                     return SDCmderIterateResult_card_glitch; // Next command not being recognized as ACMD..? @/pg 148/tbl 4-42/`SD`.
@@ -528,7 +528,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                     bug; // Command-path state-machine should've turned itself off.
 
                 if (CMSIS_GET(SDMMC, STA, DPSMACT))
-                    bug; // The data-path state-machine shouldn't have been active for APP_CMD itself.
+                    return SDCmderIterateResult_card_glitch; // The data-path state-machine shouldn't have been active for APP_CMD itself. @/`SD Bus Anomalies`.
 
                 if (cmder->error)
                     bug; // There shouldn't be any errors before this...
@@ -966,9 +966,9 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
 
 
+            case SDMMCInterruptEvent_data_timeout                           : return SDCmderIterateResult_card_glitch; // @/`SD Bus Anomalies`.
             case SDMMCInterruptEvent_command_sent_with_no_response_expected : bug;
             case SDMMCInterruptEvent_completed_transfer                     : bug;
-            case SDMMCInterruptEvent_data_timeout                           : bug;
             case SDMMCInterruptEvent_data_with_bad_crc                      : bug;
             default                                                         : bug;
 
