@@ -396,7 +396,7 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = False,
+        use_freertos    = True,
         main_stack_size = 8192,
         schema          = {
             'HSI_ENABLE'          : True,
