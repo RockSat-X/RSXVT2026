@@ -90,17 +90,25 @@ fill_cluster_buffer(i32 cluster_index)
 
 
 
+static volatile b32 completely_wipe_filesystem = false;
+
 static noret void
 test_filesystem(void)
 {
+
     for (;;)
     {
 
 
-
         // Set up the file-system.
 
-        enum FileSystemReinitResult reinit_result = FILESYSTEM_reinit(SDHandle_primary);
+        enum FileSystemReinitResult reinit_result =
+            FILESYSTEM_reinit
+            (
+                SDHandle_primary,
+                cluster_buffer,
+                completely_wipe_filesystem ? countof(cluster_buffer) : 0
+            );
 
         switch (reinit_result)
         {
@@ -113,6 +121,8 @@ test_filesystem(void)
             case FileSystemReinitResult_bug                        : goto FILESYSTEM_ERROR;
             default                                                : goto FILESYSTEM_ERROR;
         }
+
+        completely_wipe_filesystem = false;
 
 
 
@@ -147,9 +157,22 @@ test_filesystem(void)
             {
                 #if DEMO_MODE == 2
                 {
+
                     stlink_tx(SD_profiler_compile_report());
                     stlink_tx(FILESYSTEM_profiler_compile_report());
+
+                    for (u8 input = {0}; stlink_rx(&input);)
+                    {
+                        completely_wipe_filesystem |= input == 'w';
+                    }
+
+                    if (completely_wipe_filesystem)
+                    {
+                        stlink_tx("Ready to format filesystem...\n");
+                    }
+
                     GPIO_TOGGLE(led_green);
+
                 }
                 #endif
             }
@@ -162,14 +185,23 @@ test_filesystem(void)
 
         #if DEMO_MODE == 2
         {
+
             stlink_tx(SD_profiler_compile_report());
             stlink_tx(FILESYSTEM_profiler_compile_report());
             stlink_tx("Failed!\n");
+
+            if (completely_wipe_filesystem)
+            {
+                stlink_tx("Ready to format filesystem...\n");
+            }
+
             spinlock_nop(200'000'000);
+
         }
         #endif
 
     }
+
 }
 
 
@@ -540,10 +572,23 @@ FREERTOS_TASK(reporting, 1024, 0)
 {
     for (;;)
     {
+
         stlink_tx(SD_profiler_compile_report());
         stlink_tx(FILESYSTEM_profiler_compile_report());
         stlink_tx("(FreeRTOS)\n");
+
+        for (u8 input = {0}; stlink_rx(&input);)
+        {
+            completely_wipe_filesystem |= input == 'w';
+        }
+
+        if (completely_wipe_filesystem)
+        {
+            stlink_tx("Ready to format filesystem...\n");
+        }
+
         vTaskDelay(250);
+
     }
 }
 

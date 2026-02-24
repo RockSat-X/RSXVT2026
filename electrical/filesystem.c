@@ -664,11 +664,17 @@ static useret enum FileSystemReinitResult : u32
     FileSystemReinitResult_fatfs_internal_error,
     FileSystemReinitResult_bug = BUG_CODE,
 }
-FILESYSTEM_reinit_(enum SDHandle sd_handle)
+FILESYSTEM_reinit_(enum SDHandle sd_handle, Sector* formatting_sector_buffer, i32 formatting_sector_count)
 {
 
     if (sd_handle != (enum SDHandle) {0})
-        bug;  // We currently don't support multiple file-systems.
+        bug; // We currently don't support multiple file-systems.
+
+    if (formatting_sector_count <= -1)
+        bug; // Non-sensical amount...
+
+    if (!implies(formatting_sector_count, formatting_sector_buffer))
+        bug; // Missing buffer...
 
 
 
@@ -698,18 +704,23 @@ FILESYSTEM_reinit_(enum SDHandle sd_handle)
 
 
 
-    // Format the SD card with the default file-system.
+    // Format the SD card with the default file-system, if user desires.
 
-    #if 0
+    if (formatting_sector_count)
     {
 
         FRESULT formatting_result =
             f_mkfs
             (
                 "",
-                nullptr,
-                (Sector) {0},
-                sizeof(Sector)
+                &(MKFS_PARM)
+                {
+                    .fmt     = FM_EXFAT,         // Make exFAT file-system so we can support +4 GiB files.
+                    .align   = 0,                // With zero, have FatFs use `disk_ioctl` to determine alignment of the data area.
+                    .au_size = 16 * 1024 * 1024, // Maximum cluster byte size that FatFs supports is 16 MiB.
+                },
+                formatting_sector_buffer,
+                (u32) formatting_sector_count * sizeof(*formatting_sector_buffer)
             );
 
         switch (formatting_result)
@@ -738,7 +749,6 @@ FILESYSTEM_reinit_(enum SDHandle sd_handle)
         }
 
     }
-    #endif
 
 
 
@@ -911,14 +921,14 @@ FILESYSTEM_reinit_(enum SDHandle sd_handle)
 }
 
 static useret enum FileSystemReinitResult
-FILESYSTEM_reinit(enum SDHandle sd_handle)
+FILESYSTEM_reinit(enum SDHandle sd_handle, Sector* formatting_sector_buffer, i32 formatting_sector_count)
 {
 
 
 
     // Do stuff.
 
-    enum FileSystemReinitResult result = FILESYSTEM_reinit_(sd_handle);
+    enum FileSystemReinitResult result = FILESYSTEM_reinit_(sd_handle, formatting_sector_buffer, formatting_sector_count);
 
 
 
@@ -960,7 +970,7 @@ FILESYSTEM_save_(enum SDHandle sd_handle, Sector* data, i32 count)
 {
 
     if (sd_handle != (enum SDHandle) {0})
-        bug;  // We currently don't support multiple file-systems.
+        bug; // We currently don't support multiple file-systems.
 
     if (!data)
         bug; // Missing data..?
