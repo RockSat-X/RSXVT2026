@@ -117,9 +117,10 @@ enum I2CMasterState : u32
 {
     I2CMasterState_disabled = 0,
     I2CMasterState_standby,
-    I2CMasterState_scheduled_transfer,
+    I2CMasterState_scheduled_job,
     I2CMasterState_transferring,
     I2CMasterState_stopping,
+    I2CMasterState_job_attempted,
 };
 
 enum I2CSlaveState : u32
@@ -423,7 +424,7 @@ I2C_do(struct I2CDoJob* job)
                 atomic_store_explicit
                 (
                     &driver->master.atomic_state,
-                    I2CMasterState_scheduled_transfer,
+                    I2CMasterState_scheduled_job,
                     memory_order_release // The I2C driver can now handle the above job info.
                 );
 
@@ -434,11 +435,12 @@ I2C_do(struct I2CDoJob* job)
 
             } break;
 
-            case I2CMasterState_scheduled_transfer : bug; // The I2C driver shouldn't be busy with another job...
-            case I2CMasterState_transferring       : bug; // "
-            case I2CMasterState_stopping           : bug; // "
-            case I2CMasterState_disabled           : bug; // User needs to reinitialize the driver...
-            default                                : bug;
+            case I2CMasterState_disabled      : bug; // User needs to reinitialize the driver...
+            case I2CMasterState_scheduled_job : bug; // The I2C driver shouldn't be busy with another job...
+            case I2CMasterState_transferring  : bug; // "
+            case I2CMasterState_stopping      : bug; // "
+            case I2CMasterState_job_attempted : bug; // User didn't let the previous job conclude properly..?
+            default                           : bug;
 
         } break;
 
@@ -465,8 +467,15 @@ I2C_do(struct I2CDoJob* job)
 
                 // The driver just finished attempting the user's job.
 
-                case I2CMasterState_standby:
+                case I2CMasterState_job_attempted:
                 {
+
+                    atomic_store_explicit
+                    (
+                        &driver->master.atomic_state,
+                        I2CMasterState_standby, // Acknowledge I2C driver's attempt at the job.
+                        memory_order_relaxed    // No synchronization needed.
+                    );
 
                     job->state = I2CDoJobState_attempted;
 
@@ -484,7 +493,7 @@ I2C_do(struct I2CDoJob* job)
 
                 // The driver is still busy with our transfer.
 
-                case I2CMasterState_scheduled_transfer:
+                case I2CMasterState_scheduled_job:
                 case I2CMasterState_transferring:
                 case I2CMasterState_stopping:
                 {
@@ -494,6 +503,7 @@ I2C_do(struct I2CDoJob* job)
 
 
                 case I2CMasterState_disabled : bug; // User needs to reinitialize the driver...
+                case I2CMasterState_standby  : bug; // The driver should've been working on the job...
                 default                      : bug;
 
             }
@@ -768,7 +778,7 @@ _I2C_update_once(enum I2CHandle handle)
 
             // The user has a transfer they want to do.
 
-            case I2CMasterState_scheduled_transfer: switch (interrupt_event)
+            case I2CMasterState_scheduled_job: switch (interrupt_event)
             {
 
                 case I2CInterruptEvent_none:
@@ -979,7 +989,7 @@ _I2C_update_once(enum I2CHandle handle)
                         atomic_store_explicit
                         (
                             &driver->master.atomic_state,
-                            I2CMasterState_standby,
+                            I2CMasterState_job_attempted,
                             memory_order_release // Ensure writes to `driver->master.error` finishes (although it's not used here).
                         );
 
@@ -1080,7 +1090,7 @@ _I2C_update_once(enum I2CHandle handle)
                     atomic_store_explicit
                     (
                         &driver->master.atomic_state,
-                        I2CMasterState_standby,
+                        I2CMasterState_job_attempted,
                         memory_order_release // Ensure writes to `driver->master.error` finishes.
                     );
 
@@ -1106,6 +1116,34 @@ _I2C_update_once(enum I2CHandle handle)
                 case I2CInterruptEvent_data_available_to_read          : bug;
                 case I2CInterruptEvent_ready_to_transmit_data          : bug;
                 case I2CInterruptEvent_nack_signaled                   : bug;
+                case I2CInterruptEvent_address_match                   : bug;
+                default                                                : bug;
+
+            } break;
+
+
+
+            // Waiting for user to acknowledge the completion of the transfer...
+
+            case I2CMasterState_job_attempted: switch (interrupt_event)
+            {
+
+                case I2CInterruptEvent_none:
+                {
+
+                    if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, BUSY))
+                        bug; // There shouldn't be any transfers on the bus of right now.
+
+                    return I2CUpdateOnceResult_yield;
+
+                } break;
+
+                case I2CInterruptEvent_clock_stretch_timeout           : bug;
+                case I2CInterruptEvent_nack_signaled                   : bug;
+                case I2CInterruptEvent_stop_signaled                   : bug;
+                case I2CInterruptEvent_transfer_completed_successfully : bug;
+                case I2CInterruptEvent_data_available_to_read          : bug;
+                case I2CInterruptEvent_ready_to_transmit_data          : bug;
                 case I2CInterruptEvent_address_match                   : bug;
                 default                                                : bug;
 
