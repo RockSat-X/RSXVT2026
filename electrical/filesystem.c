@@ -1,7 +1,3 @@
-////////////////////////////////////////////////////////////////////////////////
-
-
-
 #define FFCONF_DEF         80386 // Current FatFs revision we're using.
 #define FF_FS_READONLY     false // Allow the file-system to be mutated.
 #define FF_FS_MINIMIZE     0     // "0: Basic functions are fully enabled."
@@ -24,7 +20,7 @@
 #define FF_USE_TRIM        false // For supporting ATA-TRIM.
 #define FF_FS_TINY         false // Whether or not file objects should share a common sector buffer.
 #define FF_FS_EXFAT        true  // Whether or not to use ExFAT.
-#define FF_USE_LFN         true  // For long-file-name support, as required by exFAT.
+#define FF_USE_LFN         1     // For long-file-name support, as required by exFAT; value of 1 implies static buffer is used for processing.
 #define FF_LFN_UNICODE     2     // Character encoding to be used for the API; value of 2 implies UTF-8.
 #define FF_LFN_BUF         255   // Amount of bytes allocated in FILINFO for the long-file-name.
 #define FF_SFN_BUF         12    // "                                    for the short-file-name.
@@ -96,8 +92,9 @@ static struct FileSystemDriver _FILESYSTEM_driver = {0};
             i32 count_reinit_success;
             i32 count_save_success;
             i32 count_couldnt_ready_card;
-            i32 count_missing_filesystem;
-            i32 count_filesystem_full;
+            i32 count_invalid_filesystem;
+            i32 count_no_more_space_for_new_file;
+            i32 count_no_more_space_for_data;
             i32 count_fatfs_internal_error;
             i32 count_transfer_error;
             i32 count_bug;
@@ -124,8 +121,9 @@ static struct FileSystemDriver _FILESYSTEM_driver = {0};
             "reinit_success             : %d"         "\n"
             "save_success               : %d"         "\n"
             "couldnt_ready_card         : %d"         "\n"
-            "missing_filesystem         : %d"         "\n"
-            "filesystem_full            : %d"         "\n"
+            "invalid_filesystem         : %d"         "\n"
+            "no_more_space_for_new_file : %d"         "\n"
+            "no_more_space_for_data     : %d"         "\n"
             "fatfs_internal_error       : %d"         "\n"
             "transfer_error             : %d"         "\n"
             "bug                        : %d"         "\n"
@@ -137,8 +135,9 @@ static struct FileSystemDriver _FILESYSTEM_driver = {0};
             _FILESYSTEM_profiler.count_reinit_success,
             _FILESYSTEM_profiler.count_save_success,
             _FILESYSTEM_profiler.count_couldnt_ready_card,
-            _FILESYSTEM_profiler.count_missing_filesystem,
-            _FILESYSTEM_profiler.count_filesystem_full,
+            _FILESYSTEM_profiler.count_invalid_filesystem,
+            _FILESYSTEM_profiler.count_no_more_space_for_new_file,
+            _FILESYSTEM_profiler.count_no_more_space_for_data,
             _FILESYSTEM_profiler.count_fatfs_internal_error,
             _FILESYSTEM_profiler.count_transfer_error,
             _FILESYSTEM_profiler.count_bug,
@@ -182,7 +181,7 @@ FILESYSTEM_disk_initialize_implementation(BYTE pdrv)
         atomic_load_explicit
         (
             &_SD_drivers[pdrv].atomic_state,
-            memory_order_acquire // Might need to read the error code.
+            memory_order_acquire // Might need to read the SD driver error code, although we currently don't do it here.
         );
 
     switch (observed_state)
@@ -228,7 +227,7 @@ disk_initialize(BYTE pdrv)
 
             case FileSystemDiskInitializeImplementationResult_yield:
             {
-                // We'll keep on spin-locking until the SD driver is ready...
+                FREERTOS_delay_ms(1); // We'll keep on spin-locking until the SD driver is ready...
             } break;
 
             case FileSystemDiskInitializeImplementationResult_driver_error:
@@ -266,7 +265,7 @@ FILESYSTEM_disk_status_implementation(BYTE pdrv)
         atomic_load_explicit
         (
             &_SD_drivers[pdrv].atomic_state,
-            memory_order_acquire // Might need to read the error code.
+            memory_order_acquire // Might need to read the SD driver error code, although we currently don't do it here.
         );
 
     switch (observed_state)
@@ -369,7 +368,7 @@ FILESYSTEM_disk_transfer_implementation(BYTE pdrv, const BYTE* buff, LBA_t secto
 
             case SDDoResult_working:
             {
-                // The job is being handled...
+                FREERTOS_delay_ms(1); // The job is being handled...
             } break;
 
             case SDDoResult_success:
@@ -488,6 +487,7 @@ FILESYSTEM_disk_ioctl_implementation(BYTE pdrv, BYTE cmd, void* buff)
     {
 
 
+
         // "Makes sure that the device has finished pending write process.
         // If the disk I/O layer or storage device has a write-back cache,
         // the dirty cache data must be committed to the medium immediately.
@@ -521,7 +521,7 @@ FILESYSTEM_disk_ioctl_implementation(BYTE pdrv, BYTE cmd, void* buff)
 
                     case SDDoResult_working:
                     {
-                        // Still busy syncing...
+                        FREERTOS_delay_ms(1); // Still busy syncing...
                     } break;
 
                     case SDDoResult_success:
@@ -585,7 +585,7 @@ FILESYSTEM_disk_ioctl_implementation(BYTE pdrv, BYTE cmd, void* buff)
         case GET_BLOCK_SIZE:
         {
 
-            *(DWORD*) buff = 1; // TODO Maybe determine the actual erase block size?
+            *(DWORD*) buff = 1; // The SD driver currently does not support erasing.
 
             return FileSystemDiskIOCTLImplementationResult_success;
 
@@ -660,15 +660,22 @@ static useret enum FileSystemReinitResult : u32
     FileSystemReinitResult_success,
     FileSystemReinitResult_couldnt_ready_card,
     FileSystemReinitResult_transfer_error,
-    FileSystemReinitResult_missing_filesystem,
+    FileSystemReinitResult_invalid_filesystem,
+    FileSystemReinitResult_no_more_space_for_new_file,
     FileSystemReinitResult_fatfs_internal_error,
     FileSystemReinitResult_bug = BUG_CODE,
 }
-FILESYSTEM_reinit_(enum SDHandle sd_handle)
+FILESYSTEM_reinit_(enum SDHandle sd_handle, Sector* formatting_sector_buffer, i32 formatting_sector_count)
 {
 
     if (sd_handle != (enum SDHandle) {0})
-        bug;  // We currently don't support multiple file-systems.
+        bug; // We currently don't support multiple file-systems.
+
+    if (formatting_sector_count <= -1)
+        bug; // Non-sensical amount...
+
+    if (!implies(formatting_sector_count, formatting_sector_buffer))
+        bug; // Missing buffer...
 
 
 
@@ -698,18 +705,23 @@ FILESYSTEM_reinit_(enum SDHandle sd_handle)
 
 
 
-    // Format the SD card with the default file-system.
+    // Format the SD card with the default file-system, if user desires.
 
-    #if 0
+    if (formatting_sector_count)
     {
 
         FRESULT formatting_result =
             f_mkfs
             (
                 "",
-                nullptr,
-                (Sector) {0},
-                sizeof(Sector)
+                &(MKFS_PARM)
+                {
+                    .fmt     = FM_EXFAT,         // Make exFAT file-system so we can support +4 GiB files.
+                    .align   = 0,                // With zero, have FatFs use `disk_ioctl` to determine alignment of the data area.
+                    .au_size = 16 * 1024 * 1024, // @/`File-System Allocation Size`.
+                },
+                formatting_sector_buffer,
+                (u32) formatting_sector_count * sizeof(*formatting_sector_buffer)
             );
 
         switch (formatting_result)
@@ -738,7 +750,6 @@ FILESYSTEM_reinit_(enum SDHandle sd_handle)
         }
 
     }
-    #endif
 
 
 
@@ -757,7 +768,7 @@ FILESYSTEM_reinit_(enum SDHandle sd_handle)
         case FR_OK                  : break;
         case FR_DISK_ERR            : return FileSystemReinitResult_transfer_error;
         case FR_NOT_READY           : return FileSystemReinitResult_couldnt_ready_card;
-        case FR_NO_FILESYSTEM       : return FileSystemReinitResult_missing_filesystem;
+        case FR_NO_FILESYSTEM       : return FileSystemReinitResult_invalid_filesystem;
         case FR_INT_ERR             : return FileSystemReinitResult_fatfs_internal_error;
         case FR_NOT_ENABLED         : bug; // Shouldn't happen in practice...
         case FR_INVALID_DRIVE       : bug; // "
@@ -870,6 +881,15 @@ FILESYSTEM_reinit_(enum SDHandle sd_handle)
 
 
 
+            // The SD card (at lesat the partition we're using) is full!
+
+            case FR_DENIED:
+            {
+                return FileSystemReinitResult_no_more_space_for_new_file;
+            } break;
+
+
+
             case FR_DISK_ERR            : return FileSystemReinitResult_transfer_error;
             case FR_INT_ERR             : return FileSystemReinitResult_fatfs_internal_error;
             case FR_NOT_READY           : bug; // The SD card should've been initialized by now...
@@ -879,7 +899,6 @@ FILESYSTEM_reinit_(enum SDHandle sd_handle)
             case FR_NO_FILE             : bug; // "
             case FR_NO_PATH             : bug; // "
             case FR_INVALID_NAME        : bug; // "
-            case FR_DENIED              : bug; // "
             case FR_INVALID_OBJECT      : bug; // "
             case FR_WRITE_PROTECTED     : bug; // "
             case FR_LOCKED              : bug; // "
@@ -903,14 +922,14 @@ FILESYSTEM_reinit_(enum SDHandle sd_handle)
 }
 
 static useret enum FileSystemReinitResult
-FILESYSTEM_reinit(enum SDHandle sd_handle)
+FILESYSTEM_reinit(enum SDHandle sd_handle, Sector* formatting_sector_buffer, i32 formatting_sector_count)
 {
 
 
 
     // Do stuff.
 
-    enum FileSystemReinitResult result = FILESYSTEM_reinit_(sd_handle);
+    enum FileSystemReinitResult result = FILESYSTEM_reinit_(sd_handle, formatting_sector_buffer, formatting_sector_count);
 
 
 
@@ -920,13 +939,14 @@ FILESYSTEM_reinit(enum SDHandle sd_handle)
     {
         switch (result)
         {
-            case FileSystemReinitResult_success              : _FILESYSTEM_profiler.count_reinit_success       += 1; break;
-            case FileSystemReinitResult_couldnt_ready_card   : _FILESYSTEM_profiler.count_couldnt_ready_card   += 1; break;
-            case FileSystemReinitResult_transfer_error       : _FILESYSTEM_profiler.count_transfer_error       += 1; break;
-            case FileSystemReinitResult_missing_filesystem   : _FILESYSTEM_profiler.count_missing_filesystem   += 1; break;
-            case FileSystemReinitResult_fatfs_internal_error : _FILESYSTEM_profiler.count_fatfs_internal_error += 1; break;
-            case FileSystemReinitResult_bug                  : _FILESYSTEM_profiler.count_bug                  += 1; break;
-            default                                          : bug;
+            case FileSystemReinitResult_success                    : _FILESYSTEM_profiler.count_reinit_success             += 1; break;
+            case FileSystemReinitResult_couldnt_ready_card         : _FILESYSTEM_profiler.count_couldnt_ready_card         += 1; break;
+            case FileSystemReinitResult_transfer_error             : _FILESYSTEM_profiler.count_transfer_error             += 1; break;
+            case FileSystemReinitResult_invalid_filesystem         : _FILESYSTEM_profiler.count_invalid_filesystem         += 1; break;
+            case FileSystemReinitResult_no_more_space_for_new_file : _FILESYSTEM_profiler.count_no_more_space_for_new_file += 1; break;
+            case FileSystemReinitResult_fatfs_internal_error       : _FILESYSTEM_profiler.count_fatfs_internal_error       += 1; break;
+            case FileSystemReinitResult_bug                        : _FILESYSTEM_profiler.count_bug                        += 1; break;
+            default                                                : bug;
         }
     }
     #endif
@@ -943,7 +963,7 @@ static useret enum FileSystemSaveResult : u32
 {
     FileSystemSaveResult_success,
     FileSystemSaveResult_transfer_error,
-    FileSystemSaveResult_filesystem_full,
+    FileSystemSaveResult_no_more_space_for_data,
     FileSystemSaveResult_fatfs_internal_error,
     FileSystemSaveResult_bug = BUG_CODE,
 }
@@ -951,7 +971,7 @@ FILESYSTEM_save_(enum SDHandle sd_handle, Sector* data, i32 count)
 {
 
     if (sd_handle != (enum SDHandle) {0})
-        bug;  // We currently don't support multiple file-systems.
+        bug; // We currently don't support multiple file-systems.
 
     if (!data)
         bug; // Missing data..?
@@ -966,10 +986,10 @@ FILESYSTEM_save_(enum SDHandle sd_handle, Sector* data, i32 count)
     FRESULT write_result   =
         f_write
         (
-          &_FILESYSTEM_driver.file_info,
-          data,
-          bytes_expected,
-          &bytes_written
+            &_FILESYSTEM_driver.file_info,
+            data,
+            bytes_expected,
+            &bytes_written
         );
 
     switch (write_result)
@@ -1018,7 +1038,7 @@ FILESYSTEM_save_(enum SDHandle sd_handle, Sector* data, i32 count)
             }
             else // The file data write was incomplete...
             {
-                return FileSystemSaveResult_filesystem_full;
+                return FileSystemSaveResult_no_more_space_for_data;
             }
         } break;
 
@@ -1081,12 +1101,12 @@ FILESYSTEM_save(enum SDHandle sd_handle, Sector* data, i32 count)
 
         switch (result)
         {
-            case FileSystemSaveResult_success              : _FILESYSTEM_profiler.count_save_success         += 1; break;
-            case FileSystemSaveResult_filesystem_full      : _FILESYSTEM_profiler.count_filesystem_full      += 1; break;
-            case FileSystemSaveResult_transfer_error       : _FILESYSTEM_profiler.count_transfer_error       += 1; break;
-            case FileSystemSaveResult_fatfs_internal_error : _FILESYSTEM_profiler.count_fatfs_internal_error += 1; break;
-            case FileSystemSaveResult_bug                  : _FILESYSTEM_profiler.count_bug                  += 1; break;
-            default                                        : bug;
+            case FileSystemSaveResult_success                : _FILESYSTEM_profiler.count_save_success           += 1; break;
+            case FileSystemSaveResult_no_more_space_for_data : _FILESYSTEM_profiler.count_no_more_space_for_data += 1; break;
+            case FileSystemSaveResult_transfer_error         : _FILESYSTEM_profiler.count_transfer_error         += 1; break;
+            case FileSystemSaveResult_fatfs_internal_error   : _FILESYSTEM_profiler.count_fatfs_internal_error   += 1; break;
+            case FileSystemSaveResult_bug                    : _FILESYSTEM_profiler.count_bug                    += 1; break;
+            default                                          : bug;
         }
 
         if (result == FileSystemSaveResult_success)
@@ -1107,3 +1127,37 @@ FILESYSTEM_save(enum SDHandle sd_handle, Sector* data, i32 count)
     return result;
 
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+// @/`File-System Allocation Size`:
+//
+// The way the FAT file-systems work (e.g. FAT32 and exFAT) is by grouping
+// a bunch of sectors together into a cluster; each time data is appended to
+// a file, rather than increase the amount of space reserved for the file by
+// a single sector, an entire contiguous cluster of sectors is allocated.
+// This would allow for good read/write speed as many of the sectors holding
+// the data is sequential, but nonetheless allow flexibility as the sequence of
+// clusters is backed by a linked-list. The primary trade-off here is the space
+// efficiency; having a lot of small files (say 1 KiB) wastes a lot of space when
+// the allocation size is large (say 1 MiB, thus 99.9% of the cluster is unused).
+//
+// But if we are to maximize our throughput when it comes to write-speed, the
+// allocation size should be as large as possible. From what I can tell in
+// practice, however, it's quite negligible; after writing 100 MiB worth of
+// empty log data, using write size of 100 KiB, and `-03` optimization, we have:
+//
+//     With 16 MiB cluster size : 3.95 MiB/s.
+//     With 64 KiB cluster size : 3.72 MiB/s.
+//
+// (Data collected as of writing: February 24th, 2026).
+//
+// Nonetheless, we'll still try to still use the largest cluster allocation
+// size possible. It should be noted that FatFs only support cluster size up
+// to 16 MiB; if the SD card has large enough capacity (at least 64 GiB I think),
+// then Windows allows for the option of formatting the card with "32768 kilobytes",
+// but this will make FatFs reject it. Prefer the "16384 kilobytes" option.

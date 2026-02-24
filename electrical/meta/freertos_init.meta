@@ -113,8 +113,61 @@
     static constexpr u32 FreeRTOSTask_COUNT = 0;
 #endif
 #if TARGET_NAME_IS_DemoSDMMC
-    enum FreeRTOSTask : u32;
-    static constexpr u32 FreeRTOSTask_COUNT = 0;
+    enum FreeRTOSTask : u32
+    {
+        FreeRTOSTask_heartbeat,
+        FreeRTOSTask_using_filesystem,
+        FreeRTOSTask_reporting,
+    };
+    static constexpr u32 FreeRTOSTask_COUNT = 3;
+    static noret void   heartbeat(void*);
+    static StackType_t  heartbeat_stack[256 / sizeof(StackType_t)] = {0};
+    static StaticTask_t heartbeat_buffer = {0};
+    static noret void   using_filesystem(void*);
+    static StackType_t  using_filesystem_stack[8192 / sizeof(StackType_t)] = {0};
+    static StaticTask_t using_filesystem_buffer = {0};
+    static noret void   reporting(void*);
+    static StackType_t  reporting_stack[1024 / sizeof(StackType_t)] = {0};
+    static StaticTask_t reporting_buffer = {0};
+    static noret void
+    FREERTOS_init(void)
+    {
+        TaskHandle_t heartbeat_handle =
+            xTaskCreateStatic
+            (
+                heartbeat,
+                "heartbeat",
+                countof(heartbeat_stack),
+                nullptr,
+                0,
+                heartbeat_stack,
+                &heartbeat_buffer
+            );
+        TaskHandle_t using_filesystem_handle =
+            xTaskCreateStatic
+            (
+                using_filesystem,
+                "using_filesystem",
+                countof(using_filesystem_stack),
+                nullptr,
+                0,
+                using_filesystem_stack,
+                &using_filesystem_buffer
+            );
+        TaskHandle_t reporting_handle =
+            xTaskCreateStatic
+            (
+                reporting,
+                "reporting",
+                countof(reporting_stack),
+                nullptr,
+                0,
+                reporting_stack,
+                &reporting_buffer
+            );
+        vTaskStartScheduler();
+        for(;;);
+    }
 #endif
 #if TARGET_NAME_IS_MainFlightComputer
     enum FreeRTOSTask : u32;

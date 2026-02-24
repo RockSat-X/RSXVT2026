@@ -1,6 +1,6 @@
 #define SD_PROFILER_ENABLE         true
 #define FILESYSTEM_PROFILER_ENABLE true
-#define DEMO_MODE                  2 // See below for different kinds of tests.
+#define DEMO_MODE                  3 // See below for different kinds of tests.
 
 #include "system.h"
 #include "uxart.c"
@@ -10,7 +10,7 @@
 
 
 
-static Sector cluster_buffer[64] = {0}; // @/`Cluster Size for verifyLogs`.
+static Sector cluster_buffer[200] = {0}; // @/`Cluster Size for verifyLogs`.
 
 
 
@@ -57,6 +57,151 @@ try_doing_transfer(struct SDDoJob job)
         }
 
     }
+}
+
+
+
+static void __attribute__((optimize("-O3")))
+fill_cluster_buffer(i32 cluster_index)
+{
+
+    #define DUMB_HASH(A, B, C, D) /* @/`Dumb hash for verifyLogs`. */ \
+        ((u8) (((((((((((u32) (A)) * 0x9E37'79B1) ^ ((u32) (B)))      \
+                                   * 0x9E37'79B1) ^ ((u32) (C)))      \
+                                   * 0x9E37'79B1) ^ ((u32) (D)))      \
+                                   * 0x9E37'79B1) >> 24) & 0xFF))
+
+    for (i32 sector_index = 0; sector_index < countof(cluster_buffer); sector_index += 1)
+    {
+        for (i32 byte_index = 0; byte_index < countof(cluster_buffer[sector_index]); byte_index += 1)
+        {
+            cluster_buffer[sector_index][byte_index] =
+                DUMB_HASH
+                (
+                    _FILESYSTEM_driver.file_number,
+                    cluster_index,
+                    sector_index,
+                    byte_index
+                );
+        }
+    }
+
+}
+
+
+
+static volatile b32 completely_wipe_filesystem = false;
+
+static noret void
+test_filesystem(void)
+{
+
+    for (;;)
+    {
+
+
+        // Set up the file-system.
+
+        enum FileSystemReinitResult reinit_result =
+            FILESYSTEM_reinit
+            (
+                SDHandle_primary,
+                cluster_buffer,
+                completely_wipe_filesystem ? countof(cluster_buffer) : 0
+            );
+
+        switch (reinit_result)
+        {
+            case FileSystemReinitResult_success                    : break;
+            case FileSystemReinitResult_couldnt_ready_card         : goto FILESYSTEM_ERROR;
+            case FileSystemReinitResult_transfer_error             : goto FILESYSTEM_ERROR;
+            case FileSystemReinitResult_invalid_filesystem         : goto FILESYSTEM_ERROR;
+            case FileSystemReinitResult_no_more_space_for_new_file : goto FILESYSTEM_ERROR;
+            case FileSystemReinitResult_fatfs_internal_error       : goto FILESYSTEM_ERROR;
+            case FileSystemReinitResult_bug                        : goto FILESYSTEM_ERROR;
+            default                                                : goto FILESYSTEM_ERROR;
+        }
+
+        completely_wipe_filesystem = false;
+
+
+
+        // Begin generating dummy log data.
+
+        enum FileSystemSaveResult save_result = {0};
+
+        for (i32 cluster_index = 0;; cluster_index += 1)
+        {
+
+            fill_cluster_buffer(cluster_index);
+
+            save_result =
+                FILESYSTEM_save
+                (
+                    SDHandle_primary,
+                    cluster_buffer,
+                    countof(cluster_buffer)
+                );
+
+            switch (save_result)
+            {
+                case FileSystemSaveResult_success                : break;
+                case FileSystemSaveResult_transfer_error         : goto FILESYSTEM_ERROR;
+                case FileSystemSaveResult_no_more_space_for_data : goto FILESYSTEM_ERROR;
+                case FileSystemSaveResult_fatfs_internal_error   : goto FILESYSTEM_ERROR;
+                case FileSystemSaveResult_bug                    : goto FILESYSTEM_ERROR;
+                default                                          : goto FILESYSTEM_ERROR;
+            }
+
+            if (cluster_index % 16 == 0)
+            {
+                #if DEMO_MODE == 2
+                {
+
+                    stlink_tx(SD_profiler_compile_report());
+                    stlink_tx(FILESYSTEM_profiler_compile_report());
+
+                    for (u8 input = {0}; stlink_rx(&input);)
+                    {
+                        completely_wipe_filesystem |= input == 'w';
+                    }
+
+                    if (completely_wipe_filesystem)
+                    {
+                        stlink_tx("Ready to format filesystem...\n");
+                    }
+
+                    GPIO_TOGGLE(led_green);
+
+                }
+                #endif
+            }
+
+        }
+
+
+
+        FILESYSTEM_ERROR:;
+
+        #if DEMO_MODE == 2
+        {
+
+            stlink_tx(SD_profiler_compile_report());
+            stlink_tx(FILESYSTEM_profiler_compile_report());
+            stlink_tx("Failed!\n");
+
+            if (completely_wipe_filesystem)
+            {
+                stlink_tx("Ready to format filesystem...\n");
+            }
+
+            spinlock_nop(200'000'000);
+
+        }
+        #endif
+
+    }
+
 }
 
 
@@ -368,105 +513,23 @@ main(void)
 
         case 2:
         {
-            for (;;)
-            {
+            test_filesystem();
+        } break;
 
 
 
-                // Set up the file-system.
+        ////////////////////////////////////////////////////////////////////////////////
+        //
+        // Test the file-system with FreeRTOS.
+        // New data will be written to the SD card;
+        // existing data should stay intact (if there aren't any bugs).
+        //
 
-                enum FileSystemReinitResult reinit_result = FILESYSTEM_reinit(SDHandle_primary);
-
-                switch (reinit_result)
-                {
-                    case FileSystemReinitResult_success              : break;
-                    case FileSystemReinitResult_couldnt_ready_card   : goto FILESYSTEM_ERROR;
-                    case FileSystemReinitResult_transfer_error       : goto FILESYSTEM_ERROR;
-                    case FileSystemReinitResult_missing_filesystem   : goto FILESYSTEM_ERROR;
-                    case FileSystemReinitResult_fatfs_internal_error : goto FILESYSTEM_ERROR;
-                    case FileSystemReinitResult_bug                  : goto FILESYSTEM_ERROR;
-                    default                                          : goto FILESYSTEM_ERROR;
-                }
-
-
-
-                // Begin generating dummy log data.
-
-                enum FileSystemSaveResult save_result = {0};
-
-                for (i32 cluster_index = 0;; cluster_index += 1)
-                {
-
-
-
-                    // Fill cluster with predictable data.
-
-                    #define DUMB_HASH(A, B, C, D) /* @/`Dumb hash for verifyLogs`. */ \
-                        ((u8) (((((((((((u32) (A)) * 0x9E37'79B1) ^ ((u32) (B)))      \
-                                                   * 0x9E37'79B1) ^ ((u32) (C)))      \
-                                                   * 0x9E37'79B1) ^ ((u32) (D)))      \
-                                                   * 0x9E37'79B1) >> 24) & 0xFF))
-
-                    for (i32 sector_index = 0; sector_index < countof(cluster_buffer); sector_index += 1)
-                    {
-                        for (i32 byte_index = 0; byte_index < countof(cluster_buffer[sector_index]); byte_index += 1)
-                        {
-                            cluster_buffer[sector_index][byte_index] =
-                                DUMB_HASH
-                                (
-                                    _FILESYSTEM_driver.file_number,
-                                    cluster_index,
-                                    sector_index,
-                                    byte_index
-                                );
-                        }
-                    }
-
-
-
-                    // Try saving the data.
-
-                    save_result =
-                        FILESYSTEM_save
-                        (
-                            SDHandle_primary,
-                            cluster_buffer,
-                            countof(cluster_buffer)
-                        );
-
-                    switch (save_result)
-                    {
-                        case FileSystemSaveResult_success              : break;
-                        case FileSystemSaveResult_transfer_error       : goto FILESYSTEM_ERROR;
-                        case FileSystemSaveResult_filesystem_full      : goto FILESYSTEM_ERROR;
-                        case FileSystemSaveResult_fatfs_internal_error : goto FILESYSTEM_ERROR;
-                        case FileSystemSaveResult_bug                  : goto FILESYSTEM_ERROR;
-                        default                                        : goto FILESYSTEM_ERROR;
-                    }
-
-
-
-                    // Heartbeat.
-
-                    if (cluster_index % 8 == 0)
-                    {
-                        stlink_tx(SD_profiler_compile_report());
-                        stlink_tx(FILESYSTEM_profiler_compile_report());
-                        GPIO_TOGGLE(led_green);
-                    }
-
-                }
-
-
-
-                FILESYSTEM_ERROR:;
-
-                stlink_tx(SD_profiler_compile_report());
-                stlink_tx(FILESYSTEM_profiler_compile_report());
-                stlink_tx("Failed!\n");
-                spinlock_nop(200'000'000);
-
-            }
+        case 3:
+        {
+            #if TARGET_USES_FREERTOS
+                FREERTOS_init();
+            #endif
         } break;
 
 
@@ -476,3 +539,59 @@ main(void)
     }
 
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+#if TARGET_USES_FREERTOS
+
+
+
+FREERTOS_TASK(heartbeat, 256, 0)
+{
+    for (;;)
+    {
+        vTaskDelay(500);
+        GPIO_TOGGLE(led_green);
+    }
+}
+
+
+
+FREERTOS_TASK(using_filesystem, 8192, 0)
+{
+    test_filesystem();
+}
+
+
+
+FREERTOS_TASK(reporting, 1024, 0)
+{
+    for (;;)
+    {
+
+        stlink_tx(SD_profiler_compile_report());
+        stlink_tx(FILESYSTEM_profiler_compile_report());
+        stlink_tx("(FreeRTOS)\n");
+
+        for (u8 input = {0}; stlink_rx(&input);)
+        {
+            completely_wipe_filesystem |= input == 'w';
+        }
+
+        if (completely_wipe_filesystem)
+        {
+            stlink_tx("Ready to format filesystem...\n");
+        }
+
+        vTaskDelay(250);
+
+    }
+}
+
+
+
+#endif

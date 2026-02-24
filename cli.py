@@ -2259,12 +2259,24 @@ def verifyLogs(parameters):
 
 
 
+        # @/`Cluster Size for verifyLog`:
+        #
+        # A buffer of 200 sectors amounts to 100 KiB, and anecdotally, high-resolution JPEG images
+        # from the OVCAM is typically 80 KiB at most (of course, that number can pretty much be
+        # arbitrarily as large as it can be given a random white noise image).
+        #
+        # Thus, having a buffer of this size gives a reasonable guage
+        # into the maximum throughput for writing a framebuffer to the SD card.
+
+        cluster_size = 200 * 512
+
+
+
         # Process the file data.
 
         file_number   = get_file_number(file_path)
         file_handle   = open(file_path, 'rb')
         file_size     = file_path.stat().st_size
-        cluster_size  = 64 * 512 # @/`Cluster Size for verifyLog`.
         cluster_index = 0
 
         while True:

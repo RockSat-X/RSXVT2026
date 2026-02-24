@@ -199,7 +199,7 @@ extern nullptr_t INITIAL_STACK_ADDRESS[];
 // @/url:`https://www.freertos.org/Documentation/02-Kernel/03-Supported-devices/02-Customization`.
 
 #define configCPU_CLOCK_HZ                    STPY_CPU_CK
-#define configTICK_RATE_HZ                    100
+#define configTICK_RATE_HZ                    1000
 
 #define configENABLE_TRUSTZONE                false
 #define configENABLE_FPU                      true
@@ -364,6 +364,38 @@ static_assert(configMAX_SYSCALL_INTERRUPT_PRIORITY <= 255);
             ''')
 
 */
+
+
+
+static void
+FREERTOS_delay_ms(u32 ms) // Typically used within spin-lock loops.
+{
+    #if TARGET_USES_FREERTOS
+    {
+
+        BaseType_t scheduler_state = xTaskGetSchedulerState();
+
+        switch (scheduler_state)
+        {
+
+            case taskSCHEDULER_NOT_STARTED:
+            case taskSCHEDULER_SUSPENDED:
+            default:
+            {
+                // No scheduler yielding can be done.
+            } break;
+
+            case taskSCHEDULER_RUNNING:
+            {
+                static_assert(configTICK_RATE_HZ == 1000);
+                vTaskDelay(ms); // Spend time doing another task.
+            } break;
+
+        }
+
+    }
+    #endif
+}
 
 
 
