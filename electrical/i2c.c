@@ -4,42 +4,22 @@ enum I2CDriverMode : u32 // @/`I2C Driver Modes`.
     I2CDriverMode_slave,
 };
 
-
-
-enum I2CMasterCallbackEvent : u32
-{
-    I2CMasterCallbackEvent_can_schedule_next_transfer,
-    I2CMasterCallbackEvent_transfer_successful,
-    I2CMasterCallbackEvent_transfer_unacknowledged,
-    I2CMasterCallbackEvent_clock_stretch_timeout,
-    I2CMasterCallbackEvent_bug = BUG_CODE,
-};
-
-typedef void I2CMasterCallback(enum I2CMasterCallbackEvent event);
-
-
-
 enum I2CSlaveCallbackEvent : u32
 {
     I2CSlaveCallbackEvent_data_available_to_read,
     I2CSlaveCallbackEvent_ready_to_transmit_data,
     I2CSlaveCallbackEvent_stop_signaled,
     I2CSlaveCallbackEvent_clock_stretch_timeout,
-    I2CSlaveCallbackEvent_bug = BUG_CODE,
+    I2CSlaveCallbackEvent_bug,
 };
 
 typedef void I2CSlaveCallback(enum I2CSlaveCallbackEvent event, u8* data);
 
-
-
 union I2CCallback
 {
     void*              function;
-    I2CMasterCallback* master;
     I2CSlaveCallback*  slave;
 };
-
-
 
 #include "i2c_driver_support.meta"
 /* #meta
@@ -133,8 +113,6 @@ union I2CCallback
 
 */
 
-
-
 enum I2CMasterState : u32
 {
     I2CMasterState_disabled = 0,
@@ -226,6 +204,127 @@ static struct I2CDriver _I2C_drivers[I2CHandle_COUNT] = {0};
 
 
 ////////////////////////////////////////////////////////////////////////////////
+
+
+
+static useret enum I2CReinitResult : u32
+{
+    I2CReinitResult_success,
+    I2CReinitResult_bug = BUG_CODE,
+}
+I2C_reinit(enum I2CHandle handle)
+{
+
+    _EXPAND_HANDLE
+
+
+
+    // Reset-cycle the peripheral.
+
+    CMSIS_PUT(I2Cx_RESET, true );
+    CMSIS_PUT(I2Cx_RESET, false);
+
+    *driver = (struct I2CDriver) {0};
+
+
+
+    // Enable the NVIC interrupts.
+
+    NVIC_ENABLE(I2Cx_EV);
+    NVIC_ENABLE(I2Cx_ER);
+
+
+
+    // Set the kernel clock source for the peripheral.
+
+    CMSIS_PUT(I2Cx_KERNEL_SOURCE, STPY_I2Cx_KERNEL_SOURCE);
+
+
+
+    // Clock the peripheral block.
+
+    CMSIS_PUT(I2Cx_ENABLE, true);
+
+
+
+    // Configure the peripheral.
+
+    switch (I2Cx_DRIVER_MODE)
+    {
+
+
+
+        // The I2C peripheral will work as a controller.
+
+        case I2CDriverMode_master:
+        {
+
+            CMSIS_SET
+            (
+                I2Cx  , TIMINGR        ,
+                PRESC , STPY_I2Cx_PRESC, // Set the time base unit.
+                SCLH  , STPY_I2Cx_SCLH , // Determines the amount of high time.
+                SCLL  , STPY_I2Cx_SCLL , // Determines the amount of low time.
+            );
+
+        } break;
+
+
+
+        // The I2C peripheral will work as a target.
+
+        case I2CDriverMode_slave:
+        {
+
+            CMSIS_SET
+            (
+                I2Cx   , OAR1                   ,
+                OA1EN  , true                   , // Enable the address.
+                OA1    , I2Cx_SLAVE_ADDRESS << 1, // The slave address of the I2C driver.
+                OA1MODE, false                  , // I2C driver currently only supports slave addresses of 7-bit.
+            );
+
+        } break;
+
+
+
+        default: bug;
+
+    }
+
+    CMSIS_SET
+    (
+        I2Cx    , TIMEOUTR                   ,
+        TIMEOUTA, STPY_I2Cx_TIMEOUTR_TIMEOUTA, // Set the desired timeout duration.
+        TIMOUTEN, true                       , // Enable the timeout detection.
+    );
+
+    CMSIS_SET
+    (
+        I2Cx  , CR1 , // Interrupts for:
+        ERRIE , true, //     - Error.
+        TCIE  , true, //     - Transfer completed.
+        STOPIE, true, //     - STOP signal.
+        NACKIE, true, //     - NACK signal.
+        ADDRIE, true, //     - Address match.
+        RXIE  , true, //     - Reception of data.
+        TXIE  , true, //     - Transmission of data.
+        DNF   , 15  , // Max out the digital filtering.
+        PE    , true, // Enable the peripheral.
+    );
+
+    atomic_store_explicit
+    (
+        &driver->master.atomic_state,
+        I2CMasterState_standby,
+        memory_order_relaxed // No synchronization needed.
+    );
+
+
+
+    return I2CReinitResult_success;
+
+}
 
 
 
@@ -407,137 +506,12 @@ I2C_do(struct I2CDoJob* job)
 
 
 
-static useret enum I2CReinitResult : u32
-{
-    I2CReinitResult_success,
-    I2CReinitResult_bug,
-}
-I2C_reinit(enum I2CHandle handle)
-{
-
-    _EXPAND_HANDLE
-
-
-
-    // Reset-cycle the peripheral.
-
-    CMSIS_PUT(I2Cx_RESET, true );
-    CMSIS_PUT(I2Cx_RESET, false);
-
-    *driver = (struct I2CDriver) {0};
-
-
-
-    // Enable the NVIC interrupts.
-
-    NVIC_ENABLE(I2Cx_EV);
-    NVIC_ENABLE(I2Cx_ER);
-
-
-
-    // Set the kernel clock source for the peripheral.
-
-    CMSIS_PUT(I2Cx_KERNEL_SOURCE, STPY_I2Cx_KERNEL_SOURCE);
-
-
-
-    // Clock the peripheral block.
-
-    CMSIS_PUT(I2Cx_ENABLE, true);
-
-
-
-    // Configure the peripheral.
-
-    switch (I2Cx_DRIVER_MODE)
-    {
-
-
-
-        // The I2C peripheral will work as a controller.
-
-        case I2CDriverMode_master:
-        {
-
-            CMSIS_SET
-            (
-                I2Cx  , TIMINGR        ,
-                PRESC , STPY_I2Cx_PRESC, // Set the time base unit.
-                SCLH  , STPY_I2Cx_SCLH , // Determines the amount of high time.
-                SCLL  , STPY_I2Cx_SCLL , // Determines the amount of low time.
-            );
-
-        } break;
-
-
-
-        // The I2C peripheral will work as a target.
-
-        case I2CDriverMode_slave:
-        {
-
-            CMSIS_SET
-            (
-                I2Cx   , OAR1                   ,
-                OA1EN  , true                   , // Enable the address.
-                OA1    , I2Cx_SLAVE_ADDRESS << 1, // The slave address of the I2C driver.
-                OA1MODE, false                  , // I2C driver currently only supports slave addresses of 7-bit.
-            );
-
-        } break;
-
-
-
-        default: bug;
-
-    }
-
-    CMSIS_SET
-    (
-        I2Cx    , TIMEOUTR                   ,
-        TIMEOUTA, STPY_I2Cx_TIMEOUTR_TIMEOUTA, // Set the desired timeout duration.
-        TIMOUTEN, true                       , // Enable the timeout detection.
-    );
-
-    CMSIS_SET
-    (
-        I2Cx  , CR1 , // Interrupts for:
-        ERRIE , true, //     - Error.
-        TCIE  , true, //     - Transfer completed.
-        STOPIE, true, //     - STOP signal.
-        NACKIE, true, //     - NACK signal.
-        ADDRIE, true, //     - Address match.
-        RXIE  , true, //     - Reception of data.
-        TXIE  , true, //     - Transmission of data.
-        DNF   , 15  , // Max out the digital filtering.
-        PE    , true, // Enable the peripheral.
-    );
-
-    atomic_store_explicit
-    (
-        &driver->master.atomic_state,
-        I2CMasterState_standby,
-        memory_order_relaxed // No synchronization needed.
-    );
-
-
-
-    return I2CReinitResult_success;
-
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-
 static useret enum I2CUpdateOnceResult : u32
 {
     I2CUpdateOnceResult_again,
     I2CUpdateOnceResult_yield,
     I2CUpdateOnceResult_bus_misbehaved,
-    I2CUpdateOnceResult_bug,
+    I2CUpdateOnceResult_bug = BUG_CODE,
 }
 _I2C_update_once(enum I2CHandle handle)
 {
