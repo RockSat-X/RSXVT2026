@@ -181,7 +181,7 @@ FILESYSTEM_disk_initialize_implementation(BYTE pdrv)
         atomic_load_explicit
         (
             &_SD_drivers[pdrv].atomic_state,
-            memory_order_acquire // Might need to read the error code.
+            memory_order_acquire // Might need to read the SD driver error code, although we currently don't do it here.
         );
 
     switch (observed_state)
@@ -265,7 +265,7 @@ FILESYSTEM_disk_status_implementation(BYTE pdrv)
         atomic_load_explicit
         (
             &_SD_drivers[pdrv].atomic_state,
-            memory_order_acquire // Might need to read the error code.
+            memory_order_acquire // Might need to read the SD driver error code, although we currently don't do it here.
         );
 
     switch (observed_state)
@@ -485,6 +485,7 @@ FILESYSTEM_disk_ioctl_implementation(BYTE pdrv, BYTE cmd, void* buff)
 
     switch (cmd)
     {
+
 
 
         // "Makes sure that the device has finished pending write process.
