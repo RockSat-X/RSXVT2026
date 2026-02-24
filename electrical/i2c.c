@@ -1,6 +1,6 @@
 enum I2CDriverMode : u32 // @/`I2C Driver Modes`.
 {
-    I2CDriverMode_master_blocking,
+    I2CDriverMode_master,
     I2CDriverMode_slave,
 };
 
@@ -253,9 +253,9 @@ I2C_do(struct I2CDoJob* job)
 
     switch (I2Cx_DRIVER_MODE)
     {
-        case I2CDriverMode_master_blocking : break;
-        case I2CDriverMode_slave           : bug;
-        default                            : bug;
+        case I2CDriverMode_master : break;
+        case I2CDriverMode_slave  : bug;
+        default                   : bug;
     }
 
 
@@ -368,14 +368,14 @@ I2C_do(struct I2CDoJob* job)
     switch (I2Cx_DRIVER_MODE)
     {
 
-        // For `master_blocking`, we simplify the control-flow
+        // For `master`, we simplify the control-flow
         // for the user by guaranteeing them that the read
         // transfer is done by the time the function returns
         // (and thus the slave data is available to be used),
         // or for a write transfer, that the slave has received
         // all of the data by the time the function returns.
 
-        case I2CDriverMode_master_blocking: while (true) switch (driver->master.state)
+        case I2CDriverMode_master: while (true) switch (driver->master.state)
         {
 
             // The driver just finished!
@@ -470,7 +470,7 @@ I2C_reinit(enum I2CHandle handle)
 
         // The I2C peripheral will work as a controller.
 
-        case I2CDriverMode_master_blocking:
+        case I2CDriverMode_master:
         {
 
             CMSIS_SET
@@ -750,7 +750,7 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-        case I2CDriverMode_master_blocking: switch (driver->master.state)
+        case I2CDriverMode_master: switch (driver->master.state)
         {
 
 
@@ -1524,7 +1524,7 @@ _I2C_driver_interrupt(enum I2CHandle handle)
                 switch (I2Cx_DRIVER_MODE)
                 {
 
-                    case I2CDriverMode_master_blocking:
+                    case I2CDriverMode_master:
                     {
                         driver->master.state = I2CMasterState_bug;
                     } break;
@@ -1565,7 +1565,7 @@ _I2C_driver_interrupt(enum I2CHandle handle)
 //
 // There are different modes that the I2C driver can take on:
 //
-//      - `master_blocking`
+//      - `master`
 //          The I2C driver will act as a master and each
 //          read/write transfer will be blocking. This
 //          simplifies the control-flow, but is obviously

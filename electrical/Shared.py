@@ -190,7 +190,7 @@ TARGETS = ( # @/`Defining Targets`.
                 'type'       : 'I2C',
                 'peripheral' : 'I2C1',
                 'handle'     : 'queen',
-                'mode'       : 'master_blocking',
+                'mode'       : 'master',
             },
             {
                 'type'       : 'I2C',
@@ -548,7 +548,7 @@ TARGETS = ( # @/`Defining Targets`.
                 'type'       : 'I2C',
                 'peripheral' : 'I2C1',
                 'handle'     : 'vehicle_interface',
-                'mode'       : 'master_blocking',
+                'mode'       : 'master',
             },
             { # TODO Just to test VN-100 reception for VehicleFlightComputer.
                 'type'       : 'UXART',
@@ -986,7 +986,7 @@ TARGETS = ( # @/`Defining Targets`.
                 'type'       : 'I2C',
                 'peripheral' : 'I2C2',
                 'handle'     : 'ovcam_sccb',
-                'mode'       : 'master_blocking',
+                'mode'       : 'master',
             },
             {
                 'type'       : 'TIMEKEEPING',
