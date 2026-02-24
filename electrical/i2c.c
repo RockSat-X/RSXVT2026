@@ -124,11 +124,11 @@ enum I2CMasterState : u32
 
 enum I2CSlaveState : u32
 {
+    I2CSlaveState_disabled = 0,
     I2CSlaveState_standby,
     I2CSlaveState_receiving_data,
     I2CSlaveState_sending_data,
     I2CSlaveState_stopping,
-    I2CSlaveState_bug = BUG_CODE,
 };
 
 enum I2CMasterError : u32
@@ -307,14 +307,27 @@ I2C_reinit(enum I2CHandle handle)
         PE    , true, // Enable the peripheral.
     );
 
-    atomic_store_explicit
-    (
-        &driver->master.atomic_state,
-        I2CMasterState_standby,
-        memory_order_relaxed // No synchronization needed.
-    );
+    switch (I2Cx_DRIVER_MODE)
+    {
 
+        case I2CDriverMode_master:
+        {
+            atomic_store_explicit
+            (
+                &driver->master.atomic_state,
+                I2CMasterState_standby,
+                memory_order_relaxed // No synchronization needed.
+            );
+        } break;
 
+        case I2CDriverMode_slave:
+        {
+            driver->slave.state = I2CSlaveState_standby;
+        } break;
+
+        default: bug;
+
+    }
 
     return I2CReinitResult_success;
 
@@ -771,7 +784,7 @@ _I2C_update_once(enum I2CHandle handle)
                         bug; // We shouldn't be already trying to start the transfer...
 
                     if (driver->master.error)
-                        bug; // Any errors should've been acknowledged before the next transfer is done.
+                        bug; // No reason for an error already...
 
 
 
@@ -781,17 +794,9 @@ _I2C_update_once(enum I2CHandle handle)
 
                     switch (driver->master.address_type)
                     {
-                        case I2CAddressType_seven:
-                        {
-                            sadd = driver->master.address << 1; // @/`I2C Slave Address`.
-                        } break;
-
-                        case I2CAddressType_ten:
-                        {
-                            sadd = driver->master.address;
-                        } break;
-
-                        default: bug;
+                        case I2CAddressType_seven : sadd = driver->master.address << 1; break; // @/`I2C Slave Address`.
+                        case I2CAddressType_ten   : sadd = driver->master.address;      break; // "
+                        default                   : bug;
                     }
 
                     CMSIS_SET
@@ -848,7 +853,7 @@ _I2C_update_once(enum I2CHandle handle)
                 {
 
                     if (driver->master.error)
-                        bug; // There's no reason to get an error right now...
+                        bug; // No reason for an error already...
 
                     return I2CUpdateOnceResult_yield;
 
@@ -872,8 +877,7 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-                    // We now wait for the STOP condition on
-                    // the bus to truly end the transfer.
+                    // We now wait for the STOP condition on the bus to truly end the transfer.
 
                     driver->master.error = I2CMasterError_no_acknowledge;
 
@@ -905,7 +909,7 @@ _I2C_update_once(enum I2CHandle handle)
 
                     // Pop the byte from the RX-register and push it into the destination.
 
-                    u8 data = CMSIS_GET(I2Cx, RXDR, RXDATA);
+                    u8 data = CMSIS_GET(I2Cx, RXDR, RXDATA); // @/`I2C FIFO Depth`.
 
                     driver->master.pointer[driver->master.progress]  = data;
                     driver->master.progress                         += 1;
@@ -932,7 +936,7 @@ _I2C_update_once(enum I2CHandle handle)
 
                     u8 data = driver->master.pointer[driver->master.progress];
 
-                    CMSIS_SET(I2Cx, TXDR, TXDATA, data);
+                    CMSIS_SET(I2Cx, TXDR, TXDATA, data); // @/`I2C FIFO Depth`.
 
                     driver->master.progress += 1;
 
@@ -984,11 +988,8 @@ _I2C_update_once(enum I2CHandle handle)
                         return I2CUpdateOnceResult_again;
 
                     }
-                    else
+                    else // Try sending the STOP condition onto the bus and wait for it.
                     {
-
-                        // Try sending the STOP condition onto
-                        // the bus and we'll wait for it.
 
                         CMSIS_SET(I2Cx, CR2, STOP, true);
 
@@ -1018,8 +1019,7 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-                    // A STOP condition is automatically
-                    // sent, so we'll wait for that.
+                    // A STOP condition is automatically sent, so we'll wait for that.
                     // @/pg 2117/sec 48.4.17/`H533rm`.
 
                     driver->master.error = I2CMasterError_clock_stretch_timeout;
@@ -1061,9 +1061,8 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-                // We have sent the STOP condition successfully.
-                // Whether or not the transfer itself was
-                // actually successful is another thing.
+                // We have sent the STOP condition successfully. Whether or not
+                // the transfer itself was actually successful is another thing.
 
                 case I2CInterruptEvent_stop_signaled:
                 {
@@ -1093,10 +1092,8 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-                // We couldn't put a STOP condition
-                // on the I2C bus for some reason;
-                // this could be the I2C peripheral
-                // being locked up.
+                // We couldn't put a STOP condition on the I2C bus for some reason;
+                // this could be the I2C peripheral being locked up.
 
                 case I2CInterruptEvent_clock_stretch_timeout:
                 {
@@ -1170,8 +1167,6 @@ _I2C_update_once(enum I2CHandle handle)
                         driver->slave.state = I2CSlaveState_receiving_data;
                     }
 
-
-
                     return I2CUpdateOnceResult_again;
 
                 } break;
@@ -1225,7 +1220,7 @@ _I2C_update_once(enum I2CHandle handle)
 
                     // Pop from the RX-register and let the user callback handle the data.
 
-                    u8 data = CMSIS_GET(I2Cx, RXDR, RXDATA);
+                    u8 data = CMSIS_GET(I2Cx, RXDR, RXDATA); // @/`I2C FIFO Depth`.
 
                     I2Cx_CALLBACK.slave(I2CSlaveCallbackEvent_data_available_to_read, &data);
 
@@ -1327,7 +1322,7 @@ _I2C_update_once(enum I2CHandle handle)
 
                     I2Cx_CALLBACK.slave(I2CSlaveCallbackEvent_ready_to_transmit_data, &data);
 
-                    CMSIS_SET(I2Cx, TXDR, TXDATA, data);
+                    CMSIS_SET(I2Cx, TXDR, TXDATA, data); // @/`I2C FIFO Depth`.
 
                     return I2CUpdateOnceResult_again;
 
@@ -1424,10 +1419,8 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-                // We couldn't detect a STOP condition
-                // on the I2C bus for some reason;
-                // this could be the I2C peripheral
-                // being locked up.
+                // We couldn't detect a STOP condition on the I2C bus for some reason;
+                // this could be the I2C peripheral being locked up.
 
                 case I2CInterruptEvent_clock_stretch_timeout:
                 {
@@ -1447,8 +1440,8 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-            case I2CSlaveState_bug : bug;
-            default                : bug;
+            case I2CSlaveState_disabled : bug; // User needs to reinitialize the I2C driver.
+            default                     : bug;
 
         } break;
 
@@ -1507,8 +1500,7 @@ _I2C_driver_interrupt(enum I2CHandle handle)
 
 
 
-                // Let the user know that the
-                // I2C driver is in a bugged state
+                // Let the user know that the I2C driver is in a bugged state
                 // and that they should reinitialize it.
 
                 switch (I2Cx_DRIVER_MODE)
@@ -1516,21 +1508,17 @@ _I2C_driver_interrupt(enum I2CHandle handle)
 
                     case I2CDriverMode_master:
                     {
-                        // Nothing to do here.
+                        // The user will be notified after trying to do any sort of transfer.
                     } break;
 
                     case I2CDriverMode_slave:
                     {
-
-                        driver->slave.state = I2CSlaveState_bug;
-
                         I2Cx_CALLBACK.slave(I2CSlaveCallbackEvent_bug, nullptr);
-
                     } break;
 
                     default:
                     {
-                        // Don't care; things are already shut down.
+                        // Not much we can do here...
                     } break;
 
                 }
@@ -1637,3 +1625,13 @@ _I2C_driver_interrupt(enum I2CHandle handle)
 // slave device, however, may expect that this is done with a repeated-start,
 // thus the overall read-transfer cannot be split into a write-transfer followed
 // by a read-transfer.
+
+
+
+// @/`I2C FIFO Depth`:
+//
+// The I2C peripheral on the STM32H533xx has a whopping 1-byte deep FIFO.
+// Not great for high-throughput transfers, so DMA would be nice here, but
+// really, the user should not use I2C for anything that requires such high
+// read/write performance. Just as of writing, it's not worth the complication
+// of introducing DMA coordination here.
