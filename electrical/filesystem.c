@@ -20,7 +20,7 @@
 #define FF_USE_TRIM        false // For supporting ATA-TRIM.
 #define FF_FS_TINY         false // Whether or not file objects should share a common sector buffer.
 #define FF_FS_EXFAT        true  // Whether or not to use ExFAT.
-#define FF_USE_LFN         true  // For long-file-name support, as required by exFAT.
+#define FF_USE_LFN         1     // For long-file-name support, as required by exFAT; value of 1 implies static buffer is used for processing.
 #define FF_LFN_UNICODE     2     // Character encoding to be used for the API; value of 2 implies UTF-8.
 #define FF_LFN_BUF         255   // Amount of bytes allocated in FILINFO for the long-file-name.
 #define FF_SFN_BUF         12    // "                                    for the short-file-name.
