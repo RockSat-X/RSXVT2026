@@ -584,7 +584,7 @@ FILESYSTEM_disk_ioctl_implementation(BYTE pdrv, BYTE cmd, void* buff)
         case GET_BLOCK_SIZE:
         {
 
-            *(DWORD*) buff = 1; // TODO Maybe determine the actual erase block size?
+            *(DWORD*) buff = 1; // The SD driver currently does not support erasing.
 
             return FileSystemDiskIOCTLImplementationResult_success;
 
