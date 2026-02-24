@@ -1,7 +1,3 @@
-////////////////////////////////////////////////////////////////////////////////
-
-
-
 #define FFCONF_DEF         80386 // Current FatFs revision we're using.
 #define FF_FS_READONLY     false // Allow the file-system to be mutated.
 #define FF_FS_MINIMIZE     0     // "0: Basic functions are fully enabled."
@@ -228,7 +224,7 @@ disk_initialize(BYTE pdrv)
 
             case FileSystemDiskInitializeImplementationResult_yield:
             {
-                // We'll keep on spin-locking until the SD driver is ready...
+                FREERTOS_delay_ms(1); // We'll keep on spin-locking until the SD driver is ready...
             } break;
 
             case FileSystemDiskInitializeImplementationResult_driver_error:
@@ -369,7 +365,7 @@ FILESYSTEM_disk_transfer_implementation(BYTE pdrv, const BYTE* buff, LBA_t secto
 
             case SDDoResult_working:
             {
-                // The job is being handled...
+                FREERTOS_delay_ms(1); // The job is being handled...
             } break;
 
             case SDDoResult_success:
@@ -521,7 +517,7 @@ FILESYSTEM_disk_ioctl_implementation(BYTE pdrv, BYTE cmd, void* buff)
 
                     case SDDoResult_working:
                     {
-                        // Still busy syncing...
+                        FREERTOS_delay_ms(1); // Still busy syncing...
                     } break;
 
                     case SDDoResult_success:
@@ -966,10 +962,10 @@ FILESYSTEM_save_(enum SDHandle sd_handle, Sector* data, i32 count)
     FRESULT write_result   =
         f_write
         (
-          &_FILESYSTEM_driver.file_info,
-          data,
-          bytes_expected,
-          &bytes_written
+            &_FILESYSTEM_driver.file_info,
+            data,
+            bytes_expected,
+            &bytes_written
         );
 
     switch (write_result)

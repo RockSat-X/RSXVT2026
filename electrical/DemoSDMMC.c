@@ -521,7 +521,7 @@ FREERTOS_TASK(heartbeat, 256, 0)
 {
     for (;;)
     {
-        spinlock_nop(100'000'000);
+        vTaskDelay(500);
         GPIO_TOGGLE(led_green);
     }
 }
@@ -541,7 +541,8 @@ FREERTOS_TASK(reporting, 1024, 0)
     {
         stlink_tx(SD_profiler_compile_report());
         stlink_tx(FILESYSTEM_profiler_compile_report());
-        spinlock_nop(25'000'000);
+        stlink_tx("(FreeRTOS)\n");
+        vTaskDelay(250);
     }
 }
 
