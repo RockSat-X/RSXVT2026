@@ -717,7 +717,7 @@ FILESYSTEM_reinit_(enum SDHandle sd_handle, Sector* formatting_sector_buffer, i3
                 {
                     .fmt     = FM_EXFAT,         // Make exFAT file-system so we can support +4 GiB files.
                     .align   = 0,                // With zero, have FatFs use `disk_ioctl` to determine alignment of the data area.
-                    .au_size = 16 * 1024 * 1024, // Maximum cluster byte size that FatFs supports is 16 MiB.
+                    .au_size = 16 * 1024 * 1024, // @/`File-System Allocation Size`.
                 },
                 formatting_sector_buffer,
                 (u32) formatting_sector_count * sizeof(*formatting_sector_buffer)
@@ -1126,3 +1126,37 @@ FILESYSTEM_save(enum SDHandle sd_handle, Sector* data, i32 count)
     return result;
 
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+// @/`File-System Allocation Size`:
+//
+// The way the FAT file-systems work (e.g. FAT32 and exFAT) is by grouping
+// a bunch of sectors together into a cluster; each time data is appended to
+// a file, rather than increase the amount of space reserved for the file by
+// a single sector, an entire contiguous cluster of sectors is allocated.
+// This would allow for good read/write speed as many of the sectors holding
+// the data is sequential, but nonetheless allow flexibility as the sequence of
+// clusters is backed by a linked-list. The primary trade-off here is the space
+// efficiency; having a lot of small files (say 1 KiB) wastes a lot of space when
+// the allocation size is large (say 1 MiB, thus 99.9% of the cluster is unused).
+//
+// But if we are to maximize our throughput when it comes to write-speed, the
+// allocation size should be as large as possible. From what I can tell in
+// practice, however, it's quite negligible; after writing 100 MiB worth of
+// empty log data, using write size of 100 KiB, and `-03` optimization, we have:
+//
+//     With 16 MiB cluster size : 3.95 MiB/s.
+//     With 64 KiB cluster size : 3.72 MiB/s.
+//
+// (Data collected as of writing: February 24th, 2026).
+//
+// Nonetheless, we'll still try to still use the largest cluster allocation
+// size possible. It should be noted that FatFs only support cluster size up
+// to 16 MiB; if the SD card has large enough capacity (at least 64 GiB I think),
+// then Windows allows for the option of formatting the card with "32768 kilobytes",
+// but this will make FatFs reject it. Prefer the "16384 kilobytes" option.
