@@ -93,7 +93,8 @@ static struct FileSystemDriver _FILESYSTEM_driver = {0};
             i32 count_save_success;
             i32 count_couldnt_ready_card;
             i32 count_missing_filesystem;
-            i32 count_filesystem_full;
+            i32 count_no_more_space_for_new_file;
+            i32 count_no_more_space_for_data;
             i32 count_fatfs_internal_error;
             i32 count_transfer_error;
             i32 count_bug;
@@ -121,7 +122,8 @@ static struct FileSystemDriver _FILESYSTEM_driver = {0};
             "save_success               : %d"         "\n"
             "couldnt_ready_card         : %d"         "\n"
             "missing_filesystem         : %d"         "\n"
-            "filesystem_full            : %d"         "\n"
+            "no_more_space_for_new_file : %d"         "\n"
+            "no_more_space_for_data     : %d"         "\n"
             "fatfs_internal_error       : %d"         "\n"
             "transfer_error             : %d"         "\n"
             "bug                        : %d"         "\n"
@@ -134,7 +136,8 @@ static struct FileSystemDriver _FILESYSTEM_driver = {0};
             _FILESYSTEM_profiler.count_save_success,
             _FILESYSTEM_profiler.count_couldnt_ready_card,
             _FILESYSTEM_profiler.count_missing_filesystem,
-            _FILESYSTEM_profiler.count_filesystem_full,
+            _FILESYSTEM_profiler.count_no_more_space_for_new_file,
+            _FILESYSTEM_profiler.count_no_more_space_for_data,
             _FILESYSTEM_profiler.count_fatfs_internal_error,
             _FILESYSTEM_profiler.count_transfer_error,
             _FILESYSTEM_profiler.count_bug,
@@ -657,6 +660,7 @@ static useret enum FileSystemReinitResult : u32
     FileSystemReinitResult_couldnt_ready_card,
     FileSystemReinitResult_transfer_error,
     FileSystemReinitResult_missing_filesystem,
+    FileSystemReinitResult_no_more_space_for_new_file,
     FileSystemReinitResult_fatfs_internal_error,
     FileSystemReinitResult_bug = BUG_CODE,
 }
@@ -866,6 +870,15 @@ FILESYSTEM_reinit_(enum SDHandle sd_handle)
 
 
 
+            // The SD card (at lesat the partition we're using) is full!
+
+            case FR_DENIED:
+            {
+                return FileSystemReinitResult_no_more_space_for_new_file;
+            } break;
+
+
+
             case FR_DISK_ERR            : return FileSystemReinitResult_transfer_error;
             case FR_INT_ERR             : return FileSystemReinitResult_fatfs_internal_error;
             case FR_NOT_READY           : bug; // The SD card should've been initialized by now...
@@ -875,7 +888,6 @@ FILESYSTEM_reinit_(enum SDHandle sd_handle)
             case FR_NO_FILE             : bug; // "
             case FR_NO_PATH             : bug; // "
             case FR_INVALID_NAME        : bug; // "
-            case FR_DENIED              : bug; // "
             case FR_INVALID_OBJECT      : bug; // "
             case FR_WRITE_PROTECTED     : bug; // "
             case FR_LOCKED              : bug; // "
@@ -916,13 +928,14 @@ FILESYSTEM_reinit(enum SDHandle sd_handle)
     {
         switch (result)
         {
-            case FileSystemReinitResult_success              : _FILESYSTEM_profiler.count_reinit_success       += 1; break;
-            case FileSystemReinitResult_couldnt_ready_card   : _FILESYSTEM_profiler.count_couldnt_ready_card   += 1; break;
-            case FileSystemReinitResult_transfer_error       : _FILESYSTEM_profiler.count_transfer_error       += 1; break;
-            case FileSystemReinitResult_missing_filesystem   : _FILESYSTEM_profiler.count_missing_filesystem   += 1; break;
-            case FileSystemReinitResult_fatfs_internal_error : _FILESYSTEM_profiler.count_fatfs_internal_error += 1; break;
-            case FileSystemReinitResult_bug                  : _FILESYSTEM_profiler.count_bug                  += 1; break;
-            default                                          : bug;
+            case FileSystemReinitResult_success                    : _FILESYSTEM_profiler.count_reinit_success             += 1; break;
+            case FileSystemReinitResult_couldnt_ready_card         : _FILESYSTEM_profiler.count_couldnt_ready_card         += 1; break;
+            case FileSystemReinitResult_transfer_error             : _FILESYSTEM_profiler.count_transfer_error             += 1; break;
+            case FileSystemReinitResult_missing_filesystem         : _FILESYSTEM_profiler.count_missing_filesystem         += 1; break;
+            case FileSystemReinitResult_no_more_space_for_new_file : _FILESYSTEM_profiler.count_no_more_space_for_new_file += 1; break;
+            case FileSystemReinitResult_fatfs_internal_error       : _FILESYSTEM_profiler.count_fatfs_internal_error       += 1; break;
+            case FileSystemReinitResult_bug                        : _FILESYSTEM_profiler.count_bug                        += 1; break;
+            default                                                : bug;
         }
     }
     #endif
@@ -939,7 +952,7 @@ static useret enum FileSystemSaveResult : u32
 {
     FileSystemSaveResult_success,
     FileSystemSaveResult_transfer_error,
-    FileSystemSaveResult_filesystem_full,
+    FileSystemSaveResult_no_more_space_for_data,
     FileSystemSaveResult_fatfs_internal_error,
     FileSystemSaveResult_bug = BUG_CODE,
 }
@@ -1014,7 +1027,7 @@ FILESYSTEM_save_(enum SDHandle sd_handle, Sector* data, i32 count)
             }
             else // The file data write was incomplete...
             {
-                return FileSystemSaveResult_filesystem_full;
+                return FileSystemSaveResult_no_more_space_for_data;
             }
         } break;
 
@@ -1077,12 +1090,12 @@ FILESYSTEM_save(enum SDHandle sd_handle, Sector* data, i32 count)
 
         switch (result)
         {
-            case FileSystemSaveResult_success              : _FILESYSTEM_profiler.count_save_success         += 1; break;
-            case FileSystemSaveResult_filesystem_full      : _FILESYSTEM_profiler.count_filesystem_full      += 1; break;
-            case FileSystemSaveResult_transfer_error       : _FILESYSTEM_profiler.count_transfer_error       += 1; break;
-            case FileSystemSaveResult_fatfs_internal_error : _FILESYSTEM_profiler.count_fatfs_internal_error += 1; break;
-            case FileSystemSaveResult_bug                  : _FILESYSTEM_profiler.count_bug                  += 1; break;
-            default                                        : bug;
+            case FileSystemSaveResult_success                : _FILESYSTEM_profiler.count_save_success           += 1; break;
+            case FileSystemSaveResult_no_more_space_for_data : _FILESYSTEM_profiler.count_no_more_space_for_data += 1; break;
+            case FileSystemSaveResult_transfer_error         : _FILESYSTEM_profiler.count_transfer_error         += 1; break;
+            case FileSystemSaveResult_fatfs_internal_error   : _FILESYSTEM_profiler.count_fatfs_internal_error   += 1; break;
+            case FileSystemSaveResult_bug                    : _FILESYSTEM_profiler.count_bug                    += 1; break;
+            default                                          : bug;
         }
 
         if (result == FileSystemSaveResult_success)
