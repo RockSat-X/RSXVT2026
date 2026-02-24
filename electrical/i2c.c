@@ -1,7 +1,6 @@
 enum I2CDriverMode : u32 // @/`I2C Driver Modes`.
 {
     I2CDriverMode_master_blocking,
-    I2CDriverMode_master_callback,
     I2CDriverMode_slave,
 };
 
@@ -61,20 +60,6 @@ union I2CCallback
 
 
 
-                case 'master_callback':
-
-                    Meta.line(f'''
-                        static I2CMasterCallback INTERRUPT_I2Cx_{driver['handle']};
-                    ''')
-
-                    Meta.define(
-                        f'INTERRUPT_I2Cx_{driver['handle']}',
-                        ('...'),
-                        f'static void INTERRUPT_I2Cx_{driver['handle']}(__VA_ARGS__)'
-                    )
-
-
-
                 case 'slave':
 
                     Meta.line(f'''
@@ -113,7 +98,7 @@ union I2CCallback
             ('{}_CALLBACK'              , 'expression' ,
                 f'(union I2CCallback) {{ {
                     f'&INTERRUPT_I2Cx_{handle}'
-                    if mode in ('master_callback', 'slave') else
+                    if mode == 'slave' else
                     'nullptr'
                 } }}'
             ),
@@ -248,7 +233,6 @@ I2C_transfer
     switch (I2Cx_DRIVER_MODE)
     {
         case I2CDriverMode_master_blocking : break;
-        case I2CDriverMode_master_callback : break;
         case I2CDriverMode_slave           : bug;
         default                            : bug;
     }
@@ -346,13 +330,7 @@ I2C_transfer
 
 
 
-        // The I2C driver isn't ready to take
-        // our read/write transfer right now.
-        //
-        // This shouldn't be possible when using `master_blocking`.
-        // For `master_callback`, the callback function should not
-        // be trying to schedule I2C transfers until it knows that
-        // the next transfer can be queued up.
+        // The I2C driver isn't ready to take our read/write transfer right now.
 
         case I2CMasterState_scheduled_transfer : bug;
         case I2CMasterState_transferring       : bug;
@@ -405,18 +383,6 @@ I2C_transfer
             case I2CMasterState_bug : bug;
             default                 : bug;
 
-        } break;
-
-
-
-        // For `master_callback`, we let the I2C driver handle
-        // the transfer in the background. The user-defined
-        // callback will be notified of the next thing to do
-        // (e.g. transfer done, error encountered, etc).
-
-        case I2CDriverMode_master_callback:
-        {
-            return I2CTransferResult_transfer_ongoing;
         } break;
 
 
@@ -484,7 +450,6 @@ I2C_reinit(enum I2CHandle handle)
         // The I2C peripheral will work as a controller.
 
         case I2CDriverMode_master_blocking:
-        case I2CDriverMode_master_callback:
         {
 
             CMSIS_SET
@@ -540,17 +505,6 @@ I2C_reinit(enum I2CHandle handle)
         DNF   , 15  , // Max out the digital filtering.
         PE    , true, // Enable the peripheral.
     );
-
-
-
-    // After initialization, the user callback function
-    // will be invoked automatically so they know that
-    // the first I2C transfer can be scheduled.
-
-    if (I2Cx_DRIVER_MODE == I2CDriverMode_master_callback)
-    {
-        NVIC_SET_PENDING(I2Cx_EV);
-    }
 
 
 
@@ -775,8 +729,7 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-        case I2CDriverMode_master_blocking:
-        case I2CDriverMode_master_callback: switch (driver->master.state)
+        case I2CDriverMode_master_blocking: switch (driver->master.state)
         {
 
 
@@ -793,17 +746,6 @@ _I2C_update_once(enum I2CHandle handle)
                     bug; // There shouldn't be any transfers on the bus of right now.
 
 
-
-                if (I2Cx_DRIVER_MODE == I2CDriverMode_master_callback)
-                {
-
-                    I2Cx_CALLBACK.master(I2CMasterCallbackEvent_can_schedule_next_transfer);
-
-                    // If the user's callback scheduled the next transfer,
-                    // the I2C interrupt routine would be set pending, so
-                    // it's okay to yield here afterwards.
-
-                }
 
                 return I2CUpdateOnceResult_yield;
 
@@ -1050,19 +992,6 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-                            // We let the master callback know that the
-                            // read/write transfer was carried out to completion.
-
-                            if (I2Cx_DRIVER_MODE == I2CDriverMode_master_callback)
-                            {
-
-                                if (driver->master.error)
-                                    bug; // But the hardware said that the transfer was completed successfully!
-
-                                I2Cx_CALLBACK.master(I2CMasterCallbackEvent_transfer_successful);
-
-                            }
-
                             return I2CUpdateOnceResult_again;
 
                         } break;
@@ -1144,27 +1073,6 @@ _I2C_update_once(enum I2CHandle handle)
                     // immediately start the next transfer.
 
                     driver->master.state = I2CMasterState_standby;
-
-
-
-                    // Let the master callback know the results of the transfer.
-
-                    if (I2Cx_DRIVER_MODE == I2CDriverMode_master_callback)
-                    {
-
-                        enum I2CMasterCallbackEvent callback_event = {0};
-
-                        switch (driver->master.error)
-                        {
-                            case I2CMasterError_none                  : callback_event = I2CMasterCallbackEvent_transfer_successful;     break;
-                            case I2CMasterError_no_acknowledge        : callback_event = I2CMasterCallbackEvent_transfer_unacknowledged; break;
-                            case I2CMasterError_clock_stretch_timeout : callback_event = I2CMasterCallbackEvent_clock_stretch_timeout;   break;
-                            default                                   : bug;
-                        }
-
-                        I2Cx_CALLBACK.master(callback_event);
-
-                    }
 
 
 
@@ -1600,15 +1508,6 @@ _I2C_driver_interrupt(enum I2CHandle handle)
                         driver->master.state = I2CMasterState_bug;
                     } break;
 
-                    case I2CDriverMode_master_callback:
-                    {
-
-                        driver->master.state = I2CMasterState_bug;
-
-                        I2Cx_CALLBACK.master(I2CMasterCallbackEvent_bug);
-
-                    } break;
-
                     case I2CDriverMode_slave:
                     {
 
@@ -1643,23 +1542,13 @@ _I2C_driver_interrupt(enum I2CHandle handle)
 
 // @/`I2C Driver Modes`:
 //
-// There are several different modes that the I2C driver can take on:
+// There are different modes that the I2C driver can take on:
 //
 //      - `master_blocking`
 //          The I2C driver will act as a master and each
 //          read/write transfer will be blocking. This
 //          simplifies the control-flow, but is obviously
 //          inefficient in terms of work being done.
-//
-//      - `master_callback`
-//          The I2C driver will act as a master where a
-//          read/write transfer will be queued up to be done.
-//          The user will have to define the callback function
-//          that'll be executed when a particular event has happen
-//          (e.g. transfer completed, transfer error, etc).
-//          The user will have to handle the more complicated
-//          control-flow, but the processor will spend less time
-//          busy-waiting for the completion of an I2C transfer.
 //
 //      - `slave`
 //          The I2C driver will act as a slave where a
