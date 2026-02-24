@@ -107,16 +107,17 @@ main(void)
                     // We try to read a single byte from the slave at the
                     // current slave address to see if we get an acknowledge.
 
-                    enum I2CTransferResult transfer_result =
-                        I2C_transfer
-                        (
-                            I2CHandle_queen,
-                            slave_address,
-                            address_type,
-                            I2COperation_single_read,
-                            &(u8) {0},
-                            1
-                        );
+                    struct I2CDoJob job =
+                        {
+                            .handle       = I2CHandle_queen,
+                            .address      = slave_address,
+                            .address_type = address_type,
+                            .operation    = I2COperation_single_read,
+                            .pointer      = &(u8) {0},
+                            .amount       = 1,
+                        };
+
+                    enum I2CDoResult transfer_result = I2C_do(&job);
 
 
 
@@ -124,17 +125,17 @@ main(void)
 
                     switch (transfer_result)
                     {
-                        case I2CTransferResult_transfer_done:
+                        case I2CDoResult_transfer_done:
                         {
                             stlink_tx("Slave 0x%03X acknowledged!\n", slave_address);
                         } break;
 
-                        case I2CTransferResult_no_acknowledge:
+                        case I2CDoResult_no_acknowledge:
                         {
                             stlink_tx("Slave 0x%03X didn't acknowledge!\n", slave_address);
                         } break;
 
-                        case I2CTransferResult_bug:
+                        case I2CDoResult_bug:
                         {
                             stlink_tx
                             (
@@ -146,7 +147,7 @@ main(void)
                             spinlock_nop(1'000'000);
                         } break;
 
-                        case I2CTransferResult_clock_stretch_timeout:
+                        case I2CDoResult_clock_stretch_timeout:
                         {
                             stlink_tx
                             (
@@ -158,8 +159,8 @@ main(void)
                             spinlock_nop(1'000'000);
                         } break;
 
-                        case I2CTransferResult_transfer_ongoing : sorry
-                        default                                 : sorry
+                        case I2CDoResult_transfer_ongoing : sorry
+                        default                           : sorry
                     }
 
 
@@ -206,16 +207,17 @@ main(void)
 
                     char message[] = "Doing taxes suck!";
 
-                    enum I2CTransferResult transfer_result =
-                        I2C_transfer
-                        (
-                            I2CHandle_queen,
-                            I2C_TABLE[I2CHandle_bee].I2Cx_SLAVE_ADDRESS,
-                            I2CAddressType_seven,
-                            I2COperation_single_write,
-                            (u8*) message,
-                            sizeof(message) - 1
-                        );
+                    struct I2CDoJob job =
+                        {
+                            .handle       = I2CHandle_queen,
+                            .address      = I2C_TABLE[I2CHandle_bee].I2Cx_SLAVE_ADDRESS,
+                            .address_type = I2CAddressType_seven,
+                            .operation    = I2COperation_single_write,
+                            .pointer      = (u8*) message,
+                            .amount       = sizeof(message) - 1
+                        };
+
+                    enum I2CDoResult transfer_result = I2C_do(&job);
 
 
 
@@ -223,17 +225,17 @@ main(void)
 
                     switch (transfer_result)
                     {
-                        case I2CTransferResult_transfer_done:
+                        case I2CDoResult_transfer_done:
                         {
                             stlink_tx("Queen : transmission successful!\n");
                         } break;
 
-                        case I2CTransferResult_no_acknowledge:
+                        case I2CDoResult_no_acknowledge:
                         {
                             stlink_tx("Queen : transmission failed!\n");
                         } break;
 
-                        case I2CTransferResult_bug:
+                        case I2CDoResult_bug:
                         {
                             stlink_tx
                             (
@@ -245,7 +247,7 @@ main(void)
                             spinlock_nop(1'000'000);
                         } break;
 
-                        case I2CTransferResult_clock_stretch_timeout:
+                        case I2CDoResult_clock_stretch_timeout:
                         {
                             stlink_tx
                             (
@@ -257,8 +259,8 @@ main(void)
                             spinlock_nop(1'000'000);
                         } break;
 
-                        case I2CTransferResult_transfer_ongoing : sorry
-                        default                                 : sorry
+                        case I2CDoResult_transfer_ongoing : sorry
+                        default                           : sorry
                     }
 
 
@@ -283,16 +285,17 @@ main(void)
 
                     char response[24] = {0};
 
-                    enum I2CTransferResult transfer_result =
-                        I2C_transfer
-                        (
-                            I2CHandle_queen,
-                            I2C_TABLE[I2CHandle_bee].I2Cx_SLAVE_ADDRESS,
-                            I2CAddressType_seven,
-                            I2COperation_single_read,
-                            (u8*) response,
-                            sizeof(response)
-                        );
+                    struct I2CDoJob job =
+                        {
+                            .handle       = I2CHandle_queen,
+                            .address      = I2C_TABLE[I2CHandle_bee].I2Cx_SLAVE_ADDRESS,
+                            .address_type = I2CAddressType_seven,
+                            .operation    = I2COperation_single_read,
+                            .pointer      = (u8*) response,
+                            .amount       = sizeof(response)
+                        };
+
+                    enum I2CDoResult transfer_result = I2C_do(&job);
 
 
 
@@ -300,17 +303,17 @@ main(void)
 
                     switch (transfer_result)
                     {
-                        case I2CTransferResult_transfer_done:
+                        case I2CDoResult_transfer_done:
                         {
                             stlink_tx("Queen : reception successful! : `%.*s`\n", sizeof(response), response);
                         } break;
 
-                        case I2CTransferResult_no_acknowledge:
+                        case I2CDoResult_no_acknowledge:
                         {
                             stlink_tx("Queen : reception failed!\n");
                         } break;
 
-                        case I2CTransferResult_bug:
+                        case I2CDoResult_bug:
                         {
                             stlink_tx
                             (
@@ -322,7 +325,7 @@ main(void)
                             spinlock_nop(1'000'000);
                         } break;
 
-                        case I2CTransferResult_clock_stretch_timeout:
+                        case I2CDoResult_clock_stretch_timeout:
                         {
                             stlink_tx
                             (
@@ -334,8 +337,8 @@ main(void)
                             spinlock_nop(1'000'000);
                         } break;
 
-                        case I2CTransferResult_transfer_ongoing : sorry
-                        default                                 : sorry
+                        case I2CDoResult_transfer_ongoing : sorry
+                        default                           : sorry
                     }
 
 
@@ -457,7 +460,7 @@ INTERRUPT_I2Cx_bee(enum I2CSlaveCallbackEvent event, u8* data)
         // The I2C driver needs to be reinitialized due to an issue.
         //
 
-        case I2CTransferResult_clock_stretch_timeout:
+        case I2CSlaveCallbackEvent_clock_stretch_timeout:
         {
             stlink_tx
             (

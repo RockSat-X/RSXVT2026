@@ -54,20 +54,21 @@ FREERTOS_TASK(vehicle_interface, 1024, 0)
 
         struct VehicleInterfacePayload payload = {0};
 
-        enum I2CTransferResult result =
-            I2C_transfer
-            (
-                I2CHandle_vehicle_interface,
-                VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS,
-                I2CAddressType_seven,
-                I2COperation_single_read,
-                (u8*) &payload,
-                sizeof(payload)
-            );
+        struct I2CDoJob job =
+            {
+                .handle       = I2CHandle_vehicle_interface,
+                .address      = VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS,
+                .address_type = I2CAddressType_seven,
+                .operation    = I2COperation_single_read,
+                .pointer      = (u8*) &payload,
+                .amount       = sizeof(payload),
+            };
 
-        switch (result)
+        enum I2CDoResult transfer_result = I2C_do(&job);
+
+        switch (transfer_result)
         {
-            case I2CTransferResult_transfer_done:
+            case I2CDoResult_transfer_done:
             {
 
                 static u16 previous_timestamp_us = 0;
@@ -91,15 +92,15 @@ FREERTOS_TASK(vehicle_interface, 1024, 0)
 
             } break;
 
-            case I2CTransferResult_no_acknowledge:
+            case I2CDoResult_no_acknowledge:
             {
                 stlink_tx("Slave 0x%03X didn't acknowledge!\n", VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS);
             } break;
 
-            case I2CTransferResult_transfer_ongoing      : sorry
-            case I2CTransferResult_clock_stretch_timeout : sorry
-            case I2CTransferResult_bug                   : sorry
-            default                                      : sorry
+            case I2CDoResult_transfer_ongoing      : sorry
+            case I2CDoResult_clock_stretch_timeout : sorry
+            case I2CDoResult_bug                   : sorry
+            default                                : sorry
         }
 
         spinlock_nop(10'000'000);

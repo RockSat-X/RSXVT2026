@@ -518,35 +518,36 @@ OVCAM_reinit(void)
         )
         {
 
-            enum I2CTransferResult i2c_transfer_result =
-                I2C_transfer
-                (
-                    I2CHandle_ovcam_sccb,
-                    OVCAM_SEVEN_BIT_ADDRESS,
-                    I2CAddressType_seven,
-                    I2COperation_single_write,
-                    (u8*) data_to_send,
-                    sizeof(u16) + amount_of_bytes_to_write
-                );
+            struct I2CDoJob job =
+                {
+                    .handle       = I2CHandle_ovcam_sccb,
+                    .address      = OVCAM_SEVEN_BIT_ADDRESS,
+                    .address_type = I2CAddressType_seven,
+                    .operation    = I2COperation_single_write,
+                    .pointer      = (u8*) data_to_send,
+                    .amount       = sizeof(u16) + amount_of_bytes_to_write
+                };
 
-            switch (i2c_transfer_result)
+            enum I2CDoResult transfer_result = I2C_do(&job);
+
+            switch (transfer_result)
             {
 
-                case I2CTransferResult_transfer_done:
+                case I2CDoResult_transfer_done:
                 {
                     success = true;
                 } break;
 
-                case I2CTransferResult_no_acknowledge:
-                case I2CTransferResult_clock_stretch_timeout:
+                case I2CDoResult_no_acknowledge:
+                case I2CDoResult_clock_stretch_timeout:
                 {
                     // Something weird happened;
                     // let's try the transfer again.
                 } break;
 
-                case I2CTransferResult_transfer_ongoing : bug; // OVCAM driver depends on a blocking I2C driver.
-                case I2CTransferResult_bug              : bug;
-                default                                 : bug;
+                case I2CDoResult_transfer_ongoing : bug; // OVCAM driver depends on a blocking I2C driver.
+                case I2CDoResult_bug              : bug;
+                default                           : bug;
 
             }
 

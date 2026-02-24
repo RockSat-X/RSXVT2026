@@ -174,6 +174,30 @@ enum I2COperation : u32
     I2COperation_repeating_read,
 };
 
+enum I2CDoJobState : u32
+{
+    I2CDoJobState_ready_to_be_processed,
+    I2CDoJobState_processing,
+    I2CDoJobState_attempted,
+};
+
+struct I2CDoJob
+{
+    struct
+    {
+        enum I2CHandle      handle;
+        u32                 address;      // @/`I2C Slave Address`.
+        enum I2CAddressType address_type; // "
+        enum I2COperation   operation;    // TODO Split up.
+        u8*                 pointer;
+        i32                 amount;
+    };
+    struct
+    {
+        enum I2CDoJobState state;
+    };
+};
+
 struct I2CDriver
 {
     union
@@ -205,24 +229,21 @@ static struct I2CDriver _I2C_drivers[I2CHandle_COUNT] = {0};
 
 
 
-static useret enum I2CTransferResult : u32
+static useret enum I2CDoResult : u32
 {
-    I2CTransferResult_transfer_done,
-    I2CTransferResult_transfer_ongoing,
-    I2CTransferResult_no_acknowledge,
-    I2CTransferResult_clock_stretch_timeout,
-    I2CTransferResult_bug = BUG_CODE,
+    I2CDoResult_transfer_done,
+    I2CDoResult_transfer_ongoing,
+    I2CDoResult_no_acknowledge,
+    I2CDoResult_clock_stretch_timeout,
+    I2CDoResult_bug = BUG_CODE,
 }
-I2C_transfer
-(
-    enum I2CHandle      handle,
-    u32                 address,      // @/`I2C Slave Address`.
-    enum I2CAddressType address_type, // "
-    enum I2COperation   operation,
-    u8*                 pointer,
-    i32                 amount
-)
+I2C_do(struct I2CDoJob* job)
 {
+
+    if (!job)
+        bug;
+
+    enum I2CHandle handle = job->handle;
 
     _EXPAND_HANDLE
 
@@ -242,14 +263,14 @@ I2C_transfer
     // The source/destination must be provided.
     // We have no meaning for null-pointers as of now.
 
-    if (!pointer)
+    if (!job->pointer)
         bug;
 
 
 
     // Catch bad math.
 
-    if (amount <= 0)
+    if (job->amount <= 0)
         bug;
 
 
@@ -270,13 +291,13 @@ I2C_transfer
 
     // Validate I2C slave address.
 
-    switch (address_type)
+    switch (job->address_type)
     {
 
         case I2CAddressType_seven:
         {
 
-            if (!(0b0000'1000 <= address && address <= 0b0111'0111))
+            if (!(0b0000'1000 <= job->address && job->address <= 0b0111'0111))
                 bug;
 
         } break;
@@ -284,7 +305,7 @@ I2C_transfer
         case I2CAddressType_ten:
         {
 
-            if (address >= (1 << 10))
+            if (job->address >= (1 << 10))
                 bug;
 
         } break;
@@ -311,11 +332,11 @@ I2C_transfer
                 (struct I2CDriverMaster)
                 {
                     .state        = I2CMasterState_standby,
-                    .address      = address,
-                    .address_type = address_type,
-                    .operation    = operation,
-                    .pointer      = pointer,
-                    .amount       = amount,
+                    .address      = job->address,
+                    .address_type = job->address_type,
+                    .operation    = job->operation,
+                    .pointer      = job->pointer,
+                    .amount       = job->amount,
                 };
 
 
@@ -361,9 +382,9 @@ I2C_transfer
 
             case I2CMasterState_standby: switch (driver->master.error)
             {
-                case I2CMasterError_none                  : return I2CTransferResult_transfer_done;
-                case I2CMasterError_no_acknowledge        : return I2CTransferResult_no_acknowledge;
-                case I2CMasterError_clock_stretch_timeout : return I2CTransferResult_clock_stretch_timeout;
+                case I2CMasterError_none                  : return I2CDoResult_transfer_done;
+                case I2CMasterError_no_acknowledge        : return I2CDoResult_no_acknowledge;
+                case I2CMasterError_clock_stretch_timeout : return I2CDoResult_clock_stretch_timeout;
                 default                                   : bug;
             } break;
 

@@ -137,18 +137,19 @@ main(void)
 
             {
 
-                enum I2CTransferResult result =
-                    I2C_transfer
-                    (
-                        I2CHandle_ovcam_sccb,
-                        OVCAM_SEVEN_BIT_ADDRESS,
-                        I2CAddressType_seven,
-                        I2COperation_single_write,
-                        (u8*) &command,
-                        sizeof(command)
-                    );
+                struct I2CDoJob job =
+                    {
+                        .handle       = I2CHandle_ovcam_sccb,
+                        .address      = OVCAM_SEVEN_BIT_ADDRESS,
+                        .address_type = I2CAddressType_seven,
+                        .operation    = I2COperation_single_write,
+                        .pointer      = (u8*) &command,
+                        .amount       = sizeof(command)
+                    };
 
-                if (result != I2CTransferResult_transfer_done)
+                enum I2CDoResult transfer_result = I2C_do(&job);
+
+                if (transfer_result != I2CDoResult_transfer_done)
                     sorry
 
             }
