@@ -727,18 +727,27 @@ _I2C_update_once(enum I2CHandle handle)
 
             // Nothing to do until the user schedules a transfer.
 
-            case I2CMasterState_standby:
+            case I2CMasterState_standby: switch (interrupt_event)
             {
 
-                if (interrupt_event)
-                    bug; // We shouldn't have unhandled interrupt events...
+                case I2CInterruptEvent_none:
+                {
 
-                if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, BUSY))
-                    bug; // There shouldn't be any transfers on the bus of right now.
+                    if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, BUSY))
+                        bug; // There shouldn't be any transfers on the bus of right now.
 
+                    return I2CUpdateOnceResult_yield;
 
+                } break;
 
-                return I2CUpdateOnceResult_yield;
+                case I2CInterruptEvent_clock_stretch_timeout           : bug;
+                case I2CInterruptEvent_nack_signaled                   : bug;
+                case I2CInterruptEvent_stop_signaled                   : bug;
+                case I2CInterruptEvent_transfer_completed_successfully : bug;
+                case I2CInterruptEvent_data_available_to_read          : bug;
+                case I2CInterruptEvent_ready_to_transmit_data          : bug;
+                case I2CInterruptEvent_address_match                   : bug;
+                default                                                : bug;
 
             } break;
 
@@ -746,70 +755,81 @@ _I2C_update_once(enum I2CHandle handle)
 
             // The user has a transfer they want to do.
 
-            case I2CMasterState_scheduled_transfer:
+            case I2CMasterState_scheduled_transfer: switch (interrupt_event)
             {
 
-                if (interrupt_event)
-                    bug; // We shouldn't have unhandled interrupt events...
-
-                if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, BUSY))
-                    bug; // There shouldn't be any transfers on the bus of right now.
-
-                if (!(1 <= driver->master.amount && driver->master.amount <= 255))
-                    bug; // We currently don't handle transfer sizes larger than this.
-
-                if (CMSIS_GET(I2Cx, CR2, START))
-                    bug; // We shouldn't be already trying to start the transfer...
-
-                if (driver->master.error)
-                    bug; // Any errors should've been acknowledged before the next transfer is done.
-
-
-
-                // Configure the desired transfer.
-
-                u32 sadd = {0};
-
-                switch (driver->master.address_type)
+                case I2CInterruptEvent_none:
                 {
-                    case I2CAddressType_seven:
+
+                    if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, BUSY))
+                        bug; // There shouldn't be any transfers on the bus of right now.
+
+                    if (!(1 <= driver->master.amount && driver->master.amount <= 255))
+                        bug; // We currently don't handle transfer sizes larger than this.
+
+                    if (CMSIS_GET(I2Cx, CR2, START))
+                        bug; // We shouldn't be already trying to start the transfer...
+
+                    if (driver->master.error)
+                        bug; // Any errors should've been acknowledged before the next transfer is done.
+
+
+
+                    // Configure the desired transfer.
+
+                    u32 sadd = {0};
+
+                    switch (driver->master.address_type)
                     {
-                        sadd = driver->master.address << 1; // @/`I2C Slave Address`.
-                    } break;
+                        case I2CAddressType_seven:
+                        {
+                            sadd = driver->master.address << 1; // @/`I2C Slave Address`.
+                        } break;
 
-                    case I2CAddressType_ten:
-                    {
-                        sadd = driver->master.address;
-                    } break;
+                        case I2CAddressType_ten:
+                        {
+                            sadd = driver->master.address;
+                        } break;
 
-                    default: bug;
-                }
+                        default: bug;
+                    }
 
-                CMSIS_SET
-                (
-                    I2Cx   , CR2                          ,
-                    SADD   , sadd                         , // I2C slave to call for.
-                    ADD10  , !!driver->master.address_type, // Whether or not a 10-bit slave address is used.
-                    RD_WRN , !driver->master.writing      , // Determine data transfer direction.
-                    NBYTES , driver->master.amount        , // Determine amount of data in bytes.
-                    START  , true                         , // Begin sending the START condition on the I2C bus.
-                );
+                    CMSIS_SET
+                    (
+                        I2Cx   , CR2                          ,
+                        SADD   , sadd                         , // I2C slave to call for.
+                        ADD10  , !!driver->master.address_type, // Whether or not a 10-bit slave address is used.
+                        RD_WRN , !driver->master.writing      , // Determine data transfer direction.
+                        NBYTES , driver->master.amount        , // Determine amount of data in bytes.
+                        START  , true                         , // Begin sending the START condition on the I2C bus.
+                    );
 
-                CMSIS_SET(I2Cx, CR1, TCIE, true); // @/`I2C Transfer-Complete Interrupt and Repeated Starts`.
+                    CMSIS_SET(I2Cx, CR1, TCIE, true); // @/`I2C Transfer-Complete Interrupt and Repeated Starts`.
 
 
 
-                // The I2C peripheral should be now trying to call
-                // the slave device and get an acknowledgement back.
+                    // The I2C peripheral should be now trying to call
+                    // the slave device and get an acknowledgement back.
 
-                atomic_store_explicit
-                (
-                    &driver->master.atomic_state,
-                    I2CMasterState_transferring,
-                    memory_order_relaxed // No synchronization needed.
-                );
+                    atomic_store_explicit
+                    (
+                        &driver->master.atomic_state,
+                        I2CMasterState_transferring,
+                        memory_order_relaxed // No synchronization needed.
+                    );
 
-                return I2CUpdateOnceResult_again;
+                    return I2CUpdateOnceResult_again;
+
+                } break;
+
+                case I2CInterruptEvent_clock_stretch_timeout           : bug;
+                case I2CInterruptEvent_nack_signaled                   : bug;
+                case I2CInterruptEvent_stop_signaled                   : bug;
+                case I2CInterruptEvent_transfer_completed_successfully : bug;
+                case I2CInterruptEvent_data_available_to_read          : bug;
+                case I2CInterruptEvent_ready_to_transmit_data          : bug;
+                case I2CInterruptEvent_address_match                   : bug;
+                default                                                : bug;
 
             } break;
 
