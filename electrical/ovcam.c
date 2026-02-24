@@ -1,6 +1,9 @@
+#ifndef OVCAM_TIMEOUT_US
+#define OVCAM_TIMEOUT_US 1'000'000
+#endif
+
 #define OVCAM_SEVEN_BIT_ADDRESS 0x3C
 #define OVCAM_FRAMEBUFFER_SIZE  (100 * 1024) // @/`OVCAM DMA Block Repetitions`.
-#define OVCAM_TIMEOUT_US        5'000'000    // TODO This could be set lower, but TV register writes may cause a time-out.
 
 
 

@@ -1,3 +1,8 @@
+// Because `./cli.py tv` can do register-writes that causes
+// some frames to be dropped, we need to avoid sporatic OVCAM
+// resets by having a much longer time-out duration than usual.
+#define OVCAM_TIMEOUT_US 10'000'000
+
 #include "system.h"
 #include "uxart.c"
 #include "i2c.c"
