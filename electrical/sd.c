@@ -84,19 +84,19 @@ struct SDDoJob
 struct SDDriver
 {
 
-    _Atomic enum SDDriverState atomic_state;
-    struct SDIniter            initer;
-    struct SDCmder             cmder;
-    enum SDDriverError         error;
+    volatile _Atomic enum SDDriverState atomic_state;
+    struct SDIniter                     initer;
+    struct SDCmder                      cmder;
+    enum SDDriverError                  error;
 
     struct
     {
-        _Atomic enum SDDriverJobState atomic_state;
-        b16                           writing;
-        b16                           consecutive_caching;
-        u32                           address;
-        Sector*                       sector;
-        i32                           count;
+        volatile _Atomic enum SDDriverJobState atomic_state;
+        b16                                    writing;
+        b16                                    consecutive_caching;
+        u32                                    address;
+        Sector*                                sector;
+        i32                                    count;
     } job;
 
     i32 consecutive_sector_transfer_count;

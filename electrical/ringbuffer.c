@@ -28,9 +28,9 @@
 
 struct RingBufferRaw
 {
-    _Atomic u16 atomic_reader;
-    _Atomic u16 atomic_writer;
-    u8          bytes[];
+    volatile _Atomic u16 atomic_reader;
+    volatile _Atomic u16 atomic_writer;
+    u8                   bytes[];
 };
 
 #define RingBuffer(TYPE, LENGTH)                      \
@@ -40,9 +40,9 @@ struct RingBufferRaw
         static_assert((LENGTH) < (1 << bitsof(u16))); \
         struct                                        \
         {                                             \
-            _Atomic u16 atomic_reader;                \
-            _Atomic u16 atomic_writer;                \
-            TYPE        elements[(LENGTH)];           \
+            volatile _Atomic u16 atomic_reader;       \
+            volatile _Atomic u16 atomic_writer;       \
+            TYPE                 elements[(LENGTH)];  \
         };                                            \
         struct RingBufferRaw ring_buffer_raw;         \
     }
