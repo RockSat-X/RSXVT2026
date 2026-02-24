@@ -10,7 +10,7 @@
 
 
 
-static Sector cluster_buffer[64] = {0}; // @/`Cluster Size for verifyLogs`.
+static Sector cluster_buffer[200] = {0}; // @/`Cluster Size for verifyLogs`.
 
 
 
