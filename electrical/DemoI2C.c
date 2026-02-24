@@ -71,8 +71,8 @@ main(void)
 
                 // Get the address range.
 
-                u32 start_address = {0};
-                u32 end_address   = {0};
+                u16 start_address = {0};
+                u16 end_address   = {0};
 
                 switch (address_type)
                 {
@@ -98,7 +98,7 @@ main(void)
 
                 for
                 (
-                    u32 slave_address = start_address;
+                    u16 slave_address = start_address;
                     slave_address <= end_address;
                     slave_address += 1
                 )
@@ -110,9 +110,10 @@ main(void)
                     struct I2CDoJob job =
                         {
                             .handle       = I2CHandle_queen,
-                            .address      = slave_address,
                             .address_type = address_type,
-                            .operation    = I2COperation_single_read,
+                            .address      = slave_address,
+                            .writing      = false,
+                            .repeating    = false,
                             .pointer      = &(u8) {0},
                             .amount       = 1,
                         };
@@ -212,9 +213,10 @@ main(void)
                     struct I2CDoJob job =
                         {
                             .handle       = I2CHandle_queen,
-                            .address      = I2C_TABLE[I2CHandle_bee].I2Cx_SLAVE_ADDRESS,
                             .address_type = I2CAddressType_seven,
-                            .operation    = I2COperation_single_write,
+                            .address      = I2C_TABLE[I2CHandle_bee].I2Cx_SLAVE_ADDRESS,
+                            .writing      = true,
+                            .repeating    = false,
                             .pointer      = (u8*) message,
                             .amount       = sizeof(message) - 1
                         };
@@ -292,9 +294,10 @@ main(void)
                     struct I2CDoJob job =
                         {
                             .handle       = I2CHandle_queen,
-                            .address      = I2C_TABLE[I2CHandle_bee].I2Cx_SLAVE_ADDRESS,
                             .address_type = I2CAddressType_seven,
-                            .operation    = I2COperation_single_read,
+                            .address      = I2C_TABLE[I2CHandle_bee].I2Cx_SLAVE_ADDRESS,
+                            .writing      = false,
+                            .repeating    = false,
                             .pointer      = (u8*) response,
                             .amount       = sizeof(response)
                         };

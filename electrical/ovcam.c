@@ -521,9 +521,10 @@ OVCAM_reinit(void)
             struct I2CDoJob job =
                 {
                     .handle       = I2CHandle_ovcam_sccb,
-                    .address      = OVCAM_SEVEN_BIT_ADDRESS,
                     .address_type = I2CAddressType_seven,
-                    .operation    = I2COperation_single_write,
+                    .address      = OVCAM_SEVEN_BIT_ADDRESS,
+                    .writing      = true,
+                    .repeating    = false,
                     .pointer      = (u8*) data_to_send,
                     .amount       = sizeof(u16) + amount_of_bytes_to_write
                 };

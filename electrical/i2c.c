@@ -144,14 +144,6 @@ enum I2CAddressType : u32 // @/`I2C Slave Address`.
     I2CAddressType_ten   = true,
 };
 
-enum I2COperation : u32
-{
-    I2COperation_single_write,
-    I2COperation_single_read,
-    I2COperation_repeating_write,
-    I2COperation_repeating_read,
-};
-
 enum I2CDoJobState : u32
 {
     I2CDoJobState_ready_to_be_processed,
@@ -164,9 +156,10 @@ struct I2CDoJob
     struct
     {
         enum I2CHandle      handle;
-        u32                 address;      // @/`I2C Slave Address`.
-        enum I2CAddressType address_type; // "
-        enum I2COperation   operation;    // TODO Split up.
+        enum I2CAddressType address_type; // @/`I2C Slave Address`.
+        u16                 address;      // "
+        b8                  writing;
+        b8                  repeating;    // @/`I2C Repeating Transfers`.
         u8*                 pointer;
         i32                 amount;
     };
@@ -183,9 +176,10 @@ struct I2CDriver
         struct I2CDriverMaster
         {
             volatile _Atomic enum I2CMasterState atomic_state;
-            u32                                  address;
             enum I2CAddressType                  address_type;
-            enum I2COperation                    operation;
+            u32                                  address;
+            b8                                   writing;
+            b8                                   repeating;
             u8*                                  pointer;
             i32                                  amount;
             i32                                  progress;
@@ -404,9 +398,10 @@ I2C_do(struct I2CDoJob* job)
                 if (CMSIS_GET(I2Cx, ISR, BUSY))
                     bug; // There shouldn't be any transfers on the bus of right now.
 
-                driver->master.address      = job->address;
                 driver->master.address_type = job->address_type;
-                driver->master.operation    = job->operation;
+                driver->master.address      = job->address;
+                driver->master.writing      = job->writing;
+                driver->master.repeating    = job->repeating;
                 driver->master.pointer      = job->pointer;
                 driver->master.amount       = job->amount;
                 driver->master.progress     = 0;
@@ -441,9 +436,10 @@ I2C_do(struct I2CDoJob* job)
 
             if
             (
-                driver->master.address      != job->address      ||
                 driver->master.address_type != job->address_type ||
-                driver->master.operation    != job->operation    ||
+                driver->master.address      != job->address      ||
+                driver->master.writing      != job->writing      ||
+                driver->master.repeating    != job->repeating    ||
                 driver->master.pointer      != job->pointer      ||
                 driver->master.amount       != job->amount
             )
@@ -789,16 +785,12 @@ _I2C_update_once(enum I2CHandle handle)
                     default: bug;
                 }
 
-                b32 read_operation =
-                    driver->master.operation == I2COperation_single_read ||
-                    driver->master.operation == I2COperation_repeating_read;
-
                 CMSIS_SET
                 (
                     I2Cx   , CR2                          ,
                     SADD   , sadd                         , // I2C slave to call for.
                     ADD10  , !!driver->master.address_type, // Whether or not a 10-bit slave address is used.
-                    RD_WRN , !!read_operation             , // Determine data transfer direction.
+                    RD_WRN , !driver->master.writing      , // Determine data transfer direction.
                     NBYTES , driver->master.amount        , // Determine amount of data in bytes.
                     START  , true                         , // Begin sending the START condition on the I2C bus.
                 );
@@ -941,79 +933,53 @@ _I2C_update_once(enum I2CHandle handle)
                     if (driver->master.progress != driver->master.amount)
                         bug; // Hardware says we finished the transfer, but software disagrees...
 
-
-
-                    // Determine what to do now that the
-                    // I2C read/write transfer is done.
-
-                    switch (driver->master.operation)
+                    if (driver->master.repeating)
                     {
 
+                        // @/`I2C Transfer-Complete Interrupt and Repeated Starts`:
+                        //
+                        // We disable the transfer-complete interrupt here
+                        // because it only gets cleared upon us scheduling a START
+                        // or STOP condition. However, we don't know what the next
+                        // transfer the user is going to do, so we can't send the
+                        // repeated START condition until then. So to prevent the
+                        // I2C interrupt from being perpetually triggered, we
+                        // temporarily disable this interrupt event.
 
-
-                        // The I2C bus can be released.
-
-                        case I2COperation_single_read:
-                        case I2COperation_single_write:
-                        {
-
-                            // Try sending the STOP condition onto
-                            // the bus and we'll wait for it.
-
-                            CMSIS_SET(I2Cx, CR2, STOP, true);
-
-                            atomic_store_explicit
-                            (
-                                &driver->master.atomic_state,
-                                I2CMasterState_stopping,
-                                memory_order_relaxed // No synchronization needed.
-                            );
-
-                            return I2CUpdateOnceResult_again;
-
-                        } break;
+                        CMSIS_SET(I2Cx, CR1, TCIE, false);
 
 
 
-                        // The I2C bus should still be controlled by us so
-                        // we can start the next transfer again (repeated START).
+                        // The I2C peripheral should be good to immediately start the next transfer.
 
-                        case I2COperation_repeating_read:
-                        case I2COperation_repeating_write:
-                        {
-
-                            // @/`I2C Transfer-Complete Interrupt and Repeated Starts`:
-                            //
-                            // We disable the transfer-complete interrupt here
-                            // because it only gets cleared upon us scheduling a START
-                            // or STOP condition. However, we don't know what the next
-                            // transfer the user is going to do, so we can't send the
-                            // repeated START condition until then. So to prevent the
-                            // I2C interrupt from being perpetually triggered, we
-                            // temporarily disable this interrupt event.
-
-                            CMSIS_SET(I2Cx, CR1, TCIE, false);
+                        atomic_store_explicit
+                        (
+                            &driver->master.atomic_state,
+                            I2CMasterState_standby,
+                            memory_order_release // Ensure writes to `driver->master.error` finishes (although it's not used here).
+                        );
 
 
 
-                            // The I2C peripheral should be good to immediately start the next transfer.
+                        return I2CUpdateOnceResult_again;
 
-                            atomic_store_explicit
-                            (
-                                &driver->master.atomic_state,
-                                I2CMasterState_standby,
-                                memory_order_release // Ensure writes to `driver->master.error` finishes (although it's not used here).
-                            );
+                    }
+                    else
+                    {
 
+                        // Try sending the STOP condition onto
+                        // the bus and we'll wait for it.
 
+                        CMSIS_SET(I2Cx, CR2, STOP, true);
 
-                            return I2CUpdateOnceResult_again;
+                        atomic_store_explicit
+                        (
+                            &driver->master.atomic_state,
+                            I2CMasterState_stopping,
+                            memory_order_relaxed // No synchronization needed.
+                        );
 
-                        } break;
-
-
-
-                        default: bug;
+                        return I2CUpdateOnceResult_again;
 
                     }
 
@@ -1632,3 +1598,22 @@ _I2C_driver_interrupt(enum I2CHandle handle)
 // The flushing of the TX-register should be fine to do always,
 // regardless whether or not the I2C peripheral is actually acting
 // as a slave or a master.
+
+
+
+// @/`I2C Repeating Transfers`:
+//
+// A repeated I2C transfer is when the master finishes a transfer,
+// but rather than letting go of the I2C bus, a REPEATED-START condition
+// is sent that allows the master to keep arbitration of the bus.
+// This only has mild implication for read/write throughput, more
+// importance for when there's multiple masters, but it's really
+// important depending on the slave device that the user is
+// communicating with.
+//
+// Some I2C devices have the protocol where, before any read-transfers,
+// a write must be done first (this would be specifying a register address
+// for instance), and then only can the read transfer be done. The
+// slave device, however, may expect that this is done with a repeated-start,
+// thus the overall read-transfer cannot be split into a write-transfer followed
+// by a read-transfer.

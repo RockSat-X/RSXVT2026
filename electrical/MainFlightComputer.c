@@ -57,9 +57,10 @@ FREERTOS_TASK(vehicle_interface, 1024, 0)
         struct I2CDoJob job =
             {
                 .handle       = I2CHandle_vehicle_interface,
-                .address      = VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS,
                 .address_type = I2CAddressType_seven,
-                .operation    = I2COperation_single_read,
+                .address      = VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS,
+                .writing      = false,
+                .repeating    = false,
                 .pointer      = (u8*) &payload,
                 .amount       = sizeof(payload),
             };
