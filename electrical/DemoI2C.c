@@ -117,7 +117,9 @@ main(void)
                             .amount       = 1,
                         };
 
-                    enum I2CDoResult transfer_result = I2C_do(&job);
+                    enum I2CDoResult transfer_result = {0};
+                    do transfer_result = I2C_do(&job); // TODO Clean up.
+                    while (transfer_result == I2CDoResult_working);
 
 
 
@@ -125,7 +127,7 @@ main(void)
 
                     switch (transfer_result)
                     {
-                        case I2CDoResult_transfer_done:
+                        case I2CDoResult_success:
                         {
                             stlink_tx("Slave 0x%03X acknowledged!\n", slave_address);
                         } break;
@@ -159,8 +161,8 @@ main(void)
                             spinlock_nop(1'000'000);
                         } break;
 
-                        case I2CDoResult_transfer_ongoing : sorry
-                        default                           : sorry
+                        case I2CDoResult_working : sorry
+                        default                  : sorry
                     }
 
 
@@ -217,7 +219,9 @@ main(void)
                             .amount       = sizeof(message) - 1
                         };
 
-                    enum I2CDoResult transfer_result = I2C_do(&job);
+                    enum I2CDoResult transfer_result = {0};
+                    do transfer_result = I2C_do(&job); // TODO Clean up.
+                    while (transfer_result == I2CDoResult_working);
 
 
 
@@ -225,7 +229,7 @@ main(void)
 
                     switch (transfer_result)
                     {
-                        case I2CDoResult_transfer_done:
+                        case I2CDoResult_success:
                         {
                             stlink_tx("Queen : transmission successful!\n");
                         } break;
@@ -259,8 +263,8 @@ main(void)
                             spinlock_nop(1'000'000);
                         } break;
 
-                        case I2CDoResult_transfer_ongoing : sorry
-                        default                           : sorry
+                        case I2CDoResult_working : sorry
+                        default                  : sorry
                     }
 
 
@@ -295,7 +299,9 @@ main(void)
                             .amount       = sizeof(response)
                         };
 
-                    enum I2CDoResult transfer_result = I2C_do(&job);
+                    enum I2CDoResult transfer_result = {0};
+                    do transfer_result = I2C_do(&job); // TODO Clean up.
+                    while (transfer_result == I2CDoResult_working);
 
 
 
@@ -303,7 +309,7 @@ main(void)
 
                     switch (transfer_result)
                     {
-                        case I2CDoResult_transfer_done:
+                        case I2CDoResult_success:
                         {
                             stlink_tx("Queen : reception successful! : `%.*s`\n", sizeof(response), response);
                         } break;
@@ -337,8 +343,8 @@ main(void)
                             spinlock_nop(1'000'000);
                         } break;
 
-                        case I2CDoResult_transfer_ongoing : sorry
-                        default                           : sorry
+                        case I2CDoResult_working : sorry
+                        default                  : sorry
                     }
 
 

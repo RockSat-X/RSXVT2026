@@ -528,12 +528,14 @@ OVCAM_reinit(void)
                     .amount       = sizeof(u16) + amount_of_bytes_to_write
                 };
 
-            enum I2CDoResult transfer_result = I2C_do(&job);
+            enum I2CDoResult transfer_result = {0};
+            do transfer_result = I2C_do(&job); // TODO Clean up.
+            while (transfer_result == I2CDoResult_working);
 
             switch (transfer_result)
             {
 
-                case I2CDoResult_transfer_done:
+                case I2CDoResult_success:
                 {
                     success = true;
                 } break;
@@ -545,9 +547,9 @@ OVCAM_reinit(void)
                     // let's try the transfer again.
                 } break;
 
-                case I2CDoResult_transfer_ongoing : bug; // OVCAM driver depends on a blocking I2C driver.
-                case I2CDoResult_bug              : bug;
-                default                           : bug;
+                case I2CDoResult_working : bug; // OVCAM driver depends on a blocking I2C driver.
+                case I2CDoResult_bug     : bug;
+                default                  : bug;
 
             }
 

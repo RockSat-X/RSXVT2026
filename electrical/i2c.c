@@ -231,10 +231,10 @@ static struct I2CDriver _I2C_drivers[I2CHandle_COUNT] = {0};
 
 static useret enum I2CDoResult : u32
 {
-    I2CDoResult_transfer_done,
-    I2CDoResult_transfer_ongoing,
+    I2CDoResult_success,
     I2CDoResult_no_acknowledge,
     I2CDoResult_clock_stretch_timeout,
+    I2CDoResult_working,
     I2CDoResult_bug = BUG_CODE,
 }
 I2C_do(struct I2CDoJob* job)
@@ -249,143 +249,121 @@ I2C_do(struct I2CDoJob* job)
 
 
 
-    // Only masters can do I2C transfers.
-
     switch (I2Cx_DRIVER_MODE)
     {
         case I2CDriverMode_master : break;
-        case I2CDriverMode_slave  : bug;
+        case I2CDriverMode_slave  : bug; // Only masters can do I2C transfers.
         default                   : bug;
     }
 
-
-
-    // The source/destination must be provided.
-    // We have no meaning for null-pointers as of now.
-
     if (!job->pointer)
-        bug;
-
-
-
-    // Catch bad math.
+        bug; // Missing source/destination..?
 
     if (job->amount <= 0)
-        bug;
-
-
-
-    // Ensure I2C has been initialized.
+        bug; // Bad math..?
 
     if (!CMSIS_GET(I2Cx, CR1, PE))
-        bug;
-
-
-
-    // There shouldn't be any transfers on the bus of right now.
-
-    if (CMSIS_GET(I2Cx, ISR, BUSY))
-        bug;
-
-
-
-    // Validate I2C slave address.
+        bug; // Ensure I2C has been initialized.
 
     switch (job->address_type)
     {
 
         case I2CAddressType_seven:
         {
-
             if (!(0b0000'1000 <= job->address && job->address <= 0b0111'0111))
-                bug;
-
+                bug; // Invalid 7-bit address.
         } break;
 
         case I2CAddressType_ten:
         {
-
             if (job->address >= (1 << 10))
-                bug;
-
+                bug; // Address out of range.
         } break;
 
         default: bug;
 
     }
 
-
-
-    // Schedule the transfer.
-
-    switch (driver->master.state)
+    switch (job->state)
     {
 
-        // The I2C driver can take our transfer request now.
-
-        case I2CMasterState_standby:
+        case I2CDoJobState_ready_to_be_processed: switch (driver->master.state)
         {
 
-            // Prepare the desired read/write transfer for the I2C driver.
-
-            driver->master =
-                (struct I2CDriverMaster)
-                {
-                    .state        = I2CMasterState_standby,
-                    .address      = job->address,
-                    .address_type = job->address_type,
-                    .operation    = job->operation,
-                    .pointer      = job->pointer,
-                    .amount       = job->amount,
-                };
+            case I2CMasterState_standby:
+            {
 
 
 
-            // Memory release; the I2C driver can now use the above information.
+                if (CMSIS_GET(I2Cx, ISR, BUSY))
+                    bug; // There shouldn't be any transfers on the bus of right now.
 
-            driver->master.state = I2CMasterState_scheduled_transfer;
 
-            NVIC_SET_PENDING(I2Cx_EV);
+
+                // Prepare the desired read/write transfer for the I2C driver.
+
+                driver->master =
+                    (struct I2CDriverMaster)
+                    {
+                        .state        = I2CMasterState_standby,
+                        .address      = job->address,
+                        .address_type = job->address_type,
+                        .operation    = job->operation,
+                        .pointer      = job->pointer,
+                        .amount       = job->amount,
+                    };
+
+
+
+                // TODO Memory release; the I2C driver can now use the above information.
+
+                driver->master.state = I2CMasterState_scheduled_transfer;
+
+                NVIC_SET_PENDING(I2Cx_EV);
+
+                job->state = I2CDoJobState_processing;
+                return I2CDoResult_working;
+
+            } break;
+
+            case I2CMasterState_scheduled_transfer : bug; // The I2C driver shouldn't be busy with another job...
+            case I2CMasterState_transferring       : bug; // "
+            case I2CMasterState_stopping           : bug; // "
+            case I2CMasterState_bug                : bug;
+            default                                : bug;
 
         } break;
 
 
 
-        // The I2C driver isn't ready to take our read/write transfer right now.
-
-        case I2CMasterState_scheduled_transfer : bug;
-        case I2CMasterState_transferring       : bug;
-        case I2CMasterState_stopping           : bug;
-        case I2CMasterState_bug                : bug;
-        default                                : bug;
-
-    }
-
-
-
-    // Things to do after we scheduled the read/write transfer...
-
-    switch (I2Cx_DRIVER_MODE)
-    {
-
-        // For `master`, we simplify the control-flow
-        // for the user by guaranteeing them that the read
-        // transfer is done by the time the function returns
-        // (and thus the slave data is available to be used),
-        // or for a write transfer, that the slave has received
-        // all of the data by the time the function returns.
-
-        case I2CDriverMode_master: while (true) switch (driver->master.state)
+        case I2CDoJobState_processing: switch (driver->master.state)
         {
 
             // The driver just finished!
 
             case I2CMasterState_standby: switch (driver->master.error)
             {
-                case I2CMasterError_none                  : return I2CDoResult_transfer_done;
-                case I2CMasterError_no_acknowledge        : return I2CDoResult_no_acknowledge;
-                case I2CMasterError_clock_stretch_timeout : return I2CDoResult_clock_stretch_timeout;
-                default                                   : bug;
+
+                case I2CMasterError_none:
+                {
+                    job->state = I2CDoJobState_attempted;
+                    return I2CDoResult_success;
+                } break;
+
+                case I2CMasterError_no_acknowledge:
+                {
+                    job->state = I2CDoJobState_attempted;
+                    return I2CDoResult_no_acknowledge;
+                } break;
+
+                case I2CMasterError_clock_stretch_timeout:
+                {
+                    job->state = I2CDoJobState_attempted;
+                    return I2CDoResult_clock_stretch_timeout;
+                } break;
+
+                default: bug;
+
             } break;
 
 
@@ -396,7 +374,7 @@ I2C_do(struct I2CDoJob* job)
             case I2CMasterState_transferring:
             case I2CMasterState_stopping:
             {
-                // Keep waiting...
+                return I2CDoResult_working;
             } break;
 
 
@@ -408,8 +386,8 @@ I2C_do(struct I2CDoJob* job)
 
 
 
-        case I2CDriverMode_slave : bug;
-        default                  : bug;
+        case I2CDoJobState_attempted : bug; // User is trying to update a job that has already concluded.
+        default                      : bug;
 
     }
 

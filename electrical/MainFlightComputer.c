@@ -64,11 +64,13 @@ FREERTOS_TASK(vehicle_interface, 1024, 0)
                 .amount       = sizeof(payload),
             };
 
-        enum I2CDoResult transfer_result = I2C_do(&job);
+        enum I2CDoResult transfer_result = {0};
+        do transfer_result = I2C_do(&job); // TODO Clean up.
+        while (transfer_result == I2CDoResult_working);
 
         switch (transfer_result)
         {
-            case I2CDoResult_transfer_done:
+            case I2CDoResult_success:
             {
 
                 static u16 previous_timestamp_us = 0;
@@ -97,7 +99,7 @@ FREERTOS_TASK(vehicle_interface, 1024, 0)
                 stlink_tx("Slave 0x%03X didn't acknowledge!\n", VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS);
             } break;
 
-            case I2CDoResult_transfer_ongoing      : sorry
+            case I2CDoResult_working               : sorry
             case I2CDoResult_clock_stretch_timeout : sorry
             case I2CDoResult_bug                   : sorry
             default                                : sorry

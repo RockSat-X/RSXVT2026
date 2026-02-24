@@ -747,9 +747,9 @@ INTERRUPT_I2Cx_vehicle_interface(enum I2CSlaveCallbackEvent event, u8* data)
 
 
 
-        case I2CDoResult_clock_stretch_timeout : sorry
-        case I2CSlaveCallbackEvent_bug         : sorry
-        default                                : sorry
+        case I2CSlaveCallbackEvent_clock_stretch_timeout : sorry
+        case I2CSlaveCallbackEvent_bug                   : sorry
+        default                                          : sorry
 
     }
 

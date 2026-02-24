@@ -147,9 +147,11 @@ main(void)
                         .amount       = sizeof(command)
                     };
 
-                enum I2CDoResult transfer_result = I2C_do(&job);
+                enum I2CDoResult transfer_result = {0};
+                do transfer_result = I2C_do(&job); // TODO Clean up.
+                while (transfer_result == I2CDoResult_working);
 
-                if (transfer_result != I2CDoResult_transfer_done)
+                if (transfer_result != I2CDoResult_success)
                     sorry
 
             }
