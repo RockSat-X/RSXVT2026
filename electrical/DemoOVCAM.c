@@ -43,6 +43,7 @@ try_swap(void)
             // An attempt was made to get the next framebuffer.
         } break;
 
+        case OVCAMSwapFramebufferResult_timeout:
         case OVCAMSwapFramebufferResult_bug:
         {
             reinitialize_ovcam(); // Something bad happened, so we'll reinitialize everything.

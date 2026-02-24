@@ -671,6 +671,7 @@ OVCAM_reinit(void)
 static useret enum OVCAMSwapFramebufferResult : u32
 {
     OVCAMSwapFramebufferResult_attempted,
+    OVCAMSwapFramebufferResult_timeout,
     OVCAMSwapFramebufferResult_bug = BUG_CODE,
 }
 OVCAM_swap_framebuffer(void)
@@ -735,10 +736,14 @@ OVCAM_swap_framebuffer(void)
                 u32 current_timestamp_us = TIMEKEEPING_COUNTER();
                 u32 elapsed_us           = current_timestamp_us - capture_timestamp_us;
 
-                if (elapsed_us >= (TIMEKEEPING_COUNTER_TYPE) { OVCAM_TIMEOUT_US })
-                    bug; // The OVCAM driver is taking too long... TODO Not bug?
-
-                NVIC_SET_PENDING(DCMI_PSSI);
+                if (elapsed_us < (TIMEKEEPING_COUNTER_TYPE) { OVCAM_TIMEOUT_US })
+                {
+                    NVIC_SET_PENDING(DCMI_PSSI);
+                }
+                else
+                {
+                    return OVCAMSwapFramebufferResult_timeout;
+                }
 
             }
 
