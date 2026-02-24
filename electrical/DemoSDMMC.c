@@ -115,7 +115,7 @@ test_filesystem(void)
             case FileSystemReinitResult_success                    : break;
             case FileSystemReinitResult_couldnt_ready_card         : goto FILESYSTEM_ERROR;
             case FileSystemReinitResult_transfer_error             : goto FILESYSTEM_ERROR;
-            case FileSystemReinitResult_missing_filesystem         : goto FILESYSTEM_ERROR;
+            case FileSystemReinitResult_invalid_filesystem         : goto FILESYSTEM_ERROR;
             case FileSystemReinitResult_no_more_space_for_new_file : goto FILESYSTEM_ERROR;
             case FileSystemReinitResult_fatfs_internal_error       : goto FILESYSTEM_ERROR;
             case FileSystemReinitResult_bug                        : goto FILESYSTEM_ERROR;

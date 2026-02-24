@@ -92,7 +92,7 @@ static struct FileSystemDriver _FILESYSTEM_driver = {0};
             i32 count_reinit_success;
             i32 count_save_success;
             i32 count_couldnt_ready_card;
-            i32 count_missing_filesystem;
+            i32 count_invalid_filesystem;
             i32 count_no_more_space_for_new_file;
             i32 count_no_more_space_for_data;
             i32 count_fatfs_internal_error;
@@ -121,7 +121,7 @@ static struct FileSystemDriver _FILESYSTEM_driver = {0};
             "reinit_success             : %d"         "\n"
             "save_success               : %d"         "\n"
             "couldnt_ready_card         : %d"         "\n"
-            "missing_filesystem         : %d"         "\n"
+            "invalid_filesystem         : %d"         "\n"
             "no_more_space_for_new_file : %d"         "\n"
             "no_more_space_for_data     : %d"         "\n"
             "fatfs_internal_error       : %d"         "\n"
@@ -135,7 +135,7 @@ static struct FileSystemDriver _FILESYSTEM_driver = {0};
             _FILESYSTEM_profiler.count_reinit_success,
             _FILESYSTEM_profiler.count_save_success,
             _FILESYSTEM_profiler.count_couldnt_ready_card,
-            _FILESYSTEM_profiler.count_missing_filesystem,
+            _FILESYSTEM_profiler.count_invalid_filesystem,
             _FILESYSTEM_profiler.count_no_more_space_for_new_file,
             _FILESYSTEM_profiler.count_no_more_space_for_data,
             _FILESYSTEM_profiler.count_fatfs_internal_error,
@@ -659,7 +659,7 @@ static useret enum FileSystemReinitResult : u32
     FileSystemReinitResult_success,
     FileSystemReinitResult_couldnt_ready_card,
     FileSystemReinitResult_transfer_error,
-    FileSystemReinitResult_missing_filesystem,
+    FileSystemReinitResult_invalid_filesystem,
     FileSystemReinitResult_no_more_space_for_new_file,
     FileSystemReinitResult_fatfs_internal_error,
     FileSystemReinitResult_bug = BUG_CODE,
@@ -767,7 +767,7 @@ FILESYSTEM_reinit_(enum SDHandle sd_handle, Sector* formatting_sector_buffer, i3
         case FR_OK                  : break;
         case FR_DISK_ERR            : return FileSystemReinitResult_transfer_error;
         case FR_NOT_READY           : return FileSystemReinitResult_couldnt_ready_card;
-        case FR_NO_FILESYSTEM       : return FileSystemReinitResult_missing_filesystem;
+        case FR_NO_FILESYSTEM       : return FileSystemReinitResult_invalid_filesystem;
         case FR_INT_ERR             : return FileSystemReinitResult_fatfs_internal_error;
         case FR_NOT_ENABLED         : bug; // Shouldn't happen in practice...
         case FR_INVALID_DRIVE       : bug; // "
@@ -941,7 +941,7 @@ FILESYSTEM_reinit(enum SDHandle sd_handle, Sector* formatting_sector_buffer, i32
             case FileSystemReinitResult_success                    : _FILESYSTEM_profiler.count_reinit_success             += 1; break;
             case FileSystemReinitResult_couldnt_ready_card         : _FILESYSTEM_profiler.count_couldnt_ready_card         += 1; break;
             case FileSystemReinitResult_transfer_error             : _FILESYSTEM_profiler.count_transfer_error             += 1; break;
-            case FileSystemReinitResult_missing_filesystem         : _FILESYSTEM_profiler.count_missing_filesystem         += 1; break;
+            case FileSystemReinitResult_invalid_filesystem         : _FILESYSTEM_profiler.count_invalid_filesystem         += 1; break;
             case FileSystemReinitResult_no_more_space_for_new_file : _FILESYSTEM_profiler.count_no_more_space_for_new_file += 1; break;
             case FileSystemReinitResult_fatfs_internal_error       : _FILESYSTEM_profiler.count_fatfs_internal_error       += 1; break;
             case FileSystemReinitResult_bug                        : _FILESYSTEM_profiler.count_bug                        += 1; break;
