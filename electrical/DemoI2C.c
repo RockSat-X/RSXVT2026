@@ -239,7 +239,7 @@ main(void)
         case 1:
         {
 
-            for (;;)
+            for (i32 iteration = 0;; iteration += 1)
             {
 
                 stlink_tx("Queen : writing to bee...\n");
@@ -256,7 +256,7 @@ main(void)
                                 .address_type = I2CAddressType_seven,
                                 .address      = I2C_TABLE[I2CHandle_bee].I2Cx_SLAVE_ADDRESS,
                                 .writing      = true,
-                                .repeating    = true,
+                                .repeating    = !!(iteration & (1 << 2)),
                                 .pointer      = (u8*) message,
                                 .amount       = sizeof(message) - 1,
                             }
@@ -291,7 +291,7 @@ main(void)
                                 .address_type = I2CAddressType_seven,
                                 .address      = I2C_TABLE[I2CHandle_bee].I2Cx_SLAVE_ADDRESS,
                                 .writing      = false,
-                                .repeating    = true,
+                                .repeating    = !!(iteration & (1 << 3)),
                                 .pointer      = (u8*) response,
                                 .amount       = sizeof(response),
                             }
