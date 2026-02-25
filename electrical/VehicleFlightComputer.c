@@ -738,10 +738,13 @@ INTERRUPT_I2Cx_vehicle_interface(enum I2CSlaveCallbackEvent event, u8* data)
 
 
 
-        // End of a transfer.
+        // TODO
 
         case I2CSlaveCallbackEvent_stop_signaled:
-        case I2CSlaveCallbackEvent_repeated_start_signaled:
+        case I2CSlaveCallbackEvent_transmission_initiated:
+        case I2CSlaveCallbackEvent_reception_initiated:
+        case I2CSlaveCallbackEvent_transmission_repeated:
+        case I2CSlaveCallbackEvent_reception_repeated:
         {
             payload_has_valid_data = false;
         } break;

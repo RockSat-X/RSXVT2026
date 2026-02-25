@@ -348,6 +348,25 @@ INTERRUPT_I2Cx_bee(enum I2CSlaveCallbackEvent event, u8* data)
 
         ////////////////////////////////////////////////////////////////////////////////
         //
+        // A read/write transfer is starting.
+        //
+
+        {
+            case I2CSlaveCallbackEvent_transmission_initiated : /* stlink_tx("Bee   : beginning to send data..."            "\n"); */ goto BEGINNING;
+            case I2CSlaveCallbackEvent_reception_initiated    : /* stlink_tx("Bee   : getting data..."                      "\n"); */ goto BEGINNING;
+            case I2CSlaveCallbackEvent_transmission_repeated  : /* stlink_tx("Bee   : beginning to send data... (repeated)" "\n"); */ goto BEGINNING;
+            case I2CSlaveCallbackEvent_reception_repeated     : /* stlink_tx("Bee   : getting data... (repeated)"           "\n"); */ goto BEGINNING;
+            BEGINNING:;
+
+            reply_index  = 0;
+            stop_count  += 1;
+
+        } break;
+
+
+
+        ////////////////////////////////////////////////////////////////////////////////
+        //
         // The master gave us data.
         //
 
@@ -412,22 +431,6 @@ INTERRUPT_I2Cx_bee(enum I2CSlaveCallbackEvent event, u8* data)
         case I2CSlaveCallbackEvent_stop_signaled:
         {
             stlink_tx("Bee   : stop detected\n");
-            reply_index  = 0;
-            stop_count  += 1;
-        } break;
-
-
-
-        ////////////////////////////////////////////////////////////////////////////////
-        //
-        // Another read/write transfer is starting.
-        //
-
-        case I2CSlaveCallbackEvent_repeated_start_signaled:
-        {
-            stlink_tx("Bee   : repeated start detected\n");
-            reply_index  = 0;
-            stop_count  += 1;
         } break;
 
 
