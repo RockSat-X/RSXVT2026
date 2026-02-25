@@ -17,6 +17,15 @@ careful documentation and testing will be done to validate them.
 
 
 
+- `timekeeping.c`
+> The driver for keeping track of elapsed time with microsecond granularity is **production-ready**.
+> Timer accuracy is not accounted for in this implementation,
+> but for our application, this should be fine.
+>
+> \- *Phuc Doan. Feburary 25th, 2026.*
+
+
+
 - `sd_initer.c`
 > The state-machine implementation for initializing SD cards is **production-ready**.
 > The implementation is not guaranteed to support all SD cards,
