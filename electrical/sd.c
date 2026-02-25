@@ -466,7 +466,7 @@ SD_do(struct SDDoJob* job)
     {
         if (job->state == SDDoJobState_ready_to_be_processed)
         {
-            _SD_profiler.starting_timestamp_us = TIMEKEEPING_COUNTER();
+            _SD_profiler.starting_timestamp_us = TIMEKEEPING_microseconds();
         }
     }
     #endif
@@ -484,10 +484,8 @@ SD_do(struct SDDoJob* job)
     #if SD_PROFILER_ENABLE
     {
 
-        u32 ending_timestamp_us = TIMEKEEPING_COUNTER();
+        u32 ending_timestamp_us = TIMEKEEPING_microseconds();
         u32 elapsed_us          = ending_timestamp_us - _SD_profiler.starting_timestamp_us;
-
-        static_assert(sizeof(TIMEKEEPING_COUNTER_TYPE) == sizeof(u32));
 
         switch (result)
         {

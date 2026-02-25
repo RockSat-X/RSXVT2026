@@ -704,7 +704,7 @@ INTERRUPT_I2Cx_vehicle_interface(enum I2CSlaveCallbackEvent event, u8* data)
                 payload =
                     (struct VehicleInterfacePayload)
                     {
-                        .timestamp_us = (u16) TIMEKEEPING_COUNTER(),
+                        .timestamp_us = (u16) TIMEKEEPING_microseconds(),
                         .flags        = 0, // TODO.
                     };
 

@@ -69,8 +69,8 @@ main(void)
     // Demonstrate timekeeping.
     //
 
-    i32 halfperiod_i     = 0;
-    i32 halfperiods_us[] =
+    u32 halfperiod_i     = 0;
+    u32 halfperiods_us[] =
         {
             100,
             250,

@@ -363,7 +363,7 @@ I2C_reinit(enum I2CHandle handle)
 
     // @/`I2C Watchdog`.
 
-    driver->watchdog_timestamp_us = TIMEKEEPING_COUNTER();
+    driver->watchdog_timestamp_us = TIMEKEEPING_microseconds();
 
 
 
@@ -1627,14 +1627,14 @@ _I2C_driver_interrupt(enum I2CHandle handle)
 
             case I2CUpdateOnceResult_again:
             {
-                driver->watchdog_timestamp_us = TIMEKEEPING_COUNTER(); // @/`I2C Watchdog`.
+                driver->watchdog_timestamp_us = TIMEKEEPING_microseconds(); // @/`I2C Watchdog`.
             } break;
 
 
 
             case I2CUpdateOnceResult_no_work_for_driver_to_do:
             {
-                driver->watchdog_timestamp_us = TIMEKEEPING_COUNTER(); // @/`I2C Watchdog`.
+                driver->watchdog_timestamp_us = TIMEKEEPING_microseconds(); // @/`I2C Watchdog`.
                 yield                         = true;
             } break;
 
@@ -1643,9 +1643,9 @@ _I2C_driver_interrupt(enum I2CHandle handle)
             case I2CUpdateOnceResult_waiting_for_interrupt_event: // @/`I2C Watchdog`.
             {
 
-                u32 current_timestamp_us = TIMEKEEPING_COUNTER();
+                u32 current_timestamp_us = TIMEKEEPING_microseconds();
                 u32 elapsed_us           = current_timestamp_us - driver->watchdog_timestamp_us;
-                b32 expired              = elapsed_us >= (TIMEKEEPING_COUNTER_TYPE) { I2Cx_WATCHDOG_DURATION_US };
+                b32 expired              = elapsed_us >= I2Cx_WATCHDOG_DURATION_US;
 
                 if (expired)
                 {

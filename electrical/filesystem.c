@@ -1077,7 +1077,7 @@ FILESYSTEM_save(enum SDHandle sd_handle, Sector* data, i32 count)
 
     #if FILESYSTEM_PROFILER_ENABLE
 
-        u32 starting_timestamp_us = TIMEKEEPING_COUNTER();
+        u32 starting_timestamp_us = TIMEKEEPING_microseconds();
 
     #endif
 
@@ -1094,10 +1094,8 @@ FILESYSTEM_save(enum SDHandle sd_handle, Sector* data, i32 count)
     #if FILESYSTEM_PROFILER_ENABLE
     {
 
-        u32 ending_timestamp_us = TIMEKEEPING_COUNTER();
+        u32 ending_timestamp_us = TIMEKEEPING_microseconds();
         u32 elapsed_us          = ending_timestamp_us - starting_timestamp_us;
-
-        static_assert(sizeof(TIMEKEEPING_COUNTER_TYPE) == sizeof(u32));
 
         switch (result)
         {

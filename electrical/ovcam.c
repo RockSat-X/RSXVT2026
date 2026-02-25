@@ -650,7 +650,7 @@ OVCAM_reinit(void)
     // We now start recording how long it takes to capture the first image.
     // If it things take too long, this indicates an issue with the camera module.
 
-    _OVCAM_driver.swap_timestamp_us = TIMEKEEPING_COUNTER();
+    _OVCAM_driver.swap_timestamp_us = TIMEKEEPING_microseconds();
 
 
 
@@ -720,7 +720,7 @@ OVCAM_swap_framebuffer(void)
                 // We now start keeping track of how it's taking
                 // for the OVCAM driver to get the image data...
 
-                _OVCAM_driver.swap_timestamp_us = TIMEKEEPING_COUNTER();
+                _OVCAM_driver.swap_timestamp_us = TIMEKEEPING_microseconds();
 
             }
 
@@ -740,10 +740,10 @@ OVCAM_swap_framebuffer(void)
             {
 
                 u32 capture_timestamp_us = _OVCAM_driver.swap_timestamp_us;
-                u32 current_timestamp_us = TIMEKEEPING_COUNTER();
+                u32 current_timestamp_us = TIMEKEEPING_microseconds();
                 u32 elapsed_us           = current_timestamp_us - capture_timestamp_us;
 
-                if (elapsed_us < (TIMEKEEPING_COUNTER_TYPE) { OVCAM_TIMEOUT_US })
+                if (elapsed_us < OVCAM_TIMEOUT_US)
                 {
                     NVIC_SET_PENDING(DCMI_PSSI);
                 }

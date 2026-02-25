@@ -29,18 +29,31 @@
 
 
 
+        # We require 32-bit timers because 2^32 microseconds is about 1.19 hours,
+        # which is good enough for most applications.
+
+        counter_width = MCUS[target.mcu][f'{timer}_COUNTER_WIDTH'].value
+
+        if counter_width != 32:
+            raise ValueError(
+                f'In order to have timekeeping '
+                f'for target {repr(target.name)}, '
+                f'the timer must be 32-bit; '
+                f'timer {repr(timer)} is {repr(counter_width)}-bit.'
+            )
+
+
+
         # Some driver support definitions.
 
-        peripheral, register, field = MCUS[target.mcu][f'{timer}_COUNTER'      ].location
-        counter_width               = MCUS[target.mcu][f'{timer}_COUNTER_WIDTH'].value;
+        peripheral, register, field = MCUS[target.mcu][f'{timer}_COUNTER'].location
 
         Meta.line(f'''
             static constexpr auto TIMEKEEPING_TIMER_ENABLE = {CMSIS_TUPLE(target.mcu, f'{timer}_ENABLE')};
             static constexpr auto TIMEKEEPING_DIVIDER      = STPY_{timer}_DIVIDER;
-            typedef u{counter_width} TIMEKEEPING_COUNTER_TYPE;
-            #define TIMEKEEPING_COUNTER() CMSIS_GET({peripheral}, {register}, {field})
-            #define TIMEKEEPING_TIMER_    {timer}_
-            #define TIMEKEEPING_TIMER     {timer}
+            #define TIMEKEEPING_microseconds() CMSIS_GET({peripheral}, {register}, {field})
+            #define TIMEKEEPING_TIMER_         {timer}_
+            #define TIMEKEEPING_TIMER          {timer}
         ''')
 
 */
@@ -48,31 +61,21 @@
 
 
 static void
-spinlock_us(i32 microseconds)
+spinlock_us(u32 duration_us)
 {
 
-    u32 past_us    = TIMEKEEPING_COUNTER();
-    i32 elapsed_us = {0};
+    u32 start_us   = TIMEKEEPING_microseconds();
+    u32 elapsed_us = 0;
 
     do
     {
 
-        u32 present_us = TIMEKEEPING_COUNTER();
+        u32 present_us = TIMEKEEPING_microseconds();
 
-        // Timer counters are 16-bit or 32-bit. When it's 16-bit
-        // and we perform a subtraction, this typically results
-        // in a modular difference between the two numbers. However,
-        // when an overflow happens and `present_us` is now smaller than
-        // `past_us`, this will result in a negative number. In 16-bit
-        // modular arithmetic, this doesn't actually change anything,
-        // but things are implicitly upcasted to 32-bit, and this does
-        // break things. So to fix that edge case, we perform the
-        // appropriate cast.
-        elapsed_us += (i32) (TIMEKEEPING_COUNTER_TYPE) (present_us - past_us);
-
-        past_us = present_us;
+        elapsed_us += present_us - start_us;
+        start_us    = present_us;
 
     }
-    while (elapsed_us < microseconds);
+    while (elapsed_us < duration_us);
 
 }
