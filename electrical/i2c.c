@@ -874,7 +874,7 @@ _I2C_update_once(enum I2CHandle handle)
                     }
                 } break;
 
-                case I2CInterruptEvent_clock_stretch_timeout           : bug;
+                case I2CInterruptEvent_clock_stretch_timeout           : return I2CUpdateOnceResult_bus_misbehaved; // Clock pulled low for some reason?
                 case I2CInterruptEvent_nack_signaled                   : bug;
                 case I2CInterruptEvent_stop_signaled                   : bug;
                 case I2CInterruptEvent_transfer_completed_successfully : bug;
@@ -956,7 +956,7 @@ _I2C_update_once(enum I2CHandle handle)
                     }
                 } break;
 
-                case I2CInterruptEvent_clock_stretch_timeout           : bug;
+                case I2CInterruptEvent_clock_stretch_timeout           : return I2CUpdateOnceResult_bus_misbehaved; // Clock pulled low for some reason?
                 case I2CInterruptEvent_nack_signaled                   : bug;
                 case I2CInterruptEvent_stop_signaled                   : bug;
                 case I2CInterruptEvent_transfer_completed_successfully : bug;
@@ -1255,7 +1255,7 @@ _I2C_update_once(enum I2CHandle handle)
                     }
                 } break;
 
-                case I2CInterruptEvent_clock_stretch_timeout           : bug;
+                case I2CInterruptEvent_clock_stretch_timeout           : return I2CUpdateOnceResult_bus_misbehaved; // Clock pulled low for some reason?
                 case I2CInterruptEvent_nack_signaled                   : bug;
                 case I2CInterruptEvent_stop_signaled                   : bug;
                 case I2CInterruptEvent_transfer_completed_successfully : bug;
