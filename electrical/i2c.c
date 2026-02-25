@@ -61,7 +61,7 @@ union I2CCallback
         cmsis_name  = 'I2C',
         common_name = 'I2Cx',
         expansions  = (('driver', '&_I2C_drivers[handle]'),),
-        terms       = lambda type, peripheral, handle, mode, address = 0: (
+        terms       = lambda target, type, peripheral, handle, mode, address = 0: (
             ('{}_DRIVER_MODE'           , 'expression' , f'I2CDriverMode_{mode}'    ),
             ('{}_SLAVE_ADDRESS'         , 'expression' , f'((u16) 0x{address :03X})'),
             ('{}'                       , 'expression' ,                            ),

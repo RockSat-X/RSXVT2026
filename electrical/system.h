@@ -681,7 +681,7 @@ sorry_(void) // @/`Halting`.
 
             for driver in drivers:
 
-                for term_name, term_type, *term_value in terms(**driver):
+                for term_name, term_type, *term_value in terms(target, **driver):
 
                     if term_value:
                         term_value, = term_value
