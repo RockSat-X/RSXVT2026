@@ -505,68 +505,54 @@ OVCAM_reinit(void)
     )
     {
 
-        i32       amount_of_bytes_to_write =  OVCAM_INITIALIZATION_SEQUENCE[sequence_offset             ];
-        const u8* data_to_send             = &OVCAM_INITIALIZATION_SEQUENCE[sequence_offset + sizeof(u8)];
+        i32       register_data_length =  OVCAM_INITIALIZATION_SEQUENCE[sequence_offset             ];
+        const u8* data_to_send         = &OVCAM_INITIALIZATION_SEQUENCE[sequence_offset + sizeof(u8)];
 
-        b32 success = false;
+        struct I2CDoJob job =
+            {
+                .handle       = I2CHandle_ovcam_sccb,
+                .address_type = I2CAddressType_seven,
+                .address      = OVCAM_SEVEN_BIT_ADDRESS,
+                .writing      = true,
+                .repeating    = false,
+                .pointer      = (u8*) data_to_send,
+                .amount       = sizeof(u16) + register_data_length
+            };
 
-        for
-        (
-            i32 attempts = 0;
-            attempts < 16 && !success;
-            attempts += 1
-        )
+        for (b32 yield = false; !yield;)
         {
 
-            struct I2CDoJob job =
-                {
-                    .handle       = I2CHandle_ovcam_sccb,
-                    .address_type = I2CAddressType_seven,
-                    .address      = OVCAM_SEVEN_BIT_ADDRESS,
-                    .writing      = true,
-                    .repeating    = false,
-                    .pointer      = (u8*) data_to_send,
-                    .amount       = sizeof(u16) + amount_of_bytes_to_write
-                };
+            enum I2CDoResult result = I2C_do(&job);
 
-            enum I2CDoResult transfer_result = {0};
-            do transfer_result = I2C_do(&job); // TODO Clean up.
-            while (transfer_result == I2CDoResult_working);
-
-            switch (transfer_result)
+            switch (result)
             {
+
+                case I2CDoResult_working:
+                {
+                    FREERTOS_delay_ms(1); // We'll keep on spin-locking until the transfer is done...
+                } break;
 
                 case I2CDoResult_success:
                 {
-                    success = true;
+                    yield = true;
                 } break;
 
                 case I2CDoResult_no_acknowledge:
                 case I2CDoResult_clock_stretch_timeout:
+                case I2CDoResult_bus_misbehaved:
+                case I2CDoResult_watchdog_expired:
                 {
-                    // Something weird happened;
-                    // let's try the transfer again.
+                    return OVCAMReinitResult_failed_to_initialize_with_i2c;
                 } break;
 
-                case I2CDoResult_bus_misbehaved : sorry // TODO.
-                case I2CDoResult_watchdog_expired : sorry // TODO.
-
-                case I2CDoResult_working : bug; // OVCAM driver depends on a blocking I2C driver.
-                case I2CDoResult_bug     : bug;
-                default                  : bug;
+                case I2CDoResult_bug : bug;
+                default              : bug;
 
             }
 
         }
 
-        if (success)
-        {
-            sequence_offset += sizeof(u8) + sizeof(u16) + amount_of_bytes_to_write;
-        }
-        else
-        {
-            return OVCAMReinitResult_failed_to_initialize_with_i2c;
-        }
+        sequence_offset += sizeof(u8) + sizeof(u16) + register_data_length;
 
     }
 
