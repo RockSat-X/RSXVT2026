@@ -3,46 +3,41 @@
 #if TARGET_NAME_IS_DemoI2C
     static constexpr auto TIMEKEEPING_TIMER_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_TIM2EN_Pos), CONCAT(RCC_, APB1LENR_TIM2EN_Msk) };
     static constexpr auto TIMEKEEPING_DIVIDER      = STPY_TIM2_DIVIDER;
-    typedef u32 TIMEKEEPING_COUNTER_TYPE;
-    #define TIMEKEEPING_COUNTER() CMSIS_GET(TIM2, CNT, CNT)
-    #define TIMEKEEPING_TIMER_    TIM2_
-    #define TIMEKEEPING_TIMER     TIM2
+    #define TIMEKEEPING_microseconds() CMSIS_GET(TIM2, CNT, CNT)
+    #define TIMEKEEPING_TIMER_         TIM2_
+    #define TIMEKEEPING_TIMER          TIM2
 #endif
 #if TARGET_NAME_IS_DemoTimer
 #endif
 #if TARGET_NAME_IS_DemoTimekeeping
-    static constexpr auto TIMEKEEPING_TIMER_ENABLE = (struct CMSISTuple) { &RCC->APB2ENR, CONCAT(RCC_, APB2ENR_TIM1EN_Pos), CONCAT(RCC_, APB2ENR_TIM1EN_Msk) };
-    static constexpr auto TIMEKEEPING_DIVIDER      = STPY_TIM1_DIVIDER;
-    typedef u16 TIMEKEEPING_COUNTER_TYPE;
-    #define TIMEKEEPING_COUNTER() CMSIS_GET(TIM1, CNT, CNT)
-    #define TIMEKEEPING_TIMER_    TIM1_
-    #define TIMEKEEPING_TIMER     TIM1
+    static constexpr auto TIMEKEEPING_TIMER_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_TIM2EN_Pos), CONCAT(RCC_, APB1LENR_TIM2EN_Msk) };
+    static constexpr auto TIMEKEEPING_DIVIDER      = STPY_TIM2_DIVIDER;
+    #define TIMEKEEPING_microseconds() CMSIS_GET(TIM2, CNT, CNT)
+    #define TIMEKEEPING_TIMER_         TIM2_
+    #define TIMEKEEPING_TIMER          TIM2
 #endif
 #if TARGET_NAME_IS_DemoSDMMC
     static constexpr auto TIMEKEEPING_TIMER_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_TIM2EN_Pos), CONCAT(RCC_, APB1LENR_TIM2EN_Msk) };
     static constexpr auto TIMEKEEPING_DIVIDER      = STPY_TIM2_DIVIDER;
-    typedef u32 TIMEKEEPING_COUNTER_TYPE;
-    #define TIMEKEEPING_COUNTER() CMSIS_GET(TIM2, CNT, CNT)
-    #define TIMEKEEPING_TIMER_    TIM2_
-    #define TIMEKEEPING_TIMER     TIM2
+    #define TIMEKEEPING_microseconds() CMSIS_GET(TIM2, CNT, CNT)
+    #define TIMEKEEPING_TIMER_         TIM2_
+    #define TIMEKEEPING_TIMER          TIM2
 #endif
 #if TARGET_NAME_IS_MainFlightComputer
 #endif
 #if TARGET_NAME_IS_MainFlightComputer_NUCLEO
     static constexpr auto TIMEKEEPING_TIMER_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_TIM2EN_Pos), CONCAT(RCC_, APB1LENR_TIM2EN_Msk) };
     static constexpr auto TIMEKEEPING_DIVIDER      = STPY_TIM2_DIVIDER;
-    typedef u32 TIMEKEEPING_COUNTER_TYPE;
-    #define TIMEKEEPING_COUNTER() CMSIS_GET(TIM2, CNT, CNT)
-    #define TIMEKEEPING_TIMER_    TIM2_
-    #define TIMEKEEPING_TIMER     TIM2
+    #define TIMEKEEPING_microseconds() CMSIS_GET(TIM2, CNT, CNT)
+    #define TIMEKEEPING_TIMER_         TIM2_
+    #define TIMEKEEPING_TIMER          TIM2
 #endif
 #if TARGET_NAME_IS_VehicleFlightComputer_R1
     static constexpr auto TIMEKEEPING_TIMER_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_TIM2EN_Pos), CONCAT(RCC_, APB1LENR_TIM2EN_Msk) };
     static constexpr auto TIMEKEEPING_DIVIDER      = STPY_TIM2_DIVIDER;
-    typedef u32 TIMEKEEPING_COUNTER_TYPE;
-    #define TIMEKEEPING_COUNTER() CMSIS_GET(TIM2, CNT, CNT)
-    #define TIMEKEEPING_TIMER_    TIM2_
-    #define TIMEKEEPING_TIMER     TIM2
+    #define TIMEKEEPING_microseconds() CMSIS_GET(TIM2, CNT, CNT)
+    #define TIMEKEEPING_TIMER_         TIM2_
+    #define TIMEKEEPING_TIMER          TIM2
 #endif
 #if TARGET_NAME_IS_VehicleFlightComputer_R2
 #endif
@@ -53,10 +48,9 @@
 #if TARGET_NAME_IS_DemoOVCAM
     static constexpr auto TIMEKEEPING_TIMER_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_TIM2EN_Pos), CONCAT(RCC_, APB1LENR_TIM2EN_Msk) };
     static constexpr auto TIMEKEEPING_DIVIDER      = STPY_TIM2_DIVIDER;
-    typedef u32 TIMEKEEPING_COUNTER_TYPE;
-    #define TIMEKEEPING_COUNTER() CMSIS_GET(TIM2, CNT, CNT)
-    #define TIMEKEEPING_TIMER_    TIM2_
-    #define TIMEKEEPING_TIMER     TIM2
+    #define TIMEKEEPING_microseconds() CMSIS_GET(TIM2, CNT, CNT)
+    #define TIMEKEEPING_TIMER_         TIM2_
+    #define TIMEKEEPING_TIMER          TIM2
 #endif
 #if TARGET_NAME_IS_DemoAnalog
 #endif

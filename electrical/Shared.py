@@ -322,7 +322,7 @@ TARGETS = ( # @/`Defining Targets`.
             },
             {
                 'type'       : 'TIMEKEEPING',
-                'peripheral' : 'TIM1',
+                'peripheral' : 'TIM2',
             },
         ),
 
@@ -338,7 +338,7 @@ TARGETS = ( # @/`Defining Targets`.
             'APB2_CK'           : 250_000_000,
             'APB3_CK'           : 250_000_000,
             'USART2_BAUD'       : STLINK_BAUD,
-            'TIM1_COUNTER_RATE' : 1_000_000,
+            'TIM2_COUNTER_RATE' : 1_000_000,
         },
 
     ),

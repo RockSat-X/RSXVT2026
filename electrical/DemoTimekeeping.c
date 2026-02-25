@@ -10,23 +10,13 @@ main(void)
 
     ////////////////////////////////////////////////////////////////////////////////
     //
-    // Miscellaneous initialization.
+    // Initialize stuff.
     //
+
+
 
     STPY_init();
     UXART_init(UXARTHandle_stlink);
-
-
-
-    ////////////////////////////////////////////////////////////////////////////////
-    //
-    // As of right now, the timekeeping driver does not provide its own
-    // initialization routine. This is mainly because its initialization
-    // is closely connected to other timers (e.g. TIMPRE), so to make
-    // things perfectly clear, the steps to initializing timekeeping is
-    // spelled out rather than abstracted away. This design decision can
-    // be changed later if need be.
-    //
 
 
 
@@ -36,31 +26,9 @@ main(void)
 
 
 
-    // Enable the peripheral.
+    // Configure the other registers to get timekeeping up and going.
 
-    CMSIS_PUT(TIMEKEEPING_TIMER_ENABLE, true);
-
-
-
-    // Configure the divider to set the rate at
-    // which the timer's counter will increment.
-
-    CMSIS_SET(TIMEKEEPING_TIMER, PSC, PSC, TIMEKEEPING_DIVIDER);
-
-
-
-    // Trigger an update event so that the shadow registers
-    // are what we initialize them to be.
-    // The hardware uses shadow registers in order for updates
-    // to these registers not result in a corrupt timer output.
-
-    CMSIS_SET(TIMEKEEPING_TIMER, EGR, UG, true);
-
-
-
-    // Enable the timer's counter.
-
-    CMSIS_SET(TIMEKEEPING_TIMER, CR1, CEN, true);
+    TIMEKEEPING_partial_init();
 
 
 
@@ -69,8 +37,10 @@ main(void)
     // Demonstrate timekeeping.
     //
 
-    i32 halfperiod_i     = 0;
-    i32 halfperiods_us[] =
+
+
+    u32 halfperiod_i     = 0;
+    u32 halfperiods_us[] =
         {
             100,
             250,
@@ -96,7 +66,7 @@ main(void)
             halfperiod_i += 1;
             halfperiod_i %= countof(halfperiods_us);
 
-            stlink_tx("Period is now %d us...\n", halfperiods_us[halfperiod_i]);
+            stlink_tx("Period is now %d us...\n", 2 * halfperiods_us[halfperiod_i]);
 
         }
 
