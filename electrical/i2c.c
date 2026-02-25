@@ -1407,9 +1407,16 @@ _I2C_update_once(enum I2CHandle handle)
                     enum I2CSlaveHandleAddressMatchResult result = _I2C_slave_handle_address_match(handle, interrupt_status);
                     switch (result)
                     {
-                        case I2CSlaveHandleAddressMatchResult_okay : return I2CUpdateOnceResult_again;
-                        case I2CSlaveHandleAddressMatchResult_bug  : bug;
-                        default                                    : bug;
+
+                        case I2CSlaveHandleAddressMatchResult_okay:
+                        {
+                            I2Cx_CALLBACK.slave(I2CSlaveCallbackEvent_repeated_start_signaled, nullptr);
+                            return I2CUpdateOnceResult_again;
+                        } break;
+
+                        case I2CSlaveHandleAddressMatchResult_bug : bug;
+                        default                                   : bug;
+
                     }
                 } break;
 
@@ -1518,9 +1525,16 @@ _I2C_update_once(enum I2CHandle handle)
                     enum I2CSlaveHandleAddressMatchResult result = _I2C_slave_handle_address_match(handle, interrupt_status);
                     switch (result)
                     {
-                        case I2CSlaveHandleAddressMatchResult_okay : return I2CUpdateOnceResult_again;
-                        case I2CSlaveHandleAddressMatchResult_bug  : bug;
-                        default                                    : bug;
+
+                        case I2CSlaveHandleAddressMatchResult_okay:
+                        {
+                            I2Cx_CALLBACK.slave(I2CSlaveCallbackEvent_repeated_start_signaled, nullptr);
+                            return I2CUpdateOnceResult_again;
+                        } break;
+
+                        case I2CSlaveHandleAddressMatchResult_bug : bug;
+                        default                                   : bug;
+
                     }
                 } break;
 
