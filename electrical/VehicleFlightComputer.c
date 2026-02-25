@@ -1,4 +1,5 @@
 #include "system.h"
+#include "timekeeping.c"
 #include "uxart.c"
 #include "i2c.c"
 #include "spi.c"
@@ -6,7 +7,6 @@
 #include "filesystem.c"
 #include "stepper.c"
 #include "buzzer.c"
-#include "timekeeping.c"
 #include "matrix.c"
 
 
@@ -748,6 +748,7 @@ INTERRUPT_I2Cx_vehicle_interface(enum I2CSlaveCallbackEvent event, u8* data)
 
 
         case I2CSlaveCallbackEvent_bus_misbehaved : sorry // TODO.
+        case I2CSlaveCallbackEvent_watchdog_expired : sorry // TODO.
 
         case I2CSlaveCallbackEvent_clock_stretch_timeout : sorry
         case I2CSlaveCallbackEvent_bug                   : sorry

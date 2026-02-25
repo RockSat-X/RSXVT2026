@@ -549,6 +549,7 @@ OVCAM_reinit(void)
                 } break;
 
                 case I2CDoResult_bus_misbehaved : sorry // TODO.
+                case I2CDoResult_watchdog_expired : sorry // TODO.
 
                 case I2CDoResult_working : bug; // OVCAM driver depends on a blocking I2C driver.
                 case I2CDoResult_bug     : bug;

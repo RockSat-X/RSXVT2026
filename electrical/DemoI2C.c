@@ -1,4 +1,5 @@
 #include "system.h"
+#include "timekeeping.c"
 #include "uxart.c"
 #include "i2c.c"
 
@@ -41,6 +42,43 @@ main(void)
 
     STPY_init();
     UXART_init(UXARTHandle_stlink);
+
+    {
+
+        // Set the prescaler that'll affect all timers' kernel frequency.
+
+        CMSIS_SET(RCC, CFGR1, TIMPRE, STPY_GLOBAL_TIMER_PRESCALER);
+
+
+
+        // Enable the peripheral.
+
+        CMSIS_PUT(TIMEKEEPING_TIMER_ENABLE, true);
+
+
+
+        // Configure the divider to set the rate at
+        // which the timer's counter will increment.
+
+        CMSIS_SET(TIMEKEEPING_TIMER, PSC, PSC, TIMEKEEPING_DIVIDER);
+
+
+
+        // Trigger an update event so that the shadow registers
+        // are what we initialize them to be.
+        // The hardware uses shadow registers in order for updates
+        // to these registers not result in a corrupt timer output.
+
+        CMSIS_SET(TIMEKEEPING_TIMER, EGR, UG, true);
+
+
+
+        // Enable the timer's counter.
+
+        CMSIS_SET(TIMEKEEPING_TIMER, CR1, CEN, true);
+
+    }
+
     reinitialize_i2c_driver(I2CHandle_queen);
     reinitialize_i2c_driver(I2CHandle_bee);
 
@@ -170,6 +208,19 @@ main(void)
                                 yield = true;
                             } break;
 
+                            case I2CDoResult_watchdog_expired:
+                            {
+                                stlink_tx
+                                (
+                                    ">"                  "\n"
+                                    "> Queen timed out!" "\n"
+                                    ">"                  "\n"
+                                );
+                                reinitialize_i2c_driver(I2CHandle_queen);
+                                spinlock_nop(1'000'000);
+                                yield = true;
+                            } break;
+
                             case I2CDoResult_bug : sorry
                             default              : sorry
 
@@ -280,6 +331,19 @@ main(void)
                                 yield = true;
                             } break;
 
+                            case I2CDoResult_watchdog_expired:
+                            {
+                                stlink_tx
+                                (
+                                    ">"                  "\n"
+                                    "> Queen timed out!" "\n"
+                                    ">"                  "\n"
+                                );
+                                reinitialize_i2c_driver(I2CHandle_queen);
+                                spinlock_nop(1'000'000);
+                                yield = true;
+                            } break;
+
                             case I2CDoResult_bug : sorry
                             default              : sorry
 
@@ -358,6 +422,19 @@ main(void)
                                     ">"                                "\n"
                                     "> Queen experienced a bus error!" "\n"
                                     ">"                                "\n"
+                                );
+                                reinitialize_i2c_driver(I2CHandle_queen);
+                                spinlock_nop(1'000'000);
+                                yield = true;
+                            } break;
+
+                            case I2CDoResult_watchdog_expired:
+                            {
+                                stlink_tx
+                                (
+                                    ">"                  "\n"
+                                    "> Queen timed out!" "\n"
+                                    ">"                  "\n"
                                 );
                                 reinitialize_i2c_driver(I2CHandle_queen);
                                 spinlock_nop(1'000'000);
@@ -527,6 +604,17 @@ INTERRUPT_I2Cx_bee(enum I2CSlaveCallbackEvent event, u8* data)
             spinlock_nop(1'000'000);
         } break;
 
+        case I2CSlaveCallbackEvent_watchdog_expired:
+        {
+            stlink_tx
+            (
+                ">"                "\n"
+                "> Bee timed out!" "\n"
+                ">"                "\n"
+            );
+            reinitialize_i2c_driver(I2CHandle_bee);
+            spinlock_nop(1'000'000);
+        } break;
 
         case I2CSlaveCallbackEvent_bug : sorry
         default                        : sorry

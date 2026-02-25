@@ -4,9 +4,9 @@
 #define OVCAM_TIMEOUT_US 10'000'000
 
 #include "system.h"
+#include "timekeeping.c"
 #include "uxart.c"
 #include "i2c.c"
-#include "timekeeping.c"
 #include "ovcam.c"
 
 

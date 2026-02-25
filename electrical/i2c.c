@@ -12,6 +12,7 @@ enum I2CSlaveCallbackEvent : u32
     I2CSlaveCallbackEvent_repeated_start_signaled,
     I2CSlaveCallbackEvent_clock_stretch_timeout,
     I2CSlaveCallbackEvent_bus_misbehaved,
+    I2CSlaveCallbackEvent_watchdog_expired,
     I2CSlaveCallbackEvent_bug,
 };
 
@@ -62,21 +63,22 @@ union I2CCallback
         common_name = 'I2Cx',
         expansions  = (('driver', '&_I2C_drivers[handle]'),),
         terms       = lambda target, type, peripheral, handle, mode, address = 0: (
-            ('{}_DRIVER_MODE'           , 'expression' , f'I2CDriverMode_{mode}'    ),
-            ('{}_SLAVE_ADDRESS'         , 'expression' , f'((u16) 0x{address :03X})'),
-            ('{}'                       , 'expression' ,                            ),
-            ('NVICInterrupt_{}_EV'      , 'expression' ,                            ),
-            ('NVICInterrupt_{}_ER'      , 'expression' ,                            ),
-            ('STPY_{}_KERNEL_SOURCE'    , 'expression' ,                            ),
-            ('STPY_{}_PRESC'            , 'expression' ,                            ),
-            ('STPY_{}_SCLH'             , 'expression' ,                            ),
-            ('STPY_{}_SCLL'             , 'expression' ,                            ),
-            ('STPY_{}_TIMEOUTR_TIMEOUTA', 'expression' ,                            ),
-            ('{}_RESET'                 , 'cmsis_tuple',                            ),
-            ('{}_ENABLE'                , 'cmsis_tuple',                            ),
-            ('{}_KERNEL_SOURCE'         , 'cmsis_tuple',                            ),
-            ('{}_EV'                    , 'interrupt'  ,                            ),
-            ('{}_ER'                    , 'interrupt'  ,                            ),
+            ('{}_DRIVER_MODE'           , 'expression' , f'I2CDriverMode_{mode}'                                        ),
+            ('{}_SLAVE_ADDRESS'         , 'expression' , f'((u16) 0x{address :03X})'                                    ),
+            ('{}'                       , 'expression' ,                                                                ),
+            ('NVICInterrupt_{}_EV'      , 'expression' ,                                                                ),
+            ('NVICInterrupt_{}_ER'      , 'expression' ,                                                                ),
+            ('STPY_{}_KERNEL_SOURCE'    , 'expression' ,                                                                ),
+            ('STPY_{}_PRESC'            , 'expression' ,                                                                ),
+            ('STPY_{}_SCLH'             , 'expression' ,                                                                ),
+            ('STPY_{}_SCLL'             , 'expression' ,                                                                ),
+            ('STPY_{}_TIMEOUTR_TIMEOUTA', 'expression' ,                                                                ),
+            ('{}_WATCHDOG_DURATION_US'  , 'expression' , f'{round(target.schema[f'{peripheral}_TIMEOUT'] * 1_000_000)}U'),
+            ('{}_RESET'                 , 'cmsis_tuple',                                                                ),
+            ('{}_ENABLE'                , 'cmsis_tuple',                                                                ),
+            ('{}_KERNEL_SOURCE'         , 'cmsis_tuple',                                                                ),
+            ('{}_EV'                    , 'interrupt'  ,                                                                ),
+            ('{}_ER'                    , 'interrupt'  ,                                                                ),
             ('{}_CALLBACK'              , 'expression' ,
                 f'(union I2CCallback) {{ {
                     f'&INTERRUPT_I2Cx_{handle}'
@@ -124,6 +126,7 @@ enum I2CMasterState : u32
     I2CMasterState_stopping,
     I2CMasterState_job_attempted,
     I2CMasterState_bus_misbehaved,
+    I2CMasterState_watchdog_expired,
 };
 
 enum I2CSlaveState : u32
@@ -134,6 +137,7 @@ enum I2CSlaveState : u32
     I2CSlaveState_sending_data,
     I2CSlaveState_ending_transfer,
     I2CSlaveState_bus_misbehaved,
+    I2CSlaveState_watchdog_expired,
 };
 
 enum I2CMasterError : u32
@@ -176,6 +180,7 @@ struct I2CDoJob
 
 struct I2CDriver
 {
+
     union
     {
         struct I2CDriverMaster
@@ -196,6 +201,9 @@ struct I2CDriver
             enum I2CSlaveState state;
         } slave;
     };
+
+    u32 watchdog_timestamp_us;
+
 };
 
 static struct I2CDriver _I2C_drivers[I2CHandle_COUNT] = {0};
@@ -313,12 +321,14 @@ I2C_reinit(enum I2CHandle handle)
 
         case I2CDriverMode_master:
         {
+
             atomic_store_explicit
             (
                 &driver->master.atomic_state,
                 I2CMasterState_standby,
                 memory_order_relaxed // No synchronization needed.
             );
+
         } break;
 
         case I2CDriverMode_slave:
@@ -329,6 +339,8 @@ I2C_reinit(enum I2CHandle handle)
         default: bug;
 
     }
+
+    driver->watchdog_timestamp_us = TIMEKEEPING_COUNTER(); // TODO.
 
     NVIC_ENABLE(I2Cx_EV);
     NVIC_ENABLE(I2Cx_ER);
@@ -346,6 +358,7 @@ static useret enum I2CDoResult : u32
     I2CDoResult_clock_stretch_timeout,
     I2CDoResult_working,
     I2CDoResult_bus_misbehaved,
+    I2CDoResult_watchdog_expired,
     I2CDoResult_bug = BUG_CODE,
 }
 I2C_do(struct I2CDoJob* job)
@@ -436,13 +449,14 @@ I2C_do(struct I2CDoJob* job)
 
             } break;
 
-            case I2CMasterState_bus_misbehaved : return I2CDoResult_bus_misbehaved;
-            case I2CMasterState_disabled       : bug; // User needs to reinitialize the driver...
-            case I2CMasterState_scheduled_job  : bug; // The I2C driver shouldn't be busy with another job...
-            case I2CMasterState_transferring   : bug; // "
-            case I2CMasterState_stopping       : bug; // "
-            case I2CMasterState_job_attempted  : bug; // User didn't let the previous job conclude properly..?
-            default                            : bug;
+            case I2CMasterState_bus_misbehaved   : return I2CDoResult_bus_misbehaved;
+            case I2CMasterState_watchdog_expired : return I2CDoResult_watchdog_expired;
+            case I2CMasterState_disabled         : bug; // User needs to reinitialize the driver...
+            case I2CMasterState_scheduled_job    : bug; // The I2C driver shouldn't be busy with another job...
+            case I2CMasterState_transferring     : bug; // "
+            case I2CMasterState_stopping         : bug; // "
+            case I2CMasterState_job_attempted    : bug; // User didn't let the previous job conclude properly..?
+            default                              : bug;
 
         } break;
 
@@ -499,15 +513,17 @@ I2C_do(struct I2CDoJob* job)
                 case I2CMasterState_transferring:
                 case I2CMasterState_stopping:
                 {
+                    NVIC_SET_PENDING(I2Cx_EV);
                     return I2CDoResult_working;
                 } break;
 
 
 
-                case I2CMasterState_bus_misbehaved : return I2CDoResult_bus_misbehaved;
-                case I2CMasterState_disabled       : bug; // User needs to reinitialize the driver...
-                case I2CMasterState_standby        : bug; // The driver should've been working on the job...
-                default                            : bug;
+                case I2CMasterState_bus_misbehaved   : return I2CDoResult_bus_misbehaved;
+                case I2CMasterState_watchdog_expired : return I2CDoResult_watchdog_expired;
+                case I2CMasterState_disabled         : bug; // User needs to reinitialize the driver...
+                case I2CMasterState_standby          : bug; // The driver should've been working on the job...
+                default                              : bug;
 
             }
 
@@ -564,11 +580,28 @@ _I2C_slave_handle_address_match(enum I2CHandle handle, u32 interrupt_status)
 
 
 
+static b32
+_I2C_watchdog_expired(enum I2CHandle handle)
+{
+
+    _EXPAND_HANDLE
+
+    u32 current_timestamp_us = TIMEKEEPING_COUNTER();
+    u32 elapsed_us           = current_timestamp_us - driver->watchdog_timestamp_us;
+    b32 expired              = elapsed_us >= (TIMEKEEPING_COUNTER_TYPE) { I2Cx_WATCHDOG_DURATION_US };
+
+    return expired;
+
+}
+
+
+
 static useret enum I2CUpdateOnceResult : u32
 {
     I2CUpdateOnceResult_again,
     I2CUpdateOnceResult_yield,
     I2CUpdateOnceResult_bus_misbehaved,
+    I2CUpdateOnceResult_watchdog_expired,
     I2CUpdateOnceResult_bug = BUG_CODE,
 }
 _I2C_update_once(enum I2CHandle handle)
@@ -913,7 +946,14 @@ _I2C_update_once(enum I2CHandle handle)
                     if (driver->master.error)
                         bug; // No reason for an error already...
 
-                    return I2CUpdateOnceResult_yield;
+                    if (_I2C_watchdog_expired(handle))
+                    {
+                        return I2CUpdateOnceResult_watchdog_expired;
+                    }
+                    else
+                    {
+                        return I2CUpdateOnceResult_yield;
+                    }
 
                 } break;
 
@@ -1114,7 +1154,14 @@ _I2C_update_once(enum I2CHandle handle)
 
                 case I2CInterruptEvent_none:
                 {
-                    return I2CUpdateOnceResult_yield;
+                    if (_I2C_watchdog_expired(handle))
+                    {
+                        return I2CUpdateOnceResult_watchdog_expired;
+                    }
+                    else
+                    {
+                        return I2CUpdateOnceResult_yield;
+                    }
                 } break;
 
 
@@ -1197,15 +1244,10 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-            case I2CMasterState_bus_misbehaved:
-            {
-                return I2CUpdateOnceResult_bus_misbehaved; // I2C driver stuck in this error condition...
-            } break;
-
-
-
-            case I2CMasterState_disabled : bug;
-            default                      : bug;
+            case I2CMasterState_bus_misbehaved   : return I2CUpdateOnceResult_bus_misbehaved;
+            case I2CMasterState_watchdog_expired : return I2CUpdateOnceResult_watchdog_expired;
+            case I2CMasterState_disabled         : bug;
+            default                              : bug;
 
         } break;
 
@@ -1255,7 +1297,7 @@ _I2C_update_once(enum I2CHandle handle)
 
                 case I2CInterruptEvent_clock_stretch_timeout:
                 {
-                    return I2CUpdateOnceResult_bus_misbehaved;
+                    return I2CUpdateOnceResult_bus_misbehaved; // TODO.
                 } break;
 
 
@@ -1282,7 +1324,14 @@ _I2C_update_once(enum I2CHandle handle)
 
                 case I2CInterruptEvent_none:
                 {
-                    return I2CUpdateOnceResult_yield;
+                    if (_I2C_watchdog_expired(handle))
+                    {
+                        return I2CUpdateOnceResult_watchdog_expired;
+                    }
+                    else
+                    {
+                        return I2CUpdateOnceResult_yield;
+                    }
                 } break;
 
 
@@ -1386,7 +1435,14 @@ _I2C_update_once(enum I2CHandle handle)
 
                 case I2CInterruptEvent_none:
                 {
-                    return I2CUpdateOnceResult_yield;
+                    if (_I2C_watchdog_expired(handle))
+                    {
+                        return I2CUpdateOnceResult_watchdog_expired;
+                    }
+                    else
+                    {
+                        return I2CUpdateOnceResult_yield;
+                    }
                 } break;
 
 
@@ -1491,7 +1547,14 @@ _I2C_update_once(enum I2CHandle handle)
 
                 case I2CInterruptEvent_none:
                 {
-                    return I2CUpdateOnceResult_yield;
+                    if (_I2C_watchdog_expired(handle))
+                    {
+                        return I2CUpdateOnceResult_watchdog_expired;
+                    }
+                    else
+                    {
+                        return I2CUpdateOnceResult_yield;
+                    }
                 } break;
 
 
@@ -1560,15 +1623,10 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-            case I2CSlaveState_bus_misbehaved:
-            {
-                return I2CUpdateOnceResult_bus_misbehaved; // I2C driver stuck in this error condition...
-            } break;
-
-
-
-            case I2CSlaveState_disabled : bug; // User needs to reinitialize the I2C driver.
-            default                     : bug;
+            case I2CSlaveState_bus_misbehaved   : return I2CUpdateOnceResult_bus_misbehaved;
+            case I2CSlaveState_watchdog_expired : return I2CUpdateOnceResult_watchdog_expired;
+            case I2CSlaveState_disabled         : bug; // User needs to reinitialize the I2C driver.
+            default                             : bug;
 
         } break;
 
@@ -1600,14 +1658,14 @@ _I2C_driver_interrupt(enum I2CHandle handle)
 
             case I2CUpdateOnceResult_again:
             {
-                // The state-machine should be updated again.
+                driver->watchdog_timestamp_us = TIMEKEEPING_COUNTER(); // TODO.
             } break;
 
 
 
             case I2CUpdateOnceResult_yield:
             {
-                yield = true; // We can stop updating the state-machine for now.
+                yield = true;
             } break;
 
 
@@ -1635,6 +1693,41 @@ _I2C_driver_interrupt(enum I2CHandle handle)
                     {
                         driver->slave.state = I2CSlaveState_bus_misbehaved;
                         I2Cx_CALLBACK.slave(I2CSlaveCallbackEvent_bus_misbehaved, nullptr);
+                    } break;
+
+                    default: goto BUG;
+
+                }
+
+                yield = true;
+
+            } break;
+
+
+
+            case I2CUpdateOnceResult_watchdog_expired: // @/`I2C Watchdog`.
+            {
+
+                NVIC_DISABLE(I2Cx_EV);
+                NVIC_DISABLE(I2Cx_ER);
+
+                switch (I2Cx_DRIVER_MODE)
+                {
+
+                    case I2CDriverMode_master:
+                    {
+                        atomic_store_explicit
+                        (
+                            &driver->master.atomic_state,
+                            I2CMasterState_watchdog_expired,
+                            memory_order_relaxed // No synchronization needed.
+                        );
+                    } break;
+
+                    case I2CDriverMode_slave:
+                    {
+                        driver->slave.state = I2CSlaveState_watchdog_expired;
+                        I2Cx_CALLBACK.slave(I2CSlaveCallbackEvent_watchdog_expired, nullptr);
                     } break;
 
                     default: goto BUG;
@@ -1801,3 +1894,27 @@ _I2C_driver_interrupt(enum I2CHandle handle)
 // really, the user should not use I2C for anything that requires such high
 // read/write performance. Just as of writing, it's not worth the complication
 // of introducing DMA coordination here.
+
+
+
+// @/`I2C Watchdog`:
+//
+// When the master is reading data from the slave, the master is controlling the
+// clock line and the slave is controlling the data line. The master can pull the
+// clock line low to indicate to the slave that it should update the data line,
+// and the once the clock signal goes high, the rising edge is when the master
+// samples the data bit from the slave.
+//
+// However, if the master and slave are out-of-sync, a deadlock can occur.
+//
+// Specifically, if the slave is pulling the data signal low (because the previous
+// bit it sent was a zero), it's then waiting for the next falling edge of the clock
+// signal (to be pulled low by the master) to update the data signal. But if the
+// master is attempting to do a STOP condition (which is a rising edge on SDA when
+// SCK is high), this will never happen, because again, the slave is holding SDA low
+// until the next falling edge of SCK.
+//
+// This deadlock condition is unlikely to occur, as it requires the I2C bus to be
+// heavily tampered with (e.g. purposely disconnecting the connection and reconnecting).
+// Nonetheless, the I2C peripheral does not provide a time-out condition for this,
+// so we have to implement a watchdog ourselves to reliably detect this deadlock.

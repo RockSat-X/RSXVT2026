@@ -774,6 +774,15 @@
         #define STPY_I2C2_SCLL 250
         #define STPY_I2C2_TIMEOUTR_TIMEOUTA 3905
 
+
+
+        /////////////////////////////////// Timers ///////////////////////////////////
+
+
+
+        #define STPY_GLOBAL_TIMER_PRESCALER false
+        #define STPY_TIM2_DIVIDER (250 - 1)
+
     }
     #define STPY_0             (          0)
     #define STPY_CPU_CK        (250'000'000)
@@ -2362,6 +2371,15 @@
         #define STPY_I2C1_SCLH 200
         #define STPY_I2C1_SCLL 200
         #define STPY_I2C1_TIMEOUTR_TIMEOUTA 3905
+
+
+
+        /////////////////////////////////// Timers ///////////////////////////////////
+
+
+
+        #define STPY_GLOBAL_TIMER_PRESCALER false
+        #define STPY_TIM2_DIVIDER (250 - 1)
 
     }
     #define STPY_0             (          0)
