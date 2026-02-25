@@ -13,14 +13,11 @@ static void
 reinitialize_i2c_driver(enum I2CHandle handle)
 {
 
-    // When the I2C driver encounters an issue,
-    // it quickly goes into a bugged state
-    // where nothing can be done until the driver
-    // is completely reinitialized.
+    // When the I2C driver encounters an issue, it quickly goes into a bugged state
+    // where nothing can be done until the driver is completely reinitialized.
     //
-    // This could be due to a bug within the driver code,
-    // or the user passing in invalid parameters, or
-    // some sort of unexpected error on the I2C bus clock
+    // This could be due to a bug within the driver code, or the user passing in
+    // invalid parameters, or some sort of unexpected error on the I2C bus clock
     // and data lines.
 
     enum I2CReinitResult result = I2C_reinit(handle);
@@ -32,6 +29,51 @@ reinitialize_i2c_driver(enum I2CHandle handle)
         default                      : sorry
     }
 
+}
+
+
+
+static b32 // Success?
+queen_do(struct I2CDoJob job)
+{
+    while (true)
+    {
+
+        enum I2CDoResult result = {0};
+
+        do
+        {
+            result = I2C_do(&job);
+        }
+        while (result == I2CDoResult_working); // Spinlock until the job's done.
+
+        switch (result)
+        {
+            case I2CDoResult_success               : break;
+            case I2CDoResult_no_acknowledge        : stlink_tx("[Queen] (0x%03X) no_acknowledge"        "\n", job.address); break;
+            case I2CDoResult_clock_stretch_timeout : stlink_tx("[Queen] (0x%03X) clock_stretch_timeout" "\n", job.address); break;
+            case I2CDoResult_bus_misbehaved        : stlink_tx("[Queen] (0x%03X) bus_misbehaved"        "\n", job.address); break;
+            case I2CDoResult_watchdog_expired      : stlink_tx("[Queen] (0x%03X) watchdog_expired"      "\n", job.address); break;
+            case I2CDoResult_working               : sorry
+            case I2CDoResult_bug                   : sorry
+            default                                : sorry
+        }
+
+        if (result == I2CDoResult_success)
+        {
+            return true;
+        }
+        else if (result == I2CDoResult_no_acknowledge)
+        {
+            return false;
+        }
+        else
+        {
+            reinitialize_i2c_driver(job.handle); // Other errors are fatal and must have the driver be reinitialized.
+            return false;
+        }
+
+    }
 }
 
 
@@ -145,87 +187,24 @@ main(void)
                     // We try to read a single byte from the slave at the
                     // current slave address to see if we get an acknowledge.
 
-                    struct I2CDoJob job =
-                        {
-                            .handle       = I2CHandle_queen,
-                            .address_type = address_type,
-                            .address      = slave_address,
-                            .writing      = false,
-                            .repeating    = false,
-                            .pointer      = &(u8) {0},
-                            .amount       = 1,
-                        };
+                    b32 success =
+                        queen_do
+                        (
+                            (struct I2CDoJob)
+                            {
+                                .handle       = I2CHandle_queen,
+                                .address_type = address_type,
+                                .address      = slave_address,
+                                .writing      = false,
+                                .repeating    = false,
+                                .pointer      = &(u8) {0},
+                                .amount       = 1,
+                            }
+                        );
 
-
-                    for (b32 yield = false; !yield;)
+                    if (!success)
                     {
-
-                        enum I2CDoResult result = I2C_do(&job);
-
-                        switch (result)
-                        {
-
-                            case I2CDoResult_working:
-                            {
-                                // The I2C transfer is still being carried out...
-                            } break;
-
-                            case I2CDoResult_success:
-                            {
-                                stlink_tx("Slave 0x%03X acknowledged!\n", slave_address);
-                                yield = true;
-                            } break;
-
-                            case I2CDoResult_no_acknowledge:
-                            {
-                                stlink_tx("Slave 0x%03X didn't acknowledge!\n", slave_address);
-                                yield = true;
-                            } break;
-
-                            case I2CDoResult_clock_stretch_timeout:
-                            {
-                                stlink_tx
-                                (
-                                    ">"                                             "\n"
-                                    "> Queen saw the clock stretched for too long!" "\n"
-                                    ">"                                             "\n"
-                                );
-                                reinitialize_i2c_driver(I2CHandle_queen);
-                                spinlock_nop(1'000'000);
-                                yield = true;
-                            } break;
-
-                            case I2CDoResult_bus_misbehaved:
-                            {
-                                stlink_tx
-                                (
-                                    ">"                                "\n"
-                                    "> Queen experienced a bus error!" "\n"
-                                    ">"                                "\n"
-                                );
-                                reinitialize_i2c_driver(I2CHandle_queen);
-                                spinlock_nop(1'000'000);
-                                yield = true;
-                            } break;
-
-                            case I2CDoResult_watchdog_expired:
-                            {
-                                stlink_tx
-                                (
-                                    ">"                  "\n"
-                                    "> Queen timed out!" "\n"
-                                    ">"                  "\n"
-                                );
-                                reinitialize_i2c_driver(I2CHandle_queen);
-                                spinlock_nop(1'000'000);
-                                yield = true;
-                            } break;
-
-                            case I2CDoResult_bug : sorry
-                            default              : sorry
-
-                        }
-
+                        spinlock_nop(1'000'000);
                     }
 
 
@@ -264,196 +243,74 @@ main(void)
             {
 
                 stlink_tx("Queen : writing to bee...\n");
-
                 {
 
                     char message[] = "Doing taxes suck!";
 
-                    struct I2CDoJob job =
-                        {
-                            .handle       = I2CHandle_queen,
-                            .address_type = I2CAddressType_seven,
-                            .address      = I2C_TABLE[I2CHandle_bee].I2Cx_SLAVE_ADDRESS,
-                            .writing      = true,
-                            .repeating    = true,
-                            .pointer      = (u8*) message,
-                            .amount       = sizeof(message) - 1
-                        };
+                    b32 success =
+                        queen_do
+                        (
+                            (struct I2CDoJob)
+                            {
+                                .handle       = I2CHandle_queen,
+                                .address_type = I2CAddressType_seven,
+                                .address      = I2C_TABLE[I2CHandle_bee].I2Cx_SLAVE_ADDRESS,
+                                .writing      = true,
+                                .repeating    = true,
+                                .pointer      = (u8*) message,
+                                .amount       = sizeof(message) - 1,
+                            }
+                        );
 
-                    for (b32 yield = false; !yield;)
+                    if (success)
                     {
-
-                        enum I2CDoResult result = I2C_do(&job);
-
-                        switch (result)
-                        {
-
-                            case I2CDoResult_working:
-                            {
-                                // The I2C transfer is still being carried out...
-                            } break;
-
-                            case I2CDoResult_success:
-                            {
-                                stlink_tx("Queen : transmission successful!\n");
-                                yield = true;
-                            } break;
-
-                            case I2CDoResult_no_acknowledge:
-                            {
-                                stlink_tx("Queen : transmission failed!\n");
-                                yield = true;
-                            } break;
-
-                            case I2CDoResult_clock_stretch_timeout:
-                            {
-                                stlink_tx
-                                (
-                                    ">"                                             "\n"
-                                    "> Queen saw the clock stretched for too long!" "\n"
-                                    ">"                                             "\n"
-                                );
-                                reinitialize_i2c_driver(I2CHandle_queen);
-                                spinlock_nop(1'000'000);
-                                yield = true;
-                            } break;
-
-                            case I2CDoResult_bus_misbehaved:
-                            {
-                                stlink_tx
-                                (
-                                    ">"                                "\n"
-                                    "> Queen experienced a bus error!" "\n"
-                                    ">"                                "\n"
-                                );
-                                reinitialize_i2c_driver(I2CHandle_queen);
-                                spinlock_nop(1'000'000);
-                                yield = true;
-                            } break;
-
-                            case I2CDoResult_watchdog_expired:
-                            {
-                                stlink_tx
-                                (
-                                    ">"                  "\n"
-                                    "> Queen timed out!" "\n"
-                                    ">"                  "\n"
-                                );
-                                reinitialize_i2c_driver(I2CHandle_queen);
-                                spinlock_nop(1'000'000);
-                                yield = true;
-                            } break;
-
-                            case I2CDoResult_bug : sorry
-                            default              : sorry
-
-                        }
-
+                        stlink_tx("Queen : transmission successful!\n");
+                    }
+                    else
+                    {
+                        spinlock_nop(1'000'000);
                     }
 
                     GPIO_TOGGLE(led_green);
-                    spinlock_nop(300'000'000);
+                    spinlock_nop(500'000);
 
                 }
-
                 stlink_tx("\n");
 
-
-
                 stlink_tx("Queen : reading from bee...\n");
-
                 {
 
                     char response[24] = {0};
 
-                    struct I2CDoJob job =
-                        {
-                            .handle       = I2CHandle_queen,
-                            .address_type = I2CAddressType_seven,
-                            .address      = I2C_TABLE[I2CHandle_bee].I2Cx_SLAVE_ADDRESS,
-                            .writing      = false,
-                            .repeating    = true,
-                            .pointer      = (u8*) response,
-                            .amount       = sizeof(response)
-                        };
+                    b32 success =
+                        queen_do
+                        (
+                            (struct I2CDoJob)
+                            {
+                                .handle       = I2CHandle_queen,
+                                .address_type = I2CAddressType_seven,
+                                .address      = I2C_TABLE[I2CHandle_bee].I2Cx_SLAVE_ADDRESS,
+                                .writing      = false,
+                                .repeating    = true,
+                                .pointer      = (u8*) response,
+                                .amount       = sizeof(response),
+                            }
+                        );
 
-                    for (b32 yield = false; !yield;)
+                    if (success)
                     {
-
-                        enum I2CDoResult result = I2C_do(&job);
-
-                        switch (result)
-                        {
-
-                            case I2CDoResult_working:
-                            {
-                                // The I2C transfer is still being carried out...
-                            } break;
-
-                            case I2CDoResult_success:
-                            {
-                                stlink_tx("Queen : reception successful! : `%.*s`\n", sizeof(response), response);
-                                yield = true;
-                            } break;
-
-                            case I2CDoResult_no_acknowledge:
-                            {
-                                stlink_tx("Queen : reception failed!\n");
-                                yield = true;
-                            } break;
-
-                            case I2CDoResult_clock_stretch_timeout:
-                            {
-                                stlink_tx
-                                (
-                                    ">"                                             "\n"
-                                    "> Queen saw the clock stretched for too long!" "\n"
-                                    ">"                                             "\n"
-                                );
-                                reinitialize_i2c_driver(I2CHandle_queen);
-                                spinlock_nop(1'000'000);
-                                yield = true;
-                            } break;
-
-                            case I2CDoResult_bus_misbehaved:
-                            {
-                                stlink_tx
-                                (
-                                    ">"                                "\n"
-                                    "> Queen experienced a bus error!" "\n"
-                                    ">"                                "\n"
-                                );
-                                reinitialize_i2c_driver(I2CHandle_queen);
-                                spinlock_nop(1'000'000);
-                                yield = true;
-                            } break;
-
-                            case I2CDoResult_watchdog_expired:
-                            {
-                                stlink_tx
-                                (
-                                    ">"                  "\n"
-                                    "> Queen timed out!" "\n"
-                                    ">"                  "\n"
-                                );
-                                reinitialize_i2c_driver(I2CHandle_queen);
-                                spinlock_nop(1'000'000);
-                                yield = true;
-                            } break;
-
-                            case I2CDoResult_bug : sorry
-                            default              : sorry
-
-                        }
-
+                        stlink_tx("Queen : reception successful! : `%.*s`\n", sizeof(response), response);
+                    }
+                    else
+                    {
+                        spinlock_nop(1'000'000);
                     }
 
                     GPIO_TOGGLE(led_green);
-                    spinlock_nop(300'000'000);
+                    spinlock_nop(200'000'000);
 
                 }
-
-                stlink_tx("\n");
+                stlink_tx("\n\n\n");
 
             }
 
@@ -496,7 +353,14 @@ INTERRUPT_I2Cx_bee(enum I2CSlaveCallbackEvent event, u8* data)
 
         case I2CSlaveCallbackEvent_data_available_to_read:
         {
-            stlink_tx("Bee   : got byte : `%c`\n", *data);
+            if (32 <= *data && *data <= 126)
+            {
+                stlink_tx("Bee   : got byte : `%c`\n", *data);
+            }
+            else
+            {
+                stlink_tx("Bee   : got byte : 0x%02X\n", *data);
+            }
         } break;
 
 
@@ -547,12 +411,9 @@ INTERRUPT_I2Cx_bee(enum I2CSlaveCallbackEvent event, u8* data)
 
         case I2CSlaveCallbackEvent_stop_signaled:
         {
-
             stlink_tx("Bee   : stop detected\n");
-
             reply_index  = 0;
             stop_count  += 1;
-
         } break;
 
 
@@ -564,12 +425,9 @@ INTERRUPT_I2Cx_bee(enum I2CSlaveCallbackEvent event, u8* data)
 
         case I2CSlaveCallbackEvent_repeated_start_signaled:
         {
-
             stlink_tx("Bee   : repeated start detected\n");
-
             reply_index  = 0;
             stop_count  += 1;
-
         } break;
 
 
@@ -579,41 +437,15 @@ INTERRUPT_I2Cx_bee(enum I2CSlaveCallbackEvent event, u8* data)
         // The I2C driver needs to be reinitialized due to an issue.
         //
 
-        case I2CSlaveCallbackEvent_clock_stretch_timeout:
         {
-            stlink_tx
-            (
-                ">"                                           "\n"
-                "> Bee saw the clock stretched for too long!" "\n"
-                ">"                                           "\n"
-            );
+            case I2CSlaveCallbackEvent_clock_stretch_timeout : stlink_tx("[Bee] clock_stretch_timeout" "\n"); goto ERROR;
+            case I2CSlaveCallbackEvent_bus_misbehaved        : stlink_tx("[Bee] bus_misbehaved"        "\n"); goto ERROR;
+            case I2CSlaveCallbackEvent_watchdog_expired      : stlink_tx("[Bee] watchdog_expired"      "\n"); goto ERROR;
+            ERROR:;
+
             reinitialize_i2c_driver(I2CHandle_bee);
             spinlock_nop(1'000'000);
-        } break;
 
-
-        case I2CSlaveCallbackEvent_bus_misbehaved:
-        {
-            stlink_tx
-            (
-                ">"                              "\n"
-                "> Bee experienced a bus error!" "\n"
-                ">"                              "\n"
-            );
-            reinitialize_i2c_driver(I2CHandle_bee);
-            spinlock_nop(1'000'000);
-        } break;
-
-        case I2CSlaveCallbackEvent_watchdog_expired:
-        {
-            stlink_tx
-            (
-                ">"                "\n"
-                "> Bee timed out!" "\n"
-                ">"                "\n"
-            );
-            reinitialize_i2c_driver(I2CHandle_bee);
-            spinlock_nop(1'000'000);
         } break;
 
         case I2CSlaveCallbackEvent_bug : sorry
