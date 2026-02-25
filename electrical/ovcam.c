@@ -1,6 +1,9 @@
+#ifndef OVCAM_TIMEOUT_US
+#define OVCAM_TIMEOUT_US 1'000'000
+#endif
+
 #define OVCAM_SEVEN_BIT_ADDRESS 0x3C
 #define OVCAM_FRAMEBUFFER_SIZE  (100 * 1024) // @/`OVCAM DMA Block Repetitions`.
-#define OVCAM_TIMEOUT_US        5'000'000    // TODO This could be set lower, but TV register writes may cause a time-out.
 
 
 
@@ -515,35 +518,42 @@ OVCAM_reinit(void)
         )
         {
 
-            enum I2CTransferResult i2c_transfer_result =
-                I2C_transfer
-                (
-                    I2CHandle_ovcam_sccb,
-                    OVCAM_SEVEN_BIT_ADDRESS,
-                    I2CAddressType_seven,
-                    I2COperation_single_write,
-                    (u8*) data_to_send,
-                    sizeof(u16) + amount_of_bytes_to_write
-                );
+            struct I2CDoJob job =
+                {
+                    .handle       = I2CHandle_ovcam_sccb,
+                    .address_type = I2CAddressType_seven,
+                    .address      = OVCAM_SEVEN_BIT_ADDRESS,
+                    .writing      = true,
+                    .repeating    = false,
+                    .pointer      = (u8*) data_to_send,
+                    .amount       = sizeof(u16) + amount_of_bytes_to_write
+                };
 
-            switch (i2c_transfer_result)
+            enum I2CDoResult transfer_result = {0};
+            do transfer_result = I2C_do(&job); // TODO Clean up.
+            while (transfer_result == I2CDoResult_working);
+
+            switch (transfer_result)
             {
 
-                case I2CTransferResult_transfer_done:
+                case I2CDoResult_success:
                 {
                     success = true;
                 } break;
 
-                case I2CTransferResult_no_acknowledge:
-                case I2CTransferResult_clock_stretch_timeout:
+                case I2CDoResult_no_acknowledge:
+                case I2CDoResult_clock_stretch_timeout:
                 {
                     // Something weird happened;
                     // let's try the transfer again.
                 } break;
 
-                case I2CTransferResult_transfer_ongoing : bug; // OVCAM driver depends on a blocking I2C driver.
-                case I2CTransferResult_bug              : bug;
-                default                                 : bug;
+                case I2CDoResult_bus_misbehaved : sorry // TODO.
+                case I2CDoResult_watchdog_expired : sorry // TODO.
+
+                case I2CDoResult_working : bug; // OVCAM driver depends on a blocking I2C driver.
+                case I2CDoResult_bug     : bug;
+                default                  : bug;
 
             }
 
@@ -668,6 +678,7 @@ OVCAM_reinit(void)
 static useret enum OVCAMSwapFramebufferResult : u32
 {
     OVCAMSwapFramebufferResult_attempted,
+    OVCAMSwapFramebufferResult_timeout,
     OVCAMSwapFramebufferResult_bug = BUG_CODE,
 }
 OVCAM_swap_framebuffer(void)
@@ -732,10 +743,14 @@ OVCAM_swap_framebuffer(void)
                 u32 current_timestamp_us = TIMEKEEPING_COUNTER();
                 u32 elapsed_us           = current_timestamp_us - capture_timestamp_us;
 
-                if (elapsed_us >= (TIMEKEEPING_COUNTER_TYPE) { OVCAM_TIMEOUT_US })
-                    bug; // The OVCAM driver is taking too long... TODO Not bug?
-
-                NVIC_SET_PENDING(DCMI_PSSI);
+                if (elapsed_us < (TIMEKEEPING_COUNTER_TYPE) { OVCAM_TIMEOUT_US })
+                {
+                    NVIC_SET_PENDING(DCMI_PSSI);
+                }
+                else
+                {
+                    return OVCAMSwapFramebufferResult_timeout;
+                }
 
             }
 

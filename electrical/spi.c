@@ -6,7 +6,7 @@
         cmsis_name  = 'SPI',
         common_name = 'SPIx',
         expansions  = (('driver', '&_SPI_drivers[handle]'),),
-        terms       = lambda type, peripheral, handle: (
+        terms       = lambda target, type, peripheral, handle: (
             ('{}'                    , 'expression' ),
             ('NVICInterrupt_{}'      , 'expression' ),
             ('STPY_{}_KERNEL_SOURCE' , 'expression' ),

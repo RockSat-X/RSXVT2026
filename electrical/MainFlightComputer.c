@@ -1,4 +1,5 @@
 #include "system.h"
+#include "timekeeping.c"
 #include "uxart.c"
 #include "i2c.c"
 
@@ -20,6 +21,43 @@ main(void)
     STPY_init();
     UXART_init(UXARTHandle_stlink);
     UXART_init(UXARTHandle_vn100); // TODO Just to test VN-100 reception for VehicleFlightComputer.
+
+    {
+
+        // Set the prescaler that'll affect all timers' kernel frequency.
+
+        CMSIS_SET(RCC, CFGR1, TIMPRE, STPY_GLOBAL_TIMER_PRESCALER);
+
+
+
+        // Enable the peripheral.
+
+        CMSIS_PUT(TIMEKEEPING_TIMER_ENABLE, true);
+
+
+
+        // Configure the divider to set the rate at
+        // which the timer's counter will increment.
+
+        CMSIS_SET(TIMEKEEPING_TIMER, PSC, PSC, TIMEKEEPING_DIVIDER);
+
+
+
+        // Trigger an update event so that the shadow registers
+        // are what we initialize them to be.
+        // The hardware uses shadow registers in order for updates
+        // to these registers not result in a corrupt timer output.
+
+        CMSIS_SET(TIMEKEEPING_TIMER, EGR, UG, true);
+
+
+
+        // Enable the timer's counter.
+
+        CMSIS_SET(TIMEKEEPING_TIMER, CR1, CEN, true);
+
+    }
+
     {
         enum I2CReinitResult result = I2C_reinit(I2CHandle_vehicle_interface);
         switch (result)
@@ -54,20 +92,24 @@ FREERTOS_TASK(vehicle_interface, 1024, 0)
 
         struct VehicleInterfacePayload payload = {0};
 
-        enum I2CTransferResult result =
-            I2C_transfer
-            (
-                I2CHandle_vehicle_interface,
-                VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS,
-                I2CAddressType_seven,
-                I2COperation_single_read,
-                (u8*) &payload,
-                sizeof(payload)
-            );
+        struct I2CDoJob job =
+            {
+                .handle       = I2CHandle_vehicle_interface,
+                .address_type = I2CAddressType_seven,
+                .address      = VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS,
+                .writing      = false,
+                .repeating    = false,
+                .pointer      = (u8*) &payload,
+                .amount       = sizeof(payload),
+            };
 
-        switch (result)
+        enum I2CDoResult transfer_result = {0};
+        do transfer_result = I2C_do(&job); // TODO Clean up.
+        while (transfer_result == I2CDoResult_working);
+
+        switch (transfer_result)
         {
-            case I2CTransferResult_transfer_done:
+            case I2CDoResult_success:
             {
 
                 static u16 previous_timestamp_us = 0;
@@ -91,15 +133,18 @@ FREERTOS_TASK(vehicle_interface, 1024, 0)
 
             } break;
 
-            case I2CTransferResult_no_acknowledge:
+            case I2CDoResult_no_acknowledge:
             {
                 stlink_tx("Slave 0x%03X didn't acknowledge!\n", VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS);
             } break;
 
-            case I2CTransferResult_transfer_ongoing      : sorry
-            case I2CTransferResult_clock_stretch_timeout : sorry
-            case I2CTransferResult_bug                   : sorry
-            default                                      : sorry
+            case I2CDoResult_bus_misbehaved : sorry // TODO.
+            case I2CDoResult_watchdog_expired : sorry // TODO.
+
+            case I2CDoResult_working               : sorry
+            case I2CDoResult_clock_stretch_timeout : sorry
+            case I2CDoResult_bug                   : sorry
+            default                                : sorry
         }
 
         spinlock_nop(10'000'000);

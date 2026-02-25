@@ -10,7 +10,7 @@
         cmsis_name  = 'SDMMC',
         common_name = 'SDx',
         expansions  = (('driver', '&_SD_drivers[handle]'),),
-        terms       = lambda type, peripheral, handle: (
+        terms       = lambda target, type, peripheral, handle: (
             ('{}'                      , 'expression' ),
             ('NVICInterrupt_{}'        , 'expression' ),
             ('STPY_{}_KERNEL_SOURCE'   , 'expression' ),

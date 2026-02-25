@@ -1,7 +1,12 @@
+// Because `./cli.py tv` can do register-writes that causes
+// some frames to be dropped, we need to avoid sporatic OVCAM
+// resets by having a much longer time-out duration than usual.
+#define OVCAM_TIMEOUT_US 10'000'000
+
 #include "system.h"
+#include "timekeeping.c"
 #include "uxart.c"
 #include "i2c.c"
-#include "timekeeping.c"
 #include "ovcam.c"
 
 
@@ -38,6 +43,7 @@ try_swap(void)
             // An attempt was made to get the next framebuffer.
         } break;
 
+        case OVCAMSwapFramebufferResult_timeout:
         case OVCAMSwapFramebufferResult_bug:
         {
             reinitialize_ovcam(); // Something bad happened, so we'll reinitialize everything.
@@ -131,18 +137,22 @@ main(void)
 
             {
 
-                enum I2CTransferResult result =
-                    I2C_transfer
-                    (
-                        I2CHandle_ovcam_sccb,
-                        OVCAM_SEVEN_BIT_ADDRESS,
-                        I2CAddressType_seven,
-                        I2COperation_single_write,
-                        (u8*) &command,
-                        sizeof(command)
-                    );
+                struct I2CDoJob job =
+                    {
+                        .handle       = I2CHandle_ovcam_sccb,
+                        .address_type = I2CAddressType_seven,
+                        .address      = OVCAM_SEVEN_BIT_ADDRESS,
+                        .writing      = true,
+                        .repeating    = false,
+                        .pointer      = (u8*) &command,
+                        .amount       = sizeof(command)
+                    };
 
-                if (result != I2CTransferResult_transfer_done)
+                enum I2CDoResult transfer_result = {0};
+                do transfer_result = I2C_do(&job); // TODO Clean up.
+                while (transfer_result == I2CDoResult_working);
+
+                if (transfer_result != I2CDoResult_success)
                     sorry
 
             }

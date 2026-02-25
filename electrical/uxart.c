@@ -25,7 +25,7 @@ enum UXARTMode : u32
         cmsis_name  = 'USART',
         common_name = 'UXARTx',
         expansions  = (('driver', '&_UXART_drivers[handle]'),),
-        terms       = lambda type, peripheral, handle, mode: (
+        terms       = lambda target, type, peripheral, handle, mode: (
             ('{}'                   , 'expression' ,                    ),
             ('NVICInterrupt_{}'     , 'expression' ,                    ),
             ('STPY_{}_KERNEL_SOURCE', 'expression' ,                    ),
