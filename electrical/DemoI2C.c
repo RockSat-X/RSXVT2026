@@ -127,6 +127,11 @@ main(void)
                         switch (result)
                         {
 
+                            case I2CDoResult_working:
+                            {
+                                // The I2C transfer is still being carried out...
+                            } break;
+
                             case I2CDoResult_success:
                             {
                                 stlink_tx("Slave 0x%03X acknowledged!\n", slave_address);
@@ -152,9 +157,17 @@ main(void)
                                 yield = true;
                             } break;
 
-                            case I2CDoResult_working:
+                            case I2CDoResult_bus_misbehaved:
                             {
-                                // The I2C transfer is still being carried out...
+                                stlink_tx
+                                (
+                                    ">"                                "\n"
+                                    "> Queen experienced a bus error!" "\n"
+                                    ">"                                "\n"
+                                );
+                                reinitialize_i2c_driver(I2CHandle_queen);
+                                spinlock_nop(1'000'000);
+                                yield = true;
                             } break;
 
                             case I2CDoResult_bug : sorry
@@ -211,7 +224,7 @@ main(void)
                             .address_type = I2CAddressType_seven,
                             .address      = I2C_TABLE[I2CHandle_bee].I2Cx_SLAVE_ADDRESS,
                             .writing      = true,
-                            .repeating    = false,
+                            .repeating    = true,
                             .pointer      = (u8*) message,
                             .amount       = sizeof(message) - 1
                         };
@@ -223,6 +236,11 @@ main(void)
 
                         switch (result)
                         {
+
+                            case I2CDoResult_working:
+                            {
+                                // The I2C transfer is still being carried out...
+                            } break;
 
                             case I2CDoResult_success:
                             {
@@ -249,9 +267,17 @@ main(void)
                                 yield = true;
                             } break;
 
-                            case I2CDoResult_working:
+                            case I2CDoResult_bus_misbehaved:
                             {
-                                // The I2C transfer is still being carried out...
+                                stlink_tx
+                                (
+                                    ">"                                "\n"
+                                    "> Queen experienced a bus error!" "\n"
+                                    ">"                                "\n"
+                                );
+                                reinitialize_i2c_driver(I2CHandle_queen);
+                                spinlock_nop(1'000'000);
+                                yield = true;
                             } break;
 
                             case I2CDoResult_bug : sorry
@@ -282,7 +308,7 @@ main(void)
                             .address_type = I2CAddressType_seven,
                             .address      = I2C_TABLE[I2CHandle_bee].I2Cx_SLAVE_ADDRESS,
                             .writing      = false,
-                            .repeating    = false,
+                            .repeating    = true,
                             .pointer      = (u8*) response,
                             .amount       = sizeof(response)
                         };
@@ -294,6 +320,11 @@ main(void)
 
                         switch (result)
                         {
+
+                            case I2CDoResult_working:
+                            {
+                                // The I2C transfer is still being carried out...
+                            } break;
 
                             case I2CDoResult_success:
                             {
@@ -320,9 +351,17 @@ main(void)
                                 yield = true;
                             } break;
 
-                            case I2CDoResult_working:
+                            case I2CDoResult_bus_misbehaved:
                             {
-                                // The I2C transfer is still being carried out...
+                                stlink_tx
+                                (
+                                    ">"                                "\n"
+                                    "> Queen experienced a bus error!" "\n"
+                                    ">"                                "\n"
+                                );
+                                reinitialize_i2c_driver(I2CHandle_queen);
+                                spinlock_nop(1'000'000);
+                                yield = true;
                             } break;
 
                             case I2CDoResult_bug : sorry
@@ -443,6 +482,23 @@ INTERRUPT_I2Cx_bee(enum I2CSlaveCallbackEvent event, u8* data)
 
         ////////////////////////////////////////////////////////////////////////////////
         //
+        // Another read/write transfer is starting.
+        //
+
+        case I2CSlaveCallbackEvent_repeated_start_signaled:
+        {
+
+            stlink_tx("Bee   : repeated start detected\n");
+
+            reply_index  = 0;
+            stop_count  += 1;
+
+        } break;
+
+
+
+        ////////////////////////////////////////////////////////////////////////////////
+        //
         // The I2C driver needs to be reinitialized due to an issue.
         //
 
@@ -458,6 +514,18 @@ INTERRUPT_I2Cx_bee(enum I2CSlaveCallbackEvent event, u8* data)
             spinlock_nop(1'000'000);
         } break;
 
+
+        case I2CSlaveCallbackEvent_bus_misbehaved:
+        {
+            stlink_tx
+            (
+                ">"                              "\n"
+                "> Bee experienced a bus error!" "\n"
+                ">"                              "\n"
+            );
+            reinitialize_i2c_driver(I2CHandle_bee);
+            spinlock_nop(1'000'000);
+        } break;
 
 
         case I2CSlaveCallbackEvent_bug : sorry

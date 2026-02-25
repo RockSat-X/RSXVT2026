@@ -100,6 +100,8 @@ FREERTOS_TASK(vehicle_interface, 1024, 0)
                 stlink_tx("Slave 0x%03X didn't acknowledge!\n", VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS);
             } break;
 
+            case I2CDoResult_bus_misbehaved : sorry // TODO.
+
             case I2CDoResult_working               : sorry
             case I2CDoResult_clock_stretch_timeout : sorry
             case I2CDoResult_bug                   : sorry

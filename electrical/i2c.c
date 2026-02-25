@@ -9,7 +9,9 @@ enum I2CSlaveCallbackEvent : u32
     I2CSlaveCallbackEvent_data_available_to_read,
     I2CSlaveCallbackEvent_ready_to_transmit_data,
     I2CSlaveCallbackEvent_stop_signaled,
+    I2CSlaveCallbackEvent_repeated_start_signaled,
     I2CSlaveCallbackEvent_clock_stretch_timeout,
+    I2CSlaveCallbackEvent_bus_misbehaved,
     I2CSlaveCallbackEvent_bug,
 };
 
@@ -121,6 +123,7 @@ enum I2CMasterState : u32
     I2CMasterState_transferring,
     I2CMasterState_stopping,
     I2CMasterState_job_attempted,
+    I2CMasterState_bus_misbehaved,
 };
 
 enum I2CSlaveState : u32
@@ -129,7 +132,8 @@ enum I2CSlaveState : u32
     I2CSlaveState_standby,
     I2CSlaveState_receiving_data,
     I2CSlaveState_sending_data,
-    I2CSlaveState_stopping,
+    I2CSlaveState_ending_transfer,
+    I2CSlaveState_bus_misbehaved,
 };
 
 enum I2CMasterError : u32
@@ -221,12 +225,8 @@ I2C_reinit(enum I2CHandle handle)
 
     *driver = (struct I2CDriver) {0};
 
-
-
-    // Enable the NVIC interrupts.
-
-    NVIC_ENABLE(I2Cx_EV);
-    NVIC_ENABLE(I2Cx_ER);
+    NVIC_DISABLE(I2Cx_EV);
+    NVIC_DISABLE(I2Cx_ER);
 
 
 
@@ -330,6 +330,9 @@ I2C_reinit(enum I2CHandle handle)
 
     }
 
+    NVIC_ENABLE(I2Cx_EV);
+    NVIC_ENABLE(I2Cx_ER);
+
     return I2CReinitResult_success;
 
 }
@@ -342,6 +345,7 @@ static useret enum I2CDoResult : u32
     I2CDoResult_no_acknowledge,
     I2CDoResult_clock_stretch_timeout,
     I2CDoResult_working,
+    I2CDoResult_bus_misbehaved,
     I2CDoResult_bug = BUG_CODE,
 }
 I2C_do(struct I2CDoJob* job)
@@ -409,9 +413,6 @@ I2C_do(struct I2CDoJob* job)
             case I2CMasterState_standby:
             {
 
-                if (CMSIS_GET(I2Cx, ISR, BUSY))
-                    bug; // There shouldn't be any transfers on the bus of right now.
-
                 driver->master.address_type = job->address_type;
                 driver->master.address      = job->address;
                 driver->master.writing      = job->writing;
@@ -435,12 +436,13 @@ I2C_do(struct I2CDoJob* job)
 
             } break;
 
-            case I2CMasterState_disabled      : bug; // User needs to reinitialize the driver...
-            case I2CMasterState_scheduled_job : bug; // The I2C driver shouldn't be busy with another job...
-            case I2CMasterState_transferring  : bug; // "
-            case I2CMasterState_stopping      : bug; // "
-            case I2CMasterState_job_attempted : bug; // User didn't let the previous job conclude properly..?
-            default                           : bug;
+            case I2CMasterState_bus_misbehaved : return I2CDoResult_bus_misbehaved;
+            case I2CMasterState_disabled       : bug; // User needs to reinitialize the driver...
+            case I2CMasterState_scheduled_job  : bug; // The I2C driver shouldn't be busy with another job...
+            case I2CMasterState_transferring   : bug; // "
+            case I2CMasterState_stopping       : bug; // "
+            case I2CMasterState_job_attempted  : bug; // User didn't let the previous job conclude properly..?
+            default                            : bug;
 
         } break;
 
@@ -502,9 +504,10 @@ I2C_do(struct I2CDoJob* job)
 
 
 
-                case I2CMasterState_disabled : bug; // User needs to reinitialize the driver...
-                case I2CMasterState_standby  : bug; // The driver should've been working on the job...
-                default                      : bug;
+                case I2CMasterState_bus_misbehaved : return I2CDoResult_bus_misbehaved;
+                case I2CMasterState_disabled       : bug; // User needs to reinitialize the driver...
+                case I2CMasterState_standby        : bug; // The driver should've been working on the job...
+                default                            : bug;
 
             }
 
@@ -522,6 +525,42 @@ I2C_do(struct I2CDoJob* job)
 
 
 ////////////////////////////////////////////////////////////////////////////////
+
+
+
+static useret enum I2CSlaveHandleAddressMatchResult : u32
+{
+    I2CSlaveHandleAddressMatchResult_okay,
+    I2CSlaveHandleAddressMatchResult_bug = BUG_CODE,
+}
+_I2C_slave_handle_address_match(enum I2CHandle handle, u32 interrupt_status)
+{
+
+    _EXPAND_HANDLE
+
+    if (I2Cx_DRIVER_MODE != I2CDriverMode_slave)
+        bug; // Wrong driver mode!
+
+    if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, ADDCODE) != I2Cx_SLAVE_ADDRESS)
+        bug; // Address must match with what we were configured with.
+
+    if (!CMSIS_GET(I2Cx, ISR, TXE)) // TX-register should've been flushed at interrupt event decoding.
+        bug; // There shouldn't be anything still in the TX-register. @/`Flushing I2C Transmission Data`.
+
+    b32 master_wants_to_read = CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, DIR);
+
+    if (master_wants_to_read)
+    {
+        driver->slave.state = I2CSlaveState_sending_data;
+    }
+    else
+    {
+        driver->slave.state = I2CSlaveState_receiving_data;
+    }
+
+    return I2CSlaveHandleAddressMatchResult_okay;
+
+}
 
 
 
@@ -556,10 +595,8 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-    // "A bus error is detected when a
-    // START or a STOP condition is detected
-    // and is not located after a multiple of
-    // nine SCL clock pulses."
+    // "A bus error is detected when a START or a STOP condition is detected
+    // and is not located after a multiple of nine SCL clock pulses."
     //
     // @/pg 2116/sec 48.4.17/`H533rm`.
 
@@ -570,9 +607,8 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-    // "An arbitration loss is detected when a high level
-    // is sent on the SDA line, but a low level is sampled
-    // on the SCL rising edge."
+    // "An arbitration loss is detected when a high level is sent on the SDA line,
+    // but a low level is sampled on the SCL rising edge."
     //
     // @/pg 2116/sec 48.4.17/`H533rm`.
 
@@ -627,19 +663,22 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-    // Slave acknowledged our transfer request.
+    // Slave acknowledged our transfer request,
+    // or we are the slave and the master just called on us.
     //
     // @/pg 2088/fig 639/`H533rm`.
 
     else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, ADDR))
     {
+        CMSIS_SET(I2Cx, ISR, TXE   , true); // @/`Flushing I2C Transmission Data`.
         CMSIS_SET(I2Cx, ICR, ADDRCF, true);
         interrupt_event = I2CInterruptEvent_address_match;
     }
 
 
 
-    // The slave didn't acknowledge.
+    // The slave didn't acknowledge,
+    // or the master didn't acknowledge our data.
     //
     // @/pg 2085/sec 48.4.8/`H533rm`.
 
@@ -651,7 +690,7 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-    // There's data from the slave in the RX-register.
+    // There's data from the slave (or the master) in the RX-register.
     //
     // @/pg 2089/sec 48.4.8/`H533rm`.
 
@@ -662,7 +701,7 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-    // Data for the slave needs to be put in the TX-register.
+    // Data for the slave (or the master) needs to be put in the TX-register.
     //
     // @/pg 2085/sec 48.4.8/`H533rm`.
 
@@ -675,9 +714,8 @@ _I2C_update_once(enum I2CHandle handle)
 
     // I2C clock line has been stretched for too long.
     //
-    // This should probably be handled after we
-    // check the RX-register and TX-register so
-    // there won't be any left-over data.
+    // This should probably be handled after we check the
+    // RX-register and TX-register so there won't be any left-over data.
     //
     // @/pg 2117/sec 48.4.17/`H533rm`.
 
@@ -755,12 +793,14 @@ _I2C_update_once(enum I2CHandle handle)
 
                 case I2CInterruptEvent_none:
                 {
-
                     if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, BUSY))
-                        bug; // There shouldn't be any transfers on the bus of right now.
-
-                    return I2CUpdateOnceResult_yield;
-
+                    {
+                        return I2CUpdateOnceResult_bus_misbehaved; // There shouldn't be any transfers on the bus of right now.
+                    }
+                    else
+                    {
+                        return I2CUpdateOnceResult_yield;
+                    }
                 } break;
 
                 case I2CInterruptEvent_clock_stretch_timeout           : bug;
@@ -783,58 +823,66 @@ _I2C_update_once(enum I2CHandle handle)
 
                 case I2CInterruptEvent_none:
                 {
-
-                    if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, BUSY))
-                        bug; // There shouldn't be any transfers on the bus of right now.
-
-                    if (!(1 <= driver->master.amount && driver->master.amount <= 255))
-                        bug; // We currently don't handle transfer sizes larger than this.
-
-                    if (CMSIS_GET(I2Cx, CR2, START))
-                        bug; // We shouldn't be already trying to start the transfer...
-
-                    if (driver->master.error)
-                        bug; // No reason for an error already...
-
-
-
-                    // Configure the desired transfer.
-
-                    u32 sadd = {0};
-
-                    switch (driver->master.address_type)
+                    if
+                    (
+                        CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, BUSY) &&
+                        CMSIS_GET_FROM(interrupt_enable, I2Cx, CR1, TCIE) // @/`I2C Transfer-Complete Interrupt and Repeated Starts`.
+                    )
                     {
-                        case I2CAddressType_seven : sadd = driver->master.address << 1; break; // @/`I2C Slave Address`.
-                        case I2CAddressType_ten   : sadd = driver->master.address;      break; // "
-                        default                   : bug;
+                        return I2CUpdateOnceResult_bus_misbehaved; // There shouldn't be any transfers on the bus of right now.
                     }
+                    else
+                    {
 
-                    CMSIS_SET
-                    (
-                        I2Cx   , CR2                          ,
-                        SADD   , sadd                         , // I2C slave to call for.
-                        ADD10  , !!driver->master.address_type, // Whether or not a 10-bit slave address is used.
-                        RD_WRN , !driver->master.writing      , // Determine data transfer direction.
-                        NBYTES , driver->master.amount        , // Determine amount of data in bytes.
-                        START  , true                         , // Begin sending the START condition on the I2C bus.
-                    );
+                        if (!(1 <= driver->master.amount && driver->master.amount <= 255))
+                            bug; // We currently don't handle transfer sizes larger than this.
 
-                    CMSIS_SET(I2Cx, CR1, TCIE, true); // @/`I2C Transfer-Complete Interrupt and Repeated Starts`.
+                        if (CMSIS_GET(I2Cx, CR2, START))
+                            bug; // We shouldn't be already trying to start the transfer...
 
+                        if (driver->master.error)
+                            bug; // No reason for an error already...
 
 
-                    // The I2C peripheral should be now trying to call
-                    // the slave device and get an acknowledgement back.
 
-                    atomic_store_explicit
-                    (
-                        &driver->master.atomic_state,
-                        I2CMasterState_transferring,
-                        memory_order_relaxed // No synchronization needed.
-                    );
+                        // Configure the desired transfer.
 
-                    return I2CUpdateOnceResult_again;
+                        u32 sadd = {0};
 
+                        switch (driver->master.address_type)
+                        {
+                            case I2CAddressType_seven : sadd = driver->master.address << 1; break; // @/`I2C Slave Address`.
+                            case I2CAddressType_ten   : sadd = driver->master.address;      break; // "
+                            default                   : bug;
+                        }
+
+                        CMSIS_SET
+                        (
+                            I2Cx   , CR2                          ,
+                            SADD   , sadd                         , // I2C slave to call for.
+                            ADD10  , !!driver->master.address_type, // Whether or not a 10-bit slave address is used.
+                            RD_WRN , !driver->master.writing      , // Determine data transfer direction.
+                            NBYTES , driver->master.amount        , // Determine amount of data in bytes.
+                            START  , true                         , // Begin sending the START condition on the I2C bus.
+                        );
+
+                        CMSIS_SET(I2Cx, CR1, TCIE, true); // @/`I2C Transfer-Complete Interrupt and Repeated Starts`.
+
+
+
+                        // The I2C peripheral should be now trying to call
+                        // the slave device and get an acknowledgement back.
+
+                        atomic_store_explicit
+                        (
+                            &driver->master.atomic_state,
+                            I2CMasterState_transferring,
+                            memory_order_relaxed // No synchronization needed.
+                        );
+
+                        return I2CUpdateOnceResult_again;
+
+                    }
                 } break;
 
                 case I2CInterruptEvent_clock_stretch_timeout           : bug;
@@ -1076,28 +1124,20 @@ _I2C_update_once(enum I2CHandle handle)
 
                 case I2CInterruptEvent_stop_signaled:
                 {
-
-                    if (!iff(driver->master.progress == driver->master.amount, !driver->master.error))
-                        bug; // Error, but we transferred all expected data?
-
                     if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, BUSY))
-                        bug; // The bus should be no longer busy now.
-
-
-
-                    // The I2C peripheral should be good to immediately start the next transfer.
-
-                    atomic_store_explicit
-                    (
-                        &driver->master.atomic_state,
-                        I2CMasterState_job_attempted,
-                        memory_order_release // Ensure writes to `driver->master.error` finishes.
-                    );
-
-
-
-                    return I2CUpdateOnceResult_again;
-
+                    {
+                        return I2CUpdateOnceResult_bus_misbehaved; // The bus should be no longer busy now.
+                    }
+                    else
+                    {
+                        atomic_store_explicit
+                        (
+                            &driver->master.atomic_state,
+                            I2CMasterState_job_attempted, // Let the user know that we tried to do the transfer.
+                            memory_order_release          // Ensure writes to `driver->master.error` finishes.
+                        );
+                        return I2CUpdateOnceResult_again;
+                    }
                 } break;
 
 
@@ -1130,12 +1170,18 @@ _I2C_update_once(enum I2CHandle handle)
 
                 case I2CInterruptEvent_none:
                 {
-
-                    if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, BUSY))
-                        bug; // There shouldn't be any transfers on the bus of right now.
-
-                    return I2CUpdateOnceResult_yield;
-
+                    if
+                    (
+                        CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, BUSY) &&
+                        CMSIS_GET_FROM(interrupt_enable, I2Cx, CR1, TCIE) // @/`I2C Transfer-Complete Interrupt and Repeated Starts`.
+                    )
+                    {
+                        return I2CUpdateOnceResult_bus_misbehaved; // There shouldn't be any transfers on the bus of right now.
+                    }
+                    else
+                    {
+                        return I2CUpdateOnceResult_yield;
+                    }
                 } break;
 
                 case I2CInterruptEvent_clock_stretch_timeout           : bug;
@@ -1147,6 +1193,13 @@ _I2C_update_once(enum I2CHandle handle)
                 case I2CInterruptEvent_address_match                   : bug;
                 default                                                : bug;
 
+            } break;
+
+
+
+            case I2CMasterState_bus_misbehaved:
+            {
+                return I2CUpdateOnceResult_bus_misbehaved; // I2C driver stuck in this error condition...
             } break;
 
 
@@ -1183,30 +1236,13 @@ _I2C_update_once(enum I2CHandle handle)
 
                 case I2CInterruptEvent_address_match:
                 {
-
-                    if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, ADDCODE) != I2Cx_SLAVE_ADDRESS)
-                        bug; // Address must match with what we were configured with.
-
-                    if (!CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, TXE))
-                        bug; // There shouldn't be anything still in the TX-register.
-
-
-
-                    // Determine the data transfer direction.
-
-                    b32 master_wants_to_read = CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, DIR);
-
-                    if (master_wants_to_read)
+                    enum I2CSlaveHandleAddressMatchResult result = _I2C_slave_handle_address_match(handle, interrupt_status);
+                    switch (result)
                     {
-                        driver->slave.state = I2CSlaveState_sending_data;
+                        case I2CSlaveHandleAddressMatchResult_okay : return I2CUpdateOnceResult_again;
+                        case I2CSlaveHandleAddressMatchResult_bug  : bug;
+                        default                                    : bug;
                     }
-                    else
-                    {
-                        driver->slave.state = I2CSlaveState_receiving_data;
-                    }
-
-                    return I2CUpdateOnceResult_again;
-
                 } break;
 
 
@@ -1315,9 +1351,23 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
+                // The master did a repeated START.
+
+                case I2CInterruptEvent_address_match:
+                {
+                    enum I2CSlaveHandleAddressMatchResult result = _I2C_slave_handle_address_match(handle, interrupt_status);
+                    switch (result)
+                    {
+                        case I2CSlaveHandleAddressMatchResult_okay : return I2CUpdateOnceResult_again;
+                        case I2CSlaveHandleAddressMatchResult_bug  : bug;
+                        default                                    : bug;
+                    }
+                } break;
+
+
+
                 case I2CInterruptEvent_nack_signaled                   : bug;
                 case I2CInterruptEvent_ready_to_transmit_data          : bug;
-                case I2CInterruptEvent_address_match                   : bug;
                 case I2CInterruptEvent_transfer_completed_successfully : bug;
                 default                                                : bug;
 
@@ -1368,18 +1418,14 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-                // The master NACKs us on the last byte we sent
-                // them to indicate the end of the transfer.
+                // The master gave us a NACK, which typically means that was
+                // the last byte of the transfer. We should be expecting the
+                // STOP signal next, or perhaps a repeated START condition.
 
                 case I2CInterruptEvent_nack_signaled:
                 {
-
-                    // We should be expecting the STOP signal next.
-
-                    driver->slave.state = I2CSlaveState_stopping;
-
+                    driver->slave.state = I2CSlaveState_ending_transfer;
                     return I2CUpdateOnceResult_again;
-
                 } break;
 
 
@@ -1409,7 +1455,21 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-                case I2CInterruptEvent_address_match                   : bug;
+                // The master did a repeated START.
+
+                case I2CInterruptEvent_address_match:
+                {
+                    enum I2CSlaveHandleAddressMatchResult result = _I2C_slave_handle_address_match(handle, interrupt_status);
+                    switch (result)
+                    {
+                        case I2CSlaveHandleAddressMatchResult_okay : return I2CUpdateOnceResult_again;
+                        case I2CSlaveHandleAddressMatchResult_bug  : bug;
+                        default                                    : bug;
+                    }
+                } break;
+
+
+
                 case I2CInterruptEvent_data_available_to_read          : bug;
                 case I2CInterruptEvent_stop_signaled                   : bug;
                 case I2CInterruptEvent_transfer_completed_successfully : bug;
@@ -1419,9 +1479,10 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-            // We're waiting for a STOP condition on the bus now...
+            // We're waiting for a STOP condition on the bus now,
+            // or perhaps a repeated START condition.
 
-            case I2CSlaveState_stopping: switch (interrupt_event)
+            case I2CSlaveState_ending_transfer: switch (interrupt_event)
             {
 
 
@@ -1457,6 +1518,28 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
+                // We got a repeated START condition.
+
+                case I2CInterruptEvent_address_match:
+                {
+                    enum I2CSlaveHandleAddressMatchResult result = _I2C_slave_handle_address_match(handle, interrupt_status);
+                    switch (result)
+                    {
+
+                        case I2CSlaveHandleAddressMatchResult_okay:
+                        {
+                            I2Cx_CALLBACK.slave(I2CSlaveCallbackEvent_repeated_start_signaled, nullptr);
+                            return I2CUpdateOnceResult_again;
+                        } break;
+
+                        case I2CSlaveHandleAddressMatchResult_bug : bug;
+                        default                                   : bug;
+
+                    }
+                } break;
+
+
+
                 // We couldn't detect a STOP condition on the I2C bus for some reason;
                 // this could be the I2C peripheral being locked up.
 
@@ -1470,10 +1553,16 @@ _I2C_update_once(enum I2CHandle handle)
                 case I2CInterruptEvent_nack_signaled                   : bug;
                 case I2CInterruptEvent_data_available_to_read          : bug;
                 case I2CInterruptEvent_ready_to_transmit_data          : bug;
-                case I2CInterruptEvent_address_match                   : bug;
                 case I2CInterruptEvent_transfer_completed_successfully : bug;
                 default                                                : bug;
 
+            } break;
+
+
+
+            case I2CSlaveState_bus_misbehaved:
+            {
+                return I2CUpdateOnceResult_bus_misbehaved; // I2C driver stuck in this error condition...
             } break;
 
 
@@ -1508,6 +1597,7 @@ _I2C_driver_interrupt(enum I2CHandle handle)
         {
 
 
+
             case I2CUpdateOnceResult_again:
             {
                 // The state-machine should be updated again.
@@ -1523,6 +1613,41 @@ _I2C_driver_interrupt(enum I2CHandle handle)
 
 
             case I2CUpdateOnceResult_bus_misbehaved:
+            {
+
+                NVIC_DISABLE(I2Cx_EV);
+                NVIC_DISABLE(I2Cx_ER);
+
+                switch (I2Cx_DRIVER_MODE)
+                {
+
+                    case I2CDriverMode_master:
+                    {
+                        atomic_store_explicit
+                        (
+                            &driver->master.atomic_state,
+                            I2CMasterState_bus_misbehaved, // The user will be notified after trying to do any sort of transfer.
+                            memory_order_relaxed           // No synchronization needed.
+                        );
+                    } break;
+
+                    case I2CDriverMode_slave:
+                    {
+                        driver->slave.state = I2CSlaveState_bus_misbehaved;
+                        I2Cx_CALLBACK.slave(I2CSlaveCallbackEvent_bus_misbehaved, nullptr);
+                    } break;
+
+                    default: goto BUG;
+
+                }
+
+                yield = true;
+
+            } break;
+
+
+
+            BUG:;
             case I2CUpdateOnceResult_bug:
             default:
             {
@@ -1538,8 +1663,8 @@ _I2C_driver_interrupt(enum I2CHandle handle)
 
 
 
-                // Let the user know that the I2C driver is in a bugged state
-                // and that they should reinitialize it.
+                // Let the user know that the I2C driver is in a disabled
+                // state and that they should reinitialize it.
 
                 switch (I2Cx_DRIVER_MODE)
                 {
@@ -1644,6 +1769,9 @@ _I2C_driver_interrupt(enum I2CHandle handle)
 // The flushing of the TX-register should be fine to do always,
 // regardless whether or not the I2C peripheral is actually acting
 // as a slave or a master.
+//
+// The flushing is also done for repeated START conditions too,
+// which happen on the interrupt event of address match.
 
 
 
@@ -1660,7 +1788,7 @@ _I2C_driver_interrupt(enum I2CHandle handle)
 // Some I2C devices have the protocol where, before any read-transfers,
 // a write must be done first (this would be specifying a register address
 // for instance), and then only can the read transfer be done. The
-// slave device, however, may expect that this is done with a repeated-start,
+// slave device, however, may expect that this is done with a repeated START,
 // thus the overall read-transfer cannot be split into a write-transfer followed
 // by a read-transfer.
 

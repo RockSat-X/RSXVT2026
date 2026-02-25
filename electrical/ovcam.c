@@ -548,6 +548,8 @@ OVCAM_reinit(void)
                     // let's try the transfer again.
                 } break;
 
+                case I2CDoResult_bus_misbehaved : sorry // TODO.
+
                 case I2CDoResult_working : bug; // OVCAM driver depends on a blocking I2C driver.
                 case I2CDoResult_bug     : bug;
                 default                  : bug;
