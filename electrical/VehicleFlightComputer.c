@@ -318,7 +318,7 @@ FREERTOS_TASK(logger, 2048, 0)
         while (true)
         {
 
-            SPIBlock* block = RingBuffer_reading_pointer(SPI_ring_buffer(SPIHandle_openmv));
+            SPIBlock* block = RingBuffer_reading_pointer(SPI_reception(SPIHandle_openmv));
 
             if (block)
             {
@@ -328,7 +328,7 @@ FREERTOS_TASK(logger, 2048, 0)
                     stlink_tx(" 0x%02X", (*block)[i]);
                 }
 
-                if (!RingBuffer_pop(SPI_ring_buffer(SPIHandle_openmv), nullptr))
+                if (!RingBuffer_pop(SPI_reception(SPIHandle_openmv), nullptr))
                     sorry
 
             }

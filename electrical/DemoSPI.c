@@ -21,7 +21,7 @@ main(void)
 
         SPIBlock block_data = {0};
 
-        if (RingBuffer_pop(SPI_ring_buffer(SPIHandle_primary), &block_data))
+        if (RingBuffer_pop(SPI_reception(SPIHandle_primary), &block_data))
         {
 
             stlink_tx("%d : ", block_index);

@@ -28,16 +28,20 @@ typedef u8 SPIBlock[SPI_BLOCK_SIZE] __attribute__((aligned(4)));
 struct SPIDriver // @/`SPI Driver Design`.
 {
     i32                     byte_index;
-    RingBuffer(SPIBlock, 8) ring_buffer;
+    RingBuffer(SPIBlock, 8) reception;
 };
 
 static struct SPIDriver _SPI_drivers[SPIHandle_COUNT] = {0};
 
-#define SPI_ring_buffer(HANDLE) &_SPI_drivers[(HANDLE)].ring_buffer
-
 
 
 ////////////////////////////////////////////////////////////////////////////////
+
+
+
+// Terse macro for the user to access the reception ring-buffer; note that it's
+// like this so the user can either access the data either in-place or by copy.
+#define SPI_reception(HANDLE) &_SPI_drivers[(HANDLE)].reception
 
 
 
@@ -210,7 +214,7 @@ _SPI_update_once(enum SPIHandle handle)
 
         u32 data = *(u32*) &SPIx->RXDR; // Pop 32-bit word from the RX-FIFO.
 
-        SPIBlock* block = RingBuffer_writing_pointer(&driver->ring_buffer);
+        SPIBlock* block = RingBuffer_writing_pointer(&driver->reception);
 
         if (block)
         {
@@ -239,7 +243,7 @@ _SPI_update_once(enum SPIHandle handle)
 
         if (driver->byte_index == SPI_BLOCK_SIZE)
         {
-            if (!RingBuffer_push(&driver->ring_buffer, nullptr))
+            if (!RingBuffer_push(&driver->reception, nullptr))
             {
                 // Uh oh, ring-buffer over-run!
                 // For now, we'll just drop the data without indicating that this has happened.
