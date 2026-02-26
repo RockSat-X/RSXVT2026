@@ -1,3 +1,5 @@
+#define SPI_BLOCK_SIZE 64 // @/`OpenMV SPI Block Size`.
+
 #include "system.h"
 #include "timekeeping.c"
 #include "uxart.c"

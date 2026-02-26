@@ -1,3 +1,5 @@
+#define SPI_BLOCK_SIZE 64
+
 #include "system.h"
 #include "uxart.c"
 #include "spi.c"

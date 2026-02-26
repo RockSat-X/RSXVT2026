@@ -1,3 +1,9 @@
+#ifndef SPI_BLOCK_SIZE
+#error "Please define `SPI_BLOCK_SIZE` to a word-multiple value!"
+#endif
+
+typedef u8 SPIBlock[SPI_BLOCK_SIZE];
+
 #include "spi_driver_support.meta"
 /* #meta
 
@@ -18,10 +24,6 @@
     )
 
 */
-
-#define SPI_BLOCK_SIZE 64 // @/`OpenMV SPI Block Size`.
-
-typedef u8 SPIBlock[SPI_BLOCK_SIZE];
 
 struct SPIDriver
 {
