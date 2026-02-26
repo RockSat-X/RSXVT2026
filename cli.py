@@ -1692,6 +1692,17 @@ def tv(parameters):
 
 
 
+    # Set up file that'll save all received data.
+
+    tv_data_file_path = pxd.make_main_relative_path('./data/tv.bin')
+
+    tv_data_file_path.parent.mkdir(parents = True, exist_ok = True)
+    tv_data_file_path.write_bytes(b'')
+
+    tv_data_file_handle = tv_data_file_path.open('ab')
+
+
+
     # Window loop.
 
     while not quit:
@@ -1783,7 +1794,11 @@ def tv(parameters):
 
         if serial_port.in_waiting:
 
-            stream_data += serial_port.read(serial_port.in_waiting)
+            received_data = serial_port.read(serial_port.in_waiting)
+
+            tv_data_file_handle.write(received_data)
+
+            stream_data += received_data
 
             while True:
 
