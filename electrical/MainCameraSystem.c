@@ -9,6 +9,27 @@
 
 
 ////////////////////////////////////////////////////////////////////////////////
+
+
+
+pack_push
+    struct ImageChapter
+    {
+        u8  ending_token[sizeof(TV_TOKEN_END) - 1];
+        u32 sequence_number;
+        u32 image_size;
+        u32 image_timestamp_us;
+        u32 cycle_count;
+        u8  padding[512 - (sizeof(TV_TOKEN_END) - 1) - (sizeof(TV_TOKEN_START) - 1) - 4 * sizeof(u32)];
+        u8  starting_token[sizeof(TV_TOKEN_START) - 1];
+    } __attribute__((aligned(4)));
+pack_pop
+
+static_assert(sizeof(struct ImageChapter) == sizeof(Sector));
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 //
 // Pre-scheduler initialization.
 //
