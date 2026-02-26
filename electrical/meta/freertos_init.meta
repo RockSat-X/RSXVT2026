@@ -338,8 +338,31 @@
     }
 #endif
 #if TARGET_NAME_IS_MainCameraSystem
-    enum FreeRTOSTask : u32;
-    static constexpr u32 FreeRTOSTask_COUNT = 0;
+    enum FreeRTOSTask : u32
+    {
+        FreeRTOSTask_blinker,
+    };
+    static constexpr u32 FreeRTOSTask_COUNT = 1;
+    static noret void   blinker(void*);
+    static StackType_t  blinker_stack[256 / sizeof(StackType_t)] = {0};
+    static StaticTask_t blinker_buffer = {0};
+    static noret void
+    FREERTOS_init(void)
+    {
+        TaskHandle_t blinker_handle =
+            xTaskCreateStatic
+            (
+                blinker,
+                "blinker",
+                countof(blinker_stack),
+                nullptr,
+                0,
+                blinker_stack,
+                &blinker_buffer
+            );
+        vTaskStartScheduler();
+        for(;;);
+    }
 #endif
 #if TARGET_NAME_IS_DemoOVCAM
     enum FreeRTOSTask : u32;
