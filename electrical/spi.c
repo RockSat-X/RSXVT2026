@@ -2,7 +2,7 @@
 #error "Please define `SPI_BLOCK_SIZE` to a word-multiple value!"
 #endif
 
-typedef u8 SPIBlock[SPI_BLOCK_SIZE];
+typedef u8 SPIBlock[SPI_BLOCK_SIZE] __attribute__((aligned(4)));
 
 #include "spi_driver_support.meta"
 /* #meta
@@ -25,7 +25,7 @@ typedef u8 SPIBlock[SPI_BLOCK_SIZE];
 
 */
 
-struct SPIDriver
+struct SPIDriver // @/`SPI Driver Design`.
 {
     i32                     byte_index;
     RingBuffer(SPIBlock, 8) ring_buffer;
@@ -54,13 +54,9 @@ SPI_reinit(enum SPIHandle handle)
     CMSIS_PUT(SPIx_RESET, true );
     CMSIS_PUT(SPIx_RESET, false);
 
-    *driver = (struct SPIDriver) {0};
+    NVIC_DISABLE(SPIx);
 
-
-
-    // Enable the interrupts.
-
-    NVIC_ENABLE(SPIx);
+    memzero(driver);
 
 
 
@@ -110,11 +106,7 @@ SPI_reinit(enum SPIHandle handle)
         TIFREIE, true , //     - TI frame error.
         CRCEIE , true , //     - CRC mismatch.
         OVRIE  , true , //     - RX-FIFO got too full.
-        UDRIE  , false, //     - (Don't care) TX-FIFO was not filled with data in time.
-        TXTFIE , false, //     - (Don't care) All data is buffered to be transmitted.
         EOTIE  , true , //     - When all of the expected amount of bytes have been transferred.
-        DXPIE  , false, //     - (Don't care) Space and data available in TX/RX-FIFO.
-        TXPIE  , false, //     - (Don't care) Space available in TX-FIFO.
         RXPIE  , true , //     - Data available in RX-FIFO.
     );
 
@@ -129,9 +121,157 @@ SPI_reinit(enum SPIHandle handle)
         SPE     , true , // Activate the peripheral.
     );
 
+
+
+    // Enable the interrupts.
+
+    NVIC_ENABLE(SPIx);
+
 }
 
 
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+static enum SPIUpdateOnceResult : u32
+{
+    SPIUpdateOnceResult_again,
+    SPIUpdateOnceResult_yield,
+    SPIUpdateOnceResult_bug = BUG_CODE,
+}
+_SPI_update_once(enum SPIHandle handle)
+{
+
+    _EXPAND_HANDLE
+
+
+
+    u32 interrupt_status = SPIx->SR;
+    u32 interrupt_enable = SPIx->IER;
+
+
+
+    // Mode fault.
+
+    if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, MODF))
+        bug; // This error should only happen in SPI master mode.
+
+
+
+    // TI mode frame format error.
+
+    else if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, TIFRE))
+        bug; // This error should only happen when using TI mode.
+
+
+
+    // CRC mismatch.
+
+    else if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, CRCE))
+    {
+
+        CMSIS_SET(SPIx, IFCR, CRCEC, true); // Acknowledge the CRC mismatch condition.
+
+        CMSIS_SET(SPIx, CR1, SPE, false); // @/`SPI Activation Cycling`.
+        CMSIS_SET(SPIx, CR1, SPE, true ); // "
+
+        driver->byte_index = 0;
+
+        return SPIUpdateOnceResult_again;
+
+    }
+
+
+
+    // Data over-run.
+
+    else if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, OVR))
+    {
+
+        CMSIS_SET(SPIx, IFCR, OVRC, true); // Acknowledge the overrun condition.
+
+        // Uh oh, the RX-FIFO got too full!
+        // For now, we'll just silently ignore this error condition.
+        // The user should have a checksum anyways to ensure integrity
+        // of the received data.
+
+        return SPIUpdateOnceResult_again;
+
+    }
+
+
+
+    // Data available in RX-FIFO.
+
+    else if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, RXP))
+    {
+
+        u32 data = *(u32*) &SPIx->RXDR; // Pop 32-bit word from the RX-FIFO.
+
+        SPIBlock* block = RingBuffer_writing_pointer(&driver->ring_buffer);
+
+        if (block)
+        {
+            *(u32*) (&(*block)[driver->byte_index])  = __builtin_bswap32(data);
+            driver->byte_index                      += sizeof(u32);
+        }
+        else
+        {
+            // There's no next spot in the ring-buffer to put the data in.
+            // For now, we'll silently drop the data.
+        }
+
+        return SPIUpdateOnceResult_again;
+
+    }
+
+
+
+    // All expected data has been transferred successfully.
+
+    else if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, EOT))
+    {
+
+        CMSIS_SET(SPIx, CR1, SPE, false); // @/`SPI Activation Cycling`.
+        CMSIS_SET(SPIx, CR1, SPE, true ); // "
+
+        if (driver->byte_index == SPI_BLOCK_SIZE)
+        {
+            if (!RingBuffer_push(&driver->ring_buffer, nullptr))
+            {
+                // Uh oh, ring-buffer over-run!
+                // For now, we'll just drop the data without indicating that this has happened.
+                // The user should have a checksum anyways to ensure integrity of the received data.
+            }
+        }
+        else
+        {
+            // We dropped data at some point.
+        }
+
+        driver->byte_index = 0;
+
+        return SPIUpdateOnceResult_again;
+
+    }
+
+
+
+    // Nothing left to handle for now.
+
+    else
+    {
+
+        if (interrupt_status & interrupt_enable)
+            bug; // We overlooked handling an interrupt event...
+
+        return SPIUpdateOnceResult_yield;
+
+    }
+
+}
 
 static void
 _SPI_driver_interrupt(enum SPIHandle handle)
@@ -142,125 +282,33 @@ _SPI_driver_interrupt(enum SPIHandle handle)
     for (b32 yield = false; !yield;)
     {
 
-        u32 interrupt_status = SPIx->SR;
-        u32 interrupt_enable = SPIx->IER;
+        enum SPIUpdateOnceResult result = _SPI_update_once(handle);
 
-
-
-        // Mode fault.
-
-        if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, MODF))
-        {
-            sorry // This error should only happen in SPI master mode.
-        }
-
-
-
-        // TI mode frame format error.
-
-        else if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, TIFRE))
-        {
-            sorry // This error should only happen when using TI mode.
-        }
-
-
-
-        // CRC mismatch.
-
-        else if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, CRCE))
+        switch (result)
         {
 
-            CMSIS_SET(SPIx, IFCR, CRCEC, true); // Acknowledge the CRC mismatch condition.
-
-            CMSIS_SET(SPIx, CR1, SPE, false); // @/`SPI Activation Cycling`.
-            CMSIS_SET(SPIx, CR1, SPE, true ); // "
-
-            driver->byte_index = 0;
-
-        }
-
-
-
-        // Data over-run.
-
-        else if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, OVR))
-        {
-
-            CMSIS_SET(SPIx, IFCR, OVRC, true); // Acknowledge the over-run condition.
-
-            // Uh oh, the RX-FIFO got too full!
-            // For now, we'll just silently ignore
-            // this error condition.
-            // The user should have a checksum anyways
-            // to ensure integrity of the received data.
-
-        }
-
-
-
-        // Data available in RX-FIFO.
-
-        else if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, RXP))
-        {
-
-            u32 data = *(u32*) &SPIx->RXDR; // Pop 32-bit word from the RX-FIFO.
-
-            SPIBlock* block = RingBuffer_writing_pointer(&driver->ring_buffer);
-
-            if (block)
+            case SPIUpdateOnceResult_again:
             {
-                *(u32*) (&(*block)[driver->byte_index])  = __builtin_bswap32(data);
-                driver->byte_index                      += sizeof(u32);
-            }
-            else
+                // See if there's still more stuff to do.
+            } break;
+
+            case SPIUpdateOnceResult_yield:
             {
-                // There's no next spot in the ring-buffer to put the data in.
-                // For now, we'll silently drop the byte.
-            }
+                yield = true;
+            } break;
 
-        }
-
-
-
-        // All expected data has been transferred successfully.
-
-        else if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, EOT))
-        {
-
-            CMSIS_SET(SPIx, CR1, SPE, false); // @/`SPI Activation Cycling`.
-            CMSIS_SET(SPIx, CR1, SPE, true ); // "
-
-            if (driver->byte_index == SPI_BLOCK_SIZE)
+            case SPIUpdateOnceResult_bug:
+            default:
             {
-                if (!RingBuffer_push(&driver->ring_buffer, nullptr))
-                {
-                    // Uh oh, ring-buffer over-run!
-                    // For now, we'll just drop the data
-                    // without indicating that this has happened.
-                    // The user should have a checksum anyways
-                    // to ensure integrity of the received data.
-                }
-            }
-            else
-            {
-                // We missed some data at some point.
-            }
 
-            driver->byte_index = 0;
+                // Shut down the driver. @/`SPI Driver Design`.
 
-        }
+                CMSIS_PUT(SPIx_RESET, true);
+                NVIC_DISABLE(SPIx);
 
+                yield = true;
 
-
-        // Nothing left to handle for now.
-
-        else
-        {
-
-            if (interrupt_status & interrupt_enable)
-                sorry // We overlooked handling an interrupt event...
-
-            yield = true;
+            } break;
 
         }
 
@@ -271,6 +319,29 @@ _SPI_driver_interrupt(enum SPIHandle handle)
 
 
 ////////////////////////////////////////////////////////////////////////////////
+
+
+
+// @/`SPI Driver Design`:
+//
+// This SPI driver is currently very simple; it only handles receiving data
+// from a master in fixed block size with a CRC. Our project does not need
+// anything more than just this, so it's why the driver is the way it is.
+// Nonetheless, the SPI driver is opened to being extended in the future.
+//
+// It should be noted that the way error handling is currently being done
+// for this implementation is that the SPI peripheral is completely turned
+// off without any indication to the user. The reasoning here is that hard
+// errors (like unexpected interrupt events) are incredibly unlikely, so much
+// that it doesn't warrant the user to actually handle it every time the API
+// is used.
+//
+// Another reason is that the user, at least in the context of the current
+// project as of writing, should have an additional layer of error conditions
+// to detect bad SPI communication. For example, if the user has not received
+// data in a while, either because the SPI driver encountered a hard error or
+// because the master device is locked up, the user should reinitialize the
+// SPI driver and reset the master device if possible.
 
 
 
