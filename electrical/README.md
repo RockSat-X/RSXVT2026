@@ -67,5 +67,17 @@ careful documentation and testing will be done to validate them.
 
 
 
+- `uxart.c`
+> The driver for UART communication is **production-ready**.
+> Because of how simple the interface is,
+> the implementation does not raise any error conditions to the user;
+> checksums in any data-transfer should be sufficient.
+> Operationally, the driver should behave as expected
+> when doing full-duplex and half-duplex transfers.
+>
+> \- *Phuc Doan. Feburary 26th, 2026.*
+
+
+
 Files not listed above are not considered **production-ready**.
 This does not mean they are unusable, just that development is still undergoing.
