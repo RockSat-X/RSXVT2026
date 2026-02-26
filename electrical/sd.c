@@ -545,7 +545,7 @@ SD_reinit(enum SDHandle handle)
 
     NVIC_DISABLE(SDx);
 
-    *driver = (struct SDDriver) {0};
+    memzero(driver);
 
 
 
