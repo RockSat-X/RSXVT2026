@@ -1,21 +1,12 @@
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-// Useful shorthand marcos.
 #define stlink_tx(...)        UXART_tx_format(UXARTHandle_stlink, __VA_ARGS__)
-#define stlink_rx(...)        UXART_rx  (UXARTHandle_stlink, __VA_ARGS__)
+#define stlink_rx(...)        UXART_rx       (UXARTHandle_stlink, __VA_ARGS__)
 #define UXART_rx(HANDLE, DST) RingBuffer_pop(&_UXART_drivers[HANDLE].reception, (DST))
-
-
 
 enum UXARTMode : u32
 {
     UXARTMode_full_duplex,
     UXARTMode_half_duplex,
 };
-
-
 
 #include "uxart_driver_support.meta"
 /* #meta
@@ -40,15 +31,11 @@ enum UXARTMode : u32
 
 */
 
-
-
 struct UXARTDriver
 {
     RingBuffer(u8, 256) transmission;
     RingBuffer(u8, 256) reception;
 };
-
-
 
 static struct UXARTDriver _UXART_drivers[UXARTHandle_COUNT] = {0};
 
@@ -71,7 +58,7 @@ UXART_init(enum UXARTHandle handle)
     CMSIS_PUT(UXARTx_RESET, true );
     CMSIS_PUT(UXARTx_RESET, false);
 
-    *driver = (struct UXARTDriver) {0};
+    memzero(driver);
 
 
 
@@ -116,7 +103,7 @@ UXART_init(enum UXARTHandle handle)
 
 
 
-static void // This weird type-signature is for the callback of `vfctprintf`.
+static void
 _UXART_push_byte_for_transmission(char byte, void* void_handle)
 {
 
@@ -124,17 +111,22 @@ _UXART_push_byte_for_transmission(char byte, void* void_handle)
 
     _EXPAND_HANDLE
 
-    if (!CMSIS_GET(UXARTx, CR1, UE))
-        sorry
 
 
-    // Push into the transmission ring-buffer.
     // Most of the time, spin-locking will not be done,
     // but it will be done if the buffer is at its limit.
 
-    while (!RingBuffer_push(&driver->transmission, (u8*) &byte))
+    for (i32 attempts = 0; attempts < 1'000'000; attempts += 1) // Arbitrary upper-limit. @/`UXART Error Handling`.
     {
-        NVIC_SET_PENDING(UXARTx); // Make sure that the UXART knows it should be transmitting.
+        if (RingBuffer_push(&driver->transmission, (u8*) &byte))
+        {
+            break; // Successfully pushed into the transmission ring-buffer.
+        }
+        else
+        {
+            NVIC_SET_PENDING(UXARTx); // Make sure that the UXART knows it should be transmitting.
+            FREERTOS_delay_ms(1);
+        }
     }
 
 }
@@ -147,29 +139,30 @@ UXART_tx_bytes(enum UXARTHandle handle, u8* bytes, i32 length)
 
     _EXPAND_HANDLE
 
-    if (!bytes)
-        sorry
-
-    if (length < 0)
-        sorry
-
-
-
-    // Queue up all of the data to be transmitted.
-
-    for (i32 i = 0; i < length; i += 1)
+    if (bytes && length >= 1)
     {
-        _UXART_push_byte_for_transmission(bytes[i], (void*) handle);
+
+        // Queue up all of the data to be transmitted.
+
+        for (i32 i = 0; i < length; i += 1)
+        {
+            _UXART_push_byte_for_transmission(bytes[i], (void*) handle);
+        }
+
+
+
+        // Let UXART know it should be transmitting now,
+        // if it isn't already aware of that.
+
+        if (RingBuffer_reading_pointer(&driver->transmission))
+        {
+            NVIC_SET_PENDING(UXARTx);
+        }
+
     }
-
-
-
-    // Let UXART know it should be transmitting now,
-    // if it isn't already aware of that.
-
-    if (RingBuffer_reading_pointer(&driver->transmission))
+    else
     {
-        NVIC_SET_PENDING(UXARTx);
+        // No data to transmit. @/`UXART Error Handling`.
     }
 
 }
@@ -238,10 +231,8 @@ _UXART_driver_interrupt(enum UXARTHandle handle)
     (
         UXARTx, CR1             ,
         RE    , enable_receiver , // Selectively disable the receiver during half-duplex transmissions.
-        TCIE  , !enable_receiver, // The receiver once the transmitter is done.
+        TCIE  , !enable_receiver, // Ignore transmission-complete when we're receiving.
     );
-
-    b32 theres_still_stuff_to_transmit = false;
 
 
 
@@ -265,7 +256,7 @@ _UXART_driver_interrupt(enum UXARTHandle handle)
 
     }
 
-    theres_still_stuff_to_transmit |= !!RingBuffer_reading_pointer(&driver->transmission);
+    b32 theres_still_stuff_to_transmit = !!RingBuffer_reading_pointer(&driver->transmission);
 
 
 
@@ -282,32 +273,16 @@ _UXART_driver_interrupt(enum UXARTHandle handle)
     while (true)
     {
 
-        // Handle reception errors.
+        // We currently ignore any reception errors.
 
-        b32 reception_errors =
-            UXARTx->ISR &
-            (
-                USART_ISR_FE  | // Frame error.
-                USART_ISR_NE  | // Noise error.
-                USART_ISR_PE  | // Parity error (put here for completeness).
-                USART_ISR_ORE   // Overrun error.
-            );
-
-        if (reception_errors)
-        {
-            #if 0
-                sorry // Reception error!
-            #else
-                CMSIS_SET
-                (
-                    UXARTx, ICR , // We ignore the reception error.
-                    FECF  , true, // Frame error.
-                    NECF  , true, // Noise error.
-                    PECF  , true, // Parity error (here for completeness).
-                    ORECF , true, // Overrun error.
-                );
-            #endif
-        }
+        CMSIS_SET
+        (
+            UXARTx, ICR ,
+            FECF  , true, // Frame error.
+            NECF  , true, // Noise error.
+            PECF  , true, // Parity error (here for completeness).
+            ORECF , true, // Overrun error.
+        );
 
 
 
@@ -316,35 +291,47 @@ _UXART_driver_interrupt(enum UXARTHandle handle)
         if (CMSIS_GET(UXARTx, ISR, RXNE))
         {
 
-            // Pop from the hardware RX-buffer
-            // even if we don't have a place to
-            // save the data in our software
-            // buffer right now.
+            // Pop from the hardware RX-buffer even if we don't have a place to
+            // save the data in our software buffer right now.
 
             u8 data = (u8) UXARTx->RDR;
 
 
 
-            // Try pushing the data into
-            // the reception ring-buffer.
+            // Try pushing the data into the reception ring-buffer.
 
             if (!RingBuffer_push(&driver->reception, &data))
             {
-                #if 0
-                    sorry // Reception ring-buffer overflow!
-                #else
-                    // We got an overflow,
-                    // but this isn't a critical thing,
-                    // so we'll just silently ignore it.
-                #endif
+                // The reception ring-buffer overflowed;
+                // we'll just silently drop the data for now.
+                // @/`UXART Error Handling`.
+
             }
 
         }
         else
         {
-            break;
+            break; // No more new data.
         }
 
     }
 
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+// @/`UXART Error Handling`:
+//
+// This UXART driver is specifically designed to not report any particular
+// error condition to the user. Things such as UART frame errors and FIFO
+// overrun will not be flagged to the user at all. This is to make the
+// driver easier to use, as errors concerning UART transmission is pretty
+// unlikely, and any data transfer should be backed by a checksum anyways.
+//
+// The main concern that the user should be aware of when it comes to a bug
+// error condition is when the UXART driver is being used it has been initialized;
+// this user bug is pretty easy to identify, however, so it's not a big concern.
