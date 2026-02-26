@@ -19,8 +19,8 @@ main(void)
     // General peripheral initializations.
 
     STPY_init();
-    UXART_init(UXARTHandle_stlink);
-    UXART_init(UXARTHandle_vn100); // TODO Just to test VN-100 reception for VehicleFlightComputer.
+    UXART_reinit(UXARTHandle_stlink);
+    UXART_reinit(UXARTHandle_vn100); // TODO Just to test VN-100 reception for VehicleFlightComputer.
 
     {
 

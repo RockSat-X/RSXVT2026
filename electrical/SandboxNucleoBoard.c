@@ -8,7 +8,7 @@ main(void)
 {
 
     STPY_init();
-    UXART_init(UXARTHandle_stlink);
+    UXART_reinit(UXARTHandle_stlink);
 
     #if TARGET_USES_FREERTOS
 

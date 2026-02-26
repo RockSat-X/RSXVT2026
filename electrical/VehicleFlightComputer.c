@@ -53,9 +53,9 @@ main(void)
     // General peripheral initializations.
 
     STPY_init();
-    UXART_init(UXARTHandle_stlink);
-    UXART_init(UXARTHandle_stepper_uart);
-    UXART_init(UXARTHandle_vn100_esp32);
+    UXART_reinit(UXARTHandle_stlink);
+    UXART_reinit(UXARTHandle_stepper_uart);
+    UXART_reinit(UXARTHandle_vn100_esp32);
     {
         enum I2CReinitResult result = I2C_reinit(I2CHandle_vehicle_interface);
         switch (result)

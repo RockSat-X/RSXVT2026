@@ -211,7 +211,7 @@ main(void)
 {
 
     STPY_init();
-    UXART_init(UXARTHandle_stlink);
+    UXART_reinit(UXARTHandle_stlink);
     SD_reinit(SDHandle_primary);
 
     {

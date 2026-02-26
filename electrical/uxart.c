@@ -46,7 +46,7 @@ static struct UXARTDriver _UXART_drivers[UXARTHandle_COUNT] = {0};
 
 
 static void
-UXART_init(enum UXARTHandle handle)
+UXART_reinit(enum UXARTHandle handle)
 {
 
     _EXPAND_HANDLE
@@ -57,6 +57,8 @@ UXART_init(enum UXARTHandle handle)
 
     CMSIS_PUT(UXARTx_RESET, true );
     CMSIS_PUT(UXARTx_RESET, false);
+
+    NVIC_DISABLE(UXARTx);
 
     memzero(driver);
 
@@ -335,3 +337,5 @@ _UXART_driver_interrupt(enum UXARTHandle handle)
 // The main concern that the user should be aware of when it comes to a bug
 // error condition is when the UXART driver is being used it has been initialized;
 // this user bug is pretty easy to identify, however, so it's not a big concern.
+//
+// Nonetheless, if need be, the UXART driver can be reinitialized at any time.
