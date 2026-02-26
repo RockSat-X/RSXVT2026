@@ -79,5 +79,15 @@ careful documentation and testing will be done to validate them.
 
 
 
+- `spi.c`
+> The driver for SPI data reception is **production-ready**.
+> The implementation is very narrow in scope,
+> but should be sufficient for our project.
+> Issues concerning usage and behavior of the SPI driver are unlikely.
+>
+> \- *Phuc Doan. Feburary 26th, 2026.*
+
+
+
 Files not listed above are not considered **production-ready**.
 This does not mean they are unusable, just that development is still undergoing.

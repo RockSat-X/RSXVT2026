@@ -4,6 +4,9 @@
 #if TARGET_NAME_IS_DemoI2C
     #error Target 'DemoI2C' needs to define a unique 'Stepper' driver.
 #endif
+#if TARGET_NAME_IS_DemoSPI
+    #error Target 'DemoSPI' needs to define a unique 'Stepper' driver.
+#endif
 #if TARGET_NAME_IS_DemoTimer
     #error Target 'DemoTimer' needs to define a unique 'Stepper' driver.
 #endif

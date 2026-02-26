@@ -4,6 +4,8 @@
     static I2CSlaveCallback INTERRUPT_I2Cx_bee;
     #define INTERRUPT_I2Cx_bee(...) static void INTERRUPT_I2Cx_bee(__VA_ARGS__)
 #endif
+#if TARGET_NAME_IS_DemoSPI
+#endif
 #if TARGET_NAME_IS_DemoTimer
 #endif
 #if TARGET_NAME_IS_DemoTimekeeping
@@ -68,6 +70,9 @@
     {
         _I2C_driver_interrupt(I2CHandle_bee);
     }
+#endif
+#if TARGET_NAME_IS_DemoSPI
+    #error Target 'DemoSPI' defines no handle for the 'I2C' driver.
 #endif
 #if TARGET_NAME_IS_DemoTimer
     #error Target 'DemoTimer' defines no handle for the 'I2C' driver.
@@ -213,6 +218,8 @@
 #if TARGET_NAME_IS_SandboxNucleoH533RE
 #endif
 #if TARGET_NAME_IS_DemoI2C
+#endif
+#if TARGET_NAME_IS_DemoSPI
 #endif
 #if TARGET_NAME_IS_DemoTimer
 #endif
