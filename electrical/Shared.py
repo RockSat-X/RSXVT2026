@@ -392,10 +392,6 @@ TARGETS = ( # @/`Defining Targets`.
                 'handle'     : 'primary',
             },
             {
-                'type'         : 'Log',
-                'uxart_handle' : 'stlink',
-            },
-            {
                 'type'       : 'TIMEKEEPING',
                 'peripheral' : 'TIM2',
             },
