@@ -4,6 +4,9 @@
 #if TARGET_NAME_IS_DemoI2C
     #error Target 'DemoI2C' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
 #endif
+#if TARGET_NAME_IS_DemoSPI
+    #error Target 'DemoSPI' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
+#endif
 #if TARGET_NAME_IS_DemoTimer
     #error Target 'DemoTimer' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
 #endif

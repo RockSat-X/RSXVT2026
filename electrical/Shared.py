@@ -234,6 +234,71 @@ TARGETS = ( # @/`Defining Targets`.
 
     types.SimpleNamespace(
 
+        name              = 'DemoSPI',
+        mcu               = 'STM32H533RET6',
+        source_file_paths = (
+            pxd.make_main_relative_path('./electrical/DemoSPI.c'),
+        ),
+
+        kicad_project = None,
+
+        gpios = (
+            ('led_green'  , 'A5' , 'OUTPUT'   , { 'initlvl' : False                 }),
+            ('stlink_tx'  , 'A2' , 'ALTERNATE', { 'altfunc' : 'USART2_TX'           }),
+            ('stlink_rx'  , 'A3' , 'ALTERNATE', { 'altfunc' : 'USART2_RX'           }),
+            ('swdio'      , 'A13', None       , {                                   }),
+            ('swclk'      , 'A14', None       , {                                   }),
+            ('button'     , 'C13', 'INPUT'    , { 'pull'    : None, 'active' : True }),
+            ('spi_nss'    , 'B1' , 'ALTERNATE', { 'altfunc' : 'SPI2_NSS'            }),
+            ('spi_clock'  , 'B10', 'ALTERNATE', { 'altfunc' : 'SPI2_SCK'            }),
+            ('spi_mosi'   , 'C3' , 'ALTERNATE', { 'altfunc' : 'SPI2_MOSI'           }),
+        ),
+
+        interrupts = (
+            ('USART2', 0),
+            ('SPI2'  , 1),
+        ),
+
+        drivers = (
+            {
+                'type'       : 'UXART',
+                'peripheral' : 'USART2',
+                'handle'     : 'stlink',
+                'mode'       : 'full_duplex',
+            },
+            {
+                'type'       : 'SPI',
+                'peripheral' : 'SPI2',
+                'handle'     : 'primary',
+            },
+        ),
+
+        use_freertos    = False,
+        main_stack_size = 8192,
+        schema          = {
+            'HSI_ENABLE'        : True,
+            'HSI48_ENABLE'      : True,
+            'CSI_ENABLE'        : True,
+            'PLL1P_CK'          : 250_000_000,
+            'PLL3P_CK'          : 600_000 * 4,
+            'CPU_CK'            : 250_000_000,
+            'APB1_CK'           : 250_000_000,
+            'APB2_CK'           : 250_000_000,
+            'APB3_CK'           : 250_000_000,
+            'USART2_BAUD'       : STLINK_BAUD,
+            'SPI2_BAUD'         : 600_000,
+        },
+
+    ),
+
+
+
+    ########################################
+
+
+
+    types.SimpleNamespace(
+
         name              = 'DemoTimer',
         mcu               = 'STM32H533RET6',
         source_file_paths = (
