@@ -43,13 +43,14 @@ try_swap(void)
             // An attempt was made to get the next framebuffer.
         } break;
 
+        case OVCAMSwapFramebufferResult_too_many_bad_jpeg_frames:
         case OVCAMSwapFramebufferResult_timeout:
-        case OVCAMSwapFramebufferResult_bug:
         {
             reinitialize_ovcam(); // Something bad happened, so we'll reinitialize everything.
         } break;
 
-        default: sorry
+        case OVCAMSwapFramebufferResult_bug : sorry
+        default                             : sorry
 
     }
 
@@ -127,7 +128,7 @@ main(void)
                     };
 
                 enum I2CDoResult transfer_result = {0};
-                do transfer_result = I2C_do(&job); // TODO Clean up.
+                do transfer_result = I2C_do(&job);
                 while (transfer_result == I2CDoResult_working);
 
                 if (transfer_result != I2CDoResult_success)
