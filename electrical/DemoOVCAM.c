@@ -15,14 +15,17 @@ static void
 reinitialize_ovcam(void)
 {
 
-    enum OVCAMReinitResult result = OVCAM_reinit();
-
-    switch (result)
+    while (true)
     {
-        case OVCAMReinitResult_success                       : break;
-        case OVCAMReinitResult_failed_to_initialize_with_i2c : sorry
-        case OVCAMReinitResult_bug                           : sorry
-        default                                              : sorry
+        enum OVCAMReinitResult result = OVCAM_reinit();
+
+        switch (result)
+        {
+            case OVCAMReinitResult_success                       : return;
+            case OVCAMReinitResult_failed_to_initialize_with_i2c : break;
+            case OVCAMReinitResult_bug                           : sorry
+            default                                              : sorry
+        }
     }
 
 }
