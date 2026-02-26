@@ -56,5 +56,16 @@ careful documentation and testing will be done to validate them.
 
 
 
+- `ovcam.c`
+> The driver for the OV5640 camera module is **production-ready**.
+> The register initialization sequence is open to being modified.
+> The driver is designed to work with the OV5640 module specifically,
+> but other compatiable camera modules may work too.
+> Issues concerning usage and behavior of the OVCAM driver are unlikely.
+>
+> \- *Phuc Doan. Feburary 25th, 2026.*
+
+
+
 Files not listed above are not considered **production-ready**.
 This does not mean they are unusable, just that development is still undergoing.

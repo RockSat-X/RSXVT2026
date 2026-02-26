@@ -15,14 +15,17 @@ static void
 reinitialize_ovcam(void)
 {
 
-    enum OVCAMReinitResult result = OVCAM_reinit();
-
-    switch (result)
+    while (true)
     {
-        case OVCAMReinitResult_success                       : break;
-        case OVCAMReinitResult_failed_to_initialize_with_i2c : sorry
-        case OVCAMReinitResult_bug                           : sorry
-        default                                              : sorry
+        enum OVCAMReinitResult result = OVCAM_reinit();
+
+        switch (result)
+        {
+            case OVCAMReinitResult_success                       : return;
+            case OVCAMReinitResult_failed_to_initialize_with_i2c : break;
+            case OVCAMReinitResult_bug                           : sorry
+            default                                              : sorry
+        }
     }
 
 }
@@ -43,13 +46,14 @@ try_swap(void)
             // An attempt was made to get the next framebuffer.
         } break;
 
+        case OVCAMSwapFramebufferResult_too_many_bad_jpeg_frames:
         case OVCAMSwapFramebufferResult_timeout:
-        case OVCAMSwapFramebufferResult_bug:
         {
             reinitialize_ovcam(); // Something bad happened, so we'll reinitialize everything.
         } break;
 
-        default: sorry
+        case OVCAMSwapFramebufferResult_bug : sorry
+        default                             : sorry
 
     }
 
@@ -127,7 +131,7 @@ main(void)
                     };
 
                 enum I2CDoResult transfer_result = {0};
-                do transfer_result = I2C_do(&job); // TODO Clean up.
+                do transfer_result = I2C_do(&job);
                 while (transfer_result == I2CDoResult_working);
 
                 if (transfer_result != I2CDoResult_success)
