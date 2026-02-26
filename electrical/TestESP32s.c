@@ -8,8 +8,8 @@ main(void)
 {
 
     STPY_init();
-    UXART_init(UXARTHandle_stlink);
-    UXART_init(UXARTHandle_esp32);
+    UXART_reinit(UXARTHandle_stlink);
+    UXART_reinit(UXARTHandle_esp32);
 
 
 
