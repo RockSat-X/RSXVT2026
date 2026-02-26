@@ -13,7 +13,7 @@ careful documentation and testing will be done to validate them.
 > The ring-buffer implementation is **production-ready**.
 > Issues concerning usage and behavior of ring-buffers are unlikely.
 >
-> \- *Phuc Doan. Feburary 22nd, 2026.*
+> \- *Phuc Doan. February 22nd, 2026.*
 
 
 
@@ -22,7 +22,7 @@ careful documentation and testing will be done to validate them.
 > Timer accuracy is not accounted for in this implementation,
 > but for our application, this should be fine.
 >
-> \- *Phuc Doan. Feburary 25th, 2026.*
+> \- *Phuc Doan. February 25th, 2026.*
 
 
 
@@ -32,7 +32,7 @@ careful documentation and testing will be done to validate them.
 > but all error conditions are well-defined and handled accordingly.
 > Issues concerning usage and behavior of the SD-initer are unlikely.
 >
-> \- *Phuc Doan. Feburary 22nd, 2026.*
+> \- *Phuc Doan. February 22nd, 2026.*
 
 
 
@@ -44,7 +44,7 @@ careful documentation and testing will be done to validate them.
 > but the state-machine is designed to be easily resettable in such rare events.
 > Issues concerning usage and behavior of the SD-cmder are unlikely.
 >
-> \- *Phuc Doan. Feburary 23rd, 2026.*
+> \- *Phuc Doan. February 23rd, 2026.*
 
 
 
@@ -52,7 +52,7 @@ careful documentation and testing will be done to validate them.
 > The API for doing read/writes to SD cards is **production-ready**.
 > Issues concerning usage and behavior of the SD API are unlikely.
 >
-> \- *Phuc Doan. Feburary 23rd, 2026.*
+> \- *Phuc Doan. February 23rd, 2026.*
 
 
 
@@ -63,7 +63,7 @@ careful documentation and testing will be done to validate them.
 > but other compatiable camera modules may work too.
 > Issues concerning usage and behavior of the OVCAM driver are unlikely.
 >
-> \- *Phuc Doan. Feburary 25th, 2026.*
+> \- *Phuc Doan. February 25th, 2026.*
 
 
 
@@ -75,7 +75,7 @@ careful documentation and testing will be done to validate them.
 > Operationally, the driver should behave as expected
 > when doing full-duplex and half-duplex transfers.
 >
-> \- *Phuc Doan. Feburary 26th, 2026.*
+> \- *Phuc Doan. February 26th, 2026.*
 
 
 
@@ -85,7 +85,7 @@ careful documentation and testing will be done to validate them.
 > but should be sufficient for our project.
 > Issues concerning usage and behavior of the SPI driver are unlikely.
 >
-> \- *Phuc Doan. Feburary 26th, 2026.*
+> \- *Phuc Doan. February 26th, 2026.*
 
 
 
