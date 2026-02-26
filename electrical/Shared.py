@@ -271,6 +271,10 @@ TARGETS = ( # @/`Defining Targets`.
                 'peripheral' : 'SPI2',
                 'handle'     : 'primary',
             },
+            {
+                'type'       : 'TIMEKEEPING',
+                'peripheral' : 'TIM2',
+            },
         ),
 
         use_freertos    = False,
@@ -287,6 +291,7 @@ TARGETS = ( # @/`Defining Targets`.
             'APB3_CK'           : 250_000_000,
             'USART2_BAUD'       : STLINK_BAUD,
             'SPI2_BAUD'         : 600_000,
+            'TIM2_COUNTER_RATE' : 1_000_000,
         },
 
     ),
