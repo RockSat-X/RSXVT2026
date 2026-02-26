@@ -398,6 +398,7 @@
 
 struct OVCAMFramebuffer
 {
+    u32 timestamp_us;
     i32 length;
     u8 data[OVCAM_FRAMEBUFFER_SIZE] __attribute__((aligned(4)));      // Alignment for DMA.
     static_assert(sizeof(OVCAM_FRAMEBUFFER_SIZE) % sizeof(u32) == 0); // DCMI packs data into 32-bit words.
@@ -416,6 +417,7 @@ struct OVCAMDriver
 {
     volatile _Atomic enum OVCAMDriverState atomic_state;
     u32                                    swap_timestamp_us;
+    u32                                    capture_timestamp_us;
     i32                                    corrupted_jpeg_image_count;
 };
 
@@ -1021,6 +1023,8 @@ _OVCAM_update_once(void)
                     CMSIS_SET(GPDMA1_Channel7, CCR, EN     , true);
                     CMSIS_SET(DCMI           , CR , CAPTURE, true);
 
+                    _OVCAM_driver.capture_timestamp_us = TIMEKEEPING_microseconds();
+
 
 
                     // We finished setting things up to capture the next image.
@@ -1236,7 +1240,8 @@ _OVCAM_update_once(void)
                 if (!framebuffer)
                     bug; // There should've been a framebuffer that we were filling out...
 
-                framebuffer->length = (i32) CMSIS_GET(GPDMA1_Channel7, CDAR, DA) - (i32) &framebuffer->data;
+                framebuffer->timestamp_us = _OVCAM_driver.capture_timestamp_us;
+                framebuffer->length       = (i32) CMSIS_GET(GPDMA1_Channel7, CDAR, DA) - (i32) &framebuffer->data;
 
                 if (!(0 < framebuffer->length && framebuffer->length < OVCAM_FRAMEBUFFER_SIZE))
                     bug; // Non-sensical data transfer length!
