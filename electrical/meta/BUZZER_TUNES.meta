@@ -242,17 +242,17 @@ static const struct BuzzerNote BUZZER_TUNE_nokia[] =
         { 3021, 82 },
         { 2268, 220 },
     };
-static const struct { struct BuzzerNote* notes; i32 count; } BUZZER_TUNES[] =
+static const struct { typeof((struct BuzzerNote*) BUZZER_TUNE_null) note_array; typeof(0) note_count; } BUZZER_TUNES[] =
     {
-        { (struct BuzzerNote*) BUZZER_TUNE_null, 0 },
-        { (struct BuzzerNote*) BUZZER_TUNE_ambulance, 6 },
-        { (struct BuzzerNote*) BUZZER_TUNE_up_and_down, 17 },
-        { (struct BuzzerNote*) BUZZER_TUNE_deep_beep, 8 },
-        { (struct BuzzerNote*) BUZZER_TUNE_heartbeat, 8 },
-        { (struct BuzzerNote*) BUZZER_TUNE_three_tone, 4 },
-        { (struct BuzzerNote*) BUZZER_TUNE_tetris, 39 },
-        { (struct BuzzerNote*) BUZZER_TUNE_mario, 12 },
-        { (struct BuzzerNote*) BUZZER_TUNE_birthday, 25 },
-        { (struct BuzzerNote*) BUZZER_TUNE_starwars, 18 },
-        { (struct BuzzerNote*) BUZZER_TUNE_nokia, 13 },
+        { .note_array = (struct BuzzerNote*) BUZZER_TUNE_null       , .note_count = 0  },
+        { .note_array = (struct BuzzerNote*) BUZZER_TUNE_ambulance  , .note_count = 6  },
+        { .note_array = (struct BuzzerNote*) BUZZER_TUNE_up_and_down, .note_count = 17 },
+        { .note_array = (struct BuzzerNote*) BUZZER_TUNE_deep_beep  , .note_count = 8  },
+        { .note_array = (struct BuzzerNote*) BUZZER_TUNE_heartbeat  , .note_count = 8  },
+        { .note_array = (struct BuzzerNote*) BUZZER_TUNE_three_tone , .note_count = 4  },
+        { .note_array = (struct BuzzerNote*) BUZZER_TUNE_tetris     , .note_count = 39 },
+        { .note_array = (struct BuzzerNote*) BUZZER_TUNE_mario      , .note_count = 12 },
+        { .note_array = (struct BuzzerNote*) BUZZER_TUNE_birthday   , .note_count = 25 },
+        { .note_array = (struct BuzzerNote*) BUZZER_TUNE_starwars   , .note_count = 18 },
+        { .note_array = (struct BuzzerNote*) BUZZER_TUNE_nokia      , .note_count = 13 },
     };

@@ -120,13 +120,13 @@ struct BuzzerNote
 
     # Make table to point to all of the buzzer tunes.
 
-    with Meta.enter('static const struct { struct BuzzerNote* notes; i32 count; } BUZZER_TUNES[] ='):
-
-        for name, notes in BUZZER_TUNES:
-
-            Meta.line(f'''
-                {{ (struct BuzzerNote*) BUZZER_TUNE_{name}, {len(notes)} }},
-            ''')
+    Meta.lut('BUZZER_TUNES', (
+        (
+            ('note_array', f'(struct BuzzerNote*) BUZZER_TUNE_{name}'),
+            ('note_count', len(notes)                                ),
+        )
+        for name, notes in BUZZER_TUNES
+    ))
 
 */
 
@@ -254,7 +254,7 @@ INTERRUPT_TIM8_UP(void)
 
     // We've reached the end of the tune?
 
-    if (_BUZZER_driver.note_index == BUZZER_TUNES[_BUZZER_driver.current_tune].count)
+    if (_BUZZER_driver.note_index == BUZZER_TUNES[_BUZZER_driver.current_tune].note_count)
     {
         _BUZZER_driver.current_tune = BuzzerTune_null;
         _BUZZER_driver.note_index   = 0;
@@ -272,7 +272,7 @@ INTERRUPT_TIM8_UP(void)
         CMSIS_SET
         (
             TIM8, ARR,
-            ARR , BUZZER_TUNES[_BUZZER_driver.current_tune].notes[_BUZZER_driver.note_index].modulation,
+            ARR , BUZZER_TUNES[_BUZZER_driver.current_tune].note_array[_BUZZER_driver.note_index].modulation,
         );
 
 
@@ -282,7 +282,7 @@ INTERRUPT_TIM8_UP(void)
         CMSIS_SET
         (
             TIM8, CCR1,
-            CCR1, BUZZER_TUNES[_BUZZER_driver.current_tune].notes[_BUZZER_driver.note_index].modulation / 2,
+            CCR1, BUZZER_TUNES[_BUZZER_driver.current_tune].note_array[_BUZZER_driver.note_index].modulation / 2,
         );
 
 
@@ -292,7 +292,7 @@ INTERRUPT_TIM8_UP(void)
         CMSIS_SET
         (
             TIM8, RCR,
-            REP , BUZZER_TUNES[_BUZZER_driver.current_tune].notes[_BUZZER_driver.note_index].repetitions,
+            REP , BUZZER_TUNES[_BUZZER_driver.current_tune].note_array[_BUZZER_driver.note_index].repetitions,
         );
 
 
