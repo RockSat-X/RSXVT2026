@@ -1,16 +1,9 @@
-// The following macro creates a Matrix instance
-// on the stack. This means matrices should not be
-// used as return values as they are allocated in the
-// function's stack frame.
+////////////////////////////////////////////////////////////////////////////////
 //
-// Matrices should be made by doing `Matrix(A, B)`
-// to create a AxB matrix of zeros or `Matrix(A, B, ...)`
-// where all elements are listed out explicitly;
-// it should be noted that it's not checked if the amount
-// of listed elements matches up with AxB, so if too few
-// elements are given, the rest of the matrix's elements
-// are initialized to zero (but too many and the compiler
-// will complain, so that's okay).
+// Matrix stuff. @/`Using Matrices`.
+//
+
+
 
 #define Matrix(ROWS, COLUMNS, VALUES...)  \
     (                                     \
@@ -23,6 +16,9 @@
         }                                 \
     )
 
+#define AT(MATRIX, ROW, COLUMN) \
+    (MATRIX)->values[(ROW) * (MATRIX)->columns + (COLUMN)]
+
 struct Matrix
 {
     i32 rows;
@@ -32,46 +28,16 @@ struct Matrix
 
 
 
-// Matrix elements are stored as a
-// flat array in row-major order.
-// The following macro makes it convenient
-// to index an arbitrary matrix.
-
-#define AT(MATRIX, ROW, COLUMN) \
-    (MATRIX)->values[(ROW) * (MATRIX)->columns + (COLUMN)]
-
-
-
-// To multiply two matrices, the destination matrix
-// should be allocated beforehand to the correct dimensions.
 
 static void
 MATRIX_multiply(struct Matrix* dst, struct Matrix* lhs, struct Matrix* rhs)
 {
 
-    if (!dst)
-        sorry
-
-    if (!lhs)
-        sorry
-
-    if (!rhs)
-        sorry
-
-    if (dst == lhs)
-        sorry
-
-    if (dst == rhs)
-        sorry
-
-    if (dst->rows != lhs->rows)
-        sorry
-
-    if (dst->columns != rhs->columns)
-        sorry
-
-    if (lhs->columns != rhs->rows)
-        sorry
+    sorry_if(!dst || !lhs || !rhs);         // Missing arguments.
+    sorry_if(dst == lhs || dst == rhs);     // No destination aliasing (e.g. `A = A * B;` is disallowed).
+    sorry_if(dst->rows    != lhs->rows   ); // Incorrect dimensions.
+    sorry_if(dst->columns != rhs->columns); // "
+    sorry_if(lhs->columns != rhs->rows   ); // "
 
     for (i32 i = 0; i < lhs->rows; i += 1)
     {
@@ -92,26 +58,13 @@ MATRIX_multiply(struct Matrix* dst, struct Matrix* lhs, struct Matrix* rhs)
 
 
 
-// Matrices can be added/subtracted with
-// the following multiply-add routine.
-// Note that it's accumulator-based, so it
-// modifies one of the given matrices.
-
 static void
 MATRIX_multiply_add(struct Matrix* accumulator, struct Matrix* addend, f32 factor)
 {
 
-    if (!accumulator)
-        sorry
-
-    if (!addend)
-        sorry
-
-    if (accumulator->rows != addend->rows)
-        sorry
-
-    if (accumulator->columns != addend->columns)
-        sorry
+    sorry_if(!accumulator || !addend);                 // Missing arguments.
+    sorry_if(accumulator->rows    != addend->rows);    // Incorrect dimensions.
+    sorry_if(accumulator->columns != addend->columns); // Incorrect dimensions.
 
     for (i32 i = 0; i < accumulator->rows; i += 1)
     {
@@ -125,19 +78,15 @@ MATRIX_multiply_add(struct Matrix* accumulator, struct Matrix* addend, f32 facto
 
 
 
-// Helper routine to dump the contents of the matrix
-// for diagnostics. The rounding should be accounted for
-// if the values are to be analyzed seriously.
-
 static void
 MATRIX_stlink_tx(struct Matrix* matrix)
 {
 
-    if (!matrix)
-        sorry
+    sorry_if(!matrix); // Missing argument.
 
     for (i32 i = 0; i < matrix->rows; i += 1)
     {
+
         stlink_tx
         (
             "%c ",
@@ -158,6 +107,7 @@ MATRIX_stlink_tx(struct Matrix* matrix)
             i == 0                ? '\\' :
             i == matrix->rows - 1 ? '/'  : '|'
         );
+
     }
 
 }
@@ -165,6 +115,9 @@ MATRIX_stlink_tx(struct Matrix* matrix)
 
 
 ////////////////////////////////////////////////////////////////////////////////
+//
+// Actual GNC stuff.
+//
 
 
 
@@ -211,6 +164,34 @@ GNC_update(void) // TODO.
 
     MATRIX_stlink_tx(control_output);
 
-    sorry
+    return GNCUpdateResult_okay;
 
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// Notes.
+//
+
+
+
+// @/`Using Matrices`:
+//
+// Matrices should be made by doing `Matrix(A, B)` to create
+// an AxB matrix of zeros, or `Matrix(A, B, ...)` where all
+// elements are listed out explicitly; it should be noted that
+// it's not checked if the amount of listed elements matches up
+// with AxB, so if too few elements are given, the rest of the
+// matrix's elements are initialized to zero (but too many and
+// the compiler will complain, so that's okay).
+//
+// The `Matrix` macro creates a `Matrix` instance on the stack.
+// This means matrices should not be used as return values as
+// they are allocated in the called function's stack frame.
+//
+// Matrix elements are stored as a flat array in row-major order.
+// To access a specific element of the matrix, use the `AT` macro,
+// like: `AT(my_matrix, 5, 6)` to get the element in the 6th row,
+// 7th column (because zero-indexing).
