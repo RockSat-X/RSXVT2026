@@ -1522,28 +1522,8 @@
             PLL1N, 125 - 1 ,
             PLL1P, 2 - 1   ,
         );
-        CMSIS_SET
-        (
-            RCC    , PLL3CFGR,
-            PLL3SRC, 0b01    ,
-            PLL3M  , 3       ,
-            PLL3RGE, 3       ,
-            PLL3PEN, true    ,
-        );
-        CMSIS_SET
-        (
-            RCC  , PLL3DIVR,
-            PLL3N, 18 - 1  ,
-            PLL3P, 80 - 1  ,
-        );
-        CMSIS_SET
-        (
-            RCC   , CR  ,
-            PLL1ON, true,
-            PLL3ON, true,
-        );
+        CMSIS_SET(RCC, CR, PLL1ON, true);
         while (!CMSIS_GET(RCC, CR, PLL1RDY));
-        while (!CMSIS_GET(RCC, CR, PLL3RDY));
 
 
 
@@ -1588,9 +1568,7 @@
     #define STPY_CSI_CK        (  4'000'000)
     #define STPY_AXI_AHB_CK    (250'000'000)
     #define STPY_PLL1P_CK      (250'000'000)
-    #define STPY_PLL3P_CK      (  2'400'000)
     #define STPY_PLL1_VCO_FREQ (500'000'000)
-    #define STPY_PLL3_VCO_FREQ (192'000'000)
     #define STPY_APB1_CK       (250'000'000)
     #define STPY_APB2_CK       (250'000'000)
     #define STPY_APB3_CK       (250'000'000)

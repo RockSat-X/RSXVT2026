@@ -344,7 +344,6 @@ TARGETS = ( # @/`Defining Targets`.
             'HSI48_ENABLE'      : True,
             'CSI_ENABLE'        : True,
             'PLL1P_CK'          : 250_000_000,
-            'PLL3P_CK'          : 600_000 * 4,
             'CPU_CK'            : 250_000_000,
             'APB1_CK'           : 250_000_000,
             'APB2_CK'           : 250_000_000,
