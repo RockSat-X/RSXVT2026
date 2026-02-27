@@ -16,15 +16,26 @@ main(void)
 
         stlink_tx("\n[Index %d]\n", index);
 
-        enum GNCUpdateResult result = GNC_update();
+        struct Matrix* new_angular_velocities = Matrix(3, 1);
+
+        enum GNCUpdateResult result =
+            GNC_update
+            (
+                new_angular_velocities
+            );
 
         switch (result)
         {
 
             case GNCUpdateResult_okay:
             {
+
+                stlink_tx("New angular velocities:\n");
+                MATRIX_stlink_tx(new_angular_velocities);
+
                 GPIO_TOGGLE(led_green);
                 spinlock_nop(100'000'000);
+
             } break;
 
             case GNCUpdateResult_bug : sorry

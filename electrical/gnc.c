@@ -126,8 +126,15 @@ static useret enum GNCUpdateResult : u32
     GNCUpdateResult_okay,
     GNCUpdateResult_bug = BUG_CODE,
 }
-GNC_update(void) // TODO.
+GNC_update
+(
+    struct Matrix* resulting_angular_velocities
+)
 {
+
+    sorry_if(!resulting_angular_velocities);
+
+
 
     struct Matrix* gain =
         Matrix
@@ -150,19 +157,11 @@ GNC_update(void) // TODO.
             1,
         );
 
-    struct Matrix* control_output = Matrix(3, 1);
+    MATRIX_multiply(resulting_angular_velocities, gain, state);
+
+    MATRIX_multiply_add(resulting_angular_velocities, resulting_angular_velocities, -2);
 
 
-
-    MATRIX_multiply(control_output, gain, state);
-
-    MATRIX_multiply_add(control_output, control_output, -2);
-
-
-
-    stlink_tx("Resultant Matrix is:\n");
-
-    MATRIX_stlink_tx(control_output);
 
     return GNCUpdateResult_okay;
 
