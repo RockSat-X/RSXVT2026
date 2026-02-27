@@ -59,36 +59,22 @@ main(void)
 
             struct Matrix* new_angular_velocities = Matrix(3, 1);
 
-            enum GNCUpdateResult result =
-                GNC_update
-                (
-                    new_angular_velocities,
-                    &GNC_MOCK_SIMULATION[index].vn100,
-                    &GNC_MOCK_SIMULATION[index].openmv
-                );
+            GNC_update
+            (
+                new_angular_velocities,
+                &GNC_MOCK_SIMULATION[index].vn100,
+                &GNC_MOCK_SIMULATION[index].openmv
+            );
 
-            switch (result)
-            {
-
-                case GNCUpdateResult_okay:
-                {
-
-                    stlink_tx
-                    (
-                        "[%d/%d] <%f, %f, %f>\n",
-                        index + 1,
-                        countof(GNC_MOCK_SIMULATION),
-                        new_angular_velocities->values[0],
-                        new_angular_velocities->values[1],
-                        new_angular_velocities->values[2]
-                    );
-
-                } break;
-
-                case GNCUpdateResult_bug : sorry
-                default                  : sorry
-
-            }
+            stlink_tx
+            (
+                "[%d/%d] <%f, %f, %f>\n",
+                index + 1,
+                countof(GNC_MOCK_SIMULATION),
+                new_angular_velocities->values[0],
+                new_angular_velocities->values[1],
+                new_angular_velocities->values[2]
+            );
 
         }
 

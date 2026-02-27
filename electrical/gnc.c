@@ -158,11 +158,7 @@ pack_pop
 
 
 
-static useret enum GNCUpdateResult : u32
-{
-    GNCUpdateResult_okay,
-    GNCUpdateResult_bug = BUG_CODE,
-}
+static void
 GNC_update
 (
     struct Matrix*             resulting_angular_velocities,
@@ -171,14 +167,9 @@ GNC_update
 )
 {
 
-    if (!resulting_angular_velocities)
-        bug;
-
-    if (!most_recent_imu)
-        bug;
-
-    if (!most_recent_openmv_reading)
-        bug;
+    sorry_if(!resulting_angular_velocities);
+    sorry_if(!most_recent_imu);
+    sorry_if(!most_recent_openmv_reading);
 
 
 
@@ -216,10 +207,6 @@ GNC_update
         resulting_angular_velocities,
         most_recent_imu->QuatX
     );
-
-
-
-    return GNCUpdateResult_okay;
 
 }
 
