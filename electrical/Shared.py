@@ -313,13 +313,14 @@ TARGETS = ( # @/`Defining Targets`.
         kicad_project = None,
 
         gpios = (
-            ('led_green'  , 'A5' , 'OUTPUT'   , { 'initlvl' : False                 }),
-            ('stlink_tx'  , 'A2' , 'ALTERNATE', { 'altfunc' : 'USART2_TX'           }),
-            ('stlink_rx'  , 'A3' , 'ALTERNATE', { 'altfunc' : 'USART2_RX'           }),
-            ('swdio'      , 'A13', None       , {                                   }),
-            ('swclk'      , 'A14', None       , {                                   }),
-            ('button'     , 'C13', 'INPUT'    , { 'pull'    : None, 'active' : True }),
-            ('buzzer'     , 'A7' , 'ALTERNATE', { 'altfunc' : 'TIM8_CH1N'           }),
+            ('led_green'        , 'A5' , 'OUTPUT'   , { 'initlvl' : False                 }),
+            ('stlink_tx'        , 'A2' , 'ALTERNATE', { 'altfunc' : 'USART2_TX'           }),
+            ('stlink_rx'        , 'A3' , 'ALTERNATE', { 'altfunc' : 'USART2_RX'           }),
+            ('swdio'            , 'A13', None       , {                                   }),
+            ('swclk'            , 'A14', None       , {                                   }),
+            ('button'           , 'C13', 'INPUT'    , { 'pull'    : None, 'active' : True }),
+            ('buzzer'           , 'B10', 'ALTERNATE', { 'altfunc' : 'TIM8_CH1'            }),
+            ('buzzer_complement', 'A7' , 'ALTERNATE', { 'altfunc' : 'TIM8_CH1N'           }),
         ),
 
         interrupts = (
