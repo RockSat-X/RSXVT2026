@@ -7,6 +7,8 @@
 #if TARGET_NAME_IS_DemoSPI
     #error Target 'DemoSPI' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
 #endif
+#if TARGET_NAME_IS_DemoBuzzer
+#endif
 #if TARGET_NAME_IS_DemoTimer
     #error Target 'DemoTimer' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
 #endif
@@ -240,17 +242,17 @@ static const struct BuzzerNote BUZZER_TUNE_nokia[] =
         { 3021, 82 },
         { 2268, 220 },
     };
-static const struct { struct BuzzerNote* notes; i32 count; } BUZZER_TUNES[] =
+static const struct { typeof((const char*) "null") name; typeof((struct BuzzerNote*) BUZZER_TUNE_null) note_array; typeof(0) note_count; } BUZZER_TUNES[] =
     {
-        { (struct BuzzerNote*) BUZZER_TUNE_null, 0 },
-        { (struct BuzzerNote*) BUZZER_TUNE_ambulance, 6 },
-        { (struct BuzzerNote*) BUZZER_TUNE_up_and_down, 17 },
-        { (struct BuzzerNote*) BUZZER_TUNE_deep_beep, 8 },
-        { (struct BuzzerNote*) BUZZER_TUNE_heartbeat, 8 },
-        { (struct BuzzerNote*) BUZZER_TUNE_three_tone, 4 },
-        { (struct BuzzerNote*) BUZZER_TUNE_tetris, 39 },
-        { (struct BuzzerNote*) BUZZER_TUNE_mario, 12 },
-        { (struct BuzzerNote*) BUZZER_TUNE_birthday, 25 },
-        { (struct BuzzerNote*) BUZZER_TUNE_starwars, 18 },
-        { (struct BuzzerNote*) BUZZER_TUNE_nokia, 13 },
+        { .name = (const char*) "null"       , .note_array = (struct BuzzerNote*) BUZZER_TUNE_null       , .note_count = 0  },
+        { .name = (const char*) "ambulance"  , .note_array = (struct BuzzerNote*) BUZZER_TUNE_ambulance  , .note_count = 6  },
+        { .name = (const char*) "up_and_down", .note_array = (struct BuzzerNote*) BUZZER_TUNE_up_and_down, .note_count = 17 },
+        { .name = (const char*) "deep_beep"  , .note_array = (struct BuzzerNote*) BUZZER_TUNE_deep_beep  , .note_count = 8  },
+        { .name = (const char*) "heartbeat"  , .note_array = (struct BuzzerNote*) BUZZER_TUNE_heartbeat  , .note_count = 8  },
+        { .name = (const char*) "three_tone" , .note_array = (struct BuzzerNote*) BUZZER_TUNE_three_tone , .note_count = 4  },
+        { .name = (const char*) "tetris"     , .note_array = (struct BuzzerNote*) BUZZER_TUNE_tetris     , .note_count = 39 },
+        { .name = (const char*) "mario"      , .note_array = (struct BuzzerNote*) BUZZER_TUNE_mario      , .note_count = 12 },
+        { .name = (const char*) "birthday"   , .note_array = (struct BuzzerNote*) BUZZER_TUNE_birthday   , .note_count = 25 },
+        { .name = (const char*) "starwars"   , .note_array = (struct BuzzerNote*) BUZZER_TUNE_starwars   , .note_count = 18 },
+        { .name = (const char*) "nokia"      , .note_array = (struct BuzzerNote*) BUZZER_TUNE_nokia      , .note_count = 13 },
     };

@@ -4,8 +4,6 @@ struct BuzzerNote
     u16 repetitions;
 };
 
-
-
 #include "BUZZER_TUNES.meta"
 /* #meta
 
@@ -13,7 +11,10 @@ struct BuzzerNote
 
 
 
-    # TODO As of right now, buzzer only works with TIM8.
+    # As of right now, the buzzer only works with TIM8 on the STM32H533xx
+    # because it has the repetition feature that we need. Other timers
+    # that also have the repetition counter could be used, but it's not
+    # something I want to support right now.
 
     TIMER_COUNTER_RATE = 1_000_000
     TIMER_MAX_VALUE    = (1 << 16) - 1
@@ -27,7 +28,10 @@ struct BuzzerNote
         ):
             continue
 
-        Meta.line(f'#error Target {repr(target.name)} needs to set {repr('TIM8_COUNTER_RATE')} with value of {TIMER_COUNTER_RATE} in its schema.')
+        Meta.line(
+            f'#error Target {repr(target.name)} needs to set {repr('TIM8_COUNTER_RATE')} '
+            f'with value of {TIMER_COUNTER_RATE} in its schema.'
+        )
 
 
 
@@ -120,23 +124,22 @@ struct BuzzerNote
 
     # Make table to point to all of the buzzer tunes.
 
-    with Meta.enter('static const struct { struct BuzzerNote* notes; i32 count; } BUZZER_TUNES[] ='):
-
-        for name, notes in BUZZER_TUNES:
-
-            Meta.line(f'''
-                {{ (struct BuzzerNote*) BUZZER_TUNE_{name}, {len(notes)} }},
-            ''')
+    Meta.lut('BUZZER_TUNES', (
+        (
+            ('name'      , f'(const char*) "{name}"'                 ),
+            ('note_array', f'(struct BuzzerNote*) BUZZER_TUNE_{name}'),
+            ('note_count', len(notes)                                ),
+        )
+        for name, notes in BUZZER_TUNES
+    ))
 
 */
 
-
-
 struct BuzzerDriver
 {
-    volatile enum BuzzerTune current_tune;
-    volatile enum BuzzerTune desired_tune;
-    i32                      note_index;
+    volatile _Atomic enum BuzzerTune atomic_current_tune;
+    volatile _Atomic enum BuzzerTune atomic_desired_tune;
+    i32                              note_index;
 };
 
 static struct BuzzerDriver _BUZZER_driver = {0};
@@ -171,9 +174,12 @@ BUZZER_partial_init(void)
 
 
 
-    // Enable the OC1N pin output.
-
-    CMSIS_SET(TIM8, CCER, CC1NE, true);
+    CMSIS_SET
+    (
+        TIM8 , CCER,
+        CC1E , true, // Enable the OC1 pin output.
+        CC1NE, true, // Same thing for its complement.
+    );
 
 
 
@@ -205,10 +211,23 @@ static void
 BUZZER_play(enum BuzzerTune tune)
 {
 
-    // To allow for restarted plays,
-    // we first clear the current tune.
+    // To allow for restarted plays, we first clear the current tune.
 
-    _BUZZER_driver.desired_tune = BuzzerTune_null;
+    atomic_store_explicit
+    (
+        &_BUZZER_driver.atomic_desired_tune,
+        BuzzerTune_null,
+        memory_order_relaxed // No synchronization needed.
+    );
+
+
+
+    // Pend the interrupt handler so it'll stop the current tune.
+    // Note that if the user is calling us from an interrupt handler
+    // that's of higher priority, then the current tune won't actually
+    // be properly cleared. This is bit of a subtle bug, but it's not
+    // high importance since the buzzer should be used for minor diagnostics.
+
     NVIC_SET_PENDING(TIM8_UP);
 
 
@@ -217,19 +236,40 @@ BUZZER_play(enum BuzzerTune tune)
 
     if (tune)
     {
-        _BUZZER_driver.desired_tune = tune;
+
+        atomic_store_explicit
+        (
+            &_BUZZER_driver.atomic_desired_tune,
+            tune,
+            memory_order_relaxed // No synchronization needed.
+        );
+
         NVIC_SET_PENDING(TIM8_UP);
+
     }
 
 }
 
 
 
-static void
-BUZZER_spinlock_to_completion(void)
+static b32
+BUZZER_current_tune(void)
 {
-    while (_BUZZER_driver.current_tune);
+
+    enum BuzzerTune observed_current_tune =
+        atomic_load_explicit
+        (
+            &_BUZZER_driver.atomic_current_tune,
+            memory_order_relaxed // No synchronization needed.
+        );
+
+    return observed_current_tune;
+
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -244,74 +284,73 @@ INTERRUPT_TIM8_UP(void)
 
     // Switch to the new tune, if there is one.
 
-    if (_BUZZER_driver.current_tune != _BUZZER_driver.desired_tune)
     {
-        _BUZZER_driver.current_tune = _BUZZER_driver.desired_tune;
-        _BUZZER_driver.note_index   = 0;
+
+        enum BuzzerTune observed_current_tune =
+            atomic_load_explicit
+            (
+                &_BUZZER_driver.atomic_current_tune,
+                memory_order_relaxed // No synchronization needed.
+            );
+
+        enum BuzzerTune observed_desired_tune =
+            atomic_load_explicit
+            (
+                &_BUZZER_driver.atomic_desired_tune,
+                memory_order_relaxed // No synchronization needed.
+            );
+
+        if (observed_current_tune != observed_desired_tune)
+        {
+
+            atomic_store_explicit
+            (
+                &_BUZZER_driver.atomic_current_tune,
+                observed_desired_tune,
+                memory_order_relaxed // No synchronization needed.
+            );
+
+            _BUZZER_driver.note_index = 0;
+
+        }
+
     }
 
 
 
-    // We've reached the end of the tune?
+    // Process current tune.
 
-    if (_BUZZER_driver.note_index == BUZZER_TUNES[_BUZZER_driver.current_tune].count)
+    enum BuzzerTune observed_current_tune =
+        atomic_load_explicit
+        (
+            &_BUZZER_driver.atomic_current_tune,
+            memory_order_relaxed // No synchronization needed.
+        );
+
+    if (_BUZZER_driver.note_index == BUZZER_TUNES[observed_current_tune].note_count) // Reached end of tune?
     {
-        _BUZZER_driver.current_tune = BuzzerTune_null;
-        _BUZZER_driver.note_index   = 0;
+
+        atomic_store_explicit
+        (
+            &_BUZZER_driver.atomic_current_tune,
+            BuzzerTune_null,     // Silence!
+            memory_order_relaxed // No synchronization needed.
+        );
+
+        _BUZZER_driver.note_index = 0;
+
     }
-
-
-
-    // The next note can be played?
-
-    else if (!CMSIS_GET(TIM8, CR1, CEN))
+    else if (!CMSIS_GET(TIM8, CR1, CEN)) // Counter turned itself off, thus we can play the next note.
     {
 
-        // Modulate the timer's counter to get the desired frequency.
+        struct BuzzerNote* note = &BUZZER_TUNES[observed_current_tune].note_array[_BUZZER_driver.note_index];
 
-        CMSIS_SET
-        (
-            TIM8, ARR,
-            ARR , BUZZER_TUNES[_BUZZER_driver.current_tune].notes[_BUZZER_driver.note_index].modulation,
-        );
-
-
-
-        // Half of the modulation to get 50% duty cycle.
-
-        CMSIS_SET
-        (
-            TIM8, CCR1,
-            CCR1, BUZZER_TUNES[_BUZZER_driver.current_tune].notes[_BUZZER_driver.note_index].modulation / 2,
-        );
-
-
-
-        // Repeat the cycle a certain amount of times to get the desired duration.
-
-        CMSIS_SET
-        (
-            TIM8, RCR,
-            REP , BUZZER_TUNES[_BUZZER_driver.current_tune].notes[_BUZZER_driver.note_index].repetitions,
-        );
-
-
-
-        // Update the shadow registers.
-
-        CMSIS_SET(TIM8, EGR, UG, true);
-
-
-
-        // Begin counting.
-
-        CMSIS_SET(TIM8, CR1, CEN, true);
-
-
-
-        // Move onto the next note.
-
-        _BUZZER_driver.note_index += 1;
+        CMSIS_SET(TIM8, ARR , ARR , note->modulation    ); // Modulate the timer's counter to get the desired frequency.
+        CMSIS_SET(TIM8, CCR1, CCR1, note->modulation / 2); // Half of the modulation to get 50% duty cycle.
+        CMSIS_SET(TIM8, RCR , REP , note->repetitions   ); // Repeat the cycle a certain amount of times to get the desired duration.
+        CMSIS_SET(TIM8, EGR , UG  , true                ); // Update the shadow registers.
+        CMSIS_SET(TIM8, CR1 , CEN , true                ); // Begin counting again.
+        _BUZZER_driver.note_index += 1;                    // Move onto the next note.
 
     }
 

@@ -141,7 +141,7 @@ main(void)
     // TODO Check if there's actually external power?
 
     BUZZER_play(BuzzerTune_three_tone);
-    BUZZER_spinlock_to_completion();
+    while (BUZZER_current_tune());
 
     GPIO_ACTIVE(battery_allowed);
 

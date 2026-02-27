@@ -6,6 +6,8 @@
 #endif
 #if TARGET_NAME_IS_DemoSPI
 #endif
+#if TARGET_NAME_IS_DemoBuzzer
+#endif
 #if TARGET_NAME_IS_DemoTimer
 #endif
 #if TARGET_NAME_IS_DemoTimekeeping
@@ -73,6 +75,9 @@
 #endif
 #if TARGET_NAME_IS_DemoSPI
     #error Target 'DemoSPI' defines no handle for the 'I2C' driver.
+#endif
+#if TARGET_NAME_IS_DemoBuzzer
+    #error Target 'DemoBuzzer' defines no handle for the 'I2C' driver.
 #endif
 #if TARGET_NAME_IS_DemoTimer
     #error Target 'DemoTimer' defines no handle for the 'I2C' driver.
@@ -220,6 +225,8 @@
 #if TARGET_NAME_IS_DemoI2C
 #endif
 #if TARGET_NAME_IS_DemoSPI
+#endif
+#if TARGET_NAME_IS_DemoBuzzer
 #endif
 #if TARGET_NAME_IS_DemoTimer
 #endif
