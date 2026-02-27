@@ -16,6 +16,8 @@
 #endif
 #if TARGET_NAME_IS_DemoBuzzer
 #endif
+#if TARGET_NAME_IS_DemoGNC
+#endif
 #if TARGET_NAME_IS_DemoTimer
 #endif
 #if TARGET_NAME_IS_DemoTimekeeping

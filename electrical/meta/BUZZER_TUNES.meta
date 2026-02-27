@@ -9,6 +9,9 @@
 #endif
 #if TARGET_NAME_IS_DemoBuzzer
 #endif
+#if TARGET_NAME_IS_DemoGNC
+    #error Target 'DemoGNC' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
+#endif
 #if TARGET_NAME_IS_DemoTimer
     #error Target 'DemoTimer' needs to set 'TIM8_COUNTER_RATE' with value of 1000000 in its schema.
 #endif

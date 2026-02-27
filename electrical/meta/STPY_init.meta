@@ -1522,28 +1522,8 @@
             PLL1N, 125 - 1 ,
             PLL1P, 2 - 1   ,
         );
-        CMSIS_SET
-        (
-            RCC    , PLL3CFGR,
-            PLL3SRC, 0b01    ,
-            PLL3M  , 3       ,
-            PLL3RGE, 3       ,
-            PLL3PEN, true    ,
-        );
-        CMSIS_SET
-        (
-            RCC  , PLL3DIVR,
-            PLL3N, 18 - 1  ,
-            PLL3P, 80 - 1  ,
-        );
-        CMSIS_SET
-        (
-            RCC   , CR  ,
-            PLL1ON, true,
-            PLL3ON, true,
-        );
+        CMSIS_SET(RCC, CR, PLL1ON, true);
         while (!CMSIS_GET(RCC, CR, PLL1RDY));
-        while (!CMSIS_GET(RCC, CR, PLL3RDY));
 
 
 
@@ -1588,9 +1568,348 @@
     #define STPY_CSI_CK        (  4'000'000)
     #define STPY_AXI_AHB_CK    (250'000'000)
     #define STPY_PLL1P_CK      (250'000'000)
-    #define STPY_PLL3P_CK      (  2'400'000)
     #define STPY_PLL1_VCO_FREQ (500'000'000)
-    #define STPY_PLL3_VCO_FREQ (192'000'000)
+    #define STPY_APB1_CK       (250'000'000)
+    #define STPY_APB2_CK       (250'000'000)
+    #define STPY_APB3_CK       (250'000'000)
+    #define STPY_SYS_CK        (250'000'000)
+#endif
+#if TARGET_NAME_IS_DemoGNC
+    enum NVICInterrupt : u32
+    {
+        NVICInterrupt_USART2 = USART2_IRQn,
+    };
+    static constexpr u32 NVICInterrupt_COUNT = 1;
+    extern void INTERRUPT_BusFault(void);
+    extern void INTERRUPT_Default(void);
+    extern void INTERRUPT_Reset(void);
+    extern void INTERRUPT_USART2(void);
+    extern void INTERRUPT_UsageFault(void);
+    void (* const INTERRUPT_VECTOR_TABLE[])(void) __attribute__((used, section(".INTERRUPT_VECTOR_TABLE"))) =
+        {
+            (void*) INITIAL_STACK_ADDRESS, // [-16] Initial Stack Address
+            INTERRUPT_Reset              , // [-15] Reset
+            INTERRUPT_Default            , // [-14] NonMaskableInt
+            INTERRUPT_Default            , // [-13] HardFault
+            INTERRUPT_Default            , // [-12] MemoryManagement
+            INTERRUPT_BusFault           , // [-11] BusFault
+            INTERRUPT_UsageFault         , // [-10] UsageFault
+            INTERRUPT_Default            , // [ -9] SecureFault
+            INTERRUPT_Default            , // [ -8] Reserved
+            INTERRUPT_Default            , // [ -7] Reserved
+            INTERRUPT_Default            , // [ -6] Reserved
+            INTERRUPT_Default            , // [ -5] SVCall
+            INTERRUPT_Default            , // [ -4] DebugMonitor
+            INTERRUPT_Default            , // [ -3] Reserved
+            INTERRUPT_Default            , // [ -2] PendSV
+            INTERRUPT_Default            , // [ -1] SysTick
+            INTERRUPT_Default            , // [  0] WWDG
+            INTERRUPT_Default            , // [  1] PVD_AVD
+            INTERRUPT_Default            , // [  2] RTC
+            INTERRUPT_Default            , // [  3] RTC_S
+            INTERRUPT_Default            , // [  4] TAMP
+            INTERRUPT_Default            , // [  5] RAMCFG
+            INTERRUPT_Default            , // [  6] FLASH
+            INTERRUPT_Default            , // [  7] FLASH_S
+            INTERRUPT_Default            , // [  8] GTZC
+            INTERRUPT_Default            , // [  9] RCC
+            INTERRUPT_Default            , // [ 10] RCC_S
+            INTERRUPT_Default            , // [ 11] EXTI0
+            INTERRUPT_Default            , // [ 12] EXTI1
+            INTERRUPT_Default            , // [ 13] EXTI2
+            INTERRUPT_Default            , // [ 14] EXTI3
+            INTERRUPT_Default            , // [ 15] EXTI4
+            INTERRUPT_Default            , // [ 16] EXTI5
+            INTERRUPT_Default            , // [ 17] EXTI6
+            INTERRUPT_Default            , // [ 18] EXTI7
+            INTERRUPT_Default            , // [ 19] EXTI8
+            INTERRUPT_Default            , // [ 20] EXTI9
+            INTERRUPT_Default            , // [ 21] EXTI10
+            INTERRUPT_Default            , // [ 22] EXTI11
+            INTERRUPT_Default            , // [ 23] EXTI12
+            INTERRUPT_Default            , // [ 24] EXTI13
+            INTERRUPT_Default            , // [ 25] EXTI14
+            INTERRUPT_Default            , // [ 26] EXTI15
+            INTERRUPT_Default            , // [ 27] GPDMA1_Channel0
+            INTERRUPT_Default            , // [ 28] GPDMA1_Channel1
+            INTERRUPT_Default            , // [ 29] GPDMA1_Channel2
+            INTERRUPT_Default            , // [ 30] GPDMA1_Channel3
+            INTERRUPT_Default            , // [ 31] GPDMA1_Channel4
+            INTERRUPT_Default            , // [ 32] GPDMA1_Channel5
+            INTERRUPT_Default            , // [ 33] GPDMA1_Channel6
+            INTERRUPT_Default            , // [ 34] GPDMA1_Channel7
+            INTERRUPT_Default            , // [ 35] IWDG
+            INTERRUPT_Default            , // [ 36] SAES
+            INTERRUPT_Default            , // [ 37] ADC1
+            INTERRUPT_Default            , // [ 38] DAC1
+            INTERRUPT_Default            , // [ 39] FDCAN1_IT0
+            INTERRUPT_Default            , // [ 40] FDCAN1_IT1
+            INTERRUPT_Default            , // [ 41] TIM1_BRK
+            INTERRUPT_Default            , // [ 42] TIM1_UP
+            INTERRUPT_Default            , // [ 43] TIM1_TRG_COM
+            INTERRUPT_Default            , // [ 44] TIM1_CC
+            INTERRUPT_Default            , // [ 45] TIM2
+            INTERRUPT_Default            , // [ 46] TIM3
+            INTERRUPT_Default            , // [ 47] TIM4
+            INTERRUPT_Default            , // [ 48] TIM5
+            INTERRUPT_Default            , // [ 49] TIM6
+            INTERRUPT_Default            , // [ 50] TIM7
+            INTERRUPT_Default            , // [ 51] I2C1_EV
+            INTERRUPT_Default            , // [ 52] I2C1_ER
+            INTERRUPT_Default            , // [ 53] I2C2_EV
+            INTERRUPT_Default            , // [ 54] I2C2_ER
+            INTERRUPT_Default            , // [ 55] SPI1
+            INTERRUPT_Default            , // [ 56] SPI2
+            INTERRUPT_Default            , // [ 57] SPI3
+            INTERRUPT_Default            , // [ 58] USART1
+            INTERRUPT_USART2             , // [ 59] USART2
+            INTERRUPT_Default            , // [ 60] USART3
+            INTERRUPT_Default            , // [ 61] UART4
+            INTERRUPT_Default            , // [ 62] UART5
+            INTERRUPT_Default            , // [ 63] LPUART1
+            INTERRUPT_Default            , // [ 64] LPTIM1
+            INTERRUPT_Default            , // [ 65] TIM8_BRK
+            INTERRUPT_Default            , // [ 66] TIM8_UP
+            INTERRUPT_Default            , // [ 67] TIM8_TRG_COM
+            INTERRUPT_Default            , // [ 68] TIM8_CC
+            INTERRUPT_Default            , // [ 69] ADC2
+            INTERRUPT_Default            , // [ 70] LPTIM2
+            INTERRUPT_Default            , // [ 71] TIM15
+            INTERRUPT_Default            , // [ 72] Reserved
+            INTERRUPT_Default            , // [ 73] Reserved
+            INTERRUPT_Default            , // [ 74] USB_DRD_FS
+            INTERRUPT_Default            , // [ 75] CRS
+            INTERRUPT_Default            , // [ 76] UCPD1
+            INTERRUPT_Default            , // [ 77] FMC
+            INTERRUPT_Default            , // [ 78] OCTOSPI1
+            INTERRUPT_Default            , // [ 79] SDMMC1
+            INTERRUPT_Default            , // [ 80] I2C3_EV
+            INTERRUPT_Default            , // [ 81] I2C3_ER
+            INTERRUPT_Default            , // [ 82] SPI4
+            INTERRUPT_Default            , // [ 83] Reserved
+            INTERRUPT_Default            , // [ 84] Reserved
+            INTERRUPT_Default            , // [ 85] USART6
+            INTERRUPT_Default            , // [ 86] Reserved
+            INTERRUPT_Default            , // [ 87] Reserved
+            INTERRUPT_Default            , // [ 88] Reserved
+            INTERRUPT_Default            , // [ 89] Reserved
+            INTERRUPT_Default            , // [ 90] GPDMA2_Channel0
+            INTERRUPT_Default            , // [ 91] GPDMA2_Channel1
+            INTERRUPT_Default            , // [ 92] GPDMA2_Channel2
+            INTERRUPT_Default            , // [ 93] GPDMA2_Channel3
+            INTERRUPT_Default            , // [ 94] GPDMA2_Channel4
+            INTERRUPT_Default            , // [ 95] GPDMA2_Channel5
+            INTERRUPT_Default            , // [ 96] GPDMA2_Channel6
+            INTERRUPT_Default            , // [ 97] GPDMA2_Channel7
+            INTERRUPT_Default            , // [ 98] Reserved
+            INTERRUPT_Default            , // [ 99] Reserved
+            INTERRUPT_Default            , // [100] Reserved
+            INTERRUPT_Default            , // [101] Reserved
+            INTERRUPT_Default            , // [102] Reserved
+            INTERRUPT_Default            , // [103] FPU
+            INTERRUPT_Default            , // [104] ICACHE
+            INTERRUPT_Default            , // [105] DCACHE1
+            INTERRUPT_Default            , // [106] Reserved
+            INTERRUPT_Default            , // [107] Reserved
+            INTERRUPT_Default            , // [108] DCMI_PSSI
+            INTERRUPT_Default            , // [109] FDCAN2_IT0
+            INTERRUPT_Default            , // [110] FDCAN2_IT1
+            INTERRUPT_Default            , // [111] Reserved
+            INTERRUPT_Default            , // [112] Reserved
+            INTERRUPT_Default            , // [113] DTS
+            INTERRUPT_Default            , // [114] RNG
+            INTERRUPT_Default            , // [115] OTFDEC1
+            INTERRUPT_Default            , // [116] AES
+            INTERRUPT_Default            , // [117] HASH
+            INTERRUPT_Default            , // [118] PKA
+            INTERRUPT_Default            , // [119] CEC
+            INTERRUPT_Default            , // [120] TIM12
+            INTERRUPT_Default            , // [121] Reserved
+            INTERRUPT_Default            , // [122] Reserved
+            INTERRUPT_Default            , // [123] I3C1_EV
+            INTERRUPT_Default            , // [124] I3C1_ER
+            INTERRUPT_Default            , // [125] Reserved
+            INTERRUPT_Default            , // [126] Reserved
+            INTERRUPT_Default            , // [127] Reserved
+            INTERRUPT_Default            , // [128] Reserved
+            INTERRUPT_Default            , // [129] Reserved
+            INTERRUPT_Default            , // [130] Reserved
+            INTERRUPT_Default            , // [131] I3C2_EV
+            INTERRUPT_Default            , // [132] I3C2_ER
+        };
+    #define INTERRUPT_BusFault(...) extern void INTERRUPT_BusFault(__VA_ARGS__)
+    #define INTERRUPT_Default(...) extern void INTERRUPT_Default(__VA_ARGS__)
+    #define INTERRUPT_Reset(...) extern void INTERRUPT_Reset(__VA_ARGS__)
+    #define INTERRUPT_USART2(...) extern void INTERRUPT_USART2(__VA_ARGS__)
+    #define INTERRUPT_UsageFault(...) extern void INTERRUPT_UsageFault(__VA_ARGS__)
+    extern void
+    STPY_init(void)
+    {
+
+
+
+        /////////////////////////////////// GPIOS ////////////////////////////////////
+
+
+
+        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__led_green GPIO_BSRR_BS
+        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__led_green GPIO_BSRR_BR
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__led_green A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__led_green 5
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__stlink_tx A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_tx 2
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__stlink_tx
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__stlink_rx A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_rx 3
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__stlink_rx
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__button C
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__button 13
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__button
+        CMSIS_SET
+        (
+            RCC    , AHB2ENR,
+            GPIOAEN, true   ,
+            GPIOCEN, true   ,
+        );
+        CMSIS_SET(GPIOA, ODR, OD5, false);
+        CMSIS_WRITE
+        (
+            GPIO_AFRL, GPIOA->AFR[0],
+            AFSEL2   , 7            ,
+            AFSEL3   , 7            ,
+        );
+        CMSIS_SET
+        (
+            GPIOA, MODER,
+            MODE2, 0b10 ,
+            MODE3, 0b10 ,
+            MODE5, 0b01 ,
+        );
+        CMSIS_SET(GPIOC, MODER, MODE13, 0b00);
+
+
+
+        ///////////////////////////////// Interrupts /////////////////////////////////
+
+
+
+        static_assert(0 <= 0 && 0 < (1 << __NVIC_PRIO_BITS));
+        NVIC->IPR[NVICInterrupt_USART2] = 0 << __NVIC_PRIO_BITS;
+        CMSIS_SET
+        (
+            SCB        , SHCSR,
+            BUSFAULTENA, true ,
+            MEMFAULTENA, true ,
+            USGFAULTENA, true ,
+        );
+
+
+
+        /////////////////////////////////// Flash ////////////////////////////////////
+
+
+
+        CMSIS_SET
+        (
+            FLASH     , ACR ,
+            LATENCY   , 5   ,
+            WRHIGHFREQ, 0b10,
+        );
+        while (CMSIS_GET(FLASH, ACR, LATENCY) != 5);
+        while (CMSIS_GET(FLASH, ACR, WRHIGHFREQ) != 0b10);
+
+
+
+        //////////////////////////////// Power Supply ////////////////////////////////
+
+
+
+        CMSIS_SET
+        (
+            PWR   , SCCR ,
+            LDOEN , true ,
+            BYPASS, false,
+        );
+        CMSIS_SET(PWR, VOSCR, VOS, 0b11);
+        while (CMSIS_GET(PWR, VOSSR, ACTVOS) != 0b11);
+        while (!CMSIS_GET(PWR, VOSSR, ACTVOSRDY));
+
+
+
+        //////////////////////// High-Speed-Internal (48MHz) /////////////////////////
+
+
+
+        CMSIS_SET(RCC, CR, HSI48ON, true);
+        while (!CMSIS_GET(RCC, CR, HSI48RDY));
+
+
+
+        ////////////////////////// Clock-Security-Internal ///////////////////////////
+
+
+
+        CMSIS_SET(RCC, CR, CSION, true);
+        while (!CMSIS_GET(RCC, CR, CSIRDY));
+
+
+
+        //////////////////////////////////// PLLs ////////////////////////////////////
+
+
+
+        CMSIS_SET
+        (
+            RCC    , PLL1CFGR,
+            PLL1SRC, 0b01    ,
+            PLL1M  , 8       ,
+            PLL1RGE, 2       ,
+            PLL1PEN, true    ,
+        );
+        CMSIS_SET
+        (
+            RCC  , PLL1DIVR,
+            PLL1N, 125 - 1 ,
+            PLL1P, 2 - 1   ,
+        );
+        CMSIS_SET(RCC, CR, PLL1ON, true);
+        while (!CMSIS_GET(RCC, CR, PLL1RDY));
+
+
+
+        //////////////////////// System Clock Generation Unit ////////////////////////
+
+
+
+        CMSIS_SET
+        (
+            RCC  , CFGR2 ,
+            HPRE , 0b0000,
+            PPRE1, 0b000 ,
+            PPRE2, 0b000 ,
+            PPRE3, 0b000 ,
+        );
+        CMSIS_SET(RCC, CFGR1, SW, 0b011);
+        while (CMSIS_GET(RCC, CFGR1, SWS) != 0b011);
+
+
+
+        /////////////////////////////////// USART2 ///////////////////////////////////
+
+
+
+        #define STPY_USART2_KERNEL_SOURCE 0b000
+        #define STPY_USART2_BAUD_DIVIDER 250
+
+    }
+    #define STPY_0             (          0)
+    #define STPY_CPU_CK        (250'000'000)
+    #define STPY_HSI_CK        ( 32'000'000)
+    #define STPY_HSI48_CK      ( 48'000'000)
+    #define STPY_CSI_CK        (  4'000'000)
+    #define STPY_AXI_AHB_CK    (250'000'000)
+    #define STPY_PLL1P_CK      (250'000'000)
+    #define STPY_PLL1_VCO_FREQ (500'000'000)
     #define STPY_APB1_CK       (250'000'000)
     #define STPY_APB2_CK       (250'000'000)
     #define STPY_APB3_CK       (250'000'000)
