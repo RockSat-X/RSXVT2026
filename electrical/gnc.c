@@ -121,22 +121,40 @@ MATRIX_stlink_tx(struct Matrix* matrix)
 
 
 
-struct VN100Packet
-{
-    f32 QuatX;
-    f32 QuatY;
-    f32 QuatZ;
-    f32 QuatS;
-    f32 MagX;
-    f32 MagY;
-    f32 MagZ;
-    f32 AccelX;
-    f32 AccelY;
-    f32 AccelZ;
-    f32 GyroX;
-    f32 GyroY;
-    f32 GyroZ;
-};
+pack_push
+
+    struct VN100Packet
+    {
+        f32 QuatX;
+        f32 QuatY;
+        f32 QuatZ;
+        f32 QuatS;
+        f32 MagX;
+        f32 MagY;
+        f32 MagZ;
+        f32 AccelX;
+        f32 AccelY;
+        f32 AccelZ;
+        f32 GyroX;
+        f32 GyroY;
+        f32 GyroZ;
+    };
+
+    // TODO Finalize structure.
+    // TODO We may have two packet variations: one for IMU + image data and one for just image data.
+    struct OpenMVPacket
+    {
+        f32 attitude_x;
+        f32 attitude_y;
+        f32 attitude_z;
+        f32 attitude_w;
+        u16 computer_vision_processing_time_ms;
+        u8  computer_vision_confidence;
+        u8  image_sequence_number;
+        u8  image_fragment[32]; // TODO To be the remainder.
+    };
+
+pack_pop
 
 
 
@@ -147,8 +165,9 @@ static useret enum GNCUpdateResult : u32
 }
 GNC_update
 (
-    struct Matrix*      resulting_angular_velocities,
-    struct VN100Packet* most_recent_imu
+    struct Matrix*       resulting_angular_velocities,
+    struct VN100Packet*  most_recent_imu,
+    struct OpenMVPacket* most_recent_openmv_reading
 )
 {
 
@@ -156,6 +175,9 @@ GNC_update
         bug;
 
     if (!most_recent_imu)
+        bug;
+
+    if (!most_recent_openmv_reading)
         bug;
 
 
@@ -175,7 +197,7 @@ GNC_update
             6, 1,
             1,
             1,
-            1,
+            most_recent_openmv_reading->attitude_x,
             1,
             1,
             1,

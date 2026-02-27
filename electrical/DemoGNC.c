@@ -16,8 +16,9 @@ main(void)
 
         stlink_tx("\n[Index %d]\n", index);
 
-        struct Matrix*     new_angular_velocities = Matrix(3, 1);
-        struct VN100Packet most_recent_imu        =
+        struct Matrix* new_angular_velocities = Matrix(3, 1);
+
+        struct VN100Packet most_recent_imu =
             {
                 .QuatX  = 1.0f,
                 .QuatY  = 2.0f,
@@ -34,11 +35,23 @@ main(void)
                 .GyroZ  = 13.0f,
             };
 
+        struct OpenMVPacket most_recent_openmv_reading =
+            {
+                .attitude_x                         = 9.0f,
+                .attitude_y                         = 1.0f,
+                .attitude_z                         = 2.0f,
+                .attitude_w                         = 8.0f,
+                .computer_vision_processing_time_ms = 120,
+                .computer_vision_confidence         = 255,
+                .image_sequence_number              = 8,
+            };
+
         enum GNCUpdateResult result =
             GNC_update
             (
                 new_angular_velocities,
-                &most_recent_imu
+                &most_recent_imu,
+                &most_recent_openmv_reading
             );
 
         switch (result)
