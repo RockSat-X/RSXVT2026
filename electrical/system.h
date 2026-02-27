@@ -880,7 +880,7 @@ ESP32_calculate_crc(u8* data, i32 length)
     //Initializes SPI class and calls the fspi bus peripheral
     SPIClass fspi(FSPI);
 
-    //Initializes lora radio signals with pin mapping for NSS, DIO1, RESET, BUSY, and fspi bus
+    //Initializes LoRa radio signals with pin mapping for NSS, DIO1, RESET, BUSY, and fspi bus
     //ex. NSS assigned to GPIO41 (NSS must be same as fspi pin mapping) 
     static SX1262 packet_lora_radio = new Module(41, 39, 42, 40, fspi);
 
@@ -896,34 +896,41 @@ ESP32_calculate_crc(u8* data, i32 length)
         //ex. SCK is assigned to GPIO36
         fspi.begin(36, 37, 35, 41);
 
-        if (state != RADIOLIB_ERR_NONE)
+        if (packet_lora_radio.begin() != RADIOLIB_ERR_NONE)
         {
             Serial.printf("Failed to initialize radio.\n");
             ESP.restart();
             return;
         }
 
-        //915 MHz Center Frequency
+        //915 MHz Center Frequency (common frequency used in North America)
+        //Should range from 902-928 for most cases
+        //Find out if different frequencies affect range
         packet_lora_radio.setFrequency(915.0);
 
         //7.8kHz Bandwidth (Narrow)
+        //Ranges from 7.8kHz to 500kHz
         //Slower data rate but longer range compare to a larger bandwidth
         packet_lora_radio.setBandwidth(7.8);
 
         //6 (less than 22 kbps) Usually ranges from 7-12 (22-250 kbps)
         //May need to be reconfigured depending on range/speed desired
-        //What's essential to know: The higher the spreading factor means slower data rate but further transmission and vice versa
+        //What's essential to know: A higher spreading factor means slower data rate but further transmission and vice versa
         packet_lora_radio.setSpreadingFactor(6);
 
         //(4/5) Coding Rate 
-        //Adds foward error correction
+        //Proportion of foward error correction bits added to payload
+        //A higher coding rate makes transmission less noisy but reduces effective data rate
         packet_lora_radio.setCodingRate(5);
 
-        //22 dBm (Max power)
-        //Dont go above this
+        //22 dBm, for the SX1262 this is the specified max TX output power
+        //Max output power gives the most range and its recommended to run the LoRa at this level
+        //Dont go above this or may risk damaging component
+        //test to see minimum power, likely -9dBm
         packet_lora_radio.setOutputPower(22);
 
-        //8 Symbol Preamble Length
+        //8 Symbol Preamble Length (Standard for LoRa)
+        //Synchronizes reciever with transmitter
         packet_lora_radio.setPreambleLength(8);
 
         //0x34 LoRaWAN Public Network sync word
