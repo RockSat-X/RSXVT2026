@@ -127,11 +127,10 @@ void sorry_(void);
     }                                                   \
     while (false); /* Semicolon on purpose. */
 
-
-
 #define BUG_CODE 0xDEADC0DE // Large arbitrary value that an enum will unlikely overlap with.
 
 #if 1
+
     #define bug                                                                  \
         do                                                                       \
         {                                                                        \
@@ -139,8 +138,12 @@ void sorry_(void);
             return BUG_CODE; /* Here for type-checking reasons. */               \
         }                                                                        \
         while (false)
+
+    #define sorry_if(...) do if (__VA_ARGS__) sorry while (false)
+
 #else
-    #define bug return BUG_CODE // Bugs are bubbled up and handled by the caller.
+    #define bug                 return BUG_CODE                           // Bugs are bubbled up and handled by the caller.
+    #define sorry_if(CONDITION) __attribute__((__assume__(!(CONDITION)))) // Maybe the compiler can expose any bugs when optimizing...
 #endif
 
 
@@ -1123,6 +1126,26 @@ pack_pop
 //
 // The `sorry` macro is still useful as a temporary measure for error handling;
 // once things become more production-ready, they become replaced with `bug`.
+//
+// There's also a weak form of `sorry` called `sorry_if`. This should only
+// be used when the error can only happen due something obvious during development
+// and that proper error handling is inconvenient and impossible anyways.
+//
+// An example of this would be matrix multiplication; in most contexts, the
+// input matrices are coming from a fixed source and not arbitrary input from
+// the environment that's outside the user's control. Therefore, during development,
+// it'd be nice for the user to be alerted when they do something dumb with the
+// matrix multiplication routine (like the input matrices are of the wrong dimensions),
+// but in production, something like that happening means something really has gone
+// terribly wrong and there's nothing at all we can do to fix it. With that being
+// that, the multiplication routine doesn't need to return an error code, thus
+// less friction to the user.
+//
+// In short, `sorry_if` is the closest one can get to an `assert`.
+//
+// Perhaps in a safety-critical application, `sorry_if` getting triggered in
+// production should reset the firmware, but again, something like that happening
+// should be absolutely enil due to the context it's being used in.
 
 
 
