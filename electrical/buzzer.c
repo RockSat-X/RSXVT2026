@@ -122,6 +122,7 @@ struct BuzzerNote
 
     Meta.lut('BUZZER_TUNES', (
         (
+            ('name'      , f'(const char*) "{name}"'                 ),
             ('note_array', f'(struct BuzzerNote*) BUZZER_TUNE_{name}'),
             ('note_count', len(notes)                                ),
         )
