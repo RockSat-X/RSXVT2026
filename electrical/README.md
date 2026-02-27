@@ -89,5 +89,15 @@ careful documentation and testing will be done to validate them.
 
 
 
+- `buzzer.c`
+> The buzzer driver is **production-ready**.
+> It's pretty simple.
+> There shouldn't be any issues with it.
+> Hopefully.
+>
+> \- *Phuc Doan. February 26th, 2026.*
+
+
+
 Files not listed above are not considered **production-ready**.
 This does not mean they are unusable, just that development is still undergoing.
