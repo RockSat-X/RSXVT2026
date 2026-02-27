@@ -152,8 +152,11 @@ GNC_update
 )
 {
 
-    sorry_if(!resulting_angular_velocities);
-    sorry_if(!most_recent_imu);
+    if (!resulting_angular_velocities)
+        bug;
+
+    if (!most_recent_imu)
+        bug;
 
 
 
