@@ -13,30 +13,6 @@
 
 
 
-////////////////////////////////////////////////////////////////////////////////
-//
-// VN-100 stuff.
-//
-
-
-
-struct VN100Packet
-{
-    f32 QuatX;
-    f32 QuatY;
-    f32 QuatZ;
-    f32 QuatS;
-    f32 MagX;
-    f32 MagY;
-    f32 MagZ;
-    f32 AccelX;
-    f32 AccelY;
-    f32 AccelZ;
-    f32 GyroX;
-    f32 GyroY;
-    f32 GyroZ;
-};
-
 static RingBuffer(struct VN100Packet, 4) VN100_ring_buffer = {0};
 
 

@@ -121,6 +121,25 @@ MATRIX_stlink_tx(struct Matrix* matrix)
 
 
 
+struct VN100Packet
+{
+    f32 QuatX;
+    f32 QuatY;
+    f32 QuatZ;
+    f32 QuatS;
+    f32 MagX;
+    f32 MagY;
+    f32 MagZ;
+    f32 AccelX;
+    f32 AccelY;
+    f32 AccelZ;
+    f32 GyroX;
+    f32 GyroY;
+    f32 GyroZ;
+};
+
+
+
 static useret enum GNCUpdateResult : u32
 {
     GNCUpdateResult_okay,
@@ -128,11 +147,13 @@ static useret enum GNCUpdateResult : u32
 }
 GNC_update
 (
-    struct Matrix* resulting_angular_velocities
+    struct Matrix*      resulting_angular_velocities,
+    struct VN100Packet* most_recent_imu
 )
 {
 
     sorry_if(!resulting_angular_velocities);
+    sorry_if(!most_recent_imu);
 
 
 
@@ -157,9 +178,19 @@ GNC_update
             1,
         );
 
-    MATRIX_multiply(resulting_angular_velocities, gain, state);
+    MATRIX_multiply
+    (
+        resulting_angular_velocities,
+        gain,
+        state
+    );
 
-    MATRIX_multiply_add(resulting_angular_velocities, resulting_angular_velocities, -2);
+    MATRIX_multiply_add
+    (
+        resulting_angular_velocities,
+        resulting_angular_velocities,
+        most_recent_imu->QuatX
+    );
 
 
 
