@@ -165,9 +165,9 @@ static useret enum GNCUpdateResult : u32
 }
 GNC_update
 (
-    struct Matrix*       resulting_angular_velocities,
-    struct VN100Packet*  most_recent_imu,
-    struct OpenMVPacket* most_recent_openmv_reading
+    struct Matrix*             resulting_angular_velocities,
+    const struct VN100Packet*  most_recent_imu,
+    const struct OpenMVPacket* most_recent_openmv_reading
 )
 {
 

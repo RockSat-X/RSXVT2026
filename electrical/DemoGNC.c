@@ -11,67 +11,91 @@ main(void)
     STPY_init();
     UXART_reinit(UXARTHandle_stlink);
 
-    for (i32 index = 0;; index += 1)
+
+
+    struct GNCMockInput
+    {
+        struct VN100Packet  vn100;
+        struct OpenMVPacket openmv;
+    };
+
+    #include "GNC_MOCK_SIMULATION.meta"
+    /* #meta
+
+        import deps.stpy.pxd.pxd as pxd
+        import csv, collections
+
+        entries = collections.defaultdict(lambda: [])
+
+        for entry in csv.DictReader(
+            pxd.make_main_relative_path('./misc/GNC_MOCK_SIMULATION.csv')
+                .read_text()
+                .splitlines()
+        ):
+            for key, value in entry.items():
+                entries[key] += [value]
+
+        Meta.lut('struct GNCMockInput', 'GNC_MOCK_SIMULATION', (
+            (
+                entry_i,
+                *entry.items()
+            )
+            for entry_i, entry in enumerate(csv.DictReader(
+                pxd.make_main_relative_path('./misc/GNC_MOCK_SIMULATION.csv')
+                    .read_text()
+                    .splitlines()
+            ))
+        ))
+
+    */
+
+
+
+    for (;;)
     {
 
-        stlink_tx("\n[Index %d]\n", index);
-
-        struct Matrix* new_angular_velocities = Matrix(3, 1);
-
-        struct VN100Packet most_recent_imu =
-            {
-                .QuatX  = 1.0f,
-                .QuatY  = 2.0f,
-                .QuatZ  = 3.0f,
-                .QuatS  = 4.0f,
-                .MagX   = 5.0f,
-                .MagY   = 6.0f,
-                .MagZ   = 7.0f,
-                .AccelX = 8.0f,
-                .AccelY = 9.0f,
-                .AccelZ = 10.0f,
-                .GyroX  = 11.0f,
-                .GyroY  = 12.0f,
-                .GyroZ  = 13.0f,
-            };
-
-        struct OpenMVPacket most_recent_openmv_reading =
-            {
-                .attitude_x                         = 9.0f,
-                .attitude_y                         = 1.0f,
-                .attitude_z                         = 2.0f,
-                .attitude_w                         = 8.0f,
-                .computer_vision_processing_time_ms = 120,
-                .computer_vision_confidence         = 255,
-                .image_sequence_number              = 8,
-            };
-
-        enum GNCUpdateResult result =
-            GNC_update
-            (
-                new_angular_velocities,
-                &most_recent_imu,
-                &most_recent_openmv_reading
-            );
-
-        switch (result)
+        for (i32 index = 0; index < countof(GNC_MOCK_SIMULATION); index += 1)
         {
 
-            case GNCUpdateResult_okay:
+            struct Matrix* new_angular_velocities = Matrix(3, 1);
+
+            enum GNCUpdateResult result =
+                GNC_update
+                (
+                    new_angular_velocities,
+                    &GNC_MOCK_SIMULATION[index].vn100,
+                    &GNC_MOCK_SIMULATION[index].openmv
+                );
+
+            switch (result)
             {
 
-                stlink_tx("New angular velocities:\n");
-                MATRIX_stlink_tx(new_angular_velocities);
+                case GNCUpdateResult_okay:
+                {
 
-                GPIO_TOGGLE(led_green);
-                spinlock_nop(100'000'000);
+                    stlink_tx
+                    (
+                        "[%d/%d] <%f, %f, %f>\n",
+                        index + 1,
+                        countof(GNC_MOCK_SIMULATION),
+                        new_angular_velocities->values[0],
+                        new_angular_velocities->values[1],
+                        new_angular_velocities->values[2]
+                    );
 
-            } break;
+                } break;
 
-            case GNCUpdateResult_bug : sorry
-            default                  : sorry
+                case GNCUpdateResult_bug : sorry
+                default                  : sorry
+
+            }
 
         }
+
+        stlink_tx("\n");
+
+        GPIO_TOGGLE(led_green);
+        spinlock_nop(250'000'000);
 
     }
 
