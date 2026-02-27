@@ -23,6 +23,9 @@
         _SPI_driver_interrupt(SPIHandle_primary);
     }
 #endif
+#if TARGET_NAME_IS_DemoBuzzer
+    #error Target 'DemoBuzzer' defines no handle for the 'SPI' driver.
+#endif
 #if TARGET_NAME_IS_DemoTimer
     #error Target 'DemoTimer' defines no handle for the 'SPI' driver.
 #endif

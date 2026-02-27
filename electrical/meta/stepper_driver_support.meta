@@ -7,6 +7,9 @@
 #if TARGET_NAME_IS_DemoSPI
     #error Target 'DemoSPI' needs to define a unique 'Stepper' driver.
 #endif
+#if TARGET_NAME_IS_DemoBuzzer
+    #error Target 'DemoBuzzer' needs to define a unique 'Stepper' driver.
+#endif
 #if TARGET_NAME_IS_DemoTimer
     #error Target 'DemoTimer' needs to define a unique 'Stepper' driver.
 #endif

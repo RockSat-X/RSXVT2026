@@ -14,6 +14,8 @@
     #define TIMEKEEPING_TIMER_         TIM2_
     #define TIMEKEEPING_TIMER          TIM2
 #endif
+#if TARGET_NAME_IS_DemoBuzzer
+#endif
 #if TARGET_NAME_IS_DemoTimer
 #endif
 #if TARGET_NAME_IS_DemoTimekeeping
