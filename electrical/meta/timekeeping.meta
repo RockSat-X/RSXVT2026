@@ -7,6 +7,13 @@
     #define TIMEKEEPING_TIMER_         TIM2_
     #define TIMEKEEPING_TIMER          TIM2
 #endif
+#if TARGET_NAME_IS_DemoSSD1306
+    static constexpr auto TIMEKEEPING_TIMER_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_TIM2EN_Pos), CONCAT(RCC_, APB1LENR_TIM2EN_Msk) };
+    static constexpr auto TIMEKEEPING_DIVIDER      = STPY_TIM2_DIVIDER;
+    #define TIMEKEEPING_microseconds() CMSIS_GET(TIM2, CNT, CNT)
+    #define TIMEKEEPING_TIMER_         TIM2_
+    #define TIMEKEEPING_TIMER          TIM2
+#endif
 #if TARGET_NAME_IS_DemoSPI
     static constexpr auto TIMEKEEPING_TIMER_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_TIM2EN_Pos), CONCAT(RCC_, APB1LENR_TIM2EN_Msk) };
     static constexpr auto TIMEKEEPING_DIVIDER      = STPY_TIM2_DIVIDER;
