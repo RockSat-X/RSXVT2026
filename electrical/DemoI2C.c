@@ -180,9 +180,9 @@ main(void)
                             }
                         );
 
-                    if (!success)
+                    if (success)
                     {
-                        spinlock_nop(1'000'000);
+                        stlink_tx("[Queen] (0x%03X) Acknowledged!\n", slave_address);
                     }
 
 
