@@ -4,6 +4,9 @@
 #if TARGET_NAME_IS_DemoI2C
     #error Target 'DemoI2C' defines no handle for the 'SPI' driver.
 #endif
+#if TARGET_NAME_IS_DemoSSD1306
+    #error Target 'DemoSSD1306' defines no handle for the 'SPI' driver.
+#endif
 #if TARGET_NAME_IS_DemoSPI
     enum SPIHandle : u32
     {

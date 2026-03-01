@@ -99,5 +99,16 @@ careful documentation and testing will be done to validate them.
 
 
 
+- `ssd1306.c`
+> The driver for displays controlled by SSD1306 is **production-ready**.
+> Main known issue is that there's no fool-proof
+> way to reset the SSD1306 without power-cycling.
+> Nonetheless, a misconfigured SSD1306 will only happen under extreme I2C bus mishaps,
+> and should not be catastrophic to the user.
+>
+> \- *Phuc Doan. March 1st, 2026.*
+
+
+
 Files not listed above are not considered **production-ready**.
 This does not mean they are unusable, just that development is still undergoing.
