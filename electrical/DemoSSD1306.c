@@ -53,8 +53,9 @@ main(void)
 
 
 
-    i32 held    = 0;
-    u8  text[8] = {0};
+    b32 flashing = false;
+    i32 held     = 0;
+    u8  text[8]  = {0};
     memset(text, 0xFF, sizeof(text));
 
     for (i32 j = 0;; j += 1)
@@ -81,6 +82,15 @@ main(void)
                 held = 0;
             }
 
+            if (input == 'F')
+            {
+                flashing = true;
+            }
+            else if (input == 'f')
+            {
+                flashing = false;
+            }
+
         }
 
 
@@ -98,20 +108,22 @@ main(void)
             "Text  %s"   "\n"
             "A?    %s"   "\n"
             "B?    %s"   "\n"
-            "C?    %s"   "\n",
+            "C?    %s"   "\n"
+            "Flash %s"   "\n",
             TIMEKEEPING_microseconds() / 1000.0 / 1000.0,
             held,
             text,
             text[0] == 'A' ? "OK" : "nil",
             held           ? "OK" : "nil",
-            held % 4       ? "OK" : "nil"
+            held % 4       ? "OK" : "nil",
+            flashing ? "True" : "False"
         );
 
 
 
         // Swap framebuffer.
 
-        enum SSD1306RefreshResult result = SSD1306_refresh();
+        enum SSD1306RefreshResult result = SSD1306_refresh(flashing);
 
         switch (result)
         {

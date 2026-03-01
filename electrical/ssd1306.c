@@ -14,8 +14,7 @@ static const u8 SSD1306_INITIALIZATION_SEQUENCE[] =
         0x20, 0x00               , // "Horizontal Addressing Mode".
         0xA1,                      // Set the order of the columns (i.e. draw left-to-right or right-to-left).
         0xC8,                      // Set te order of the COM scan (i.e. draw bottom-up or top-down).
-        0x81, 0xFF               , // "Set Contrast Control" TODO Play with brightness?
-        0xD5, (8 << 4) | (0 << 0), // Set the clock divider and oscillator frequency. TODO Play with flashing?
+        0x81, 0xFF               , // "Set Contrast Control".
         0x8D, 0x14               , // "Enable charge pump during display on".
         0xD9, 0x11               , // Sets the pre-charge period for phase 1 and 2; correlated with refresh rate.
         0xAF,                      // "Display ON in normal mode".
@@ -172,95 +171,26 @@ static u8 _SSD1306_data_payload[1 + SSD1306_ROWS * SSD1306_COLUMNS / bitsof(u8)]
 
 
 
-static useret enum SSD1306ReinitResult : u32
-{
-    SSD1306ReinitResult_success,
-    SSD1306ReinitResult_failed_to_initialize_with_i2c,
-    SSD1306ReinitResult_bug = BUG_CODE,
-}
-SSD1306_reinit(void)
-{
-
-
-
-    // Reset-cycle the I2C peripheral.
-
-    enum I2CReinitResult i2c_reinit_result = I2C_reinit(I2CHandle_ssd1306);
-
-    switch (i2c_reinit_result)
-    {
-        case I2CReinitResult_success : break;
-        case I2CReinitResult_bug     : bug;
-        default                      : bug;
-    }
-
-
-
-    // Configure the registers of the SSD1306 driver.
-
-    struct I2CDoJob job =
-        {
-            .handle       = I2CHandle_ssd1306,
-            .address_type = I2CAddressType_seven,
-            .address      = SSD1306_SEVEN_BIT_ADDRESS,
-            .writing      = true,
-            .repeating    = false,
-            .pointer      = (u8*) SSD1306_INITIALIZATION_SEQUENCE,
-            .amount       = countof(SSD1306_INITIALIZATION_SEQUENCE),
-        };
-
-    while (true)
-    {
-
-        enum I2CDoResult result = I2C_do(&job);
-
-        switch (result)
-        {
-
-            case I2CDoResult_working:
-            {
-                FREERTOS_delay_ms(1); // Transfer busy...
-            } break;
-
-            case I2CDoResult_success:
-            {
-                return SSD1306ReinitResult_success;
-            } break;
-
-            case I2CDoResult_no_acknowledge        : return SSD1306ReinitResult_failed_to_initialize_with_i2c;
-            case I2CDoResult_clock_stretch_timeout : return SSD1306ReinitResult_failed_to_initialize_with_i2c;
-            case I2CDoResult_bus_misbehaved        : return SSD1306ReinitResult_failed_to_initialize_with_i2c;
-            case I2CDoResult_watchdog_expired      : return SSD1306ReinitResult_failed_to_initialize_with_i2c;
-            case I2CDoResult_bug                   : bug;
-            default                                : bug;
-
-        }
-
-    }
-
-}
-
-
-
 static useret enum SSD1306RefreshResult : u32
 {
     SSD1306RefreshResult_success,
     SSD1306RefreshResult_i2c_transfer_error,
     SSD1306RefreshResult_bug = BUG_CODE,
 }
-SSD1306_refresh(void)
+SSD1306_refresh(b32 flashing)
 {
 
-    // Reset the draw pointer to the beginning of the display.
+    // Set the state of the SSD1306 driver's registers.
 
     {
 
-        static const u8 SSD1306_REPOSITION[] =
+        u8 commands[] =
             {
-                (0 << 6),   // Interpret the following bytes as commands. @/pg 20/sec 8.1.5.2/`SSD1306`.
-                0x00,       // Reset the column address. @/pg 30/tbl 3/`SSD1306`.
-                0x10,       // "
-                0xB0,       // Reset the page index. @/pg 31/tbl 3/`SSD1306`.
+                (0 << 6),                                   // Interpret the following bytes as commands. @/pg 20/sec 8.1.5.2/`SSD1306`.
+                0x00,                                       // Reset the column address. @/pg 30/tbl 3/`SSD1306`.
+                0x10,                                       // "
+                0xB0,                                       // Reset the page index. @/pg 31/tbl 3/`SSD1306`.
+                0xD5, (8 << 4) | ((flashing ? 8 : 0) << 0), // Set the clock divider and oscillator frequency.
             };
 
         struct I2CDoJob job =
@@ -270,8 +200,8 @@ SSD1306_refresh(void)
                 .address      = SSD1306_SEVEN_BIT_ADDRESS,
                 .writing      = true,
                 .repeating    = false,
-                .pointer      = (u8*) SSD1306_REPOSITION,
-                .amount       = countof(SSD1306_REPOSITION),
+                .pointer      = (u8*) commands,
+                .amount       = countof(commands),
             };
 
         for (b32 yield = false; !yield;)
@@ -425,5 +355,92 @@ SSD1306_write_format(i32 pixel_x, i32 page_y, char* format, ...)
     );
 
     va_end(arguments);
+
+}
+
+
+
+static useret enum SSD1306ReinitResult : u32
+{
+    SSD1306ReinitResult_success,
+    SSD1306ReinitResult_failed_to_initialize_with_i2c,
+    SSD1306ReinitResult_bug = BUG_CODE,
+}
+SSD1306_reinit(void)
+{
+
+
+
+    // Reset-cycle the I2C peripheral.
+
+    enum I2CReinitResult i2c_reinit_result = I2C_reinit(I2CHandle_ssd1306);
+
+    switch (i2c_reinit_result)
+    {
+        case I2CReinitResult_success : break;
+        case I2CReinitResult_bug     : bug;
+        default                      : bug;
+    }
+
+
+
+    // Configure some of the registers of the SSD1306 driver.
+
+    struct I2CDoJob job =
+        {
+            .handle       = I2CHandle_ssd1306,
+            .address_type = I2CAddressType_seven,
+            .address      = SSD1306_SEVEN_BIT_ADDRESS,
+            .writing      = true,
+            .repeating    = false,
+            .pointer      = (u8*) SSD1306_INITIALIZATION_SEQUENCE,
+            .amount       = countof(SSD1306_INITIALIZATION_SEQUENCE),
+        };
+
+    for (b32 yield = false; !yield;)
+    {
+
+        enum I2CDoResult result = I2C_do(&job);
+
+        switch (result)
+        {
+
+            case I2CDoResult_working:
+            {
+                FREERTOS_delay_ms(1); // Transfer busy...
+            } break;
+
+            case I2CDoResult_success:
+            {
+                yield = true;
+            } break;
+
+            case I2CDoResult_no_acknowledge        : return SSD1306ReinitResult_failed_to_initialize_with_i2c;
+            case I2CDoResult_clock_stretch_timeout : return SSD1306ReinitResult_failed_to_initialize_with_i2c;
+            case I2CDoResult_bus_misbehaved        : return SSD1306ReinitResult_failed_to_initialize_with_i2c;
+            case I2CDoResult_watchdog_expired      : return SSD1306ReinitResult_failed_to_initialize_with_i2c;
+            case I2CDoResult_bug                   : bug;
+            default                                : bug;
+
+        }
+
+    }
+
+
+
+    // Clear the display with the empty framebuffer;
+    // some other register initializations are also done here too.
+
+    enum SSD1306RefreshResult refresh_result = SSD1306_refresh(false);
+
+    switch (refresh_result)
+    {
+        case SSD1306RefreshResult_success            : break;
+        case SSD1306RefreshResult_i2c_transfer_error : return SSD1306ReinitResult_failed_to_initialize_with_i2c;
+        case SSD1306RefreshResult_bug                : bug;
+        default                                      : bug;
+    }
+
+    return SSD1306ReinitResult_success;
 
 }
