@@ -7,19 +7,6 @@
 #define SSD1306_ROWS    64
 #define SSD1306_COLUMNS 128
 
-static const u8 SSD1306_INITIALIZATION_SEQUENCE[] =
-    {
-        (0 << 6),                  // Interpret the following bytes as commands. @/pg 20/sec 8.1.5.2/`SSD1306`.
-        0xA8, SSD1306_ROWS - 1   , // Indicate the amount of rows the display has.
-        0x20, 0x00               , // "Horizontal Addressing Mode".
-        0xA1,                      // Set the order of the columns (i.e. draw left-to-right or right-to-left).
-        0xC8,                      // Set te order of the COM scan (i.e. draw bottom-up or top-down).
-        0x81, 0xFF               , // "Set Contrast Control".
-        0x8D, 0x14               , // "Enable charge pump during display on".
-        0xD9, 0x11               , // Sets the pre-charge period for phase 1 and 2; correlated with refresh rate.
-        0xAF,                      // "Display ON in normal mode".
-    };
-
 #include "SSD1306_FONT.meta"
 /* #meta
 
@@ -177,20 +164,39 @@ static useret enum SSD1306RefreshResult : u32
     SSD1306RefreshResult_i2c_transfer_error,
     SSD1306RefreshResult_bug = BUG_CODE,
 }
-SSD1306_refresh(b32 flashing)
+SSD1306_refresh(b16 inverted, b16 flashing)
 {
 
-    // Set the state of the SSD1306 driver's registers.
+    // Here we set the state of the SSD1306 driver's registers. This has to be done
+    // every time we refresh the display because the the SSD1306 driver might've undergone
+    // a reset since the last refresh. Furthermore, if there was a slight bus corruption,
+    // the SSD1306 driver would then be misconfigured. There's no way to do a reset through
+    // software, so this is the best we can do for now. The obvious downside to doing it like
+    // this is that the data throughput will now be worse.
 
     {
 
         u8 commands[] =
             {
                 (0 << 6),                                   // Interpret the following bytes as commands. @/pg 20/sec 8.1.5.2/`SSD1306`.
-                0x00,                                       // Reset the column address. @/pg 30/tbl 3/`SSD1306`.
-                0x10,                                       // "
-                0xB0,                                       // Reset the page index. @/pg 31/tbl 3/`SSD1306`.
+                0x81, 0xFF,                                 // "Set Contrast Control".
+                0xA4,                                       // "Resume to RAM content display".
+                0xA6 | !!inverted,                          // Whether or not a 0 or 1 should represent an active pixel.
+                0x2E,                                       // Disable any horizontal and vertical scrolling.
+                0x20, 0x00,                                 // "Horizontal Addressing Mode".
+                0x21, 0x00, SSD1306_COLUMNS - 1,            // Set the column range of the display.
+                0x22, 0x00, SSD1306_ROWS / bitsof(u8) - 1,  // Set the page range of the display.
+                0x40,                                       // Reset the display RAM start line.
+                0xA1,                                       // Set the order of the columns (i.e. draw left-to-right or right-to-left).
+                0xA8, SSD1306_ROWS - 1,                     // Indicate the amount of rows the display has.
+                0xC8,                                       // Set the order of the COM scan (i.e. draw bottom-up or top-down).
+                0xD3, 0x00,                                 // Reset the COM vertical shift.
+                0xDA, (0b01 << 4) | 0x02,                   // Set the COM pin hardware configuration.
                 0xD5, (8 << 4) | ((flashing ? 8 : 0) << 0), // Set the clock divider and oscillator frequency.
+                0xD9, 0x11,                                 // Sets the pre-charge period for phase 1 and 2; correlated with refresh rate.
+                0xDB, 0b010 << 4,                           // Reset the V_COMH deselect level.
+                0x8D, 0x14,                                 // "Enable charge pump during display on". @/pg 62/tbl 1/`SSD1306`.
+                0xAF,                                       // "Display ON in normal mode".
             };
 
         struct I2CDoJob job =
@@ -384,54 +390,11 @@ SSD1306_reinit(void)
 
 
 
-    // Configure some of the registers of the SSD1306 driver.
+    // The SSD1306 driver's registers are reconfigured every time we do a refresh,
+    // so we'll do one right now; this will also set the display to whatever's in
+    // the framebuffer currently instead of random power-on noise.
 
-    struct I2CDoJob job =
-        {
-            .handle       = I2CHandle_ssd1306,
-            .address_type = I2CAddressType_seven,
-            .address      = SSD1306_SEVEN_BIT_ADDRESS,
-            .writing      = true,
-            .repeating    = false,
-            .pointer      = (u8*) SSD1306_INITIALIZATION_SEQUENCE,
-            .amount       = countof(SSD1306_INITIALIZATION_SEQUENCE),
-        };
-
-    for (b32 yield = false; !yield;)
-    {
-
-        enum I2CDoResult result = I2C_do(&job);
-
-        switch (result)
-        {
-
-            case I2CDoResult_working:
-            {
-                FREERTOS_delay_ms(1); // Transfer busy...
-            } break;
-
-            case I2CDoResult_success:
-            {
-                yield = true;
-            } break;
-
-            case I2CDoResult_no_acknowledge        : return SSD1306ReinitResult_failed_to_initialize_with_i2c;
-            case I2CDoResult_clock_stretch_timeout : return SSD1306ReinitResult_failed_to_initialize_with_i2c;
-            case I2CDoResult_bus_misbehaved        : return SSD1306ReinitResult_failed_to_initialize_with_i2c;
-            case I2CDoResult_watchdog_expired      : return SSD1306ReinitResult_failed_to_initialize_with_i2c;
-            case I2CDoResult_bug                   : bug;
-            default                                : bug;
-
-        }
-
-    }
-
-
-
-    // Clear the display with the empty framebuffer;
-    // some other register initializations are also done here too.
-
-    enum SSD1306RefreshResult refresh_result = SSD1306_refresh(false);
+    enum SSD1306RefreshResult refresh_result = SSD1306_refresh(false, false);
 
     switch (refresh_result)
     {

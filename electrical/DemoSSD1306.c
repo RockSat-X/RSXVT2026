@@ -151,7 +151,12 @@ main(void)
 
             // Swap framebuffer.
 
-            enum SSD1306RefreshResult result = SSD1306_refresh(flashing);
+            enum SSD1306RefreshResult result =
+                SSD1306_refresh
+                (
+                    TIMEKEEPING_microseconds() / 1000 / 1000 / 2 % 2,
+                    !!flashing
+                );
 
             switch (result)
             {
