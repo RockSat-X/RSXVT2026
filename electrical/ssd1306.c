@@ -172,7 +172,11 @@ SSD1306_refresh(b16 inverted, b16 flashing)
     // a reset since the last refresh. Furthermore, if there was a slight bus corruption,
     // the SSD1306 driver would then be misconfigured. There's no way to do a reset through
     // software, so this is the best we can do for now. The obvious downside to doing it like
-    // this is that the data throughput will now be worse.
+    // this is that the data throughput will now be worse. Even with all of this,
+    // the display driver can still end up in a bugged state. I believe this is because
+    // if the driver receives a corrupt command that's not in the datasheet, it does
+    // something unspecified, and there's really nothing we can do about that, except
+    // for power-cycling; that seems to always work well.
 
     {
 
