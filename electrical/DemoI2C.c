@@ -330,10 +330,10 @@ INTERRUPT_I2Cx_bee(enum I2CSlaveCallbackEvent event, u8* data)
         //
 
         {
-            case I2CSlaveCallbackEvent_transmission_initiated : /* stlink_tx("Bee   : beginning to send data..."            "\n"); */ goto BEGINNING;
-            case I2CSlaveCallbackEvent_reception_initiated    : /* stlink_tx("Bee   : getting data..."                      "\n"); */ goto BEGINNING;
-            case I2CSlaveCallbackEvent_transmission_repeated  : /* stlink_tx("Bee   : beginning to send data... (repeated)" "\n"); */ goto BEGINNING;
-            case I2CSlaveCallbackEvent_reception_repeated     : /* stlink_tx("Bee   : getting data... (repeated)"           "\n"); */ goto BEGINNING;
+            case I2CSlaveCallbackEvent_transmission_initiated : stlink_tx("Bee   : beginning to send data..."            "\n"); goto BEGINNING;
+            case I2CSlaveCallbackEvent_reception_initiated    : stlink_tx("Bee   : getting data..."                      "\n"); goto BEGINNING;
+            case I2CSlaveCallbackEvent_transmission_repeated  : stlink_tx("Bee   : beginning to send data... (repeated)" "\n"); goto BEGINNING;
+            case I2CSlaveCallbackEvent_reception_repeated     : stlink_tx("Bee   : getting data... (repeated)"           "\n"); goto BEGINNING;
             BEGINNING:;
 
             reply_index  = 0;
