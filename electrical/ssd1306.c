@@ -200,7 +200,7 @@ SSD1306_reinit(void)
 
     struct I2CDoJob job =
         {
-            .handle       = I2CHandle_ssd1306, // TODO Coupled.
+            .handle       = I2CHandle_ssd1306,
             .address_type = I2CAddressType_seven,
             .address      = SSD1306_SEVEN_BIT_ADDRESS,
             .writing      = true,
@@ -265,7 +265,7 @@ SSD1306_refresh(void)
 
         struct I2CDoJob job =
             {
-                .handle       = I2CHandle_ssd1306, // TODO Coupled.
+                .handle       = I2CHandle_ssd1306,
                 .address_type = I2CAddressType_seven,
                 .address      = SSD1306_SEVEN_BIT_ADDRESS,
                 .writing      = true,
@@ -313,7 +313,7 @@ SSD1306_refresh(void)
 
         struct I2CDoJob job =
             {
-                .handle       = I2CHandle_ssd1306, // TODO Coupled.
+                .handle       = I2CHandle_ssd1306,
                 .address_type = I2CAddressType_seven,
                 .address      = SSD1306_SEVEN_BIT_ADDRESS,
                 .writing      = true,
