@@ -328,6 +328,7 @@ I2C_reinit(enum I2CHandle handle)
         RXIE  , true, //     - Reception of data.
         TXIE  , true, //     - Transmission of data.
         DNF   , 15  , // Max out the digital filtering.
+        FMP   , true, // "Fast-mode Plus 20 mA drive enable".
         PE    , true, // Enable the peripheral.
     );
 
