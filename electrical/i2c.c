@@ -739,6 +739,17 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
+    // Data for the slave (or the master) needs to be put in the TX-register.
+    //
+    // @/pg 2085/sec 48.4.8/`H533rm`.
+
+    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, TXIS))
+    {
+        interrupt_event = I2CInterruptEvent_ready_to_transmit_data;
+    }
+
+
+
     // The slave didn't acknowledge,
     // or the master didn't acknowledge our data.
     //
@@ -763,21 +774,10 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-    // Data for the slave (or the master) needs to be put in the TX-register.
-    //
-    // @/pg 2085/sec 48.4.8/`H533rm`.
-
-    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, TXIS))
-    {
-        interrupt_event = I2CInterruptEvent_ready_to_transmit_data;
-    }
-
-
-
     // I2C clock line has been stretched for too long.
     //
     // This should probably be handled after we check the
-    // RX-register and TX-register so there won't be any left-over data.
+    // RX-register so there won't be any left-over data.
     //
     // @/pg 2117/sec 48.4.17/`H533rm`.
 
@@ -1218,12 +1218,16 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-                // We have sent the STOP condition successfully. Whether or not
+                // We detected the STOP condition on the bus. Whether or not
                 // the transfer itself was actually successful is another thing.
 
                 case I2CInterruptEvent_stop_signaled:
                 {
-                    if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, BUSY))
+                    if (CMSIS_GET(I2Cx, CR2, STOP))
+                    {
+                        return I2CUpdateOnceResult_bus_misbehaved; // The STOP bit should've been cleared by the hardware...
+                    }
+                    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, BUSY))
                     {
                         return I2CUpdateOnceResult_bus_misbehaved; // The bus should be no longer busy now.
                     }
