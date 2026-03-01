@@ -16,6 +16,7 @@ main(void)
     //
 
 
+
     STPY_init();
     UXART_reinit(UXARTHandle_stlink);
 
@@ -33,17 +34,6 @@ main(void)
 
     }
 
-    {
-        enum SSD1306ReinitResult result = SSD1306_reinit();
-        switch (result)
-        {
-            case SSD1306ReinitResult_success                       : break;
-            case SSD1306ReinitResult_failed_to_initialize_with_i2c : sorry
-            case SSD1306ReinitResult_bug                           : sorry
-            default                                                : sorry
-        }
-    }
-
 
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -53,87 +43,128 @@ main(void)
 
 
 
-    b32 flashing = false;
-    i32 held     = 0;
-    u8  text[8]  = {0};
-    memset(text, 0xFF, sizeof(text));
-
-    for (i32 j = 0;; j += 1)
+    while (true)
     {
 
 
 
-        // Read inputs.
+        // Initialize the SSD1306 display.
 
-        if (GPIO_READ(button))
-        {
-            held += 1;
-        }
-
-        u8 input = {0};
-        if (stlink_rx(&input))
+        for (b32 yield = false; !yield;)
         {
 
-            memmove(text, text + 1, sizeof(text) - 1);
-            text[countof(text) - 1] = input;
+            stlink_tx("Initializing...\n");
 
-            if (input == ' ')
-            {
-                held = 0;
-            }
+            enum SSD1306ReinitResult result = SSD1306_reinit();
 
-            if (input == 'F')
+            switch (result)
             {
-                flashing = true;
-            }
-            else if (input == 'f')
-            {
-                flashing = false;
+
+                case SSD1306ReinitResult_success:
+                {
+                    yield = true;
+                } break;
+
+                case SSD1306ReinitResult_failed_to_initialize_with_i2c:
+                {
+                    // Something went wrong; we'll try again.
+                } break;
+
+                case SSD1306ReinitResult_bug : sorry
+                default                      : sorry
+
             }
 
         }
 
 
 
-        // Update framebuffer.
+        // Do some rendering.
 
-        memset(SSD1306_framebuffer, 0, sizeof(*SSD1306_framebuffer));
+        b32 flashing = false;
+        i32 held     = 0;
+        u8  text[8]  = {0};
+        memset(text, 0xFF, sizeof(text));
 
-        SSD1306_write_format
-        (
-            0,
-            0,
-            "Clock %.2f" "\n"
-            "Held  %d"   "\n"
-            "Text  %s"   "\n"
-            "A?    %s"   "\n"
-            "B?    %s"   "\n"
-            "C?    %s"   "\n"
-            "Flash %s"   "\n",
-            TIMEKEEPING_microseconds() / 1000.0 / 1000.0,
-            held,
-            text,
-            text[0] == 'A' ? "OK" : "nil",
-            held           ? "OK" : "nil",
-            held % 4       ? "OK" : "nil",
-            flashing ? "True" : "False"
-        );
-
-
-
-        // Swap framebuffer.
-
-        enum SSD1306RefreshResult result = SSD1306_refresh(flashing);
-
-        switch (result)
+        while (true)
         {
-            case SSD1306RefreshResult_success            : break;
-            case SSD1306RefreshResult_i2c_transfer_error : sorry
-            case SSD1306RefreshResult_bug                : sorry
-            default                                      : sorry
-        }
 
-        GPIO_TOGGLE(led_green);
+
+
+            // Read inputs.
+
+            if (GPIO_READ(button))
+            {
+                held += 1;
+            }
+
+            u8 input = {0};
+            if (stlink_rx(&input))
+            {
+
+                memmove(text, text + 1, sizeof(text) - 1);
+                text[countof(text) - 1] = input;
+
+                if (input == ' ')
+                {
+                    held = 0;
+                }
+
+                if (input == 'F')
+                {
+                    flashing = true;
+                }
+                else if (input == 'f')
+                {
+                    flashing = false;
+                }
+
+            }
+
+
+
+            // Update framebuffer.
+
+            memset(SSD1306_framebuffer, 0, sizeof(*SSD1306_framebuffer));
+
+            SSD1306_write_format
+            (
+                0,
+                0,
+                "Clock %.2f" "\n"
+                "Held  %d"   "\n"
+                "Text  %s"   "\n"
+                "A?    %s"   "\n"
+                "B?    %s"   "\n"
+                "C?    %s"   "\n"
+                "Flash %s"   "\n",
+                TIMEKEEPING_microseconds() / 1000.0 / 1000.0,
+                held,
+                text,
+                text[0] == 'A' ? "OK" : "nope",
+                held           ? "OK" : "nope",
+                held / 16 % 2  ? "OK" : "nope",
+                flashing ? "True" : "False"
+            );
+
+
+
+            // Swap framebuffer.
+
+            enum SSD1306RefreshResult result = SSD1306_refresh(flashing);
+
+            switch (result)
+            {
+                case SSD1306RefreshResult_success            : break;
+                case SSD1306RefreshResult_i2c_transfer_error : goto ERROR;
+                case SSD1306RefreshResult_bug                : sorry
+                default                                      : sorry
+            }
+
+            GPIO_TOGGLE(led_green);
+
+        }
+        ERROR:;
 
     }
 
