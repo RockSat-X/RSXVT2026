@@ -95,6 +95,14 @@ main(void)
 
         ((u8*) _SSD1306_framebuffer)[j % (SSD1306_ROWS * SSD1306_COLUMNS / bitsof(u8))] ^= 0xFF;
 
+        SSD1306_write_format
+        (
+            j % 500 / 2 - 100,
+            j / 4 % 12 - 2,
+            "meow! %d",
+            j
+        );
+
         struct I2CDoJob job =
             {
                 .handle       = I2CHandle_ssd1306, // TODO Coupled.
