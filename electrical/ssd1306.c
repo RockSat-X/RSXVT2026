@@ -211,6 +211,7 @@ SSD1306_reinit(void)
 
     while (true)
     {
+
         enum I2CDoResult result = I2C_do(&job);
 
         switch (result)
@@ -236,6 +237,126 @@ SSD1306_reinit(void)
         }
 
     }
+
+}
+
+
+
+static useret enum SSD1306RefreshResult : u32
+{
+    SSD1306RefreshResult_success,
+    SSD1306RefreshResult_i2c_transfer_error,
+    SSD1306RefreshResult_bug = BUG_CODE,
+}
+SSD1306_refresh(void)
+{
+
+    // Reset the draw pointer to the beginning of the display.
+
+    {
+
+        static const u8 SSD1306_REPOSITION[] =
+            {
+                (0 << 6),   // Interpret the following bytes as commands. @/pg 20/sec 8.1.5.2/`SSD1306`.
+                0x00,       // Reset the column address. @/pg 30/tbl 3/`SSD1306`.
+                0x10,       // "
+                0xB0,       // Reset the page index. @/pg 31/tbl 3/`SSD1306`.
+            };
+
+        struct I2CDoJob job =
+            {
+                .handle       = I2CHandle_ssd1306, // TODO Coupled.
+                .address_type = I2CAddressType_seven,
+                .address      = SSD1306_SEVEN_BIT_ADDRESS,
+                .writing      = true,
+                .repeating    = false,
+                .pointer      = (u8*) SSD1306_REPOSITION,
+                .amount       = countof(SSD1306_REPOSITION),
+            };
+
+        for (b32 yield = false; !yield;)
+        {
+
+            enum I2CDoResult result = I2C_do(&job);
+
+            switch (result)
+            {
+
+                case I2CDoResult_working:
+                {
+                    FREERTOS_delay_ms(1); // Transfer busy...
+                } break;
+
+                case I2CDoResult_success:
+                {
+                    yield = true;
+                } break;
+
+                case I2CDoResult_no_acknowledge        : return SSD1306RefreshResult_i2c_transfer_error;
+                case I2CDoResult_clock_stretch_timeout : return SSD1306RefreshResult_i2c_transfer_error;
+                case I2CDoResult_bus_misbehaved        : return SSD1306RefreshResult_i2c_transfer_error;
+                case I2CDoResult_watchdog_expired      : return SSD1306RefreshResult_i2c_transfer_error;
+                case I2CDoResult_bug                   : bug;
+                default                                : bug;
+
+            }
+
+        }
+
+    }
+
+
+
+    // Transfer the pixel data.
+
+    {
+
+        struct I2CDoJob job =
+            {
+                .handle       = I2CHandle_ssd1306, // TODO Coupled.
+                .address_type = I2CAddressType_seven,
+                .address      = SSD1306_SEVEN_BIT_ADDRESS,
+                .writing      = true,
+                .repeating    = false,
+                .pointer      = _SSD1306_data_payload,
+                .amount       = sizeof(_SSD1306_data_payload),
+            };
+
+        for (b32 yield = false; !yield;)
+        {
+
+            enum I2CDoResult result = I2C_do(&job);
+
+            switch (result)
+            {
+
+                case I2CDoResult_working:
+                {
+                    FREERTOS_delay_ms(1); // Transfer busy...
+                } break;
+
+                case I2CDoResult_success:
+                {
+                    yield = true;
+                } break;
+
+                case I2CDoResult_no_acknowledge        : return SSD1306RefreshResult_i2c_transfer_error;
+                case I2CDoResult_clock_stretch_timeout : return SSD1306RefreshResult_i2c_transfer_error;
+                case I2CDoResult_bus_misbehaved        : return SSD1306RefreshResult_i2c_transfer_error;
+                case I2CDoResult_watchdog_expired      : return SSD1306RefreshResult_i2c_transfer_error;
+                case I2CDoResult_bug                   : bug;
+                default                                : bug;
+
+            }
+
+        }
+
+    }
+
+
+
+    return SSD1306RefreshResult_success;
+
 
 }
 
