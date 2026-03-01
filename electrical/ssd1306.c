@@ -364,8 +364,9 @@ SSD1306_refresh(void)
 
 struct SSD1306WriteFormatContext
 {
+    i32 original_pixel_x;
     i32 current_pixel_x;
-    i32 page_y;
+    i32 current_page_y;
 };
 
 static void
@@ -374,21 +375,30 @@ _SSD1306_write_format_callback(char byte, void* void_context)
 
     struct SSD1306WriteFormatContext* context = void_context;
 
-    for (i32 character_column = 0; character_column < countof(SSD1306_FONT[(u8) byte]); character_column += 1)
+    if (byte == '\n')
     {
-
-        if // Ensure within bounds.
-        (
-            0 <= context->page_y          && context->page_y          < SSD1306_ROWS / bitsof(u8) &&
-            0 <= context->current_pixel_x && context->current_pixel_x < SSD1306_COLUMNS
-        )
-        {
-            (*_SSD1306_framebuffer)[context->page_y][context->current_pixel_x] = SSD1306_FONT[(u8) byte][character_column];
-        }
-
-        context->current_pixel_x += 1;
-
+        context->current_pixel_x  = context->original_pixel_x;
+        context->current_page_y  += 1;
     }
+    else
+    {
+        for (i32 character_column = 0; character_column < countof(SSD1306_FONT[(u8) byte]); character_column += 1)
+        {
+
+            if // Ensure within bounds.
+            (
+                0 <= context->current_page_y  && context->current_page_y  < SSD1306_ROWS / bitsof(u8) &&
+                0 <= context->current_pixel_x && context->current_pixel_x < SSD1306_COLUMNS
+            )
+            {
+                (*_SSD1306_framebuffer)[context->current_page_y][context->current_pixel_x] = SSD1306_FONT[(u8) byte][character_column];
+            }
+
+            context->current_pixel_x += 1;
+
+        }
+    }
+
 
 }
 
@@ -401,8 +411,9 @@ SSD1306_write_format(i32 pixel_x, i32 page_y, char* format, ...)
 
     struct SSD1306WriteFormatContext context =
         {
-            .current_pixel_x = pixel_x,
-            .page_y          = page_y,
+            .original_pixel_x = pixel_x,
+            .current_pixel_x  = pixel_x,
+            .current_page_y   = page_y,
         };
 
     vfctprintf
