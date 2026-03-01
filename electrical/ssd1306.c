@@ -44,7 +44,12 @@ static u8 _SSD1306_data_payload[1 + SSD1306_ROWS * SSD1306_COLUMNS / bitsof(u8)]
 
 
 
-static void
+static useret enum SSD1306ReinitResult : u32
+{
+    SSD1306ReinitResult_success,
+    SSD1306ReinitResult_failed_to_initialize_with_i2c,
+    SSD1306ReinitResult_bug = BUG_CODE,
+}
 SSD1306_reinit(void)
 {
 
@@ -57,8 +62,8 @@ SSD1306_reinit(void)
     switch (i2c_reinit_result)
     {
         case I2CReinitResult_success : break;
-        case I2CReinitResult_bug     : sorry
-        default                      : sorry
+        case I2CReinitResult_bug     : bug;
+        default                      : bug;
     }
 
 
@@ -76,7 +81,7 @@ SSD1306_reinit(void)
             .amount       = countof(SSD1306_INITIALIZATION_SEQUENCE),
         };
 
-    for (b32 yield = false; !yield;)
+    while (true)
     {
         enum I2CDoResult result = I2C_do(&job);
 
@@ -90,15 +95,15 @@ SSD1306_reinit(void)
 
             case I2CDoResult_success:
             {
-                yield = true; // The display is ready to be used!
+                return SSD1306ReinitResult_success;
             } break;
 
-            case I2CDoResult_no_acknowledge        : sorry
-            case I2CDoResult_clock_stretch_timeout : sorry
-            case I2CDoResult_bus_misbehaved        : sorry
-            case I2CDoResult_watchdog_expired      : sorry
-            case I2CDoResult_bug                   : sorry
-            default                                : sorry
+            case I2CDoResult_no_acknowledge        : return SSD1306ReinitResult_failed_to_initialize_with_i2c;
+            case I2CDoResult_clock_stretch_timeout : return SSD1306ReinitResult_failed_to_initialize_with_i2c;
+            case I2CDoResult_bus_misbehaved        : return SSD1306ReinitResult_failed_to_initialize_with_i2c;
+            case I2CDoResult_watchdog_expired      : return SSD1306ReinitResult_failed_to_initialize_with_i2c;
+            case I2CDoResult_bug                   : bug;
+            default                                : bug;
 
         }
 

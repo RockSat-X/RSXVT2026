@@ -27,7 +27,16 @@ main(void)
 
     }
 
-    SSD1306_reinit();
+    {
+        enum SSD1306ReinitResult result = SSD1306_reinit();
+        switch (result)
+        {
+            case SSD1306ReinitResult_success                       : break;
+            case SSD1306ReinitResult_failed_to_initialize_with_i2c : sorry
+            case SSD1306ReinitResult_bug                           : sorry
+            default                                                : sorry
+        }
+    }
 
     for (i32 j = 0;; j += 1)
     {
