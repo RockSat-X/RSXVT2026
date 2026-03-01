@@ -656,6 +656,7 @@ _I2C_update_once(enum I2CHandle handle)
         I2CInterruptEvent_nack_signaled,
         I2CInterruptEvent_stop_signaled,
         I2CInterruptEvent_transfer_completed_successfully,
+        I2CInterruptEvent_transfer_needs_to_be_reloaded,
         I2CInterruptEvent_data_available_to_read,
         I2CInterruptEvent_ready_to_transmit_data,
         I2CInterruptEvent_address_match,
@@ -706,17 +707,6 @@ _I2C_update_once(enum I2CHandle handle)
     // @/pg 2117/sec 48.4.17/`H533rm`.
 
     else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, PECERR))
-    {
-        bug; // Shouldn't happen; this feature isn't used.
-    }
-
-
-
-    // Transfer ready to be reloaded.
-    //
-    // @/pg 2095/sec 48.4.9/`H533rm`.
-
-    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, TCR))
     {
         bug; // Shouldn't happen; this feature isn't used.
     }
@@ -814,7 +804,18 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-    // The I2C transfer was just finished.
+    // Transfer ready to be reloaded.
+    //
+    // @/pg 2095/sec 48.4.9/`H533rm`.
+
+    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, TCR))
+    {
+        interrupt_event = I2CInterruptEvent_transfer_needs_to_be_reloaded;
+    }
+
+
+
+    // The entire I2C transfer was just finished.
     //
     // @/pg 2095/sec 48.4.9/`H533rm`.
 
@@ -877,6 +878,7 @@ _I2C_update_once(enum I2CHandle handle)
                 case I2CInterruptEvent_clock_stretch_timeout           : return I2CUpdateOnceResult_bus_misbehaved; // Clock pulled low for some reason?
                 case I2CInterruptEvent_nack_signaled                   : bug;
                 case I2CInterruptEvent_stop_signaled                   : bug;
+                case I2CInterruptEvent_transfer_needs_to_be_reloaded   : bug;
                 case I2CInterruptEvent_transfer_completed_successfully : bug;
                 case I2CInterruptEvent_data_available_to_read          : bug;
                 case I2CInterruptEvent_ready_to_transmit_data          : bug;
@@ -905,9 +907,6 @@ _I2C_update_once(enum I2CHandle handle)
                     else
                     {
 
-                        if (!(1 <= driver->master.amount && driver->master.amount <= 255))
-                            bug; // We currently don't handle transfer sizes larger than this.
-
                         if (CMSIS_GET(I2Cx, CR2, START))
                             bug; // We shouldn't be already trying to start the transfer...
 
@@ -929,12 +928,13 @@ _I2C_update_once(enum I2CHandle handle)
 
                         CMSIS_SET
                         (
-                            I2Cx   , CR2                          ,
-                            SADD   , sadd                         , // I2C slave to call for.
-                            ADD10  , !!driver->master.address_type, // Whether or not a 10-bit slave address is used.
-                            RD_WRN , !driver->master.writing      , // Determine data transfer direction.
-                            NBYTES , driver->master.amount        , // Determine amount of data in bytes.
-                            START  , true                         , // Begin sending the START condition on the I2C bus.
+                            I2Cx  , CR2                                                       ,
+                            SADD  , sadd                                                      , // I2C slave to call for.
+                            ADD10 , !!driver->master.address_type                             , // Whether or not a 10-bit slave address is used.
+                            RD_WRN, !driver->master.writing                                   , // Determine data transfer direction.
+                            RELOAD, driver->master.amount >= 256                              , // Might need to do multiple transfers.
+                            NBYTES, driver->master.amount >= 256 ? 255 : driver->master.amount, // Determine amount of data in bytes for the first transfer.
+                            START , true                                                      , // Begin sending the START condition on the I2C bus.
                         );
 
                         CMSIS_SET(I2Cx, CR1, TCIE, true); // @/`I2C Transfer-Complete Interrupt and Repeated Starts`.
@@ -959,6 +959,7 @@ _I2C_update_once(enum I2CHandle handle)
                 case I2CInterruptEvent_clock_stretch_timeout           : return I2CUpdateOnceResult_bus_misbehaved; // Clock pulled low for some reason?
                 case I2CInterruptEvent_nack_signaled                   : bug;
                 case I2CInterruptEvent_stop_signaled                   : bug;
+                case I2CInterruptEvent_transfer_needs_to_be_reloaded   : bug;
                 case I2CInterruptEvent_transfer_completed_successfully : bug;
                 case I2CInterruptEvent_data_available_to_read          : bug;
                 case I2CInterruptEvent_ready_to_transmit_data          : bug;
@@ -1068,6 +1069,32 @@ _I2C_update_once(enum I2CHandle handle)
                     CMSIS_SET(I2Cx, TXDR, TXDATA, data); // @/`I2C FIFO Depth`.
 
                     driver->master.progress += 1;
+
+                    return I2CUpdateOnceResult_again;
+
+                } break;
+
+
+
+                // We need to update the data amount for the transfer.
+
+                case I2CInterruptEvent_transfer_needs_to_be_reloaded:
+                {
+
+                    if (driver->master.issue)
+                        bug; // There shouldn't be any issues yet...
+
+                    if (driver->master.progress >= driver->master.amount)
+                        bug; // We shouldn't be done already...
+
+                    i32 remaining = driver->master.amount - driver->master.progress;
+
+                    CMSIS_SET
+                    (
+                        I2Cx  , CR2                               ,
+                        RELOAD, remaining >= 256                  , // Might still need to do more transfers.
+                        NBYTES, remaining >= 256 ? 255 : remaining, // The new amount of data in bytes for this next transfer.
+                    );
 
                     return I2CUpdateOnceResult_again;
 
@@ -1223,6 +1250,7 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
+                case I2CInterruptEvent_transfer_needs_to_be_reloaded   : bug;
                 case I2CInterruptEvent_transfer_completed_successfully : bug;
                 case I2CInterruptEvent_data_available_to_read          : bug;
                 case I2CInterruptEvent_ready_to_transmit_data          : bug;
@@ -1258,6 +1286,7 @@ _I2C_update_once(enum I2CHandle handle)
                 case I2CInterruptEvent_clock_stretch_timeout           : return I2CUpdateOnceResult_bus_misbehaved; // Clock pulled low for some reason?
                 case I2CInterruptEvent_nack_signaled                   : bug;
                 case I2CInterruptEvent_stop_signaled                   : bug;
+                case I2CInterruptEvent_transfer_needs_to_be_reloaded   : bug;
                 case I2CInterruptEvent_transfer_completed_successfully : bug;
                 case I2CInterruptEvent_data_available_to_read          : bug;
                 case I2CInterruptEvent_ready_to_transmit_data          : bug;
@@ -1322,6 +1351,7 @@ _I2C_update_once(enum I2CHandle handle)
                 case I2CInterruptEvent_stop_signaled                   : bug;
                 case I2CInterruptEvent_data_available_to_read          : bug;
                 case I2CInterruptEvent_ready_to_transmit_data          : bug;
+                case I2CInterruptEvent_transfer_needs_to_be_reloaded   : bug;
                 case I2CInterruptEvent_transfer_completed_successfully : bug;
                 default                                                : bug;
 
@@ -1419,6 +1449,7 @@ _I2C_update_once(enum I2CHandle handle)
 
                 case I2CInterruptEvent_nack_signaled                   : bug;
                 case I2CInterruptEvent_ready_to_transmit_data          : bug;
+                case I2CInterruptEvent_transfer_needs_to_be_reloaded   : bug;
                 case I2CInterruptEvent_transfer_completed_successfully : bug;
                 default                                                : bug;
 
@@ -1517,6 +1548,7 @@ _I2C_update_once(enum I2CHandle handle)
 
                 case I2CInterruptEvent_data_available_to_read          : bug;
                 case I2CInterruptEvent_stop_signaled                   : bug;
+                case I2CInterruptEvent_transfer_needs_to_be_reloaded   : bug;
                 case I2CInterruptEvent_transfer_completed_successfully : bug;
                 default                                                : bug;
 
@@ -1585,6 +1617,7 @@ _I2C_update_once(enum I2CHandle handle)
                 case I2CInterruptEvent_nack_signaled                   : bug;
                 case I2CInterruptEvent_data_available_to_read          : bug;
                 case I2CInterruptEvent_ready_to_transmit_data          : bug;
+                case I2CInterruptEvent_transfer_needs_to_be_reloaded   : bug;
                 case I2CInterruptEvent_transfer_completed_successfully : bug;
                 default                                                : bug;
 

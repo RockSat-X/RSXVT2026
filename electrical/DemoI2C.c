@@ -223,7 +223,13 @@ main(void)
                 stlink_tx("Queen : writing to bee...\n");
                 {
 
-                    char message[] = "Doing taxes suck!";
+                    char message[] =
+                        "Doing taxes suck! "
+                        "It's incredibly confusing and predatory that it's not even accessible. "
+                        "I mean, the tax companies actually lobby congress to make the system as "
+                        "complicated as it is in order to reap profits off of the poor working people "
+                        "who can't understand the system. "
+                        "That's captialism for you.";
 
                     b32 success =
                         queen_do
@@ -250,7 +256,7 @@ main(void)
                     }
 
                     GPIO_TOGGLE(led_green);
-                    spinlock_nop(500'000);
+                    spinlock_nop(200'000'000);
 
                 }
                 stlink_tx("\n");
@@ -258,7 +264,7 @@ main(void)
                 stlink_tx("Queen : reading from bee...\n");
                 {
 
-                    char response[24] = {0};
+                    char response[512] = {0};
 
                     b32 success =
                         queen_do
@@ -372,10 +378,24 @@ INTERRUPT_I2Cx_bee(enum I2CSlaveCallbackEvent event, u8* data)
 
             // Send the next byte for the master.
 
-            char reply[20] = {0};
-            snprintf_(reply, sizeof(reply), "Eat the rich! x %d", stop_count);
+            char reply[512] = {0};
+            snprintf_
+            (
+                reply,
+                sizeof(reply),
+                "I definitely agree. "
+                "Tax code? The only code I know is the one I'm writing right now. "
+                "You know what we should do, fellow anonymous? "
+                "Eat the rich! x %d"
+                "Those businessmen? "
+                "Come the revolution, we're gonna string 'em up! "
+                "All of them, every single one of them from every possible demographic of businessmen. "
+                "Yes, even the businessmen women! The businessmen children! "
+                "I hate them all!",
+                stop_count
+            );
 
-            if (reply_index < sizeof(reply))
+            if (reply_index < (i32) strnlen(reply, sizeof(reply)))
             {
                 *data = reply[reply_index];
             }
