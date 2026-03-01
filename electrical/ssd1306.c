@@ -151,14 +151,14 @@ static const u8 SSD1306_INITIALIZATION_SEQUENCE[] =
 
 */
 
-#define   _SSD1306_framebuffer (u8(*)[SSD1306_ROWS / bitsof(u8)][SSD1306_COLUMNS]) (_SSD1306_data_payload + 1)
+#define   SSD1306_framebuffer (u8(*)[SSD1306_ROWS / bitsof(u8)][SSD1306_COLUMNS]) (_SSD1306_data_payload + 1)
 static u8 _SSD1306_data_payload[1 + SSD1306_ROWS * SSD1306_COLUMNS / bitsof(u8)] =
     {
 
         // To send pixel data to the screen, we first send a control byte that indicates
         // the following transfer consists entirely of data bytes. To make things work out
         // nicely between the I2C transfer and the framebuffer, the control byte is placed
-        // right before `_SSD1306_framebuffer`, so we can then just use `_SSD1306_data_payload`
+        // right before `SSD1306_framebuffer`, so we can then just use `_SSD1306_data_payload`
         // to do the entire transfer in one go.
         //
         // @/pg 20/sec 8.1.5.2/`SSD1306`.
@@ -391,7 +391,7 @@ _SSD1306_write_format_callback(char byte, void* void_context)
                 0 <= context->current_pixel_x && context->current_pixel_x < SSD1306_COLUMNS
             )
             {
-                (*_SSD1306_framebuffer)[context->current_page_y][context->current_pixel_x] = SSD1306_FONT[(u8) byte][character_column];
+                (*SSD1306_framebuffer)[context->current_page_y][context->current_pixel_x] = SSD1306_FONT[(u8) byte][character_column];
             }
 
             context->current_pixel_x += 1;

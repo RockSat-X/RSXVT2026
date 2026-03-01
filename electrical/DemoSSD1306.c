@@ -10,6 +10,12 @@ extern noret void
 main(void)
 {
 
+    ////////////////////////////////////////////////////////////////////////////////
+    //
+    // Initialize stuff.
+    //
+
+
     STPY_init();
     UXART_reinit(UXARTHandle_stlink);
 
@@ -38,20 +44,75 @@ main(void)
         }
     }
 
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    //
+    // Demonstrate the SSD1306 driver.
+    //
+
+
+
+    i32 held    = 0;
+    u8  text[8] = {0};
+    memset(text, 0xFF, sizeof(text));
+
     for (i32 j = 0;; j += 1)
     {
 
-        ((u8*) _SSD1306_framebuffer)[j % (SSD1306_ROWS * SSD1306_COLUMNS / bitsof(u8))] ^= 0xFF;
+
+
+        // Read inputs.
+
+        if (GPIO_READ(button))
+        {
+            held += 1;
+        }
+
+        u8 input = {0};
+        if (stlink_rx(&input))
+        {
+
+            memmove(text, text + 1, sizeof(text) - 1);
+            text[countof(text) - 1] = input;
+
+            if (input == ' ')
+            {
+                held = 0;
+            }
+
+        }
+
+
+
+        // Update framebuffer.
+
+        memset(SSD1306_framebuffer, 0, sizeof(*SSD1306_framebuffer));
 
         SSD1306_write_format
         (
-            j % 500 / 2 - 100,
-            j / 4 % 12 - 2,
-            "meow! %d",
-            j
+            0,
+            0,
+            "Clock %.2f" "\n"
+            "Held  %d"   "\n"
+            "Text  %s"   "\n"
+            "A?    %s"   "\n"
+            "B?    %s"   "\n"
+            "C?    %s"   "\n",
+            TIMEKEEPING_microseconds() / 1000.0 / 1000.0,
+            held,
+            text,
+            text[0] == 'A' ? "OK" : "nil",
+            held           ? "OK" : "nil",
+            held % 4       ? "OK" : "nil"
         );
 
+
+
+        // Swap framebuffer.
+
         enum SSD1306RefreshResult result = SSD1306_refresh();
+
         switch (result)
         {
             case SSD1306RefreshResult_success            : break;
@@ -62,12 +123,6 @@ main(void)
 
         GPIO_TOGGLE(led_green);
 
-    }
-
-    for (;;)
-    {
-        GPIO_TOGGLE(led_green);
-        spinlock_nop(100'000'000);
     }
 
 }
