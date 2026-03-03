@@ -1,3 +1,5 @@
+#define ALLOW_FILESYSTEM_TO_BE_FORMATTED true
+
 #include "system.h"
 #include "timekeeping.c"
 #include "uxart.c"
@@ -13,15 +15,12 @@
 
 
 static noret void
-ERROR_fatal(void)
+ERROR_FATAL(void)
 {
 
-    // This error condition is due to something
-    // catastrophic that we can not recover from.
+    WATCHDOG_kick(); // Let the below pattern play out entirely.
 
-    WATCHDOG_kick();
-
-    for (i32 i = 0;; i += 1)
+    for (i32 i = 0; i < 16; i += 1)
     {
 
         GPIO_ACTIVE  (led_channel_red  );
@@ -34,12 +33,9 @@ ERROR_fatal(void)
         GPIO_INACTIVE(led_channel_blue );
         spinlock_us(50'000);
 
-        if (i == 16)
-        {
-            WARM_RESET();
-        }
-
     }
+
+    WARM_RESET();
 
 }
 
@@ -55,7 +51,15 @@ try_reinitializing_ovcam(void)
     for (i32 attempts = 0;; attempts += 1)
     {
 
+        GPIO_INACTIVE(led_channel_red  );
+        GPIO_INACTIVE(led_channel_green);
+        GPIO_ACTIVE  (led_channel_blue );
+
         enum OVCAMReinitResult result = OVCAM_reinit();
+
+        GPIO_INACTIVE(led_channel_red  );
+        GPIO_INACTIVE(led_channel_green);
+        GPIO_INACTIVE(led_channel_blue );
 
         switch (result)
         {
@@ -69,16 +73,16 @@ try_reinitializing_ovcam(void)
             {
                 if (attempts < 16)
                 {
-                    // Perhaps poor connection; we'll try again.
+                    spinlock_us(50'000); // Perhaps poor connection; we'll try again.
                 }
                 else
                 {
-                    ERROR_fatal(); // Something's wrong with the camera module...
+                    ERROR_FATAL(); // Something's wrong with the camera module...
                 }
             } break;
 
-            case OVCAMReinitResult_bug : ERROR_fatal();
-            default                    : ERROR_fatal();
+            case OVCAMReinitResult_bug : ERROR_FATAL();
+            default                    : ERROR_FATAL();
 
         }
 
@@ -181,18 +185,33 @@ main(void)
                 case FileSystemReinitResult_no_more_space_for_new_file:
                 case FileSystemReinitResult_fatfs_internal_error:
                 {
-                    if (attempts < 256)
+                    #if ALLOW_FILESYSTEM_TO_BE_FORMATTED
                     {
-                        // Let's recheck to be SUPER sure we actually need to wipe the SD card...
+                        if (attempts < 256)
+                        {
+                            // Let's recheck to be SUPER sure we actually need to wipe the SD card...
+                        }
+                        else
+                        {
+
+                            if (!completely_wipe_filesystem)
+                            {
+                                WATCHDOG_kick();
+                            }
+
+                            completely_wipe_filesystem = true;
+
+                        }
                     }
-                    else
+                    #else
                     {
-                        completely_wipe_filesystem = true;
+                        // Nothing we can honestly do...
                     }
+                    #endif
                 } break;
 
-                case FileSystemReinitResult_bug : ERROR_fatal();
-                default                         : ERROR_fatal();
+                case FileSystemReinitResult_bug : ERROR_FATAL();
+                default                         : ERROR_FATAL();
 
             }
 
@@ -204,10 +223,6 @@ main(void)
 
 
     // Set up the camera module.
-
-    GPIO_INACTIVE(led_channel_red  );
-    GPIO_INACTIVE(led_channel_green);
-    GPIO_ACTIVE  (led_channel_blue );
 
     try_reinitializing_ovcam();
 
@@ -283,11 +298,11 @@ main(void)
                                 // All good saving the meta-data.
                             } break;
 
-                            case FileSystemSaveResult_transfer_error         : ERROR_fatal();
-                            case FileSystemSaveResult_no_more_space_for_data : ERROR_fatal();
-                            case FileSystemSaveResult_fatfs_internal_error   : ERROR_fatal();
-                            case FileSystemSaveResult_bug                    : ERROR_fatal();
-                            default                                          : ERROR_fatal();
+                            case FileSystemSaveResult_transfer_error         : ERROR_FATAL();
+                            case FileSystemSaveResult_no_more_space_for_data : ERROR_FATAL();
+                            case FileSystemSaveResult_fatfs_internal_error   : ERROR_FATAL();
+                            case FileSystemSaveResult_bug                    : ERROR_FATAL();
+                            default                                          : ERROR_FATAL();
 
                         }
 
@@ -324,11 +339,11 @@ main(void)
                                 // All good saving the meta-data.
                             } break;
 
-                            case FileSystemSaveResult_transfer_error         : ERROR_fatal();
-                            case FileSystemSaveResult_no_more_space_for_data : ERROR_fatal();
-                            case FileSystemSaveResult_fatfs_internal_error   : ERROR_fatal();
-                            case FileSystemSaveResult_bug                    : ERROR_fatal();
-                            default                                          : ERROR_fatal();
+                            case FileSystemSaveResult_transfer_error         : ERROR_FATAL();
+                            case FileSystemSaveResult_no_more_space_for_data : ERROR_FATAL();
+                            case FileSystemSaveResult_fatfs_internal_error   : ERROR_FATAL();
+                            case FileSystemSaveResult_bug                    : ERROR_FATAL();
+                            default                                          : ERROR_FATAL();
 
                         }
 
@@ -348,8 +363,6 @@ main(void)
 
 
             // Something bad happened with the camera module, so we'll go ahead and reinitialize it.
-            // TODO Count reinitialization attempts?
-            // TODO Indicator?
 
             case OVCAMSwapFramebufferResult_too_many_bad_jpeg_frames:
             case OVCAMSwapFramebufferResult_timeout:
@@ -361,8 +374,8 @@ main(void)
 
             // Catastrophic error!
 
-            case OVCAMSwapFramebufferResult_bug : ERROR_fatal();
-            default                             : ERROR_fatal();
+            case OVCAMSwapFramebufferResult_bug : ERROR_FATAL();
+            default                             : ERROR_FATAL();
 
         }
 
