@@ -230,6 +230,8 @@ main(void)
 
     // Capture images and save 'em.
 
+    u32 image_index = 0;
+
     for (;;)
     {
 
@@ -255,38 +257,43 @@ main(void)
 
                     pack_push
 
-                        union ImageChapter // TODO Document.
+                        union ImageMetadata
                         {
                             Sector sector;
                             struct
                             {
-                                u8  ending_token[sizeof(TV_TOKEN_END) - 1];
-                                u32 sequence_number;
+                                u8  ending_token[sizeof(TV_TOKEN_END) - 1]; // @/`Image Metadata Tokens`.
+                                u32 image_index;
                                 u32 image_size;
                                 u32 image_timestamp_us;
-                                u32 cycle_count;
+                                u32 cpu_cycle_counter;
                                 u8  padding[512 - (sizeof(TV_TOKEN_END) - 1) - (sizeof(TV_TOKEN_START) - 1) - 4 * sizeof(u32)];
-                                u8  starting_token[sizeof(TV_TOKEN_START) - 1];
+                                u8  starting_token[sizeof(TV_TOKEN_START) - 1]; // @/`Image Metadata Tokens`.
+
                             };
                         };
 
                     pack_pop
 
-                    union ImageChapter chapter = // TODO Fill out.
+                    union ImageMetadata metadata =
                         {
-                            .ending_token   = TV_TOKEN_END,
-                            .starting_token = TV_TOKEN_START,
+                            .ending_token       = TV_TOKEN_END,
+                            .image_index        = image_index,
+                            .image_size         = (u32) OVCAM_current_framebuffer->length,
+                            .image_timestamp_us = OVCAM_current_framebuffer->timestamp_us,
+                            .cpu_cycle_counter  = CPU_CYCLE_COUNTER(),
+                            .starting_token     = TV_TOKEN_START,
                         };
 
                     {
 
-                        static_assert(sizeof(chapter) == sizeof(Sector));
+                        static_assert(sizeof(metadata) == sizeof(Sector));
 
                         enum FileSystemSaveResult save_result =
                             FILESYSTEM_save
                             (
                                 SDHandle_primary,
-                                &chapter.sector,
+                                &metadata.sector,
                                 1
                             );
 
@@ -357,6 +364,8 @@ main(void)
                     GPIO_TOGGLE  (led_channel_green);
                     GPIO_INACTIVE(led_channel_blue );
 
+                    image_index += 1;
+
                 }
             } break;
 
@@ -382,3 +391,17 @@ main(void)
     }
 
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+// @/`Image Metadata Tokens`:
+//
+// The fact that the image meta-data header begins with the TV end token
+// and ends with the TV start token is to allow for the `tv` verb to be
+// able to parse the logged data as if it was image data that was streamed
+// from `DemoOVCAM`. It also furthermore denotes the start and (rough) end
+// of an image frame.
