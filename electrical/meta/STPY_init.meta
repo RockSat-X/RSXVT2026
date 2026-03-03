@@ -340,6 +340,14 @@
         #define STPY_USART2_KERNEL_SOURCE 0b000
         #define STPY_USART2_BAUD_DIVIDER 250
 
+
+
+        /////////////////////////////////// Misc. ////////////////////////////////////
+
+
+
+        CMSIS_SET(DWT, CTRL, CYCCNTENA, true);
+
     }
     #define STPY_0             (          0)
     #define STPY_CPU_CK        (250'000'000)
@@ -783,6 +791,14 @@
         #define STPY_GLOBAL_TIMER_PRESCALER false
         #define STPY_TIM2_DIVIDER (250 - 1)
 
+
+
+        /////////////////////////////////// Misc. ////////////////////////////////////
+
+
+
+        CMSIS_SET(DWT, CTRL, CYCCNTENA, true);
+
     }
     #define STPY_0             (          0)
     #define STPY_CPU_CK        (250'000'000)
@@ -1185,6 +1201,14 @@
 
         #define STPY_GLOBAL_TIMER_PRESCALER false
         #define STPY_TIM2_DIVIDER (250 - 1)
+
+
+
+        /////////////////////////////////// Misc. ////////////////////////////////////
+
+
+
+        CMSIS_SET(DWT, CTRL, CYCCNTENA, true);
 
     }
     #define STPY_0             (          0)
@@ -1595,6 +1619,14 @@
         #define STPY_SPI2_BYPASS_DIVIDER false
         #define STPY_SPI2_DIVIDER 0b001
 
+
+
+        /////////////////////////////////// Misc. ////////////////////////////////////
+
+
+
+        CMSIS_SET(DWT, CTRL, CYCCNTENA, true);
+
     }
     #define STPY_0             (          0)
     #define STPY_CPU_CK        (250'000'000)
@@ -1963,6 +1995,14 @@
         #define STPY_GLOBAL_TIMER_PRESCALER false
         #define STPY_TIM8_DIVIDER (250 - 1)
 
+
+
+        /////////////////////////////////// Misc. ////////////////////////////////////
+
+
+
+        CMSIS_SET(DWT, CTRL, CYCCNTENA, true);
+
     }
     #define STPY_0             (          0)
     #define STPY_CPU_CK        (250'000'000)
@@ -2303,6 +2343,14 @@
 
         #define STPY_USART2_KERNEL_SOURCE 0b000
         #define STPY_USART2_BAUD_DIVIDER 250
+
+
+
+        /////////////////////////////////// Misc. ////////////////////////////////////
+
+
+
+        CMSIS_SET(DWT, CTRL, CYCCNTENA, true);
 
     }
     #define STPY_0             (          0)
@@ -2670,6 +2718,14 @@
         #define STPY_TIM1_DIVIDER (239 - 1)
         #define STPY_TIM1_MODULATION (65377 - 1)
 
+
+
+        /////////////////////////////////// Misc. ////////////////////////////////////
+
+
+
+        CMSIS_SET(DWT, CTRL, CYCCNTENA, true);
+
     }
     #define STPY_0             (          0)
     #define STPY_CPU_CK        (250'000'000)
@@ -3019,6 +3075,14 @@
 
         #define STPY_GLOBAL_TIMER_PRESCALER false
         #define STPY_TIM2_DIVIDER (250 - 1)
+
+
+
+        /////////////////////////////////// Misc. ////////////////////////////////////
+
+
+
+        CMSIS_SET(DWT, CTRL, CYCCNTENA, true);
 
     }
     #define STPY_0             (          0)
@@ -3470,6 +3534,14 @@
         #define STPY_SDMMC1_FULL_DIVIDER 0x005
         #define STPY_SDMMC1_FULL_DATATIME 1200000
 
+
+
+        /////////////////////////////////// Misc. ////////////////////////////////////
+
+
+
+        CMSIS_SET(DWT, CTRL, CYCCNTENA, true);
+
     }
     #define STPY_0             (          0)
     #define STPY_CPU_CK        (240'000'000)
@@ -3901,6 +3973,14 @@
 
         #define STPY_GLOBAL_TIMER_PRESCALER false
         #define STPY_TIM2_DIVIDER (250 - 1)
+
+
+
+        /////////////////////////////////// Misc. ////////////////////////////////////
+
+
+
+        CMSIS_SET(DWT, CTRL, CYCCNTENA, true);
 
     }
     #define STPY_0             (          0)
@@ -4662,6 +4742,14 @@
         #define STPY_SDMMC1_FULL_DIVIDER 0x005
         #define STPY_SDMMC1_FULL_DATATIME 50000
 
+
+
+        /////////////////////////////////// Misc. ////////////////////////////////////
+
+
+
+        CMSIS_SET(DWT, CTRL, CYCCNTENA, true);
+
     }
     #define STPY_0             (          0)
     #define STPY_CPU_CK        (250'000'000)
@@ -5277,6 +5365,14 @@
         #define STPY_SDMMC1_FULL_DIVIDER 0x005
         #define STPY_SDMMC1_FULL_DATATIME 6000000
 
+
+
+        /////////////////////////////////// Misc. ////////////////////////////////////
+
+
+
+        CMSIS_SET(DWT, CTRL, CYCCNTENA, true);
+
     }
     #define STPY_0             (          0)
     #define STPY_CPU_CK        (250'000'000)
@@ -5779,6 +5875,14 @@
         #define STPY_GLOBAL_TIMER_PRESCALER false
         #define STPY_TIM2_DIVIDER (240 - 1)
 
+
+
+        /////////////////////////////////// Misc. ////////////////////////////////////
+
+
+
+        CMSIS_SET(DWT, CTRL, CYCCNTENA, true);
+
     }
     #define STPY_0             (          0)
     #define STPY_CPU_CK        (240'000'000)
@@ -6165,6 +6269,14 @@
         while (!CMSIS_GET(ADC1, ISR, ADRDY));
         CMSIS_SET(ADC1, CR, ADCAL, true);
         while (!CMSIS_GET(ADC1, CR, ADCAL));
+
+
+
+        /////////////////////////////////// Misc. ////////////////////////////////////
+
+
+
+        CMSIS_SET(DWT, CTRL, CYCCNTENA, true);
 
     }
     #define STPY_0                            (          0)
@@ -6554,6 +6666,14 @@
 
         #define STPY_GLOBAL_TIMER_PRESCALER false
         #define STPY_TIM1_DIVIDER (62500 - 1)
+
+
+
+        /////////////////////////////////// Misc. ////////////////////////////////////
+
+
+
+        CMSIS_SET(DWT, CTRL, CYCCNTENA, true);
 
     }
     #define STPY_0             (          0)
