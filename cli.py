@@ -1576,7 +1576,7 @@ def tv(parameters):
 
     def stream_callback(event, new_data):
 
-        nonlocal surface, image_data, past_sizes, past_timestamps, previous_frame_timestamp
+        nonlocal surface, image_data, past_sizes, past_timestamps
 
         match event:
 
@@ -1688,10 +1688,6 @@ def tv(parameters):
 
 
 
-                previous_frame_timestamp = time.time()
-
-
-
             case idk: raise RuntimeError(idk)
 
 
@@ -1704,19 +1700,6 @@ def tv(parameters):
     tv_data_file_path.write_bytes(b'')
 
     tv_data_file_handle = tv_data_file_path.open('ab')
-
-
-
-
-
-
-    TMP = pxd.make_main_relative_path('./misc/000.log').read_bytes()
-
-    previous_frame_timestamp = time.time()
-
-
-
-
 
 
 
@@ -1809,17 +1792,11 @@ def tv(parameters):
 
         # Grab the new serial data, if any.
 
-#        if serial_port.in_waiting:
-#
-#            received_data = serial_port.read(serial_port.in_waiting)
-#
-#            tv_data_file_handle.write(received_data)
+        if serial_port.in_waiting:
 
-        
+            received_data = serial_port.read(serial_port.in_waiting)
 
-        if TMP and (time.time() - previous_frame_timestamp) >= 1 / 11:
-
-            received_data, TMP = TMP[:1024 * 48], TMP[1024 * 48:]
+            tv_data_file_handle.write(received_data)
 
             stream_data += received_data
 
