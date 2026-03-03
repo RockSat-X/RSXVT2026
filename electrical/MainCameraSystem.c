@@ -12,6 +12,43 @@
 
 
 
+static noret void
+ERROR_fatal(void)
+{
+
+    // This error condition is due to something
+    // catastrophic that we can not recover from.
+
+    WATCHDOG_kick();
+
+    for (i32 i = 0;; i += 1)
+    {
+
+        GPIO_ACTIVE  (led_channel_red  );
+        GPIO_INACTIVE(led_channel_green);
+        GPIO_INACTIVE(led_channel_blue );
+        spinlock_us(50'000);
+
+        GPIO_INACTIVE(led_channel_red  );
+        GPIO_INACTIVE(led_channel_green);
+        GPIO_INACTIVE(led_channel_blue );
+        spinlock_us(50'000);
+
+        if (i == 16)
+        {
+            WARM_RESET();
+        }
+
+    }
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
 static void
 try_reinitializing_ovcam(void)
 {
@@ -36,15 +73,12 @@ try_reinitializing_ovcam(void)
                 }
                 else
                 {
-                    sorry // Something's wrong with the camera module...
+                    ERROR_fatal(); // Something's wrong with the camera module...
                 }
             } break;
 
-            case OVCAMReinitResult_bug:
-            default:
-            {
-                sorry // Something catastrophic happened...
-            } break;
+            case OVCAMReinitResult_bug : ERROR_fatal();
+            default                    : ERROR_fatal();
 
         }
 
@@ -82,62 +116,98 @@ main(void)
 
     // Set up the file-system.
 
-    GPIO_ACTIVE  (led_channel_red  );
-    GPIO_INACTIVE(led_channel_green);
-    GPIO_ACTIVE  (led_channel_blue );
-
-    enum FileSystemReinitResult reinit_result =
-        FILESYSTEM_reinit
-        (
-            SDHandle_primary,
-            nullptr,
-            0
-        );
-
-    switch (reinit_result)
+    WATCHDOG_kick();
     {
 
-        case FileSystemReinitResult_success:
-        {
-            // We're ready to log some data.
-        } break;
+        i32 attempts                   = 0;
+        b32 completely_wipe_filesystem = false;
 
-        case FileSystemReinitResult_couldnt_ready_card:
+        for (b32 yield = false; !yield;)
         {
-            sorry // Perhaps no SD card is mounted?
-        } break;
 
-        case FileSystemReinitResult_transfer_error:
-        {
-            sorry // Perhaps poor connection? or a fluke?
-        } break;
+            attempts += 1;
 
-        case FileSystemReinitResult_invalid_filesystem:
-        {
-            sorry // TODO Format?
-        } break;
+            if (completely_wipe_filesystem)
+            {
+                for (i32 i = 0; i < 64; i += 1) // Indicate that we're about to do something destructive...
+                {
 
-        case FileSystemReinitResult_no_more_space_for_new_file:
-        {
-            sorry // TODO Format?
-        } break;
+                    GPIO_INACTIVE(led_channel_red  );
+                    GPIO_INACTIVE(led_channel_green);
+                    GPIO_INACTIVE(led_channel_blue );
+                    spinlock_us(25'000);
 
-        case FileSystemReinitResult_fatfs_internal_error:
-        {
-            sorry // TODO Format?
-        } break;
+                    GPIO_ACTIVE(led_channel_red  );
+                    GPIO_ACTIVE(led_channel_green);
+                    GPIO_ACTIVE(led_channel_blue );
+                    spinlock_us(25'000);
 
-        case FileSystemReinitResult_bug:
-        default:
-        {
-            sorry // TODO Reset?
-        } break;
+                }
+            }
+            else // Indicate that we're in the process of mounting the file-system.
+            {
+                GPIO_ACTIVE  (led_channel_red  );
+                GPIO_INACTIVE(led_channel_green);
+                GPIO_ACTIVE  (led_channel_blue );
+            }
+
+            enum FileSystemReinitResult reinit_result =
+                FILESYSTEM_reinit
+                (
+                    SDHandle_primary,
+                    &(Sector) {0},
+                    !!completely_wipe_filesystem
+                );
+
+            GPIO_INACTIVE(led_channel_red  );
+            GPIO_INACTIVE(led_channel_green);
+            GPIO_INACTIVE(led_channel_blue );
+
+            switch (reinit_result)
+            {
+
+                case FileSystemReinitResult_success:
+                {
+                    yield = true; // We're ready to log some data!
+                } break;
+
+                case FileSystemReinitResult_couldnt_ready_card:
+                case FileSystemReinitResult_transfer_error:
+                {
+                    spinlock_us(25'000); // Maybe it was a fluke; let's try again...
+                } break;
+
+                case FileSystemReinitResult_invalid_filesystem:
+                case FileSystemReinitResult_no_more_space_for_new_file:
+                case FileSystemReinitResult_fatfs_internal_error:
+                {
+                    if (attempts < 256)
+                    {
+                        // Let's recheck to be SUPER sure we actually need to wipe the SD card...
+                    }
+                    else
+                    {
+                        completely_wipe_filesystem = true;
+                    }
+                } break;
+
+                case FileSystemReinitResult_bug : ERROR_fatal();
+                default                         : ERROR_fatal();
+
+            }
+
+        }
 
     }
+    WATCHDOG_kick();
 
 
 
     // Set up the camera module.
+
+    GPIO_INACTIVE(led_channel_red  );
+    GPIO_INACTIVE(led_channel_green);
+    GPIO_ACTIVE  (led_channel_blue );
 
     try_reinitializing_ovcam();
 
@@ -161,6 +231,8 @@ main(void)
             {
                 if (OVCAM_current_framebuffer)
                 {
+
+                    WATCHDOG_kick();
 
 
 
@@ -211,20 +283,11 @@ main(void)
                                 // All good saving the meta-data.
                             } break;
 
-                            case FileSystemSaveResult_transfer_error:
-                            case FileSystemSaveResult_no_more_space_for_data:
-                            case FileSystemSaveResult_fatfs_internal_error:
-                            case FileSystemSaveResult_bug:
-                            default:
-                            {
-
-                                // Uh oh, something bad happened.
-                                // We'll just reset the MCU and the MCU initialization
-                                // will handle the error if it still persists.
-
-                                sorry
-
-                            } break;
+                            case FileSystemSaveResult_transfer_error         : ERROR_fatal();
+                            case FileSystemSaveResult_no_more_space_for_data : ERROR_fatal();
+                            case FileSystemSaveResult_fatfs_internal_error   : ERROR_fatal();
+                            case FileSystemSaveResult_bug                    : ERROR_fatal();
+                            default                                          : ERROR_fatal();
 
                         }
 
@@ -261,20 +324,11 @@ main(void)
                                 // All good saving the meta-data.
                             } break;
 
-                            case FileSystemSaveResult_transfer_error:
-                            case FileSystemSaveResult_no_more_space_for_data:
-                            case FileSystemSaveResult_fatfs_internal_error:
-                            case FileSystemSaveResult_bug:
-                            default:
-                            {
-
-                                // Uh oh, something bad happened.
-                                // We'll just reset the MCU and the MCU initialization
-                                // will handle the error if it still persists.
-
-                                sorry
-
-                            } break;
+                            case FileSystemSaveResult_transfer_error         : ERROR_fatal();
+                            case FileSystemSaveResult_no_more_space_for_data : ERROR_fatal();
+                            case FileSystemSaveResult_fatfs_internal_error   : ERROR_fatal();
+                            case FileSystemSaveResult_bug                    : ERROR_fatal();
+                            default                                          : ERROR_fatal();
 
                         }
 
@@ -307,11 +361,8 @@ main(void)
 
             // Catastrophic error!
 
-            case OVCAMSwapFramebufferResult_bug:
-            default:
-            {
-                sorry
-            } break;
+            case OVCAMSwapFramebufferResult_bug : ERROR_fatal();
+            default                             : ERROR_fatal();
 
         }
 

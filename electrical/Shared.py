@@ -1226,6 +1226,7 @@ TARGETS = ( # @/`Defining Targets`.
             'SDMMC1_TIMEOUT'      : 0.250,
             'SDMMC1_INITIAL_BAUD' :    400_000,
             'SDMMC1_FULL_BAUD'    : 24_000_000,
+            'WATCHDOG_DURATION'   : 10,
         },
 
     ),
