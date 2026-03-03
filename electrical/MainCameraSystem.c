@@ -12,77 +12,48 @@
 
 
 
-pack_push
-    struct ImageChapter
-    {
-        u8  ending_token[sizeof(TV_TOKEN_END) - 1];
-        u32 sequence_number;
-        u32 image_size;
-        u32 image_timestamp_us;
-        u32 cycle_count;
-        u8  padding[512 - (sizeof(TV_TOKEN_END) - 1) - (sizeof(TV_TOKEN_START) - 1) - 4 * sizeof(u32)];
-        u8  starting_token[sizeof(TV_TOKEN_START) - 1];
-    } __attribute__((aligned(4)));
-pack_pop
-
-static_assert(sizeof(struct ImageChapter) == sizeof(Sector));
-
-
-
 static void
-reinitialize_ovcam(void)
+try_reinitializing_ovcam(void)
 {
-
-    while (true)
+    for (i32 attempts = 0;; attempts += 1)
     {
+
         enum OVCAMReinitResult result = OVCAM_reinit();
 
         switch (result)
         {
-            case OVCAMReinitResult_success                       : return;
-            case OVCAMReinitResult_failed_to_initialize_with_i2c : break;
-            case OVCAMReinitResult_bug                           : sorry
-            default                                              : sorry
+
+            case OVCAMReinitResult_success:
+            {
+                return; // Everything's all good.
+            } break;
+
+            case OVCAMReinitResult_failed_to_initialize_with_i2c:
+            {
+                if (attempts < 16)
+                {
+                    // Perhaps poor connection; we'll try again.
+                }
+                else
+                {
+                    sorry // Something's wrong with the camera module...
+                }
+            } break;
+
+            case OVCAMReinitResult_bug:
+            default:
+            {
+                sorry // Something catastrophic happened...
+            } break;
+
         }
-    }
-
-}
-
-
-
-static void
-try_swap(void)
-{
-
-    enum OVCAMSwapFramebufferResult result = OVCAM_swap_framebuffer();
-
-    switch (result)
-    {
-
-        case OVCAMSwapFramebufferResult_attempted:
-        {
-            // An attempt was made to get the next framebuffer.
-        } break;
-
-        case OVCAMSwapFramebufferResult_too_many_bad_jpeg_frames:
-        case OVCAMSwapFramebufferResult_timeout:
-        {
-            reinitialize_ovcam(); // Something bad happened, so we'll reinitialize everything.
-        } break;
-
-        case OVCAMSwapFramebufferResult_bug : sorry
-        default                             : sorry
 
     }
-
 }
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
-//
-// Pre-scheduler initialization.
-//
 
 
 
@@ -109,195 +80,241 @@ main(void)
 
 
 
-    // TODO.
+    // Set up the file-system.
+
+    GPIO_ACTIVE  (led_channel_red  );
+    GPIO_INACTIVE(led_channel_green);
+    GPIO_ACTIVE  (led_channel_blue );
 
     enum FileSystemReinitResult reinit_result =
         FILESYSTEM_reinit
         (
             SDHandle_primary,
-            &(Sector) {0},
-            1
+            nullptr,
+            0
         );
 
     switch (reinit_result)
     {
-        case FileSystemReinitResult_success                    : break;
-        case FileSystemReinitResult_couldnt_ready_card         : sorry
-        case FileSystemReinitResult_transfer_error             : sorry
-        case FileSystemReinitResult_invalid_filesystem         : sorry
-        case FileSystemReinitResult_no_more_space_for_new_file : sorry
-        case FileSystemReinitResult_fatfs_internal_error       : sorry
-        case FileSystemReinitResult_bug                        : sorry
-        default                                                : sorry
+
+        case FileSystemReinitResult_success:
+        {
+            // We're ready to log some data.
+        } break;
+
+        case FileSystemReinitResult_couldnt_ready_card:
+        {
+            sorry // Perhaps no SD card is mounted?
+        } break;
+
+        case FileSystemReinitResult_transfer_error:
+        {
+            sorry // Perhaps poor connection? or a fluke?
+        } break;
+
+        case FileSystemReinitResult_invalid_filesystem:
+        {
+            sorry // TODO Format?
+        } break;
+
+        case FileSystemReinitResult_no_more_space_for_new_file:
+        {
+            sorry // TODO Format?
+        } break;
+
+        case FileSystemReinitResult_fatfs_internal_error:
+        {
+            sorry // TODO Format?
+        } break;
+
+        case FileSystemReinitResult_bug:
+        default:
+        {
+            sorry // TODO Reset?
+        } break;
+
     }
 
-    reinitialize_ovcam();
+
+
+    // Set up the camera module.
+
+    try_reinitializing_ovcam();
+
+
+
+    // Capture images and save 'em.
 
     for (;;)
     {
 
-        // See if we received a write command.
+        enum OVCAMSwapFramebufferResult result = OVCAM_swap_framebuffer();
 
-        u8 code = {0};
-
-        if (stlink_rx(&code) && code == TV_WRITE_BYTE)
+        switch (result)
         {
 
-            // Update one of the camera module's register.
 
-            pack_push
-                struct WriteCommand
+
+            // No issues with the camera module so far.
+
+            case OVCAMSwapFramebufferResult_attempted:
+            {
+                if (OVCAM_current_framebuffer)
                 {
-                    u16 address;
-                    u8  content;
-                };
-            pack_pop
-
-            struct WriteCommand command = {0};
-
-            for (i32 i = 0; i < sizeof(command); i += 1)
-            {
-                while (!stlink_rx((u8*) &command + i));
-            }
 
 
 
-            // Note: this is only done for testing purposes.
+                    // We first insert some meta-data about the image.
 
-            {
+                    pack_push
 
-                struct I2CDoJob job =
+                        union ImageChapter // TODO Document.
+                        {
+                            Sector sector;
+                            struct
+                            {
+                                u8  ending_token[sizeof(TV_TOKEN_END) - 1];
+                                u32 sequence_number;
+                                u32 image_size;
+                                u32 image_timestamp_us;
+                                u32 cycle_count;
+                                u8  padding[512 - (sizeof(TV_TOKEN_END) - 1) - (sizeof(TV_TOKEN_START) - 1) - 4 * sizeof(u32)];
+                                u8  starting_token[sizeof(TV_TOKEN_START) - 1];
+                            };
+                        };
+
+                    pack_pop
+
+                    union ImageChapter chapter = // TODO Fill out.
+                        {
+                            .ending_token   = TV_TOKEN_END,
+                            .starting_token = TV_TOKEN_START,
+                        };
+
                     {
-                        .handle       = I2CHandle_ovcam_sccb,
-                        .address_type = I2CAddressType_seven,
-                        .address      = OVCAM_SEVEN_BIT_ADDRESS,
-                        .writing      = true,
-                        .repeating    = false,
-                        .pointer      = (u8*) &command,
-                        .amount       = sizeof(command)
-                    };
 
-                enum I2CDoResult transfer_result = {0};
-                do transfer_result = I2C_do(&job);
-                while (transfer_result == I2CDoResult_working);
+                        static_assert(sizeof(chapter) == sizeof(Sector));
 
-                if (transfer_result != I2CDoResult_success)
-                    sorry
+                        enum FileSystemSaveResult save_result =
+                            FILESYSTEM_save
+                            (
+                                SDHandle_primary,
+                                &chapter.sector,
+                                1
+                            );
 
-            }
+                        switch (save_result)
+                        {
+
+                            case FileSystemSaveResult_success:
+                            {
+                                // All good saving the meta-data.
+                            } break;
+
+                            case FileSystemSaveResult_transfer_error:
+                            case FileSystemSaveResult_no_more_space_for_data:
+                            case FileSystemSaveResult_fatfs_internal_error:
+                            case FileSystemSaveResult_bug:
+                            default:
+                            {
+
+                                // Uh oh, something bad happened.
+                                // We'll just reset the MCU and the MCU initialization
+                                // will handle the error if it still persists.
+
+                                sorry
+
+                            } break;
+
+                        }
+
+                    }
 
 
 
-            // Flush whatever images are in the swapchain
-            // so the new images with the new settings
-            // will be next.
+                    // Now actually save the image data.
+                    //
+                    // Note that we round the image data up the nearest sector size.
+                    // This is to keep read/writes to the SD card sector-aligned, as
+                    // writing data not in multiple of sectors is more complicated and
+                    // doesn't actually really offer any performance benefits. We waste
+                    // a bit of space, but that's fine. Whatever data is after the image
+                    // in the framebuffer will be leftover data from the previous image
+                    // that was in that framebuffer slot, so it's pretty much garbage we
+                    // should ignore when we parse the image.
 
-            while (true)
-            {
+                    {
 
-                try_swap();
+                        enum FileSystemSaveResult save_result =
+                            FILESYSTEM_save
+                            (
+                                SDHandle_primary,
+                                (Sector*) OVCAM_current_framebuffer->data,
+                                (OVCAM_current_framebuffer->length + sizeof(Sector) - 1) / sizeof(Sector)
+                            );
 
-                if (!OVCAM_current_framebuffer)
-                {
-                    break;
+                        switch (save_result)
+                        {
+
+                            case FileSystemSaveResult_success:
+                            {
+                                // All good saving the meta-data.
+                            } break;
+
+                            case FileSystemSaveResult_transfer_error:
+                            case FileSystemSaveResult_no_more_space_for_data:
+                            case FileSystemSaveResult_fatfs_internal_error:
+                            case FileSystemSaveResult_bug:
+                            default:
+                            {
+
+                                // Uh oh, something bad happened.
+                                // We'll just reset the MCU and the MCU initialization
+                                // will handle the error if it still persists.
+
+                                sorry
+
+                            } break;
+
+                        }
+
+                    }
+
+
+
+                    // Heart-beat.
+
+                    GPIO_INACTIVE(led_channel_red  );
+                    GPIO_TOGGLE  (led_channel_green);
+                    GPIO_INACTIVE(led_channel_blue );
+
                 }
-
-            }
-
-        }
+            } break;
 
 
 
-        // See if the next image frame is available.
+            // Something bad happened with the camera module, so we'll go ahead and reinitialize it.
+            // TODO Count reinitialization attempts?
+            // TODO Indicator?
 
-        try_swap();
-
-        if (OVCAM_current_framebuffer)
-        {
-
-            // Send the data over.
-
-            struct ImageChapter chapter =
-                {
-                    .ending_token   = TV_TOKEN_END,
-                    .starting_token = TV_TOKEN_START,
-                };
-
+            case OVCAMSwapFramebufferResult_too_many_bad_jpeg_frames:
+            case OVCAMSwapFramebufferResult_timeout:
             {
+                try_reinitializing_ovcam();
+            } break;
 
-                enum FileSystemSaveResult save_result =
-                    FILESYSTEM_save
-                    (
-                        SDHandle_primary,
-                        (Sector*) &chapter,
-                        1
-                    );
 
-                switch (save_result)
-                {
-                    case FileSystemSaveResult_success                : break;
-                    case FileSystemSaveResult_transfer_error         : sorry
-                    case FileSystemSaveResult_no_more_space_for_data : sorry
-                    case FileSystemSaveResult_fatfs_internal_error   : sorry
-                    case FileSystemSaveResult_bug                    : sorry
-                    default                                          : sorry
-                }
 
-            }
+            // Catastrophic error!
+
+            case OVCAMSwapFramebufferResult_bug:
+            default:
             {
-
-                enum FileSystemSaveResult save_result =
-                    FILESYSTEM_save
-                    (
-                        SDHandle_primary,
-                        (Sector*) OVCAM_current_framebuffer->data,
-                        (OVCAM_current_framebuffer->length + sizeof(Sector) - 1) / sizeof(Sector)
-                    );
-
-                switch (save_result)
-                {
-                    case FileSystemSaveResult_success                : break;
-                    case FileSystemSaveResult_transfer_error         : sorry
-                    case FileSystemSaveResult_no_more_space_for_data : sorry
-                    case FileSystemSaveResult_fatfs_internal_error   : sorry
-                    case FileSystemSaveResult_bug                    : sorry
-                    default                                          : sorry
-                }
-
-            }
-
-
-
-            // Heart-beat.
-
-            GPIO_TOGGLE(led_channel_green);
+                sorry
+            } break;
 
         }
 
     }
 
-
-
-    // Begin the FreeRTOS task scheduler.
-
-    FREERTOS_init();
-
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-//
-// Heartbeat.
-//
-
-
-
-FREERTOS_TASK(blinker, 256, 0)
-{
-    for (;;)
-    {
-        GPIO_TOGGLE(led_channel_green);
-        vTaskDelay(250);
-    }
 }

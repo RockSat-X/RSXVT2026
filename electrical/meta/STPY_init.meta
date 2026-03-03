@@ -4704,9 +4704,6 @@
     extern void INTERRUPT_SDMMC1(void);
     extern void INTERRUPT_USART2(void);
     extern void INTERRUPT_UsageFault(void);
-    extern void PendSV_Handler(void);
-    extern void SVC_Handler(void);
-    extern void SysTick_Handler(void);
     void (* const INTERRUPT_VECTOR_TABLE[])(void) __attribute__((used, section(".INTERRUPT_VECTOR_TABLE"))) =
         {
             (void*) INITIAL_STACK_ADDRESS, // [-16] Initial Stack Address
@@ -4720,11 +4717,11 @@
             INTERRUPT_Default            , // [ -8] Reserved
             INTERRUPT_Default            , // [ -7] Reserved
             INTERRUPT_Default            , // [ -6] Reserved
-            SVC_Handler                  , // [ -5] SVCall
+            INTERRUPT_Default            , // [ -5] SVCall
             INTERRUPT_Default            , // [ -4] DebugMonitor
             INTERRUPT_Default            , // [ -3] Reserved
-            PendSV_Handler               , // [ -2] PendSV
-            SysTick_Handler              , // [ -1] SysTick
+            INTERRUPT_Default            , // [ -2] PendSV
+            INTERRUPT_Default            , // [ -1] SysTick
             INTERRUPT_Default            , // [  0] WWDG
             INTERRUPT_Default            , // [  1] PVD_AVD
             INTERRUPT_Default            , // [  2] RTC
@@ -4865,11 +4862,8 @@
     #define INTERRUPT_GPDMA1_Channel7(...) extern void INTERRUPT_GPDMA1_Channel7(__VA_ARGS__)
     #define INTERRUPT_I2C2_ER(...) extern void INTERRUPT_I2C2_ER(__VA_ARGS__)
     #define INTERRUPT_I2C2_EV(...) extern void INTERRUPT_I2C2_EV(__VA_ARGS__)
-    #define INTERRUPT_PendSV(...) extern void INTERRUPT_PendSV(__VA_ARGS__)
     #define INTERRUPT_Reset(...) extern void INTERRUPT_Reset(__VA_ARGS__)
     #define INTERRUPT_SDMMC1(...) extern void INTERRUPT_SDMMC1(__VA_ARGS__)
-    #define INTERRUPT_SVCall(...) extern void INTERRUPT_SVCall(__VA_ARGS__)
-    #define INTERRUPT_SysTick(...) extern void INTERRUPT_SysTick(__VA_ARGS__)
     #define INTERRUPT_USART2(...) extern void INTERRUPT_USART2(__VA_ARGS__)
     #define INTERRUPT_UsageFault(...) extern void INTERRUPT_UsageFault(__VA_ARGS__)
     extern void
@@ -4983,15 +4977,15 @@
         CMSIS_SET(GPIOA, ODR, OD5, true);
         CMSIS_SET
         (
-            GPIOB, ODR ,
-            OD1  , true,
-            OD2  , true,
+            GPIOB, ODR  ,
+            OD1  , false,
+            OD2  , false,
         );
         CMSIS_SET
         (
             GPIOE, ODR  ,
             OD6  , false,
-            OD7  , true ,
+            OD7  , false,
         );
         CMSIS_SET
         (
@@ -5264,9 +5258,9 @@
 
         #define STPY_SDMMC1_KERNEL_SOURCE 0b1
         #define STPY_SDMMC1_INITIAL_DIVIDER 0x12c
-        #define STPY_SDMMC1_INITIAL_DATATIME 20000
+        #define STPY_SDMMC1_INITIAL_DATATIME 100000
         #define STPY_SDMMC1_FULL_DIVIDER 0x005
-        #define STPY_SDMMC1_FULL_DATATIME 1200000
+        #define STPY_SDMMC1_FULL_DATATIME 6000000
 
     }
     #define STPY_0             (          0)

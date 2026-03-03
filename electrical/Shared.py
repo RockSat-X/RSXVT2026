@@ -1141,9 +1141,9 @@ TARGETS = ( # @/`Defining Targets`.
         kicad_project = 'MainCameraSystem',
 
         gpios = (
-            ('led_channel_red'  , 'E7' , 'OUTPUT'   , { 'initlvl' : False, 'active' : False             }),
-            ('led_channel_green', 'B1' , 'OUTPUT'   , { 'initlvl' : False, 'active' : False             }),
-            ('led_channel_blue' , 'B2' , 'OUTPUT'   , { 'initlvl' : False, 'active' : False             }),
+            ('led_channel_red'  , 'E7' , 'OUTPUT'   , { 'initlvl' : True, 'active' : False              }),
+            ('led_channel_green', 'B1' , 'OUTPUT'   , { 'initlvl' : True, 'active' : False              }),
+            ('led_channel_blue' , 'B2' , 'OUTPUT'   , { 'initlvl' : True, 'active' : False              }),
             ('stlink_tx'        , 'A2' , 'ALTERNATE', { 'altfunc' : 'USART2_TX'                         }),
             ('stlink_rx'        , 'A3' , 'ALTERNATE', { 'altfunc' : 'USART2_RX'                         }),
             ('swdio'            , 'A13', None       , {                                                 }),
@@ -1207,7 +1207,7 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = True,
+        use_freertos    = False,
         main_stack_size = 8192,
         schema          = {
             'HSI_ENABLE'          : True,
@@ -1223,7 +1223,7 @@ TARGETS = ( # @/`Defining Targets`.
             'I2C2_BAUD'           : 10_000,
             'I2C2_TIMEOUT'        : 2,
             'TIM2_COUNTER_RATE'   : 1_000_000,
-            'SDMMC1_TIMEOUT'      : 0.050,
+            'SDMMC1_TIMEOUT'      : 0.250,
             'SDMMC1_INITIAL_BAUD' :    400_000,
             'SDMMC1_FULL_BAUD'    : 24_000_000,
         },
