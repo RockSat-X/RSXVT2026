@@ -18,7 +18,7 @@ static noret void
 ERROR_FATAL(void)
 {
 
-    WATCHDOG_kick(); // Let the below pattern play out entirely.
+    WATCHDOG_KICK(); // Let the below pattern play out entirely.
 
     for (i32 i = 0; i < 16; i += 1)
     {
@@ -120,7 +120,7 @@ main(void)
 
     // Set up the file-system.
 
-    WATCHDOG_kick();
+    WATCHDOG_KICK();
     {
 
         i32 attempts                   = 0;
@@ -196,7 +196,7 @@ main(void)
 
                             if (!completely_wipe_filesystem)
                             {
-                                WATCHDOG_kick();
+                                WATCHDOG_KICK();
                             }
 
                             completely_wipe_filesystem = true;
@@ -218,7 +218,7 @@ main(void)
         }
 
     }
-    WATCHDOG_kick();
+    WATCHDOG_KICK();
 
 
 
@@ -249,7 +249,7 @@ main(void)
                 if (OVCAM_current_framebuffer)
                 {
 
-                    WATCHDOG_kick();
+                    WATCHDOG_KICK();
 
 
 
