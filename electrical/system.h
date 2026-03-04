@@ -860,6 +860,60 @@ sorry_(void) // @/`Halting`.
 
 ////////////////////////////////////////////////////////////////////////////////
 //
+// Debug board stuff.
+//
+
+
+
+pack_push
+
+    enum MainFlightComputerDebugStatusFlag : u8
+    {
+        MainFlightComputerDebugStatusFlag_wifi_data_good,
+        MainFlightComputerDebugStatusFlag_lora_data_good,
+        MainFlightComputerDebugStatusFlag_lis2mdl_good,
+        MainFlightComputerDebugStatusFlag_lsm6dsv32x_good,
+        MainFlightComputerDebugStatusFlag_filesystem_good,
+    };
+
+    struct MainFlightComputerDebugPacket
+    {
+        u32                                            timestamp_us;
+        i16                                            solarboard_voltages[2];
+        typeof(enum MainFlightComputerDebugStatusFlag) flags;
+        u8                                             crc;
+    };
+
+pack_pop
+
+
+
+// TODO Document.
+// TODO Have look-up table.
+extern useret u8
+DEBUG_BOARD_calculate_crc(u8* data, i32 length)
+{
+    u8 crc = 0xFF;
+
+    for (i32 i = 0; i < length; i += 1)
+    {
+        crc ^= data[i];
+
+        for (i32 j = 0; j < 8; j += 1)
+        {
+            crc = (crc & (1 << 7))
+                ? (crc << 1) ^ 0x2F
+                : (crc << 1);
+        }
+    }
+
+    return crc;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
 // ESP32 related stuff.
 //
 

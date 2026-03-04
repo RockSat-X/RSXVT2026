@@ -195,10 +195,6 @@ FREERTOS_TASK(display, 1024, 0)
         GPIO_TOGGLE  (led_channel_green_C);
         GPIO_INACTIVE(led_channel_blue_C );
 
-        GPIO_INACTIVE(led_channel_red_D  );
-        GPIO_TOGGLE  (led_channel_green_D);
-        GPIO_INACTIVE(led_channel_blue_D );
-
     }
 
 }
@@ -232,38 +228,83 @@ FREERTOS_TASK(kicker, 256, 0)
 
 INTERRUPT_I2Cx_communication(enum I2CSlaveCallbackEvent event, u8* data)
 {
+
+    static struct MainFlightComputerDebugPacket packet = {0};
+    static i32                                  index  = 0;
+
     switch (event)
     {
 
+
+
         case I2CSlaveCallbackEvent_reception_initiated:
-        case I2CSlaveCallbackEvent_reception_repeated:
+        case I2CSlaveCallbackEvent_stop_signaled:
         {
-            stlink_tx(">> ");
+
+            if (index == sizeof(packet))
+            {
+
+                u8 digest = DEBUG_BOARD_calculate_crc((u8*) &packet, sizeof(packet));
+
+                if (digest)
+                {
+                    // TODO.
+                }
+                else
+                {
+
+                    stlink_tx
+                    (
+                        "%u us | A: %d V, B: %d V | 0x%02X | 0x%02X\n",
+                        packet.timestamp_us,
+                        packet.solarboard_voltages[0],
+                        packet.solarboard_voltages[1],
+                        packet.flags,
+                        packet.crc
+                    );
+
+                    GPIO_INACTIVE(led_channel_red_D  );
+                    GPIO_TOGGLE  (led_channel_green_D);
+                    GPIO_INACTIVE(led_channel_blue_D );
+
+                }
+
+            }
+            else
+            {
+                // TODO.
+            }
+
+            index = 0;
+
         } break;
+
+
 
         case I2CSlaveCallbackEvent_data_available_to_read:
         {
-            stlink_tx("%c", *data);
+
+            if (index < sizeof(packet))
+            {
+                ((u8*) &packet)[index] = *data;
+            }
+
+            index += 1;
+
         } break;
 
-        case I2CSlaveCallbackEvent_transmission_initiated:
-        case I2CSlaveCallbackEvent_transmission_repeated:
-        case I2CSlaveCallbackEvent_ready_to_transmit_data:
-        {
-            // Don't care; there's no support for sending
-            // data to the debugged device for now.
-        } break;
 
-        case I2CSlaveCallbackEvent_stop_signaled:
-        {
-            stlink_tx(" <<\n");
-        } break;
 
-        case I2CSlaveCallbackEvent_clock_stretch_timeout : sorry
-        case I2CSlaveCallbackEvent_bus_misbehaved        : sorry
-        case I2CSlaveCallbackEvent_watchdog_expired      : sorry
-        case I2CSlaveCallbackEvent_bug                   : sorry
-        default                                          : sorry
+        case I2CSlaveCallbackEvent_transmission_initiated : sorry
+        case I2CSlaveCallbackEvent_transmission_repeated  : sorry
+        case I2CSlaveCallbackEvent_reception_repeated     : sorry
+        case I2CSlaveCallbackEvent_ready_to_transmit_data : sorry
+        case I2CSlaveCallbackEvent_clock_stretch_timeout  : sorry
+        case I2CSlaveCallbackEvent_bus_misbehaved         : sorry
+        case I2CSlaveCallbackEvent_watchdog_expired       : sorry
+        case I2CSlaveCallbackEvent_bug                    : sorry
+        default                                           : sorry
 
     }
+
 }
