@@ -68,6 +68,12 @@ main(void)
 
 
 
+    // Initialize peripheral for communicating with the debugged-device.
+
+    I2C_reinit(I2CHandle_communication);
+
+
+
     // Configure the other registers to get the buzzer up and going.
 
     BUZZER_partial_init();
@@ -212,5 +218,52 @@ FREERTOS_TASK(kicker, 256, 0)
     for (;;)
     {
         WATCHDOG_KICK();
+    }
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// Handle received data from the debugged device.
+//
+
+
+
+INTERRUPT_I2Cx_communication(enum I2CSlaveCallbackEvent event, u8* data)
+{
+    switch (event)
+    {
+
+        case I2CSlaveCallbackEvent_reception_initiated:
+        case I2CSlaveCallbackEvent_reception_repeated:
+        {
+            stlink_tx(">> ");
+        } break;
+
+        case I2CSlaveCallbackEvent_data_available_to_read:
+        {
+            stlink_tx("%c", *data);
+        } break;
+
+        case I2CSlaveCallbackEvent_transmission_initiated:
+        case I2CSlaveCallbackEvent_transmission_repeated:
+        case I2CSlaveCallbackEvent_ready_to_transmit_data:
+        {
+            // Don't care; there's no support for sending
+            // data to the debugged device for now.
+        } break;
+
+        case I2CSlaveCallbackEvent_stop_signaled:
+        {
+            stlink_tx(" <<\n");
+        } break;
+
+        case I2CSlaveCallbackEvent_clock_stretch_timeout : sorry
+        case I2CSlaveCallbackEvent_bus_misbehaved        : sorry
+        case I2CSlaveCallbackEvent_watchdog_expired      : sorry
+        case I2CSlaveCallbackEvent_bug                   : sorry
+        default                                          : sorry
+
     }
 }
