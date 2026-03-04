@@ -854,10 +854,6 @@ sorry_(void) // @/`Halting`.
 
 
 
-#endif
-
-
-
 ////////////////////////////////////////////////////////////////////////////////
 //
 // Debug board stuff.
@@ -867,14 +863,28 @@ sorry_(void) // @/`Halting`.
 
 pack_push
 
-    enum MainFlightComputerDebugStatusFlag : u8
-    {
-        MainFlightComputerDebugStatusFlag_wifi_data_good,
-        MainFlightComputerDebugStatusFlag_lora_data_good,
-        MainFlightComputerDebugStatusFlag_lis2mdl_good,
-        MainFlightComputerDebugStatusFlag_lsm6dsv32x_good,
-        MainFlightComputerDebugStatusFlag_filesystem_good,
-    };
+    #include "MainFlightComputerDebugStatusFlag.meta"
+    /* #meta
+
+        FLAGS = '''
+
+            wifi
+            lora
+            lis2mdl
+            lsm6dsv32x
+            filesystem
+
+        '''.split()
+
+        Meta.enums('MainFlightComputerDebugStatusFlag', 'u8', FLAGS)
+        Meta.lut('MainFlightComputerDebugStatusFlag_TABLE', (
+            (
+                ('const char*', 'name', f'"{flag}"'),
+            )
+            for flag in FLAGS
+        ))
+
+    */
 
     struct MainFlightComputerDebugPacket
     {
@@ -909,6 +919,10 @@ DEBUG_BOARD_calculate_crc(u8* data, i32 length)
 
     return crc;
 }
+
+
+
+#endif
 
 
 

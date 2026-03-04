@@ -10,6 +10,14 @@
 
 
 ////////////////////////////////////////////////////////////////////////////////
+
+
+
+static RingBuffer(struct MainFlightComputerDebugPacket, 16) packets = {0};
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 //
 // Pre-scheduler initialization.
 //
@@ -99,43 +107,22 @@ main(void)
 FREERTOS_TASK(display, 1024, 0)
 {
 
-    // Do some rendering.
-
-    b32 flashing = false;
-    i32 held     = 0;
-    u8  text[8]  = {0};
-    memset(text, 0xFF, sizeof(text));
+    struct MainFlightComputerDebugPacket   current_packet           = {0};
+    enum MainFlightComputerDebugStatusFlag first_status_flag        = 0;
+    u32                                    status_flag_timestamp_us = TIMEKEEPING_microseconds();
 
     while (true)
     {
 
+        // TODO.
 
-
-        // Read inputs.
-
-        u8 input = {0};
-        if (stlink_rx(&input))
+        if (RingBuffer_pop(&packets, &current_packet))
         {
-
-            held += 1;
-
-            memmove(text, text + 1, sizeof(text) - 1);
-            text[countof(text) - 1] = input;
-
-            if (input == ' ')
-            {
-                held = 0;
-            }
-
-            if (input == 'F')
-            {
-                flashing = true;
-            }
-            else if (input == 'f')
-            {
-                flashing = false;
-            }
-
+            // TODO.
+        }
+        else
+        {
+            // TODO.
         }
 
 
@@ -148,21 +135,40 @@ FREERTOS_TASK(display, 1024, 0)
         (
             0,
             0,
-            "Clock %.2f" "\n"
-            "Held  %d"   "\n"
-            "Text  %s"   "\n"
-            "A?    %s"   "\n"
-            "B?    %s"   "\n"
-            "C?    %s"   "\n"
-            "Flash %s"   "\n",
-            TIMEKEEPING_microseconds() / 1000.0 / 1000.0,
-            held,
-            text,
-            text[0] == 'A' ? "OK" : "nope",
-            held           ? "OK" : "nope",
-            held / 16 % 2  ? "OK" : "nope",
-            flashing ? "True" : "False"
+            "DB-T  %7.2f s"  "\n"
+            "MFC-T %7.2f s"  "\n"
+            "SCB-A %7.2f V" "\n"
+            "SCB-B %7.2f V" "\n",
+            (f32) TIMEKEEPING_microseconds()  / 1000.0f / 1000.0f,
+            (f32) current_packet.timestamp_us / 1000.0f / 1000.0f,
+            current_packet.solarboard_voltages[0] / 100.0f, // TODO Arbitrary right now...
+            current_packet.solarboard_voltages[1] / 100.0f  // TODO Arbitrary right now...
         );
+
+        for (i32 i = 0; i < 4; i += 1)
+        {
+
+            enum MainFlightComputerDebugStatusFlag flag = (first_status_flag + i) % MainFlightComputerDebugStatusFlag_COUNT;
+
+            SSD1306_write_format
+            (
+                0,
+                4 + i,
+                "%-10s %s",
+                MainFlightComputerDebugStatusFlag_TABLE[flag].name,
+                current_packet.flags & (1 << flag)
+                    ? "OK"
+                    : "NOPE"
+            );
+
+        }
+
+        if (TIMEKEEPING_microseconds() - status_flag_timestamp_us >= 500'000)
+        {
+            status_flag_timestamp_us  = TIMEKEEPING_microseconds();
+            first_status_flag        += 1;
+            first_status_flag        %= MainFlightComputerDebugStatusFlag_COUNT;
+        }
 
 
 
@@ -172,7 +178,7 @@ FREERTOS_TASK(display, 1024, 0)
             SSD1306_refresh
             (
                 TIMEKEEPING_microseconds() / 1000 / 1000 / 2 % 2,
-                !!flashing
+                false
             );
 
         switch (result)
@@ -229,8 +235,7 @@ FREERTOS_TASK(kicker, 256, 0)
 INTERRUPT_I2Cx_communication(enum I2CSlaveCallbackEvent event, u8* data)
 {
 
-    static struct MainFlightComputerDebugPacket packet = {0};
-    static i32                                  index  = 0;
+    static i32 byte_index = 0;
 
     switch (event)
     {
@@ -241,41 +246,43 @@ INTERRUPT_I2Cx_communication(enum I2CSlaveCallbackEvent event, u8* data)
         case I2CSlaveCallbackEvent_stop_signaled:
         {
 
-            if (index == sizeof(packet))
+            struct MainFlightComputerDebugPacket* packet = RingBuffer_writing_pointer(&packets);
+
+            if (packet)
             {
-
-                u8 digest = DEBUG_BOARD_calculate_crc((u8*) &packet, sizeof(packet));
-
-                if (digest)
+                if (byte_index == sizeof(*packet))
                 {
-                    // TODO.
+
+                    u8 digest = DEBUG_BOARD_calculate_crc((u8*) packet, sizeof(*packet));
+
+                    if (digest)
+                    {
+                        // TODO.
+                    }
+                    else
+                    {
+
+                        if (!RingBuffer_push(&packets, nullptr))
+                            sorry
+
+                        GPIO_INACTIVE(led_channel_red_D  );
+                        GPIO_TOGGLE  (led_channel_green_D);
+                        GPIO_INACTIVE(led_channel_blue_D );
+
+                    }
+
                 }
                 else
                 {
-
-                    stlink_tx
-                    (
-                        "%u us | A: %d V, B: %d V | 0x%02X | 0x%02X\n",
-                        packet.timestamp_us,
-                        packet.solarboard_voltages[0],
-                        packet.solarboard_voltages[1],
-                        packet.flags,
-                        packet.crc
-                    );
-
-                    GPIO_INACTIVE(led_channel_red_D  );
-                    GPIO_TOGGLE  (led_channel_green_D);
-                    GPIO_INACTIVE(led_channel_blue_D );
-
+                    // TODO.
                 }
-
             }
             else
             {
                 // TODO.
             }
 
-            index = 0;
+            byte_index = 0;
 
         } break;
 
@@ -284,12 +291,25 @@ INTERRUPT_I2Cx_communication(enum I2CSlaveCallbackEvent event, u8* data)
         case I2CSlaveCallbackEvent_data_available_to_read:
         {
 
-            if (index < sizeof(packet))
-            {
-                ((u8*) &packet)[index] = *data;
-            }
+            struct MainFlightComputerDebugPacket* packet = RingBuffer_writing_pointer(&packets);
 
-            index += 1;
+            if (packet)
+            {
+
+                if (byte_index < sizeof(*packet))
+                {
+
+                    ((u8*) packet)[byte_index] = *data;
+
+                }
+
+                byte_index += 1;
+
+            }
+            else
+            {
+                // TODO.
+            }
 
         } break;
 
