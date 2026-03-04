@@ -118,7 +118,7 @@
 
         0x4713 0x03                # JPG MODE SELECT.
         0x4403 0x{jpeg_ctrl3 :02X} # JPEG CTRL.
-        0x4407 0x04                # "
+        0x4407 0x0F                # "
 
         0x440E 0x00   # Undocumented.
 
@@ -293,7 +293,7 @@
 
         0x3034 0x18   # SC PLL CONTRL.
         0x3035 0x41   # "
-        0x3036 0x60   # "
+        0x3036 0xC0   # "
         0x3037 0x13   # "
 
         0x3108 0x01   # SYSTEM ROOT DIVIDER.
