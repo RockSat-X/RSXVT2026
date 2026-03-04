@@ -229,11 +229,7 @@ static struct I2CDriver _I2C_drivers[I2CHandle_COUNT] = {0};
 
 
 
-static useret enum I2CReinitResult : u32
-{
-    I2CReinitResult_success,
-    I2CReinitResult_bug = BUG_CODE,
-}
+static void
 I2C_reinit(enum I2CHandle handle)
 {
 
@@ -306,7 +302,7 @@ I2C_reinit(enum I2CHandle handle)
 
 
 
-        default: bug;
+        default: sorry_if(true); // Impractical edge-case.
 
     }
 
@@ -356,7 +352,9 @@ I2C_reinit(enum I2CHandle handle)
             driver->slave.state = I2CSlaveState_standby;
         } break;
 
-        default: bug;
+
+
+        default: sorry_if(true); // Impractical edge-case.
 
     }
 
@@ -372,8 +370,6 @@ I2C_reinit(enum I2CHandle handle)
 
     NVIC_ENABLE(I2Cx_EV);
     NVIC_ENABLE(I2Cx_ER);
-
-    return I2CReinitResult_success;
 
 }
 

@@ -383,14 +383,7 @@ SSD1306_reinit(void)
 
     // Reset-cycle the I2C peripheral.
 
-    enum I2CReinitResult i2c_reinit_result = I2C_reinit(I2CHandle_ssd1306);
-
-    switch (i2c_reinit_result)
-    {
-        case I2CReinitResult_success : break;
-        case I2CReinitResult_bug     : bug;
-        default                      : bug;
-    }
+    I2C_reinit(I2CHandle_ssd1306);
 
 
 

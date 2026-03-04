@@ -36,15 +36,7 @@ main(void)
 
     }
 
-    {
-        enum I2CReinitResult result = I2C_reinit(I2CHandle_vehicle_interface);
-        switch (result)
-        {
-            case I2CReinitResult_success : break;
-            case I2CReinitResult_bug     : sorry
-            default                      : sorry
-        }
-    }
+    I2C_reinit(I2CHandle_vehicle_interface);
 
 
 

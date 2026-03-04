@@ -472,17 +472,9 @@ OVCAM_reinit(void)
 
 
 
-    // Reinitialize the I2C driver that'll
-    // later initialize the OV camera module.
+    // Reinitialize the I2C driver that'll later initialize the OV camera module.
 
-    enum I2CReinitResult i2c_reinit_result = I2C_reinit(I2CHandle_ovcam_sccb);
-
-    switch (i2c_reinit_result)
-    {
-        case I2CReinitResult_success : break;
-        case I2CReinitResult_bug     : bug;
-        default                      : bug;
-    }
+    I2C_reinit(I2CHandle_ovcam_sccb);
 
 
 

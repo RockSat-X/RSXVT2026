@@ -9,30 +9,6 @@
 
 
 
-static void
-reinitialize_i2c_driver(enum I2CHandle handle)
-{
-
-    // When the I2C driver encounters an issue, it quickly goes into a bugged state
-    // where nothing can be done until the driver is completely reinitialized.
-    //
-    // This could be due to a bug within the driver code, or the user passing in
-    // invalid parameters, or some sort of unexpected error on the I2C bus clock
-    // and data lines.
-
-    enum I2CReinitResult result = I2C_reinit(handle);
-
-    switch (result)
-    {
-        case I2CReinitResult_success : break;
-        case I2CReinitResult_bug     : sorry
-        default                      : sorry
-    }
-
-}
-
-
-
 static b32 // Success?
 queen_do(struct I2CDoJob job)
 {
@@ -69,7 +45,7 @@ queen_do(struct I2CDoJob job)
         }
         else
         {
-            reinitialize_i2c_driver(job.handle); // Other errors are fatal and must have the driver be reinitialized.
+            I2C_reinit(job.handle); // Other errors are fatal and must have the driver be reinitialized.
             return false;
         }
 
@@ -99,8 +75,8 @@ main(void)
 
     }
 
-    reinitialize_i2c_driver(I2CHandle_queen);
-    reinitialize_i2c_driver(I2CHandle_bee);
+    I2C_reinit(I2CHandle_queen);
+    I2C_reinit(I2CHandle_bee);
 
 
 
@@ -444,7 +420,7 @@ INTERRUPT_I2Cx_bee(enum I2CSlaveCallbackEvent event, u8* data)
             case I2CSlaveCallbackEvent_watchdog_expired      : stlink_tx("[Bee] watchdog_expired"      "\n"); goto ERROR;
             ERROR:;
 
-            reinitialize_i2c_driver(I2CHandle_bee);
+            I2C_reinit(I2CHandle_bee);
             spinlock_nop(1'000'000);
 
         } break;
