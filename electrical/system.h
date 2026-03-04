@@ -597,6 +597,18 @@ sorry_(void) // @/`Halting`.
                     GPIO_INACTIVE(led_green);
                     spinlock_nop(i);
 
+                #elif TARGET_NAME_IS_DebugBoard
+
+                    GPIO_ACTIVE  (led_channel_red_A  );
+                    GPIO_INACTIVE(led_channel_green_A);
+                    GPIO_INACTIVE(led_channel_blue_A );
+                    spinlock_nop(i);
+
+                    GPIO_INACTIVE(led_channel_red_A  );
+                    GPIO_INACTIVE(led_channel_green_A);
+                    GPIO_INACTIVE(led_channel_blue_A );
+                    spinlock_nop(i);
+
                 #else
 
                     GPIO_ACTIVE  (led_channel_red  );
