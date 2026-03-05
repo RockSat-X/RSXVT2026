@@ -344,11 +344,43 @@
     }
 #endif
 #if TARGET_NAME_IS_DebugBoard
-    enum FreeRTOSTask : u32;
-    static constexpr u32 FreeRTOSTask_COUNT = 0;
+    enum FreeRTOSTask : u32
+    {
+        FreeRTOSTask_display,
+        FreeRTOSTask_kicker,
+    };
+    static constexpr u32 FreeRTOSTask_COUNT = 2;
+    static noret void   display(void*);
+    static StackType_t  display_stack[1024 / sizeof(StackType_t)] = {0};
+    static StaticTask_t display_buffer = {0};
+    static noret void   kicker(void*);
+    static StackType_t  kicker_stack[256 / sizeof(StackType_t)] = {0};
+    static StaticTask_t kicker_buffer = {0};
     static noret void
     FREERTOS_init(void)
     {
+        TaskHandle_t display_handle =
+            xTaskCreateStatic
+            (
+                display,
+                "display",
+                countof(display_stack),
+                nullptr,
+                0,
+                display_stack,
+                &display_buffer
+            );
+        TaskHandle_t kicker_handle =
+            xTaskCreateStatic
+            (
+                kicker,
+                "kicker",
+                countof(kicker_stack),
+                nullptr,
+                0,
+                kicker_stack,
+                &kicker_buffer
+            );
         vTaskStartScheduler();
         for(;;);
     }

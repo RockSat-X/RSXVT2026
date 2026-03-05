@@ -34,15 +34,7 @@ main(void)
     UXART_reinit(UXARTHandle_stlink);
     UXART_reinit(UXARTHandle_stepper_uart);
     UXART_reinit(UXARTHandle_vn100_esp32);
-    {
-        enum I2CReinitResult result = I2C_reinit(I2CHandle_vehicle_interface);
-        switch (result)
-        {
-            case I2CReinitResult_success : break;
-            case I2CReinitResult_bug     : sorry
-            default                      : sorry
-        }
-    }
+    I2C_reinit(I2CHandle_vehicle_interface);
     SPI_reinit(SPIHandle_openmv);
 
 

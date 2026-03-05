@@ -597,6 +597,18 @@ sorry_(void) // @/`Halting`.
                     GPIO_INACTIVE(led_green);
                     spinlock_nop(i);
 
+                #elif TARGET_NAME_IS_DebugBoard
+
+                    GPIO_ACTIVE  (led_channel_red_A  );
+                    GPIO_INACTIVE(led_channel_green_A);
+                    GPIO_INACTIVE(led_channel_blue_A );
+                    spinlock_nop(i);
+
+                    GPIO_INACTIVE(led_channel_red_A  );
+                    GPIO_INACTIVE(led_channel_green_A);
+                    GPIO_INACTIVE(led_channel_blue_A );
+                    spinlock_nop(i);
+
                 #else
 
                     GPIO_ACTIVE  (led_channel_red  );
@@ -839,6 +851,74 @@ sorry_(void) // @/`Halting`.
 #pragma GCC diagnostic pop
 
 #include "ringbuffer.c"
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// Debug board stuff.
+//
+
+
+
+pack_push
+
+    #include "MainFlightComputerDebugStatusFlag.meta"
+    /* #meta
+
+        FLAGS = '''
+
+            wifi
+            lora
+            lis2mdl
+            lsm6dsv32x
+            filesystem
+
+        '''.split()
+
+        Meta.enums('MainFlightComputerDebugStatusFlag', 'u8', FLAGS)
+        Meta.lut('MainFlightComputerDebugStatusFlag_TABLE', (
+            (
+                ('const char*', 'name', f'"{flag}"'),
+            )
+            for flag in FLAGS
+        ))
+
+    */
+
+    struct MainFlightComputerDebugPacket
+    {
+        u32                                            timestamp_us;
+        i16                                            solarboard_voltages[2];
+        typeof(enum MainFlightComputerDebugStatusFlag) flags;
+        u8                                             crc;
+    };
+
+pack_pop
+
+
+
+// TODO Document.
+// TODO Have look-up table.
+extern useret u8
+DEBUG_BOARD_calculate_crc(u8* data, i32 length)
+{
+    u8 crc = 0xFF;
+
+    for (i32 i = 0; i < length; i += 1)
+    {
+        crc ^= data[i];
+
+        for (i32 j = 0; j < 8; j += 1)
+        {
+            crc = (crc & (1 << 7))
+                ? (crc << 1) ^ 0x2F
+                : (crc << 1);
+        }
+    }
+
+    return crc;
+}
 
 
 

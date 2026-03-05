@@ -9,30 +9,6 @@
 
 
 
-static void
-reinitialize_i2c_driver(enum I2CHandle handle)
-{
-
-    // When the I2C driver encounters an issue, it quickly goes into a bugged state
-    // where nothing can be done until the driver is completely reinitialized.
-    //
-    // This could be due to a bug within the driver code, or the user passing in
-    // invalid parameters, or some sort of unexpected error on the I2C bus clock
-    // and data lines.
-
-    enum I2CReinitResult result = I2C_reinit(handle);
-
-    switch (result)
-    {
-        case I2CReinitResult_success : break;
-        case I2CReinitResult_bug     : sorry
-        default                      : sorry
-    }
-
-}
-
-
-
 static b32 // Success?
 queen_do(struct I2CDoJob job)
 {
@@ -69,7 +45,7 @@ queen_do(struct I2CDoJob job)
         }
         else
         {
-            reinitialize_i2c_driver(job.handle); // Other errors are fatal and must have the driver be reinitialized.
+            I2C_reinit(job.handle); // Other errors are fatal and must have the driver be reinitialized.
             return false;
         }
 
@@ -99,8 +75,8 @@ main(void)
 
     }
 
-    reinitialize_i2c_driver(I2CHandle_queen);
-    reinitialize_i2c_driver(I2CHandle_bee);
+    I2C_reinit(I2CHandle_queen);
+    I2C_reinit(I2CHandle_bee);
 
 
 
@@ -223,13 +199,23 @@ main(void)
                 stlink_tx("Queen : writing to bee...\n");
                 {
 
-                    char message[] =
-                        "Doing taxes suck! "
-                        "It's incredibly confusing and predatory that it's not even accessible. "
-                        "I mean, the tax companies actually lobby congress to make the system as "
-                        "complicated as it is in order to reap profits off of the poor working people "
-                        "who can't understand the system. "
-                        "That's captialism for you.";
+                    //char message[] =
+                    //    "Doing taxes suck! "
+                    //    "It's incredibly confusing and predatory that it's not even accessible. "
+                    //    "I mean, the tax companies actually lobby congress to make the system as "
+                    //    "complicated as it is in order to reap profits off of the poor working people "
+                    //    "who can't understand the system. "
+                    //    "That's captialism for you.";
+
+                    struct MainFlightComputerDebugPacket message =
+                        {
+                            .timestamp_us           = TIMEKEEPING_microseconds(),
+                            .solarboard_voltages[0] = (i16) iteration,
+                            .solarboard_voltages[1] = (i16) iteration + 1,
+                            .flags                  = (u8) iteration / 4,
+                        };
+
+                    message.crc = DEBUG_BOARD_calculate_crc((u8*) &message, sizeof(message) - sizeof(message.crc));
 
                     b32 success =
                         queen_do
@@ -240,9 +226,9 @@ main(void)
                                 .address_type = I2CAddressType_seven,
                                 .address      = I2C_TABLE[I2CHandle_bee].I2Cx_SLAVE_ADDRESS,
                                 .writing      = true,
-                                .repeating    = !!(iteration & (1 << 2)),
-                                .pointer      = (u8*) message,
-                                .amount       = sizeof(message) - 1,
+//                                .repeating    = !!(iteration & (1 << 2)),
+                                .pointer      = (u8*) &message,
+                                .amount       = sizeof(message),
                             }
                         );
 
@@ -261,40 +247,40 @@ main(void)
                 }
                 stlink_tx("\n");
 
-                stlink_tx("Queen : reading from bee...\n");
-                {
-
-                    char response[512] = {0};
-
-                    b32 success =
-                        queen_do
-                        (
-                            (struct I2CDoJob)
-                            {
-                                .handle       = I2CHandle_queen,
-                                .address_type = I2CAddressType_seven,
-                                .address      = I2C_TABLE[I2CHandle_bee].I2Cx_SLAVE_ADDRESS,
-                                .writing      = false,
-                                .repeating    = !!(iteration & (1 << 3)),
-                                .pointer      = (u8*) response,
-                                .amount       = sizeof(response),
-                            }
-                        );
-
-                    if (success)
-                    {
-                        stlink_tx("Queen : reception successful! : `%.*s`\n", sizeof(response), response);
-                    }
-                    else
-                    {
-                        spinlock_nop(1'000'000);
-                    }
-
-                    GPIO_TOGGLE(led_green);
-                    spinlock_nop(200'000'000);
-
-                }
-                stlink_tx("\n\n\n");
+//                stlink_tx("Queen : reading from bee...\n");
+//                {
+//
+//                    char response[512] = {0};
+//
+//                    b32 success =
+//                        queen_do
+//                        (
+//                            (struct I2CDoJob)
+//                            {
+//                                .handle       = I2CHandle_queen,
+//                                .address_type = I2CAddressType_seven,
+//                                .address      = I2C_TABLE[I2CHandle_bee].I2Cx_SLAVE_ADDRESS,
+//                                .writing      = false,
+//                                .repeating    = !!(iteration & (1 << 3)),
+//                                .pointer      = (u8*) response,
+//                                .amount       = sizeof(response),
+//                            }
+//                        );
+//
+//                    if (success)
+//                    {
+//                        stlink_tx("Queen : reception successful! : `%.*s`\n", sizeof(response), response);
+//                    }
+//                    else
+//                    {
+//                        spinlock_nop(1'000'000);
+//                    }
+//
+//                    GPIO_TOGGLE(led_green);
+//                    spinlock_nop(200'000'000);
+//
+//                }
+//                stlink_tx("\n\n\n");
 
             }
 
@@ -444,7 +430,7 @@ INTERRUPT_I2Cx_bee(enum I2CSlaveCallbackEvent event, u8* data)
             case I2CSlaveCallbackEvent_watchdog_expired      : stlink_tx("[Bee] watchdog_expired"      "\n"); goto ERROR;
             ERROR:;
 
-            reinitialize_i2c_driver(I2CHandle_bee);
+            I2C_reinit(I2CHandle_bee);
             spinlock_nop(1'000'000);
 
         } break;

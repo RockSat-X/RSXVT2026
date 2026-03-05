@@ -1072,7 +1072,9 @@ TARGETS = ( # @/`Defining Targets`.
 
         name              = 'DebugBoard',
         mcu               = 'STM32H533VET6',
-        source_file_paths = (),
+        source_file_paths = (
+            pxd.make_main_relative_path('./electrical/DebugBoard.c'),
+        ),
 
         kicad_project = 'DebugBoard',
 
@@ -1113,14 +1115,71 @@ TARGETS = ( # @/`Defining Targets`.
             ('testpoint_B'                , 'D3'  , None       , {                                             }),
         ),
 
-        interrupts = None,
+        interrupts = (
+            ('USART2' , 0),
+            ('SDMMC1' , 1),
+            ('I2C1_EV', 2),
+            ('I2C1_ER', 2),
+            ('I2C2_EV', 3),
+            ('I2C2_ER', 3),
+            ('TIM8_UP', 4),
+        ),
 
         drivers = (
+            {
+                'type'       : 'UXART',
+                'peripheral' : 'USART2',
+                'handle'     : 'stlink',
+                'mode'       : 'full_duplex',
+            },
+            {
+                'type'       : 'I2C',
+                'peripheral' : 'I2C1',
+                'handle'     : 'communication',
+                'mode'       : 'slave',
+                'address'    : 0b_001_1110,
+            },
+            {
+                'type'       : 'I2C',
+                'peripheral' : 'I2C2',
+                'handle'     : 'ssd1306',
+                'mode'       : 'master',
+            },
+            {
+                'type'       : 'TIMEKEEPING',
+                'peripheral' : 'TIM2',
+            },
+            {
+                'type'       : 'SD',
+                'peripheral' : 'SDMMC1',
+                'handle'     : 'primary',
+            },
         ),
 
         use_freertos    = True,
         main_stack_size = 8192,
-        schema          = None,
+        schema          = {
+            'HSI_ENABLE'          : True,
+            'HSI48_ENABLE'        : True,
+            'CSI_ENABLE'          : True,
+            'PLL1P_CK'            : 250_000_000,
+            'PLL2R_CK'            : 240_000_000,
+            'CPU_CK'              : 250_000_000,
+            'APB1_CK'             : 250_000_000,
+            'APB2_CK'             : 250_000_000,
+            'APB3_CK'             : 250_000_000,
+            'USART2_BAUD'         : STLINK_BAUD,
+            'I2C1_BAUD'           : 1_000,
+            'I2C1_TIMEOUT'        : 2,
+            'I2C2_BAUD'           : 1_000_000,
+            'I2C2_TIMEOUT'        : 0.030,
+            'TIM2_COUNTER_RATE'   : 1_000_000,
+            'TIM8_COUNTER_RATE'   : 1_000_000,
+            'SDMMC1_TIMEOUT'      : 0.250,
+            'SDMMC1_INITIAL_BAUD' :    400_000,
+            'SDMMC1_FULL_BAUD'    : 24_000_000,
+            'WATCHDOG_DURATION'   : 10,
+        },
 
     ),
 
@@ -1226,7 +1285,7 @@ TARGETS = ( # @/`Defining Targets`.
             'SDMMC1_TIMEOUT'      : 0.250,
             'SDMMC1_INITIAL_BAUD' :    400_000,
             'SDMMC1_FULL_BAUD'    : 24_000_000,
-            'WATCHDOG_DURATION'   : 30,
+            'WATCHDOG_DURATION'   : 10,
         },
 
     ),

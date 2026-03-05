@@ -1,0 +1,17 @@
+enum MainFlightComputerDebugStatusFlag : u8
+{
+    MainFlightComputerDebugStatusFlag_wifi,
+    MainFlightComputerDebugStatusFlag_lora,
+    MainFlightComputerDebugStatusFlag_lis2mdl,
+    MainFlightComputerDebugStatusFlag_lsm6dsv32x,
+    MainFlightComputerDebugStatusFlag_filesystem,
+};
+static constexpr u8 MainFlightComputerDebugStatusFlag_COUNT = 5;
+static const struct { const char* name; } MainFlightComputerDebugStatusFlag_TABLE[] =
+    {
+        { .name = "wifi"       },
+        { .name = "lora"       },
+        { .name = "lis2mdl"    },
+        { .name = "lsm6dsv32x" },
+        { .name = "filesystem" },
+    };
