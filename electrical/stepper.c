@@ -298,17 +298,19 @@ STEPPER_push_angular_velocities(f32 (*angular_velocities)[StepperInstanceHandle_
 
 
 static void
-STEPPER_partial_reinit(void)
+STEPPER_reinit(void)
 {
 
     // Reset stuff.
 
-    _STEPPER_driver = (struct StepperDriver) {0};
+    GPIO_INACTIVE(STEPPER_MOTOR_ENABLE_GPIO_NAME);
 
     CMSIS_PUT(STEPPER_TIMx_RESET, true );
     CMSIS_PUT(STEPPER_TIMx_RESET, false);
 
-    GPIO_INACTIVE(STEPPER_MOTOR_ENABLE_GPIO_NAME);
+    memzero(&_STEPPER_driver);
+
+    UXART_reinit(STEPPER_UXART_HANDLE);
 
 
 
@@ -929,7 +931,7 @@ INTERRUPT_STEPPER_TIMx_update_event(void)
 
             case StepperUpdateUARTTransferResult_error:
             {
-                STEPPER_partial_reinit(); // Something bad happened, so let's restart everything!
+                STEPPER_reinit(); // Something bad happened, so let's restart everything!
             } break;
 
             default: sorry

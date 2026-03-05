@@ -32,7 +32,6 @@ main(void)
 
     STPY_init();
     UXART_reinit(UXARTHandle_stlink);
-    UXART_reinit(UXARTHandle_stepper_uart);
 
     #if 0 // TODO.
     {
@@ -58,7 +57,7 @@ main(void)
     // More peripheral initializations that depend on the above initializations.
 
     BUZZER_partial_init();
-    STEPPER_partial_reinit();
+    STEPPER_reinit();
 
     #if 0 // TODO.
     {
