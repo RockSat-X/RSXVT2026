@@ -91,7 +91,7 @@ static const struct { u8 register_address; u32 data; } STEPPER_INITIALIZATION_SE
 
         # TODO Inconvenient:
         Meta.define('STEPPER_UXART_HANDLE'                   , f'UXARTHandle_{driver['uxart_handle']}')
-        Meta.define('STEPPER_MOTOR_ENABLE_GPIO_NAME'         , driver['enable_gpio'])
+        Meta.define('STEPPER_MOTOR_ENABLE'                   , driver['enable_gpio'])
         Meta.define('STEPPER_TIMx'                           ,                         f'{driver['timer_peripheral']}'           )
         Meta.define('STEPPER_TIMx_'                          ,                         f'{driver['timer_peripheral']}_'          )
         Meta.define('STEPPER_TIMx_RESET'                     , CMSIS_TUPLE(target.mcu, f'{driver['timer_peripheral']}_RESET' )   )
@@ -303,7 +303,7 @@ STEPPER_reinit(void)
 
     // Reset stuff.
 
-    GPIO_INACTIVE(STEPPER_MOTOR_ENABLE_GPIO_NAME);
+    GPIO_INACTIVE(STEPPER_MOTOR_ENABLE);
 
     CMSIS_PUT(STEPPER_TIMx_RESET, true );
     CMSIS_PUT(STEPPER_TIMx_RESET, false);
@@ -957,7 +957,7 @@ INTERRUPT_STEPPER_TIMx_update_event(void)
             }
         }
 
-        GPIO_SET(STEPPER_MOTOR_ENABLE_GPIO_NAME, all_motors_ready);
+        GPIO_SET(STEPPER_MOTOR_ENABLE, all_motors_ready);
 
     }
 }
