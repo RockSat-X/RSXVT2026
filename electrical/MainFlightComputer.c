@@ -36,7 +36,7 @@ main(void)
 
     }
 
-    I2C_reinit(I2CHandle_vehicle_interface);
+    I2C_partial_reinit(I2CHandle_vehicle_interface);
 
 
 

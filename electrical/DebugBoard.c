@@ -78,7 +78,7 @@ main(void)
 
     // Initialize peripheral for communicating with the debugged-device.
 
-    I2C_reinit(I2CHandle_communication);
+    I2C_partial_reinit(I2CHandle_communication);
 
 
 

@@ -230,7 +230,7 @@ static struct I2CDriver _I2C_drivers[I2CHandle_COUNT] = {0};
 
 
 static void
-I2C_reinit(enum I2CHandle handle)
+I2C_partial_reinit(enum I2CHandle handle)
 {
 
     _EXPAND_HANDLE

@@ -45,7 +45,7 @@ queen_do(struct I2CDoJob job)
         }
         else
         {
-            I2C_reinit(job.handle); // Other errors are fatal and must have the driver be reinitialized.
+            I2C_partial_reinit(job.handle); // Other errors are fatal and must have the driver be reinitialized.
             return false;
         }
 
@@ -75,8 +75,8 @@ main(void)
 
     }
 
-    I2C_reinit(I2CHandle_queen);
-    I2C_reinit(I2CHandle_bee);
+    I2C_partial_reinit(I2CHandle_queen);
+    I2C_partial_reinit(I2CHandle_bee);
 
 
 
@@ -430,7 +430,7 @@ INTERRUPT_I2Cx_bee(enum I2CSlaveCallbackEvent event, u8* data)
             case I2CSlaveCallbackEvent_watchdog_expired      : stlink_tx("[Bee] watchdog_expired"      "\n"); goto ERROR;
             ERROR:;
 
-            I2C_reinit(I2CHandle_bee);
+            I2C_partial_reinit(I2CHandle_bee);
             spinlock_nop(1'000'000);
 
         } break;
