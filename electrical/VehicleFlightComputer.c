@@ -33,9 +33,13 @@ main(void)
     STPY_init();
     UXART_reinit(UXARTHandle_stlink);
     UXART_reinit(UXARTHandle_stepper_uart);
-    UXART_reinit(UXARTHandle_vn100_esp32);
-    I2C_reinit(I2CHandle_vehicle_interface);
-    SPI_reinit(SPIHandle_openmv);
+
+    #if 0 // TODO.
+    {
+        UXART_reinit(UXARTHandle_vn100_esp32);
+        SPI_reinit(SPIHandle_openmv);
+    }
+    #endif
 
 
 
@@ -55,6 +59,12 @@ main(void)
 
     BUZZER_partial_init();
     STEPPER_partial_reinit();
+
+    #if 0 // TODO.
+    {
+        I2C_reinit(I2CHandle_vehicle_interface);
+    }
+    #endif
 
 
 
@@ -147,7 +157,7 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
             (
                 &(f32[])
                 {
-                    // TODO: Broken UART line on my PCB. [StepperInstanceHandle_axis_x] = current_angular_velocity,
+                    [StepperInstanceHandle_axis_x] = current_angular_velocity,
                     [StepperInstanceHandle_axis_y] = current_angular_velocity,
                     [StepperInstanceHandle_axis_z] = current_angular_velocity,
                 }
@@ -279,8 +289,11 @@ FREERTOS_TASK(logger, 2048, 0)
 
 
 
-FREERTOS_TASK(vn100, 2048, 0)
+#if 0 // TODO.
+
+/* TODO: FREERTOS_TASK */ (vn100, 2048, 0)
 {
+
     for (;;)
     {
 
@@ -513,7 +526,10 @@ FREERTOS_TASK(vn100, 2048, 0)
         }
 
     }
+
 }
+
+#endif
 
 
 
@@ -524,7 +540,9 @@ FREERTOS_TASK(vn100, 2048, 0)
 
 
 
-FREERTOS_TASK(esp32, 2048, 0)
+#if 0 // TODO.
+
+/* TODO: FREERTOS_TASK */ (esp32, 2048, 0)
 {
     for (;;)
     {
@@ -559,6 +577,8 @@ FREERTOS_TASK(esp32, 2048, 0)
     }
 }
 
+#endif
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -571,91 +591,97 @@ FREERTOS_TASK(esp32, 2048, 0)
 INTERRUPT_I2Cx_vehicle_interface(enum I2CSlaveCallbackEvent event, u8* data)
 {
 
-    static b32 payload_has_valid_data = false;
+    sorry
 
-    switch (event)
+    #if 0 // TODO.
     {
+        static b32 payload_has_valid_data = false;
 
-        // No sense in having main send data to the vehicle.
-
-        case I2CSlaveCallbackEvent_data_available_to_read:
-        {
-            // Don't care.
-        } break;
-
-
-
-        // Send next byte of the vehicle interface payload over.
-
-        case I2CSlaveCallbackEvent_ready_to_transmit_data:
+        switch (event)
         {
 
-            // Prepare the payload.
+            // No sense in having main send data to the vehicle.
 
-            static i32                            byte_index = 0;
-            static struct VehicleInterfacePayload payload    = {0};
+            case I2CSlaveCallbackEvent_data_available_to_read:
+            {
+                // Don't care.
+            } break;
 
-            if (!payload_has_valid_data)
+
+
+            // Send next byte of the vehicle interface payload over.
+
+            case I2CSlaveCallbackEvent_ready_to_transmit_data:
             {
 
-                byte_index = 0;
+                // Prepare the payload.
 
-                payload =
-                    (struct VehicleInterfacePayload)
-                    {
-                        .timestamp_us = (u16) TIMEKEEPING_microseconds(),
-                        .flags        = 0, // TODO.
-                    };
+                static i32                            byte_index = 0;
+                static struct VehicleInterfacePayload payload    = {0};
 
-                payload.crc =
-                    VEHICLE_INTERFACE_calculate_crc
-                    (
-                        (u8*) &payload,
-                        sizeof(payload) - sizeof(payload.crc)
-                    );
+                if (!payload_has_valid_data)
+                {
 
-                payload_has_valid_data = true;
+                    byte_index = 0;
 
-            }
+                    payload =
+                        (struct VehicleInterfacePayload)
+                        {
+                            .timestamp_us = (u16) TIMEKEEPING_microseconds(),
+                            .flags        = 0, // TODO.
+                        };
+
+                    payload.crc =
+                        VEHICLE_INTERFACE_calculate_crc
+                        (
+                            (u8*) &payload,
+                            sizeof(payload) - sizeof(payload.crc)
+                        );
+
+                    payload_has_valid_data = true;
+
+                }
 
 
 
-            // Prepare next byte.
+                // Prepare next byte.
 
-            if (byte_index < sizeof(payload))
+                if (byte_index < sizeof(payload))
+                {
+                    *data = ((u8*) &payload)[byte_index];
+                }
+                else
+                {
+                    *data = 0xFF; // Garbage.
+                }
+
+                byte_index += 1;
+
+            } break;
+
+
+
+            // TODO
+
+            case I2CSlaveCallbackEvent_stop_signaled:
+            case I2CSlaveCallbackEvent_transmission_initiated:
+            case I2CSlaveCallbackEvent_reception_initiated:
+            case I2CSlaveCallbackEvent_transmission_repeated:
+            case I2CSlaveCallbackEvent_reception_repeated:
             {
-                *data = ((u8*) &payload)[byte_index];
-            }
-            else
-            {
-                *data = 0xFF; // Garbage.
-            }
-
-            byte_index += 1;
-
-        } break;
+                payload_has_valid_data = false;
+            } break;
 
 
+            case I2CSlaveCallbackEvent_bus_misbehaved : sorry // TODO.
+            case I2CSlaveCallbackEvent_watchdog_expired : sorry // TODO.
 
-        // TODO
+            case I2CSlaveCallbackEvent_clock_stretch_timeout : sorry
+            case I2CSlaveCallbackEvent_bug                   : sorry
+            default                                          : sorry
 
-        case I2CSlaveCallbackEvent_stop_signaled:
-        case I2CSlaveCallbackEvent_transmission_initiated:
-        case I2CSlaveCallbackEvent_reception_initiated:
-        case I2CSlaveCallbackEvent_transmission_repeated:
-        case I2CSlaveCallbackEvent_reception_repeated:
-        {
-            payload_has_valid_data = false;
-        } break;
-
-
-        case I2CSlaveCallbackEvent_bus_misbehaved : sorry // TODO.
-        case I2CSlaveCallbackEvent_watchdog_expired : sorry // TODO.
-
-        case I2CSlaveCallbackEvent_clock_stretch_timeout : sorry
-        case I2CSlaveCallbackEvent_bug                   : sorry
-        default                                          : sorry
-
+        }
     }
+    #endif
 
 }
