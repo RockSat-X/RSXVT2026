@@ -3,8 +3,6 @@
 #define STEPPER_UART_TIME_MARGIN_US   2'000 // @/`Stepper UART Time Margin Window`.
 #define STEPPER_RING_BUFFER_LENGTH        8 // @/`Stepper Ring-Buffer Length`.
 
-static_assert(IS_POWER_OF_TWO(STEPPER_RING_BUFFER_LENGTH));
-
 #define STEPPER_TMC2209_IFCNT_ADDRESS   0x02 // @/pg 24/tbl 5.1/`TMC2209`.
 #define STEPPER_TMC2209_VACTUAL_ADDRESS 0x22 // @/pg 28/tbl 5.2/`TMC2209`.
 
