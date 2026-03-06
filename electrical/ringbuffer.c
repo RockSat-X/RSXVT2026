@@ -149,7 +149,7 @@ RingBuffer_writing_pointer_ // For the producer only.
 
 
 
-#define RingBuffer_push(RING_BUFFER, SRC)                  \
+#define RingBuffer_push(RING_BUFFER, SRC...)               \
     RingBuffer_push_                                       \
     (                                                      \
         &(RING_BUFFER)->ring_buffer_raw,                   \
@@ -266,7 +266,7 @@ RingBuffer_reading_pointer_ // For the consumer only.
 
 
 
-#define RingBuffer_pop(RING_BUFFER, DST)                   \
+#define RingBuffer_pop(RING_BUFFER, DST...)                \
     RingBuffer_pop_                                        \
     (                                                      \
         &(RING_BUFFER)->ring_buffer_raw,                   \
@@ -333,7 +333,7 @@ RingBuffer_pop_ // For the consumer only.
 
 
 
-#define RingBuffer_pop_to_latest(RING_BUFFER, DST)         \
+#define RingBuffer_pop_to_latest(RING_BUFFER, DST...)      \
     RingBuffer_pop_to_latest_                              \
     (                                                      \
         &(RING_BUFFER)->ring_buffer_raw,                   \
