@@ -132,7 +132,7 @@ enum StepperDriverState : u32
 struct StepperDriver
 {
 
-    enum StepperDriverState                                          state;
+    volatile _Atomic enum StepperDriverState                         atomic_state;
     u32                                                              current_timestamp_us;
     enum StepperUnit                                                 current_unit;
     u8                                                               uart_write_sequence_numbers[StepperUnit_COUNT];
@@ -219,7 +219,12 @@ STEPPER_reinit(void)
 
     CMSIS_SET(STEPPER_TIMx, DIER, UIE, true);
 
-    _STEPPER_driver.state = StepperDriverState_initializing_uart_write_sequence_numbers;
+    atomic_store_explicit
+    (
+        &_STEPPER_driver.atomic_state,
+        StepperDriverState_initializing_uart_write_sequence_numbers,
+        memory_order_relaxed // No synchronization needed.
+    );
 
     NVIC_ENABLE(STEPPER_TIMx_update_event);
 
@@ -337,6 +342,14 @@ static useret enum StepperUpdateOnceResult : u32
 }
 _STEPPER_update_driver_once(void)
 {
+
+    enum StepperDriverState observed_state =
+        atomic_load_explicit
+        (
+            &_STEPPER_driver.atomic_state,
+            memory_order_relaxed // No synchronization needed.
+        );
+
     switch (_STEPPER_driver.uart.state)
     {
 
@@ -347,7 +360,7 @@ _STEPPER_update_driver_once(void)
         //
         ////////////////////////////////////////
 
-        case StepperUARTState_standby: switch (_STEPPER_driver.state)
+        case StepperUARTState_standby: switch (observed_state)
         {
 
 
@@ -419,7 +432,12 @@ _STEPPER_update_driver_once(void)
 
                     GPIO_ACTIVE(STEPPER_MOTOR_ENABLE);
 
-                    _STEPPER_driver.state = StepperDriverState_waiting_on_angular_velocities;
+                    atomic_store_explicit
+                    (
+                        &_STEPPER_driver.atomic_state,
+                        StepperDriverState_waiting_on_angular_velocities,
+                        memory_order_relaxed // No synchronization needed.
+                    );
 
                     return StepperUpdateOnceResult_again;
 
@@ -442,9 +460,18 @@ _STEPPER_update_driver_once(void)
                 }
                 else if (RingBuffer_reading_pointer(&_STEPPER_driver.queued_angular_velocities))
                 {
+
                     _STEPPER_driver.most_recent_angular_velocity_update_timestamp_us = _STEPPER_driver.current_timestamp_us;
-                    _STEPPER_driver.state                                            = StepperDriverState_updating_angular_velocities;
+
+                    atomic_store_explicit
+                    (
+                        &_STEPPER_driver.atomic_state,
+                        StepperDriverState_updating_angular_velocities,
+                        memory_order_relaxed // No synchronization needed.
+                    );
+
                     return StepperUpdateOnceResult_again;
+
                 }
                 else // Under-run condition.
                 {
@@ -502,7 +529,7 @@ _STEPPER_update_driver_once(void)
 
             _STEPPER_driver.uart.state = StepperUARTState_standby; // Acknowledge the completion of the transfer.
 
-            switch (_STEPPER_driver.state)
+            switch (observed_state)
             {
 
 
@@ -521,7 +548,12 @@ _STEPPER_update_driver_once(void)
 
                     if (_STEPPER_driver.current_unit == (enum StepperUnit) {0})
                     {
-                        _STEPPER_driver.state = StepperDriverState_doing_initialization_sequences;
+                        atomic_store_explicit
+                        (
+                            &_STEPPER_driver.atomic_state,
+                            StepperDriverState_doing_initialization_sequences,
+                            memory_order_relaxed // No synchronization needed.
+                        );
                     }
 
                 } break;
@@ -545,7 +577,12 @@ _STEPPER_update_driver_once(void)
 
                         if (_STEPPER_driver.current_unit == (enum StepperUnit) {0})
                         {
-                            _STEPPER_driver.state = StepperDriverState_delaying_enable;
+                            atomic_store_explicit
+                            (
+                                &_STEPPER_driver.atomic_state,
+                                StepperDriverState_delaying_enable,
+                                memory_order_relaxed // No synchronization needed.
+                            );
                         }
 
                     }
@@ -568,7 +605,12 @@ _STEPPER_update_driver_once(void)
                         if (!RingBuffer_pop(&_STEPPER_driver.queued_angular_velocities, nullptr))
                             bug; // There should've been angular velocities we were using to update with...
 
-                        _STEPPER_driver.state = StepperDriverState_waiting_on_angular_velocities;
+                        atomic_store_explicit
+                        (
+                            &_STEPPER_driver.atomic_state,
+                            StepperDriverState_waiting_on_angular_velocities,
+                            memory_order_relaxed // No synchronization needed.
+                        );
 
                     }
 
@@ -902,6 +944,7 @@ _STEPPER_update_driver_once(void)
         default: bug;
 
     }
+
 }
 
 
@@ -939,8 +982,26 @@ INTERRUPT_STEPPER_TIMx_update_event(void)
 
                 {
 
-                    case StepperUpdateOnceResult_no_response_from_unit  : _STEPPER_driver.state = StepperDriverState_no_response_from_unit;  goto ERROR;
-                    case StepperUpdateOnceResult_bad_response_from_unit : _STEPPER_driver.state = StepperDriverState_bad_response_from_unit; goto ERROR;
+                    case StepperUpdateOnceResult_no_response_from_unit:
+                    {
+                        atomic_store_explicit
+                        (
+                            &_STEPPER_driver.atomic_state,
+                            StepperDriverState_no_response_from_unit,
+                            memory_order_relaxed // No synchronization needed.
+                        );
+                    } goto ERROR;
+
+                    case StepperUpdateOnceResult_bad_response_from_unit:
+                    {
+                        atomic_store_explicit
+                        (
+                            &_STEPPER_driver.atomic_state,
+                            StepperDriverState_bad_response_from_unit,
+                            memory_order_relaxed // No synchronization needed.
+                        );
+                    } goto ERROR;
+
                     ERROR:;
 
                     GPIO_INACTIVE(STEPPER_MOTOR_ENABLE);
