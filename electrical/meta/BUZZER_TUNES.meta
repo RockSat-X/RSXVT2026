@@ -59,8 +59,10 @@ enum BuzzerTune : u32
     BuzzerTune_birthday,
     BuzzerTune_starwars,
     BuzzerTune_nokia,
+    BuzzerTune_waking_up,
+    BuzzerTune_sleeping,
 };
-static constexpr u32 BuzzerTune_COUNT = 11;
+static constexpr u32 BuzzerTune_COUNT = 13;
 static const struct BuzzerNote BUZZER_TUNE_null[] =
     {
     };
@@ -244,6 +246,39 @@ static const struct BuzzerNote BUZZER_TUNE_nokia[] =
         { 3021, 82 },
         { 2268, 220 },
     };
+static const struct BuzzerNote BUZZER_TUNE_waking_up[] =
+    {
+        { 9901, 2 },
+        { 4975, 5 },
+        { 3322, 7 },
+        { 2494, 10 },
+        { 1996, 12 },
+        { 1664, 15 },
+        { 1427, 17 },
+        { 1248, 20 },
+        { 1110, 22 },
+        { 999, 25 },
+        { 65535, 15 },
+    };
+static const struct BuzzerNote BUZZER_TUNE_sleeping[] =
+    {
+        { 1248, 60 },
+        { 65535, 1 },
+        { 1427, 52 },
+        { 65535, 1 },
+        { 1664, 45 },
+        { 65535, 1 },
+        { 1996, 37 },
+        { 65535, 1 },
+        { 2494, 30 },
+        { 65535, 1 },
+        { 3322, 22 },
+        { 65535, 1 },
+        { 4975, 15 },
+        { 65535, 1 },
+        { 9901, 7 },
+        { 65535, 15 },
+    };
 static const struct { typeof((const char*) "null") name; typeof((struct BuzzerNote*) BUZZER_TUNE_null) note_array; typeof(0) note_count; } BUZZER_TUNES[] =
     {
         { .name = (const char*) "null"       , .note_array = (struct BuzzerNote*) BUZZER_TUNE_null       , .note_count = 0  },
@@ -257,4 +292,6 @@ static const struct { typeof((const char*) "null") name; typeof((struct BuzzerNo
         { .name = (const char*) "birthday"   , .note_array = (struct BuzzerNote*) BUZZER_TUNE_birthday   , .note_count = 25 },
         { .name = (const char*) "starwars"   , .note_array = (struct BuzzerNote*) BUZZER_TUNE_starwars   , .note_count = 18 },
         { .name = (const char*) "nokia"      , .note_array = (struct BuzzerNote*) BUZZER_TUNE_nokia      , .note_count = 13 },
+        { .name = (const char*) "waking_up"  , .note_array = (struct BuzzerNote*) BUZZER_TUNE_waking_up  , .note_count = 11 },
+        { .name = (const char*) "sleeping"   , .note_array = (struct BuzzerNote*) BUZZER_TUNE_sleeping   , .note_count = 16 },
     };
