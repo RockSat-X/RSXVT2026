@@ -934,7 +934,7 @@ TARGETS = ( # @/`Defining Targets`.
                 'enable_gpio'                  : 'motor_enable',
                 'timer_peripheral'             : 'TIM1',
                 'timer_update_event_interrupt' : 'TIM1_UP',
-                'instances'                    : (
+                'units'                        : (
                     ('axis_x', 0),
                     ('axis_y', 1),
                     ('axis_z', 2),

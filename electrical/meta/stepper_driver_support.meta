@@ -32,13 +32,13 @@
     #error Target 'MainFlightComputer_NUCLEO' needs to define a unique 'Stepper' driver.
 #endif
 #if TARGET_NAME_IS_VehicleFlightComputer
-    enum StepperInstanceHandle : u32
+    enum StepperUnit : u32
     {
-        StepperInstanceHandle_axis_x,
-        StepperInstanceHandle_axis_y,
-        StepperInstanceHandle_axis_z,
+        StepperUnit_axis_x,
+        StepperUnit_axis_y,
+        StepperUnit_axis_z,
     };
-    static constexpr u32 StepperInstanceHandle_COUNT = 3;
+    static constexpr u32 StepperUnit_COUNT = 3;
     static const struct { u8 address; } STEPPER_INSTANCE_TABLE[] =
         {
             { .address = 0 },

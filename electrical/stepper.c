@@ -78,14 +78,14 @@ static const struct { u8 register_address; u32 data; } STEPPER_INITIALIZATION_SE
 
         # Supporting definitions.
 
-        Meta.enums('StepperInstanceHandle', 'u32', (
+        Meta.enums('StepperUnit', 'u32', (
             name
-            for name, address in driver['instances']
+            for name, address in driver['units']
         ))
 
         Meta.lut('STEPPER_INSTANCE_TABLE', ((
             ('u8', 'address', address),
-        ) for name, address in driver['instances']))
+        ) for name, address in driver['units']))
 
         # TODO Inconvenient:
         Meta.define('STEPPER_UXART_HANDLE'                   , f'UXARTHandle_{driver['uxart_handle']}')
@@ -102,7 +102,7 @@ static const struct { u8 register_address; u32 data; } STEPPER_INITIALIZATION_SE
 
 */
 
-typedef f32 StepperAngularVelocities[StepperInstanceHandle_COUNT];
+typedef f32 StepperAngularVelocities[StepperUnit_COUNT];
 
 enum StepperUARTState : u32
 {
@@ -130,8 +130,8 @@ struct StepperDriver
 
     enum StepperDriverState                                          state;
     u32                                                              current_timestamp_us;
-    enum StepperInstanceHandle                                       current_instance_handle;
-    u8                                                               uart_write_sequence_numbers[StepperInstanceHandle_COUNT];
+    enum StepperUnit                                                 current_unit;
+    u8                                                               uart_write_sequence_numbers[StepperUnit_COUNT];
     RingBuffer(StepperAngularVelocities, STEPPER_RING_BUFFER_LENGTH) queued_angular_velocities;
     i32                                                              initialization_sequence_index;
     u32                                                              previous_angular_velocities_update_timestamp_us;
@@ -155,7 +155,7 @@ static struct StepperDriver _STEPPER_driver = {0};
 
 
 static useret b32
-STEPPER_push_angular_velocities(f32 (*angular_velocities)[StepperInstanceHandle_COUNT])
+STEPPER_push_angular_velocities(f32 (*angular_velocities)[StepperUnit_COUNT])
 {
     return RingBuffer_push(&_STEPPER_driver.queued_angular_velocities, angular_velocities);
 }
@@ -453,7 +453,7 @@ _STEPPER_update_driver_once(void)
                 if (!angular_velocities)
                     bug; // There should've been something queued...
 
-                i32 vactual_value = (i32) ((*angular_velocities)[_STEPPER_driver.current_instance_handle] / (2.0f * PI) * STEPPER_STEPS_PER_REVOLUTION);
+                i32 vactual_value = (i32) ((*angular_velocities)[_STEPPER_driver.current_unit] / (2.0f * PI) * STEPPER_STEPS_PER_REVOLUTION);
 
                 _STEPPER_driver.uart =
                     (struct StepperUART)
@@ -495,12 +495,12 @@ _STEPPER_update_driver_once(void)
                 case StepperDriverState_initializing_uart_write_sequence_numbers:
                 {
 
-                    _STEPPER_driver.uart_write_sequence_numbers[_STEPPER_driver.current_instance_handle] = (u8) (_STEPPER_driver.uart.data + 1);
+                    _STEPPER_driver.uart_write_sequence_numbers[_STEPPER_driver.current_unit] = (u8) (_STEPPER_driver.uart.data + 1);
 
-                    _STEPPER_driver.current_instance_handle += 1;
-                    _STEPPER_driver.current_instance_handle %= StepperInstanceHandle_COUNT;
+                    _STEPPER_driver.current_unit += 1;
+                    _STEPPER_driver.current_unit %= StepperUnit_COUNT;
 
-                    if (_STEPPER_driver.current_instance_handle == (enum StepperInstanceHandle) {0})
+                    if (_STEPPER_driver.current_unit == (enum StepperUnit) {0})
                     {
                         _STEPPER_driver.state = StepperDriverState_doing_initialization_sequences;
                     }
@@ -521,10 +521,10 @@ _STEPPER_update_driver_once(void)
                     if (_STEPPER_driver.initialization_sequence_index == 0)
                     {
 
-                        _STEPPER_driver.current_instance_handle += 1;
-                        _STEPPER_driver.current_instance_handle %= StepperInstanceHandle_COUNT;
+                        _STEPPER_driver.current_unit += 1;
+                        _STEPPER_driver.current_unit %= StepperUnit_COUNT;
 
-                        if (_STEPPER_driver.current_instance_handle == (enum StepperInstanceHandle) {0})
+                        if (_STEPPER_driver.current_unit == (enum StepperUnit) {0})
                         {
                             _STEPPER_driver.state = StepperDriverState_delaying_enable;
                         }
@@ -540,10 +540,10 @@ _STEPPER_update_driver_once(void)
                 case StepperDriverState_updating_angular_velocities:
                 {
 
-                    _STEPPER_driver.current_instance_handle += 1;
-                    _STEPPER_driver.current_instance_handle %= StepperInstanceHandle_COUNT;
+                    _STEPPER_driver.current_unit += 1;
+                    _STEPPER_driver.current_unit %= StepperUnit_COUNT;
 
-                    if (_STEPPER_driver.current_instance_handle == (enum StepperInstanceHandle) {0})
+                    if (_STEPPER_driver.current_unit == (enum StepperUnit) {0})
                     {
 
                         if (!RingBuffer_pop(&_STEPPER_driver.queued_angular_velocities, nullptr))
@@ -601,7 +601,7 @@ _STEPPER_update_driver_once(void)
                 struct StepperReadRequest request =
                     {
                         .sync             = 0b0000'0101, // @/pg 19/sec 4.1.2/`TMC2209`.
-                        .node_address     = STEPPER_INSTANCE_TABLE[_STEPPER_driver.current_instance_handle].address,
+                        .node_address     = STEPPER_INSTANCE_TABLE[_STEPPER_driver.current_unit].address,
                         .register_address =
                             _STEPPER_driver.uart.state == StepperUARTState_write_verification_read_scheduled
                                 ? STEPPER_TMC2209_IFCNT_ADDRESS
@@ -770,9 +770,9 @@ _STEPPER_update_driver_once(void)
 
                 else if (_STEPPER_driver.uart.state == StepperUARTState_write_verification_read_requested)
                 {
-                    if (_STEPPER_driver.uart_write_sequence_numbers[_STEPPER_driver.current_instance_handle] == data)
+                    if (_STEPPER_driver.uart_write_sequence_numbers[_STEPPER_driver.current_unit] == data)
                     {
-                        _STEPPER_driver.uart_write_sequence_numbers[_STEPPER_driver.current_instance_handle] = (u8) (data + 1);
+                        _STEPPER_driver.uart_write_sequence_numbers[_STEPPER_driver.current_unit] = (u8) (data + 1);
                         _STEPPER_driver.uart.state = StepperUARTState_done;
                         return StepperUpdateOnceResult_again;
                     }
@@ -830,7 +830,7 @@ _STEPPER_update_driver_once(void)
                 struct StepperWriteRequest request = // @/pg 18/sec 4.1.1/`TMC2209`.
                     {
                         .sync             = 0b0000'0101,
-                        .node_address     = STEPPER_INSTANCE_TABLE[_STEPPER_driver.current_instance_handle].address,
+                        .node_address     = STEPPER_INSTANCE_TABLE[_STEPPER_driver.current_unit].address,
                         .register_address = _STEPPER_driver.uart.register_address | (1 << 7),
                         .data             = __builtin_bswap32(_STEPPER_driver.uart.data),
                     };

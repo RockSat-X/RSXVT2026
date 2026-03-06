@@ -157,9 +157,9 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
             (
                 &(f32[])
                 {
-                    [StepperInstanceHandle_axis_x] = current_angular_velocity,
-                    [StepperInstanceHandle_axis_y] = current_angular_velocity,
-                    [StepperInstanceHandle_axis_z] = current_angular_velocity,
+                    [StepperUnit_axis_x] = current_angular_velocity,
+                    [StepperUnit_axis_y] = current_angular_velocity,
+                    [StepperUnit_axis_z] = current_angular_velocity,
                 }
             )
         );
