@@ -316,11 +316,12 @@ static useret enum StepperUpdateOnceResult : u32
 {
     StepperUpdateOnceResult_again,
     StepperUpdateOnceResult_yield,
+    StepperUpdateOnceResult_no_response_from_unit,
+    StepperUpdateOnceResult_bad_response_from_unit,
     StepperUpdateOnceResult_bug = BUG_CODE,
 }
 _STEPPER_update_driver_once(void)
 {
-
     switch (_STEPPER_driver.uart.state)
     {
 
@@ -450,7 +451,7 @@ _STEPPER_update_driver_once(void)
                 StepperAngularVelocities* angular_velocities = RingBuffer_reading_pointer(&_STEPPER_driver.queued_angular_velocities);
 
                 if (!angular_velocities)
-                    sorry
+                    bug; // There should've been something queued...
 
                 i32 vactual_value = (i32) ((*angular_velocities)[_STEPPER_driver.current_instance_handle] / (2.0f * PI) * STEPPER_STEPS_PER_REVOLUTION);
 
@@ -468,8 +469,8 @@ _STEPPER_update_driver_once(void)
 
 
 
-            case StepperDriverState_disabled : sorry
-            default                          : sorry
+            case StepperDriverState_disabled : bug; // The user needs to initialize the stepper driver...
+            default                          : bug;
 
         } break;
 
@@ -546,7 +547,7 @@ _STEPPER_update_driver_once(void)
                     {
 
                         if (!RingBuffer_pop(&_STEPPER_driver.queued_angular_velocities, nullptr))
-                            sorry
+                            bug; // There should've been angular velocities we were using to update with...
 
                         _STEPPER_driver.state = StepperDriverState_waiting_on_angular_velocities;
 
@@ -556,10 +557,10 @@ _STEPPER_update_driver_once(void)
 
 
 
-                case StepperDriverState_delaying_enable               : sorry
-                case StepperDriverState_waiting_on_angular_velocities : sorry
-                case StepperDriverState_disabled                      : sorry
-                default                                               : sorry
+                case StepperDriverState_delaying_enable               : bug; // There shouldn't have been any UART transfer...
+                case StepperDriverState_waiting_on_angular_velocities : bug; // "
+                case StepperDriverState_disabled                      : bug; // The user needs to initialize the stepper driver...
+                default                                               : bug;
 
             }
 
@@ -695,15 +696,6 @@ _STEPPER_update_driver_once(void)
 
                 }
 
-
-
-                // Verify integrity of response.
-
-                if (bytes_received != sizeof(response))
-                {
-                    sorry
-                }
-
                 u8 digest =
                     _STEPPER_calculate_crc
                     (
@@ -711,65 +703,95 @@ _STEPPER_update_driver_once(void)
                         sizeof(response) - sizeof(response.crc)
                     );
 
-                if (digest != response.crc) // @/`Bad TMC2209 CRC Implementation`.
-                {
-                    sorry
-                }
-
-                if (response.sync != 0b0000'0101) // @/pg 19/sec 4.1.2/`TMC2209`.
-                {
-                    sorry
-                }
-
-                if (response.master_address != 0xFF) // @/pg 19/sec 4.1.2/`TMC2209`.
-                {
-                    sorry
-                }
-
                 u8 expected_register_address =
                     _STEPPER_driver.uart.state == StepperUARTState_write_verification_read_requested
                         ? STEPPER_TMC2209_IFCNT_ADDRESS
                         : _STEPPER_driver.uart.register_address;
 
-                if (response.register_address != expected_register_address)
-                {
-                    sorry
-                }
-
-
-
-                // Got the register data intact!
-
                 u32 data = __builtin_bswap32(response.data);
 
 
 
-                // Handle the data.
+                // No response?
 
-                if (_STEPPER_driver.uart.state == StepperUARTState_write_verification_read_requested)
+                if (!bytes_received)
                 {
-
-                    if (_STEPPER_driver.uart_write_sequence_numbers[_STEPPER_driver.current_instance_handle] != data)
-                    {
-                        sorry
-                    }
-
-                    _STEPPER_driver.uart_write_sequence_numbers[_STEPPER_driver.current_instance_handle] = (u8) (data + 1);
-
+                    return StepperUpdateOnceResult_no_response_from_unit;
                 }
+
+
+
+                // Response of wrong length?
+
+                else if (bytes_received != sizeof(response))
+                {
+                    return StepperUpdateOnceResult_bad_response_from_unit;
+                }
+
+
+
+                // Corrupted response?
+
+                else if (digest != response.crc) // @/`Bad TMC2209 CRC Implementation`.
+                {
+                    return StepperUpdateOnceResult_bad_response_from_unit;
+                }
+
+
+
+                // Bad synchronization?
+
+                else if (response.sync != 0b0000'0101) // @/pg 19/sec 4.1.2/`TMC2209`.
+                {
+                    return StepperUpdateOnceResult_bad_response_from_unit;
+                }
+
+
+
+                // Unexpected master address?
+
+                else if (response.master_address != 0xFF) // @/pg 19/sec 4.1.2/`TMC2209`.
+                {
+                    return StepperUpdateOnceResult_bad_response_from_unit;
+                }
+
+
+
+                // Echoed wrong register address?
+
+                else if (response.register_address != expected_register_address)
+                {
+                    return StepperUpdateOnceResult_bad_response_from_unit;
+                }
+
+
+
+                // Verify that the write transfer was acknowledged by the TMC2209.
+
+                else if (_STEPPER_driver.uart.state == StepperUARTState_write_verification_read_requested)
+                {
+                    if (_STEPPER_driver.uart_write_sequence_numbers[_STEPPER_driver.current_instance_handle] == data)
+                    {
+                        _STEPPER_driver.uart_write_sequence_numbers[_STEPPER_driver.current_instance_handle] = (u8) (data + 1);
+                        _STEPPER_driver.uart.state = StepperUARTState_done;
+                        return StepperUpdateOnceResult_again;
+                    }
+                    else
+                    {
+                        return StepperUpdateOnceResult_bad_response_from_unit;
+                    }
+                }
+
+
+
+                // We've successfully did a read transfer!
+
                 else
                 {
-                    _STEPPER_driver.uart.data = data;
+                    _STEPPER_driver.uart.data  = data;
+                    _STEPPER_driver.uart.state = StepperUARTState_done;
+                    return StepperUpdateOnceResult_again;
                 }
-
-
-
-                // We're now done reading the register
-                // (or maybe verifying that the write request was successful).
-
-                _STEPPER_driver.uart.state = StepperUARTState_done;
-
-                return StepperUpdateOnceResult_again;
 
             }
 
@@ -844,10 +866,9 @@ _STEPPER_update_driver_once(void)
 
 
 
-        default: sorry
+        default: bug;
 
     }
-
 }
 
 
@@ -879,8 +900,17 @@ INTERRUPT_STEPPER_TIMx_update_event(void)
                     yield = true; // Nothing more to do until the next interrupt event.
                 } break;
 
-                case StepperUpdateOnceResult_bug : sorry
-                default                          : sorry
+                case StepperUpdateOnceResult_no_response_from_unit:
+                case StepperUpdateOnceResult_bad_response_from_unit:
+                {
+                    sorry
+                } break;
+
+                case StepperUpdateOnceResult_bug:
+                default:
+                {
+                    sorry
+                } break;
 
             }
 
