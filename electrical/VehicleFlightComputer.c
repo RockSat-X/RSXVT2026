@@ -96,18 +96,17 @@ main(void)
 
 
 static volatile f32 current_angular_acceleration = 0.0f;
+static volatile f32 current_angular_velocity     = 1.0f;
 
 FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 {
 
     STEPPER_reinit();
 
-    static f32 current_angular_velocity = 1.0f;
-
     for (;;)
     {
 
-        #define MAX_ANGULAR_VELOCITY (2.0f * PI * 8.0f)
+        #define MAX_ANGULAR_VELOCITY (4300.0f * 2.0f * PI / 60.0f)
 
         b32 max_angular_velocity_has_already_been_reached =
             current_angular_velocity >=  MAX_ANGULAR_VELOCITY ||
@@ -235,7 +234,15 @@ FREERTOS_TASK(logger, 2048, 0)
 {
     for (;;)
     {
-        stlink_tx("Angular acceleration: %.6f\n", current_angular_acceleration);
+        stlink_tx
+        (
+            "Angular acceleration : %.6f\n"
+            "Angular velocity     : %.6f\n"
+            "RPM                  : %.6f\n",
+            current_angular_acceleration,
+            current_angular_velocity,
+            current_angular_velocity / (2.0f * PI) * 60.0f
+        );
 
         struct VN100Packet packet = {0};
         if (RingBuffer_pop_to_latest(&VN100_ring_buffer, &packet))
