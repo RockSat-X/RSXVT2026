@@ -41,6 +41,7 @@ main(void)
     #endif
 
 
+    GPIO_ACTIVE(battery_allowed); // TMP.
 
     // Set the prescaler that'll affect all timers' kernel frequency.
 
