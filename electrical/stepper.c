@@ -3,9 +3,6 @@
 #define STEPPER_UART_TIME_MARGIN_US   2'000 // @/`Stepper UART Time Margin Window`.
 #define STEPPER_RING_BUFFER_LENGTH        8 // @/`Stepper Ring-Buffer Length`.
 
-#define STEPPER_TMC2209_IFCNT_ADDRESS   0x02 // @/pg 24/tbl 5.1/`TMC2209`.
-#define STEPPER_TMC2209_VACTUAL_ADDRESS 0x22 // @/pg 28/tbl 5.2/`TMC2209`.
-
 enum StepperMicrostepResolution : u32 // @/pg 33/tbl 5.5.1/`TMC2209`.
 {
     StepperMicrostepResolution_256 = 0b0000,
@@ -100,6 +97,9 @@ static const struct StepperInitializationSequenceEntry { u8 register_address; u3
 
 */
 
+#define STEPPER_TMC2209_IFCNT_ADDRESS   0x02 // @/pg 24/tbl 5.1/`TMC2209`.
+#define STEPPER_TMC2209_VACTUAL_ADDRESS 0x22 // @/pg 28/tbl 5.2/`TMC2209`.
+
 static_assert(STEPPER_ENABLE_DELAY_US     % STEPPER_UPDATE_EVENT_PERIOD_US == 0);
 static_assert(STEPPER_VELOCITY_UPDATE_US  % STEPPER_UPDATE_EVENT_PERIOD_US == 0);
 static_assert(STEPPER_UART_TIME_MARGIN_US % STEPPER_UPDATE_EVENT_PERIOD_US == 0);
@@ -142,9 +142,9 @@ struct StepperDriver
     struct StepperUART
     {
         enum StepperUARTState state;
-        u8                    register_address; // MSb should always be cleared (it's set automatically if needed).
+        u8                    register_address; // MSb should always be cleared; it's set automatically if needed.
         u32                   data;
-    }   uart;
+    } uart;
 
 };
 
@@ -990,7 +990,7 @@ INTERRUPT_STEPPER_TIMx_update_event(void)
 // Thus in the event of a CRC error, for instance, we're going
 // to have to idly wait on the UART line, so we might as well
 // always do it to ensure the upmost reliability.
-// (@/pg 18/sec 4.1.1/`TMC2209`).
+// @/pg 18/sec 4.1.1/`TMC2209`.
 
 
 
@@ -1006,8 +1006,8 @@ INTERRUPT_STEPPER_TIMx_update_event(void)
 // The VACTUAL register that controls the step velocity depends
 // on the TMC2209's clock frequency; when using the TMC2209's
 // internal oscillator, the VACTUAL values are actually scaled by 1/0.715.
-// (@/pg 67/sec 14/`TMC2209`).
+// @/pg 67/sec 14/`TMC2209`.
 //
 // This means if it takes 1600 microsteps to make a full revolution,
-// then 1600 / 0.715 = ~2238 should be written into VACTUAL to get
+// then 1600 / 0.715 = ~2238 should be written into `VACTUAL` to get
 // that desired 1 revolution-per-second rotation.
