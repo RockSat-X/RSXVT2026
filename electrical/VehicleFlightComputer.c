@@ -1,3 +1,5 @@
+#define AUTOMATIC_SHUTDOWN_TIME_US 0 // TODO Once finalized, we should use (10 * 60'000'000).
+
 #include "system.h"
 #include "timekeeping.c"
 #include "uxart.c"
@@ -10,9 +12,6 @@
 
 
 ////////////////////////////////////////////////////////////////////////////////
-//
-// Pre-scheduler initialization.
-//
 
 
 
@@ -45,14 +44,13 @@ main(void)
 
 
 
-    // When the vehicle becomes powered on,
-    // it's typically because of the external
-    // power suplly through the vehicle interface.
-    //
-    // TODO Add a delay before we enable the battery?
-    // TODO Check if there's actually external power?
+    // When the vehicle becomes powered on, it's typically because
+    // of the external power supply through the vehicle interface.
+    // To make sure that the vehicle should stay powered on with
+    // the battery supply, we play a tune that'll act as the delay.
 
-    BUZZER_play(BuzzerTune_three_tone);
+    BUZZER_play(BuzzerTune_waking_up);
+
     while (BUZZER_current_tune());
 
     GPIO_ACTIVE(battery_allowed);
@@ -68,9 +66,6 @@ main(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-//
-// Update motor angular velocities.
-//
 
 
 
@@ -173,9 +168,6 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-//
-// Take user input and do stuff.
-//
 
 
 
@@ -203,9 +195,6 @@ FREERTOS_TASK(user_inputter, 1024, 0)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-//
-// Periodically log out stuff.
-//
 
 
 
@@ -226,6 +215,56 @@ FREERTOS_TASK(logger, 2048, 0)
         );
 
         spinlock_us(100'000);
+
+    }
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+FREERTOS_TASK(watchdog, 512, 1)
+{
+    for (;;)
+    {
+
+        FREERTOS_delay_ms(1000);
+
+
+        #if AUTOMATIC_SHUTDOWN_TIME_US > 0
+        {
+
+            // To prevent the vehicle from being perpetually on forever
+            // and drain the batteries empty, we turn ourselves off automatically.
+
+            if (TIMEKEEPING_microseconds() >= AUTOMATIC_SHUTDOWN_TIME_US)
+            {
+
+                // Indicate that this is why the vehicle is suddenly shut off.
+
+                BUZZER_play(BuzzerTune_sleeping);
+                while (BUZZER_current_tune());
+
+
+
+                // Try cut off battery power.
+
+                GPIO_INACTIVE(battery_allowed);
+                spinlock_us(1'000'000);
+
+
+                // If we're still alive by this point, then
+                // there's probably external power or something,
+                // to which we'll just do a software reset.
+
+                WARM_RESET();
+
+            }
+
+        }
+        #endif
 
     }
 }
