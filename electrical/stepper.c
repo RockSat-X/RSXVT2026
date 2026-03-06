@@ -125,6 +125,8 @@ enum StepperDriverState : u32
     StepperDriverState_delaying_enable,
     StepperDriverState_waiting_on_angular_velocities,
     StepperDriverState_updating_angular_velocities,
+    StepperDriverState_no_response_from_unit,
+    StepperDriverState_bad_response_from_unit,
 };
 
 struct StepperDriver
@@ -163,6 +165,8 @@ STEPPER_reinit(void)
     // Reset stuff.
 
     GPIO_INACTIVE(STEPPER_MOTOR_ENABLE);
+
+    NVIC_DISABLE(STEPPER_TIMx_update_event);
 
     CMSIS_PUT(STEPPER_TIMx_RESET, true );
     CMSIS_PUT(STEPPER_TIMx_RESET, false);
@@ -478,8 +482,10 @@ _STEPPER_update_driver_once(void)
 
 
 
-            case StepperDriverState_disabled : bug; // The user needs to initialize the stepper driver...
-            default                          : bug;
+            case StepperDriverState_no_response_from_unit  : return StepperUpdateOnceResult_yield;
+            case StepperDriverState_bad_response_from_unit : return StepperUpdateOnceResult_yield;
+            case StepperDriverState_disabled               : bug; // The user needs to initialize the stepper driver...
+            default                                        : bug;
 
         } break;
 
@@ -570,6 +576,8 @@ _STEPPER_update_driver_once(void)
 
 
 
+                case StepperDriverState_no_response_from_unit         : return StepperUpdateOnceResult_yield;
+                case StepperDriverState_bad_response_from_unit        : return StepperUpdateOnceResult_yield;
                 case StepperDriverState_delaying_enable               : bug; // There shouldn't have been any UART transfer...
                 case StepperDriverState_waiting_on_angular_velocities : bug; // "
                 case StepperDriverState_disabled                      : bug; // The user needs to initialize the stepper driver...
@@ -925,16 +933,41 @@ INTERRUPT_STEPPER_TIMx_update_event(void)
                     yield = true; // Nothing more to do until the next interrupt event.
                 } break;
 
-                case StepperUpdateOnceResult_no_response_from_unit:
-                case StepperUpdateOnceResult_bad_response_from_unit:
+
+
+                // Driver stuck in error condition until user reinitializes everything.
+
                 {
-                    sorry
+
+                    case StepperUpdateOnceResult_no_response_from_unit  : _STEPPER_driver.state = StepperDriverState_no_response_from_unit;  goto ERROR;
+                    case StepperUpdateOnceResult_bad_response_from_unit : _STEPPER_driver.state = StepperDriverState_bad_response_from_unit; goto ERROR;
+                    ERROR:;
+
+                    GPIO_INACTIVE(STEPPER_MOTOR_ENABLE);
+                    NVIC_DISABLE(STEPPER_TIMx_update_event);
+
+                    yield = true;
+
                 } break;
+
+
+
+                // Something bad really happened; completely disable everything.
 
                 case StepperUpdateOnceResult_bug:
                 default:
                 {
-                    sorry
+
+                    GPIO_INACTIVE(STEPPER_MOTOR_ENABLE);
+
+                    NVIC_DISABLE(STEPPER_TIMx_update_event);
+
+                    CMSIS_PUT(STEPPER_TIMx_RESET, true);
+
+                    memzero(&_STEPPER_driver);
+
+                    UXART_reinit(STEPPER_UXART_HANDLE);
+
                 } break;
 
             }
