@@ -100,6 +100,10 @@ static const struct StepperInitializationSequenceEntry { u8 register_address; u3
 
 */
 
+static_assert(STEPPER_ENABLE_DELAY_US     % STEPPER_UPDATE_EVENT_PERIOD_US == 0);
+static_assert(STEPPER_VELOCITY_UPDATE_US  % STEPPER_UPDATE_EVENT_PERIOD_US == 0);
+static_assert(STEPPER_UART_TIME_MARGIN_US % STEPPER_UPDATE_EVENT_PERIOD_US == 0);
+
 typedef f32 StepperAngularVelocities[StepperUnit_COUNT];
 
 enum StepperUARTState : u32
