@@ -25,7 +25,7 @@ enum StepperMicrostepResolution : u32 // @/pg 33/tbl 5.5.1/`TMC2209`.
 #define STEPPER_MICROSTEP_RESOLUTION StepperMicrostepResolution_8
 #define STEPPER_STEPS_PER_REVOLUTION ((f32) (((1 << (8 - STEPPER_MICROSTEP_RESOLUTION)) * 200) / 0.715f))
 
-static const struct { u8 register_address; u32 data; } STEPPER_INITIALIZATION_SEQUENCE[] =
+static const struct StepperInitializationSequenceEntry { u8 register_address; u32 data; } STEPPER_INITIALIZATION_SEQUENCE[] =
     {
         {
             0x00,      // "GCONF"            : @/pg 23/tbl 5.1/`TMC2209`.
@@ -134,7 +134,8 @@ struct StepperDriver
     u8                                                               uart_write_sequence_numbers[StepperUnit_COUNT];
     RingBuffer(StepperAngularVelocities, STEPPER_RING_BUFFER_LENGTH) queued_angular_velocities;
     i32                                                              initialization_sequence_index;
-    u32                                                              previous_angular_velocities_update_timestamp_us;
+    u32                                                              most_recent_angular_velocity_update_timestamp_us;
+    u32                                                              most_recent_uart_transfer_timestamp_us;
 
     struct StepperUART
     {
@@ -142,7 +143,6 @@ struct StepperDriver
         u8                    register_address; // MSb should always be cleared (it's set automatically if needed).
         u32                   data;
     }   uart;
-    u32 most_recent_uart_transfer_timestamp_us;
 
 };
 
@@ -326,8 +326,11 @@ _STEPPER_update_driver_once(void)
     {
 
 
-
+        ////////////////////////////////////////
+        //
         // The next UART transfer can be scheduled.
+        //
+        ////////////////////////////////////////
 
         case StepperUARTState_standby: switch (_STEPPER_driver.state)
         {
@@ -335,8 +338,8 @@ _STEPPER_update_driver_once(void)
 
 
             // We need to get the TMC2209's write sequence numbers. This has to be the
-            // first thing we do before the configuration of the TMC2209 so that we can
-            // know whether or not the first write request is successful.
+            // first thing we do before the configuration of the TMC2209s so that we can
+            // know whether or not the first write transfer was successful.
 
             case StepperDriverState_initializing_uart_write_sequence_numbers:
             {
@@ -359,14 +362,14 @@ _STEPPER_update_driver_once(void)
             case StepperDriverState_doing_initialization_sequences:
             {
 
-                auto write = &STEPPER_INITIALIZATION_SEQUENCE[_STEPPER_driver.initialization_sequence_index];
+                const struct StepperInitializationSequenceEntry* entry = &STEPPER_INITIALIZATION_SEQUENCE[_STEPPER_driver.initialization_sequence_index];
 
                 _STEPPER_driver.uart =
                     (struct StepperUART)
                     {
                         .state            = StepperUARTState_write_scheduled,
-                        .register_address = write->register_address,
-                        .data             = write->data,
+                        .register_address = entry->register_address,
+                        .data             = entry->data,
                     };
 
                 return StepperUpdateOnceResult_again;
@@ -377,15 +380,11 @@ _STEPPER_update_driver_once(void)
 
             // @/`Stepper Enable Delay`:
             //
-            // It seems like when the TMC2209 is first
-            // initialized (especially after a power-cycle)
-            // the motor will induce a large current draw
-            // after it is enabled. It quickly settles down,
-            // but it's probably not nice to do to the batteries.
-            // It seems like by delaying the enabling of the motor
-            // that the current spike can be avoided. I can tell
-            // this works by the fact that the power supply not
-            // going into current-limiting mode after the power-cycle.
+            // It seems like when the TMC2209 is first initialized (especially after a power-cycle)
+            // the motor will induce a large current draw after it is enabled. It quickly settles
+            // down, but it's probably not nice to do to the batteries. It seems like by delaying
+            // the enabling of the motor that the current spike can be avoided. I can tell this works
+            // by the fact that the power supply not going into current-limiting mode after the power-cycle.
             //
             // TODO This is not very scientific however, so we definitely
             //      at some point actually measure the current draw of
@@ -420,7 +419,7 @@ _STEPPER_update_driver_once(void)
             case StepperDriverState_waiting_on_angular_velocities:
             {
 
-                u32 elapsed_us = _STEPPER_driver.current_timestamp_us - _STEPPER_driver.previous_angular_velocities_update_timestamp_us;
+                u32 elapsed_us = _STEPPER_driver.current_timestamp_us - _STEPPER_driver.most_recent_angular_velocity_update_timestamp_us;
 
                 if (elapsed_us < STEPPER_VELOCITY_UPDATE_US)
                 {
@@ -428,17 +427,15 @@ _STEPPER_update_driver_once(void)
                 }
                 else if (RingBuffer_reading_pointer(&_STEPPER_driver.queued_angular_velocities))
                 {
-                    _STEPPER_driver.previous_angular_velocities_update_timestamp_us = _STEPPER_driver.current_timestamp_us;
-                    _STEPPER_driver.state                                           = StepperDriverState_updating_angular_velocities;
+                    _STEPPER_driver.most_recent_angular_velocity_update_timestamp_us = _STEPPER_driver.current_timestamp_us;
+                    _STEPPER_driver.state                                            = StepperDriverState_updating_angular_velocities;
                     return StepperUpdateOnceResult_again;
                 }
-                else
+                else // Under-run condition.
                 {
-                    // Under-run condition.
-                    // TODO Indicate this situation somehow?
-                    // TODO Perhaps keep the same velocity instead.
                     return StepperUpdateOnceResult_yield;
                 }
+
             } break;
 
 
@@ -453,14 +450,15 @@ _STEPPER_update_driver_once(void)
                 if (!angular_velocities)
                     bug; // There should've been something queued...
 
-                i32 vactual_value = (i32) ((*angular_velocities)[_STEPPER_driver.current_unit] / (2.0f * PI) * STEPPER_STEPS_PER_REVOLUTION);
+                f32 new_angular_velocity = (*angular_velocities)[_STEPPER_driver.current_unit];
+                i32 vactual              = (i32) (new_angular_velocity / (2.0f * PI) * STEPPER_STEPS_PER_REVOLUTION); // @/`Stepper Microstepping and Step Velocity`.
 
                 _STEPPER_driver.uart =
                     (struct StepperUART)
                     {
                         .state            = StepperUARTState_write_scheduled,
                         .register_address = STEPPER_TMC2209_VACTUAL_ADDRESS,
-                        .data             = (u32) vactual_value, // @/`Stepper Microstepping and Step Velocity`.
+                        .data             = (u32) vactual,
                     };
 
                 return StepperUpdateOnceResult_again;
@@ -476,7 +474,11 @@ _STEPPER_update_driver_once(void)
 
 
 
+        ////////////////////////////////////////
+        //
         // The UART transfer was completed successfully.
+        //
+        ////////////////////////////////////////
 
         case StepperUARTState_done:
         {
@@ -570,7 +572,11 @@ _STEPPER_update_driver_once(void)
 
 
 
+        ////////////////////////////////////////
+        //
         // We send a read request packet to the TMC2209.
+        //
+        ////////////////////////////////////////
 
         case StepperUARTState_read_scheduled:
         case StepperUARTState_write_verification_read_scheduled:
@@ -581,7 +587,7 @@ _STEPPER_update_driver_once(void)
 
             if (too_soon_to_send)
             {
-                // @/`Stepper UART Time Margin Window`.
+                return StepperUpdateOnceResult_yield; // @/`Stepper UART Time Margin Window`.
             }
             else
             {
@@ -632,15 +638,19 @@ _STEPPER_update_driver_once(void)
                         ? StepperUARTState_write_verification_read_requested
                         : StepperUARTState_read_requested;
 
-            }
+                return StepperUpdateOnceResult_yield;
 
-            return StepperUpdateOnceResult_yield;
+            }
 
         } break;
 
 
 
+        ////////////////////////////////////////
+        //
         // See if the TMC2209 replied back to the read request.
+        //
+        ////////////////////////////////////////
 
         case StepperUARTState_read_requested:
         case StepperUARTState_write_verification_read_requested:
@@ -799,7 +809,11 @@ _STEPPER_update_driver_once(void)
 
 
 
+        ////////////////////////////////////////
+        //
         // We send a write request packet to the TMC2209.
+        //
+        ////////////////////////////////////////
 
         case StepperUARTState_write_scheduled:
         {
@@ -809,7 +823,7 @@ _STEPPER_update_driver_once(void)
 
             if (too_soon_to_send)
             {
-                // @/`Stepper UART Time Margin Window`.
+                return StepperUpdateOnceResult_yield; // @/`Stepper UART Time Margin Window`.
             }
             else
             {
@@ -858,9 +872,9 @@ _STEPPER_update_driver_once(void)
 
                 _STEPPER_driver.uart.state = StepperUARTState_write_verification_read_scheduled;
 
-            }
+                return StepperUpdateOnceResult_yield;
 
-            return StepperUpdateOnceResult_yield;
+            }
 
         } break;
 
