@@ -41,7 +41,6 @@ main(void)
     #endif
 
 
-    GPIO_ACTIVE(battery_allowed); // TMP.
 
     // Set the prescaler that'll affect all timers' kernel frequency.
 
@@ -58,7 +57,6 @@ main(void)
     // More peripheral initializations that depend on the above initializations.
 
     BUZZER_partial_init();
-    STEPPER_reinit();
 
     #if 0 // TODO.
     {
@@ -101,6 +99,8 @@ static volatile f32 current_angular_acceleration = 0.0f;
 
 FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 {
+
+    STEPPER_reinit();
 
     static f32 current_angular_velocity = 1.0f;
 
@@ -151,18 +151,42 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 
         // Queue up the angular velocity.
 
-        while
-        (
-            !STEPPER_push_angular_velocities
-            (
-                &(StepperAngularVelocities)
+        for (b32 yield = false; !yield;)
+        {
+
+            enum StepperPushAngularVelocitiesResult result =
+                STEPPER_push_angular_velocities
+                (
+                    &(StepperAngularVelocities)
+                    {
+                        [StepperUnit_axis_x] = current_angular_velocity,
+                        [StepperUnit_axis_y] = current_angular_velocity,
+                        [StepperUnit_axis_z] = current_angular_velocity,
+                    }
+                );
+
+            switch (result)
+            {
+
+                case StepperPushAngularVelocitiesResult_pushed:
                 {
-                    [StepperUnit_axis_x] = current_angular_velocity,
-                    [StepperUnit_axis_y] = current_angular_velocity,
-                    [StepperUnit_axis_z] = current_angular_velocity,
-                }
-            )
-        );
+                    yield = true;
+                } break;
+
+                case StepperPushAngularVelocitiesResult_full:
+                case StepperPushAngularVelocitiesResult_still_initializing:
+                {
+                    // Keep spin-locking.
+                } break;
+
+                case StepperPushAngularVelocitiesResult_no_response_from_unit  : sorry
+                case StepperPushAngularVelocitiesResult_bad_response_from_unit : sorry
+                case StepperPushAngularVelocitiesResult_bug                    : sorry
+                default                                                        : sorry
+
+            }
+
+        }
 
     }
 

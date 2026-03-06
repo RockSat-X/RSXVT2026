@@ -232,18 +232,54 @@ STEPPER_reinit(void)
 
 
 
-static useret b32
+static useret enum StepperPushAngularVelocitiesResult : u32
+{
+    StepperPushAngularVelocitiesResult_pushed,
+    StepperPushAngularVelocitiesResult_full,
+    StepperPushAngularVelocitiesResult_still_initializing,
+    StepperPushAngularVelocitiesResult_no_response_from_unit,
+    StepperPushAngularVelocitiesResult_bad_response_from_unit,
+    StepperPushAngularVelocitiesResult_bug = BUG_CODE,
+}
 STEPPER_push_angular_velocities(StepperAngularVelocities* angular_velocities)
 {
 
-    b32 pushed =
-        RingBuffer_push
+    enum StepperDriverState observed_state =
+        atomic_load_explicit
         (
-            &_STEPPER_driver.queued_angular_velocities,
-            angular_velocities
+            &_STEPPER_driver.atomic_state,
+            memory_order_relaxed // No synchronization needed.
         );
 
-    return pushed;
+    switch (observed_state)
+    {
+
+        case StepperDriverState_initializing_uart_write_sequence_numbers:
+        case StepperDriverState_doing_initialization_sequences:
+        case StepperDriverState_delaying_enable:
+        {
+            return StepperPushAngularVelocitiesResult_still_initializing;
+        } break;
+
+        case StepperDriverState_waiting_on_angular_velocities:
+        case StepperDriverState_updating_angular_velocities:
+        {
+            if (RingBuffer_push(&_STEPPER_driver.queued_angular_velocities, angular_velocities))
+            {
+                return StepperPushAngularVelocitiesResult_pushed;
+            }
+            else
+            {
+                return StepperPushAngularVelocitiesResult_full;
+            }
+        } break;
+
+        case StepperDriverState_no_response_from_unit  : return StepperPushAngularVelocitiesResult_no_response_from_unit;
+        case StepperDriverState_bad_response_from_unit : return StepperPushAngularVelocitiesResult_bad_response_from_unit;
+        case StepperDriverState_disabled               : bug; // The user needs to initialize the stepper driver...
+        default                                        : bug;
+
+    }
 
 }
 
