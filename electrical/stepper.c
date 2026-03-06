@@ -156,14 +156,6 @@ static struct StepperDriver _STEPPER_driver = {0};
 
 
 
-static useret b32
-STEPPER_push_angular_velocities(f32 (*angular_velocities)[StepperUnit_COUNT])
-{
-    return RingBuffer_push(&_STEPPER_driver.queued_angular_velocities, angular_velocities);
-}
-
-
-
 static void
 STEPPER_reinit(void)
 {
@@ -226,6 +218,23 @@ STEPPER_reinit(void)
     _STEPPER_driver.state = StepperDriverState_initializing_uart_write_sequence_numbers;
 
     NVIC_ENABLE(STEPPER_TIMx_update_event);
+
+}
+
+
+
+static useret b32
+STEPPER_push_angular_velocities(StepperAngularVelocities* angular_velocities)
+{
+
+    b32 pushed =
+        RingBuffer_push
+        (
+            &_STEPPER_driver.queued_angular_velocities,
+            angular_velocities
+        );
+
+    return pushed;
 
 }
 
