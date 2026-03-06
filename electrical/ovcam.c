@@ -474,7 +474,7 @@ OVCAM_reinit(void)
 
     // Reinitialize the I2C driver that'll later initialize the OV camera module.
 
-    I2C_reinit(I2CHandle_ovcam_sccb);
+    I2C_partial_reinit(I2CHandle_ovcam_sccb);
 
 
 

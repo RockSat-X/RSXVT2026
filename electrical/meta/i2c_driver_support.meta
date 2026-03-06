@@ -22,11 +22,9 @@
 #endif
 #if TARGET_NAME_IS_MainFlightComputer_NUCLEO
 #endif
-#if TARGET_NAME_IS_VehicleFlightComputer_R1
+#if TARGET_NAME_IS_VehicleFlightComputer
     static I2CSlaveCallback INTERRUPT_I2Cx_vehicle_interface;
     #define INTERRUPT_I2Cx_vehicle_interface(...) static void INTERRUPT_I2Cx_vehicle_interface(__VA_ARGS__)
-#endif
-#if TARGET_NAME_IS_VehicleFlightComputer_R2
 #endif
 #if TARGET_NAME_IS_DebugBoard
     static I2CSlaveCallback INTERRUPT_I2Cx_communication;
@@ -148,7 +146,7 @@
         _I2C_driver_interrupt(I2CHandle_vehicle_interface);
     }
 #endif
-#if TARGET_NAME_IS_VehicleFlightComputer_R1
+#if TARGET_NAME_IS_VehicleFlightComputer
     enum I2CHandle : u32
     {
         I2CHandle_vehicle_interface,
@@ -171,9 +169,6 @@
     {
         _I2C_driver_interrupt(I2CHandle_vehicle_interface);
     }
-#endif
-#if TARGET_NAME_IS_VehicleFlightComputer_R2
-    #error Target 'VehicleFlightComputer_R2' defines no handle for the 'I2C' driver.
 #endif
 #if TARGET_NAME_IS_DebugBoard
     enum I2CHandle : u32
@@ -308,9 +303,7 @@
 #endif
 #if TARGET_NAME_IS_MainFlightComputer_NUCLEO
 #endif
-#if TARGET_NAME_IS_VehicleFlightComputer_R1
-#endif
-#if TARGET_NAME_IS_VehicleFlightComputer_R2
+#if TARGET_NAME_IS_VehicleFlightComputer
 #endif
 #if TARGET_NAME_IS_DebugBoard
 #endif

@@ -383,7 +383,7 @@ SSD1306_reinit(void)
 
     // Reset-cycle the I2C peripheral.
 
-    I2C_reinit(I2CHandle_ssd1306);
+    I2C_partial_reinit(I2CHandle_ssd1306);
 
 
 
