@@ -80,17 +80,103 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
     for (;;)
     {
 
-        #define MAX_ANGULAR_VELOCITY (4300.0f * 2.0f * PI / 60.0f)
+        enum StepperPushAngularVelocitiesResult result =
+            STEPPER_push_angular_velocities
+            (
+                &(StepperAngularVelocities)
+                {
+                    [StepperUnit_axis_x] = current_angular_velocity,
+                    [StepperUnit_axis_y] = current_angular_velocity,
+                    [StepperUnit_axis_z] = current_angular_velocity,
+                }
+            );
 
-        b32 max_angular_velocity_has_already_been_reached =
-            current_angular_velocity >=  MAX_ANGULAR_VELOCITY ||
-            current_angular_velocity <= -MAX_ANGULAR_VELOCITY;
+        switch (result)
+        {
+
+            case StepperPushAngularVelocitiesResult_pushed:
+            {
+                // Yay!
+            } break;
+
+            case StepperPushAngularVelocitiesResult_full:
+            case StepperPushAngularVelocitiesResult_still_initializing:
+            {
+                // Keep spin-locking.
+            } break;
+
+            case StepperPushAngularVelocitiesResult_no_response_from_unit  : sorry
+            case StepperPushAngularVelocitiesResult_bad_response_from_unit : sorry
+            case StepperPushAngularVelocitiesResult_bug                    : sorry
+            default                                                        : sorry
+
+        }
+
+    }
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+FREERTOS_TASK(controller, 2048, 0)
+{
+
+    u32 previous_angular_velocity_update_timestamp_us = TIMEKEEPING_microseconds(); // TODO Deprecate STEPPER_VELOCITY_UPDATE_US?
+
+    for (;;)
+    {
+
+        #define MAX_ANGULAR_ACCELERATION (200.0f)
+        #define MAX_ANGULAR_VELOCITY     (2000.0f * 2.0f * PI / 60.0f)
+
+
+
+        // Interpret user's input, if any.
+
+        u8 input = {0};
+
+        if (stlink_rx(&input))
+        {
+            switch (input)
+            {
+                case 'j': current_angular_acceleration +=   -0.1f;                                    break;
+                case 'J': current_angular_acceleration +=   -1.0f;                                    break;
+                case 'k': current_angular_acceleration +=    0.1f;                                    break;
+                case 'K': current_angular_acceleration +=    1.0f;                                    break;
+                case '0': current_angular_acceleration  =    0.0f;                                    break;
+                case '<': current_angular_acceleration += -200.0f;                                    break;
+                case '>': current_angular_acceleration +=  200.0f;                                    break;
+                case ' ': current_angular_acceleration  =    0.0f; current_angular_velocity  =  0.0f; break;
+                case '-': current_angular_acceleration  =    0.0f; current_angular_velocity *= -1.0f; break;
+                default: break;
+            }
+        }
+
+        if (current_angular_acceleration >= MAX_ANGULAR_ACCELERATION)
+        {
+            current_angular_acceleration = MAX_ANGULAR_ACCELERATION;
+        }
+        else if (current_angular_acceleration <= -MAX_ANGULAR_ACCELERATION)
+        {
+            current_angular_acceleration = -MAX_ANGULAR_ACCELERATION;
+        }
 
 
 
         // Find new angular velocity.
 
-        current_angular_velocity += current_angular_acceleration * (STEPPER_VELOCITY_UPDATE_US / 100'000.0f);
+        b32 max_angular_velocity_has_already_been_reached =
+            current_angular_velocity >=  MAX_ANGULAR_VELOCITY ||
+            current_angular_velocity <= -MAX_ANGULAR_VELOCITY;
+
+        u32 current_timestamp_us = TIMEKEEPING_microseconds();
+        f32 delta_time           = (f32) (current_timestamp_us - previous_angular_velocity_update_timestamp_us) / 1'000'000.0f; // TODO Check for NaN?
+
+        current_angular_velocity += current_angular_acceleration * delta_time;
 
 
 
@@ -122,74 +208,14 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 
 
 
-        // Queue up the angular velocity.
+        // Onto next iteration.
 
-        for (b32 yield = false; !yield;)
-        {
+        previous_angular_velocity_update_timestamp_us = current_timestamp_us;
 
-            enum StepperPushAngularVelocitiesResult result =
-                STEPPER_push_angular_velocities
-                (
-                    &(StepperAngularVelocities)
-                    {
-                        [StepperUnit_axis_x] = current_angular_velocity,
-                        [StepperUnit_axis_y] = current_angular_velocity,
-                        [StepperUnit_axis_z] = current_angular_velocity,
-                    }
-                );
-
-            switch (result)
-            {
-
-                case StepperPushAngularVelocitiesResult_pushed:
-                {
-                    yield = true;
-                } break;
-
-                case StepperPushAngularVelocitiesResult_full:
-                case StepperPushAngularVelocitiesResult_still_initializing:
-                {
-                    // Keep spin-locking.
-                } break;
-
-                case StepperPushAngularVelocitiesResult_no_response_from_unit  : sorry
-                case StepperPushAngularVelocitiesResult_bad_response_from_unit : sorry
-                case StepperPushAngularVelocitiesResult_bug                    : sorry
-                default                                                        : sorry
-
-            }
-
-        }
+        FREERTOS_delay_ms(10);
 
     }
 
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-FREERTOS_TASK(user_inputter, 1024, 0)
-{
-    for (;;)
-    {
-
-        u8 input = {0};
-        while (!stlink_rx(&input));
-
-        switch (input)
-        {
-            case 'j': current_angular_acceleration += -0.1f; break;
-            case 'J': current_angular_acceleration += -1.0f; break;
-            case 'k': current_angular_acceleration +=  0.1f; break;
-            case 'K': current_angular_acceleration +=  1.0f; break;
-            case '0': current_angular_acceleration  =  0.0f; break;
-            default: break;
-        }
-
-    }
 }
 
 
