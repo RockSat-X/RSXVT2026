@@ -1,7 +1,18 @@
-#define STEPPER_ENABLE_DELAY_US     500'000 // @/`Stepper Enable Delay`.
-#define STEPPER_VELOCITY_UPDATE_US   25'000 // @/`Stepper Updating Velocity`.
-#define STEPPER_UART_TIME_MARGIN_US   2'000 // @/`Stepper UART Time Margin Window`.
-#define STEPPER_RING_BUFFER_LENGTH        8 // @/`Stepper Ring-Buffer Length`.
+#ifndef STEPPER_ENABLE_DELAY_US
+#error "Please define `STEPPER_ENABLE_DELAY_US`! See @/`Stepper Enable Delay`."
+#endif
+
+#ifndef STEPPER_VELOCITY_UPDATE_US
+#error "Please define `STEPPER_VELOCITY_UPDATE_US`! See @/`Stepper Updating Velocity`."
+#endif
+
+#ifndef STEPPER_UART_TIME_MARGIN_US
+#error "Please define `STEPPER_UART_TIME_MARGIN_US`! See @/`Stepper UART Time Margin Window`."
+#endif
+
+#ifndef STEPPER_RING_BUFFER_LENGTH
+#error "Please define `STEPPER_RING_BUFFER_LENGTH`! See @/`Stepper Ring-Buffer Length`."
+#endif
 
 enum StepperMicrostepResolution : u32 // @/pg 33/tbl 5.5.1/`TMC2209`.
 {
