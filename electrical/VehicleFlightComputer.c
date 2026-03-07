@@ -661,7 +661,7 @@ FREERTOS_TASK(watchdog, 512, 2)
                 // Try cut off battery power.
 
                 GPIO_INACTIVE(battery_allowed);
-                spinlock_us(1'000'000);
+                FREERTOS_delay_ms(1'000'000);
 
 
                 // If we're still alive by this point, then
