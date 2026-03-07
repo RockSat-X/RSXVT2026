@@ -4,7 +4,7 @@
 #define STEPPER_RING_BUFFER_LENGTH  8       // TODO Determine latency.
 #define AUTOMATIC_SHUTDOWN_TIME_US  0       // TODO Once finalized, we should use (10 * 60'000'000).
 #define MAX_ANGULAR_ACCELERATION    (200.0f)
-#define MAX_ANGULAR_VELOCITY        (2000.0f * 2.0f * PI / 60.0f)
+#define MAX_ANGULAR_VELOCITY        (200.0f * 2.0f * PI / 60.0f)
 #define DEMONSTRATE_STEPPER         true
 
 #include "system.h"
@@ -590,13 +590,14 @@ FREERTOS_TASK(diagnostics, 512, 1)
 
                 BUZZER_play(BuzzerTune_heartbeat);
 
-                GPIO_ACTIVE  (led_channel_red  );
-                GPIO_INACTIVE(led_channel_green);
-                GPIO_INACTIVE(led_channel_blue );
-
                 while (BUZZER_current_tune())
                 {
-                    if (diagnostics_delay_ms(&current_flags, 100))
+
+                    GPIO_TOGGLE  (led_channel_red  );
+                    GPIO_INACTIVE(led_channel_green);
+                    GPIO_INACTIVE(led_channel_blue );
+
+                    if (diagnostics_delay_ms(&current_flags, 500))
                     {
                         goto END_OF_DIAGNOSTIC;
                     }
