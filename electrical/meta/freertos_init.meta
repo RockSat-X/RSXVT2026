@@ -12,25 +12,31 @@
     static noret void   button_observer(void*);
     static StackType_t  button_observer_stack[1024 / sizeof(StackType_t)] = {0};
     static StaticTask_t button_observer_buffer = {0};
+    static TaskHandle_t button_observer_handle = {0};
     static noret void   green_blinker(void*);
     static StackType_t  green_blinker_stack[1024 / sizeof(StackType_t)] = {0};
     static StaticTask_t green_blinker_buffer = {0};
+    static TaskHandle_t green_blinker_handle = {0};
     static noret void   red_blinker(void*);
     static StackType_t  red_blinker_stack[1024 / sizeof(StackType_t)] = {0};
     static StaticTask_t red_blinker_buffer = {0};
+    static TaskHandle_t red_blinker_handle = {0};
     static noret void   yellow_blinker(void*);
     static StackType_t  yellow_blinker_stack[1024 / sizeof(StackType_t)] = {0};
     static StaticTask_t yellow_blinker_buffer = {0};
+    static TaskHandle_t yellow_blinker_handle = {0};
     static noret void   yapper(void*);
     static StackType_t  yapper_stack[1024 / sizeof(StackType_t)] = {0};
     static StaticTask_t yapper_buffer = {0};
+    static TaskHandle_t yapper_handle = {0};
     static noret void   captain_allears(void*);
     static StackType_t  captain_allears_stack[1024 / sizeof(StackType_t)] = {0};
     static StaticTask_t captain_allears_buffer = {0};
+    static TaskHandle_t captain_allears_handle = {0};
     static noret void
     FREERTOS_init(void)
     {
-        TaskHandle_t button_observer_handle =
+        button_observer_handle =
             xTaskCreateStatic
             (
                 button_observer,
@@ -41,7 +47,7 @@
                 button_observer_stack,
                 &button_observer_buffer
             );
-        TaskHandle_t green_blinker_handle =
+        green_blinker_handle =
             xTaskCreateStatic
             (
                 green_blinker,
@@ -52,7 +58,7 @@
                 green_blinker_stack,
                 &green_blinker_buffer
             );
-        TaskHandle_t red_blinker_handle =
+        red_blinker_handle =
             xTaskCreateStatic
             (
                 red_blinker,
@@ -63,7 +69,7 @@
                 red_blinker_stack,
                 &red_blinker_buffer
             );
-        TaskHandle_t yellow_blinker_handle =
+        yellow_blinker_handle =
             xTaskCreateStatic
             (
                 yellow_blinker,
@@ -74,7 +80,7 @@
                 yellow_blinker_stack,
                 &yellow_blinker_buffer
             );
-        TaskHandle_t yapper_handle =
+        yapper_handle =
             xTaskCreateStatic
             (
                 yapper,
@@ -85,7 +91,7 @@
                 yapper_stack,
                 &yapper_buffer
             );
-        TaskHandle_t captain_allears_handle =
+        captain_allears_handle =
             xTaskCreateStatic
             (
                 captain_allears,
@@ -139,16 +145,19 @@
     static noret void   heartbeat(void*);
     static StackType_t  heartbeat_stack[256 / sizeof(StackType_t)] = {0};
     static StaticTask_t heartbeat_buffer = {0};
+    static TaskHandle_t heartbeat_handle = {0};
     static noret void   using_filesystem(void*);
     static StackType_t  using_filesystem_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t using_filesystem_buffer = {0};
+    static TaskHandle_t using_filesystem_handle = {0};
     static noret void   reporting(void*);
     static StackType_t  reporting_stack[1024 / sizeof(StackType_t)] = {0};
     static StaticTask_t reporting_buffer = {0};
+    static TaskHandle_t reporting_handle = {0};
     static noret void
     FREERTOS_init(void)
     {
-        TaskHandle_t heartbeat_handle =
+        heartbeat_handle =
             xTaskCreateStatic
             (
                 heartbeat,
@@ -159,7 +168,7 @@
                 heartbeat_stack,
                 &heartbeat_buffer
             );
-        TaskHandle_t using_filesystem_handle =
+        using_filesystem_handle =
             xTaskCreateStatic
             (
                 using_filesystem,
@@ -170,7 +179,7 @@
                 using_filesystem_stack,
                 &using_filesystem_buffer
             );
-        TaskHandle_t reporting_handle =
+        reporting_handle =
             xTaskCreateStatic
             (
                 reporting,
@@ -200,16 +209,19 @@
     static noret void   vehicle_interface(void*);
     static StackType_t  vehicle_interface_stack[1024 / sizeof(StackType_t)] = {0};
     static StaticTask_t vehicle_interface_buffer = {0};
+    static TaskHandle_t vehicle_interface_handle = {0};
     static noret void   vn100_uart(void*);
     static StackType_t  vn100_uart_stack[1024 / sizeof(StackType_t)] = {0};
     static StaticTask_t vn100_uart_buffer = {0};
+    static TaskHandle_t vn100_uart_handle = {0};
     static noret void   heartbeat(void*);
     static StackType_t  heartbeat_stack[1024 / sizeof(StackType_t)] = {0};
     static StaticTask_t heartbeat_buffer = {0};
+    static TaskHandle_t heartbeat_handle = {0};
     static noret void
     FREERTOS_init(void)
     {
-        TaskHandle_t vehicle_interface_handle =
+        vehicle_interface_handle =
             xTaskCreateStatic
             (
                 vehicle_interface,
@@ -220,7 +232,7 @@
                 vehicle_interface_stack,
                 &vehicle_interface_buffer
             );
-        TaskHandle_t vn100_uart_handle =
+        vn100_uart_handle =
             xTaskCreateStatic
             (
                 vn100_uart,
@@ -231,7 +243,7 @@
                 vn100_uart_stack,
                 &vn100_uart_buffer
             );
-        TaskHandle_t heartbeat_handle =
+        heartbeat_handle =
             xTaskCreateStatic
             (
                 heartbeat,
@@ -250,23 +262,31 @@
     enum FreeRTOSTask : u32
     {
         FreeRTOSTask_stepper_motor_controller,
-        FreeRTOSTask_user_inputter,
         FreeRTOSTask_logger,
+        FreeRTOSTask_diagnostics,
+        FreeRTOSTask_watchdog,
     };
-    static constexpr u32 FreeRTOSTask_COUNT = 3;
+    static constexpr u32 FreeRTOSTask_COUNT = 4;
     static noret void   stepper_motor_controller(void*);
     static StackType_t  stepper_motor_controller_stack[1024 / sizeof(StackType_t)] = {0};
     static StaticTask_t stepper_motor_controller_buffer = {0};
-    static noret void   user_inputter(void*);
-    static StackType_t  user_inputter_stack[1024 / sizeof(StackType_t)] = {0};
-    static StaticTask_t user_inputter_buffer = {0};
+    static TaskHandle_t stepper_motor_controller_handle = {0};
     static noret void   logger(void*);
     static StackType_t  logger_stack[2048 / sizeof(StackType_t)] = {0};
     static StaticTask_t logger_buffer = {0};
+    static TaskHandle_t logger_handle = {0};
+    static noret void   diagnostics(void*);
+    static StackType_t  diagnostics_stack[512 / sizeof(StackType_t)] = {0};
+    static StaticTask_t diagnostics_buffer = {0};
+    static TaskHandle_t diagnostics_handle = {0};
+    static noret void   watchdog(void*);
+    static StackType_t  watchdog_stack[512 / sizeof(StackType_t)] = {0};
+    static StaticTask_t watchdog_buffer = {0};
+    static TaskHandle_t watchdog_handle = {0};
     static noret void
     FREERTOS_init(void)
     {
-        TaskHandle_t stepper_motor_controller_handle =
+        stepper_motor_controller_handle =
             xTaskCreateStatic
             (
                 stepper_motor_controller,
@@ -277,18 +297,7 @@
                 stepper_motor_controller_stack,
                 &stepper_motor_controller_buffer
             );
-        TaskHandle_t user_inputter_handle =
-            xTaskCreateStatic
-            (
-                user_inputter,
-                "user_inputter",
-                countof(user_inputter_stack),
-                nullptr,
-                0,
-                user_inputter_stack,
-                &user_inputter_buffer
-            );
-        TaskHandle_t logger_handle =
+        logger_handle =
             xTaskCreateStatic
             (
                 logger,
@@ -298,6 +307,28 @@
                 0,
                 logger_stack,
                 &logger_buffer
+            );
+        diagnostics_handle =
+            xTaskCreateStatic
+            (
+                diagnostics,
+                "diagnostics",
+                countof(diagnostics_stack),
+                nullptr,
+                1,
+                diagnostics_stack,
+                &diagnostics_buffer
+            );
+        watchdog_handle =
+            xTaskCreateStatic
+            (
+                watchdog,
+                "watchdog",
+                countof(watchdog_stack),
+                nullptr,
+                2,
+                watchdog_stack,
+                &watchdog_buffer
             );
         vTaskStartScheduler();
         for(;;);
@@ -313,13 +344,15 @@
     static noret void   display(void*);
     static StackType_t  display_stack[1024 / sizeof(StackType_t)] = {0};
     static StaticTask_t display_buffer = {0};
+    static TaskHandle_t display_handle = {0};
     static noret void   kicker(void*);
     static StackType_t  kicker_stack[256 / sizeof(StackType_t)] = {0};
     static StaticTask_t kicker_buffer = {0};
+    static TaskHandle_t kicker_handle = {0};
     static noret void
     FREERTOS_init(void)
     {
-        TaskHandle_t display_handle =
+        display_handle =
             xTaskCreateStatic
             (
                 display,
@@ -330,7 +363,7 @@
                 display_stack,
                 &display_buffer
             );
-        TaskHandle_t kicker_handle =
+        kicker_handle =
             xTaskCreateStatic
             (
                 kicker,

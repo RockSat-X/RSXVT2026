@@ -1,10 +1,15 @@
-#define SPI_BLOCK_SIZE 64 // @/`OpenMV SPI Block Size`.
+#define STEPPER_ENABLE_DELAY_US     500'000
+#define STEPPER_VELOCITY_UPDATE_US   25'000 // @/`Sequence Angular Accelerations Delta Time`.
+#define STEPPER_UART_TIME_MARGIN_US   2'000
+#define STEPPER_RING_BUFFER_LENGTH  8       // TODO Determine latency.
+#define AUTOMATIC_SHUTDOWN_TIME_US  0       // TODO Once finalized, we should use (10 * 60'000'000).
+#define MAX_ANGULAR_ACCELERATION    (200.0f)
+#define MAX_ANGULAR_VELOCITY        (2000.0f * 2.0f * PI / 60.0f)
+#define DEMONSTRATE_STEPPER         true
 
 #include "system.h"
 #include "timekeeping.c"
 #include "uxart.c"
-#include "i2c.c"
-#include "spi.c"
 #include "sd.c"
 #include "filesystem.c"
 #include "stepper.c"
@@ -13,14 +18,19 @@
 
 
 
-static RingBuffer(struct VN100Packet, 4) VN100_ring_buffer = {0};
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+enum DiagnosticMask : u32 // Lower the bit-index, higher the priority.
+{
+    DiagnosticMask_stepper_driver_issue       = 1 << 0,
+    DiagnosticMask_angular_velocity_saturated = 1 << 1,
+};
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
-//
-// Pre-scheduler initialization.
-//
 
 
 
@@ -32,13 +42,6 @@ main(void)
 
     STPY_init();
     UXART_reinit(UXARTHandle_stlink);
-
-    #if 0 // TODO.
-    {
-        UXART_reinit(UXARTHandle_vn100_esp32);
-        SPI_reinit(SPIHandle_openmv);
-    }
-    #endif
 
 
 
@@ -58,22 +61,15 @@ main(void)
 
     BUZZER_partial_init();
 
-    #if 0 // TODO.
-    {
-        I2C_partial_reinit(I2CHandle_vehicle_interface);
-    }
-    #endif
 
 
+    // When the vehicle becomes powered on, it's typically because
+    // of the external power supply through the vehicle interface.
+    // To make sure that the vehicle should stay powered on with
+    // the battery supply, we play a tune that'll act as the delay.
 
-    // When the vehicle becomes powered on,
-    // it's typically because of the external
-    // power suplly through the vehicle interface.
-    //
-    // TODO Add a delay before we enable the battery?
-    // TODO Check if there's actually external power?
+    BUZZER_play(BuzzerTune_waking_up);
 
-    BUZZER_play(BuzzerTune_three_tone);
     while (BUZZER_current_tune());
 
     GPIO_ACTIVE(battery_allowed);
@@ -89,80 +85,327 @@ main(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-//
-// Update motor angular velocities.
-//
 
 
 
-static volatile f32 current_angular_acceleration = 0.0f;
-static volatile f32 current_angular_velocity     = 1.0f;
+static volatile struct StepperTuple current_angular_accelerations = {0};
+static volatile struct StepperTuple current_angular_velocities    = {0};
 
 FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 {
 
     STEPPER_reinit();
 
+
+
+    // For diagnostic purposes, we immediately set angular velocities to
+    // something non-zero so we can easily tell if something is wrong.
+
+    #if DEMONSTRATE_STEPPER
+    {
+        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+        {
+            current_angular_velocities.values[unit] = 1.0f;
+        }
+    }
+    #endif
+
+
+
     for (;;)
     {
 
-        #define MAX_ANGULAR_VELOCITY (4300.0f * 2.0f * PI / 60.0f)
-
-        b32 max_angular_velocity_has_already_been_reached =
-            current_angular_velocity >=  MAX_ANGULAR_VELOCITY ||
-            current_angular_velocity <= -MAX_ANGULAR_VELOCITY;
 
 
+        // For demonstration and diagnostics purposes,
+        // we can directly control the stepper motors.
 
-        // Find new angular velocity.
+        #if DEMONSTRATE_STEPPER
+        {
 
-        current_angular_velocity += current_angular_acceleration * (STEPPER_VELOCITY_UPDATE_US / 100'000.0f);
+            // Interpret user's input, if any.
+
+            static b32 replay_sequence_number = false;
+
+            u8 input = {0};
+
+            while (stlink_rx(&input))
+            {
+
+                switch (input)
+                {
+
+                    case 'j':
+                    {
+                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                        {
+                            current_angular_accelerations.values[unit] -= 0.1f;
+                        }
+                    } break;
+
+                    case 'J':
+                    {
+                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                        {
+                            current_angular_accelerations.values[unit] -= 1.0f;
+                        }
+                    } break;
+
+                    case 'k':
+                    {
+                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                        {
+                            current_angular_accelerations.values[unit] += 0.1f;
+                        }
+                    } break;
+
+                    case 'K':
+                    {
+                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                        {
+                            current_angular_accelerations.values[unit] += 1.0f;
+                        }
+                    } break;
+
+                    case '0':
+                    {
+                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                        {
+                            current_angular_accelerations.values[unit] = 0.0f;
+                            current_angular_velocities   .values[unit] = 0.0f;
+                        }
+                    } break;
+
+                    case '<':
+                    {
+                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                        {
+                            current_angular_accelerations.values[unit] -= 200.0f;
+                        }
+                    } break;
+
+                    case '>':
+                    {
+                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                        {
+                            current_angular_accelerations.values[unit] += 200.0f;
+                        }
+                    } break;
+
+                    case '-':
+                    {
+                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                        {
+                            current_angular_accelerations.values[unit]  =  0.0f;
+                            current_angular_velocities   .values[unit] *= -1.0f;
+                        }
+                    } break;
+
+                    case 'b':
+                    {
+                        GPIO_TOGGLE(battery_allowed);
+                    } break;
+
+                    case 'x':
+                    {
+
+                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                        {
+                            current_angular_accelerations.values[unit] = 0.0f;
+                            current_angular_velocities   .values[unit] = 0.0f;
+                        }
+
+                        replay_sequence_number = 1; break;
+
+                    } break;
+
+                    default:
+                    {
+                        // Don't care.
+                    } break;
+
+                }
+
+            }
 
 
 
-        // Limit the angular velocity.
+            // If requested, we play back a sequence of angular accelerations for simulation purposes.
+
+            if (replay_sequence_number)
+            {
+
+                #include "SEQUENCE_ANGULAR_ACCELERATIONS.meta"
+                /* #meta
+
+                    import math
+
+                    def impulse(t, slope):
+
+                        try:
+                            u = math.e**(4 * slope * t)
+                            return (16 * u * (-1 + u) * slope**2) / (1 + u)**3
+                        except OverflowError:
+                            return 0
+
+                    IMPULSES = {
+                        'axis_x' : (
+                            (1 + 0 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                            (1 + 1 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                            (1 + 2 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                            (1 + 3 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                            (2 + 1       ,  0.25 * 2 * math.pi, 5 ),
+                            (2 + 2       ,  0.25 * 2 * math.pi, 5 ),
+                            (2 + 3       ,  0.25 * 2 * math.pi, 5 ),
+                            (2 + 4       ,  0.25 * 2 * math.pi, 5 ),
+                            (2 + 8       , -1.00 * 2 * math.pi, 10),
+                            (2 + 9       ,  1.00 * 2 * math.pi, 10),
+                            (2 + 10      ,  1.00 * 2 * math.pi, 10),
+                            (2 + 11      ,  1.00 * 2 * math.pi, 10),
+                            (2 + 12      ,  1.00 * 2 * math.pi, 10),
+                        ),
+                        'axis_y' : (
+                            (1 + 0 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                            (1 + 1 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                            (1 + 2 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                            (1 + 3 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                            (2 + 2       ,  0.25 * 2 * math.pi, 5 ),
+                            (2 + 3       ,  0.25 * 2 * math.pi, 5 ),
+                            (2 + 4       ,  0.25 * 2 * math.pi, 5 ),
+                            (2 + 5       ,  0.25 * 2 * math.pi, 5 ),
+                            (2 + 8       , -1.00 * 2 * math.pi, 10),
+                            (2 + 9       ,  1.00 * 2 * math.pi, 2 ),
+                            (2 + 12      , -1.00 * 2 * math.pi, 2 ),
+                        ),
+                        'axis_z' : (
+                            (1 + 0 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                            (1 + 1 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                            (1 + 2 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                            (1 + 3 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                            (2 + 3       ,  0.25 * 2 * math.pi, 5 ),
+                            (2 + 4       ,  0.25 * 2 * math.pi, 5 ),
+                            (2 + 5       ,  0.25 * 2 * math.pi, 5 ),
+                            (2 + 6       ,  0.25 * 2 * math.pi, 5 ),
+                            (2 + 8       , -1.00 * 2 * math.pi, 10),
+                            (2 + 9       ,  2.00 * 2 * math.pi, 2 ),
+                            (2 + 12      , -2.00 * 2 * math.pi, 2 ),
+                        ),
+                    }
+
+                    with Meta.enter('static const struct StepperTuple SEQUENCE_ANGULAR_ACCELERATIONS[] ='):
+
+                        DURATION = 16
+                        dt       = 0.025 # @/`Sequence Angular Accelerations Delta Time`: Coupled.
+
+                        for i in range(0, round(DURATION / dt)):
+
+                            t = i * dt
+
+                            Meta.line(f'''
+                                {{ {{ {', '.join(
+
+                                    f'[StepperUnit_{unit}] = {sum(impulse(t - center, slope) * radians for center, radians, slope in impulses) :12f}f'
+                                    for unit, impulses in IMPULSES.items()
+
+                                )} }} }}, // t = {t :f} s.
+                            ''')
+
+                */
+
+                current_angular_accelerations  = SEQUENCE_ANGULAR_ACCELERATIONS[replay_sequence_number - 1];
+                replay_sequence_number        += 1;
+                replay_sequence_number        %= countof(SEQUENCE_ANGULAR_ACCELERATIONS) + 1;
+
+                if (!replay_sequence_number)
+                {
+                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    {
+                        current_angular_accelerations.values[unit] = 0.0f;
+                        current_angular_velocities   .values[unit] = 0.0f;
+                    }
+                }
+
+            }
+
+        }
+        #endif
+
+
+
+        // Perform GNC calculations.
+
+        {
+            // TODO.
+        }
+
+
+
+        // Update each stepper unit's angular velocities.
 
         b32 max_angular_velocity_reached = false;
 
-        if (current_angular_velocity >= MAX_ANGULAR_VELOCITY)
+        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
         {
-            current_angular_velocity     = MAX_ANGULAR_VELOCITY;
-            max_angular_velocity_reached = true;
+
+
+
+            // Limit the acceleration.
+
+            if (current_angular_accelerations.values[unit] >= MAX_ANGULAR_ACCELERATION)
+            {
+                current_angular_accelerations.values[unit] = MAX_ANGULAR_ACCELERATION;
+            }
+            else if (current_angular_accelerations.values[unit] <= -MAX_ANGULAR_ACCELERATION)
+            {
+                current_angular_accelerations.values[unit] = -MAX_ANGULAR_ACCELERATION;
+            }
+
+
+
+            // Find new angular velocity.
+
+            current_angular_velocities.values[unit] += current_angular_accelerations.values[unit] * (f32) STEPPER_VELOCITY_UPDATE_US / 1'000'000.0f;
+
+
+
+            // Limit the angular velocity.
+
+            if (current_angular_velocities.values[unit] >= MAX_ANGULAR_VELOCITY)
+            {
+                current_angular_velocities.values[unit] = MAX_ANGULAR_VELOCITY;
+                max_angular_velocity_reached            = true;
+            }
+            else if (current_angular_velocities.values[unit] <= -MAX_ANGULAR_VELOCITY)
+            {
+                current_angular_velocities.values[unit] = -MAX_ANGULAR_VELOCITY;
+                max_angular_velocity_reached            = true;
+            }
+
         }
-        else if (current_angular_velocity <= -MAX_ANGULAR_VELOCITY)
+
+
+
+        // Indicate if a stepper motor has reached saturation;
+        // shouldn't really happen in practice.
+
+        if (max_angular_velocity_reached)
         {
-            current_angular_velocity     = -MAX_ANGULAR_VELOCITY;
-            max_angular_velocity_reached = true;
+            xTaskNotify
+            (
+                diagnostics_handle,
+                DiagnosticMask_angular_velocity_saturated,
+                eSetBits
+            );
         }
 
 
 
-        // Indicate that the max angular velocity has been reached.
-
-        GPIO_SET(led_channel_red, max_angular_velocity_reached);
-
-        if (!max_angular_velocity_has_already_been_reached && max_angular_velocity_reached)
-        {
-            BUZZER_play(BuzzerTune_heartbeat);
-        }
-
-
-
-        // Queue up the angular velocity.
+        // Queue up the new angular velocity.
 
         for (b32 yield = false; !yield;)
         {
 
-            enum StepperPushAngularVelocitiesResult result =
-                STEPPER_push_angular_velocities
-                (
-                    &(StepperAngularVelocities)
-                    {
-                        [StepperUnit_axis_x] = current_angular_velocity,
-                        [StepperUnit_axis_y] = current_angular_velocity,
-                        [StepperUnit_axis_z] = current_angular_velocity,
-                    }
-                );
+            enum StepperPushAngularVelocitiesResult result = STEPPER_push_angular_velocities((struct StepperTuple*) &current_angular_velocities);
 
             switch (result)
             {
@@ -175,13 +418,30 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
                 case StepperPushAngularVelocitiesResult_full:
                 case StepperPushAngularVelocitiesResult_still_initializing:
                 {
-                    // Keep spin-locking.
+                    FREERTOS_delay_ms(1);
                 } break;
 
-                case StepperPushAngularVelocitiesResult_no_response_from_unit  : sorry
-                case StepperPushAngularVelocitiesResult_bad_response_from_unit : sorry
-                case StepperPushAngularVelocitiesResult_bug                    : sorry
-                default                                                        : sorry
+                case StepperPushAngularVelocitiesResult_no_response_from_unit:  // TODO Collect statistics?
+                case StepperPushAngularVelocitiesResult_bad_response_from_unit:
+                case StepperPushAngularVelocitiesResult_bug:
+                default:
+                {
+
+                    xTaskNotify
+                    (
+                        diagnostics_handle,
+                        DiagnosticMask_stepper_driver_issue,
+                        eSetBits
+                    );
+
+                    memzero((struct StepperTuple*) &current_angular_accelerations);
+                    memzero((struct StepperTuple*) &current_angular_velocities   );
+
+                    STEPPER_reinit();
+
+                    yield = true;
+
+                } break;
 
             }
 
@@ -194,39 +454,6 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-//
-// Take user input and do stuff.
-//
-
-
-
-FREERTOS_TASK(user_inputter, 1024, 0)
-{
-    for (;;)
-    {
-
-        u8 input = {0};
-        while (!stlink_rx(&input));
-
-        switch (input)
-        {
-            case 'j': current_angular_acceleration += -0.1f; break;
-            case 'J': current_angular_acceleration += -1.0f; break;
-            case 'k': current_angular_acceleration +=  0.1f; break;
-            case 'K': current_angular_acceleration +=  1.0f; break;
-            case '0': current_angular_acceleration  =  0.0f; break;
-            default: break;
-        }
-
-    }
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-//
-// Periodically log out stuff.
-//
 
 
 
@@ -234,485 +461,218 @@ FREERTOS_TASK(logger, 2048, 0)
 {
     for (;;)
     {
+
+        // TODO Optional SD card logging.
+
         stlink_tx
         (
-            "Angular acceleration : %.6f\n"
-            "Angular velocity     : %.6f\n"
-            "RPM                  : %.6f\n",
-            current_angular_acceleration,
-            current_angular_velocity,
-            current_angular_velocity / (2.0f * PI) * 60.0f
+            "Angular acceleration : <%.3f, %.3f, %.3f>" "\n"
+            "Angular velocity     : <%.3f, %.3f, %.3f>" "\n"
+            "RPM                  : <%.3f, %.3f, %.3f>" "\n"
+            "\n\n",
+            current_angular_accelerations.values[StepperUnit_axis_x],
+            current_angular_accelerations.values[StepperUnit_axis_y],
+            current_angular_accelerations.values[StepperUnit_axis_z],
+            current_angular_velocities.values[StepperUnit_axis_x],
+            current_angular_velocities.values[StepperUnit_axis_y],
+            current_angular_velocities.values[StepperUnit_axis_z],
+            current_angular_velocities.values[StepperUnit_axis_x] / (2.0f * PI) * 60.0f,
+            current_angular_velocities.values[StepperUnit_axis_y] / (2.0f * PI) * 60.0f,
+            current_angular_velocities.values[StepperUnit_axis_z] / (2.0f * PI) * 60.0f
         );
 
-        struct VN100Packet packet = {0};
-        if (RingBuffer_pop_to_latest(&VN100_ring_buffer, &packet))
-        {
-            stlink_tx
-            (
-                "QuatX  : %f" "\n"
-                "QuatY  : %f" "\n"
-                "QuatZ  : %f" "\n"
-                "QuatS  : %f" "\n"
-                "MagX   : %f" "\n"
-                "MagY   : %f" "\n"
-                "MagZ   : %f" "\n"
-                "AccelX : %f" "\n"
-                "AccelY : %f" "\n"
-                "AccelZ : %f" "\n"
-                "GyroX  : %f" "\n"
-                "GyroY  : %f" "\n"
-                "GyroZ  : %f" "\n"
-                "\n",
-                packet.QuatX,
-                packet.QuatY,
-                packet.QuatZ,
-                packet.QuatS,
-                packet.MagX,
-                packet.MagY,
-                packet.MagZ,
-                packet.AccelX,
-                packet.AccelY,
-                packet.AccelZ,
-                packet.GyroX,
-                packet.GyroY,
-                packet.GyroZ
-            );
-        }
-
-        stlink_tx("OpenMV data:\n");
-
-        while (true)
-        {
-
-            SPIBlock* block = RingBuffer_reading_pointer(SPI_reception(SPIHandle_openmv));
-
-            if (block)
-            {
-
-                for (i32 i = 0; i < countof(*block); i += 1)
-                {
-                    stlink_tx(" 0x%02X", (*block)[i]);
-                }
-
-                if (!RingBuffer_pop(SPI_reception(SPIHandle_openmv), nullptr))
-                    sorry
-
-            }
-            else
-            {
-                break;
-            }
-
-        }
-
-        stlink_tx("\n\n");
-
         spinlock_us(100'000);
+
     }
 }
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
-//
-// Handle VN-100.
-//
 
 
 
-#if 0 // TODO.
-
-/* TODO: FREERTOS_TASK */ (vn100, 2048, 0)
+static useret b32
+diagnostics_delay_ms(u32* current_flags, u32 milliseconds)
 {
 
-    for (;;)
-    {
+    u32 new_flags = 0;
 
-        // Get the payload.
-
-        u8  payload_buffer[256]      = {0};
-        i32 payload_length           = 0;
-        i32 checksum_indicator_index = 0;
-
-        while (true)
-        {
-
-            u8 data = {0};
-            while (!UXART_rx(UXARTHandle_vn100_esp32, &data));
-
-            if (implies(payload_length == 0, data == '$'))
-            {
-                payload_buffer[payload_length]  = data;
-                payload_length                 += 1;
-
-                if (payload_length == countof(payload_buffer))
-                {
-
-                    // Ran out of buffer space.
-                    // Could be due to corrupt message
-                    // where we didn't find the checksum indicator.
-
-                    checksum_indicator_index = 0; // It'll be invalid to try to read the checksum.
-
-                    break;
-
-                }
-                else if (checksum_indicator_index && payload_length == checksum_indicator_index + 3)
-                {
-                    break; // We reached the end of the VN-100 register read payload.
-                }
-                else if (data == '*')
-                {
-                    checksum_indicator_index = payload_length - 1;
-                }
-            }
-
-        }
-
-
-
-        // Verify payload integrity. TODO Cite.
-
-        u8 expected_checksum = 0;
-        for
+    BaseType_t got_notification =
+        xTaskNotifyWait
         (
-            i32 i = 1;
-            i < checksum_indicator_index;
-            i += 1
-        )
+            0,
+            (u32) -1, // Immediately acknowledge the new diagnostics.
+            (uint32_t*) &new_flags,
+            0
+        );
+
+    enum DiagnosticMask old_diagnostic = *current_flags & -*current_flags;
+
+    if (got_notification)
+    {
+        *current_flags |= new_flags; // Add the new diagnostics to the list of existing ones to process.
+    }
+
+    enum DiagnosticMask new_diagnostic = *current_flags & -*current_flags;
+
+    if (new_diagnostic == old_diagnostic)
+    {
+
+        // Although `xTaskNotifyWait` has a time-out argument that could be used
+        // as a delay that can also be interrupted early when there's a notification,
+        // it's possible that a task set the same diagnostic repeatedly over and
+        // over again to which a delay never really happens. By using a regular
+        // task delay here, we're making things slightly less responsive because
+        // the delay won't allow for the `diagnostics` task to handle a new
+        // diagnostic of higher priority, but since this is literally just for
+        // diagnostics, it's okay.
+
+        FREERTOS_delay_ms(milliseconds);
+
+        return false;
+
+    }
+    else
+    {
+        return true; // There's a new diagnostic of higher priority that we should handle.
+    }
+
+}
+
+FREERTOS_TASK(diagnostics, 512, 1)
+{
+
+    u32 current_flags = 0;
+
+    for (;;)
+    {
+
+        if (!current_flags)
         {
-            expected_checksum ^= payload_buffer[i];
+            while (true) // Wait until we get a diagnostic to handle.
+            {
+                if (diagnostics_delay_ms(&current_flags, 100))
+                {
+                    break;
+                }
+            }
         }
 
-        u32 received_checksum =
-            ((payload_buffer[checksum_indicator_index + 1] - (u32) '0') << 4) |
-            ((payload_buffer[checksum_indicator_index + 2] - (u32) '0') << 0);
+        enum DiagnosticMask current_diagnostic = current_flags & -current_flags;
 
-        b32 checksum_valid = expected_checksum == received_checksum;
-
-        if (!checksum_valid)
-        {
-            stlink_tx("Bad checksum! `%.*s` (expected 0x%02X)\n", countof(payload_buffer), payload_buffer, expected_checksum);
-        }
-
-
-
-        // Parse the VN-100 payload.
-
-        else
+        switch (current_diagnostic)
         {
 
-            struct VN100Packet packet               = {0};
-            b32                valid_packet         = true;
-            i32                field_position_index = 0;
-            i32                field_start_index    = 0;
-            i32                field_length         = 0;
-
-            while (true)
+            case DiagnosticMask_stepper_driver_issue:
             {
 
-                b32 found_comma = payload_buffer[field_start_index + field_length] == ',';
-                b32 reached_end = field_start_index + field_length >= checksum_indicator_index;
+                BUZZER_play(BuzzerTune_ambulance);
 
-                if (found_comma || reached_end)
+                while (BUZZER_current_tune())
                 {
 
-                    // Magic starting token.
+                    GPIO_TOGGLE  (led_channel_red  );
+                    GPIO_INACTIVE(led_channel_green);
+                    GPIO_INACTIVE(led_channel_blue );
 
-                    if (field_position_index == 0)
+                    if (diagnostics_delay_ms(&current_flags, 25))
                     {
-                        valid_packet =
-                            !strncmp
-                            (
-                                (char*) (payload_buffer + field_start_index),
-                                "$VNRRG",
-                                (u32) field_length
-                            );
-                    }
-
-
-
-                    // Register ID.
-
-                    else if (field_position_index == 1)
-                    {
-                        valid_packet =
-                            !strncmp
-                            (
-                                (char*) (payload_buffer + field_start_index),
-                                "15",
-                                (u32) field_length
-                            );
-                    }
-
-
-
-                    // Field values of the register.
-
-                    else if (field_position_index - 2 < sizeof(struct VN100Packet) / sizeof(f32))
-                    {
-
-                        // Parse the field as a float, if possible.
-
-                        f32 parsed_value   = 0.0f;
-                        b32 negative       = false;
-                        f32 decimal_factor = {0};
-
-                        for
-                        (
-                            i32 index = 0;
-                            index < field_length && valid_packet;
-                            index += 1
-                        )
-                        {
-                            if (payload_buffer[field_start_index + index] == '+' && index == 0)
-                            {
-                                negative = false;
-                            }
-                            else if (payload_buffer[field_start_index + index] == '-' && index == 0)
-                            {
-                                negative = true;
-                            }
-                            else if (payload_buffer[field_start_index + index] == '.' && !decimal_factor)
-                            {
-                                decimal_factor = 0.1f;
-                            }
-                            else if ('0' <= payload_buffer[field_start_index + index] && payload_buffer[field_start_index + index] <= '9')
-                            {
-                                f32 digit = (f32) (payload_buffer[field_start_index + index] - '0');
-
-                                if (decimal_factor)
-                                {
-                                    parsed_value   += decimal_factor * digit;
-                                    decimal_factor *= 0.1f;
-                                }
-                                else
-                                {
-                                    parsed_value = parsed_value * 10.0f + digit;
-                                }
-                            }
-                            else
-                            {
-                                valid_packet = false;
-                            }
-                        }
-
-                        if (valid_packet)
-                        {
-
-                            if (negative)
-                            {
-                                parsed_value = -parsed_value;
-                            }
-
-                            ((f32*) &packet)[field_position_index - 2] = parsed_value;
-
-                        }
-
-                    }
-
-
-
-                    // Extraneous fields...
-
-                    else
-                    {
-                        valid_packet = false;
-                    }
-
-
-
-                    if (!valid_packet)
-                    {
-                        break; // Abort parsing the received data.
-                    }
-                    else if (reached_end)
-                    {
-                        break; // No more data to process.
-                    }
-                    else // Move onto next field.
-                    {
-                        field_position_index += 1;
-                        field_start_index    += field_length + 1; // +1 to skip the comma.
-                        field_length          = 0;
+                        goto END_OF_DIAGNOSTIC;
                     }
 
                 }
-                else
+
+            } break;
+
+            case DiagnosticMask_angular_velocity_saturated:
+            {
+
+                BUZZER_play(BuzzerTune_heartbeat);
+
+                while (BUZZER_current_tune())
                 {
-                    field_length += 1;
+
+                    GPIO_TOGGLE  (led_channel_red  );
+                    GPIO_INACTIVE(led_channel_green);
+                    GPIO_INACTIVE(led_channel_blue );
+
+                    if (diagnostics_delay_ms(&current_flags, 500))
+                    {
+                        goto END_OF_DIAGNOSTIC;
+                    }
                 }
 
-            }
+            } break;
 
-            if (!valid_packet)
-            {
-                // Something was wrong with the received VN-100 payload...
-            }
-            else if (!RingBuffer_push(&VN100_ring_buffer, &packet))
-            {
-                // VN-100 data overrun!
-            }
+            default: sorry
 
         }
+
+        END_OF_DIAGNOSTIC:;
+
+        current_flags &= ~current_diagnostic; // Acknowledge the completion of the diagnostic.
+
+        GPIO_INACTIVE(led_channel_red  );
+        GPIO_INACTIVE(led_channel_green);
+        GPIO_INACTIVE(led_channel_blue );
 
     }
 
 }
 
-#endif
-
 
 
 ////////////////////////////////////////////////////////////////////////////////
-//
-// Handle ESP32 payload transmission.
-//
 
 
 
-#if 0 // TODO.
-
-/* TODO: FREERTOS_TASK */ (esp32, 2048, 0)
+FREERTOS_TASK(watchdog, 512, 2)
 {
     for (;;)
     {
 
-        struct PacketESP32 payload =
-            {
-                .magnetometer_x                          = 3.1f,
-                .magnetometer_y                          = 3.2f,
-                .magnetometer_z                          = 3.3f,
-                .image_chunk                             = { 'M', 'E', 'O', 'W', '!', '?' },
-                .nonredundant.quaternion_i               = 0.1f,
-                .nonredundant.quaternion_j               = 0.2f,
-                .nonredundant.quaternion_k               = 0.3f,
-                .nonredundant.quaternion_r               = 0.4f,
-                .nonredundant.accelerometer_x            = 1.1f,
-                .nonredundant.accelerometer_y            = 1.2f,
-                .nonredundant.accelerometer_z            = 1.3f,
-                .nonredundant.gyro_x                     = 2.1f,
-                .nonredundant.gyro_y                     = 2.2f,
-                .nonredundant.gyro_z                     = 2.3f,
-                .nonredundant.computer_vision_confidence = -1.0f,
-                .nonredundant.timestamp_ms               = 0,
-                .nonredundant.sequence_number            = 0,
-                .nonredundant.crc                        = 0x00,
-            };
-
-        payload.nonredundant.crc = ESP32_calculate_crc((u8*) &payload, sizeof(payload) - sizeof(payload.nonredundant.crc));
-
-        UXART_tx_bytes(UXARTHandle_vn100_esp32, (u8*) &(u16) { PACKET_ESP32_START_TOKEN }, sizeof(u16));
-        UXART_tx_bytes(UXARTHandle_vn100_esp32, (u8*) &payload, sizeof(payload));
-
-    }
-}
-
-#endif
+        FREERTOS_delay_ms(1000);
 
 
 
-////////////////////////////////////////////////////////////////////////////////
-//
-// Handle vehicle interface.
-//
+        // TODO Check if we've been able to control the stepper driver.
+        // TODO Check if we've been receiving OpenMV data.
+        // TODO Check if we've been receiving VN-100 data.
+        // TODO Check if ESP32 still working.
 
 
 
-INTERRUPT_I2Cx_vehicle_interface(enum I2CSlaveCallbackEvent event, u8* data)
-{
+        // To prevent the vehicle from being perpetually on forever
+        // and drain the batteries empty, we turn ourselves off automatically.
 
-    sorry
-
-    #if 0 // TODO.
-    {
-        static b32 payload_has_valid_data = false;
-
-        switch (event)
+        #if AUTOMATIC_SHUTDOWN_TIME_US > 0
         {
-
-            // No sense in having main send data to the vehicle.
-
-            case I2CSlaveCallbackEvent_data_available_to_read:
-            {
-                // Don't care.
-            } break;
-
-
-
-            // Send next byte of the vehicle interface payload over.
-
-            case I2CSlaveCallbackEvent_ready_to_transmit_data:
+            if (TIMEKEEPING_microseconds() >= AUTOMATIC_SHUTDOWN_TIME_US)
             {
 
-                // Prepare the payload.
+                // Indicate that this is why the vehicle is suddenly shut off.
 
-                static i32                            byte_index = 0;
-                static struct VehicleInterfacePayload payload    = {0};
-
-                if (!payload_has_valid_data)
-                {
-
-                    byte_index = 0;
-
-                    payload =
-                        (struct VehicleInterfacePayload)
-                        {
-                            .timestamp_us = (u16) TIMEKEEPING_microseconds(),
-                            .flags        = 0, // TODO.
-                        };
-
-                    payload.crc =
-                        VEHICLE_INTERFACE_calculate_crc
-                        (
-                            (u8*) &payload,
-                            sizeof(payload) - sizeof(payload.crc)
-                        );
-
-                    payload_has_valid_data = true;
-
-                }
+                BUZZER_play(BuzzerTune_sleeping);
+                while (BUZZER_current_tune());
 
 
 
-                // Prepare next byte.
+                // Try cut off battery power.
 
-                if (byte_index < sizeof(payload))
-                {
-                    *data = ((u8*) &payload)[byte_index];
-                }
-                else
-                {
-                    *data = 0xFF; // Garbage.
-                }
-
-                byte_index += 1;
-
-            } break;
+                GPIO_INACTIVE(battery_allowed);
+                spinlock_us(1'000'000);
 
 
+                // If we're still alive by this point, then
+                // there's probably external power or something,
+                // to which we'll just do a software reset.
 
-            // TODO
+                WARM_RESET();
 
-            case I2CSlaveCallbackEvent_stop_signaled:
-            case I2CSlaveCallbackEvent_transmission_initiated:
-            case I2CSlaveCallbackEvent_reception_initiated:
-            case I2CSlaveCallbackEvent_transmission_repeated:
-            case I2CSlaveCallbackEvent_reception_repeated:
-            {
-                payload_has_valid_data = false;
-            } break;
-
-
-            case I2CSlaveCallbackEvent_bus_misbehaved : sorry // TODO.
-            case I2CSlaveCallbackEvent_watchdog_expired : sorry // TODO.
-
-            case I2CSlaveCallbackEvent_clock_stretch_timeout : sorry
-            case I2CSlaveCallbackEvent_bug                   : sorry
-            default                                          : sorry
-
+            }
         }
-    }
-    #endif
+        #endif
 
+    }
 }

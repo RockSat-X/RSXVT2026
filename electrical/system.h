@@ -335,6 +335,7 @@ static_assert(configMAX_SYSCALL_INTERRUPT_PRIORITY <= 255);
                 static noret void   {task.name}(void*);
                 static StackType_t  {task.name}_stack[{task.stack_size} / sizeof(StackType_t)] = {{0}};
                 static StaticTask_t {task.name}_buffer = {{0}};
+                static TaskHandle_t {task.name}_handle = {{0}};
             ''')
 
 
@@ -348,7 +349,7 @@ static_assert(configMAX_SYSCALL_INTERRUPT_PRIORITY <= 255);
 
             for task in tasks:
                 Meta.line(f'''
-                    TaskHandle_t {task.name}_handle =
+                    {task.name}_handle =
                         xTaskCreateStatic
                         (
                             {task.name},

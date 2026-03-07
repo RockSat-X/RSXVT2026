@@ -889,12 +889,12 @@ TARGETS = ( # @/`Defining Targets`.
             ('USART2' , 0),
             ('SDMMC1' , 1),
             ('USART1' , 1),
-            ('USART3' , 1),
-            ('I2C3_EV', 1),
-            ('I2C3_ER', 1),
+            # TODO: ('USART3' , 1),
+            # TODO: ('I2C3_EV', 1),
+            # TODO: ('I2C3_ER', 1),
             ('TIM1_UP', 2),
             ('TIM8_UP', 3),
-            ('SPI2'   , 4),
+            # TODO: ('SPI2'   , 4),
         ),
 
         drivers = (
@@ -915,19 +915,21 @@ TARGETS = ( # @/`Defining Targets`.
                 'handle'     : 'stepper_uart',
                 'mode'       : 'half_duplex',
             },
-            {
-                'type'       : 'UXART',
-                'peripheral' : 'USART3',
-                'handle'     : 'vn100_esp32',
-                'mode'       : 'full_duplex',
-            },
-            {
-                'type'       : 'I2C',
-                'peripheral' : 'I2C3',
-                'handle'     : 'vehicle_interface',
-                'mode'       : 'slave',
-                'address'    : VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS,
-            },
+            # TODO.
+            # {
+            #     'type'       : 'UXART',
+            #     'peripheral' : 'USART3',
+            #     'handle'     : 'vn100_esp32',
+            #     'mode'       : 'full_duplex',
+            # },
+            # TODO.
+            # {
+            #     'type'       : 'I2C',
+            #     'peripheral' : 'I2C3',
+            #     'handle'     : 'vehicle_interface',
+            #     'mode'       : 'slave',
+            #     'address'    : VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS,
+            # },
             {
                 'type'                         : 'Stepper',
                 'uxart_handle'                 : 'stepper_uart',
@@ -944,11 +946,12 @@ TARGETS = ( # @/`Defining Targets`.
                 'type'       : 'TIMEKEEPING',
                 'peripheral' : 'TIM2',
             },
-            {
-                'type'       : 'SPI',
-                'peripheral' : 'SPI2',
-                'handle'     : 'openmv',
-            },
+            # TODO.
+            # {
+            #     'type'       : 'SPI',
+            #     'peripheral' : 'SPI2',
+            #     'handle'     : 'openmv',
+            # },
         ),
 
         use_freertos    = True,
@@ -969,10 +972,10 @@ TARGETS = ( # @/`Defining Targets`.
             'SDMMC1_INITIAL_BAUD' :   100_000,
             'SDMMC1_FULL_BAUD'    : 1_000_000,
             'USART1_BAUD'         :   200_000,
-            'USART3_BAUD'         : VN100_ESP32_BAUD,
-            'I2C3_BAUD'           : VEHICLE_INTERFACE_BAUD,
-            'I2C3_TIMEOUT'        : 2,
-            'SPI2_BAUD'           : 600_000, # @/`OpenMV SPI Baud`.
+            # TODO: 'USART3_BAUD'         : VN100_ESP32_BAUD,
+            # TODO: 'I2C3_BAUD'           : VEHICLE_INTERFACE_BAUD,
+            # TODO: 'I2C3_TIMEOUT'        : 2,
+            # TODO: 'SPI2_BAUD'           : 600_000, # @/`OpenMV SPI Baud`.
             'TIM1_UPDATE_RATE'    : 1 / 0.001,
             'TIM2_COUNTER_RATE'   : 1_000_000,
             'TIM8_COUNTER_RATE'   : 1_000_000,

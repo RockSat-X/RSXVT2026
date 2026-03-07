@@ -1,7 +1,18 @@
-#define STEPPER_ENABLE_DELAY_US     500'000 // @/`Stepper Enable Delay`.
-#define STEPPER_VELOCITY_UPDATE_US   25'000 // @/`Stepper Updating Velocity`.
-#define STEPPER_UART_TIME_MARGIN_US   2'000 // @/`Stepper UART Time Margin Window`.
-#define STEPPER_RING_BUFFER_LENGTH        8 // @/`Stepper Ring-Buffer Length`.
+#ifndef STEPPER_ENABLE_DELAY_US
+#error "Please define `STEPPER_ENABLE_DELAY_US`! See @/`Stepper Enable Delay`."
+#endif
+
+#ifndef STEPPER_VELOCITY_UPDATE_US
+#error "Please define `STEPPER_VELOCITY_UPDATE_US`! See @/`Stepper Updating Velocity`."
+#endif
+
+#ifndef STEPPER_UART_TIME_MARGIN_US
+#error "Please define `STEPPER_UART_TIME_MARGIN_US`! See @/`Stepper UART Time Margin Window`."
+#endif
+
+#ifndef STEPPER_RING_BUFFER_LENGTH
+#error "Please define `STEPPER_RING_BUFFER_LENGTH`! See @/`Stepper Ring-Buffer Length`."
+#endif
 
 enum StepperMicrostepResolution : u32 // @/pg 33/tbl 5.5.1/`TMC2209`.
 {
@@ -104,7 +115,10 @@ static_assert(STEPPER_ENABLE_DELAY_US     % STEPPER_UPDATE_EVENT_PERIOD_US == 0)
 static_assert(STEPPER_VELOCITY_UPDATE_US  % STEPPER_UPDATE_EVENT_PERIOD_US == 0);
 static_assert(STEPPER_UART_TIME_MARGIN_US % STEPPER_UPDATE_EVENT_PERIOD_US == 0);
 
-typedef f32 StepperAngularVelocities[StepperUnit_COUNT];
+struct StepperTuple
+{
+    f32 values[StepperUnit_COUNT];
+};
 
 enum StepperUARTState : u32
 {
@@ -132,14 +146,14 @@ enum StepperDriverState : u32
 struct StepperDriver
 {
 
-    volatile _Atomic enum StepperDriverState                         atomic_state;
-    u32                                                              current_timestamp_us;
-    enum StepperUnit                                                 current_unit;
-    u8                                                               uart_write_sequence_numbers[StepperUnit_COUNT];
-    RingBuffer(StepperAngularVelocities, STEPPER_RING_BUFFER_LENGTH) queued_angular_velocities;
-    i32                                                              initialization_sequence_index;
-    u32                                                              most_recent_angular_velocity_update_timestamp_us;
-    u32                                                              most_recent_uart_transfer_timestamp_us;
+    volatile _Atomic enum StepperDriverState                    atomic_state;
+    u32                                                         current_timestamp_us;
+    enum StepperUnit                                            current_unit;
+    u8                                                          uart_write_sequence_numbers[StepperUnit_COUNT];
+    RingBuffer(struct StepperTuple, STEPPER_RING_BUFFER_LENGTH) queued_angular_velocities;
+    i32                                                         initialization_sequence_index;
+    u32                                                         most_recent_angular_velocity_update_timestamp_us;
+    u32                                                         most_recent_uart_transfer_timestamp_us;
 
     struct StepperUART
     {
@@ -241,7 +255,7 @@ static useret enum StepperPushAngularVelocitiesResult : u32
     StepperPushAngularVelocitiesResult_bad_response_from_unit,
     StepperPushAngularVelocitiesResult_bug = BUG_CODE,
 }
-STEPPER_push_angular_velocities(StepperAngularVelocities* angular_velocities)
+STEPPER_push_angular_velocities(struct StepperTuple* angular_velocities)
 {
 
     enum StepperDriverState observed_state =
@@ -523,12 +537,12 @@ _STEPPER_update_driver_once(void)
             case StepperDriverState_updating_angular_velocities:
             {
 
-                StepperAngularVelocities* angular_velocities = RingBuffer_reading_pointer(&_STEPPER_driver.queued_angular_velocities);
+                struct StepperTuple* angular_velocities = RingBuffer_reading_pointer(&_STEPPER_driver.queued_angular_velocities);
 
                 if (!angular_velocities)
                     bug; // There should've been something queued...
 
-                f32 new_angular_velocity = (*angular_velocities)[_STEPPER_driver.current_unit];
+                f32 new_angular_velocity = angular_velocities->values[_STEPPER_driver.current_unit];
                 i32 vactual              = (i32) (new_angular_velocity / (2.0f * PI) * STEPPER_STEPS_PER_REVOLUTION); // @/`Stepper Microstepping and Step Velocity`.
 
                 _STEPPER_driver.uart =
