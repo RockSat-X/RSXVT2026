@@ -5,6 +5,7 @@
 #define AUTOMATIC_SHUTDOWN_TIME_US  0       // TODO Once finalized, we should use (10 * 60'000'000).
 #define MAX_ANGULAR_ACCELERATION    (200.0f)
 #define MAX_ANGULAR_VELOCITY        (2000.0f * 2.0f * PI / 60.0f)
+#define DEMONSTRATE_STEPPER         true
 
 #include "system.h"
 #include "timekeeping.c"
@@ -75,216 +76,249 @@ main(void)
 
 
 
-static volatile struct StepperTuple current_angular_accelerations = {0};                      // TODO Atomic?
-static volatile struct StepperTuple current_angular_velocities    = { { 1.0f, 1.0f, 1.0f } }; // TODO Atomic?
+static volatile struct StepperTuple current_angular_accelerations = {0};
+static volatile struct StepperTuple current_angular_velocities    = {0};
 
 FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 {
 
     STEPPER_reinit();
 
-    b32 replay_sequence_number = false;
+
+
+    // For diagnostic purposes, we immediately set angular velocities to
+    // something non-zero so we can easily tell if something is wrong.
+
+    #if DEMONSTRATE_STEPPER
+    {
+        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+        {
+            current_angular_velocities.values[unit] = 1.0f;
+        }
+    }
+    #endif
+
+
 
     for (;;)
     {
 
 
 
-        // Interpret user's input, if any.
+        // For demonstration and diagnostics purposes,
+        // we can directly control the stepper motors.
 
-        u8 input = {0};
-
-        if (stlink_rx(&input))
+        #if DEMONSTRATE_STEPPER
         {
 
-            switch (input)
+            // Interpret user's input, if any.
+
+            static b32 replay_sequence_number = false;
+
+            u8 input = {0};
+
+            if (stlink_rx(&input))
             {
 
-                case 'j':
+                switch (input)
                 {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        current_angular_accelerations.values[unit] -= 0.1f;
-                    }
-                } break;
 
-                case 'J':
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    case 'j':
                     {
-                        current_angular_accelerations.values[unit] -= 1.0f;
-                    }
-                } break;
+                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                        {
+                            current_angular_accelerations.values[unit] -= 0.1f;
+                        }
+                    } break;
 
-                case 'k':
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    case 'J':
                     {
-                        current_angular_accelerations.values[unit] += 0.1f;
-                    }
-                } break;
+                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                        {
+                            current_angular_accelerations.values[unit] -= 1.0f;
+                        }
+                    } break;
 
-                case 'K':
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    case 'k':
                     {
-                        current_angular_accelerations.values[unit] += 1.0f;
-                    }
-                } break;
+                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                        {
+                            current_angular_accelerations.values[unit] += 0.1f;
+                        }
+                    } break;
 
-                case '0':
+                    case 'K':
+                    {
+                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                        {
+                            current_angular_accelerations.values[unit] += 1.0f;
+                        }
+                    } break;
+
+                    case '0':
+                    {
+                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                        {
+                            current_angular_accelerations.values[unit] = 0.0f;
+                            current_angular_velocities   .values[unit] = 0.0f;
+                        }
+                    } break;
+
+                    case '<':
+                    {
+                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                        {
+                            current_angular_accelerations.values[unit] -= 200.0f;
+                        }
+                    } break;
+
+                    case '>':
+                    {
+                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                        {
+                            current_angular_accelerations.values[unit] += 200.0f;
+                        }
+                    } break;
+
+                    case '-':
+                    {
+                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                        {
+                            current_angular_accelerations.values[unit]  =  0.0f;
+                            current_angular_velocities   .values[unit] *= -1.0f;
+                        }
+                    } break;
+
+                    case 'x':
+                    {
+
+                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                        {
+                            current_angular_accelerations.values[unit] = 0.0f;
+                            current_angular_velocities   .values[unit] = 0.0f;
+                        }
+
+                        replay_sequence_number = 1; break;
+
+                    } break;
+
+                    default:
+                    {
+                        // Don't care.
+                    } break;
+
+                }
+
+            }
+
+
+
+            // If requested, we play back a sequence of angular accelerations for simulation purposes.
+
+            if (replay_sequence_number)
+            {
+
+                #include "SEQUENCE_ANGULAR_ACCELERATIONS.meta"
+                /* #meta
+
+                    import math
+
+                    def impulse(t, slope):
+
+                        try:
+                            u = math.e**(4 * slope * t)
+                            return (16 * u * (-1 + u) * slope**2) / (1 + u)**3
+                        except OverflowError:
+                            return 0
+
+                    IMPULSES = {
+                        'axis_x' : (
+                            (1 + 0 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                            (1 + 1 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                            (1 + 2 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                            (1 + 3 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                            (2 + 1       ,  0.25 * 2 * math.pi, 5 ),
+                            (2 + 2       ,  0.25 * 2 * math.pi, 5 ),
+                            (2 + 3       ,  0.25 * 2 * math.pi, 5 ),
+                            (2 + 4       ,  0.25 * 2 * math.pi, 5 ),
+                            (2 + 8       , -1.00 * 2 * math.pi, 10),
+                            (2 + 9       ,  1.00 * 2 * math.pi, 10),
+                            (2 + 10      ,  1.00 * 2 * math.pi, 10),
+                            (2 + 11      ,  1.00 * 2 * math.pi, 10),
+                            (2 + 12      ,  1.00 * 2 * math.pi, 10),
+                        ),
+                        'axis_y' : (
+                            (1 + 0 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                            (1 + 1 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                            (1 + 2 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                            (1 + 3 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                            (2 + 2       ,  0.25 * 2 * math.pi, 5 ),
+                            (2 + 3       ,  0.25 * 2 * math.pi, 5 ),
+                            (2 + 4       ,  0.25 * 2 * math.pi, 5 ),
+                            (2 + 5       ,  0.25 * 2 * math.pi, 5 ),
+                            (2 + 8       , -1.00 * 2 * math.pi, 10),
+                            (2 + 9       ,  1.00 * 2 * math.pi, 2 ),
+                            (2 + 12      , -1.00 * 2 * math.pi, 2 ),
+                        ),
+                        'axis_z' : (
+                            (1 + 0 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                            (1 + 1 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                            (1 + 2 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                            (1 + 3 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                            (2 + 3       ,  0.25 * 2 * math.pi, 5 ),
+                            (2 + 4       ,  0.25 * 2 * math.pi, 5 ),
+                            (2 + 5       ,  0.25 * 2 * math.pi, 5 ),
+                            (2 + 6       ,  0.25 * 2 * math.pi, 5 ),
+                            (2 + 8       , -1.00 * 2 * math.pi, 10),
+                            (2 + 9       ,  2.00 * 2 * math.pi, 2 ),
+                            (2 + 12      , -2.00 * 2 * math.pi, 2 ),
+                        ),
+                    }
+
+                    with Meta.enter('static const struct StepperTuple SEQUENCE_ANGULAR_ACCELERATIONS[] ='):
+
+                        DURATION = 16
+                        dt       = 0.025 # @/`Sequence Angular Accelerations Delta Time`: Coupled.
+
+                        for i in range(0, round(DURATION / dt)):
+
+                            t = i * dt
+
+                            Meta.line(f'''
+                                {{ {{ {', '.join(
+
+                                    f'[StepperUnit_{unit}] = {sum(impulse(t - center, slope) * radians for center, radians, slope in impulses) :12f}f'
+                                    for unit, impulses in IMPULSES.items()
+
+                                )} }} }}, // t = {t :f} s.
+                            ''')
+
+                */
+
+                current_angular_accelerations  = SEQUENCE_ANGULAR_ACCELERATIONS[replay_sequence_number - 1];
+                replay_sequence_number        += 1;
+                replay_sequence_number        %= countof(SEQUENCE_ANGULAR_ACCELERATIONS) + 1;
+
+                if (!replay_sequence_number)
                 {
                     for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
                     {
                         current_angular_accelerations.values[unit] = 0.0f;
                         current_angular_velocities   .values[unit] = 0.0f;
                     }
-                } break;
-
-                case '<':
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        current_angular_accelerations.values[unit] -= 200.0f;
-                    }
-                } break;
-
-                case '>':
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        current_angular_accelerations.values[unit] += 200.0f;
-                    }
-                } break;
-
-                case '-':
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        current_angular_accelerations.values[unit]  =  0.0f;
-                        current_angular_velocities   .values[unit] *= -1.0f;
-                    }
-                } break;
-
-                case 'x':
-                {
-
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        current_angular_accelerations.values[unit] = 0.0f;
-                        current_angular_velocities   .values[unit] = 0.0f;
-                    }
-
-                    replay_sequence_number = 1; break;
-
-                } break;
-
-                default:
-                {
-                    // Don't care.
-                } break;
+                }
 
             }
 
         }
+        #endif
 
 
 
-        // If requested, we play back a sequence of angular accelerations for simulation purposes.
+        // Perform GNC calculations.
 
-        if (replay_sequence_number)
         {
-
-            #include "SEQUENCE_ANGULAR_ACCELERATIONS.meta"
-            /* #meta
-
-                import math
-
-                def impulse(t, slope):
-
-                    try:
-                        u = math.e**(4 * slope * t)
-                        return (16 * u * (-1 + u) * slope**2) / (1 + u)**3
-                    except OverflowError:
-                        return 0
-
-                IMPULSES = {
-                    'axis_x' : (
-                        (1 + 0 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                        (1 + 1 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                        (1 + 2 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                        (1 + 3 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                        (2 + 1       ,  0.25 * 2 * math.pi, 5 ),
-                        (2 + 2       ,  0.25 * 2 * math.pi, 5 ),
-                        (2 + 3       ,  0.25 * 2 * math.pi, 5 ),
-                        (2 + 4       ,  0.25 * 2 * math.pi, 5 ),
-                        (2 + 8       , -1.00 * 2 * math.pi, 10),
-                        (2 + 9       ,  1.00 * 2 * math.pi, 10),
-                        (2 + 10      ,  1.00 * 2 * math.pi, 10),
-                        (2 + 11      ,  1.00 * 2 * math.pi, 10),
-                        (2 + 12      ,  1.00 * 2 * math.pi, 10),
-                    ),
-                    'axis_y' : (
-                        (1 + 0 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                        (1 + 1 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                        (1 + 2 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                        (1 + 3 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                        (2 + 2       ,  0.25 * 2 * math.pi, 5 ),
-                        (2 + 3       ,  0.25 * 2 * math.pi, 5 ),
-                        (2 + 4       ,  0.25 * 2 * math.pi, 5 ),
-                        (2 + 5       ,  0.25 * 2 * math.pi, 5 ),
-                        (2 + 8       , -1.00 * 2 * math.pi, 10),
-                        (2 + 9       ,  1.00 * 2 * math.pi, 2 ),
-                        (2 + 12      , -1.00 * 2 * math.pi, 2 ),
-                    ),
-                    'axis_z' : (
-                        (1 + 0 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                        (1 + 1 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                        (1 + 2 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                        (1 + 3 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                        (2 + 3       ,  0.25 * 2 * math.pi, 5 ),
-                        (2 + 4       ,  0.25 * 2 * math.pi, 5 ),
-                        (2 + 5       ,  0.25 * 2 * math.pi, 5 ),
-                        (2 + 6       ,  0.25 * 2 * math.pi, 5 ),
-                        (2 + 8       , -1.00 * 2 * math.pi, 10),
-                        (2 + 9       ,  2.00 * 2 * math.pi, 2 ),
-                        (2 + 12      , -2.00 * 2 * math.pi, 2 ),
-                    ),
-                }
-
-                with Meta.enter('static const struct StepperTuple SEQUENCE_ANGULAR_ACCELERATIONS[] ='):
-
-                    DURATION = 16
-                    dt       = 0.025 # @/`Sequence Angular Accelerations Delta Time`: Coupled.
-
-                    for i in range(0, round(DURATION / dt)):
-
-                        t = i * dt
-
-                        Meta.line(f'''
-                            {{ {{ {', '.join(
-
-                                f'[StepperUnit_{unit}] = {sum(impulse(t - center, slope) * radians for center, radians, slope in impulses) :12f}f'
-                                for unit, impulses in IMPULSES.items()
-
-                            )} }} }}, // t = {t :f} s.
-                        ''')
-
-            */
-
-            current_angular_accelerations  = SEQUENCE_ANGULAR_ACCELERATIONS[replay_sequence_number - 1];
-            replay_sequence_number        += 1;
-            replay_sequence_number        %= countof(SEQUENCE_ANGULAR_ACCELERATIONS) + 1;
-
-            if (!replay_sequence_number)
-            {
-                for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                {
-                    current_angular_accelerations.values[unit] = 0.0f;
-                    current_angular_velocities   .values[unit] = 0.0f;
-                }
-            }
-
+            // TODO.
         }
 
 
@@ -341,7 +375,9 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 
         // Indicate that the max angular velocity has been reached.
 
-        GPIO_SET(led_channel_red, max_angular_velocity_reached);
+        GPIO_SET(led_channel_red  , max_angular_velocity_reached);
+        GPIO_SET(led_channel_green, false);
+        GPIO_SET(led_channel_blue , false);
 
         if (!max_angular_velocity_has_already_been_reached && max_angular_velocity_reached)
         {
