@@ -167,11 +167,14 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
             enum StepperPushAngularVelocitiesResult result =
                 STEPPER_push_angular_velocities
                 (
-                    &(StepperAngularVelocities)
+                    &(struct StepperTuple)
                     {
-                        [StepperUnit_axis_x] = current_angular_velocity,
-                        [StepperUnit_axis_y] = current_angular_velocity,
-                        [StepperUnit_axis_z] = current_angular_velocity,
+                        .values =
+                            {
+                                [StepperUnit_axis_x] = current_angular_velocity,
+                                [StepperUnit_axis_y] = current_angular_velocity,
+                                [StepperUnit_axis_z] = current_angular_velocity,
+                            }
                     }
                 );
 
