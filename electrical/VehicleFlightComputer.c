@@ -189,6 +189,11 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
                         }
                     } break;
 
+                    case 'b':
+                    {
+                        GPIO_TOGGLE(battery_allowed);
+                    } break;
+
                     case 'x':
                     {
 
