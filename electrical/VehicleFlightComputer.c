@@ -4,7 +4,7 @@
 #define STEPPER_RING_BUFFER_LENGTH  8       // TODO Determine latency.
 #define AUTOMATIC_SHUTDOWN_TIME_US  0       // TODO Once finalized, we should use (10 * 60'000'000).
 #define MAX_ANGULAR_ACCELERATION    (200.0f)
-#define MAX_ANGULAR_VELOCITY        (200.0f * 2.0f * PI / 60.0f)
+#define MAX_ANGULAR_VELOCITY        (2000.0f * 2.0f * PI / 60.0f)
 #define DEMONSTRATE_STEPPER         true
 
 #include "system.h"
