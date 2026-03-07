@@ -1,8 +1,8 @@
 #define STEPPER_ENABLE_DELAY_US     500'000
 #define STEPPER_VELOCITY_UPDATE_US   25'000 // @/`Sequence Angular Accelerations Delta Time`.
 #define STEPPER_UART_TIME_MARGIN_US   2'000
-#define STEPPER_RING_BUFFER_LENGTH  8
-#define AUTOMATIC_SHUTDOWN_TIME_US  0 // TODO Once finalized, we should use (10 * 60'000'000).
+#define STEPPER_RING_BUFFER_LENGTH  8       // TODO Determine latency.
+#define AUTOMATIC_SHUTDOWN_TIME_US  0       // TODO Once finalized, we should use (10 * 60'000'000).
 #define MAX_ANGULAR_ACCELERATION    (200.0f)
 #define MAX_ANGULAR_VELOCITY        (2000.0f * 2.0f * PI / 60.0f)
 
@@ -75,7 +75,7 @@ main(void)
 
 
 
-static volatile struct StepperTuple current_angular_accelerations = {0};                  // TODO Atomic?
+static volatile struct StepperTuple current_angular_accelerations = {0};                      // TODO Atomic?
 static volatile struct StepperTuple current_angular_velocities    = { { 1.0f, 1.0f, 1.0f } }; // TODO Atomic?
 
 FREERTOS_TASK(stepper_motor_controller, 1024, 0)
@@ -395,6 +395,8 @@ FREERTOS_TASK(logger, 2048, 0)
     for (;;)
     {
 
+        // TODO Optional SD card logging.
+
         stlink_tx
         (
             "Angular acceleration : <%.3f, %.3f, %.3f>" "\n"
@@ -431,12 +433,19 @@ FREERTOS_TASK(watchdog, 512, 1)
         FREERTOS_delay_ms(1000);
 
 
+
+        // TODO Check if we've been able to control the stepper driver.
+        // TODO Check if we've been receiving OpenMV data.
+        // TODO Check if we've been receiving VN-100 data.
+        // TODO Check if ESP32 still working.
+
+
+
+        // To prevent the vehicle from being perpetually on forever
+        // and drain the batteries empty, we turn ourselves off automatically.
+
         #if AUTOMATIC_SHUTDOWN_TIME_US > 0
         {
-
-            // To prevent the vehicle from being perpetually on forever
-            // and drain the batteries empty, we turn ourselves off automatically.
-
             if (TIMEKEEPING_microseconds() >= AUTOMATIC_SHUTDOWN_TIME_US)
             {
 
@@ -460,7 +469,6 @@ FREERTOS_TASK(watchdog, 512, 1)
                 WARM_RESET();
 
             }
-
         }
         #endif
 
