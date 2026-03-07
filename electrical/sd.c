@@ -27,7 +27,10 @@
 
 */
 
-typedef u8 Sector[512] __attribute__ ((aligned(4))); // Alignment of 32-bit words because things like SDMMC's IDMA assume this.
+struct Sector
+{
+    u8 bytes[512] __attribute__ ((aligned(4))); // Alignment of 32-bit words because things like SDMMC's IDMA assume this.
+};
 
 enum SDDriverState : u32
 {
@@ -68,12 +71,12 @@ struct SDDoJob
 {
     struct
     {
-        enum SDHandle handle;
-        b16           writing;
-        b16           consecutive_caching; // @/`SD Consecutive Caching`.
-        u32           address;
-        Sector*       sector; // Must be 32-bit word aligned.
-        i32           count;
+        enum SDHandle  handle;
+        b16            writing;
+        b16            consecutive_caching; // @/`SD Consecutive Caching`.
+        u32            address;
+        struct Sector* sector; // Must be 32-bit word aligned.
+        i32            count;
     };
     struct
     {
@@ -95,7 +98,7 @@ struct SDDriver
         b16                                    writing;
         b16                                    consecutive_caching;
         u32                                    address;
-        Sector*                                sector;
+        struct Sector*                         sector;
         i32                                    count;
     } job;
 
@@ -509,12 +512,12 @@ SD_do(struct SDDoJob* job)
         {
             if (job->writing)
             {
-                _SD_profiler.amount_of_bytes_successfully_written += sizeof(Sector) * job->count;
+                _SD_profiler.amount_of_bytes_successfully_written += sizeof(struct Sector) * job->count;
                 _SD_profiler.amount_of_time_writing_us            += elapsed_us;
             }
             else
             {
-                _SD_profiler.amount_of_bytes_successfully_read += sizeof(Sector) * job->count;
+                _SD_profiler.amount_of_bytes_successfully_read += sizeof(struct Sector) * job->count;
                 _SD_profiler.amount_of_time_reading_us         += elapsed_us;
             }
         }
@@ -934,7 +937,7 @@ _SD_update_once(enum SDHandle handle)
                                     .argument                 = driver->job.address,
                                     .total_blocks_to_transfer = total_blocks_to_transfer,
                                     .bytes_per_block          = sizeof(*driver->job.sector),
-                                    .data_block_pointer       = *driver->job.sector,
+                                    .data_block_pointer       = driver->job.sector->bytes,
                                     .data_block_count         = driver->job.count,
                                     .rca                      = driver->initer.rca,
                                 };
@@ -1066,7 +1069,7 @@ _SD_update_once(enum SDHandle handle)
                         if (should_process_job)
                         {
 
-                            driver->cmder.data_block_pointer = *driver->job.sector;
+                            driver->cmder.data_block_pointer = driver->job.sector->bytes;
                             driver->cmder.data_block_count   = driver->job.count;
 
                             atomic_store_explicit

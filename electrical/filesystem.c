@@ -35,7 +35,7 @@
 #define FF_FS_LOCK         false // Whether or not locks should be implemented to ensure consistent file operations.
 #define FF_FS_REENTRANT    false // Whether or not FatFs should consider reentrancy of common file operations.
 
-static_assert(FF_MIN_SS == FF_MAX_SS && FF_MIN_SS == sizeof(Sector));
+static_assert(FF_MIN_SS == FF_MAX_SS && FF_MIN_SS == sizeof(struct Sector));
 
 
 
@@ -348,7 +348,7 @@ FILESYSTEM_disk_transfer_implementation(BYTE pdrv, const BYTE* buff, LBA_t secto
             .handle              = (enum SDHandle) { 0 }, // We're assuming the first SD driver handle.
             .writing             = !!writing,
             .consecutive_caching = true,
-            .sector              = (Sector*) buff,
+            .sector              = (struct Sector*) buff,
             .address             = sector,
             .count               = (i32) count,
         };
@@ -665,7 +665,7 @@ static useret enum FileSystemReinitResult : u32
     FileSystemReinitResult_fatfs_internal_error,
     FileSystemReinitResult_bug = BUG_CODE,
 }
-FILESYSTEM_reinit_(enum SDHandle sd_handle, Sector* formatting_sector_buffer, i32 formatting_sector_count)
+FILESYSTEM_reinit_(enum SDHandle sd_handle, struct Sector* formatting_sector_buffer, i32 formatting_sector_count)
 {
 
     if (sd_handle != (enum SDHandle) {0})
@@ -922,7 +922,7 @@ FILESYSTEM_reinit_(enum SDHandle sd_handle, Sector* formatting_sector_buffer, i3
 }
 
 static useret enum FileSystemReinitResult
-FILESYSTEM_reinit(enum SDHandle sd_handle, Sector* formatting_sector_buffer, i32 formatting_sector_count)
+FILESYSTEM_reinit(enum SDHandle sd_handle, struct Sector* formatting_sector_buffer, i32 formatting_sector_count)
 {
 
 
@@ -967,7 +967,7 @@ static useret enum FileSystemSaveResult : u32
     FileSystemSaveResult_fatfs_internal_error,
     FileSystemSaveResult_bug = BUG_CODE,
 }
-FILESYSTEM_save_(enum SDHandle sd_handle, Sector* data, i32 count)
+FILESYSTEM_save_(enum SDHandle sd_handle, struct Sector* data, i32 count)
 {
 
     if (sd_handle != (enum SDHandle) {0})
@@ -1068,7 +1068,7 @@ FILESYSTEM_save_(enum SDHandle sd_handle, Sector* data, i32 count)
 }
 
 static useret enum FileSystemSaveResult
-FILESYSTEM_save(enum SDHandle sd_handle, Sector* data, i32 count)
+FILESYSTEM_save(enum SDHandle sd_handle, struct Sector* data, i32 count)
 {
 
 
