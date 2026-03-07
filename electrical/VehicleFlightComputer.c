@@ -22,6 +22,18 @@
 
 
 
+enum DiagnosticMask : u32 // Lower the bit-index, higher the priority.
+{
+    DiagnosticMask_stepper_driver_issue       = 1 << 0,
+    DiagnosticMask_angular_velocity_saturated = 1 << 1,
+};
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
 extern noret void
 main(void)
 {
@@ -330,8 +342,7 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 
         // Update each stepper unit's angular velocities.
 
-        b32 max_angular_velocity_has_already_been_reached = false;
-        b32 max_angular_velocity_reached                  = false;
+        b32 max_angular_velocity_reached = false;
 
         for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
         {
@@ -352,10 +363,6 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 
 
             // Find new angular velocity.
-
-            max_angular_velocity_has_already_been_reached |=
-                current_angular_velocities.values[unit] >=  MAX_ANGULAR_VELOCITY ||
-                current_angular_velocities.values[unit] <= -MAX_ANGULAR_VELOCITY;
 
             current_angular_velocities.values[unit] += current_angular_accelerations.values[unit] * (f32) STEPPER_VELOCITY_UPDATE_US / 1'000'000.0f;
 
@@ -378,15 +385,17 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 
 
 
-        // Indicate that the max angular velocity has been reached.
+        // Indicate if a stepper motor has reached saturation;
+        // shouldn't really happen in practice.
 
-        GPIO_SET(led_channel_red  , max_angular_velocity_reached);
-        GPIO_SET(led_channel_green, false);
-        GPIO_SET(led_channel_blue , false);
-
-        if (!max_angular_velocity_has_already_been_reached && max_angular_velocity_reached)
+        if (max_angular_velocity_reached)
         {
-            BUZZER_play(BuzzerTune_heartbeat);
+            xTaskNotify
+            (
+                diagnostics_handle,
+                DiagnosticMask_angular_velocity_saturated,
+                eSetBits
+            );
         }
 
 
@@ -418,18 +427,15 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
                 default:
                 {
 
+                    xTaskNotify
+                    (
+                        diagnostics_handle,
+                        DiagnosticMask_stepper_driver_issue,
+                        eSetBits
+                    );
+
                     memzero((struct StepperTuple*) &current_angular_accelerations);
                     memzero((struct StepperTuple*) &current_angular_velocities   );
-
-                    BUZZER_play(BuzzerTune_ambulance);
-
-                    while (BUZZER_current_tune())
-                    {
-                        GPIO_TOGGLE  (led_channel_red  );
-                        GPIO_INACTIVE(led_channel_green);
-                        GPIO_INACTIVE(led_channel_blue );
-                        FREERTOS_delay_ms(25);
-                    }
 
                     STEPPER_reinit();
 
@@ -486,7 +492,141 @@ FREERTOS_TASK(logger, 2048, 0)
 
 
 
-FREERTOS_TASK(watchdog, 512, 1)
+static useret b32
+diagnostics_delay_ms(u32* current_flags, u32 milliseconds)
+{
+
+    u32 new_flags = 0;
+
+    BaseType_t got_notification =
+        xTaskNotifyWait
+        (
+            0,
+            (u32) -1, // Immediately acknowledge the new diagnostics.
+            (uint32_t*) &new_flags,
+            0
+        );
+
+    enum DiagnosticMask old_diagnostic = *current_flags & -*current_flags;
+
+    if (got_notification)
+    {
+        *current_flags |= new_flags; // Add the new diagnostics to the list of existing ones to process.
+    }
+
+    enum DiagnosticMask new_diagnostic = *current_flags & -*current_flags;
+
+    if (new_diagnostic == old_diagnostic)
+    {
+
+        // Although `xTaskNotifyWait` has a time-out argument that could be used
+        // as a delay that can also be interrupted early when there's a notification,
+        // it's possible that a task set the same diagnostic repeatedly over and
+        // over again to which a delay never really happens. By using a regular
+        // task delay here, we're making things slightly less responsive because
+        // the delay won't allow for the `diagnostics` task to handle a new
+        // diagnostic of higher priority, but since this is literally just for
+        // diagnostics, it's okay.
+
+        FREERTOS_delay_ms(milliseconds);
+
+        return false;
+
+    }
+    else
+    {
+        return true; // There's a new diagnostic of higher priority that we should handle.
+    }
+
+}
+
+FREERTOS_TASK(diagnostics, 512, 1)
+{
+
+    u32 current_flags = 0;
+
+    for (;;)
+    {
+
+        if (!current_flags)
+        {
+            while (true) // Wait until we get a diagnostic to handle.
+            {
+                if (diagnostics_delay_ms(&current_flags, 100))
+                {
+                    break;
+                }
+            }
+        }
+
+        enum DiagnosticMask current_diagnostic = current_flags & -current_flags;
+
+        switch (current_diagnostic)
+        {
+
+            case DiagnosticMask_stepper_driver_issue:
+            {
+
+                BUZZER_play(BuzzerTune_ambulance);
+
+                while (BUZZER_current_tune())
+                {
+
+                    GPIO_TOGGLE  (led_channel_red  );
+                    GPIO_INACTIVE(led_channel_green);
+                    GPIO_INACTIVE(led_channel_blue );
+
+                    if (diagnostics_delay_ms(&current_flags, 25))
+                    {
+                        goto END_OF_DIAGNOSTIC;
+                    }
+
+                }
+
+            } break;
+
+            case DiagnosticMask_angular_velocity_saturated:
+            {
+
+                BUZZER_play(BuzzerTune_heartbeat);
+
+                GPIO_ACTIVE  (led_channel_red  );
+                GPIO_INACTIVE(led_channel_green);
+                GPIO_INACTIVE(led_channel_blue );
+
+                while (BUZZER_current_tune())
+                {
+                    if (diagnostics_delay_ms(&current_flags, 100))
+                    {
+                        goto END_OF_DIAGNOSTIC;
+                    }
+                }
+
+            } break;
+
+            default: sorry
+
+        }
+
+        END_OF_DIAGNOSTIC:;
+
+        current_flags &= ~current_diagnostic; // Acknowledge the completion of the diagnostic.
+
+        GPIO_INACTIVE(led_channel_red  );
+        GPIO_INACTIVE(led_channel_green);
+        GPIO_INACTIVE(led_channel_blue );
+
+    }
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+FREERTOS_TASK(watchdog, 512, 2)
 {
     for (;;)
     {
