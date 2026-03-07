@@ -1,4 +1,7 @@
 #define AUTOMATIC_SHUTDOWN_TIME_US 0 // TODO Once finalized, we should use (10 * 60'000'000).
+#define MAX_ANGULAR_ACCELERATION   (200.0f)
+#define MAX_ANGULAR_VELOCITY       (2000.0f * 2.0f * PI / 60.0f)
+
 
 #include "system.h"
 #include "timekeeping.c"
@@ -69,8 +72,8 @@ main(void)
 
 
 
-static volatile f32 current_angular_acceleration = 0.0f;
-static volatile f32 current_angular_velocity     = 1.0f;
+static volatile f32 current_angular_acceleration = 0.0f; // TODO Atomic?
+static volatile f32 current_angular_velocity     = 1.0f; // TODO Atomic?
 
 FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 {
@@ -79,59 +82,6 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 
     for (;;)
     {
-
-        enum StepperPushAngularVelocitiesResult result =
-            STEPPER_push_angular_velocities
-            (
-                &(StepperAngularVelocities)
-                {
-                    [StepperUnit_axis_x] = current_angular_velocity,
-                    [StepperUnit_axis_y] = current_angular_velocity,
-                    [StepperUnit_axis_z] = current_angular_velocity,
-                }
-            );
-
-        switch (result)
-        {
-
-            case StepperPushAngularVelocitiesResult_pushed:
-            {
-                // Yay!
-            } break;
-
-            case StepperPushAngularVelocitiesResult_full:
-            case StepperPushAngularVelocitiesResult_still_initializing:
-            {
-                // Keep spin-locking.
-            } break;
-
-            case StepperPushAngularVelocitiesResult_no_response_from_unit  : sorry
-            case StepperPushAngularVelocitiesResult_bad_response_from_unit : sorry
-            case StepperPushAngularVelocitiesResult_bug                    : sorry
-            default                                                        : sorry
-
-        }
-
-    }
-
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-FREERTOS_TASK(controller, 2048, 0)
-{
-
-    u32 previous_angular_velocity_update_timestamp_us = TIMEKEEPING_microseconds(); // TODO Deprecate STEPPER_VELOCITY_UPDATE_US?
-
-    for (;;)
-    {
-
-        #define MAX_ANGULAR_ACCELERATION (200.0f)
-        #define MAX_ANGULAR_VELOCITY     (2000.0f * 2.0f * PI / 60.0f)
 
 
 
@@ -156,6 +106,10 @@ FREERTOS_TASK(controller, 2048, 0)
             }
         }
 
+
+
+        // Limit the acceleration.
+
         if (current_angular_acceleration >= MAX_ANGULAR_ACCELERATION)
         {
             current_angular_acceleration = MAX_ANGULAR_ACCELERATION;
@@ -173,10 +127,7 @@ FREERTOS_TASK(controller, 2048, 0)
             current_angular_velocity >=  MAX_ANGULAR_VELOCITY ||
             current_angular_velocity <= -MAX_ANGULAR_VELOCITY;
 
-        u32 current_timestamp_us = TIMEKEEPING_microseconds();
-        f32 delta_time           = (f32) (current_timestamp_us - previous_angular_velocity_update_timestamp_us) / 1'000'000.0f; // TODO Check for NaN?
-
-        current_angular_velocity += current_angular_acceleration * delta_time;
+        current_angular_velocity += current_angular_acceleration * (f32) STEPPER_VELOCITY_UPDATE_US / 1'000'000.0f;
 
 
 
@@ -208,11 +159,44 @@ FREERTOS_TASK(controller, 2048, 0)
 
 
 
-        // Onto next iteration.
+        // Queue up the new angular velocity.
 
-        previous_angular_velocity_update_timestamp_us = current_timestamp_us;
+        for (b32 yield = false; !yield;)
+        {
 
-        FREERTOS_delay_ms(10);
+            enum StepperPushAngularVelocitiesResult result =
+                STEPPER_push_angular_velocities
+                (
+                    &(StepperAngularVelocities)
+                    {
+                        [StepperUnit_axis_x] = current_angular_velocity,
+                        [StepperUnit_axis_y] = current_angular_velocity,
+                        [StepperUnit_axis_z] = current_angular_velocity,
+                    }
+                );
+
+            switch (result)
+            {
+
+                case StepperPushAngularVelocitiesResult_pushed:
+                {
+                    yield = true;
+                } break;
+
+                case StepperPushAngularVelocitiesResult_full:
+                case StepperPushAngularVelocitiesResult_still_initializing:
+                {
+                    FREERTOS_delay_ms(1);
+                } break;
+
+                case StepperPushAngularVelocitiesResult_no_response_from_unit  : sorry
+                case StepperPushAngularVelocitiesResult_bad_response_from_unit : sorry
+                case StepperPushAngularVelocitiesResult_bug                    : sorry
+                default                                                        : sorry
+
+            }
+
+        }
 
     }
 
