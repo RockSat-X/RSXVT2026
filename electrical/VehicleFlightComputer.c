@@ -428,6 +428,8 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 
                     STEPPER_reinit();
 
+                    yield = true;
+
                 } break;
 
             }
