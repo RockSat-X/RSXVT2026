@@ -117,7 +117,7 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 
             u8 input = {0};
 
-            if (stlink_rx(&input))
+            while (stlink_rx(&input))
             {
 
                 switch (input)
