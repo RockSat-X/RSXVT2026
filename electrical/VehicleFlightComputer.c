@@ -407,10 +407,28 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
                     FREERTOS_delay_ms(1);
                 } break;
 
-                case StepperPushAngularVelocitiesResult_no_response_from_unit  : sorry
-                case StepperPushAngularVelocitiesResult_bad_response_from_unit : sorry
-                case StepperPushAngularVelocitiesResult_bug                    : sorry
-                default                                                        : sorry
+                case StepperPushAngularVelocitiesResult_no_response_from_unit:  // TODO Collect statistics?
+                case StepperPushAngularVelocitiesResult_bad_response_from_unit:
+                case StepperPushAngularVelocitiesResult_bug:
+                default:
+                {
+
+                    memzero((struct StepperTuple*) &current_angular_accelerations);
+                    memzero((struct StepperTuple*) &current_angular_velocities   );
+
+                    BUZZER_play(BuzzerTune_ambulance);
+
+                    while (BUZZER_current_tune())
+                    {
+                        GPIO_TOGGLE  (led_channel_red  );
+                        GPIO_INACTIVE(led_channel_green);
+                        GPIO_INACTIVE(led_channel_blue );
+                        FREERTOS_delay_ms(25);
+                    }
+
+                    STEPPER_reinit();
+
+                } break;
 
             }
 
