@@ -1,5 +1,5 @@
 #define STEPPER_ENABLE_DELAY_US     500'000
-#define STEPPER_VELOCITY_UPDATE_US   25'000
+#define STEPPER_VELOCITY_UPDATE_US   25'000 // @/`Sequence Angular Accelerations Delta Time`.
 #define STEPPER_UART_TIME_MARGIN_US   2'000
 #define STEPPER_RING_BUFFER_LENGTH  8
 #define AUTOMATIC_SHUTDOWN_TIME_US  0 // TODO Once finalized, we should use (10 * 60'000'000).
@@ -75,13 +75,15 @@ main(void)
 
 
 
-static volatile f32 current_angular_acceleration = 0.0f; // TODO Atomic?
-static volatile f32 current_angular_velocity     = 1.0f; // TODO Atomic?
+static volatile struct StepperTuple current_angular_accelerations = {0};                  // TODO Atomic?
+static volatile struct StepperTuple current_angular_velocities    = { { 1.0f, 1.0f, 1.0f } }; // TODO Atomic?
 
 FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 {
 
     STEPPER_reinit();
+
+    b32 replay_sequence_number = false;
 
     for (;;)
     {
@@ -94,59 +96,245 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 
         if (stlink_rx(&input))
         {
+
             switch (input)
             {
-                case 'j': current_angular_acceleration +=   -0.1f;                                    break;
-                case 'J': current_angular_acceleration +=   -1.0f;                                    break;
-                case 'k': current_angular_acceleration +=    0.1f;                                    break;
-                case 'K': current_angular_acceleration +=    1.0f;                                    break;
-                case '0': current_angular_acceleration  =    0.0f;                                    break;
-                case '<': current_angular_acceleration += -200.0f;                                    break;
-                case '>': current_angular_acceleration +=  200.0f;                                    break;
-                case ' ': current_angular_acceleration  =    0.0f; current_angular_velocity  =  0.0f; break;
-                case '-': current_angular_acceleration  =    0.0f; current_angular_velocity *= -1.0f; break;
-                default: break;
+
+                case 'j':
+                {
+                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    {
+                        current_angular_accelerations.values[unit] -= 0.1f;
+                    }
+                } break;
+
+                case 'J':
+                {
+                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    {
+                        current_angular_accelerations.values[unit] -= 1.0f;
+                    }
+                } break;
+
+                case 'k':
+                {
+                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    {
+                        current_angular_accelerations.values[unit] += 0.1f;
+                    }
+                } break;
+
+                case 'K':
+                {
+                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    {
+                        current_angular_accelerations.values[unit] += 1.0f;
+                    }
+                } break;
+
+                case '0':
+                {
+                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    {
+                        current_angular_accelerations.values[unit] = 0.0f;
+                        current_angular_velocities   .values[unit] = 0.0f;
+                    }
+                } break;
+
+                case '<':
+                {
+                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    {
+                        current_angular_accelerations.values[unit] -= 200.0f;
+                    }
+                } break;
+
+                case '>':
+                {
+                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    {
+                        current_angular_accelerations.values[unit] += 200.0f;
+                    }
+                } break;
+
+                case '-':
+                {
+                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    {
+                        current_angular_accelerations.values[unit]  =  0.0f;
+                        current_angular_velocities   .values[unit] *= -1.0f;
+                    }
+                } break;
+
+                case 'x':
+                {
+
+                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    {
+                        current_angular_accelerations.values[unit] = 0.0f;
+                        current_angular_velocities   .values[unit] = 0.0f;
+                    }
+
+                    replay_sequence_number = 1; break;
+
+                } break;
+
+                default:
+                {
+                    // Don't care.
+                } break;
+
             }
+
         }
 
 
 
-        // Limit the acceleration.
+        // If requested, we play back a sequence of angular accelerations for simulation purposes.
 
-        if (current_angular_acceleration >= MAX_ANGULAR_ACCELERATION)
+        if (replay_sequence_number)
         {
-            current_angular_acceleration = MAX_ANGULAR_ACCELERATION;
+
+            #include "SEQUENCE_ANGULAR_ACCELERATIONS.meta"
+            /* #meta
+
+                import math
+
+                def impulse(t, slope):
+
+                    try:
+                        u = math.e**(4 * slope * t)
+                        return (16 * u * (-1 + u) * slope**2) / (1 + u)**3
+                    except OverflowError:
+                        return 0
+
+                IMPULSES = {
+                    'axis_x' : (
+                        (1 + 0 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                        (1 + 1 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                        (1 + 2 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                        (1 + 3 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                        (2 + 1       ,  0.25 * 2 * math.pi, 5 ),
+                        (2 + 2       ,  0.25 * 2 * math.pi, 5 ),
+                        (2 + 3       ,  0.25 * 2 * math.pi, 5 ),
+                        (2 + 4       ,  0.25 * 2 * math.pi, 5 ),
+                        (2 + 8       , -1.00 * 2 * math.pi, 10),
+                        (2 + 9       ,  1.00 * 2 * math.pi, 10),
+                        (2 + 10      ,  1.00 * 2 * math.pi, 10),
+                        (2 + 11      ,  1.00 * 2 * math.pi, 10),
+                        (2 + 12      ,  1.00 * 2 * math.pi, 10),
+                    ),
+                    'axis_y' : (
+                        (1 + 0 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                        (1 + 1 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                        (1 + 2 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                        (1 + 3 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                        (2 + 2       ,  0.25 * 2 * math.pi, 5 ),
+                        (2 + 3       ,  0.25 * 2 * math.pi, 5 ),
+                        (2 + 4       ,  0.25 * 2 * math.pi, 5 ),
+                        (2 + 5       ,  0.25 * 2 * math.pi, 5 ),
+                        (2 + 8       , -1.00 * 2 * math.pi, 10),
+                        (2 + 9       ,  1.00 * 2 * math.pi, 2 ),
+                        (2 + 12      , -1.00 * 2 * math.pi, 2 ),
+                    ),
+                    'axis_z' : (
+                        (1 + 0 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                        (1 + 1 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                        (1 + 2 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                        (1 + 3 * 0.25,  0.25 * 2 * math.pi, 5 ),
+                        (2 + 3       ,  0.25 * 2 * math.pi, 5 ),
+                        (2 + 4       ,  0.25 * 2 * math.pi, 5 ),
+                        (2 + 5       ,  0.25 * 2 * math.pi, 5 ),
+                        (2 + 6       ,  0.25 * 2 * math.pi, 5 ),
+                        (2 + 8       , -1.00 * 2 * math.pi, 10),
+                        (2 + 9       ,  2.00 * 2 * math.pi, 2 ),
+                        (2 + 12      , -2.00 * 2 * math.pi, 2 ),
+                    ),
+                }
+
+                with Meta.enter('static const struct StepperTuple SEQUENCE_ANGULAR_ACCELERATIONS[] ='):
+
+                    DURATION = 16
+                    dt       = 0.025 # @/`Sequence Angular Accelerations Delta Time`: Coupled.
+
+                    for i in range(0, round(DURATION / dt)):
+
+                        t = i * dt
+
+                        Meta.line(f'''
+                            {{ {{ {', '.join(
+
+                                f'[StepperUnit_{unit}] = {sum(impulse(t - center, slope) * radians for center, radians, slope in impulses) :12f}f'
+                                for unit, impulses in IMPULSES.items()
+
+                            )} }} }}, // t = {t :f} s.
+                        ''')
+
+            */
+
+            current_angular_accelerations  = SEQUENCE_ANGULAR_ACCELERATIONS[replay_sequence_number - 1];
+            replay_sequence_number        += 1;
+            replay_sequence_number        %= countof(SEQUENCE_ANGULAR_ACCELERATIONS) + 1;
+
+            if (!replay_sequence_number)
+            {
+                for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                {
+                    current_angular_accelerations.values[unit] = 0.0f;
+                    current_angular_velocities   .values[unit] = 0.0f;
+                }
+            }
+
         }
-        else if (current_angular_acceleration <= -MAX_ANGULAR_ACCELERATION)
+
+
+
+        // Update each stepper unit's angular velocities.
+
+        b32 max_angular_velocity_has_already_been_reached = false;
+        b32 max_angular_velocity_reached                  = false;
+
+        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
         {
-            current_angular_acceleration = -MAX_ANGULAR_ACCELERATION;
-        }
 
 
 
-        // Find new angular velocity.
+            // Limit the acceleration.
 
-        b32 max_angular_velocity_has_already_been_reached =
-            current_angular_velocity >=  MAX_ANGULAR_VELOCITY ||
-            current_angular_velocity <= -MAX_ANGULAR_VELOCITY;
+            if (current_angular_accelerations.values[unit] >= MAX_ANGULAR_ACCELERATION)
+            {
+                current_angular_accelerations.values[unit] = MAX_ANGULAR_ACCELERATION;
+            }
+            else if (current_angular_accelerations.values[unit] <= -MAX_ANGULAR_ACCELERATION)
+            {
+                current_angular_accelerations.values[unit] = -MAX_ANGULAR_ACCELERATION;
+            }
 
-        current_angular_velocity += current_angular_acceleration * (f32) STEPPER_VELOCITY_UPDATE_US / 1'000'000.0f;
+
+
+            // Find new angular velocity.
+
+            max_angular_velocity_has_already_been_reached |=
+                current_angular_velocities.values[unit] >=  MAX_ANGULAR_VELOCITY ||
+                current_angular_velocities.values[unit] <= -MAX_ANGULAR_VELOCITY;
+
+            current_angular_velocities.values[unit] += current_angular_accelerations.values[unit] * (f32) STEPPER_VELOCITY_UPDATE_US / 1'000'000.0f;
 
 
 
-        // Limit the angular velocity.
+            // Limit the angular velocity.
 
-        b32 max_angular_velocity_reached = false;
+            if (current_angular_velocities.values[unit] >= MAX_ANGULAR_VELOCITY)
+            {
+                current_angular_velocities.values[unit] = MAX_ANGULAR_VELOCITY;
+                max_angular_velocity_reached            = true;
+            }
+            else if (current_angular_velocities.values[unit] <= -MAX_ANGULAR_VELOCITY)
+            {
+                current_angular_velocities.values[unit] = -MAX_ANGULAR_VELOCITY;
+                max_angular_velocity_reached            = true;
+            }
 
-        if (current_angular_velocity >= MAX_ANGULAR_VELOCITY)
-        {
-            current_angular_velocity     = MAX_ANGULAR_VELOCITY;
-            max_angular_velocity_reached = true;
-        }
-        else if (current_angular_velocity <= -MAX_ANGULAR_VELOCITY)
-        {
-            current_angular_velocity     = -MAX_ANGULAR_VELOCITY;
-            max_angular_velocity_reached = true;
         }
 
 
@@ -167,19 +355,7 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
         for (b32 yield = false; !yield;)
         {
 
-            enum StepperPushAngularVelocitiesResult result =
-                STEPPER_push_angular_velocities
-                (
-                    &(struct StepperTuple)
-                    {
-                        .values =
-                            {
-                                [StepperUnit_axis_x] = current_angular_velocity,
-                                [StepperUnit_axis_y] = current_angular_velocity,
-                                [StepperUnit_axis_z] = current_angular_velocity,
-                            }
-                    }
-                );
+            enum StepperPushAngularVelocitiesResult result = STEPPER_push_angular_velocities((struct StepperTuple*) &current_angular_velocities);
 
             switch (result)
             {
@@ -221,13 +397,19 @@ FREERTOS_TASK(logger, 2048, 0)
 
         stlink_tx
         (
-            "Angular acceleration : %.6f" "\n"
-            "Angular velocity     : %.6f" "\n"
-            "RPM                  : %.6f" "\n"
+            "Angular acceleration : <%.3f, %.3f, %.3f>" "\n"
+            "Angular velocity     : <%.3f, %.3f, %.3f>" "\n"
+            "RPM                  : <%.3f, %.3f, %.3f>" "\n"
             "\n\n",
-            current_angular_acceleration,
-            current_angular_velocity,
-            current_angular_velocity / (2.0f * PI) * 60.0f
+            current_angular_accelerations.values[StepperUnit_axis_x],
+            current_angular_accelerations.values[StepperUnit_axis_y],
+            current_angular_accelerations.values[StepperUnit_axis_z],
+            current_angular_velocities.values[StepperUnit_axis_x],
+            current_angular_velocities.values[StepperUnit_axis_y],
+            current_angular_velocities.values[StepperUnit_axis_z],
+            current_angular_velocities.values[StepperUnit_axis_x] / (2.0f * PI) * 60.0f,
+            current_angular_velocities.values[StepperUnit_axis_y] / (2.0f * PI) * 60.0f,
+            current_angular_velocities.values[StepperUnit_axis_z] / (2.0f * PI) * 60.0f
         );
 
         spinlock_us(100'000);
