@@ -136,7 +136,7 @@ _UXART_push_byte_for_transmission(char byte, void* void_handle)
 
 
 static void
-UXART_tx_bytes(enum UXARTHandle handle, u8* bytes, i32 length)
+UXART_tx_bytes(enum UXARTHandle handle, const u8* bytes, i32 length)
 {
 
     _EXPAND_HANDLE
