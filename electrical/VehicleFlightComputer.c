@@ -492,7 +492,7 @@ FREERTOS_TASK(logger, 2048, 0)
 
 
 
-static useret b32
+static b32
 diagnostics_delay_ms(u32* current_flags, u32 milliseconds)
 {
 
@@ -548,15 +548,11 @@ FREERTOS_TASK(diagnostics, 512, 1)
     for (;;)
     {
 
-        if (!current_flags)
+        diagnostics_delay_ms(&current_flags, 0); // To update `current_flags`.
+
+        while (!current_flags) // Wait until we get a diagnostic to handle.
         {
-            while (true) // Wait until we get a diagnostic to handle.
-            {
-                if (diagnostics_delay_ms(&current_flags, 100))
-                {
-                    break;
-                }
-            }
+            diagnostics_delay_ms(&current_flags, 100);
         }
 
         enum DiagnosticMask current_diagnostic = current_flags & -current_flags;
