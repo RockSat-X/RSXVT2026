@@ -7,6 +7,7 @@
 #define MAX_ANGULAR_VELOCITY        (2000.0f * 2.0f * PI / 60.0f)
 #define GOD_MODE                    true
 #define CONTROLLER_ENABLE           false
+#define VN100_ENABLE                true
 
 #include "system.h"
 #include "timekeeping.c"
@@ -624,6 +625,9 @@ vn100_await_command(enum VN100Command command)
 
 FREERTOS_TASK(vn100, 8192, 0)
 {
+
+#if VN100_ENABLE
+
     for (;;)
     {
 
@@ -964,6 +968,16 @@ FREERTOS_TASK(vn100, 8192, 0)
         );
 
     }
+
+#else
+
+    for (;;)
+    {
+        FREERTOS_delay_ms(1'000);
+    }
+
+#endif
+
 }
 
 
