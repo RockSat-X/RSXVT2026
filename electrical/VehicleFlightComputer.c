@@ -106,7 +106,7 @@ main(void)
 
 
 
-FREERTOS_TASK(stepper_motor_controller, 1024, 0)
+FREERTOS_TASK(controller, 1024, 0)
 {
 
 #if CONTROLLER_ENABLE

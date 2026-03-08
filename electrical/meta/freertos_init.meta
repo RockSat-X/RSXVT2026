@@ -261,17 +261,17 @@
 #if TARGET_NAME_IS_VehicleFlightComputer
     enum FreeRTOSTask : u32
     {
-        FreeRTOSTask_stepper_motor_controller,
+        FreeRTOSTask_controller,
         FreeRTOSTask_vn100,
         FreeRTOSTask_logger,
         FreeRTOSTask_diagnostics,
         FreeRTOSTask_watchdog,
     };
     static constexpr u32 FreeRTOSTask_COUNT = 5;
-    static noret void   stepper_motor_controller(void*);
-    static StackType_t  stepper_motor_controller_stack[1024 / sizeof(StackType_t)] = {0};
-    static StaticTask_t stepper_motor_controller_buffer = {0};
-    static TaskHandle_t stepper_motor_controller_handle = {0};
+    static noret void   controller(void*);
+    static StackType_t  controller_stack[1024 / sizeof(StackType_t)] = {0};
+    static StaticTask_t controller_buffer = {0};
+    static TaskHandle_t controller_handle = {0};
     static noret void   vn100(void*);
     static StackType_t  vn100_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t vn100_buffer = {0};
@@ -291,16 +291,16 @@
     static noret void
     FREERTOS_init(void)
     {
-        stepper_motor_controller_handle =
+        controller_handle =
             xTaskCreateStatic
             (
-                stepper_motor_controller,
-                "stepper_motor_controller",
-                countof(stepper_motor_controller_stack),
+                controller,
+                "controller",
+                countof(controller_stack),
                 nullptr,
                 0,
-                stepper_motor_controller_stack,
-                &stepper_motor_controller_buffer
+                controller_stack,
+                &controller_buffer
             );
         vn100_handle =
             xTaskCreateStatic
