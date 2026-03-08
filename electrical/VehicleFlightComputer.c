@@ -28,8 +28,10 @@ enum DiagnosticMask : u32 // Lower the bit-index, higher the priority.
     DiagnosticMask_stepper_driver_issue       = 1 << 0,
     DiagnosticMask_angular_velocity_saturated = 1 << 1,
     DiagnosticMask_wiping_filesystem          = 1 << 2,
-    DiagnosticMask_logging_mishap             = 1 << 3,
-    DiagnosticMask_logging_heartbeat          = 1 << 4,
+    DiagnosticMask_unresponsive_vn100         = 1 << 3,
+    DiagnosticMask_logging_mishap             = 1 << 4,
+    DiagnosticMask_vn100_heartbeat            = 1 << 5,
+    DiagnosticMask_logging_heartbeat          = 1 << 6,
 };
 
 static struct
@@ -492,6 +494,8 @@ FREERTOS_TASK(vn100, 8192, 0)
 
     UXART_reinit(UXARTHandle_vn100);
 
+    i32 valid_packet_count = 0;
+
     for (;;)
     {
 
@@ -507,7 +511,30 @@ FREERTOS_TASK(vn100, 8192, 0)
         {
 
             u8 data = {0};
-            while (!UXART_rx(UXARTHandle_vn100, &data)); // TODO Detect a time-out.
+
+            for (i32 iterations = 0;; iterations += 1)
+            {
+                if (UXART_rx(UXARTHandle_vn100, &data))
+                {
+                    break; // Got data.
+                }
+                else
+                {
+
+                    if (iterations && iterations % 4096 == 0) // Haven't gotten anything valid in a while...
+                    {
+                        xTaskNotify
+                        (
+                            diagnostics_handle,
+                            DiagnosticMask_unresponsive_vn100,
+                            eSetBits
+                        );
+                    }
+
+                    FREERTOS_delay_ms(1); // Do something else for a bit.
+
+                }
+            }
 
             if (data == '$') // Found beginning of the payload?
             {
@@ -712,6 +739,18 @@ FREERTOS_TASK(vn100, 8192, 0)
             if (!RingBuffer_push(&LOGGER.vn100_packets, &packet))
             {
                 // VN-100 data overrun, but it's for the logger; who cares.
+            }
+
+            valid_packet_count += 1;
+
+            if (valid_packet_count % 256 == 0)
+            {
+                xTaskNotify
+                (
+                    diagnostics_handle,
+                    DiagnosticMask_vn100_heartbeat,
+                    eSetBits
+                );
             }
 
         }
@@ -1132,6 +1171,27 @@ FREERTOS_TASK(diagnostics, 512, 1)
 
             } break;
 
+            case DiagnosticMask_unresponsive_vn100:
+            {
+
+                BUZZER_play(BuzzerTune_hazard);
+
+                while (BUZZER_current_tune())
+                {
+
+                    GPIO_INACTIVE(led_channel_red  );
+                    GPIO_INACTIVE(led_channel_green);
+                    GPIO_TOGGLE  (led_channel_blue );
+
+                    if (diagnostics_delay_ms(&current_flags, 25))
+                    {
+                        goto END_OF_DIAGNOSTIC;
+                    }
+
+                }
+
+            } break;
+
             case DiagnosticMask_angular_velocity_saturated:
             {
 
@@ -1182,6 +1242,25 @@ FREERTOS_TASK(diagnostics, 512, 1)
                 GPIO_INACTIVE(led_channel_red  );
                 GPIO_ACTIVE  (led_channel_green);
                 GPIO_INACTIVE(led_channel_blue );
+
+                while (BUZZER_current_tune())
+                {
+                    if (diagnostics_delay_ms(&current_flags, 100))
+                    {
+                        goto END_OF_DIAGNOSTIC;
+                    }
+                }
+
+            } break;
+
+            case DiagnosticMask_vn100_heartbeat:
+            {
+
+                BUZZER_play(BuzzerTune_burp);
+
+                GPIO_INACTIVE(led_channel_red  );
+                GPIO_INACTIVE(led_channel_green);
+                GPIO_ACTIVE  (led_channel_blue );
 
                 while (BUZZER_current_tune())
                 {
