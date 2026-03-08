@@ -4321,7 +4321,12 @@
         );
         CMSIS_SET(GPIOD, ODR, OD0, false);
         CMSIS_SET(GPIOE, ODR, OD8, true);
-        CMSIS_SET(GPIOD, PUPDR, PUPD1, 0b10);
+        CMSIS_SET
+        (
+            GPIOD, PUPDR,
+            PUPD1, 0b10 ,
+            PUPD9, 0b01 ,
+        );
         CMSIS_WRITE
         (
             GPIO_AFRL, GPIOA->AFR[0],

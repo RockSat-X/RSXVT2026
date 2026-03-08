@@ -39,6 +39,12 @@ static struct
     volatile struct StepperTuple      current_angular_velocities;
 } CONTROLLER;
 
+static struct
+{
+    RingBuffer(struct VN100Packet, 4) vn100_packets;
+} LOGGER = {0};
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -481,7 +487,252 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 
 
 
-FREERTOS_TASK(logger, 8196, 0)
+FREERTOS_TASK(vn100, 8192, 0)
+{
+
+    UXART_reinit(UXARTHandle_vn100);
+
+    for (;;)
+    {
+
+
+
+        // Get the payload.
+
+        u8  payload_buffer[256]      = {0};
+        i32 payload_length           = 0;
+        i32 checksum_indicator_index = 0;
+
+        while (true)
+        {
+
+            u8 data = {0};
+            while (!UXART_rx(UXARTHandle_vn100, &data)); // TODO Detect a time-out.
+
+            if (data == '$') // Found beginning of the payload?
+            {
+                payload_buffer[0]        = data;
+                payload_length           = 1;
+                checksum_indicator_index = 0;
+            }
+            else if (payload_length) // Synchronized with the data transfer?
+            {
+
+                payload_buffer[payload_length]  = data;
+                payload_length                 += 1;
+
+                if (payload_length == countof(payload_buffer))
+                {
+                    payload_length           = 0; // Buffer over-run; invalidate the data we got so far.
+                    checksum_indicator_index = 0; // "
+                }
+                else if (checksum_indicator_index && payload_length == checksum_indicator_index + 3)
+                {
+                    break; // We reached the end of the VN-100 register read payload.
+                }
+                else if (data == '*')
+                {
+                    checksum_indicator_index = payload_length - 1;
+                }
+
+            }
+
+        }
+
+
+
+        // Parse the VN-100 payload.
+
+        struct VN100Packet packet = {0};
+        b32                valid  = true;
+
+        u8 expected_checksum = 0;
+
+        for
+        (
+            i32 i = 1;                    // Starting character not included.
+            i < checksum_indicator_index; // Checksum itself not included.
+            i += 1
+        )
+        {
+            expected_checksum ^= payload_buffer[i];
+        }
+
+        u32 received_checksum =
+            ((payload_buffer[checksum_indicator_index + 1] - (u32) '0') << 4) |
+            ((payload_buffer[checksum_indicator_index + 2] - (u32) '0') << 0);
+
+        if (expected_checksum != received_checksum)
+        {
+            valid = false; // Checksum mismatch.
+        }
+        else // Parse each field carefully.
+        {
+
+            i32 field_position_index = 0;
+            i32 field_start_index    = 0;
+            i32 field_length         = 0;
+
+            while (true)
+            {
+
+                b32 found_comma    = payload_buffer[field_start_index + field_length] == ',';
+                b32 end_of_payload = field_start_index + field_length >= checksum_indicator_index;
+
+                if (!found_comma && !end_of_payload) // Haven't found end of field yet?
+                {
+                    field_length += 1;
+                }
+                else // Ready to parse the field now.
+                {
+
+                    // The very first field should be the expected magic starting token.
+
+                    if (field_position_index == 0)
+                    {
+                        valid =
+                            !strncmp
+                            (
+                                (char*) (payload_buffer + field_start_index),
+                                "$VNQMR",
+                                (u32) field_length
+                            );
+                    }
+
+
+
+                    // The remaining fields are the values of the register.
+
+                    else if (field_position_index - 1 < sizeof(struct VN100Packet) / sizeof(f32))
+                    {
+
+                        // Parse the field as a float, if possible.
+
+                        f32 parsed_value   = 0.0f;
+                        b32 negative       = false;
+                        f32 decimal_factor = {0};
+
+                        for
+                        (
+                            i32 index = 0;
+                            index < field_length && valid;
+                            index += 1
+                        )
+                        {
+                            if (payload_buffer[field_start_index + index] == '+' && index == 0)
+                            {
+                                negative = false;
+                            }
+                            else if (payload_buffer[field_start_index + index] == '-' && index == 0)
+                            {
+                                negative = true;
+                            }
+                            else if (payload_buffer[field_start_index + index] == '.' && !decimal_factor)
+                            {
+                                decimal_factor = 0.1f;
+                            }
+                            else if ('0' <= payload_buffer[field_start_index + index] && payload_buffer[field_start_index + index] <= '9')
+                            {
+                                f32 digit = (f32) (payload_buffer[field_start_index + index] - '0');
+
+                                if (decimal_factor)
+                                {
+                                    parsed_value   += decimal_factor * digit;
+                                    decimal_factor *= 0.1f;
+                                }
+                                else
+                                {
+                                    parsed_value = parsed_value * 10.0f + digit;
+                                }
+                            }
+                            else
+                            {
+                                valid = false; // Not a digit...?
+                            }
+                        }
+
+                        if (valid)
+                        {
+
+                            if (negative)
+                            {
+                                parsed_value = -parsed_value;
+                            }
+
+                            ((f32*) &packet)[field_position_index - 2] = parsed_value;
+
+                        }
+
+                    }
+
+
+
+                    // Extraneous fields...?
+
+                    else
+                    {
+                        valid = false;
+                    }
+
+
+
+                    if (!valid)
+                    {
+                        break; // Abort parsing the received data.
+                    }
+                    else if (end_of_payload)
+                    {
+                        break; // No more data to process.
+                    }
+                    else // Move onto next field.
+                    {
+                        field_position_index += 1;
+                        field_start_index    += field_length + 1; // +1 to skip the comma.
+                        field_length          = 0;
+                    }
+
+                }
+
+            }
+
+        }
+
+
+
+        // Handle the data.
+
+        if (valid)
+        {
+
+            if (!RingBuffer_push(&CONTROLLER.vn100_packets, &packet))
+            {
+                // VN-100 data overrun!
+            }
+
+            if (!RingBuffer_push(&LOGGER.vn100_packets, &packet))
+            {
+                // VN-100 data overrun, but it's for the logger; who cares.
+            }
+
+        }
+        else
+        {
+            // Something was wrong with the received VN-100 payload...
+        }
+
+
+
+    }
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+FREERTOS_TASK(logger, 8192, 0)
 {
 
     static struct Sector working_sectors[8]         = {0};
@@ -596,7 +847,9 @@ FREERTOS_TASK(logger, 8196, 0)
 
             // Make the log entry.
 
-            u32 current_timestamp_us = TIMEKEEPING_microseconds();
+            u32                current_timestamp_us = TIMEKEEPING_microseconds();
+            struct VN100Packet vn100_packet_data    = {0};
+            b32                vn100_packet_exist   = RingBuffer_pop_to_latest(&LOGGER.vn100_packets, &vn100_packet_data);
 
             i32 log_entry_length =
                 snprintf_
@@ -611,10 +864,10 @@ FREERTOS_TASK(logger, 8196, 0)
                     "Stepper issues : %d"                 "\n"
                     "OpenMV issues  : %d"                 "\n"
                     "ESP32 issues   : %d"                 "\n"
-                    "Quaternion     : <%f, %f, %f, %f>"   "\n"
-                    "Magnetometer   : <%f, %f, %f>"       "\n"
-                    "Accelerometer  : <%f, %f, %f>"       "\n"
-                    "Gyroscope      : <%f, %f, %f>"       "\n"
+                    "Quaternion?    : <%f, %f, %f, %f>"   "\n" // TODO We should probably attach a timestamp to received VN-100 data.
+                    "Magnetometer?  : <%f, %f, %f>"       "\n" // TODO "
+                    "Accelerometer? : <%f, %f, %f>"       "\n" // TODO "
+                    "Gyroscope?     : <%f, %f, %f>"       "\n" // TODO "
                     "Ext. power     : %s"                 "\n"
                     "\n",
                     current_timestamp_us,
@@ -631,19 +884,19 @@ FREERTOS_TASK(logger, 8196, 0)
                     0, // TODO.
                     0, // TODO.
                     0, // TODO.
-                    0.0f, // TODO.
-                    0.0f, // TODO.
-                    0.0f, // TODO.
-                    0.0f, // TODO.
-                    0.0f, // TODO.
-                    0.0f, // TODO.
-                    0.0f, // TODO.
-                    0.0f, // TODO.
-                    0.0f, // TODO.
-                    0.0f, // TODO.
-                    0.0f, // TODO.
-                    0.0f, // TODO.
-                    0.0f, // TODO.
+                    vn100_packet_exist ? vn100_packet_data.QuatX  : NAN,
+                    vn100_packet_exist ? vn100_packet_data.QuatY  : NAN,
+                    vn100_packet_exist ? vn100_packet_data.QuatZ  : NAN,
+                    vn100_packet_exist ? vn100_packet_data.QuatS  : NAN,
+                    vn100_packet_exist ? vn100_packet_data.MagX   : NAN,
+                    vn100_packet_exist ? vn100_packet_data.MagY   : NAN,
+                    vn100_packet_exist ? vn100_packet_data.MagZ   : NAN,
+                    vn100_packet_exist ? vn100_packet_data.AccelX : NAN,
+                    vn100_packet_exist ? vn100_packet_data.AccelY : NAN,
+                    vn100_packet_exist ? vn100_packet_data.AccelZ : NAN,
+                    vn100_packet_exist ? vn100_packet_data.GyroX  : NAN,
+                    vn100_packet_exist ? vn100_packet_data.GyroY  : NAN,
+                    vn100_packet_exist ? vn100_packet_data.GyroZ  : NAN,
                     false ? "Yes" : "No" // TODO.
                 );
 

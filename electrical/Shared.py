@@ -877,7 +877,7 @@ TARGETS = ( # @/`Defining Targets`.
             ('vehicle_interface_i2c_clock', 'D6'  , 'ALTERNATE' , { 'altfunc' : 'I2C3_SCL', 'open_drain' : True              }),
             ('motor_enable'               , 'A4'  , 'OUTPUT'    , { 'initlvl' : False, 'active' : False                      }),
             ('vn100_uart_tx'              , 'D8'  , 'ALTERNATE' , { 'altfunc' : 'USART3_TX'                                  }),
-            ('vn100_uart_rx'              , 'D9'  , 'ALTERNATE' , { 'altfunc' : 'USART3_RX'                                  }),
+            ('vn100_uart_rx'              , 'D9'  , 'ALTERNATE' , { 'altfunc' : 'USART3_RX', 'pull' : 'UP'                   }),
             ('esp32_uart_tx'              , 'A0'  , 'ALTERNATE' , { 'altfunc' : 'UART4_TX'                                   }),
             ('esp32_uart_rx'              , 'A1'  , 'ALTERNATE' , { 'altfunc' : 'UART4_RX'                                   }),
             ('esp32_reset'                , 'E8'  , 'OUTPUT'    , { 'initlvl' : False, 'active' : False, 'open_drain' : True }),

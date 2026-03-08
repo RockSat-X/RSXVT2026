@@ -136,17 +136,24 @@ FREERTOS_TASK(vn100_uart, 1024, 0)
     for (;;)
     {
 
-        char* payloads[] =
-            {
-                "$VNRRG,15,-0.094586,+0.226808,+0.325434,+0.913074,-00.0340,-00.2107,+00.8741,+00.371,+00.285,-09.578,+00.000666,-00.003642,-00.000202*64",
-            };
+        #include "VN100_DATA_LOGS.meta"
+        /* #meta
 
-        for (i32 i = 0; i < countof(payloads); i += 1)
+            import deps.stpy.pxd.pxd as pxd
+
+            with Meta.enter('static const char* const VN100_DATA_LOGS[] ='):
+                for line in pxd.make_main_relative_path('./gnc/vn100_scripts/vn100_dataLog.txt').read_text().splitlines():
+                    Meta.line(f'''
+                        "{line}",
+                    ''')
+
+        */
+
+        for (i32 i = 0; i < countof(VN100_DATA_LOGS); i += 1)
         {
-            UXART_tx_bytes(UXARTHandle_vn100, (u8*) payloads[i], (i32) strlen(payloads[i]));
+            UXART_tx_bytes(UXARTHandle_vn100, (u8*) VN100_DATA_LOGS[i], (i32) strlen(VN100_DATA_LOGS[i]));
+            FREERTOS_delay_ms(20);
         }
-
-        spinlock_nop(10'000'000);
 
     }
 }
