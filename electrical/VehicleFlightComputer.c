@@ -1,11 +1,12 @@
-#define STEPPER_ENABLE_DELAY_US     500'000
-#define STEPPER_VELOCITY_UPDATE_US   25'000 // @/`Sequence Angular Accelerations Delta Time`.
-#define STEPPER_UART_TIME_MARGIN_US   2'000
-#define STEPPER_RING_BUFFER_LENGTH  8       // TODO Determine latency.
-#define AUTOMATIC_SHUTDOWN_TIME_US  0       // TODO Once finalized, we should use (10 * 60'000'000).
-#define MAX_ANGULAR_ACCELERATION    (200.0f)
-#define MAX_ANGULAR_VELOCITY        (2000.0f * 2.0f * PI / 60.0f)
-#define DEMONSTRATE_STEPPER         true
+#define STEPPER_ENABLE_DELAY_US         500'000
+#define STEPPER_VELOCITY_UPDATE_US       25'000 // @/`Sequence Angular Accelerations Delta Time`.
+#define STEPPER_UART_TIME_MARGIN_US       2'000
+#define STEPPER_RING_BUFFER_LENGTH      8       // TODO Determine latency.
+#define AUTOMATIC_SHUTDOWN_TIME_US      0       // TODO Once finalized, we should use (10 * 60'000'000).
+#define MAX_ANGULAR_ACCELERATION        (200.0f)
+#define MAX_ANGULAR_VELOCITY            (2000.0f * 2.0f * PI / 60.0f)
+#define DEMONSTRATE_STEPPER             true
+#define STEPPER_MOTOR_CONTROLLER_ENABLE true
 
 #include "system.h"
 #include "timekeeping.c"
@@ -96,6 +97,8 @@ static volatile struct StepperTuple current_angular_velocities    = {0};
 
 FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 {
+
+#if STEPPER_MOTOR_CONTROLLER_ENABLE
 
     STEPPER_reinit();
 
@@ -451,6 +454,15 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
         }
 
     }
+
+#else
+
+    for (;;)
+    {
+        FREERTOS_delay_ms(1'000);
+    }
+
+#endif
 
 }
 
