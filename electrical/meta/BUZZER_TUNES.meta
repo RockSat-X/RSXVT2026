@@ -49,6 +49,8 @@
 enum BuzzerTune : u32
 {
     BuzzerTune_null,
+    BuzzerTune_chirp,
+    BuzzerTune_heavy_beep,
     BuzzerTune_ambulance,
     BuzzerTune_up_and_down,
     BuzzerTune_deep_beep,
@@ -62,9 +64,17 @@ enum BuzzerTune : u32
     BuzzerTune_waking_up,
     BuzzerTune_sleeping,
 };
-static constexpr u32 BuzzerTune_COUNT = 13;
+static constexpr u32 BuzzerTune_COUNT = 15;
 static const struct BuzzerNote BUZZER_TUNE_null[] =
     {
+    };
+static const struct BuzzerNote BUZZER_TUNE_chirp[] =
+    {
+        { 666, 75 },
+    };
+static const struct BuzzerNote BUZZER_TUNE_heavy_beep[] =
+    {
+        { 9901, 100 },
     };
 static const struct BuzzerNote BUZZER_TUNE_ambulance[] =
     {
@@ -282,6 +292,8 @@ static const struct BuzzerNote BUZZER_TUNE_sleeping[] =
 static const struct { typeof((const char*) "null") name; typeof((struct BuzzerNote*) BUZZER_TUNE_null) note_array; typeof(0) note_count; } BUZZER_TUNES[] =
     {
         { .name = (const char*) "null"       , .note_array = (struct BuzzerNote*) BUZZER_TUNE_null       , .note_count = 0  },
+        { .name = (const char*) "chirp"      , .note_array = (struct BuzzerNote*) BUZZER_TUNE_chirp      , .note_count = 1  },
+        { .name = (const char*) "heavy_beep" , .note_array = (struct BuzzerNote*) BUZZER_TUNE_heavy_beep , .note_count = 1  },
         { .name = (const char*) "ambulance"  , .note_array = (struct BuzzerNote*) BUZZER_TUNE_ambulance  , .note_count = 6  },
         { .name = (const char*) "up_and_down", .note_array = (struct BuzzerNote*) BUZZER_TUNE_up_and_down, .note_count = 17 },
         { .name = (const char*) "deep_beep"  , .note_array = (struct BuzzerNote*) BUZZER_TUNE_deep_beep  , .note_count = 8  },

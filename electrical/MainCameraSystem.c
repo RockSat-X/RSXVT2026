@@ -159,7 +159,7 @@ main(void)
                 FILESYSTEM_reinit
                 (
                     SDHandle_primary,
-                    &(Sector) {0},
+                    &(struct Sector) {0},
                     !!completely_wipe_filesystem
                 );
 
@@ -259,7 +259,7 @@ main(void)
 
                         union ImageMetadata
                         {
-                            Sector sector;
+                            struct Sector sector;
                             struct
                             {
                                 u8  ending_token[sizeof(TV_TOKEN_END) - 1]; // @/`Image Metadata Tokens`.
@@ -287,7 +287,7 @@ main(void)
 
                     {
 
-                        static_assert(sizeof(metadata) == sizeof(Sector));
+                        static_assert(sizeof(metadata) == sizeof(struct Sector));
 
                         enum FileSystemSaveResult save_result =
                             FILESYSTEM_save
@@ -334,8 +334,8 @@ main(void)
                             FILESYSTEM_save
                             (
                                 SDHandle_primary,
-                                (Sector*) OVCAM_current_framebuffer->data,
-                                (OVCAM_current_framebuffer->length + sizeof(Sector) - 1) / sizeof(Sector)
+                                (struct Sector*) OVCAM_current_framebuffer->data,
+                                (OVCAM_current_framebuffer->length + sizeof(struct Sector) - 1) / sizeof(struct Sector)
                             );
 
                         switch (save_result)

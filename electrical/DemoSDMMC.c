@@ -10,7 +10,7 @@
 
 
 
-static Sector cluster_buffer[200] = {0}; // @/`Cluster Size for verifyLogs`.
+static struct Sector cluster_buffer[200] = {0}; // @/`Cluster Size for verifyLogs`.
 
 
 
@@ -73,9 +73,9 @@ fill_cluster_buffer(i32 cluster_index)
 
     for (i32 sector_index = 0; sector_index < countof(cluster_buffer); sector_index += 1)
     {
-        for (i32 byte_index = 0; byte_index < countof(cluster_buffer[sector_index]); byte_index += 1)
+        for (i32 byte_index = 0; byte_index < countof(cluster_buffer[sector_index].bytes); byte_index += 1)
         {
-            cluster_buffer[sector_index][byte_index] =
+            cluster_buffer[sector_index].bytes[byte_index] =
                 DUMB_HASH
                 (
                     _FILESYSTEM_driver.file_number,
@@ -244,7 +244,7 @@ main(void)
             for (u32 address = 0;; address += 1)
             {
 
-                Sector sector = {0};
+                struct Sector sector = {0};
 
                 b32 success =
                     try_doing_transfer
@@ -275,7 +275,7 @@ main(void)
                         stlink_tx
                         (
                             "%02X%c",
-                            sector[byte_i],
+                            sector.bytes[byte_i],
                             (byte_i % 32 == 31) ? '\n' : ' '
                         );
                     }
@@ -324,7 +324,7 @@ main(void)
 
                 {
 
-                    Sector sector = {0};
+                    struct Sector sector = {0};
 
                     b32 success =
                         try_doing_transfer
@@ -345,9 +345,9 @@ main(void)
                         goto STRESS_FAILED;
                     }
 
-                    for (u32 i = 0; i < countof(sector); i += 1)
+                    for (u32 i = 0; i < countof(sector.bytes); i += 1)
                     {
-                        counter += (u8) ((sector[i] + 1) * (i + 1) | (sector[i] >> 4)); // Something strange.
+                        counter += (u8) ((sector.bytes[i] + 1) * (i + 1) | (sector.bytes[i] >> 4)); // Something strange.
                     }
 
                 }
@@ -375,9 +375,9 @@ main(void)
 
                         for (i32 sector_index = 0; sector_index < sectors_in_cluster; sector_index += 1)
                         {
-                            for (i32 byte_index = 0; byte_index < countof(cluster_buffer[sector_index]); byte_index += 1)
+                            for (i32 byte_index = 0; byte_index < countof(cluster_buffer[sector_index].bytes); byte_index += 1)
                             {
-                                cluster_buffer[sector_index][byte_index] = (u8) (counter + (cluster_index * countof(cluster_buffer) + sector_index) * 3 + byte_index);
+                                cluster_buffer[sector_index].bytes[byte_index] = (u8) (counter + (cluster_index * countof(cluster_buffer) + sector_index) * 3 + byte_index);
                             }
                         }
 
@@ -389,7 +389,7 @@ main(void)
                                     .handle              = SDHandle_primary,
                                     .writing             = true,
                                     .consecutive_caching = true,
-                                    .sector              = (Sector*) { cluster_buffer },
+                                    .sector              = (struct Sector*) { cluster_buffer },
                                     .address             = address + (u32) cluster_index * countof(cluster_buffer),
                                     .count               = sectors_in_cluster,
                                 }
@@ -433,7 +433,7 @@ main(void)
                                     .handle              = SDHandle_primary,
                                     .writing             = false,
                                     .consecutive_caching = true,
-                                    .sector              = (Sector*) { cluster_buffer },
+                                    .sector              = (struct Sector*) { cluster_buffer },
                                     .address             = address + (u32) cluster_index * countof(cluster_buffer),
                                     .count               = sectors_in_cluster,
                                 }
@@ -446,10 +446,10 @@ main(void)
 
                         for (i32 sector_index = 0; sector_index < sectors_in_cluster; sector_index += 1)
                         {
-                            for (i32 byte_index = 0; byte_index < countof(cluster_buffer[sector_index]); byte_index += 1)
+                            for (i32 byte_index = 0; byte_index < countof(cluster_buffer[sector_index].bytes); byte_index += 1)
                             {
 
-                                u8 byte = cluster_buffer[sector_index][byte_index];
+                                u8 byte = cluster_buffer[sector_index].bytes[byte_index];
 
                                 if (byte != (u8) (counter + (cluster_index * countof(cluster_buffer) + sector_index) * 3 + byte_index))
                                     sorry

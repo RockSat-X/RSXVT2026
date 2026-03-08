@@ -4507,6 +4507,20 @@
         );
         CMSIS_SET
         (
+            RCC    , PLL2CFGR,
+            PLL2SRC, 0b01    ,
+            PLL2M  , 3       ,
+            PLL2RGE, 3       ,
+            PLL2REN, true    ,
+        );
+        CMSIS_SET
+        (
+            RCC  , PLL2DIVR,
+            PLL2N, 45 - 1  ,
+            PLL2R, 2 - 1   ,
+        );
+        CMSIS_SET
+        (
             RCC    , PLL3CFGR,
             PLL3SRC, 0b01    ,
             PLL3M  , 3       ,
@@ -4523,9 +4537,11 @@
         (
             RCC   , CR  ,
             PLL1ON, true,
+            PLL2ON, true,
             PLL3ON, true,
         );
         while (!CMSIS_GET(RCC, CR, PLL1RDY));
+        while (!CMSIS_GET(RCC, CR, PLL2RDY));
         while (!CMSIS_GET(RCC, CR, PLL3RDY));
 
 
@@ -4581,11 +4597,11 @@
 
 
 
-        #define STPY_SDMMC1_KERNEL_SOURCE 0b0
-        #define STPY_SDMMC1_INITIAL_DIVIDER 0x032
-        #define STPY_SDMMC1_INITIAL_DATATIME 5000
+        #define STPY_SDMMC1_KERNEL_SOURCE 0b1
+        #define STPY_SDMMC1_INITIAL_DIVIDER 0x12c
+        #define STPY_SDMMC1_INITIAL_DATATIME 100000
         #define STPY_SDMMC1_FULL_DIVIDER 0x005
-        #define STPY_SDMMC1_FULL_DATATIME 50000
+        #define STPY_SDMMC1_FULL_DATATIME 6000000
 
 
 
@@ -4604,8 +4620,10 @@
     #define STPY_AXI_AHB_CK    (250'000'000)
     #define STPY_PLL1P_CK      (250'000'000)
     #define STPY_PLL1Q_CK      ( 10'000'000)
+    #define STPY_PLL2R_CK      (240'000'000)
     #define STPY_PLL3P_CK      (  2'400'000)
     #define STPY_PLL1_VCO_FREQ (500'000'000)
+    #define STPY_PLL2_VCO_FREQ (480'000'000)
     #define STPY_PLL3_VCO_FREQ (192'000'000)
     #define STPY_APB1_CK       (250'000'000)
     #define STPY_APB2_CK       (250'000'000)

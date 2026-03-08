@@ -272,7 +272,7 @@
     static StaticTask_t stepper_motor_controller_buffer = {0};
     static TaskHandle_t stepper_motor_controller_handle = {0};
     static noret void   logger(void*);
-    static StackType_t  logger_stack[2048 / sizeof(StackType_t)] = {0};
+    static StackType_t  logger_stack[8196 / sizeof(StackType_t)] = {0};
     static StaticTask_t logger_buffer = {0};
     static TaskHandle_t logger_handle = {0};
     static noret void   diagnostics(void*);
