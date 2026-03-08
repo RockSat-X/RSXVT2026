@@ -519,33 +519,6 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 
 */
 
-static useret u16 // If checksum is 0x0A, then the hexadecimal value is 0x3041 ('0' = 0x30, 'A' = 0x41).
-vn100_make_hexadecimal_checksum(u8* bytes, i32 length) // Starting character ($) and checksum field (*xx) itself should not be included.
-{
-
-    u8 checksum = 0;
-
-    for (i32 i = 0; i < length; i += 1)
-    {
-        checksum ^= bytes[i];
-    }
-
-    u16 result = 0;
-
-    result |=
-        ((checksum >> 4) & 0x0F) < 10
-            ? (u16) ('0' + (((checksum >> 4) & 0x0F) -  0)) << 8
-            : (u16) ('A' + (((checksum >> 4) & 0x0F) - 10)) << 8;
-
-    result |=
-        ((checksum >> 0) & 0x0F) < 10
-            ? (u16) ('0' + (((checksum >> 0) & 0x0F) -  0)) << 0
-            : (u16) ('A' + (((checksum >> 0) & 0x0F) - 10)) << 0;
-
-    return result;
-
-}
-
 static enum VN100AwaitResponseResult : u32
 {
     VN100AwaitResponseResult_successful,
@@ -639,18 +612,31 @@ vn100_await_response(u8* dst_response_buffer, i32 dst_response_capacity, i32* ds
 
     // Verify integrity of the response.
 
-    u16 expected_hexadecimal_checksum =
-        vn100_make_hexadecimal_checksum
-        (
-            dst_response_buffer      + 1,
-            checksum_indicator_index - 1
-        );
+    u8 calculated_checksum = 0;
 
-    u16 received_hexadecimal_checksum =
-        (dst_response_buffer[checksum_indicator_index + 1] << 8) |
-        (dst_response_buffer[checksum_indicator_index + 2] << 0);
+    for
+    (
+        i32 i = 1;                    // Starting character ($) not included.
+        i < checksum_indicator_index; // Checksum field (*__) not included.
+        i += 1
+    )
+    {
+        calculated_checksum ^= dst_response_buffer[i];
+    }
 
-    if (expected_hexadecimal_checksum == received_hexadecimal_checksum)
+    u8 received_checksum = 0;
+
+    received_checksum |=
+        '0' <= dst_response_buffer[checksum_indicator_index + 1] && dst_response_buffer[checksum_indicator_index + 1] <= '9'
+            ? (u8) (dst_response_buffer[checksum_indicator_index + 1] - '0'     ) << 4
+            : (u8) (dst_response_buffer[checksum_indicator_index + 1] - 'A' + 10) << 4;
+
+    received_checksum |=
+        '0' <= dst_response_buffer[checksum_indicator_index + 2] && dst_response_buffer[checksum_indicator_index + 2] <= '9'
+            ? (u8) (dst_response_buffer[checksum_indicator_index + 2] - '0'     ) << 0
+            : (u8) (dst_response_buffer[checksum_indicator_index + 2] - 'A' + 10) << 0;
+
+    if (calculated_checksum == received_checksum)
     {
         return VN100AwaitResponseResult_successful;
     }
