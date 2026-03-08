@@ -1123,6 +1123,8 @@ FREERTOS_TASK(logger, 8192, 0)
                     "Accelerometer? : <%f, %f, %f>"       "\n" // TODO "
                     "Gyroscope?     : <%f, %f, %f>"       "\n" // TODO "
                     "Ext. power     : %s"                 "\n"
+                    "VNKMD          : %s"                 "\n"
+                    "VNKAD          : %s"                 "\n"
                     "\n",
                     current_timestamp_us,
                     0, // TODO.
@@ -1151,7 +1153,9 @@ FREERTOS_TASK(logger, 8192, 0)
                     vn100_packet_exist ? vn100_packet_data.GyroX  : NAN,
                     vn100_packet_exist ? vn100_packet_data.GyroY  : NAN,
                     vn100_packet_exist ? vn100_packet_data.GyroZ  : NAN,
-                    false ? "Yes" : "No" // TODO.
+                    false                                 ? "Yes" : "No", // TODO.
+                    VN100.magnetic_disturbance_exists     ? "Yes" : "No",
+                    VN100.acceleration_disturbance_exists ? "Yes" : "No"
                 );
 
 
@@ -1707,7 +1711,6 @@ FREERTOS_TASK(watchdog, 512, 2)
 
         // TODO Check if we've been able to control the stepper driver.
         // TODO Check if we've been receiving OpenMV data.
-        // TODO Check if we've been receiving VN-100 data.
         // TODO Check if ESP32 still working.
 
 
