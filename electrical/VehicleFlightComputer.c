@@ -956,7 +956,7 @@ FREERTOS_TASK(diagnostics, 512, 1)
 
             } break;
 
-            default: sorry
+            default: sus;
 
         }
 

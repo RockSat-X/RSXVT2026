@@ -99,7 +99,7 @@ typedef double             f64; static_assert(sizeof(f64) == 8);
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// @/`Error Handling with Bugs and Sorrys`.
+// @/`Error Handling with Bugs, Sorrys, and Susses`.
 //
 
 
@@ -139,11 +139,11 @@ void sorry_(void);
         }                                                                        \
         while (false)
 
-    #define sorry_if(...) do if (__VA_ARGS__) sorry while (false)
+    #define sus sorry
 
 #else
-    #define bug                 return BUG_CODE                           // Bugs are bubbled up and handled by the caller.
-    #define sorry_if(CONDITION) __attribute__((__assume__(!(CONDITION)))) // Maybe the compiler can expose any bugs when optimizing...
+    #define bug return BUG_CODE // Bugs are bubbled up and handled by the caller.
+    #define sus
 #endif
 
 
@@ -1192,9 +1192,9 @@ pack_pop
 
 
 
-// @/`Error Handling with Bugs and Sorrys`:
+// @/`Error Handling with Bugs, Sorrys, and Susses`.
 //
-// There are two main ways handling run-time errors.
+// There are three main ways of handling run-time errors.
 //
 // The most brute-forced way is with a `sorry`.
 // e.g:
@@ -1261,25 +1261,22 @@ pack_pop
 // The `sorry` macro is still useful as a temporary measure for error handling;
 // once things become more production-ready, they become replaced with `bug`.
 //
-// There's also a weak form of `sorry` called `sorry_if`. This should only
-// be used when the error can only happen due something obvious during development
-// and that proper error handling is inconvenient and impossible anyways.
+// But then there's also the third option with the `sus` macro.
+// e.g:
+// >
+// >    if (1 + 1 != 2)
+// >        sus;
+// >
+// >    do_stuff();
+// >
 //
-// An example of this would be matrix multiplication; in most contexts, the
-// input matrices are coming from a fixed source and not arbitrary input from
-// the environment that's outside the user's control. Therefore, during development,
-// it'd be nice for the user to be alerted when they do something dumb with the
-// matrix multiplication routine (like the input matrices are of the wrong dimensions),
-// but in production, something like that happening means something really has gone
-// terribly wrong and there's nothing at all we can do to fix it. With that being
-// that, the multiplication routine doesn't need to return an error code, thus
-// less friction to the user.
-//
-// In short, `sorry_if` is the closest one can get to an `assert`.
-//
-// Perhaps in a safety-critical application, `sorry_if` getting triggered in
-// production should reset the firmware, but again, something like that happening
-// should be absolutely enil due to the context it's being used in.
+// The `sus` macro is identical to `sorry` during development, but in production,
+// it expands to explicitly nothing. It's not really about catching and handling
+// errors, per-se, but really to alert the programmer of something suspicious
+// happening that could lead to subtle bugs later on. It's not a tool for
+// correctness, but rather for time-saving. The logic around `sus` should still
+// be robust against suspicious stuff, or if not, it's because error handling
+// isn't practical or the error condition is such an impractical edge-case.
 
 
 

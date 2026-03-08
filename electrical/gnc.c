@@ -33,11 +33,20 @@ static void
 MATRIX_multiply(struct Matrix* dst, struct Matrix* lhs, struct Matrix* rhs)
 {
 
-    sorry_if(!dst || !lhs || !rhs);         // Missing arguments.
-    sorry_if(dst == lhs || dst == rhs);     // No destination aliasing (e.g. `A = A * B;` is disallowed).
-    sorry_if(dst->rows    != lhs->rows   ); // Incorrect dimensions.
-    sorry_if(dst->columns != rhs->columns); // "
-    sorry_if(lhs->columns != rhs->rows   ); // "
+    if (!dst || !lhs || !rhs)
+        sus; // Missing arguments.
+
+    if (dst == lhs || dst == rhs)
+        sus; // No destination aliasing (e.g. `A = A * B;` is disallowed).
+
+    if (dst->rows != lhs->rows)
+        sus; // Incorrect dimensions.
+
+    if (dst->columns != rhs->columns)
+        sus; // Incorrect dimensions.
+
+    if (lhs->columns != rhs->rows)
+        sus; // Incorrect dimensions.
 
     for (i32 i = 0; i < lhs->rows; i += 1)
     {
@@ -62,9 +71,14 @@ static void
 MATRIX_multiply_add(struct Matrix* accumulator, struct Matrix* addend, f32 factor)
 {
 
-    sorry_if(!accumulator || !addend);                 // Missing arguments.
-    sorry_if(accumulator->rows    != addend->rows);    // Incorrect dimensions.
-    sorry_if(accumulator->columns != addend->columns); // Incorrect dimensions.
+    if (!accumulator || !addend)
+        sus; // Missing arguments.
+
+    if (accumulator->rows != addend->rows)
+        sus; // Incorrect dimensions.
+
+    if (accumulator->columns != addend->columns)
+        sus; // Incorrect dimensions.
 
     for (i32 i = 0; i < accumulator->rows; i += 1)
     {
@@ -82,7 +96,8 @@ static void
 MATRIX_stlink_tx(struct Matrix* matrix)
 {
 
-    sorry_if(!matrix); // Missing argument.
+    if (!matrix)
+        sus; // Missing argument.
 
     for (i32 i = 0; i < matrix->rows; i += 1)
     {
@@ -167,9 +182,14 @@ GNC_update
 )
 {
 
-    sorry_if(!resulting_angular_velocities);
-    sorry_if(!most_recent_imu);
-    sorry_if(!most_recent_openmv_reading);
+    if (!resulting_angular_velocities)
+        sus;
+
+    if (!most_recent_imu)
+        sus;
+
+    if (!most_recent_openmv_reading)
+        sus;
 
 
 
