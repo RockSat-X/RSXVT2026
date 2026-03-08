@@ -550,15 +550,16 @@ static enum VN100AwaitCommandResult : u32
 }
 vn100_await_command(enum VN100Command command)
 {
+
+    UXART_tx_bytes
+    (
+        UXARTHandle_vn100,
+        VN100Command_TABLE[command].message,
+        VN100Command_TABLE[command].length
+    );
+
     for (i32 response_index = 0;; response_index += 1)
     {
-
-        UXART_tx_bytes
-        (
-            UXARTHandle_vn100,
-            VN100Command_TABLE[command].message,
-            VN100Command_TABLE[command].length
-        );
 
         u8  response_buffer[256] = {0};
         i32 response_length      = {0};
@@ -612,6 +613,7 @@ vn100_await_command(enum VN100Command command)
         }
 
     }
+
 }
 
 FREERTOS_TASK(vn100, 8192, 0)
