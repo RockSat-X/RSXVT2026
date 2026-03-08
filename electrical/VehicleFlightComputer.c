@@ -26,6 +26,9 @@ enum DiagnosticMask : u32 // Lower the bit-index, higher the priority.
 {
     DiagnosticMask_stepper_driver_issue       = 1 << 0,
     DiagnosticMask_angular_velocity_saturated = 1 << 1,
+    DiagnosticMask_wiping_filesystem          = 1 << 2,
+    DiagnosticMask_logging_mishap             = 1 << 3,
+    DiagnosticMask_logging_heartbeat          = 1 << 4,
 };
 
 
@@ -457,33 +460,307 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 
 
 
-FREERTOS_TASK(logger, 2048, 0)
+FREERTOS_TASK(logger, 8196, 0)
 {
+
+    static struct Sector working_sectors[8]         = {0};
+    b32                  completely_wipe_filesystem = false;
+
     for (;;)
     {
 
-        // TODO Optional SD card logging.
+        REINITIALIZE:;
 
-        stlink_tx
-        (
-            "Angular acceleration : <%.3f, %.3f, %.3f>" "\n"
-            "Angular velocity     : <%.3f, %.3f, %.3f>" "\n"
-            "RPM                  : <%.3f, %.3f, %.3f>" "\n"
-            "\n\n",
-            current_angular_accelerations.values[StepperUnit_axis_x],
-            current_angular_accelerations.values[StepperUnit_axis_y],
-            current_angular_accelerations.values[StepperUnit_axis_z],
-            current_angular_velocities.values[StepperUnit_axis_x],
-            current_angular_velocities.values[StepperUnit_axis_y],
-            current_angular_velocities.values[StepperUnit_axis_z],
-            current_angular_velocities.values[StepperUnit_axis_x] / (2.0f * PI) * 60.0f,
-            current_angular_velocities.values[StepperUnit_axis_y] / (2.0f * PI) * 60.0f,
-            current_angular_velocities.values[StepperUnit_axis_z] / (2.0f * PI) * 60.0f
-        );
 
-        spinlock_us(100'000);
+
+        // If need be, we can format the SD card. Data saved on the vehicle
+        // SD card is not critical as it's only for diagnostic purposes for
+        // things like sequence testing.
+
+        if (completely_wipe_filesystem)
+        {
+            xTaskNotify
+            (
+                diagnostics_handle,
+                DiagnosticMask_wiping_filesystem,
+                eSetBits
+            );
+        }
+
+
+
+        // Try setting up the file-system.
+
+        enum FileSystemReinitResult reinit_result =
+            FILESYSTEM_reinit
+            (
+                SDHandle_primary,
+                working_sectors,
+                completely_wipe_filesystem ? countof(working_sectors) : 0
+            );
+
+        completely_wipe_filesystem = false;
+
+        switch (reinit_result)
+        {
+
+
+
+            case FileSystemReinitResult_success:
+            {
+                // Ready to go!
+            } break;
+
+
+
+            // Couldn't successfully communicate with the SD card,
+            // likely because of poor connection or there's no card mounted.
+            // Either way, we indicate this as a soft error.
+
+            case FileSystemReinitResult_couldnt_ready_card:
+            case FileSystemReinitResult_transfer_error:
+            {
+
+                xTaskNotify
+                (
+                    diagnostics_handle,
+                    DiagnosticMask_logging_mishap,
+                    eSetBits
+                );
+
+                FREERTOS_delay_ms(5'000);
+
+                goto REINITIALIZE;
+
+            } break;
+
+
+
+            // Something went wrong trying to mount the file-system;
+            // best thing we can do is format the card and hope it'll work out.
+
+            case FileSystemReinitResult_invalid_filesystem:
+            case FileSystemReinitResult_no_more_space_for_new_file:
+            case FileSystemReinitResult_fatfs_internal_error:
+            case FileSystemReinitResult_bug:
+            default:
+            {
+
+                xTaskNotify
+                (
+                    diagnostics_handle,
+                    DiagnosticMask_logging_mishap,
+                    eSetBits
+                );
+
+                FREERTOS_delay_ms(5'000);
+
+                completely_wipe_filesystem = true;
+
+                goto REINITIALIZE;
+
+            } break;
+
+        }
+
+
+
+        // Alright, file-system is ready. Let's start logging!
+
+        u32 most_recent_heartbeat_timestamp_us  = 0;
+        u32 most_recent_stlink_log_timestamp_us = 0;
+
+        while (true)
+        {
+
+            // Make the log entry.
+
+            u32 current_timestamp_us = TIMEKEEPING_microseconds();
+
+            i32 log_entry_length =
+                snprintf_
+                (
+                    (char*) working_sectors[0].bytes,
+                    countof(working_sectors[0].bytes),
+                    "[%u us]"                             "\n"
+                    "Log file index : %d"                 "\n"
+                    "Ang. accel.    : <%.3f, %.3f, %.3f>" "\n"
+                    "Ang. velocity  : <%.3f, %.3f, %.3f>" "\n"
+                    "RPM            : <%.3f, %.3f, %.3f>" "\n"
+                    "Stepper issues : %d"                 "\n"
+                    "OpenMV issues  : %d"                 "\n"
+                    "ESP32 issues   : %d"                 "\n"
+                    "Quaternion     : <%f, %f, %f, %f>"   "\n"
+                    "Magnetometer   : <%f, %f, %f>"       "\n"
+                    "Accelerometer  : <%f, %f, %f>"       "\n"
+                    "Gyroscope      : <%f, %f, %f>"       "\n"
+                    "Ext. power     : %s"                 "\n"
+                    "\n",
+                    current_timestamp_us,
+                    0, // TODO.
+                    current_angular_accelerations.values[StepperUnit_axis_x],
+                    current_angular_accelerations.values[StepperUnit_axis_y],
+                    current_angular_accelerations.values[StepperUnit_axis_z],
+                    current_angular_velocities.values[StepperUnit_axis_x],
+                    current_angular_velocities.values[StepperUnit_axis_y],
+                    current_angular_velocities.values[StepperUnit_axis_z],
+                    current_angular_velocities.values[StepperUnit_axis_x] / (2.0f * PI) * 60.0f,
+                    current_angular_velocities.values[StepperUnit_axis_y] / (2.0f * PI) * 60.0f,
+                    current_angular_velocities.values[StepperUnit_axis_z] / (2.0f * PI) * 60.0f,
+                    0, // TODO.
+                    0, // TODO.
+                    0, // TODO.
+                    0.0f, // TODO.
+                    0.0f, // TODO.
+                    0.0f, // TODO.
+                    0.0f, // TODO.
+                    0.0f, // TODO.
+                    0.0f, // TODO.
+                    0.0f, // TODO.
+                    0.0f, // TODO.
+                    0.0f, // TODO.
+                    0.0f, // TODO.
+                    0.0f, // TODO.
+                    0.0f, // TODO.
+                    0.0f, // TODO.
+                    false ? "Yes" : "No" // TODO.
+                );
+
+
+
+            // Formatting error, if for some reason.
+
+            if (log_entry_length <= -1)
+            {
+                log_entry_length = 0;
+            }
+
+
+
+            // Log entry too long; just truncate.
+
+            if (log_entry_length > sizeof(working_sectors[0].bytes))
+            {
+                log_entry_length = sizeof(working_sectors[0].bytes);
+            }
+
+
+
+            // The remaining space in the log buffer will be used for the divider.
+
+            memset
+            (
+                working_sectors[0].bytes + log_entry_length,
+                '.',
+                (u32) (sizeof(working_sectors[0].bytes) - log_entry_length)
+            );
+
+            working_sectors[0].bytes[countof(working_sectors[0].bytes) - 2] = '\n'; // Don't care if this stamps over the string.
+            working_sectors[0].bytes[countof(working_sectors[0].bytes) - 1] = '\n'; // "
+
+
+
+            // Also send the log out through the ST-Link periodically for convenience.
+
+            if (current_timestamp_us - most_recent_stlink_log_timestamp_us >= 250'000)
+            {
+
+                most_recent_stlink_log_timestamp_us = current_timestamp_us;
+
+                stlink_tx
+                (
+                    "%.*s",
+                    log_entry_length,
+                    working_sectors[0].bytes
+                );
+
+            }
+
+
+
+            // Save onto SD card for us to verify the vehicle
+            // is operating as intended after sequence testing.
+
+            enum FileSystemSaveResult save_result =
+                FILESYSTEM_save
+                (
+                    SDHandle_primary,
+                    &working_sectors[0],
+                    1
+                );
+
+            switch (save_result)
+            {
+
+
+
+                // Successfully saved the log entry;
+                // periodically indicate that we're logging data too.
+
+                case FileSystemSaveResult_success:
+                {
+                    if (current_timestamp_us - most_recent_heartbeat_timestamp_us >= 5'000'000)
+                    {
+
+                        most_recent_heartbeat_timestamp_us = current_timestamp_us;
+
+                        xTaskNotify
+                        (
+                            diagnostics_handle,
+                            DiagnosticMask_logging_heartbeat,
+                            eSetBits
+                        );
+
+                    }
+                } break;
+
+
+
+                // Small error occured; let's just reinitialize the file-system
+                // as quickly as possible to be able to continue logging, if still possible.
+
+                case FileSystemSaveResult_transfer_error:
+                {
+
+                    xTaskNotify
+                    (
+                        diagnostics_handle,
+                        DiagnosticMask_logging_mishap,
+                        eSetBits
+                    );
+
+                    goto REINITIALIZE;
+
+                } break;
+
+
+
+                // Uh oh, let's just wipe the SD card so we can continue logging new data.
+
+                case FileSystemSaveResult_no_more_space_for_data:
+                case FileSystemSaveResult_fatfs_internal_error:
+                {
+                    completely_wipe_filesystem = true;
+                    goto REINITIALIZE;
+                } break;
+
+
+
+                // Something weird happened. Let's just reinitialize
+                // the file-system and hope for the best...
+
+                case FileSystemSaveResult_bug:
+                default:
+                {
+                    goto REINITIALIZE;
+                } break;
+
+            }
+
+        }
 
     }
+
 }
 
 
@@ -597,6 +874,72 @@ FREERTOS_TASK(diagnostics, 512, 1)
                     {
                         goto END_OF_DIAGNOSTIC;
                     }
+
+                }
+
+            } break;
+
+            case DiagnosticMask_logging_mishap:
+            {
+
+                BUZZER_play(BuzzerTune_heavy_beep);
+
+                while (BUZZER_current_tune())
+                {
+
+                    GPIO_TOGGLE  (led_channel_red  );
+                    GPIO_INACTIVE(led_channel_green);
+                    GPIO_TOGGLE  (led_channel_blue );
+
+                    if (diagnostics_delay_ms(&current_flags, 100))
+                    {
+                        goto END_OF_DIAGNOSTIC;
+                    }
+
+                }
+
+            } break;
+
+            case DiagnosticMask_logging_heartbeat:
+            {
+
+                BUZZER_play(BuzzerTune_chirp);
+
+                GPIO_INACTIVE(led_channel_red  );
+                GPIO_ACTIVE  (led_channel_green);
+                GPIO_INACTIVE(led_channel_blue );
+
+                while (BUZZER_current_tune())
+                {
+                    if (diagnostics_delay_ms(&current_flags, 100))
+                    {
+                        goto END_OF_DIAGNOSTIC;
+                    }
+                }
+
+            } break;
+
+            case DiagnosticMask_wiping_filesystem:
+            {
+
+                BUZZER_play(BuzzerTune_tetris);
+
+                GPIO_ACTIVE(led_channel_red  );
+                GPIO_ACTIVE(led_channel_green);
+                GPIO_ACTIVE(led_channel_blue );
+
+                while (BUZZER_current_tune())
+                {
+
+                    GPIO_TOGGLE(led_channel_red  );
+                    GPIO_TOGGLE(led_channel_green);
+                    GPIO_TOGGLE(led_channel_blue );
+
+                    if (diagnostics_delay_ms(&current_flags, 100))
+                    {
+                        goto END_OF_DIAGNOSTIC;
+                    }
+
                 }
 
             } break;
