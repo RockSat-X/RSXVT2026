@@ -6,7 +6,7 @@
 #define MAX_ANGULAR_ACCELERATION    (200.0f)
 #define MAX_ANGULAR_VELOCITY        (2000.0f * 2.0f * PI / 60.0f)
 #define GOD_MODE                    true
-#define CONTROLLER_ENABLE           true
+#define CONTROLLER_ENABLE           false
 
 #include "system.h"
 #include "timekeeping.c"
@@ -45,12 +45,18 @@ static struct
     volatile u32 replay_sequence_number;
     #endif
 
-} CONTROLLER;
+} CONTROLLER = {0};
 
 static struct
 {
     RingBuffer(struct VN100Packet, 4) vn100_packets;
 } LOGGER = {0};
+
+static struct
+{
+    volatile _Atomic b32 magnetic_disturbance_exists;
+    volatile _Atomic b32 acceleration_disturbance_exists;
+} VN100 = {0};
 
 
 
@@ -618,259 +624,346 @@ vn100_await_command(enum VN100Command command)
 
 FREERTOS_TASK(vn100, 8192, 0)
 {
-
-    UXART_reinit(UXARTHandle_vn100);
-
-
-
-    // TODO.
-
-    {
-
-        enum VN100AwaitCommandResult command_result = vn100_await_command(VN100Command_enable_known_magnetic_disturbance);
-
-        switch (command_result)
-        {
-
-            case VN100AwaitCommandResult_successful:
-            {
-                // Command successfully acknowledged.
-            } break;
-
-            case VN100AwaitCommandResult_timeout:
-            case VN100AwaitCommandResult_checksum_mismatch:
-            case VN100AwaitCommandResult_missing_echo:
-            {
-
-                // Whoops!
-
-                xTaskNotify
-                (
-                    diagnostics_handle,
-                    DiagnosticMask_vn100_mishap,
-                    eSetBits
-                );
-
-            } break;
-
-            default: sus;
-
-        }
-
-    }
-
-
-
-    // TODO.
-
-    i32 valid_packet_count = 0;
-
     for (;;)
     {
 
-        u8  payload_buffer[256] = {0};
-        i32 payload_length      = {0};
+        UXART_reinit(UXARTHandle_vn100);
 
-        enum VN100AwaitResponseResult response_result =
-            vn100_await_response
-            (
-                payload_buffer,
-                countof(payload_buffer),
-                &payload_length
-            );
+        b32 active_magnetic_disturbance     = {0};
+        b32 active_acceleration_disturbance = {0};
+        i32 valid_packet_count              = 0;
+        i32 consecutive_issue_count         = 0;
 
-        switch (response_result)
+        for (i32 iteration_index = 0;; iteration_index += 1)
         {
 
 
 
-            // Parse the register fields.
+            // See if we need to reconfigure the VN-100.
 
-            case VN100AwaitResponseResult_successful:
+            b32 current_magnetic_disturbance =
+                atomic_load_explicit
+                (
+                    &VN100.magnetic_disturbance_exists,
+                    memory_order_relaxed // No synchronization needed.
+                );
+
+            b32 current_acceleration_disturbance =
+                atomic_load_explicit
+                (
+                    &VN100.acceleration_disturbance_exists,
+                    memory_order_relaxed // No synchronization needed.
+                );
+
+            if
+            (
+                iteration_index == 0                                                ||
+                active_magnetic_disturbance     != current_magnetic_disturbance     ||
+                active_acceleration_disturbance != current_acceleration_disturbance
+            )
             {
 
-                struct VN100Packet packet               = {0};
-                b32                valid_fields         = true;
-                i32                field_position_index = 0;
-                i32                field_start_index    = 0;
-                i32                field_length         = 0;
+                active_magnetic_disturbance     = current_magnetic_disturbance;
+                active_acceleration_disturbance = current_acceleration_disturbance;
 
-                while (true)
+                { // Initialize the VNKMD state.
+
+                    enum VN100AwaitCommandResult result =
+                        vn100_await_command
+                        (
+                            active_magnetic_disturbance
+                                ?  VN100Command_enable_known_magnetic_disturbance
+                                :  VN100Command_disable_known_magnetic_disturbance
+                        );
+
+                    switch (result)
+                    {
+                        case VN100AwaitCommandResult_successful        : break;
+                        case VN100AwaitCommandResult_timeout           : goto REINITIALIZE;
+                        case VN100AwaitCommandResult_checksum_mismatch : goto REINITIALIZE;
+                        case VN100AwaitCommandResult_missing_echo      : goto REINITIALIZE;
+                        default                                        : sus;
+                    }
+
+                }
+
+                { // Initialize the VNKAD state.
+
+                    enum VN100AwaitCommandResult result =
+                        vn100_await_command
+                        (
+                            active_acceleration_disturbance
+                                ?  VN100Command_enable_known_acceleration_disturbance
+                                :  VN100Command_disable_known_acceleration_disturbance
+                        );
+
+                    switch (result)
+                    {
+                        case VN100AwaitCommandResult_successful        : break;
+                        case VN100AwaitCommandResult_timeout           : goto REINITIALIZE;
+                        case VN100AwaitCommandResult_checksum_mismatch : goto REINITIALIZE;
+                        case VN100AwaitCommandResult_missing_echo      : goto REINITIALIZE;
+                        default                                        : sus;
+                    }
+
+                }
+
+            }
+
+
+
+            // The VN-100 is preprogrammed to automatically transmit the desired
+            // register data; all we have to do to pick it up and parse it.
+
+            u8  payload_buffer[256] = {0};
+            i32 payload_length      = {0};
+
+            enum VN100AwaitResponseResult response_result =
+                vn100_await_response
+                (
+                    payload_buffer,
+                    countof(payload_buffer),
+                    &payload_length
+                );
+
+            switch (response_result)
+            {
+
+
+
+                // Parse the register fields.
+
+                case VN100AwaitResponseResult_successful:
                 {
 
-                    b32 found_comma    = payload_buffer[field_start_index + field_length] == ',';
-                    b32 end_of_payload = field_start_index + field_length >= payload_length - 3;
+                    struct VN100Packet packet               = {0};
+                    b32                valid_fields         = true;
+                    i32                field_position_index = 0;
+                    i32                field_start_index    = 0;
+                    i32                field_length         = 0;
 
-                    if (!found_comma && !end_of_payload) // Haven't found end of field yet?
+                    while (true)
                     {
-                        field_length += 1;
-                    }
-                    else // Ready to parse the field now.
-                    {
 
+                        b32 found_comma    = payload_buffer[field_start_index + field_length] == ',';
+                        b32 end_of_payload = field_start_index + field_length >= payload_length - 3;
 
-
-                        // The very first field should be the expected magic starting token and register name.
-
-                        if (field_position_index == 0)
+                        if (!found_comma && !end_of_payload) // Haven't found end of field yet?
                         {
-                            valid_fields =
-                                !strncmp
-                                (
-                                    (char*) (payload_buffer + field_start_index),
-                                    "$VNQMR",
-                                    (u32) field_length
-                                );
+                            field_length += 1;
                         }
-
-
-
-                        // The remaining fields are the values of the register.
-
-                        else if (field_position_index - 1 < sizeof(struct VN100Packet) / sizeof(f32))
+                        else // Ready to parse the field now.
                         {
 
-                            // Parse the field as a float, if possible.
 
-                            f32 parsed_value   = 0.0f;
-                            b32 negative       = false;
-                            f32 decimal_factor = {0};
 
-                            for
-                            (
-                                i32 index = 0;
-                                index < field_length && valid_fields;
-                                index += 1
-                            )
+                            // The very first field should be the expected magic starting token and register name.
+
+                            if (field_position_index == 0)
                             {
-                                if (payload_buffer[field_start_index + index] == '+' && index == 0)
-                                {
-                                    negative = false;
-                                }
-                                else if (payload_buffer[field_start_index + index] == '-' && index == 0)
-                                {
-                                    negative = true;
-                                }
-                                else if (payload_buffer[field_start_index + index] == '.' && !decimal_factor)
-                                {
-                                    decimal_factor = 0.1f;
-                                }
-                                else if ('0' <= payload_buffer[field_start_index + index] && payload_buffer[field_start_index + index] <= '9')
-                                {
-                                    f32 digit = (f32) (payload_buffer[field_start_index + index] - '0');
+                                valid_fields =
+                                    !strncmp
+                                    (
+                                        (char*) (payload_buffer + field_start_index),
+                                        "$VNQMR",
+                                        (u32) field_length
+                                    );
+                            }
 
-                                    if (decimal_factor)
+
+
+                            // The remaining fields are the values of the register.
+
+                            else if (field_position_index - 1 < sizeof(struct VN100Packet) / sizeof(f32))
+                            {
+
+                                // Parse the field as a float, if possible.
+
+                                f32 parsed_value   = 0.0f;
+                                b32 negative       = false;
+                                f32 decimal_factor = {0};
+
+                                for
+                                (
+                                    i32 index = 0;
+                                    index < field_length && valid_fields;
+                                    index += 1
+                                )
+                                {
+                                    if (payload_buffer[field_start_index + index] == '+' && index == 0)
                                     {
-                                        parsed_value   += decimal_factor * digit;
-                                        decimal_factor *= 0.1f;
+                                        negative = false;
+                                    }
+                                    else if (payload_buffer[field_start_index + index] == '-' && index == 0)
+                                    {
+                                        negative = true;
+                                    }
+                                    else if (payload_buffer[field_start_index + index] == '.' && !decimal_factor)
+                                    {
+                                        decimal_factor = 0.1f;
+                                    }
+                                    else if ('0' <= payload_buffer[field_start_index + index] && payload_buffer[field_start_index + index] <= '9')
+                                    {
+                                        f32 digit = (f32) (payload_buffer[field_start_index + index] - '0');
+
+                                        if (decimal_factor)
+                                        {
+                                            parsed_value   += decimal_factor * digit;
+                                            decimal_factor *= 0.1f;
+                                        }
+                                        else
+                                        {
+                                            parsed_value = parsed_value * 10.0f + digit;
+                                        }
                                     }
                                     else
                                     {
-                                        parsed_value = parsed_value * 10.0f + digit;
+                                        valid_fields = false; // Not a digit...?
                                     }
                                 }
-                                else
+
+                                if (valid_fields)
                                 {
-                                    valid_fields = false; // Not a digit...?
+
+                                    if (negative)
+                                    {
+                                        parsed_value = -parsed_value;
+                                    }
+
+                                    ((f32*) &packet)[field_position_index - 1] = parsed_value;
+
                                 }
+
                             }
 
-                            if (valid_fields)
+
+
+                            // Extraneous fields...?
+
+                            else
                             {
+                                valid_fields = false;
+                            }
 
-                                if (negative)
-                                {
-                                    parsed_value = -parsed_value;
-                                }
 
-                                ((f32*) &packet)[field_position_index - 1] = parsed_value;
 
+                            if (!valid_fields)
+                            {
+                                break; // Abort parsing the received data.
+                            }
+                            else if (end_of_payload)
+                            {
+                                break; // No more data to process.
+                            }
+                            else // Move onto next field.
+                            {
+                                field_position_index += 1;
+                                field_start_index    += field_length + 1; // +1 to skip the comma.
+                                field_length          = 0;
                             }
 
                         }
 
+                    }
 
+                    if (valid_fields)
+                    {
 
-                        // Extraneous fields...?
-
-                        else
+                        if (!RingBuffer_push(&CONTROLLER.vn100_packets, &packet))
                         {
-                            valid_fields = false;
+                            // VN-100 data overrun!
                         }
 
-
-
-                        if (!valid_fields)
+                        if (!RingBuffer_push(&LOGGER.vn100_packets, &packet))
                         {
-                            break; // Abort parsing the received data.
+                            // VN-100 data overrun, but it's for the logger; who cares.
                         }
-                        else if (end_of_payload)
+
+                        valid_packet_count      += 1;
+                        consecutive_issue_count  = 0;
+
+                        if (valid_packet_count % 256 == 0)
                         {
-                            break; // No more data to process.
-                        }
-                        else // Move onto next field.
-                        {
-                            field_position_index += 1;
-                            field_start_index    += field_length + 1; // +1 to skip the comma.
-                            field_length          = 0;
+                            xTaskNotify
+                            (
+                                diagnostics_handle,
+                                DiagnosticMask_vn100_heartbeat,
+                                eSetBits
+                            );
                         }
 
                     }
-
-                }
-
-                if (valid_fields)
-                {
-
-                    if (!RingBuffer_push(&CONTROLLER.vn100_packets, &packet))
+                    else // Perhaps a packet we don't recognize?
                     {
-                        // VN-100 data overrun!
-                    }
 
-                    if (!RingBuffer_push(&LOGGER.vn100_packets, &packet))
-                    {
-                        // VN-100 data overrun, but it's for the logger; who cares.
-                    }
-
-                    valid_packet_count += 1;
-
-                    if (valid_packet_count % 256 == 0)
-                    {
                         xTaskNotify
                         (
                             diagnostics_handle,
-                            DiagnosticMask_vn100_heartbeat,
+                            DiagnosticMask_vn100_mishap,
                             eSetBits
                         );
+
+                        consecutive_issue_count += 1;
+
                     }
 
-                }
-
-            } break;
+                } break;
 
 
 
-            // Whoops...
+                // Couldn't get a response...
 
-            case VN100AwaitResponseResult_timeout:
-            case VN100AwaitResponseResult_checksum_mismatch:
+                case VN100AwaitResponseResult_timeout:
+                {
+                    goto REINITIALIZE;
+                } break;
+
+
+
+                // Perhaps a mild signal integrity issue?
+
+                case VN100AwaitResponseResult_checksum_mismatch:
+                {
+
+                    xTaskNotify
+                    (
+                        diagnostics_handle,
+                        DiagnosticMask_vn100_mishap,
+                        eSetBits
+                    );
+
+                    consecutive_issue_count += 1;
+
+                } break;
+
+
+
+                default: sus;
+
+            }
+
+
+
+            // If we're encountering too many soft
+            // errors, then something is quite wrong.
+
+            if (consecutive_issue_count >= 8)
             {
-                xTaskNotify
-                (
-                    diagnostics_handle,
-                    DiagnosticMask_vn100_mishap,
-                    eSetBits
-                );
-            } break;
-
-
-
-            default: sus;
+                goto REINITIALIZE;
+            }
 
         }
 
-    }
+        REINITIALIZE:;
 
+        xTaskNotify
+        (
+            diagnostics_handle,
+            DiagnosticMask_vn100_mishap,
+            eSetBits
+        );
+
+    }
 }
 
 
@@ -1442,6 +1535,10 @@ FREERTOS_TASK(god, 1024, 2)
             switch (input)
             {
 
+
+
+                // Stepper motor control.
+
                 case 'j':
                 {
                     for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
@@ -1508,11 +1605,6 @@ FREERTOS_TASK(god, 1024, 2)
                     }
                 } break;
 
-                case 'b':
-                {
-                    GPIO_TOGGLE(battery_allowed);
-                } break;
-
                 case 'x':
                 {
 
@@ -1525,6 +1617,41 @@ FREERTOS_TASK(god, 1024, 2)
                     CONTROLLER.replay_sequence_number = 1;
 
                 } break;
+
+
+
+                // VN-100.
+
+                case 'm':
+                {
+                    atomic_fetch_xor_explicit
+                    (
+                        &VN100.magnetic_disturbance_exists,
+                        -1,
+                        memory_order_relaxed // No synchronization needed.
+                    );
+                } break;
+
+                case 'a':
+                {
+                    atomic_fetch_xor_explicit
+                    (
+                        &VN100.acceleration_disturbance_exists,
+                        -1,
+                        memory_order_relaxed // No synchronization needed.
+                    );
+                } break;
+
+
+
+                // Misc.
+
+                case 'b':
+                {
+                    GPIO_TOGGLE(battery_allowed);
+                } break;
+
+
 
                 default:
                 {
