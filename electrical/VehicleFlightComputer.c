@@ -2,12 +2,13 @@
 #define STEPPER_VELOCITY_UPDATE_US  25'000 // @/`Sequence Angular Accelerations Delta Time`.
 #define STEPPER_UART_TIME_MARGIN_US 2'000
 #define STEPPER_RING_BUFFER_LENGTH  8       // TODO Determine latency.
-#define AUTOMATIC_SHUTDOWN_TIME_US  0       // TODO Once finalized, we should use (10 * 60'000'000).
+#define WATCHDOG_DURATION_US        (10 * 60'000'000)
 #define MAX_ANGULAR_ACCELERATION    (200.0f)
 #define MAX_ANGULAR_VELOCITY        (2000.0f * 2.0f * PI / 60.0f)
 #define GOD_MODE                    true
 #define CONTROLLER_ENABLE           false
 #define VN100_ENABLE                true
+#define WATCHDOG_ENABLE             false
 
 #include "system.h"
 #include "timekeeping.c"
@@ -17,6 +18,10 @@
 #include "stepper.c"
 #include "buzzer.c"
 #include "gnc.c"
+
+// TODO Check if we've been able to control the stepper driver.
+// TODO Check if we've been receiving OpenMV data.
+// TODO Check if ESP32 still working.
 
 
 
@@ -1702,49 +1707,50 @@ FREERTOS_TASK(god, 1024, 2)
 
 FREERTOS_TASK(watchdog, 512, 2)
 {
+
+#if WATCHDOG_ENABLE
+
     for (;;)
     {
-
-        FREERTOS_delay_ms(1000);
-
-
-
-        // TODO Check if we've been able to control the stepper driver.
-        // TODO Check if we've been receiving OpenMV data.
-        // TODO Check if ESP32 still working.
-
-
 
         // To prevent the vehicle from being perpetually on forever
         // and drain the batteries empty, we turn ourselves off automatically.
 
-        #if AUTOMATIC_SHUTDOWN_TIME_US > 0
+        if (TIMEKEEPING_microseconds() >= WATCHDOG_DURATION_US)
         {
-            if (TIMEKEEPING_microseconds() >= AUTOMATIC_SHUTDOWN_TIME_US)
-            {
 
-                // Indicate that this is why the vehicle is suddenly shut off.
+            // Indicate that this is why the vehicle is suddenly shut off.
 
-                BUZZER_play(BuzzerTune_sleeping);
-                while (BUZZER_current_tune());
+            BUZZER_play(BuzzerTune_mario);
+            while (BUZZER_current_tune());
 
 
 
-                // Try cut off battery power.
+            // Try cut off battery power.
 
-                GPIO_INACTIVE(battery_allowed);
-                FREERTOS_delay_ms(1'000'000);
+            GPIO_INACTIVE(battery_allowed);
+            FREERTOS_delay_ms(1'000'000);
 
 
-                // If we're still alive by this point, then
-                // there's probably external power or something,
-                // to which we'll just do a software reset.
+            // If we're still alive by this point, then
+            // there's probably external power or something,
+            // to which we'll just do a software reset.
 
-                WARM_RESET();
+            WARM_RESET();
 
-            }
         }
-        #endif
+
+        FREERTOS_delay_ms(1'000);
 
     }
+
+#else
+
+    for (;;)
+    {
+        FREERTOS_delay_ms(1'000);
+    }
+
+#endif
+
 }
