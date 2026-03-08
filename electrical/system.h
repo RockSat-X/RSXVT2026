@@ -996,7 +996,7 @@ ESP32_calculate_crc(u8* data, i32 length)
 
 
 
-#define VN100_ESP32_BAUD 400000 // @/`Coupled Baud Rate between STM32 and ESP32`.
+#define ESP32_BAUD 400000 // @/`Coupled Baud Rate between STM32 and ESP32`.
 
 #if COMPILING_ESP32
 
@@ -1013,7 +1013,7 @@ ESP32_calculate_crc(u8* data, i32 length)
     common_init_uart(void)
     {
         Serial1.setRxBufferSize(1024); // TODO Look into more?
-        Serial1.begin(VN100_ESP32_BAUD, SERIAL_8N1, D7, D6);
+        Serial1.begin(ESP32_BAUD, SERIAL_8N1, D7, D6);
         while (!Serial1);
     }
 
