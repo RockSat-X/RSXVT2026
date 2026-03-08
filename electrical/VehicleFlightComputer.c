@@ -1,12 +1,12 @@
-#define STEPPER_ENABLE_DELAY_US         500'000
-#define STEPPER_VELOCITY_UPDATE_US       25'000 // @/`Sequence Angular Accelerations Delta Time`.
-#define STEPPER_UART_TIME_MARGIN_US       2'000
-#define STEPPER_RING_BUFFER_LENGTH      8       // TODO Determine latency.
-#define AUTOMATIC_SHUTDOWN_TIME_US      0       // TODO Once finalized, we should use (10 * 60'000'000).
-#define MAX_ANGULAR_ACCELERATION        (200.0f)
-#define MAX_ANGULAR_VELOCITY            (2000.0f * 2.0f * PI / 60.0f)
-#define DEMONSTRATE_STEPPER             true
-#define STEPPER_MOTOR_CONTROLLER_ENABLE true
+#define STEPPER_ENABLE_DELAY_US     500'000
+#define STEPPER_VELOCITY_UPDATE_US  25'000 // @/`Sequence Angular Accelerations Delta Time`.
+#define STEPPER_UART_TIME_MARGIN_US 2'000
+#define STEPPER_RING_BUFFER_LENGTH  8       // TODO Determine latency.
+#define AUTOMATIC_SHUTDOWN_TIME_US  0       // TODO Once finalized, we should use (10 * 60'000'000).
+#define MAX_ANGULAR_ACCELERATION    (200.0f)
+#define MAX_ANGULAR_VELOCITY        (2000.0f * 2.0f * PI / 60.0f)
+#define DEMONSTRATE_STEPPER         true
+#define CONTROLLER_ENABLE           true
 
 #include "system.h"
 #include "timekeeping.c"
@@ -32,6 +32,12 @@ enum DiagnosticMask : u32 // Lower the bit-index, higher the priority.
     DiagnosticMask_logging_heartbeat          = 1 << 4,
 };
 
+static struct
+{
+    RingBuffer(struct VN100Packet, 4) vn100_packets;
+    volatile struct StepperTuple      current_angular_accelerations;
+    volatile struct StepperTuple      current_angular_velocities;
+} CONTROLLER;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -92,13 +98,10 @@ main(void)
 
 
 
-static volatile struct StepperTuple current_angular_accelerations = {0};
-static volatile struct StepperTuple current_angular_velocities    = {0};
-
 FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 {
 
-#if STEPPER_MOTOR_CONTROLLER_ENABLE
+#if CONTROLLER_ENABLE
 
     STEPPER_reinit();
 
@@ -111,7 +114,7 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
     {
         for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
         {
-            current_angular_velocities.values[unit] = 1.0f;
+            CONTROLLER.current_angular_velocities.values[unit] = 1.0f;
         }
     }
     #endif
@@ -145,7 +148,7 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
                     {
                         for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
                         {
-                            current_angular_accelerations.values[unit] -= 0.1f;
+                            CONTROLLER.current_angular_accelerations.values[unit] -= 0.1f;
                         }
                     } break;
 
@@ -153,7 +156,7 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
                     {
                         for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
                         {
-                            current_angular_accelerations.values[unit] -= 1.0f;
+                            CONTROLLER.current_angular_accelerations.values[unit] -= 1.0f;
                         }
                     } break;
 
@@ -161,7 +164,7 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
                     {
                         for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
                         {
-                            current_angular_accelerations.values[unit] += 0.1f;
+                            CONTROLLER.current_angular_accelerations.values[unit] += 0.1f;
                         }
                     } break;
 
@@ -169,7 +172,7 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
                     {
                         for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
                         {
-                            current_angular_accelerations.values[unit] += 1.0f;
+                            CONTROLLER.current_angular_accelerations.values[unit] += 1.0f;
                         }
                     } break;
 
@@ -177,8 +180,8 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
                     {
                         for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
                         {
-                            current_angular_accelerations.values[unit] = 0.0f;
-                            current_angular_velocities   .values[unit] = 0.0f;
+                            CONTROLLER.current_angular_accelerations.values[unit] = 0.0f;
+                            CONTROLLER.current_angular_velocities   .values[unit] = 0.0f;
                         }
                     } break;
 
@@ -186,7 +189,7 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
                     {
                         for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
                         {
-                            current_angular_accelerations.values[unit] -= 200.0f;
+                            CONTROLLER.current_angular_accelerations.values[unit] -= 200.0f;
                         }
                     } break;
 
@@ -194,7 +197,7 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
                     {
                         for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
                         {
-                            current_angular_accelerations.values[unit] += 200.0f;
+                            CONTROLLER.current_angular_accelerations.values[unit] += 200.0f;
                         }
                     } break;
 
@@ -202,8 +205,8 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
                     {
                         for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
                         {
-                            current_angular_accelerations.values[unit]  =  0.0f;
-                            current_angular_velocities   .values[unit] *= -1.0f;
+                            CONTROLLER.current_angular_accelerations.values[unit]  =  0.0f;
+                            CONTROLLER.current_angular_velocities   .values[unit] *= -1.0f;
                         }
                     } break;
 
@@ -217,8 +220,8 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 
                         for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
                         {
-                            current_angular_accelerations.values[unit] = 0.0f;
-                            current_angular_velocities   .values[unit] = 0.0f;
+                            CONTROLLER.current_angular_accelerations.values[unit] = 0.0f;
+                            CONTROLLER.current_angular_velocities   .values[unit] = 0.0f;
                         }
 
                         replay_sequence_number = 1; break;
@@ -318,16 +321,16 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 
                 */
 
-                current_angular_accelerations  = SEQUENCE_ANGULAR_ACCELERATIONS[replay_sequence_number - 1];
-                replay_sequence_number        += 1;
-                replay_sequence_number        %= countof(SEQUENCE_ANGULAR_ACCELERATIONS) + 1;
+                CONTROLLER.current_angular_accelerations  = SEQUENCE_ANGULAR_ACCELERATIONS[replay_sequence_number - 1];
+                replay_sequence_number                   += 1;
+                replay_sequence_number                   %= countof(SEQUENCE_ANGULAR_ACCELERATIONS) + 1;
 
                 if (!replay_sequence_number)
                 {
                     for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
                     {
-                        current_angular_accelerations.values[unit] = 0.0f;
-                        current_angular_velocities   .values[unit] = 0.0f;
+                        CONTROLLER.current_angular_accelerations.values[unit] = 0.0f;
+                        CONTROLLER.current_angular_velocities   .values[unit] = 0.0f;
                     }
                 }
 
@@ -357,34 +360,36 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 
             // Limit the acceleration.
 
-            if (current_angular_accelerations.values[unit] >= MAX_ANGULAR_ACCELERATION)
+            if (CONTROLLER.current_angular_accelerations.values[unit] >= MAX_ANGULAR_ACCELERATION)
             {
-                current_angular_accelerations.values[unit] = MAX_ANGULAR_ACCELERATION;
+                CONTROLLER.current_angular_accelerations.values[unit] = MAX_ANGULAR_ACCELERATION;
             }
-            else if (current_angular_accelerations.values[unit] <= -MAX_ANGULAR_ACCELERATION)
+            else if (CONTROLLER.current_angular_accelerations.values[unit] <= -MAX_ANGULAR_ACCELERATION)
             {
-                current_angular_accelerations.values[unit] = -MAX_ANGULAR_ACCELERATION;
+                CONTROLLER.current_angular_accelerations.values[unit] = -MAX_ANGULAR_ACCELERATION;
             }
 
 
 
             // Find new angular velocity.
 
-            current_angular_velocities.values[unit] += current_angular_accelerations.values[unit] * (f32) STEPPER_VELOCITY_UPDATE_US / 1'000'000.0f;
+            CONTROLLER.current_angular_velocities.values[unit] +=
+                CONTROLLER.current_angular_accelerations.values[unit]
+                * (f32) STEPPER_VELOCITY_UPDATE_US / 1'000'000.0f;
 
 
 
             // Limit the angular velocity.
 
-            if (current_angular_velocities.values[unit] >= MAX_ANGULAR_VELOCITY)
+            if (CONTROLLER.current_angular_velocities.values[unit] >= MAX_ANGULAR_VELOCITY)
             {
-                current_angular_velocities.values[unit] = MAX_ANGULAR_VELOCITY;
-                max_angular_velocity_reached            = true;
+                CONTROLLER.current_angular_velocities.values[unit] = MAX_ANGULAR_VELOCITY;
+                max_angular_velocity_reached = true;
             }
-            else if (current_angular_velocities.values[unit] <= -MAX_ANGULAR_VELOCITY)
+            else if (CONTROLLER.current_angular_velocities.values[unit] <= -MAX_ANGULAR_VELOCITY)
             {
-                current_angular_velocities.values[unit] = -MAX_ANGULAR_VELOCITY;
-                max_angular_velocity_reached            = true;
+                CONTROLLER.current_angular_velocities.values[unit] = -MAX_ANGULAR_VELOCITY;
+                max_angular_velocity_reached = true;
             }
 
         }
@@ -411,7 +416,11 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
         for (b32 yield = false; !yield;)
         {
 
-            enum StepperPushAngularVelocitiesResult result = STEPPER_push_angular_velocities((struct StepperTuple*) &current_angular_velocities);
+            enum StepperPushAngularVelocitiesResult result =
+                STEPPER_push_angular_velocities
+                (
+                    (struct StepperTuple*) &CONTROLLER.current_angular_velocities
+                );
 
             switch (result)
             {
@@ -440,8 +449,8 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
                         eSetBits
                     );
 
-                    memzero((struct StepperTuple*) &current_angular_accelerations);
-                    memzero((struct StepperTuple*) &current_angular_velocities   );
+                    memzero((struct StepperTuple*) &CONTROLLER.current_angular_accelerations);
+                    memzero((struct StepperTuple*) &CONTROLLER.current_angular_velocities   );
 
                     STEPPER_reinit();
 
@@ -610,15 +619,15 @@ FREERTOS_TASK(logger, 8196, 0)
                     "\n",
                     current_timestamp_us,
                     0, // TODO.
-                    current_angular_accelerations.values[StepperUnit_axis_x],
-                    current_angular_accelerations.values[StepperUnit_axis_y],
-                    current_angular_accelerations.values[StepperUnit_axis_z],
-                    current_angular_velocities.values[StepperUnit_axis_x],
-                    current_angular_velocities.values[StepperUnit_axis_y],
-                    current_angular_velocities.values[StepperUnit_axis_z],
-                    current_angular_velocities.values[StepperUnit_axis_x] / (2.0f * PI) * 60.0f,
-                    current_angular_velocities.values[StepperUnit_axis_y] / (2.0f * PI) * 60.0f,
-                    current_angular_velocities.values[StepperUnit_axis_z] / (2.0f * PI) * 60.0f,
+                    CONTROLLER.current_angular_accelerations.values[StepperUnit_axis_x],
+                    CONTROLLER.current_angular_accelerations.values[StepperUnit_axis_y],
+                    CONTROLLER.current_angular_accelerations.values[StepperUnit_axis_z],
+                    CONTROLLER.current_angular_velocities.values[StepperUnit_axis_x],
+                    CONTROLLER.current_angular_velocities.values[StepperUnit_axis_y],
+                    CONTROLLER.current_angular_velocities.values[StepperUnit_axis_z],
+                    CONTROLLER.current_angular_velocities.values[StepperUnit_axis_x] / (2.0f * PI) * 60.0f,
+                    CONTROLLER.current_angular_velocities.values[StepperUnit_axis_y] / (2.0f * PI) * 60.0f,
+                    CONTROLLER.current_angular_velocities.values[StepperUnit_axis_z] / (2.0f * PI) * 60.0f,
                     0, // TODO.
                     0, // TODO.
                     0, // TODO.
