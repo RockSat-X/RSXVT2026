@@ -3951,7 +3951,7 @@
 
 
         #define STPY_USART3_KERNEL_SOURCE 0b000
-        #define STPY_USART3_BAUD_DIVIDER 2500
+        #define STPY_USART3_BAUD_DIVIDER 2170
 
 
 
@@ -4596,7 +4596,7 @@
 
 
         #define STPY_USART3_KERNEL_SOURCE 0b000
-        #define STPY_USART3_BAUD_DIVIDER 2500
+        #define STPY_USART3_BAUD_DIVIDER 2170
 
 
 

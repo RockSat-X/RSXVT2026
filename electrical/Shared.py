@@ -53,7 +53,7 @@ TV_TOKEN = types.SimpleNamespace(
 
 STLINK_BAUD = 1_000_000
 ESP32_BAUD  =   400_000 # @/`Coupled Baud Rate between STM32 and ESP32`.
-VN100_BAUD  =   100_000 # An approximation of 115200.
+VN100_BAUD  =   115_200
 
 VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS = 0x12
 VEHICLE_INTERFACE_BAUD              = 10_000
