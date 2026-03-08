@@ -1,11 +1,14 @@
 #define STEPPER_ENABLE_DELAY_US     500'000
-#define STEPPER_VELOCITY_UPDATE_US   25'000 // @/`Sequence Angular Accelerations Delta Time`.
-#define STEPPER_UART_TIME_MARGIN_US   2'000
+#define STEPPER_VELOCITY_UPDATE_US  25'000 // @/`Sequence Angular Accelerations Delta Time`.
+#define STEPPER_UART_TIME_MARGIN_US 2'000
 #define STEPPER_RING_BUFFER_LENGTH  8       // TODO Determine latency.
-#define AUTOMATIC_SHUTDOWN_TIME_US  0       // TODO Once finalized, we should use (10 * 60'000'000).
+#define WATCHDOG_DURATION_US        (10 * 60'000'000)
 #define MAX_ANGULAR_ACCELERATION    (200.0f)
 #define MAX_ANGULAR_VELOCITY        (2000.0f * 2.0f * PI / 60.0f)
-#define DEMONSTRATE_STEPPER         true
+#define GOD_MODE                    true
+#define CONTROLLER_ENABLE           false
+#define VN100_ENABLE                true
+#define WATCHDOG_ENABLE             false
 
 #include "system.h"
 #include "timekeeping.c"
@@ -15,6 +18,10 @@
 #include "stepper.c"
 #include "buzzer.c"
 #include "gnc.c"
+
+// TODO Check if we've been able to control the stepper driver.
+// TODO Check if we've been receiving OpenMV data.
+// TODO Check if ESP32 still working.
 
 
 
@@ -27,9 +34,35 @@ enum DiagnosticMask : u32 // Lower the bit-index, higher the priority.
     DiagnosticMask_stepper_driver_issue       = 1 << 0,
     DiagnosticMask_angular_velocity_saturated = 1 << 1,
     DiagnosticMask_wiping_filesystem          = 1 << 2,
-    DiagnosticMask_logging_mishap             = 1 << 3,
-    DiagnosticMask_logging_heartbeat          = 1 << 4,
+    DiagnosticMask_vn100_mishap               = 1 << 3,
+    DiagnosticMask_logging_mishap             = 1 << 4,
+    DiagnosticMask_vn100_heartbeat            = 1 << 5,
+    DiagnosticMask_logging_heartbeat          = 1 << 6,
 };
+
+static struct
+{
+
+    RingBuffer(struct VN100Packet, 4) vn100_packets;
+    volatile struct StepperTuple      current_angular_accelerations;
+    volatile struct StepperTuple      current_angular_velocities;
+
+    #if GOD_MODE
+    volatile u32 replay_sequence_number;
+    #endif
+
+} CONTROLLER = {0};
+
+static struct
+{
+    RingBuffer(struct VN100Packet, 4) vn100_packets;
+} LOGGER = {0};
+
+static struct
+{
+    volatile _Atomic b32 magnetic_disturbance_exists;
+    volatile _Atomic b32 acceleration_disturbance_exists;
+} VN100 = {0};
 
 
 
@@ -91,11 +124,10 @@ main(void)
 
 
 
-static volatile struct StepperTuple current_angular_accelerations = {0};
-static volatile struct StepperTuple current_angular_velocities    = {0};
-
-FREERTOS_TASK(stepper_motor_controller, 1024, 0)
+FREERTOS_TASK(controller, 1024, 0)
 {
+
+#if CONTROLLER_ENABLE
 
     STEPPER_reinit();
 
@@ -104,11 +136,11 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
     // For diagnostic purposes, we immediately set angular velocities to
     // something non-zero so we can easily tell if something is wrong.
 
-    #if DEMONSTRATE_STEPPER
+    #if GOD_MODE
     {
         for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
         {
-            current_angular_velocities.values[unit] = 1.0f;
+            CONTROLLER.current_angular_velocities.values[unit] = 1.0f;
         }
     }
     #endif
@@ -120,122 +152,11 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 
 
 
-        // For demonstration and diagnostics purposes,
-        // we can directly control the stepper motors.
+        // If requested, we play back a sequence of angular accelerations for simulation purposes.
 
-        #if DEMONSTRATE_STEPPER
+        #if GOD_MODE
         {
-
-            // Interpret user's input, if any.
-
-            static b32 replay_sequence_number = false;
-
-            u8 input = {0};
-
-            while (stlink_rx(&input))
-            {
-
-                switch (input)
-                {
-
-                    case 'j':
-                    {
-                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                        {
-                            current_angular_accelerations.values[unit] -= 0.1f;
-                        }
-                    } break;
-
-                    case 'J':
-                    {
-                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                        {
-                            current_angular_accelerations.values[unit] -= 1.0f;
-                        }
-                    } break;
-
-                    case 'k':
-                    {
-                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                        {
-                            current_angular_accelerations.values[unit] += 0.1f;
-                        }
-                    } break;
-
-                    case 'K':
-                    {
-                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                        {
-                            current_angular_accelerations.values[unit] += 1.0f;
-                        }
-                    } break;
-
-                    case '0':
-                    {
-                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                        {
-                            current_angular_accelerations.values[unit] = 0.0f;
-                            current_angular_velocities   .values[unit] = 0.0f;
-                        }
-                    } break;
-
-                    case '<':
-                    {
-                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                        {
-                            current_angular_accelerations.values[unit] -= 200.0f;
-                        }
-                    } break;
-
-                    case '>':
-                    {
-                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                        {
-                            current_angular_accelerations.values[unit] += 200.0f;
-                        }
-                    } break;
-
-                    case '-':
-                    {
-                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                        {
-                            current_angular_accelerations.values[unit]  =  0.0f;
-                            current_angular_velocities   .values[unit] *= -1.0f;
-                        }
-                    } break;
-
-                    case 'b':
-                    {
-                        GPIO_TOGGLE(battery_allowed);
-                    } break;
-
-                    case 'x':
-                    {
-
-                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                        {
-                            current_angular_accelerations.values[unit] = 0.0f;
-                            current_angular_velocities   .values[unit] = 0.0f;
-                        }
-
-                        replay_sequence_number = 1; break;
-
-                    } break;
-
-                    default:
-                    {
-                        // Don't care.
-                    } break;
-
-                }
-
-            }
-
-
-
-            // If requested, we play back a sequence of angular accelerations for simulation purposes.
-
-            if (replay_sequence_number)
+            if (CONTROLLER.replay_sequence_number)
             {
 
                 #include "SEQUENCE_ANGULAR_ACCELERATIONS.meta"
@@ -315,21 +236,20 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 
                 */
 
-                current_angular_accelerations  = SEQUENCE_ANGULAR_ACCELERATIONS[replay_sequence_number - 1];
-                replay_sequence_number        += 1;
-                replay_sequence_number        %= countof(SEQUENCE_ANGULAR_ACCELERATIONS) + 1;
+                CONTROLLER.current_angular_accelerations  = SEQUENCE_ANGULAR_ACCELERATIONS[CONTROLLER.replay_sequence_number - 1];
+                CONTROLLER.replay_sequence_number        += 1;
+                CONTROLLER.replay_sequence_number        %= countof(SEQUENCE_ANGULAR_ACCELERATIONS) + 1;
 
-                if (!replay_sequence_number)
+                if (!CONTROLLER.replay_sequence_number)
                 {
                     for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
                     {
-                        current_angular_accelerations.values[unit] = 0.0f;
-                        current_angular_velocities   .values[unit] = 0.0f;
+                        CONTROLLER.current_angular_accelerations.values[unit] = 0.0f;
+                        CONTROLLER.current_angular_velocities   .values[unit] = 0.0f;
                     }
                 }
 
             }
-
         }
         #endif
 
@@ -354,34 +274,36 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 
             // Limit the acceleration.
 
-            if (current_angular_accelerations.values[unit] >= MAX_ANGULAR_ACCELERATION)
+            if (CONTROLLER.current_angular_accelerations.values[unit] >= MAX_ANGULAR_ACCELERATION)
             {
-                current_angular_accelerations.values[unit] = MAX_ANGULAR_ACCELERATION;
+                CONTROLLER.current_angular_accelerations.values[unit] = MAX_ANGULAR_ACCELERATION;
             }
-            else if (current_angular_accelerations.values[unit] <= -MAX_ANGULAR_ACCELERATION)
+            else if (CONTROLLER.current_angular_accelerations.values[unit] <= -MAX_ANGULAR_ACCELERATION)
             {
-                current_angular_accelerations.values[unit] = -MAX_ANGULAR_ACCELERATION;
+                CONTROLLER.current_angular_accelerations.values[unit] = -MAX_ANGULAR_ACCELERATION;
             }
 
 
 
             // Find new angular velocity.
 
-            current_angular_velocities.values[unit] += current_angular_accelerations.values[unit] * (f32) STEPPER_VELOCITY_UPDATE_US / 1'000'000.0f;
+            CONTROLLER.current_angular_velocities.values[unit] +=
+                CONTROLLER.current_angular_accelerations.values[unit]
+                * (f32) STEPPER_VELOCITY_UPDATE_US / 1'000'000.0f;
 
 
 
             // Limit the angular velocity.
 
-            if (current_angular_velocities.values[unit] >= MAX_ANGULAR_VELOCITY)
+            if (CONTROLLER.current_angular_velocities.values[unit] >= MAX_ANGULAR_VELOCITY)
             {
-                current_angular_velocities.values[unit] = MAX_ANGULAR_VELOCITY;
-                max_angular_velocity_reached            = true;
+                CONTROLLER.current_angular_velocities.values[unit] = MAX_ANGULAR_VELOCITY;
+                max_angular_velocity_reached = true;
             }
-            else if (current_angular_velocities.values[unit] <= -MAX_ANGULAR_VELOCITY)
+            else if (CONTROLLER.current_angular_velocities.values[unit] <= -MAX_ANGULAR_VELOCITY)
             {
-                current_angular_velocities.values[unit] = -MAX_ANGULAR_VELOCITY;
-                max_angular_velocity_reached            = true;
+                CONTROLLER.current_angular_velocities.values[unit] = -MAX_ANGULAR_VELOCITY;
+                max_angular_velocity_reached = true;
             }
 
         }
@@ -408,7 +330,11 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
         for (b32 yield = false; !yield;)
         {
 
-            enum StepperPushAngularVelocitiesResult result = STEPPER_push_angular_velocities((struct StepperTuple*) &current_angular_velocities);
+            enum StepperPushAngularVelocitiesResult result =
+                STEPPER_push_angular_velocities
+                (
+                    (struct StepperTuple*) &CONTROLLER.current_angular_velocities
+                );
 
             switch (result)
             {
@@ -437,8 +363,8 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
                         eSetBits
                     );
 
-                    memzero((struct StepperTuple*) &current_angular_accelerations);
-                    memzero((struct StepperTuple*) &current_angular_velocities   );
+                    memzero((struct StepperTuple*) &CONTROLLER.current_angular_accelerations);
+                    memzero((struct StepperTuple*) &CONTROLLER.current_angular_velocities   );
 
                     STEPPER_reinit();
 
@@ -452,6 +378,15 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 
     }
 
+#else
+
+    for (;;)
+    {
+        FREERTOS_delay_ms(1'000);
+    }
+
+#endif
+
 }
 
 
@@ -460,7 +395,603 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 
 
 
-FREERTOS_TASK(logger, 8196, 0)
+#include "VN100Command.meta"
+/* #meta
+
+    import functools
+
+    COMMANDS = (
+        ('disable_known_magnetic_disturbance'    , 'VNKMD,0'),
+        ('enable_known_magnetic_disturbance'     , 'VNKMD,1'),
+        ('disable_known_acceleration_disturbance', 'VNKAD,0'),
+        ('enable_known_acceleration_disturbance' , 'VNKAD,1'),
+    )
+
+    messages = [
+        f'${text}*{functools.reduce(lambda x, y: x^ord(y), text, 0):02X}'
+        for name, text in COMMANDS
+    ]
+
+    Meta.enums('VN100Command', 'u32', (name for name, text in COMMANDS))
+
+    Meta.lut('VN100Command_TABLE', (
+        (
+            f'VN100Command_{name}',
+            ('message', f'(const u8*) "{message}"'),
+            ('length' , len(message)),
+        )
+        for (name, text), message in zip(COMMANDS, messages)
+    ))
+
+*/
+
+static enum VN100AwaitResponseResult : u32
+{
+    VN100AwaitResponseResult_successful,
+    VN100AwaitResponseResult_timeout,
+    VN100AwaitResponseResult_checksum_mismatch,
+}
+vn100_await_response(u8* dst_response_buffer, i32 dst_response_capacity, i32* dst_response_length)
+{
+
+    if (!dst_response_buffer)
+        sus;
+
+    if (dst_response_capacity <= -1)
+        sus;
+
+    if (!dst_response_length)
+        sus;
+
+
+
+    // Get the response.
+
+    *dst_response_length = 0;
+
+    i32 checksum_indicator_index = 0;
+    i32 stalls                   = 0;
+
+    while (true)
+    {
+
+        u8 received_byte = {0};
+
+        while (true)
+        {
+            if (UXART_rx(UXARTHandle_vn100, &received_byte))
+            {
+                break; // Got data!
+            }
+            else if (stalls < 1'000)
+            {
+                FREERTOS_delay_ms(1); // Do something else for a bit.
+                stalls += 1;
+            }
+            else // We waited too long.
+            {
+                return VN100AwaitResponseResult_timeout;
+            }
+        }
+
+        b32 append_byte = false;
+
+        if (received_byte == '$')
+        {
+            *dst_response_length     = 0;    // Discard whatever we got so far and start over.
+            checksum_indicator_index = 0;    // "
+            append_byte              = true; // The starting token shall be the first character.
+        }
+        else
+        {
+            append_byte = !!*dst_response_length; // Append if we've found the starting token.
+        }
+
+        if (append_byte)
+        {
+            if (*dst_response_length >= dst_response_capacity)
+            {
+                *dst_response_length     = 0; // Buffer over-run; invalidate the data we got so far.
+                checksum_indicator_index = 0; // "
+            }
+            else
+            {
+
+                dst_response_buffer[*dst_response_length]  = received_byte;
+                *dst_response_length                      += 1;
+
+                if (checksum_indicator_index && *dst_response_length == checksum_indicator_index + 3)
+                {
+                    break; // We reached the end of the VN-100 register read payload.
+                }
+                else if (received_byte == '*')
+                {
+                    checksum_indicator_index = *dst_response_length - 1; // We're near the end of the response.
+                }
+
+            }
+        }
+
+    }
+
+
+
+    // Verify integrity of the response.
+
+    u8 calculated_checksum = 0;
+
+    for
+    (
+        i32 i = 1;                    // Starting character ($) not included.
+        i < checksum_indicator_index; // Checksum field (*__) not included.
+        i += 1
+    )
+    {
+        calculated_checksum ^= dst_response_buffer[i];
+    }
+
+    u8 received_checksum = 0;
+
+    received_checksum |=
+        '0' <= dst_response_buffer[checksum_indicator_index + 1] && dst_response_buffer[checksum_indicator_index + 1] <= '9'
+            ? (u8) (dst_response_buffer[checksum_indicator_index + 1] - '0'     ) << 4
+            : (u8) (dst_response_buffer[checksum_indicator_index + 1] - 'A' + 10) << 4;
+
+    received_checksum |=
+        '0' <= dst_response_buffer[checksum_indicator_index + 2] && dst_response_buffer[checksum_indicator_index + 2] <= '9'
+            ? (u8) (dst_response_buffer[checksum_indicator_index + 2] - '0'     ) << 0
+            : (u8) (dst_response_buffer[checksum_indicator_index + 2] - 'A' + 10) << 0;
+
+    if (calculated_checksum == received_checksum)
+    {
+        return VN100AwaitResponseResult_successful;
+    }
+    else
+    {
+        return VN100AwaitResponseResult_checksum_mismatch;
+    }
+
+}
+
+static enum VN100AwaitCommandResult : u32
+{
+    VN100AwaitCommandResult_successful,
+    VN100AwaitCommandResult_timeout,
+    VN100AwaitCommandResult_checksum_mismatch,
+    VN100AwaitCommandResult_missing_echo,
+}
+vn100_await_command(enum VN100Command command)
+{
+
+    UXART_tx_bytes
+    (
+        UXARTHandle_vn100,
+        VN100Command_TABLE[command].message,
+        VN100Command_TABLE[command].length
+    );
+
+    for (i32 response_index = 0;; response_index += 1)
+    {
+
+        u8  response_buffer[256] = {0};
+        i32 response_length      = {0};
+
+        enum VN100AwaitResponseResult response_result =
+            vn100_await_response
+            (
+                response_buffer,
+                countof(response_buffer),
+                &response_length
+            );
+
+        switch (response_result)
+        {
+
+            case VN100AwaitResponseResult_successful:
+            {
+
+                b32 matching_response =
+                    response_length == VN100Command_TABLE[command].length &&
+                    !memcmp
+                    (
+                        response_buffer,
+                        VN100Command_TABLE[command].message,
+                        (u32) VN100Command_TABLE[command].length
+                    );
+
+                if (matching_response)
+                {
+                    return VN100AwaitCommandResult_successful; // Yippee!
+                }
+                else if (response_index < 16)
+                {
+                    // We got some other response from the VN-100;
+                    // for now, let's just ignore it and hope the
+                    // expected response is going to come in a bit later.
+                }
+                else
+                {
+                    // Seems like the VN-100 isn't echoing back
+                    // the expected response to our command...
+                    return VN100AwaitCommandResult_missing_echo;
+                }
+
+            } break;
+
+            case VN100AwaitResponseResult_timeout           : return VN100AwaitCommandResult_timeout;
+            case VN100AwaitResponseResult_checksum_mismatch : return VN100AwaitCommandResult_checksum_mismatch;
+            default                                         : sus;
+
+        }
+
+    }
+
+}
+
+FREERTOS_TASK(vn100, 8192, 0)
+{
+
+#if VN100_ENABLE
+
+    for (;;)
+    {
+
+        UXART_reinit(UXARTHandle_vn100);
+
+        b32 active_magnetic_disturbance     = {0};
+        b32 active_acceleration_disturbance = {0};
+        i32 valid_packet_count              = 0;
+        i32 consecutive_issue_count         = 0;
+
+        for (i32 iteration_index = 0;; iteration_index += 1)
+        {
+
+
+
+            // See if we need to reconfigure the VN-100.
+
+            b32 current_magnetic_disturbance =
+                atomic_load_explicit
+                (
+                    &VN100.magnetic_disturbance_exists,
+                    memory_order_relaxed // No synchronization needed.
+                );
+
+            b32 current_acceleration_disturbance =
+                atomic_load_explicit
+                (
+                    &VN100.acceleration_disturbance_exists,
+                    memory_order_relaxed // No synchronization needed.
+                );
+
+            if
+            (
+                iteration_index == 0                                                ||
+                active_magnetic_disturbance     != current_magnetic_disturbance     ||
+                active_acceleration_disturbance != current_acceleration_disturbance
+            )
+            {
+
+                active_magnetic_disturbance     = current_magnetic_disturbance;
+                active_acceleration_disturbance = current_acceleration_disturbance;
+
+                { // Initialize the VNKMD state.
+
+                    enum VN100AwaitCommandResult result =
+                        vn100_await_command
+                        (
+                            active_magnetic_disturbance
+                                ?  VN100Command_enable_known_magnetic_disturbance
+                                :  VN100Command_disable_known_magnetic_disturbance
+                        );
+
+                    switch (result)
+                    {
+                        case VN100AwaitCommandResult_successful        : break;
+                        case VN100AwaitCommandResult_timeout           : goto REINITIALIZE;
+                        case VN100AwaitCommandResult_checksum_mismatch : goto REINITIALIZE;
+                        case VN100AwaitCommandResult_missing_echo      : goto REINITIALIZE;
+                        default                                        : sus;
+                    }
+
+                }
+
+                { // Initialize the VNKAD state.
+
+                    enum VN100AwaitCommandResult result =
+                        vn100_await_command
+                        (
+                            active_acceleration_disturbance
+                                ?  VN100Command_enable_known_acceleration_disturbance
+                                :  VN100Command_disable_known_acceleration_disturbance
+                        );
+
+                    switch (result)
+                    {
+                        case VN100AwaitCommandResult_successful        : break;
+                        case VN100AwaitCommandResult_timeout           : goto REINITIALIZE;
+                        case VN100AwaitCommandResult_checksum_mismatch : goto REINITIALIZE;
+                        case VN100AwaitCommandResult_missing_echo      : goto REINITIALIZE;
+                        default                                        : sus;
+                    }
+
+                }
+
+            }
+
+
+
+            // The VN-100 is preprogrammed to automatically transmit the desired
+            // register data; all we have to do to pick it up and parse it.
+
+            u8  payload_buffer[256] = {0};
+            i32 payload_length      = {0};
+
+            enum VN100AwaitResponseResult response_result =
+                vn100_await_response
+                (
+                    payload_buffer,
+                    countof(payload_buffer),
+                    &payload_length
+                );
+
+            switch (response_result)
+            {
+
+
+
+                // Parse the register fields.
+
+                case VN100AwaitResponseResult_successful:
+                {
+
+                    struct VN100Packet packet               = {0};
+                    b32                valid_fields         = true;
+                    i32                field_position_index = 0;
+                    i32                field_start_index    = 0;
+                    i32                field_length         = 0;
+
+                    while (true)
+                    {
+
+                        b32 found_comma    = payload_buffer[field_start_index + field_length] == ',';
+                        b32 end_of_payload = field_start_index + field_length >= payload_length - 3;
+
+                        if (!found_comma && !end_of_payload) // Haven't found end of field yet?
+                        {
+                            field_length += 1;
+                        }
+                        else // Ready to parse the field now.
+                        {
+
+
+
+                            // The very first field should be the expected magic starting token and register name.
+
+                            if (field_position_index == 0)
+                            {
+                                valid_fields =
+                                    !strncmp
+                                    (
+                                        (char*) (payload_buffer + field_start_index),
+                                        "$VNQMR",
+                                        (u32) field_length
+                                    );
+                            }
+
+
+
+                            // The remaining fields are the values of the register.
+
+                            else if (field_position_index - 1 < sizeof(struct VN100Packet) / sizeof(f32))
+                            {
+
+                                // Parse the field as a float, if possible.
+
+                                f32 parsed_value   = 0.0f;
+                                b32 negative       = false;
+                                f32 decimal_factor = {0};
+
+                                for
+                                (
+                                    i32 index = 0;
+                                    index < field_length && valid_fields;
+                                    index += 1
+                                )
+                                {
+                                    if (payload_buffer[field_start_index + index] == '+' && index == 0)
+                                    {
+                                        negative = false;
+                                    }
+                                    else if (payload_buffer[field_start_index + index] == '-' && index == 0)
+                                    {
+                                        negative = true;
+                                    }
+                                    else if (payload_buffer[field_start_index + index] == '.' && !decimal_factor)
+                                    {
+                                        decimal_factor = 0.1f;
+                                    }
+                                    else if ('0' <= payload_buffer[field_start_index + index] && payload_buffer[field_start_index + index] <= '9')
+                                    {
+                                        f32 digit = (f32) (payload_buffer[field_start_index + index] - '0');
+
+                                        if (decimal_factor)
+                                        {
+                                            parsed_value   += decimal_factor * digit;
+                                            decimal_factor *= 0.1f;
+                                        }
+                                        else
+                                        {
+                                            parsed_value = parsed_value * 10.0f + digit;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        valid_fields = false; // Not a digit...?
+                                    }
+                                }
+
+                                if (valid_fields)
+                                {
+
+                                    if (negative)
+                                    {
+                                        parsed_value = -parsed_value;
+                                    }
+
+                                    ((f32*) &packet)[field_position_index - 1] = parsed_value;
+
+                                }
+
+                            }
+
+
+
+                            // Extraneous fields...?
+
+                            else
+                            {
+                                valid_fields = false;
+                            }
+
+
+
+                            if (!valid_fields)
+                            {
+                                break; // Abort parsing the received data.
+                            }
+                            else if (end_of_payload)
+                            {
+                                break; // No more data to process.
+                            }
+                            else // Move onto next field.
+                            {
+                                field_position_index += 1;
+                                field_start_index    += field_length + 1; // +1 to skip the comma.
+                                field_length          = 0;
+                            }
+
+                        }
+
+                    }
+
+                    if (valid_fields)
+                    {
+
+                        if (!RingBuffer_push(&CONTROLLER.vn100_packets, &packet))
+                        {
+                            // VN-100 data overrun!
+                        }
+
+                        if (!RingBuffer_push(&LOGGER.vn100_packets, &packet))
+                        {
+                            // VN-100 data overrun, but it's for the logger; who cares.
+                        }
+
+                        valid_packet_count      += 1;
+                        consecutive_issue_count  = 0;
+
+                        if (valid_packet_count % 256 == 0)
+                        {
+                            xTaskNotify
+                            (
+                                diagnostics_handle,
+                                DiagnosticMask_vn100_heartbeat,
+                                eSetBits
+                            );
+                        }
+
+                    }
+                    else // Perhaps a packet we don't recognize?
+                    {
+
+                        xTaskNotify
+                        (
+                            diagnostics_handle,
+                            DiagnosticMask_vn100_mishap,
+                            eSetBits
+                        );
+
+                        consecutive_issue_count += 1;
+
+                    }
+
+                } break;
+
+
+
+                // Couldn't get a response...
+
+                case VN100AwaitResponseResult_timeout:
+                {
+                    goto REINITIALIZE;
+                } break;
+
+
+
+                // Perhaps a mild signal integrity issue?
+
+                case VN100AwaitResponseResult_checksum_mismatch:
+                {
+
+                    xTaskNotify
+                    (
+                        diagnostics_handle,
+                        DiagnosticMask_vn100_mishap,
+                        eSetBits
+                    );
+
+                    consecutive_issue_count += 1;
+
+                } break;
+
+
+
+                default: sus;
+
+            }
+
+
+
+            // If we're encountering too many soft
+            // errors, then something is quite wrong.
+
+            if (consecutive_issue_count >= 8)
+            {
+                goto REINITIALIZE;
+            }
+
+        }
+
+        REINITIALIZE:;
+
+        xTaskNotify
+        (
+            diagnostics_handle,
+            DiagnosticMask_vn100_mishap,
+            eSetBits
+        );
+
+    }
+
+#else
+
+    for (;;)
+    {
+        FREERTOS_delay_ms(1'000);
+    }
+
+#endif
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+FREERTOS_TASK(logger, 8192, 0)
 {
 
     static struct Sector working_sectors[8]         = {0};
@@ -575,7 +1106,9 @@ FREERTOS_TASK(logger, 8196, 0)
 
             // Make the log entry.
 
-            u32 current_timestamp_us = TIMEKEEPING_microseconds();
+            u32                current_timestamp_us = TIMEKEEPING_microseconds();
+            struct VN100Packet vn100_packet_data    = {0};
+            b32                vn100_packet_exist   = RingBuffer_pop_to_latest(&LOGGER.vn100_packets, &vn100_packet_data);
 
             i32 log_entry_length =
                 snprintf_
@@ -590,40 +1123,44 @@ FREERTOS_TASK(logger, 8196, 0)
                     "Stepper issues : %d"                 "\n"
                     "OpenMV issues  : %d"                 "\n"
                     "ESP32 issues   : %d"                 "\n"
-                    "Quaternion     : <%f, %f, %f, %f>"   "\n"
-                    "Magnetometer   : <%f, %f, %f>"       "\n"
-                    "Accelerometer  : <%f, %f, %f>"       "\n"
-                    "Gyroscope      : <%f, %f, %f>"       "\n"
+                    "Quaternion?    : <%f, %f, %f, %f>"   "\n" // TODO We should probably attach a timestamp to received VN-100 data.
+                    "Magnetometer?  : <%f, %f, %f>"       "\n" // TODO "
+                    "Accelerometer? : <%f, %f, %f>"       "\n" // TODO "
+                    "Gyroscope?     : <%f, %f, %f>"       "\n" // TODO "
                     "Ext. power     : %s"                 "\n"
+                    "VNKMD          : %s"                 "\n"
+                    "VNKAD          : %s"                 "\n"
                     "\n",
                     current_timestamp_us,
                     0, // TODO.
-                    current_angular_accelerations.values[StepperUnit_axis_x],
-                    current_angular_accelerations.values[StepperUnit_axis_y],
-                    current_angular_accelerations.values[StepperUnit_axis_z],
-                    current_angular_velocities.values[StepperUnit_axis_x],
-                    current_angular_velocities.values[StepperUnit_axis_y],
-                    current_angular_velocities.values[StepperUnit_axis_z],
-                    current_angular_velocities.values[StepperUnit_axis_x] / (2.0f * PI) * 60.0f,
-                    current_angular_velocities.values[StepperUnit_axis_y] / (2.0f * PI) * 60.0f,
-                    current_angular_velocities.values[StepperUnit_axis_z] / (2.0f * PI) * 60.0f,
+                    CONTROLLER.current_angular_accelerations.values[StepperUnit_axis_x],
+                    CONTROLLER.current_angular_accelerations.values[StepperUnit_axis_y],
+                    CONTROLLER.current_angular_accelerations.values[StepperUnit_axis_z],
+                    CONTROLLER.current_angular_velocities.values[StepperUnit_axis_x],
+                    CONTROLLER.current_angular_velocities.values[StepperUnit_axis_y],
+                    CONTROLLER.current_angular_velocities.values[StepperUnit_axis_z],
+                    CONTROLLER.current_angular_velocities.values[StepperUnit_axis_x] / (2.0f * PI) * 60.0f,
+                    CONTROLLER.current_angular_velocities.values[StepperUnit_axis_y] / (2.0f * PI) * 60.0f,
+                    CONTROLLER.current_angular_velocities.values[StepperUnit_axis_z] / (2.0f * PI) * 60.0f,
                     0, // TODO.
                     0, // TODO.
                     0, // TODO.
-                    0.0f, // TODO.
-                    0.0f, // TODO.
-                    0.0f, // TODO.
-                    0.0f, // TODO.
-                    0.0f, // TODO.
-                    0.0f, // TODO.
-                    0.0f, // TODO.
-                    0.0f, // TODO.
-                    0.0f, // TODO.
-                    0.0f, // TODO.
-                    0.0f, // TODO.
-                    0.0f, // TODO.
-                    0.0f, // TODO.
-                    false ? "Yes" : "No" // TODO.
+                    vn100_packet_exist ? vn100_packet_data.QuatX  : NAN,
+                    vn100_packet_exist ? vn100_packet_data.QuatY  : NAN,
+                    vn100_packet_exist ? vn100_packet_data.QuatZ  : NAN,
+                    vn100_packet_exist ? vn100_packet_data.QuatS  : NAN,
+                    vn100_packet_exist ? vn100_packet_data.MagX   : NAN,
+                    vn100_packet_exist ? vn100_packet_data.MagY   : NAN,
+                    vn100_packet_exist ? vn100_packet_data.MagZ   : NAN,
+                    vn100_packet_exist ? vn100_packet_data.AccelX : NAN,
+                    vn100_packet_exist ? vn100_packet_data.AccelY : NAN,
+                    vn100_packet_exist ? vn100_packet_data.AccelZ : NAN,
+                    vn100_packet_exist ? vn100_packet_data.GyroX  : NAN,
+                    vn100_packet_exist ? vn100_packet_data.GyroY  : NAN,
+                    vn100_packet_exist ? vn100_packet_data.GyroZ  : NAN,
+                    false                                 ? "Yes" : "No", // TODO.
+                    VN100.magnetic_disturbance_exists     ? "Yes" : "No",
+                    VN100.acceleration_disturbance_exists ? "Yes" : "No"
                 );
 
 
@@ -858,6 +1395,27 @@ FREERTOS_TASK(diagnostics, 512, 1)
 
             } break;
 
+            case DiagnosticMask_vn100_mishap:
+            {
+
+                BUZZER_play(BuzzerTune_hazard);
+
+                while (BUZZER_current_tune())
+                {
+
+                    GPIO_INACTIVE(led_channel_red  );
+                    GPIO_INACTIVE(led_channel_green);
+                    GPIO_TOGGLE  (led_channel_blue );
+
+                    if (diagnostics_delay_ms(&current_flags, 25))
+                    {
+                        goto END_OF_DIAGNOSTIC;
+                    }
+
+                }
+
+            } break;
+
             case DiagnosticMask_angular_velocity_saturated:
             {
 
@@ -919,6 +1477,25 @@ FREERTOS_TASK(diagnostics, 512, 1)
 
             } break;
 
+            case DiagnosticMask_vn100_heartbeat:
+            {
+
+                BUZZER_play(BuzzerTune_burp);
+
+                GPIO_INACTIVE(led_channel_red  );
+                GPIO_INACTIVE(led_channel_green);
+                GPIO_ACTIVE  (led_channel_blue );
+
+                while (BUZZER_current_tune())
+                {
+                    if (diagnostics_delay_ms(&current_flags, 100))
+                    {
+                        goto END_OF_DIAGNOSTIC;
+                    }
+                }
+
+            } break;
+
             case DiagnosticMask_wiping_filesystem:
             {
 
@@ -944,7 +1521,7 @@ FREERTOS_TASK(diagnostics, 512, 1)
 
             } break;
 
-            default: sorry
+            default: sus;
 
         }
 
@@ -966,52 +1543,214 @@ FREERTOS_TASK(diagnostics, 512, 1)
 
 
 
-FREERTOS_TASK(watchdog, 512, 2)
+FREERTOS_TASK(god, 1024, 2)
 {
+
+#if GOD_MODE
+
     for (;;)
     {
 
-        FREERTOS_delay_ms(1000);
+        u8 input = {0};
+
+        while (stlink_rx(&input))
+        {
+            switch (input)
+            {
 
 
 
-        // TODO Check if we've been able to control the stepper driver.
-        // TODO Check if we've been receiving OpenMV data.
-        // TODO Check if we've been receiving VN-100 data.
-        // TODO Check if ESP32 still working.
+                // Stepper motor control.
+
+                case 'j':
+                {
+                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    {
+                        CONTROLLER.current_angular_accelerations.values[unit] -= 0.1f;
+                    }
+                } break;
+
+                case 'J':
+                {
+                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    {
+                        CONTROLLER.current_angular_accelerations.values[unit] -= 1.0f;
+                    }
+                } break;
+
+                case 'k':
+                {
+                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    {
+                        CONTROLLER.current_angular_accelerations.values[unit] += 0.1f;
+                    }
+                } break;
+
+                case 'K':
+                {
+                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    {
+                        CONTROLLER.current_angular_accelerations.values[unit] += 1.0f;
+                    }
+                } break;
+
+                case '0':
+                {
+                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    {
+                        CONTROLLER.current_angular_accelerations.values[unit] = 0.0f;
+                        CONTROLLER.current_angular_velocities   .values[unit] = 0.0f;
+                    }
+                } break;
+
+                case '<':
+                {
+                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    {
+                        CONTROLLER.current_angular_accelerations.values[unit] -= 200.0f;
+                    }
+                } break;
+
+                case '>':
+                {
+                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    {
+                        CONTROLLER.current_angular_accelerations.values[unit] += 200.0f;
+                    }
+                } break;
+
+                case '-':
+                {
+                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    {
+                        CONTROLLER.current_angular_accelerations.values[unit]  =  0.0f;
+                        CONTROLLER.current_angular_velocities   .values[unit] *= -1.0f;
+                    }
+                } break;
+
+                case 'x':
+                {
+
+                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    {
+                        CONTROLLER.current_angular_accelerations.values[unit] = 0.0f;
+                        CONTROLLER.current_angular_velocities   .values[unit] = 0.0f;
+                    }
+
+                    CONTROLLER.replay_sequence_number = 1;
+
+                } break;
 
 
+
+                // VN-100.
+
+                case 'm':
+                {
+                    atomic_fetch_xor_explicit
+                    (
+                        &VN100.magnetic_disturbance_exists,
+                        -1,
+                        memory_order_relaxed // No synchronization needed.
+                    );
+                } break;
+
+                case 'a':
+                {
+                    atomic_fetch_xor_explicit
+                    (
+                        &VN100.acceleration_disturbance_exists,
+                        -1,
+                        memory_order_relaxed // No synchronization needed.
+                    );
+                } break;
+
+
+
+                // Misc.
+
+                case 'b':
+                {
+                    GPIO_TOGGLE(battery_allowed);
+                } break;
+
+
+
+                default:
+                {
+                    // Don't care.
+                } break;
+
+            }
+        }
+
+        FREERTOS_delay_ms(10);
+
+    }
+
+#else
+
+    for (;;)
+    {
+        FREERTOS_delay_ms(1'000);
+    }
+
+#endif
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+FREERTOS_TASK(watchdog, 512, 2)
+{
+
+#if WATCHDOG_ENABLE
+
+    for (;;)
+    {
 
         // To prevent the vehicle from being perpetually on forever
         // and drain the batteries empty, we turn ourselves off automatically.
 
-        #if AUTOMATIC_SHUTDOWN_TIME_US > 0
+        if (TIMEKEEPING_microseconds() >= WATCHDOG_DURATION_US)
         {
-            if (TIMEKEEPING_microseconds() >= AUTOMATIC_SHUTDOWN_TIME_US)
-            {
 
-                // Indicate that this is why the vehicle is suddenly shut off.
+            // Indicate that this is why the vehicle is suddenly shut off.
 
-                BUZZER_play(BuzzerTune_sleeping);
-                while (BUZZER_current_tune());
+            BUZZER_play(BuzzerTune_mario);
+            while (BUZZER_current_tune());
 
 
 
-                // Try cut off battery power.
+            // Try cut off battery power.
 
-                GPIO_INACTIVE(battery_allowed);
-                FREERTOS_delay_ms(1'000'000);
+            GPIO_INACTIVE(battery_allowed);
+            FREERTOS_delay_ms(1'000'000);
 
 
-                // If we're still alive by this point, then
-                // there's probably external power or something,
-                // to which we'll just do a software reset.
+            // If we're still alive by this point, then
+            // there's probably external power or something,
+            // to which we'll just do a software reset.
 
-                WARM_RESET();
+            WARM_RESET();
 
-            }
         }
-        #endif
+
+        FREERTOS_delay_ms(1'000);
 
     }
+
+#else
+
+    for (;;)
+    {
+        FREERTOS_delay_ms(1'000);
+    }
+
+#endif
+
 }

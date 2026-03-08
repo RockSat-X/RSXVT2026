@@ -261,24 +261,34 @@
 #if TARGET_NAME_IS_VehicleFlightComputer
     enum FreeRTOSTask : u32
     {
-        FreeRTOSTask_stepper_motor_controller,
+        FreeRTOSTask_controller,
+        FreeRTOSTask_vn100,
         FreeRTOSTask_logger,
         FreeRTOSTask_diagnostics,
+        FreeRTOSTask_god,
         FreeRTOSTask_watchdog,
     };
-    static constexpr u32 FreeRTOSTask_COUNT = 4;
-    static noret void   stepper_motor_controller(void*);
-    static StackType_t  stepper_motor_controller_stack[1024 / sizeof(StackType_t)] = {0};
-    static StaticTask_t stepper_motor_controller_buffer = {0};
-    static TaskHandle_t stepper_motor_controller_handle = {0};
+    static constexpr u32 FreeRTOSTask_COUNT = 6;
+    static noret void   controller(void*);
+    static StackType_t  controller_stack[1024 / sizeof(StackType_t)] = {0};
+    static StaticTask_t controller_buffer = {0};
+    static TaskHandle_t controller_handle = {0};
+    static noret void   vn100(void*);
+    static StackType_t  vn100_stack[8192 / sizeof(StackType_t)] = {0};
+    static StaticTask_t vn100_buffer = {0};
+    static TaskHandle_t vn100_handle = {0};
     static noret void   logger(void*);
-    static StackType_t  logger_stack[8196 / sizeof(StackType_t)] = {0};
+    static StackType_t  logger_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t logger_buffer = {0};
     static TaskHandle_t logger_handle = {0};
     static noret void   diagnostics(void*);
     static StackType_t  diagnostics_stack[512 / sizeof(StackType_t)] = {0};
     static StaticTask_t diagnostics_buffer = {0};
     static TaskHandle_t diagnostics_handle = {0};
+    static noret void   god(void*);
+    static StackType_t  god_stack[1024 / sizeof(StackType_t)] = {0};
+    static StaticTask_t god_buffer = {0};
+    static TaskHandle_t god_handle = {0};
     static noret void   watchdog(void*);
     static StackType_t  watchdog_stack[512 / sizeof(StackType_t)] = {0};
     static StaticTask_t watchdog_buffer = {0};
@@ -286,16 +296,27 @@
     static noret void
     FREERTOS_init(void)
     {
-        stepper_motor_controller_handle =
+        controller_handle =
             xTaskCreateStatic
             (
-                stepper_motor_controller,
-                "stepper_motor_controller",
-                countof(stepper_motor_controller_stack),
+                controller,
+                "controller",
+                countof(controller_stack),
                 nullptr,
                 0,
-                stepper_motor_controller_stack,
-                &stepper_motor_controller_buffer
+                controller_stack,
+                &controller_buffer
+            );
+        vn100_handle =
+            xTaskCreateStatic
+            (
+                vn100,
+                "vn100",
+                countof(vn100_stack),
+                nullptr,
+                0,
+                vn100_stack,
+                &vn100_buffer
             );
         logger_handle =
             xTaskCreateStatic
@@ -318,6 +339,17 @@
                 1,
                 diagnostics_stack,
                 &diagnostics_buffer
+            );
+        god_handle =
+            xTaskCreateStatic
+            (
+                god,
+                "god",
+                countof(god_stack),
+                nullptr,
+                2,
+                god_stack,
+                &god_buffer
             );
         watchdog_handle =
             xTaskCreateStatic

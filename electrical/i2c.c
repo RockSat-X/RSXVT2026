@@ -302,7 +302,7 @@ I2C_partial_reinit(enum I2CHandle handle)
 
 
 
-        default: sorry_if(true); // Impractical edge-case.
+        default: sus;
 
     }
 
@@ -354,7 +354,7 @@ I2C_partial_reinit(enum I2CHandle handle)
 
 
 
-        default: sorry_if(true); // Impractical edge-case.
+        default: sus;
 
     }
 

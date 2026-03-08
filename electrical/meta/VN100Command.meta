@@ -1,0 +1,15 @@
+enum VN100Command : u32
+{
+    VN100Command_disable_known_magnetic_disturbance,
+    VN100Command_enable_known_magnetic_disturbance,
+    VN100Command_disable_known_acceleration_disturbance,
+    VN100Command_enable_known_acceleration_disturbance,
+};
+static constexpr u32 VN100Command_COUNT = 4;
+static const struct { typeof((const u8*) "$VNKMD,0*46") message; typeof(11) length; } VN100Command_TABLE[] =
+    {
+        [VN100Command_disable_known_magnetic_disturbance    ] = { .message = (const u8*) "$VNKMD,0*46", .length = 11 },
+        [VN100Command_enable_known_magnetic_disturbance     ] = { .message = (const u8*) "$VNKMD,1*47", .length = 11 },
+        [VN100Command_disable_known_acceleration_disturbance] = { .message = (const u8*) "$VNKAD,0*4A", .length = 11 },
+        [VN100Command_enable_known_acceleration_disturbance ] = { .message = (const u8*) "$VNKAD,1*4B", .length = 11 },
+    };

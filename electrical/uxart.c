@@ -33,8 +33,8 @@ enum UXARTMode : u32
 
 struct UXARTDriver
 {
-    RingBuffer(u8, 256) transmission;
-    RingBuffer(u8, 256) reception;
+    RingBuffer(u8, 4096) transmission;
+    RingBuffer(u8, 4096) reception;
 };
 
 static struct UXARTDriver _UXART_drivers[UXARTHandle_COUNT] = {0};
@@ -136,7 +136,7 @@ _UXART_push_byte_for_transmission(char byte, void* void_handle)
 
 
 static void
-UXART_tx_bytes(enum UXARTHandle handle, u8* bytes, i32 length)
+UXART_tx_bytes(enum UXARTHandle handle, const u8* bytes, i32 length)
 {
 
     _EXPAND_HANDLE

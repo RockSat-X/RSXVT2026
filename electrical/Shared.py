@@ -52,8 +52,8 @@ TV_TOKEN = types.SimpleNamespace(
 )
 
 STLINK_BAUD = 1_000_000
-
-VN100_ESP32_BAUD = 400_000 # TODO Figure out. # @/`Coupled Baud Rate between STM32 and ESP32`.
+ESP32_BAUD  =   400_000 # @/`Coupled Baud Rate between STM32 and ESP32`.
+VN100_BAUD  =   115_200
 
 VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS = 0x12
 VEHICLE_INTERFACE_BAUD              = 10_000
@@ -777,7 +777,8 @@ TARGETS = ( # @/`Defining Targets`.
             ('button'                    , 'C13', 'INPUT'    , { 'pull' : None, 'active' : True                              }),
             ('vehicle_inteface_i2c_clock', 'B6' , 'ALTERNATE', { 'altfunc' : 'I2C1_SCL' , 'open_drain' : True, 'pull' : 'UP' }),
             ('vehicle_inteface_i2c_data' , 'B7' , 'ALTERNATE', { 'altfunc' : 'I2C1_SDA' , 'open_drain' : True, 'pull' : 'UP' }),
-            ('vn100_uart'                , 'B10', 'ALTERNATE', { 'altfunc' : 'USART3_TX'                                     }), # TODO Just to test VN-100 reception for VehicleFlightComputer.
+            ('vn100_uart_rx'             , 'B10', 'ALTERNATE', { 'altfunc' : 'USART3_TX'                                     }), # TODO Just to test VN-100 reception for VehicleFlightComputer.
+            ('vn100_uart_tx'             , 'B1' , 'ALTERNATE', { 'altfunc' : 'USART3_RX', 'pull' : 'UP'                      }), # TODO Just to test VN-100 reception for VehicleFlightComputer.
         ),
 
         interrupts = (
@@ -824,7 +825,7 @@ TARGETS = ( # @/`Defining Targets`.
             'APB2_CK'           : 250_000_000,
             'APB3_CK'           : 250_000_000,
             'USART2_BAUD'       : STLINK_BAUD,
-            'USART3_BAUD'       : VN100_ESP32_BAUD,
+            'USART3_BAUD'       : VN100_BAUD,
             'I2C1_BAUD'         : VEHICLE_INTERFACE_BAUD,
             'I2C1_TIMEOUT'      : 2,
             'TIM2_COUNTER_RATE' : 1_000_000,
@@ -877,7 +878,7 @@ TARGETS = ( # @/`Defining Targets`.
             ('vehicle_interface_i2c_clock', 'D6'  , 'ALTERNATE' , { 'altfunc' : 'I2C3_SCL', 'open_drain' : True              }),
             ('motor_enable'               , 'A4'  , 'OUTPUT'    , { 'initlvl' : False, 'active' : False                      }),
             ('vn100_uart_tx'              , 'D8'  , 'ALTERNATE' , { 'altfunc' : 'USART3_TX'                                  }),
-            ('vn100_uart_rx'              , 'D9'  , 'ALTERNATE' , { 'altfunc' : 'USART3_RX'                                  }),
+            ('vn100_uart_rx'              , 'D9'  , 'ALTERNATE' , { 'altfunc' : 'USART3_RX', 'pull' : 'UP'                   }),
             ('esp32_uart_tx'              , 'A0'  , 'ALTERNATE' , { 'altfunc' : 'UART4_TX'                                   }),
             ('esp32_uart_rx'              , 'A1'  , 'ALTERNATE' , { 'altfunc' : 'UART4_RX'                                   }),
             ('esp32_reset'                , 'E8'  , 'OUTPUT'    , { 'initlvl' : False, 'active' : False, 'open_drain' : True }),
@@ -889,7 +890,7 @@ TARGETS = ( # @/`Defining Targets`.
             ('USART2' , 0),
             ('SDMMC1' , 1),
             ('USART1' , 1),
-            # TODO: ('USART3' , 1),
+            ('USART3' , 1),
             # TODO: ('I2C3_EV', 1),
             # TODO: ('I2C3_ER', 1),
             ('TIM1_UP', 2),
@@ -915,13 +916,12 @@ TARGETS = ( # @/`Defining Targets`.
                 'handle'     : 'stepper_uart',
                 'mode'       : 'half_duplex',
             },
-            # TODO.
-            # {
-            #     'type'       : 'UXART',
-            #     'peripheral' : 'USART3',
-            #     'handle'     : 'vn100_esp32',
-            #     'mode'       : 'full_duplex',
-            # },
+            {
+                'type'       : 'UXART',
+                'peripheral' : 'USART3',
+                'handle'     : 'vn100',
+                'mode'       : 'full_duplex',
+            },
             # TODO.
             # {
             #     'type'       : 'I2C',
@@ -973,7 +973,7 @@ TARGETS = ( # @/`Defining Targets`.
             'SDMMC1_INITIAL_BAUD' :    400_000,
             'SDMMC1_FULL_BAUD'    : 24_000_000,
             'USART1_BAUD'         :    200_000,
-            # TODO: 'USART3_BAUD'         : VN100_ESP32_BAUD,
+            'USART3_BAUD'         : VN100_BAUD,
             # TODO: 'I2C3_BAUD'           : VEHICLE_INTERFACE_BAUD,
             # TODO: 'I2C3_TIMEOUT'        : 2,
             # TODO: 'SPI2_BAUD'           : 600_000, # @/`OpenMV SPI Baud`.
@@ -1416,7 +1416,7 @@ TARGETS = ( # @/`Defining Targets`.
             'APB2_CK'           : 250_000_000 / 8,
             'APB3_CK'           : 250_000_000,
             'USART2_BAUD'       : STLINK_BAUD,
-            'USART3_BAUD'       : VN100_ESP32_BAUD, # @/`Coupled Baud Rate between STM32 and ESP32`.
+            'USART3_BAUD'       : ESP32_BAUD, # @/`Coupled Baud Rate between STM32 and ESP32`.
             'TIM1_COUNTER_RATE' : 1_000,
         },
 
@@ -1536,7 +1536,7 @@ for target in TARGETS:
         ('MAIN_STACK_SIZE'                    , target.main_stack_size                        ),
         ('COMPILING_ESP32'                    , False                                         ),
         ('VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS', VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS           ),
-        ('VN100_ESP32_BAUD'                   , VN100_ESP32_BAUD                              ),
+        ('ESP32_BAUD'                         , ESP32_BAUD                                    ),
         ('TV_TOKEN_START'                     , f'STRINGIFY({TV_TOKEN.START.decode('UTF-8')})'),
         ('TV_TOKEN_END'                       , f'STRINGIFY({TV_TOKEN.END  .decode('UTF-8')})'),
         ('TV_WRITE_BYTE'                      , f'0x{TV_WRITE_BYTE :02X}'                     ),

@@ -3772,9 +3772,12 @@
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__vehicle_inteface_i2c_data B
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__vehicle_inteface_i2c_data 7
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__vehicle_inteface_i2c_data
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__vn100_uart B
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__vn100_uart 10
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__vn100_uart
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__vn100_uart_rx B
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__vn100_uart_rx 10
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__vn100_uart_rx
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__vn100_uart_tx B
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__vn100_uart_tx 1
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__vn100_uart_tx
         CMSIS_SET
         (
             RCC    , AHB2ENR,
@@ -3792,6 +3795,7 @@
         CMSIS_SET
         (
             GPIOB, PUPDR,
+            PUPD1, 0b01 ,
             PUPD6, 0b01 ,
             PUPD7, 0b01 ,
         );
@@ -3804,6 +3808,7 @@
         CMSIS_WRITE
         (
             GPIO_AFRL, GPIOB->AFR[0],
+            AFSEL1   , 7            ,
             AFSEL6   , 4            ,
             AFSEL7   , 4            ,
         );
@@ -3818,6 +3823,7 @@
         CMSIS_SET
         (
             GPIOB , MODER,
+            MODE1 , 0b10 ,
             MODE6 , 0b10 ,
             MODE7 , 0b10 ,
             MODE10, 0b10 ,
@@ -3951,7 +3957,7 @@
 
 
         #define STPY_USART3_KERNEL_SOURCE 0b000
-        #define STPY_USART3_BAUD_DIVIDER 625
+        #define STPY_USART3_BAUD_DIVIDER 2170
 
 
 
@@ -4002,10 +4008,11 @@
         NVICInterrupt_USART2  = USART2_IRQn,
         NVICInterrupt_SDMMC1  = SDMMC1_IRQn,
         NVICInterrupt_USART1  = USART1_IRQn,
+        NVICInterrupt_USART3  = USART3_IRQn,
         NVICInterrupt_TIM1_UP = TIM1_UP_IRQn,
         NVICInterrupt_TIM8_UP = TIM8_UP_IRQn,
     };
-    static constexpr u32 NVICInterrupt_COUNT = 5;
+    static constexpr u32 NVICInterrupt_COUNT = 6;
     extern void INTERRUPT_BusFault(void);
     extern void INTERRUPT_Default(void);
     extern void INTERRUPT_Reset(void);
@@ -4014,6 +4021,7 @@
     extern void INTERRUPT_TIM8_UP(void);
     extern void INTERRUPT_USART1(void);
     extern void INTERRUPT_USART2(void);
+    extern void INTERRUPT_USART3(void);
     extern void INTERRUPT_UsageFault(void);
     extern void PendSV_Handler(void);
     extern void SVC_Handler(void);
@@ -4096,7 +4104,7 @@
             INTERRUPT_Default            , // [ 57] SPI3
             INTERRUPT_USART1             , // [ 58] USART1
             INTERRUPT_USART2             , // [ 59] USART2
-            INTERRUPT_Default            , // [ 60] USART3
+            INTERRUPT_USART3             , // [ 60] USART3
             INTERRUPT_Default            , // [ 61] UART4
             INTERRUPT_Default            , // [ 62] UART5
             INTERRUPT_Default            , // [ 63] LPUART1
@@ -4181,6 +4189,7 @@
     #define INTERRUPT_TIM8_UP(...) extern void INTERRUPT_TIM8_UP(__VA_ARGS__)
     #define INTERRUPT_USART1(...) extern void INTERRUPT_USART1(__VA_ARGS__)
     #define INTERRUPT_USART2(...) extern void INTERRUPT_USART2(__VA_ARGS__)
+    #define INTERRUPT_USART3(...) extern void INTERRUPT_USART3(__VA_ARGS__)
     #define INTERRUPT_UsageFault(...) extern void INTERRUPT_UsageFault(__VA_ARGS__)
     extern void
     STPY_init(void)
@@ -4318,7 +4327,12 @@
         );
         CMSIS_SET(GPIOD, ODR, OD0, false);
         CMSIS_SET(GPIOE, ODR, OD8, true);
-        CMSIS_SET(GPIOD, PUPDR, PUPD1, 0b10);
+        CMSIS_SET
+        (
+            GPIOD, PUPDR,
+            PUPD1, 0b10 ,
+            PUPD9, 0b01 ,
+        );
         CMSIS_WRITE
         (
             GPIO_AFRL, GPIOA->AFR[0],
@@ -4422,6 +4436,8 @@
         NVIC->IPR[NVICInterrupt_SDMMC1] = 1 << __NVIC_PRIO_BITS;
         static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
         NVIC->IPR[NVICInterrupt_USART1] = 1 << __NVIC_PRIO_BITS;
+        static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
+        NVIC->IPR[NVICInterrupt_USART3] = 1 << __NVIC_PRIO_BITS;
         static_assert(0 <= 2 && 2 < (1 << __NVIC_PRIO_BITS));
         NVIC->IPR[NVICInterrupt_TIM1_UP] = 2 << __NVIC_PRIO_BITS;
         static_assert(0 <= 3 && 3 < (1 << __NVIC_PRIO_BITS));
@@ -4578,6 +4594,15 @@
 
         #define STPY_USART2_KERNEL_SOURCE 0b000
         #define STPY_USART2_BAUD_DIVIDER 250
+
+
+
+        /////////////////////////////////// USART3 ///////////////////////////////////
+
+
+
+        #define STPY_USART3_KERNEL_SOURCE 0b000
+        #define STPY_USART3_BAUD_DIVIDER 2170
 
 
 
