@@ -40,6 +40,9 @@ struct BuzzerNote
     BUZZER_TUNES = (
         ('null', (
         )),
+        ('chirp', (
+            (1500, 0.05),
+        )),
         ('heavy_beep', (
             (100, 1.0),
         )),
