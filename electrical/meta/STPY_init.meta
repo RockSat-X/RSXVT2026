@@ -3772,9 +3772,12 @@
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__vehicle_inteface_i2c_data B
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__vehicle_inteface_i2c_data 7
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__vehicle_inteface_i2c_data
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__vn100_uart B
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__vn100_uart 10
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__vn100_uart
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__vn100_uart_rx B
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__vn100_uart_rx 10
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__vn100_uart_rx
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__vn100_uart_tx B
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__vn100_uart_tx 1
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__vn100_uart_tx
         CMSIS_SET
         (
             RCC    , AHB2ENR,
@@ -3792,6 +3795,7 @@
         CMSIS_SET
         (
             GPIOB, PUPDR,
+            PUPD1, 0b01 ,
             PUPD6, 0b01 ,
             PUPD7, 0b01 ,
         );
@@ -3804,6 +3808,7 @@
         CMSIS_WRITE
         (
             GPIO_AFRL, GPIOB->AFR[0],
+            AFSEL1   , 7            ,
             AFSEL6   , 4            ,
             AFSEL7   , 4            ,
         );
@@ -3818,6 +3823,7 @@
         CMSIS_SET
         (
             GPIOB , MODER,
+            MODE1 , 0b10 ,
             MODE6 , 0b10 ,
             MODE7 , 0b10 ,
             MODE10, 0b10 ,

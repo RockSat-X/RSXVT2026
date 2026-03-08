@@ -489,6 +489,36 @@ FREERTOS_TASK(stepper_motor_controller, 1024, 0)
 
 
 
+#include "VN100Command.meta"
+/* #meta
+
+    import functools
+
+    COMMANDS = (
+        ('disable_known_magnetic_disturbance'    , 'VNKMD,0'),
+        ('enable_known_magnetic_disturbance'     , 'VNKMD,1'),
+        ('disable_known_acceleration_disturbance', 'VNKAD,0'),
+        ('enable_known_acceleration_disturbance' , 'VNKAD,1'),
+    )
+
+    messages = [
+        f'${text}*{functools.reduce(lambda x, y: x^ord(y), text, 0):02X}'
+        for name, text in COMMANDS
+    ]
+
+    Meta.enums('VN100Command', 'u32', (name for name, text in COMMANDS))
+
+    Meta.lut('VN100Command_TABLE', (
+        (
+            f'VN100Command_{name}',
+            ('message', f'(const u8*) "{message}"'),
+            ('length' , len(message)),
+        )
+        for (name, text), message in zip(COMMANDS, messages)
+    ))
+
+*/
+
 static useret u16 // If checksum is 0x0A, then the hexadecimal value is 0x3041 ('0' = 0x30, 'A' = 0x41).
 vn100_make_hexadecimal_checksum(u8* bytes, i32 length) // Starting character ($) and checksum field (*xx) itself should not be included.
 {
@@ -631,10 +661,125 @@ vn100_await_response(u8* dst_response_buffer, i32 dst_response_capacity, i32* ds
 
 }
 
+static enum VN100AwaitCommandResult : u32
+{
+    VN100AwaitCommandResult_successful,
+    VN100AwaitCommandResult_timeout,
+    VN100AwaitCommandResult_checksum_mismatch,
+    VN100AwaitCommandResult_missing_echo,
+}
+vn100_await_command(enum VN100Command command)
+{
+    for (i32 response_index = 0;; response_index += 1)
+    {
+
+        UXART_tx_bytes
+        (
+            UXARTHandle_vn100,
+            VN100Command_TABLE[command].message,
+            VN100Command_TABLE[command].length
+        );
+
+        u8  response_buffer[256] = {0};
+        i32 response_length      = {0};
+
+        enum VN100AwaitResponseResult response_result =
+            vn100_await_response
+            (
+                response_buffer,
+                countof(response_buffer),
+                &response_length
+            );
+
+        switch (response_result)
+        {
+
+            case VN100AwaitResponseResult_successful:
+            {
+
+                b32 matching_response =
+                    response_length == VN100Command_TABLE[command].length &&
+                    !memcmp
+                    (
+                        response_buffer,
+                        VN100Command_TABLE[command].message,
+                        (u32) VN100Command_TABLE[command].length
+                    );
+
+                if (matching_response)
+                {
+                    return VN100AwaitCommandResult_successful; // Yippee!
+                }
+                else if (response_index < 16)
+                {
+                    // We got some other response from the VN-100;
+                    // for now, let's just ignore it and hope the
+                    // expected response is going to come in a bit later.
+                }
+                else
+                {
+                    // Seems like the VN-100 isn't echoing back
+                    // the expected response to our command...
+                    return VN100AwaitCommandResult_missing_echo;
+                }
+
+            } break;
+
+            case VN100AwaitResponseResult_timeout           : return VN100AwaitCommandResult_timeout;
+            case VN100AwaitResponseResult_checksum_mismatch : return VN100AwaitCommandResult_checksum_mismatch;
+            default                                         : sus;
+
+        }
+
+    }
+}
+
 FREERTOS_TASK(vn100, 8192, 0)
 {
 
     UXART_reinit(UXARTHandle_vn100);
+
+
+
+    // TODO.
+
+    {
+
+        enum VN100AwaitCommandResult command_result = vn100_await_command(VN100Command_enable_known_magnetic_disturbance);
+
+        switch (command_result)
+        {
+
+            case VN100AwaitCommandResult_successful:
+            {
+                // Command successfully acknowledged.
+            } break;
+
+            case VN100AwaitCommandResult_timeout:
+            case VN100AwaitCommandResult_checksum_mismatch:
+            case VN100AwaitCommandResult_missing_echo:
+            {
+
+                // Whoops!
+
+                xTaskNotify
+                (
+                    diagnostics_handle,
+                    DiagnosticMask_vn100_mishap,
+                    eSetBits
+                );
+
+            } break;
+
+            default: sus;
+
+        }
+
+    }
+
+
+
+    // TODO.
 
     i32 valid_packet_count = 0;
 

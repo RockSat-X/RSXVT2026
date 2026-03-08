@@ -151,8 +151,25 @@ FREERTOS_TASK(vn100_uart, 1024, 0)
 
         for (i32 i = 0; i < countof(VN100_DATA_LOGS); i += 1)
         {
+
             UXART_tx_bytes(UXARTHandle_vn100, (u8*) VN100_DATA_LOGS[i], (i32) strlen(VN100_DATA_LOGS[i]));
             FREERTOS_delay_ms(20);
+
+
+            if (i % 4 == 0)
+            {
+                u8 byte = {0};
+                if (UXART_rx(UXARTHandle_vn100, &byte))
+                {
+                    FREERTOS_delay_ms(1);
+                    do
+                    {
+                        UXART_tx_bytes(UXARTHandle_vn100, &byte, 1);
+                    }
+                    while (UXART_rx(UXARTHandle_vn100, &byte));
+                }
+            }
+
         }
 
     }
