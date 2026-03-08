@@ -265,9 +265,10 @@
         FreeRTOSTask_vn100,
         FreeRTOSTask_logger,
         FreeRTOSTask_diagnostics,
+        FreeRTOSTask_god,
         FreeRTOSTask_watchdog,
     };
-    static constexpr u32 FreeRTOSTask_COUNT = 5;
+    static constexpr u32 FreeRTOSTask_COUNT = 6;
     static noret void   controller(void*);
     static StackType_t  controller_stack[1024 / sizeof(StackType_t)] = {0};
     static StaticTask_t controller_buffer = {0};
@@ -284,6 +285,10 @@
     static StackType_t  diagnostics_stack[512 / sizeof(StackType_t)] = {0};
     static StaticTask_t diagnostics_buffer = {0};
     static TaskHandle_t diagnostics_handle = {0};
+    static noret void   god(void*);
+    static StackType_t  god_stack[1024 / sizeof(StackType_t)] = {0};
+    static StaticTask_t god_buffer = {0};
+    static TaskHandle_t god_handle = {0};
     static noret void   watchdog(void*);
     static StackType_t  watchdog_stack[512 / sizeof(StackType_t)] = {0};
     static StaticTask_t watchdog_buffer = {0};
@@ -334,6 +339,17 @@
                 1,
                 diagnostics_stack,
                 &diagnostics_buffer
+            );
+        god_handle =
+            xTaskCreateStatic
+            (
+                god,
+                "god",
+                countof(god_stack),
+                nullptr,
+                2,
+                god_stack,
+                &god_buffer
             );
         watchdog_handle =
             xTaskCreateStatic

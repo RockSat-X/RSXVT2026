@@ -5,7 +5,7 @@
 #define AUTOMATIC_SHUTDOWN_TIME_US  0       // TODO Once finalized, we should use (10 * 60'000'000).
 #define MAX_ANGULAR_ACCELERATION    (200.0f)
 #define MAX_ANGULAR_VELOCITY        (2000.0f * 2.0f * PI / 60.0f)
-#define DEMONSTRATE_STEPPER         true
+#define GOD_MODE                    true
 #define CONTROLLER_ENABLE           true
 
 #include "system.h"
@@ -36,9 +36,15 @@ enum DiagnosticMask : u32 // Lower the bit-index, higher the priority.
 
 static struct
 {
+
     RingBuffer(struct VN100Packet, 4) vn100_packets;
     volatile struct StepperTuple      current_angular_accelerations;
     volatile struct StepperTuple      current_angular_velocities;
+
+    #if GOD_MODE
+    volatile u32 replay_sequence_number;
+    #endif
+
 } CONTROLLER;
 
 static struct
@@ -118,7 +124,7 @@ FREERTOS_TASK(controller, 1024, 0)
     // For diagnostic purposes, we immediately set angular velocities to
     // something non-zero so we can easily tell if something is wrong.
 
-    #if DEMONSTRATE_STEPPER
+    #if GOD_MODE
     {
         for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
         {
@@ -134,122 +140,11 @@ FREERTOS_TASK(controller, 1024, 0)
 
 
 
-        // For demonstration and diagnostics purposes,
-        // we can directly control the stepper motors.
+        // If requested, we play back a sequence of angular accelerations for simulation purposes.
 
-        #if DEMONSTRATE_STEPPER
+        #if GOD_MODE
         {
-
-            // Interpret user's input, if any.
-
-            static b32 replay_sequence_number = false;
-
-            u8 input = {0};
-
-            while (stlink_rx(&input))
-            {
-
-                switch (input)
-                {
-
-                    case 'j':
-                    {
-                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                        {
-                            CONTROLLER.current_angular_accelerations.values[unit] -= 0.1f;
-                        }
-                    } break;
-
-                    case 'J':
-                    {
-                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                        {
-                            CONTROLLER.current_angular_accelerations.values[unit] -= 1.0f;
-                        }
-                    } break;
-
-                    case 'k':
-                    {
-                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                        {
-                            CONTROLLER.current_angular_accelerations.values[unit] += 0.1f;
-                        }
-                    } break;
-
-                    case 'K':
-                    {
-                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                        {
-                            CONTROLLER.current_angular_accelerations.values[unit] += 1.0f;
-                        }
-                    } break;
-
-                    case '0':
-                    {
-                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                        {
-                            CONTROLLER.current_angular_accelerations.values[unit] = 0.0f;
-                            CONTROLLER.current_angular_velocities   .values[unit] = 0.0f;
-                        }
-                    } break;
-
-                    case '<':
-                    {
-                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                        {
-                            CONTROLLER.current_angular_accelerations.values[unit] -= 200.0f;
-                        }
-                    } break;
-
-                    case '>':
-                    {
-                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                        {
-                            CONTROLLER.current_angular_accelerations.values[unit] += 200.0f;
-                        }
-                    } break;
-
-                    case '-':
-                    {
-                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                        {
-                            CONTROLLER.current_angular_accelerations.values[unit]  =  0.0f;
-                            CONTROLLER.current_angular_velocities   .values[unit] *= -1.0f;
-                        }
-                    } break;
-
-                    case 'b':
-                    {
-                        GPIO_TOGGLE(battery_allowed);
-                    } break;
-
-                    case 'x':
-                    {
-
-                        for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                        {
-                            CONTROLLER.current_angular_accelerations.values[unit] = 0.0f;
-                            CONTROLLER.current_angular_velocities   .values[unit] = 0.0f;
-                        }
-
-                        replay_sequence_number = 1; break;
-
-                    } break;
-
-                    default:
-                    {
-                        // Don't care.
-                    } break;
-
-                }
-
-            }
-
-
-
-            // If requested, we play back a sequence of angular accelerations for simulation purposes.
-
-            if (replay_sequence_number)
+            if (CONTROLLER.replay_sequence_number)
             {
 
                 #include "SEQUENCE_ANGULAR_ACCELERATIONS.meta"
@@ -329,11 +224,11 @@ FREERTOS_TASK(controller, 1024, 0)
 
                 */
 
-                CONTROLLER.current_angular_accelerations  = SEQUENCE_ANGULAR_ACCELERATIONS[replay_sequence_number - 1];
-                replay_sequence_number                   += 1;
-                replay_sequence_number                   %= countof(SEQUENCE_ANGULAR_ACCELERATIONS) + 1;
+                CONTROLLER.current_angular_accelerations  = SEQUENCE_ANGULAR_ACCELERATIONS[CONTROLLER.replay_sequence_number - 1];
+                CONTROLLER.replay_sequence_number        += 1;
+                CONTROLLER.replay_sequence_number        %= countof(SEQUENCE_ANGULAR_ACCELERATIONS) + 1;
 
-                if (!replay_sequence_number)
+                if (!CONTROLLER.replay_sequence_number)
                 {
                     for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
                     {
@@ -343,7 +238,6 @@ FREERTOS_TASK(controller, 1024, 0)
                 }
 
             }
-
         }
         #endif
 
@@ -1522,6 +1416,134 @@ FREERTOS_TASK(diagnostics, 512, 1)
         GPIO_INACTIVE(led_channel_blue );
 
     }
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+FREERTOS_TASK(god, 1024, 2)
+{
+
+#if GOD_MODE
+
+    for (;;)
+    {
+
+        u8 input = {0};
+
+        while (stlink_rx(&input))
+        {
+            switch (input)
+            {
+
+                case 'j':
+                {
+                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    {
+                        CONTROLLER.current_angular_accelerations.values[unit] -= 0.1f;
+                    }
+                } break;
+
+                case 'J':
+                {
+                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    {
+                        CONTROLLER.current_angular_accelerations.values[unit] -= 1.0f;
+                    }
+                } break;
+
+                case 'k':
+                {
+                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    {
+                        CONTROLLER.current_angular_accelerations.values[unit] += 0.1f;
+                    }
+                } break;
+
+                case 'K':
+                {
+                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    {
+                        CONTROLLER.current_angular_accelerations.values[unit] += 1.0f;
+                    }
+                } break;
+
+                case '0':
+                {
+                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    {
+                        CONTROLLER.current_angular_accelerations.values[unit] = 0.0f;
+                        CONTROLLER.current_angular_velocities   .values[unit] = 0.0f;
+                    }
+                } break;
+
+                case '<':
+                {
+                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    {
+                        CONTROLLER.current_angular_accelerations.values[unit] -= 200.0f;
+                    }
+                } break;
+
+                case '>':
+                {
+                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    {
+                        CONTROLLER.current_angular_accelerations.values[unit] += 200.0f;
+                    }
+                } break;
+
+                case '-':
+                {
+                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    {
+                        CONTROLLER.current_angular_accelerations.values[unit]  =  0.0f;
+                        CONTROLLER.current_angular_velocities   .values[unit] *= -1.0f;
+                    }
+                } break;
+
+                case 'b':
+                {
+                    GPIO_TOGGLE(battery_allowed);
+                } break;
+
+                case 'x':
+                {
+
+                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
+                    {
+                        CONTROLLER.current_angular_accelerations.values[unit] = 0.0f;
+                        CONTROLLER.current_angular_velocities   .values[unit] = 0.0f;
+                    }
+
+                    CONTROLLER.replay_sequence_number = 1;
+
+                } break;
+
+                default:
+                {
+                    // Don't care.
+                } break;
+
+            }
+        }
+
+        FREERTOS_delay_ms(10);
+
+    }
+
+#else
+
+    for (;;)
+    {
+        FREERTOS_delay_ms(1'000);
+    }
+
+#endif
 
 }
 
