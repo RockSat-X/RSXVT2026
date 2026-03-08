@@ -28,7 +28,7 @@ enum DiagnosticMask : u32 // Lower the bit-index, higher the priority.
     DiagnosticMask_stepper_driver_issue       = 1 << 0,
     DiagnosticMask_angular_velocity_saturated = 1 << 1,
     DiagnosticMask_wiping_filesystem          = 1 << 2,
-    DiagnosticMask_unresponsive_vn100         = 1 << 3,
+    DiagnosticMask_vn100_mishap               = 1 << 3,
     DiagnosticMask_logging_mishap             = 1 << 4,
     DiagnosticMask_vn100_heartbeat            = 1 << 5,
     DiagnosticMask_logging_heartbeat          = 1 << 6,
@@ -516,6 +516,121 @@ vn100_make_hexadecimal_checksum(u8* bytes, i32 length) // Starting character ($)
 
 }
 
+static enum VN100AwaitResponseResult : u32
+{
+    VN100AwaitResponseResult_successful,
+    VN100AwaitResponseResult_timeout,
+    VN100AwaitResponseResult_checksum_mismatch,
+}
+vn100_await_response(u8* dst_response_buffer, i32 dst_response_capacity, i32* dst_response_length)
+{
+
+    if (!dst_response_buffer)
+        sus;
+
+    if (dst_response_capacity <= -1)
+        sus;
+
+    if (!dst_response_length)
+        sus;
+
+
+
+    // Get the response.
+
+    *dst_response_length = 0;
+
+    i32 checksum_indicator_index = 0;
+    i32 stalls                   = 0;
+
+    while (true)
+    {
+
+        u8 received_byte = {0};
+
+        while (true)
+        {
+            if (UXART_rx(UXARTHandle_vn100, &received_byte))
+            {
+                break; // Got data!
+            }
+            else if (stalls < 1'000)
+            {
+                FREERTOS_delay_ms(1); // Do something else for a bit.
+                stalls += 1;
+            }
+            else // We waited too long.
+            {
+                return VN100AwaitResponseResult_timeout;
+            }
+        }
+
+        b32 append_byte = false;
+
+        if (received_byte == '$')
+        {
+            *dst_response_length     = 0;    // Discard whatever we got so far and start over.
+            checksum_indicator_index = 0;    // "
+            append_byte              = true; // The starting token shall be the first character.
+        }
+        else
+        {
+            append_byte = !!*dst_response_length; // Append if we've found the starting token.
+        }
+
+        if (append_byte)
+        {
+            if (*dst_response_length >= dst_response_capacity)
+            {
+                *dst_response_length     = 0; // Buffer over-run; invalidate the data we got so far.
+                checksum_indicator_index = 0; // "
+            }
+            else
+            {
+
+                dst_response_buffer[*dst_response_length]  = received_byte;
+                *dst_response_length                      += 1;
+
+                if (checksum_indicator_index && *dst_response_length == checksum_indicator_index + 3)
+                {
+                    break; // We reached the end of the VN-100 register read payload.
+                }
+                else if (received_byte == '*')
+                {
+                    checksum_indicator_index = *dst_response_length - 1; // We're near the end of the response.
+                }
+
+            }
+        }
+
+    }
+
+
+
+    // Verify integrity of the response.
+
+    u16 expected_hexadecimal_checksum =
+        vn100_make_hexadecimal_checksum
+        (
+            dst_response_buffer      + 1,
+            checksum_indicator_index - 1
+        );
+
+    u16 received_hexadecimal_checksum =
+        (dst_response_buffer[checksum_indicator_index + 1] << 8) |
+        (dst_response_buffer[checksum_indicator_index + 2] << 0);
+
+    if (expected_hexadecimal_checksum == received_hexadecimal_checksum)
+    {
+        return VN100AwaitResponseResult_successful;
+    }
+    else
+    {
+        return VN100AwaitResponseResult_checksum_mismatch;
+    }
+
+}
+
 FREERTOS_TASK(vn100, 8192, 0)
 {
 
@@ -526,262 +641,206 @@ FREERTOS_TASK(vn100, 8192, 0)
     for (;;)
     {
 
+        u8  payload_buffer[256] = {0};
+        i32 payload_length      = {0};
 
+        enum VN100AwaitResponseResult response_result =
+            vn100_await_response
+            (
+                payload_buffer,
+                countof(payload_buffer),
+                &payload_length
+            );
 
-        // Get the payload.
-
-        u8  payload_buffer[256]      = {0};
-        i32 payload_length           = 0;
-        i32 checksum_indicator_index = 0;
-
-        while (true)
+        switch (response_result)
         {
 
-            u8 data = {0};
 
-            for (i32 iterations = 0;; iterations += 1)
+
+            // Parse the register fields.
+
+            case VN100AwaitResponseResult_successful:
             {
-                if (UXART_rx(UXARTHandle_vn100, &data))
-                {
-                    break; // Got data.
-                }
-                else
+
+                struct VN100Packet packet               = {0};
+                b32                valid_fields         = true;
+                i32                field_position_index = 0;
+                i32                field_start_index    = 0;
+                i32                field_length         = 0;
+
+                while (true)
                 {
 
-                    if (iterations && iterations % 4096 == 0) // Haven't gotten anything valid in a while...
+                    b32 found_comma    = payload_buffer[field_start_index + field_length] == ',';
+                    b32 end_of_payload = field_start_index + field_length >= payload_length - 3;
+
+                    if (!found_comma && !end_of_payload) // Haven't found end of field yet?
+                    {
+                        field_length += 1;
+                    }
+                    else // Ready to parse the field now.
+                    {
+
+
+
+                        // The very first field should be the expected magic starting token and register name.
+
+                        if (field_position_index == 0)
+                        {
+                            valid_fields =
+                                !strncmp
+                                (
+                                    (char*) (payload_buffer + field_start_index),
+                                    "$VNQMR",
+                                    (u32) field_length
+                                );
+                        }
+
+
+
+                        // The remaining fields are the values of the register.
+
+                        else if (field_position_index - 1 < sizeof(struct VN100Packet) / sizeof(f32))
+                        {
+
+                            // Parse the field as a float, if possible.
+
+                            f32 parsed_value   = 0.0f;
+                            b32 negative       = false;
+                            f32 decimal_factor = {0};
+
+                            for
+                            (
+                                i32 index = 0;
+                                index < field_length && valid_fields;
+                                index += 1
+                            )
+                            {
+                                if (payload_buffer[field_start_index + index] == '+' && index == 0)
+                                {
+                                    negative = false;
+                                }
+                                else if (payload_buffer[field_start_index + index] == '-' && index == 0)
+                                {
+                                    negative = true;
+                                }
+                                else if (payload_buffer[field_start_index + index] == '.' && !decimal_factor)
+                                {
+                                    decimal_factor = 0.1f;
+                                }
+                                else if ('0' <= payload_buffer[field_start_index + index] && payload_buffer[field_start_index + index] <= '9')
+                                {
+                                    f32 digit = (f32) (payload_buffer[field_start_index + index] - '0');
+
+                                    if (decimal_factor)
+                                    {
+                                        parsed_value   += decimal_factor * digit;
+                                        decimal_factor *= 0.1f;
+                                    }
+                                    else
+                                    {
+                                        parsed_value = parsed_value * 10.0f + digit;
+                                    }
+                                }
+                                else
+                                {
+                                    valid_fields = false; // Not a digit...?
+                                }
+                            }
+
+                            if (valid_fields)
+                            {
+
+                                if (negative)
+                                {
+                                    parsed_value = -parsed_value;
+                                }
+
+                                ((f32*) &packet)[field_position_index - 1] = parsed_value;
+
+                            }
+
+                        }
+
+
+
+                        // Extraneous fields...?
+
+                        else
+                        {
+                            valid_fields = false;
+                        }
+
+
+
+                        if (!valid_fields)
+                        {
+                            break; // Abort parsing the received data.
+                        }
+                        else if (end_of_payload)
+                        {
+                            break; // No more data to process.
+                        }
+                        else // Move onto next field.
+                        {
+                            field_position_index += 1;
+                            field_start_index    += field_length + 1; // +1 to skip the comma.
+                            field_length          = 0;
+                        }
+
+                    }
+
+                }
+
+                if (valid_fields)
+                {
+
+                    if (!RingBuffer_push(&CONTROLLER.vn100_packets, &packet))
+                    {
+                        // VN-100 data overrun!
+                    }
+
+                    if (!RingBuffer_push(&LOGGER.vn100_packets, &packet))
+                    {
+                        // VN-100 data overrun, but it's for the logger; who cares.
+                    }
+
+                    valid_packet_count += 1;
+
+                    if (valid_packet_count % 256 == 0)
                     {
                         xTaskNotify
                         (
                             diagnostics_handle,
-                            DiagnosticMask_unresponsive_vn100,
+                            DiagnosticMask_vn100_heartbeat,
                             eSetBits
                         );
                     }
 
-                    FREERTOS_delay_ms(1); // Do something else for a bit.
-
-                }
-            }
-
-            if (data == '$') // Found beginning of the payload?
-            {
-                payload_buffer[0]        = data;
-                payload_length           = 1;
-                checksum_indicator_index = 0;
-            }
-            else if (payload_length) // Synchronized with the data transfer?
-            {
-
-                payload_buffer[payload_length]  = data;
-                payload_length                 += 1;
-
-                if (payload_length == countof(payload_buffer))
-                {
-                    payload_length           = 0; // Buffer over-run; invalidate the data we got so far.
-                    checksum_indicator_index = 0; // "
-                }
-                else if (checksum_indicator_index && payload_length == checksum_indicator_index + 3)
-                {
-                    break; // We reached the end of the VN-100 register read payload.
-                }
-                else if (data == '*')
-                {
-                    checksum_indicator_index = payload_length - 1;
                 }
 
-            }
-
-        }
+            } break;
 
 
 
-        // Parse the VN-100 payload.
+            // Whoops...
 
-        struct VN100Packet packet = {0};
-        b32                valid  = true;
-
-        u16 expected_hexadecimal_checksum =
-            vn100_make_hexadecimal_checksum
-            (
-                payload_buffer           + 1,
-                checksum_indicator_index - 1
-            );
-
-        u16 received_hexadecimal_checksum =
-            (payload_buffer[checksum_indicator_index + 1] << 8) |
-            (payload_buffer[checksum_indicator_index + 2] << 0);
-
-        if (expected_hexadecimal_checksum != received_hexadecimal_checksum)
-        {
-            valid = false; // Checksum mismatch.
-        }
-        else // Parse each field carefully.
-        {
-
-            i32 field_position_index = 0;
-            i32 field_start_index    = 0;
-            i32 field_length         = 0;
-
-            while (true)
-            {
-
-                b32 found_comma    = payload_buffer[field_start_index + field_length] == ',';
-                b32 end_of_payload = field_start_index + field_length >= checksum_indicator_index;
-
-                if (!found_comma && !end_of_payload) // Haven't found end of field yet?
-                {
-                    field_length += 1;
-                }
-                else // Ready to parse the field now.
-                {
-
-                    // The very first field should be the expected magic starting token.
-
-                    if (field_position_index == 0)
-                    {
-                        valid =
-                            !strncmp
-                            (
-                                (char*) (payload_buffer + field_start_index),
-                                "$VNQMR",
-                                (u32) field_length
-                            );
-                    }
-
-
-
-                    // The remaining fields are the values of the register.
-
-                    else if (field_position_index - 1 < sizeof(struct VN100Packet) / sizeof(f32))
-                    {
-
-                        // Parse the field as a float, if possible.
-
-                        f32 parsed_value   = 0.0f;
-                        b32 negative       = false;
-                        f32 decimal_factor = {0};
-
-                        for
-                        (
-                            i32 index = 0;
-                            index < field_length && valid;
-                            index += 1
-                        )
-                        {
-                            if (payload_buffer[field_start_index + index] == '+' && index == 0)
-                            {
-                                negative = false;
-                            }
-                            else if (payload_buffer[field_start_index + index] == '-' && index == 0)
-                            {
-                                negative = true;
-                            }
-                            else if (payload_buffer[field_start_index + index] == '.' && !decimal_factor)
-                            {
-                                decimal_factor = 0.1f;
-                            }
-                            else if ('0' <= payload_buffer[field_start_index + index] && payload_buffer[field_start_index + index] <= '9')
-                            {
-                                f32 digit = (f32) (payload_buffer[field_start_index + index] - '0');
-
-                                if (decimal_factor)
-                                {
-                                    parsed_value   += decimal_factor * digit;
-                                    decimal_factor *= 0.1f;
-                                }
-                                else
-                                {
-                                    parsed_value = parsed_value * 10.0f + digit;
-                                }
-                            }
-                            else
-                            {
-                                valid = false; // Not a digit...?
-                            }
-                        }
-
-                        if (valid)
-                        {
-
-                            if (negative)
-                            {
-                                parsed_value = -parsed_value;
-                            }
-
-                            ((f32*) &packet)[field_position_index - 2] = parsed_value;
-
-                        }
-
-                    }
-
-
-
-                    // Extraneous fields...?
-
-                    else
-                    {
-                        valid = false;
-                    }
-
-
-
-                    if (!valid)
-                    {
-                        break; // Abort parsing the received data.
-                    }
-                    else if (end_of_payload)
-                    {
-                        break; // No more data to process.
-                    }
-                    else // Move onto next field.
-                    {
-                        field_position_index += 1;
-                        field_start_index    += field_length + 1; // +1 to skip the comma.
-                        field_length          = 0;
-                    }
-
-                }
-
-            }
-
-        }
-
-
-
-        // Handle the data.
-
-        if (valid)
-        {
-
-            if (!RingBuffer_push(&CONTROLLER.vn100_packets, &packet))
-            {
-                // VN-100 data overrun!
-            }
-
-            if (!RingBuffer_push(&LOGGER.vn100_packets, &packet))
-            {
-                // VN-100 data overrun, but it's for the logger; who cares.
-            }
-
-            valid_packet_count += 1;
-
-            if (valid_packet_count % 256 == 0)
+            case VN100AwaitResponseResult_timeout:
+            case VN100AwaitResponseResult_checksum_mismatch:
             {
                 xTaskNotify
                 (
                     diagnostics_handle,
-                    DiagnosticMask_vn100_heartbeat,
+                    DiagnosticMask_vn100_mishap,
                     eSetBits
                 );
-            }
+            } break;
+
+
+
+            default: sus;
 
         }
-        else
-        {
-            // Something was wrong with the received VN-100 payload...
-        }
-
-
 
     }
 
@@ -1193,7 +1252,7 @@ FREERTOS_TASK(diagnostics, 512, 1)
 
             } break;
 
-            case DiagnosticMask_unresponsive_vn100:
+            case DiagnosticMask_vn100_mishap:
             {
 
                 BUZZER_play(BuzzerTune_hazard);
