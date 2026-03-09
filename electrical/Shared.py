@@ -868,10 +868,10 @@ TARGETS = ( # @/`Defining Targets`.
             ('battery_allowed'            , 'D0'  , 'OUTPUT'    , { 'initlvl' : False                                        }),
             ('external_detected'          , 'D1'  , 'INPUT'     , { 'pull'    : 'DOWN'                                       }),
             ('openmv_spi_nss'             , 'B12' , 'ALTERNATE' , { 'altfunc' : 'SPI2_NSS'                                   }),
-            ('openmv_spi_clock'           , 'B10' , 'ALTERNATE' , { 'altfunc' : 'SPI2_SCK'                                   }),
-            ('openmv_spi_mosi'            , 'C3'  , 'ALTERNATE' , { 'altfunc' : 'SPI2_MOSI'                                  }),
-            ('openmv_spi_miso'            , 'C2'  , 'ALTERNATE' , { 'altfunc' : 'SPI2_MISO'                                  }),
-            ('openmv_spi_ready'           , 'D5'  , 'ALTERNATE' , { 'altfunc' : 'SPI2_RDY'                                   }),
+            ('openmv_spi_clock'           , 'B10' , 'ALTERNATE' , { 'altfunc' : 'SPI2_SCK' , 'pull' : 'UP'                   }),
+            ('openmv_spi_mosi'            , 'C3'  , 'ALTERNATE' , { 'altfunc' : 'SPI2_MOSI', 'pull' : 'UP'                   }),
+            ('openmv_spi_miso'            , 'C2'  , None        , { 'altfunc' : 'SPI2_MISO'                                  }),
+            ('openmv_spi_ready'           , 'D5'  , None        , { 'altfunc' : 'SPI2_RDY'                                   }),
             ('openmv_reset'               , 'C15' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False, 'open_drain' : True }),
             ('motor_uart'                 , 'B14' , 'ALTERNATE' , { 'altfunc' : 'USART1_TX'                                  }),
             ('vehicle_interface_i2c_data' , 'D7'  , 'ALTERNATE' , { 'altfunc' : 'I2C3_SDA', 'open_drain' : True              }),
@@ -895,7 +895,7 @@ TARGETS = ( # @/`Defining Targets`.
             # TODO: ('I2C3_ER', 1),
             ('TIM1_UP', 2),
             ('TIM8_UP', 3),
-            # TODO: ('SPI2'   , 4),
+            ('SPI2'   , 4),
         ),
 
         drivers = (
@@ -946,12 +946,11 @@ TARGETS = ( # @/`Defining Targets`.
                 'type'       : 'TIMEKEEPING',
                 'peripheral' : 'TIM2',
             },
-            # TODO.
-            # {
-            #     'type'       : 'SPI',
-            #     'peripheral' : 'SPI2',
-            #     'handle'     : 'openmv',
-            # },
+            {
+                'type'       : 'SPI',
+                'peripheral' : 'SPI2',
+                'handle'     : 'openmv',
+            },
         ),
 
         use_freertos    = True,
@@ -976,7 +975,7 @@ TARGETS = ( # @/`Defining Targets`.
             'USART3_BAUD'         : VN100_BAUD,
             # TODO: 'I2C3_BAUD'           : VEHICLE_INTERFACE_BAUD,
             # TODO: 'I2C3_TIMEOUT'        : 2,
-            # TODO: 'SPI2_BAUD'           : 600_000, # @/`OpenMV SPI Baud`.
+            'SPI2_BAUD'           : 600_000, # @/`OpenMV SPI Baud`.
             'TIM1_UPDATE_RATE'    : 1 / 0.001,
             'TIM2_COUNTER_RATE'   : 1_000_000,
             'TIM8_COUNTER_RATE'   : 1_000_000,

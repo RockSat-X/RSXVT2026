@@ -1,25 +1,27 @@
 #define STEPPER_ENABLE_DELAY_US     500'000
 #define STEPPER_VELOCITY_UPDATE_US  25'000 // @/`Sequence Angular Accelerations Delta Time`.
 #define STEPPER_UART_TIME_MARGIN_US 2'000
-#define STEPPER_RING_BUFFER_LENGTH  8       // TODO Determine latency.
+#define STEPPER_RING_BUFFER_LENGTH  8      // TODO Determine latency.
+#define SPI_BLOCK_SIZE              64     // @/`OpenMV SPI Block Size`.
 #define WATCHDOG_DURATION_US        (10 * 60'000'000)
 #define MAX_ANGULAR_ACCELERATION    (200.0f)
 #define MAX_ANGULAR_VELOCITY        (2000.0f * 2.0f * PI / 60.0f)
 #define GOD_MODE                    true
 #define CONTROLLER_ENABLE           false
-#define VN100_ENABLE                true
+#define VN100_ENABLE                false
+#define OPENMV_ENABLE               true
 #define WATCHDOG_ENABLE             false
 
 #include "system.h"
 #include "timekeeping.c"
 #include "uxart.c"
+#include "spi.c"
 #include "sd.c"
 #include "filesystem.c"
 #include "stepper.c"
 #include "buzzer.c"
 #include "gnc.c"
 
-// TODO Check if we've been able to control the stepper driver.
 // TODO Check if we've been receiving OpenMV data.
 // TODO Check if ESP32 still working.
 
@@ -972,6 +974,33 @@ FREERTOS_TASK(vn100, 8192, 0)
             eSetBits
         );
 
+    }
+
+#else
+
+    for (;;)
+    {
+        FREERTOS_delay_ms(1'000);
+    }
+
+#endif
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+FREERTOS_TASK(openmv, 8192, 0)
+{
+
+#if OPENMV_ENABLE
+
+    for (;;)
+    {
+        sorry
     }
 
 #else

@@ -4011,12 +4011,14 @@
         NVICInterrupt_USART3  = USART3_IRQn,
         NVICInterrupt_TIM1_UP = TIM1_UP_IRQn,
         NVICInterrupt_TIM8_UP = TIM8_UP_IRQn,
+        NVICInterrupt_SPI2    = SPI2_IRQn,
     };
-    static constexpr u32 NVICInterrupt_COUNT = 6;
+    static constexpr u32 NVICInterrupt_COUNT = 7;
     extern void INTERRUPT_BusFault(void);
     extern void INTERRUPT_Default(void);
     extern void INTERRUPT_Reset(void);
     extern void INTERRUPT_SDMMC1(void);
+    extern void INTERRUPT_SPI2(void);
     extern void INTERRUPT_TIM1_UP(void);
     extern void INTERRUPT_TIM8_UP(void);
     extern void INTERRUPT_USART1(void);
@@ -4100,7 +4102,7 @@
             INTERRUPT_Default            , // [ 53] I2C2_EV
             INTERRUPT_Default            , // [ 54] I2C2_ER
             INTERRUPT_Default            , // [ 55] SPI1
-            INTERRUPT_Default            , // [ 56] SPI2
+            INTERRUPT_SPI2               , // [ 56] SPI2
             INTERRUPT_Default            , // [ 57] SPI3
             INTERRUPT_USART1             , // [ 58] USART1
             INTERRUPT_USART2             , // [ 59] USART2
@@ -4183,6 +4185,7 @@
     #define INTERRUPT_PendSV(...) extern void INTERRUPT_PendSV(__VA_ARGS__)
     #define INTERRUPT_Reset(...) extern void INTERRUPT_Reset(__VA_ARGS__)
     #define INTERRUPT_SDMMC1(...) extern void INTERRUPT_SDMMC1(__VA_ARGS__)
+    #define INTERRUPT_SPI2(...) extern void INTERRUPT_SPI2(__VA_ARGS__)
     #define INTERRUPT_SVCall(...) extern void INTERRUPT_SVCall(__VA_ARGS__)
     #define INTERRUPT_SysTick(...) extern void INTERRUPT_SysTick(__VA_ARGS__)
     #define INTERRUPT_TIM1_UP(...) extern void INTERRUPT_TIM1_UP(__VA_ARGS__)
@@ -4256,12 +4259,6 @@
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__openmv_spi_mosi C
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__openmv_spi_mosi 3
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__openmv_spi_mosi
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__openmv_spi_miso C
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__openmv_spi_miso 2
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__openmv_spi_miso
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__openmv_spi_ready D
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__openmv_spi_ready 5
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__openmv_spi_ready
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__openmv_reset GPIO_BSRR_BR
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__openmv_reset GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__openmv_reset C
@@ -4327,6 +4324,8 @@
         );
         CMSIS_SET(GPIOD, ODR, OD0, false);
         CMSIS_SET(GPIOE, ODR, OD8, true);
+        CMSIS_SET(GPIOB, PUPDR, PUPD10, 0b01);
+        CMSIS_SET(GPIOC, PUPDR, PUPD3, 0b01);
         CMSIS_SET
         (
             GPIOD, PUPDR,
@@ -4349,12 +4348,7 @@
             AFSEL12  , 5            ,
             AFSEL14  , 4            ,
         );
-        CMSIS_WRITE
-        (
-            GPIO_AFRL, GPIOC->AFR[0],
-            AFSEL2   , 5            ,
-            AFSEL3   , 5            ,
-        );
+        CMSIS_WRITE(GPIO_AFRL, GPIOC->AFR[0], AFSEL3, 5);
         CMSIS_WRITE
         (
             GPIO_AFRH, GPIOC->AFR[1],
@@ -4368,7 +4362,6 @@
         (
             GPIO_AFRL, GPIOD->AFR[0],
             AFSEL2   , 12           ,
-            AFSEL5   , 5            ,
             AFSEL6   , 4            ,
             AFSEL7   , 4            ,
         );
@@ -4401,7 +4394,6 @@
             GPIOC , MODER,
             MODE0 , 0b01 ,
             MODE1 , 0b01 ,
-            MODE2 , 0b10 ,
             MODE3 , 0b10 ,
             MODE8 , 0b10 ,
             MODE9 , 0b10 ,
@@ -4416,7 +4408,6 @@
             MODE0, 0b01 ,
             MODE1, 0b00 ,
             MODE2, 0b10 ,
-            MODE5, 0b10 ,
             MODE6, 0b10 ,
             MODE7, 0b10 ,
             MODE8, 0b10 ,
@@ -4442,6 +4433,8 @@
         NVIC->IPR[NVICInterrupt_TIM1_UP] = 2 << __NVIC_PRIO_BITS;
         static_assert(0 <= 3 && 3 < (1 << __NVIC_PRIO_BITS));
         NVIC->IPR[NVICInterrupt_TIM8_UP] = 3 << __NVIC_PRIO_BITS;
+        static_assert(0 <= 4 && 4 < (1 << __NVIC_PRIO_BITS));
+        NVIC->IPR[NVICInterrupt_SPI2] = 4 << __NVIC_PRIO_BITS;
         CMSIS_SET
         (
             SCB        , SHCSR,
@@ -4615,6 +4608,16 @@
         #define STPY_TIM1_MODULATION (62500 - 1)
         #define STPY_TIM2_DIVIDER (250 - 1)
         #define STPY_TIM8_DIVIDER (250 - 1)
+
+
+
+        //////////////////////////////////// SPI2 ////////////////////////////////////
+
+
+
+        #define STPY_SPI2_KERNEL_SOURCE 0b010
+        #define STPY_SPI2_BYPASS_DIVIDER false
+        #define STPY_SPI2_DIVIDER 0b001
 
 
 

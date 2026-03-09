@@ -20,7 +20,7 @@ import pyb
 spi = pyb.SPI(
     2,
     mode     = pyb.SPI.MASTER, # Master because it's the bottleneck.
-    baudrate = 600_000,        # @/`OpenMV SPI Baud`:.
+    baudrate = 600_000,        # @/`OpenMV SPI Baud`: Coupled.
     polarity = 1,              # If 1, SCK is high when idle.
     phase    = 0,              # If 0, data is sampled on first clock edge.
     crc      = 0x107           # @/`OpenMV CRC Polynomial`:.
@@ -48,7 +48,8 @@ while True:
 
     # Send data to vehicle flight computer.
     #
-    # @/`OpenMV SPI Block Size`:
+    # @/`OpenMV SPI Block Size`: Coupled.
+    #
     # Note that the amount of data (excluding the CRC)
     # should be what the vehicle flight computer be expecting.
 
