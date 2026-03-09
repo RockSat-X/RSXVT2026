@@ -90,18 +90,18 @@ SPI_reinit(enum SPIHandle handle)
         SPIx   , CFG2 ,
         MASTER , false, // SPI in slave mode.
         SSIOP  , 0b0  , // When 0b0, the NSS pin is active-low.
-        CPOL   , 0b0  , // When 0b0, the SCK pin is low.
-        CPHA   , 0b0  , // When 0b0, data is captured on the first clock edge.
+        CPOL   , 0b1  , // "1: SCK signal is at 1 when idle".
+        CPHA   , 0b0  , // "0: the first clock transition is the first data capture edge".
         LSBFRST, false, // Whether or not LSb is transmitted first.
     );
 
     CMSIS_SET
     (
-        SPIx   , CFG1           ,
-        DSIZE  , bitsof(u32) - 1, // Bits per word.
-        FTHLV  , 1 - 1          , // Amount of words buffered to trigger an interrupt.
-        CRCEN  , true           , // Enable CRC checking.
-        CRCSIZE, 8 - 1          , // Amount of bits in CRC.
+        SPIx   , CFG1          ,
+        DSIZE  , bitsof(u8) - 1, // Smallest unit of SPI transfer we're assuming.
+        FTHLV  , 4 - 1         , // Amount of bytes buffered to trigger an interrupt.
+        CRCEN  , true          , // Enable CRC checking.
+        CRCSIZE, 8 - 1         , // Amount of bits in CRC.
     );
 
     CMSIS_SET
@@ -112,16 +112,16 @@ SPI_reinit(enum SPIHandle handle)
 
     CMSIS_SET
     (
-        SPIx   , IER  , // Enable interrupts for:
-        MODFIE , true , //     - Mode fault.
-        TIFREIE, true , //     - TI frame error.
-        CRCEIE , true , //     - CRC mismatch.
-        OVRIE  , true , //     - RX-FIFO got too full.
-        EOTIE  , true , //     - When all of the expected amount of bytes have been transferred.
-        RXPIE  , true , //     - Data available in RX-FIFO.
+        SPIx   , IER , // Enable interrupts for:
+        MODFIE , true, //     - Mode fault.
+        TIFREIE, true, //     - TI frame error.
+        CRCEIE , true, //     - CRC mismatch.
+        OVRIE  , true, //     - RX-FIFO got too full.
+        EOTIE  , true, //     - When all of the expected amount of bytes have been transferred.
+        RXPIE  , true, //     - Data available in RX-FIFO.
     );
 
-    CMSIS_SET(SPIx, CR2, TSIZE, SPI_BLOCK_SIZE / sizeof(u32)); // Amount of words followed by the CRC.
+    CMSIS_SET(SPIx, CR2, TSIZE, SPI_BLOCK_SIZE); // Amount of bytes followed by the CRC.
     static_assert(SPI_BLOCK_SIZE % sizeof(u32) == 0);
 
     CMSIS_SET
@@ -229,7 +229,7 @@ _SPI_update_once(enum SPIHandle handle)
             if (!(0 <= driver->word_index && driver->word_index < countof(block->words)))
                 bug;
 
-            block->words[driver->word_index]  = __builtin_bswap32(data);
+            block->words[driver->word_index]  = data;
             driver->word_index               += 1;
 
         }
