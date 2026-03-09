@@ -1,4 +1,4 @@
-import time
+import time, struct
 
 
 
@@ -42,8 +42,6 @@ led_blue  = pyb.LED(3)
 
 
 
-iteration = 0
-
 while True:
 
 
@@ -55,20 +53,30 @@ while True:
     # Note that the amount of data (excluding the CRC)
     # should be what the vehicle flight computer be expecting.
 
-    iteration += 1
-    iteration %= 256
+    attitude_x                      = 1.0
+    attitude_y                      = 2.0
+    attitude_z                      = 3.0
+    attitude_w                      = 4.0
+    computer_vision_processing_time = 123
+    computer_vision_confidence      = 456
+    image_sequence_number           = 789
+    image_fragment                  = b'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQR'
 
-    try:
+    block = struct.pack(
+        f'ffffHBB{len(image_fragment)}s',
+        attitude_x,
+        attitude_y,
+        attitude_z,
+        attitude_w,
+        computer_vision_processing_time,
+        computer_vision_confidence,
+        image_sequence_number,
+        image_fragment
+    )
 
-        nss(False)
-
-        block = bytes([iteration]) + b"BCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!?"
-
-        spi.write(block)
-
-    finally:
-
-        nss(True)
+    nss(False)
+    spi.write(block)
+    nss(True)
 
 
 

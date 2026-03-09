@@ -157,7 +157,7 @@ pack_push
 
     // TODO Finalize structure.
     // TODO We may have two packet variations: one for IMU + image data and one for just image data.
-    struct OpenMVPacket
+    struct OpenMVGNCPacket // @/`OpenMV GNC Packet`: Coupled.
     {
         f32 attitude_x;
         f32 attitude_y;
@@ -176,9 +176,9 @@ pack_pop
 static void
 GNC_update
 (
-    struct Matrix*             resulting_angular_velocities,
-    const struct VN100Packet*  most_recent_imu,
-    const struct OpenMVPacket* most_recent_openmv_reading
+    struct Matrix*                resulting_angular_velocities,
+    const struct VN100Packet*     most_recent_imu,
+    const struct OpenMVGNCPacket* most_recent_openmv_reading
 )
 {
 
