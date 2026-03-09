@@ -22,3 +22,4 @@ fp-info-cache
 
 # Misc.
 MAIN_ESP32_MAC_ADDRESS.txt
+*.autosave
