@@ -45,10 +45,10 @@ enum DiagnosticMask : u32 // Lower the bit-index, higher the priority.
 static struct
 {
 
-    RingBuffer(struct VN100Packet, 4) vn100_packets;
-    RingBuffer(struct SPIBlock   , 4) openmv_packets;
-    volatile struct StepperTuple      current_angular_accelerations;
-    volatile struct StepperTuple      current_angular_velocities;
+    RingBuffer(struct VN100Packet    , 4) vn100_packets;
+    RingBuffer(struct OpenMVPacketGNC, 4) openmv_gnc_packets;
+    volatile struct StepperTuple          current_angular_accelerations;
+    volatile struct StepperTuple          current_angular_velocities;
 
     #if GOD_MODE
     volatile u32 replay_sequence_number;
@@ -58,8 +58,8 @@ static struct
 
 static struct
 {
-    RingBuffer(struct VN100Packet, 4) vn100_packets;
-    RingBuffer(struct SPIBlock   , 4) openmv_packets;
+    RingBuffer(struct VN100Packet , 4) vn100_packets;
+    RingBuffer(struct OpenMVPacket, 4) openmv_packets;
 } LOGGER = {0};
 
 static struct
@@ -1005,17 +1005,24 @@ FREERTOS_TASK(openmv, 8192, 0)
     for (;;)
     {
 
-        struct SPIBlock* block = RingBuffer_reading_pointer(SPI_reception(SPIHandle_openmv));
 
-        if (block)
+
+        static_assert(sizeof(struct OpenMVPacket) == sizeof(struct SPIBlock));
+
+        struct OpenMVPacket* packet = (struct OpenMVPacket*) RingBuffer_reading_pointer(SPI_reception(SPIHandle_openmv));
+
+        if (packet)
         {
 
-            if (!RingBuffer_push(&CONTROLLER.openmv_packets, block))
+            if (packet->sequence_number == 0) // @/`OpenMV Sequence Number`.
             {
-                // OpenMV data overrun!
+                if (!RingBuffer_push(&CONTROLLER.openmv_gnc_packets, &packet->gnc))
+                {
+                    // OpenMV data overrun!
+                }
             }
 
-            if (!RingBuffer_push(&LOGGER.openmv_packets, block))
+            if (!RingBuffer_push(&LOGGER.openmv_packets, packet))
             {
                 // OpenMV data overrun, but it's for the logger; who cares.
             }
@@ -1159,11 +1166,11 @@ FREERTOS_TASK(logger, 8192, 0)
 
             // Make the log entry.
 
-            u32                current_timestamp_us = TIMEKEEPING_microseconds();
-            struct VN100Packet vn100_packet_data    = {0};
-            b32                vn100_packet_exist   = RingBuffer_pop_to_latest(&LOGGER.vn100_packets, &vn100_packet_data);
-            struct SPIBlock    openmv_packet_data   = {0};
-            b32                openmv_packet_exist  = RingBuffer_pop_to_latest(&LOGGER.openmv_packets, &openmv_packet_data);
+            u32                 current_timestamp_us = TIMEKEEPING_microseconds();
+            struct VN100Packet  vn100_packet_data    = {0};
+            b32                 vn100_packet_exist   = RingBuffer_pop_to_latest(&LOGGER.vn100_packets, &vn100_packet_data);
+            struct OpenMVPacket openmv_packet_data   = {0};
+            b32                 openmv_packet_exist  = RingBuffer_pop_to_latest(&LOGGER.openmv_packets, &openmv_packet_data);
 
             i32 log_entry_length =
                 snprintf_
@@ -1266,13 +1273,14 @@ FREERTOS_TASK(logger, 8192, 0)
                     working_sectors[0].bytes
                 );
 
-                if (openmv_packet_exist)
+                if (openmv_packet_exist) // TODO Better output...?
                 {
-                    for (i32 i = 0; i < countof(openmv_packet_data.bytes); i += 1)
-                    {
-                        stlink_tx(" 0x%02X", openmv_packet_data.bytes[i]);
-                    }
-                    stlink_tx("\n");
+                    stlink_tx
+                    (
+                        "sequence_number : %u" "\n"
+                        "\n",
+                        openmv_packet_data.sequence_number
+                    );
                 }
 
             }

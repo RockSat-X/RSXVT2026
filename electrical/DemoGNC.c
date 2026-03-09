@@ -16,7 +16,7 @@ main(void)
     struct GNCMockInput
     {
         struct VN100Packet     vn100;
-        struct OpenMVGNCPacket openmv;
+        struct OpenMVPacketGNC openmv;
     };
 
     #include "GNC_MOCK_SIMULATION.meta"

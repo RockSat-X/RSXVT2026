@@ -1,4 +1,4 @@
-import time, struct
+import time, struct, sensor, micropython
 
 
 
@@ -16,6 +16,8 @@ import pyb
 ################################################################################
 
 
+
+SPI_BLOCK_SIZE = micropython.const(64) # @/`OpenMV SPI Block Size`: Coupled.
 
 spi = pyb.SPI(
     2,
@@ -38,6 +40,12 @@ led_blue  = pyb.LED(3)
 
 
 
+sensor.reset()
+sensor.set_pixformat(sensor.YUV422)
+sensor.set_framesize(sensor.QSIF)
+
+
+
 ################################################################################
 
 
@@ -46,33 +54,33 @@ while True:
 
 
 
-    # Send data to vehicle flight computer.
-    #
-    # @/`OpenMV SPI Block Size`: Coupled.
-    #
-    # Note that the amount of data (excluding the CRC)
-    # should be what the vehicle flight computer be expecting.
+    # Capture the image that'll be transferred to VFC.
 
-    attitude_x                      = 1.0
-    attitude_y                      = 2.0
-    attitude_z                      = 3.0
-    attitude_w                      = 4.0
-    computer_vision_processing_time = 123
-    computer_vision_confidence      = 456
-    image_sequence_number           = 789
-    image_fragment                  = b'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQR'
+    image_byte_array = sensor.snapshot().compress(quality=50).bytearray()
+
+
+
+    # Send the GNC packet to VFC.
+
+    attitude_x                       = 1.0
+    attitude_y                       = 2.0
+    attitude_z                       = 3.0
+    attitude_w                       = 4.0
+    computer_vision_processing_time  = 123
+    computer_vision_confidence       = 456
 
     block = struct.pack(
-        f'ffffHBB{len(image_fragment)}s',
+        'HffffHB',  # @/`OpenMV Packet Format`.
+        0,          # @/`OpenMV Sequence Number`.
         attitude_x,
         attitude_y,
         attitude_z,
         attitude_w,
         computer_vision_processing_time,
         computer_vision_confidence,
-        image_sequence_number,
-        image_fragment
     )
+
+    block += bytes(SPI_BLOCK_SIZE - len(block))
 
     nss(False)
     spi.write(block)
@@ -80,8 +88,30 @@ while True:
 
 
 
+    # Send the image packets to VFC.
+
+    sequence_number  = 1 # @/`OpenMV Sequence Number`.
+    image_bytes_sent = 0
+
+    while image_bytes_sent < len(image_byte_array):
+
+        block = struct.pack(
+            f'H{SPI_BLOCK_SIZE - 2}s', # @/`OpenMV Packet Format`.
+            sequence_number,
+            image_byte_array[image_bytes_sent : image_bytes_sent + (SPI_BLOCK_SIZE - 2)]
+        )
+
+        nss(False)
+        spi.write(block)
+        nss(True)
+
+        sequence_number  += 1
+        image_bytes_sent += SPI_BLOCK_SIZE - 2
+
+
+
     # TODO Do other stuff.
 
-    led_red.toggle()
+    led_green.toggle()
 
     time.sleep(0.1)
