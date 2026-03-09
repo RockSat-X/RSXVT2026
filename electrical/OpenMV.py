@@ -42,6 +42,8 @@ led_blue  = pyb.LED(3)
 
 
 
+iteration = 0
+
 while True:
 
 
@@ -53,11 +55,14 @@ while True:
     # Note that the amount of data (excluding the CRC)
     # should be what the vehicle flight computer be expecting.
 
+    iteration += 1
+    iteration %= 256
+
     try:
 
         nss(False)
 
-        block = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!?"
+        block = bytes([iteration]) + b"BCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!?"
 
         spi.write(block)
 

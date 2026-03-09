@@ -46,6 +46,7 @@ static struct
 {
 
     RingBuffer(struct VN100Packet, 4) vn100_packets;
+    RingBuffer(struct SPIBlock   , 4) openmv_packets;
     volatile struct StepperTuple      current_angular_accelerations;
     volatile struct StepperTuple      current_angular_velocities;
 
@@ -58,6 +59,7 @@ static struct
 static struct
 {
     RingBuffer(struct VN100Packet, 4) vn100_packets;
+    RingBuffer(struct SPIBlock   , 4) openmv_packets;
 } LOGGER = {0};
 
 static struct
@@ -998,9 +1000,31 @@ FREERTOS_TASK(openmv, 8192, 0)
 
 #if OPENMV_ENABLE
 
+    SPI_reinit(SPIHandle_openmv);
+
     for (;;)
     {
-        sorry
+
+        struct SPIBlock* block = RingBuffer_reading_pointer(SPI_reception(SPIHandle_openmv));
+
+        if (block)
+        {
+
+            if (!RingBuffer_push(&CONTROLLER.openmv_packets, block))
+            {
+                // OpenMV data overrun!
+            }
+
+            if (!RingBuffer_push(&LOGGER.openmv_packets, block))
+            {
+                // OpenMV data overrun, but it's for the logger; who cares.
+            }
+
+            if (!RingBuffer_pop(SPI_reception(SPIHandle_openmv), nullptr))
+                sorry
+
+        }
+
     }
 
 #else
@@ -1138,6 +1162,8 @@ FREERTOS_TASK(logger, 8192, 0)
             u32                current_timestamp_us = TIMEKEEPING_microseconds();
             struct VN100Packet vn100_packet_data    = {0};
             b32                vn100_packet_exist   = RingBuffer_pop_to_latest(&LOGGER.vn100_packets, &vn100_packet_data);
+            struct SPIBlock    openmv_packet_data   = {0};
+            b32                openmv_packet_exist  = RingBuffer_pop_to_latest(&LOGGER.openmv_packets, &openmv_packet_data);
 
             i32 log_entry_length =
                 snprintf_
@@ -1239,6 +1265,15 @@ FREERTOS_TASK(logger, 8192, 0)
                     log_entry_length,
                     working_sectors[0].bytes
                 );
+
+                if (openmv_packet_exist)
+                {
+                    for (i32 i = 0; i < countof(openmv_packet_data.bytes); i += 1)
+                    {
+                        stlink_tx(" 0x%02X", openmv_packet_data.bytes[i]);
+                    }
+                    stlink_tx("\n");
+                }
 
             }
 
