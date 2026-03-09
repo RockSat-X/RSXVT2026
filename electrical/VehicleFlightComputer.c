@@ -11,6 +11,7 @@
 #define VN100_ENABLE                false
 #define OPENMV_ENABLE               true
 #define WATCHDOG_ENABLE             false
+#define TV_LOGGER                   true
 
 #include "system.h"
 #include "timekeeping.c"
@@ -45,8 +46,8 @@ enum DiagnosticMask : u32 // Lower the bit-index, higher the priority.
 static struct
 {
 
-    RingBuffer(struct VN100Packet    , 4) vn100_packets;
-    RingBuffer(struct OpenMVPacketGNC, 4) openmv_gnc_packets;
+    RingBuffer(struct VN100Packet    , 8) vn100_packets;
+    RingBuffer(struct OpenMVPacketGNC, 8) openmv_gnc_packets;
     volatile struct StepperTuple          current_angular_accelerations;
     volatile struct StepperTuple          current_angular_velocities;
 
@@ -58,8 +59,8 @@ static struct
 
 static struct
 {
-    RingBuffer(struct VN100Packet , 4) vn100_packets;
-    RingBuffer(struct OpenMVPacket, 4) openmv_packets;
+    RingBuffer(struct VN100Packet , 32) vn100_packets;
+    RingBuffer(struct OpenMVPacket, 32) openmv_packets;
 } LOGGER = {0};
 
 static struct
@@ -1054,6 +1055,39 @@ FREERTOS_TASK(openmv, 8192, 0)
 FREERTOS_TASK(logger, 8192, 0)
 {
 
+#if TV_LOGGER
+
+    for (;;)
+    {
+
+        struct OpenMVPacket openmv_packet_data  = {0};
+        b32                 openmv_packet_exist = RingBuffer_pop(&LOGGER.openmv_packets, &openmv_packet_data);
+
+        if (openmv_packet_exist)
+        {
+
+            if (openmv_packet_data.sequence_number == 1)
+            {
+                stlink_tx(TV_TOKEN_END);
+                stlink_tx(TV_TOKEN_START);
+            }
+
+            if (openmv_packet_data.sequence_number != 0)
+            {
+                UXART_tx_bytes
+                (
+                    UXARTHandle_stlink,
+                    openmv_packet_data.image.bytes,
+                    countof(openmv_packet_data.image.bytes)
+                );
+            }
+
+        }
+
+    }
+
+#else
+
     static struct Sector working_sectors[8]         = {0};
     b32                  completely_wipe_filesystem = false;
 
@@ -1369,6 +1403,8 @@ FREERTOS_TASK(logger, 8192, 0)
         }
 
     }
+
+#endif
 
 }
 
