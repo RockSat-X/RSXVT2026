@@ -2,7 +2,10 @@
 #error "Please define `SPI_BLOCK_SIZE` to a word-multiple value!"
 #endif
 
-typedef u8 SPIBlock[SPI_BLOCK_SIZE] __attribute__((aligned(4)));
+struct SPIBlock
+{
+    u8 bytes[SPI_BLOCK_SIZE] __attribute__((aligned(4)));
+};
 
 #include "spi_driver_support.meta"
 /* #meta
@@ -27,8 +30,8 @@ typedef u8 SPIBlock[SPI_BLOCK_SIZE] __attribute__((aligned(4)));
 
 struct SPIDriver // @/`SPI Driver Design`.
 {
-    i32                     byte_index;
-    RingBuffer(SPIBlock, 8) reception;
+    i32                            byte_index;
+    RingBuffer(struct SPIBlock, 8) reception;
 };
 
 static struct SPIDriver _SPI_drivers[SPIHandle_COUNT] = {0};
@@ -214,12 +217,12 @@ _SPI_update_once(enum SPIHandle handle)
 
         u32 data = *(u32*) &SPIx->RXDR; // Pop 32-bit word from the RX-FIFO.
 
-        SPIBlock* block = RingBuffer_writing_pointer(&driver->reception);
+        struct SPIBlock* block = RingBuffer_writing_pointer(&driver->reception);
 
         if (block)
         {
-            *(u32*) (&(*block)[driver->byte_index])  = __builtin_bswap32(data);
-            driver->byte_index                      += sizeof(u32);
+            *(u32*) (&block->bytes[driver->byte_index])  = __builtin_bswap32(data);
+            driver->byte_index                          += sizeof(u32);
         }
         else
         {
