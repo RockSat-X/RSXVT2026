@@ -4,7 +4,11 @@
 
 struct SPIBlock
 {
-    u8 bytes[SPI_BLOCK_SIZE] __attribute__((aligned(4)));
+    union
+    {
+        u8  bytes[SPI_BLOCK_SIZE / sizeof(u8 )] __attribute__((aligned(4)));
+        u32 words[SPI_BLOCK_SIZE / sizeof(u32)] __attribute__((aligned(4)));
+    };
 };
 
 #include "spi_driver_support.meta"
@@ -30,7 +34,7 @@ struct SPIBlock
 
 struct SPIDriver // @/`SPI Driver Design`.
 {
-    i32                            byte_index;
+    i32                            word_index;
     RingBuffer(struct SPIBlock, 8) reception;
 };
 
@@ -184,7 +188,7 @@ _SPI_update_once(enum SPIHandle handle)
         CMSIS_SET(SPIx, CR1, SPE, false); // @/`SPI Activation Cycling`.
         CMSIS_SET(SPIx, CR1, SPE, true ); // "
 
-        driver->byte_index = 0;
+        driver->word_index = 0;
 
         return SPIUpdateOnceResult_again;
 
@@ -221,8 +225,13 @@ _SPI_update_once(enum SPIHandle handle)
 
         if (block)
         {
-            *(u32*) (&block->bytes[driver->byte_index])  = __builtin_bswap32(data);
-            driver->byte_index                          += sizeof(u32);
+
+            if (!(0 <= driver->word_index && driver->word_index < countof(block->words)))
+                bug;
+
+            block->words[driver->word_index]  = __builtin_bswap32(data);
+            driver->word_index               += 1;
+
         }
         else
         {
@@ -241,10 +250,13 @@ _SPI_update_once(enum SPIHandle handle)
     else if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, EOT))
     {
 
+        if (!(0 <= driver->word_index && driver->word_index <= SPI_BLOCK_SIZE / sizeof(u32)))
+            bug;
+
         CMSIS_SET(SPIx, CR1, SPE, false); // @/`SPI Activation Cycling`.
         CMSIS_SET(SPIx, CR1, SPE, true ); // "
 
-        if (driver->byte_index == SPI_BLOCK_SIZE)
+        if (driver->word_index == SPI_BLOCK_SIZE / sizeof(u32))
         {
             if (!RingBuffer_push(&driver->reception, nullptr))
             {
@@ -258,7 +270,7 @@ _SPI_update_once(enum SPIHandle handle)
             // We dropped data at some point.
         }
 
-        driver->byte_index = 0;
+        driver->word_index = 0;
 
         return SPIUpdateOnceResult_again;
 
