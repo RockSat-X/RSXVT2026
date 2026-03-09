@@ -1001,12 +1001,22 @@ FREERTOS_TASK(openmv, 8192, 0)
 
 #if OPENMV_ENABLE
 
-    SPI_reinit(SPIHandle_openmv);
+    {
+
+        GPIO_ACTIVE(openmv_reset);
+
+        FREERTOS_delay_ms(10);
+
+        SPI_reinit(SPIHandle_openmv);
+
+        FREERTOS_delay_ms(10);
+
+        GPIO_INACTIVE(openmv_reset);
+
+    }
 
     for (;;)
     {
-
-
 
         static_assert(sizeof(struct OpenMVPacket) == sizeof(struct SPIBlock));
 
