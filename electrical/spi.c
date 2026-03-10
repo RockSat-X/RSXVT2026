@@ -68,9 +68,16 @@ struct SPIBlock
     };
 };
 
+enum SPIDriverState : u32
+{
+    SPIDriverState_not_transferring,
+    SPIDriverState_transfer_queued,
+    SPIDriverState_discarding,
+};
+
 struct SPIDriver // @/`SPI Driver Design`.
 {
-    i32                                                           word_index;
+    enum SPIDriverState                                           state;
     RingBuffer(struct SPIBlock, SPI_RECEPTION_RING_BUFFER_LENGTH) reception;
 };
 
@@ -98,22 +105,72 @@ SPI_reinit(enum SPIHandle handle)
 
     // Reset-cycle the peripheral.
 
-    CMSIS_PUT(SPIx_RESET, true );
-    CMSIS_PUT(SPIx_RESET, false);
+    CMSIS_SET(RCC, AHB1RSTR, GPDMA1RST, true );
+    CMSIS_PUT(SPIx_RESET              , true );
+    CMSIS_SET(RCC, AHB1RSTR, GPDMA1RST, false);
+    CMSIS_PUT(SPIx_RESET              , false);
 
+    NVIC_DISABLE(GPDMA1_Channel7);
     NVIC_DISABLE(SPIx);
 
     memzero(driver);
 
 
 
-    // Set the kernel clock source for the peripheral.
+    // Clock the GPDMA1 peripheral.
+
+    CMSIS_SET(RCC, AHB1ENR, GPDMA1EN, true);
+
+
+
+    // Configure the DMA channel.
+
+    CMSIS_SET
+    (
+        GPDMA1_Channel7, CSAR,
+        SA             , (u32) &SPIx->RXDR // Where to pop the received SPI data from.
+    );
+
+    CMSIS_SET
+    (
+        GPDMA1_Channel7, CTR1 ,
+        SINC           , false, // Source addresss will stay fixed.
+        DDW_LOG2       , 0b10 , // Transfer size of four bytes.
+        SDW_LOG2       , 0b10 , // "
+    );
+
+    CMSIS_SET
+    (
+        GPDMA1_Channel7, CTR2,
+        PFREQ          , true, // The peripheral will dictate when the transfer can happen.
+        REQSEL         , 8   , // Get the request from `spi2_rx_dma`.
+    );
+
+    CMSIS_SET
+    (
+        GPDMA1_Channel7, CCR , // Enable interrupts for:
+        TOIE           , true, //     - Trigger over-run.
+        SUSPIE         , true, //     - Completed suspension.
+        USEIE          , true, //     - User setting error.
+        ULEIE          , true, //     - Update link transfer error.
+        DTEIE          , true, //     - Data transfer error.
+    );
+
+    CMSIS_SET
+    (
+        GPDMA1, MISR,
+        MIS7  , true, // Allow interrupts for the DMA channel.
+    );
+
+
+
+    // Set the kernel clock source for the SPI peripheral.
 
     CMSIS_PUT(SPIx_KERNEL_SOURCE, STPY_SPIx_KERNEL_SOURCE);
 
 
 
-    // Enable the peripheral.
+    // Enable the SPI peripheral.
 
     CMSIS_PUT(SPIx_ENABLE, true);
 
@@ -138,6 +195,7 @@ SPI_reinit(enum SPIHandle handle)
         FTHLV  , 4 - 1         , // Amount of bytes buffered to trigger an interrupt.
         CRCEN  , true          , // Enable CRC checking.
         CRCSIZE, 8 - 1         , // Amount of bits in CRC.
+        RXDMAEN, true          , // Enable DMA for reception.
     );
 
     CMSIS_SET
@@ -154,7 +212,6 @@ SPI_reinit(enum SPIHandle handle)
         CRCEIE , true, //     - CRC mismatch.
         OVRIE  , true, //     - RX-FIFO got too full.
         EOTIE  , true, //     - When all of the expected amount of bytes have been transferred.
-        RXPIE  , true, //     - Data available in RX-FIFO.
     );
 
     CMSIS_SET(SPIx, CR2, TSIZE, SPI_BLOCK_SIZE); // Amount of bytes followed by the CRC.
@@ -164,20 +221,67 @@ SPI_reinit(enum SPIHandle handle)
         SPIx    , CR1  ,
         RCRCINI , false, // Whether or not to initialize the CRC digest with all 1s for the receiver.
         CRC33_17, false, // Whether or not to use the full 33-bit/17-bit CRC polynomial.
-        SPE     , true , // Activate the peripheral.
     );
 
 
 
     // Enable the interrupts.
 
+    NVIC_ENABLE(GPDMA1_Channel7);
     NVIC_ENABLE(SPIx);
+    NVIC_SET_PENDING(SPIx); // The interrupt will configure for the first transfer.
 
 }
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
+
+
+
+static enum SPIConfigureTransferResult : u32
+{
+    SPIConfigureTransferResult_transfer_queued,
+    SPIConfigureTransferResult_discarding,
+    SPIConfigureTransferResult_bug = BUG_CODE,
+}
+_SPI_configure_transfer(enum SPIHandle handle)
+{
+
+    _EXPAND_HANDLE
+
+    if (CMSIS_GET(GPDMA1_Channel7, CCR, EN))
+        bug; // DMA active for some reason?
+
+    struct SPIBlock* block = RingBuffer_writing_pointer(&driver->reception);
+
+    if (block)
+    {
+        CMSIS_SET(GPDMA1_Channel7, CTR1, DINC, true       ); // Increment the destination address on each transfer.
+        CMSIS_SET(GPDMA1_Channel7, CDAR, DA  , (u32) block); // Initial destination address.
+    }
+    else // No more buffer space to put the next received block; just set up the DMA to discard the data.
+    {
+        static u32 __attribute__((aligned(4))) trash = {0};
+        CMSIS_SET(GPDMA1_Channel7, CTR1, DINC, false       ); // Destination address is fixed.
+        CMSIS_SET(GPDMA1_Channel7, CDAR, DA  , (u32) &trash); // Just dump the data here.
+    }
+
+    CMSIS_SET(GPDMA1_Channel7, CBR1, BNDT, sizeof(*block)); // Amount of bytes to transfer.
+    CMSIS_SET(GPDMA1_Channel7, CCR , EN  , true          ); // DMA ready!
+    CMSIS_SET(SPIx           , CR1 , SPE , false         ); // @/`SPI Activation Cycling`.
+    CMSIS_SET(SPIx           , CR1 , SPE , true          ); // "
+
+    if (block)
+    {
+        return SPIConfigureTransferResult_transfer_queued;
+    }
+    else
+    {
+        return SPIConfigureTransferResult_discarding;
+    }
+
+}
 
 
 
@@ -192,123 +296,117 @@ _SPI_update_once(enum SPIHandle handle)
 
     _EXPAND_HANDLE
 
+    enum SPIInterruptEvent : u32
+    {
+        SPIInterruptEvent_none,
+        SPIInterruptEvent_crc_mismatch,
+        SPIInterruptEvent_end_of_transfer,
+    };
+
+    enum SPIInterruptEvent interrupt_event      = {0};
+    u32                    dma_interrupt_status = GPDMA1_Channel7->CSR;
+    u32                    spi_interrupt_status = SPIx->SR;
+    u32                    spi_interrupt_enable = SPIx->IER;
 
 
-    u32 interrupt_status = SPIx->SR;
-    u32 interrupt_enable = SPIx->IER;
+
+    // The DMA failed to update the link-listed.
+    //
+    // @/pg 677/sec 16.4.17/`H533rm`.
+
+    if (CMSIS_GET_FROM(dma_interrupt_status, GPDMA1_Channel7, CSR, ULEF))
+    {
+        bug; // Shouldn't happen; this feature isn't used.
+    }
+
+
+
+    // The DMA channel is done being suspended.
+    //
+    // @/pg 642/sec 16.4.3/`H533rm`.
+
+    else if (CMSIS_GET_FROM(dma_interrupt_status, GPDMA1_Channel7, CSR, SUSPF))
+    {
+        bug; // Shouldn't happen; this feature isn't used.
+    }
+
+
+
+    // The DMA channel got triggered too quickly by an external trigger.
+    //
+    // @/pg 672/sec 16.4.12/`H533rm`.
+
+    else if (CMSIS_GET_FROM(dma_interrupt_status, GPDMA1_Channel7, CSR, TOF))
+    {
+        bug; // Shouldn't happen; DMA channel isn't using an external trigger.
+    }
+
+
+
+    // The DMA configuration is invalid.
+    //
+    // @/pg 677/sec 16.4.17/`H533rm`.
+
+    else if (CMSIS_GET_FROM(dma_interrupt_status, GPDMA1_Channel7, CSR, USEF))
+    {
+        bug; // Something obvious like this shouldn't happen.
+    }
+
+
+
+    // The DMA encountered an error while trying to transfer the data.
+    //
+    // @/pg 676/sec 16.4.17/`H533rm`.
+
+    else if (CMSIS_GET_FROM(dma_interrupt_status, GPDMA1_Channel7, CSR, DTEF))
+    {
+        bug; // Something obvious like this shouldn't happen.
+    }
 
 
 
     // Mode fault.
 
-    if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, MODF))
+    else if (CMSIS_GET_FROM(spi_interrupt_status, SPIx, SR, MODF))
+    {
         bug; // This error should only happen in SPI master mode.
+    }
 
 
 
     // TI mode frame format error.
 
-    else if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, TIFRE))
-        bug; // This error should only happen when using TI mode.
-
-
-
-    // CRC mismatch.
-
-    else if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, CRCE))
+    else if (CMSIS_GET_FROM(spi_interrupt_status, SPIx, SR, TIFRE))
     {
-
-        CMSIS_SET(SPIx, IFCR, CRCEC, true); // Acknowledge the CRC mismatch condition.
-
-        CMSIS_SET(SPIx, CR1, SPE, false); // @/`SPI Activation Cycling`.
-        CMSIS_SET(SPIx, CR1, SPE, true ); // "
-
-        driver->word_index = 0;
-
-        return SPIUpdateOnceResult_again;
-
+        bug; // This error should only happen when using TI mode.
     }
 
 
 
     // Data over-run.
 
-    else if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, OVR))
+    else if (CMSIS_GET_FROM(spi_interrupt_status, SPIx, SR, OVR))
     {
-
-        CMSIS_SET(SPIx, IFCR, OVRC, true); // Acknowledge the overrun condition.
-
-        // Uh oh, the RX-FIFO got too full!
-        // For now, we'll just silently ignore this error condition.
-        // The user should have a checksum anyways to ensure integrity
-        // of the received data.
-
-        return SPIUpdateOnceResult_again;
-
+        bug; // Really shouldn't happen with DMA.
     }
 
 
 
-    // Data available in RX-FIFO.
+    // CRC mismatch.
 
-    else if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, RXP))
+    else if (CMSIS_GET_FROM(spi_interrupt_status, SPIx, SR, CRCE))
     {
-
-        u32 data = *(u32*) &SPIx->RXDR; // Pop 32-bit word from the RX-FIFO.
-
-        struct SPIBlock* block = RingBuffer_writing_pointer(&driver->reception);
-
-        if (block)
-        {
-
-            if (!(0 <= driver->word_index && driver->word_index < countof(block->words)))
-                bug;
-
-            block->words[driver->word_index]  = data;
-            driver->word_index               += 1;
-
-        }
-        else
-        {
-            // There's no next spot in the ring-buffer to put the data in.
-            // For now, we'll silently drop the data.
-        }
-
-        return SPIUpdateOnceResult_again;
-
+        CMSIS_SET(SPIx, IFCR, CRCEC, true);
+        interrupt_event = SPIInterruptEvent_crc_mismatch;
     }
 
 
 
     // All expected data has been transferred successfully.
 
-    else if (CMSIS_GET_FROM(interrupt_status, SPIx, SR, EOT))
+    else if (CMSIS_GET_FROM(spi_interrupt_status, SPIx, SR, EOT))
     {
-
-        if (!(0 <= driver->word_index && driver->word_index <= SPI_BLOCK_SIZE / sizeof(u32)))
-            bug;
-
-        CMSIS_SET(SPIx, CR1, SPE, false); // @/`SPI Activation Cycling`.
-        CMSIS_SET(SPIx, CR1, SPE, true ); // "
-
-        if (driver->word_index == SPI_BLOCK_SIZE / sizeof(u32))
-        {
-            if (!RingBuffer_push(&driver->reception, nullptr))
-            {
-                // Uh oh, ring-buffer over-run!
-                // For now, we'll just drop the data without indicating that this has happened.
-                // The user should have a checksum anyways to ensure integrity of the received data.
-            }
-        }
-        else
-        {
-            // We dropped data at some point.
-        }
-
-        driver->word_index = 0;
-
-        return SPIUpdateOnceResult_again;
-
+        interrupt_event = SPIInterruptEvent_end_of_transfer;
     }
 
 
@@ -318,10 +416,156 @@ _SPI_update_once(enum SPIHandle handle)
     else
     {
 
-        if (interrupt_status & interrupt_enable)
+        if (spi_interrupt_status & spi_interrupt_enable)
             bug; // We overlooked handling an interrupt event...
 
-        return SPIUpdateOnceResult_yield;
+        interrupt_event = SPIInterruptEvent_none;
+
+    }
+
+
+
+    // Handle the interrupt event.
+
+    switch (interrupt_event)
+    {
+
+
+
+        // Nothing notable happened.
+
+        case SPIInterruptEvent_none: switch (driver->state)
+        {
+
+            case SPIDriverState_not_transferring: // Need to set up the transfer.
+            {
+
+                enum SPIConfigureTransferResult configure_transfer_result = _SPI_configure_transfer(handle);
+
+                switch (configure_transfer_result)
+                {
+
+                    case SPIConfigureTransferResult_transfer_queued:
+                    {
+                        driver->state = SPIDriverState_transfer_queued;
+                    } break;
+
+                    case SPIConfigureTransferResult_discarding : bug; // No reason to be discarding already...
+                    case SPIConfigureTransferResult_bug        : bug;
+                    default                                    : bug;
+
+                }
+
+                return SPIUpdateOnceResult_again;
+
+            } break;
+
+            case SPIDriverState_transfer_queued:
+            case SPIDriverState_discarding:
+            {
+                return SPIUpdateOnceResult_yield; // Don't care.
+            } break;
+
+            default: bug;
+
+        } break;
+
+
+
+        // Whoops, data corruption...
+        // We currently don't signal this to the user; they should have some sort
+        // of checksum or sequence number to indicate a dropped packet anyways.
+
+        case SPIInterruptEvent_crc_mismatch: switch (driver->state)
+        {
+
+            case SPIDriverState_transfer_queued: // Just go ahead and schedule the next transfer.
+            case SPIDriverState_discarding:      // "
+            {
+
+                enum SPIConfigureTransferResult configure_transfer_result = _SPI_configure_transfer(handle);
+
+                switch (configure_transfer_result)
+                {
+
+                    case SPIConfigureTransferResult_transfer_queued:
+                    {
+                        driver->state = SPIDriverState_transfer_queued;
+                    } break;
+
+                    case SPIConfigureTransferResult_discarding:
+                    {
+                        driver->state = SPIDriverState_discarding;
+                    } break;
+
+                    case SPIConfigureTransferResult_bug : bug;
+                    default                             : bug;
+
+                }
+
+                return SPIUpdateOnceResult_again;
+
+            } break;
+
+            case SPIDriverState_not_transferring : bug;
+            default                              : bug;
+
+        } break;
+
+
+
+        // Successfully gathered all the received SPI data.
+
+        case SPIInterruptEvent_end_of_transfer: switch (driver->state)
+        {
+
+            case SPIDriverState_transfer_queued:
+            case SPIDriverState_discarding:
+            {
+
+                if (!CMSIS_GET_FROM(dma_interrupt_status, GPDMA1_Channel7, CSR, TCF))
+                    bug; // DMA didn't finish transferring by now..?
+
+                CMSIS_SET(GPDMA1_Channel7, CFCR, TCF, true); // Acknowledge the completion of the DMA transfer.
+
+                if (driver->state == SPIDriverState_transfer_queued)
+                {
+                    if (!RingBuffer_push(&driver->reception, nullptr))
+                        bug; // There should've been buffer space for the DMA to transfer into...
+                }
+
+                enum SPIConfigureTransferResult configure_transfer_result = _SPI_configure_transfer(handle);
+
+                switch (configure_transfer_result)
+                {
+
+                    case SPIConfigureTransferResult_transfer_queued:
+                    {
+                        driver->state = SPIDriverState_transfer_queued;
+                    } break;
+
+                    case SPIConfigureTransferResult_discarding:
+                    {
+                        driver->state = SPIDriverState_discarding;
+                    } break;
+
+                    case SPIConfigureTransferResult_bug : bug;
+                    default                             : bug;
+
+                }
+
+                return SPIUpdateOnceResult_again;
+
+            } break;
+
+            case SPIDriverState_not_transferring : bug;
+            default                              : bug;
+
+        } break;
+
+
+
+        default: bug;
 
     }
 
@@ -357,8 +601,13 @@ _SPI_driver_interrupt(enum SPIHandle handle)
 
                 // Shut down the driver. @/`SPI Driver Design`.
 
-                CMSIS_PUT(SPIx_RESET, true);
+                CMSIS_SET(RCC, AHB1RSTR, GPDMA1RST, true);
+                CMSIS_PUT(SPIx_RESET              , true);
+
+                NVIC_DISABLE(GPDMA1_Channel7);
                 NVIC_DISABLE(SPIx);
+
+                memzero(driver);
 
                 yield = true;
 
@@ -368,6 +617,11 @@ _SPI_driver_interrupt(enum SPIHandle handle)
 
     }
 
+}
+
+INTERRUPT_GPDMA1_Channel7(void)
+{
+    NVIC_SET_PENDING(SPI2); // The user should have the DMA interrupt be of lower priority to the SPI interrupt.
 }
 
 

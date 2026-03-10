@@ -322,8 +322,9 @@ TARGETS = ( # @/`Defining Targets`.
         ),
 
         interrupts = (
-            ('USART2', 0),
-            ('SPI2'  , 1),
+            ('USART2'         , 0),
+            ('SPI2'           , 1),
+            ('GPDMA1_Channel7', 2),
         ),
 
         drivers = (
@@ -887,15 +888,16 @@ TARGETS = ( # @/`Defining Targets`.
         ),
 
         interrupts = (
-            ('USART2' , 0),
-            ('SDMMC1' , 1),
-            ('USART1' , 1),
-            ('USART3' , 1),
+            ('USART2'         , 0),
+            ('USART1'         , 1),
+            ('USART3'         , 1),
+            ('SPI2'           , 1),
+            ('GPDMA1_Channel7', 2),
+            ('TIM1_UP'        , 2),
+            ('TIM8_UP'        , 3),
+            ('SDMMC1'         , 4),
             # TODO: ('I2C3_EV', 1),
             # TODO: ('I2C3_ER', 1),
-            ('TIM1_UP', 2),
-            ('TIM8_UP', 3),
-            ('SPI2'   , 4),
         ),
 
         drivers = (
