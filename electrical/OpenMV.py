@@ -70,8 +70,8 @@ while True:
     computer_vision_confidence       = 456
 
     block = struct.pack(
-        'HffffHB',  # @/`OpenMV Packet Format`.
-        0,          # @/`OpenMV Sequence Number`.
+        '<HffffHB',  # @/`OpenMV Packet Format`.
+        0,           # @/`OpenMV Sequence Number`.
         attitude_x,
         attitude_y,
         attitude_z,
@@ -96,7 +96,7 @@ while True:
     while image_bytes_sent < len(image_byte_array):
 
         block = struct.pack(
-            f'H{SPI_BLOCK_SIZE - 2}s', # @/`OpenMV Packet Format`.
+            f'<H{SPI_BLOCK_SIZE - 2}s', # @/`OpenMV Packet Format`.
             sequence_number,
             image_byte_array[image_bytes_sent : image_bytes_sent + (SPI_BLOCK_SIZE - 2)]
         )
