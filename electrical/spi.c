@@ -6,15 +6,6 @@
 #error "Please define `SPI_RECEPTION_RING_BUFFER_LENGTH`!"
 #endif
 
-struct SPIBlock
-{
-    union
-    {
-        u8  bytes[SPI_BLOCK_SIZE / sizeof(u8 )] __attribute__((aligned(4)));
-        u32 words[SPI_BLOCK_SIZE / sizeof(u32)] __attribute__((aligned(4)));
-    };
-};
-
 #include "spi_driver_support.meta"
 /* #meta
 
@@ -66,6 +57,16 @@ struct SPIBlock
     )
 
 */
+
+struct SPIBlock
+{
+    union
+    {
+        u8  bytes[SPI_BLOCK_SIZE / sizeof(u8 )] __attribute__((aligned(4)));
+        u32 words[SPI_BLOCK_SIZE / sizeof(u32)] __attribute__((aligned(4)));
+        static_assert(SPI_BLOCK_SIZE % sizeof(u32) == 0);
+    };
+};
 
 struct SPIDriver // @/`SPI Driver Design`.
 {
@@ -157,7 +158,6 @@ SPI_reinit(enum SPIHandle handle)
     );
 
     CMSIS_SET(SPIx, CR2, TSIZE, SPI_BLOCK_SIZE); // Amount of bytes followed by the CRC.
-    static_assert(SPI_BLOCK_SIZE % sizeof(u32) == 0);
 
     CMSIS_SET
     (
