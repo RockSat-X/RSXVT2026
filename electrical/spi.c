@@ -210,7 +210,6 @@ SPI_reinit(enum SPIHandle handle)
         MODFIE , true, //     - Mode fault.
         TIFREIE, true, //     - TI frame error.
         CRCEIE , true, //     - CRC mismatch.
-        OVRIE  , true, //     - RX-FIFO got too full.
         EOTIE  , true, //     - When all of the expected amount of bytes have been transferred.
     );
 
@@ -268,9 +267,9 @@ _SPI_configure_transfer(enum SPIHandle handle)
     }
 
     CMSIS_SET(GPDMA1_Channel7, CBR1, BNDT, sizeof(*block)); // Amount of bytes to transfer.
-    CMSIS_SET(GPDMA1_Channel7, CCR , EN  , true          ); // DMA ready!
     CMSIS_SET(SPIx           , CR1 , SPE , false         ); // @/`SPI Activation Cycling`.
-    CMSIS_SET(SPIx           , CR1 , SPE , true          ); // "
+    CMSIS_SET(GPDMA1_Channel7, CCR , EN  , true          ); // DMA ready! Note that by disabling the SPI, the SPI FIFO is flushed.
+    CMSIS_SET(SPIx           , CR1 , SPE , true          ); // @/`SPI Activation Cycling`.
 
     if (block)
     {
@@ -383,15 +382,6 @@ _SPI_update_once(enum SPIHandle handle)
 
 
 
-    // Data over-run.
-
-    else if (CMSIS_GET_FROM(spi_interrupt_status, SPIx, SR, OVR))
-    {
-        bug; // Really shouldn't happen with DMA.
-    }
-
-
-
     // CRC mismatch.
 
     else if (CMSIS_GET_FROM(spi_interrupt_status, SPIx, SR, CRCE))
@@ -437,8 +427,11 @@ _SPI_update_once(enum SPIHandle handle)
         case SPIInterruptEvent_none: switch (driver->state)
         {
 
-            case SPIDriverState_not_transferring: // Need to set up the transfer.
+            case SPIDriverState_not_transferring: // Need to set up the first transfer.
             {
+
+                if (CMSIS_GET(SPIx, CR1, SPE))
+                    bug; // Not transferring but SPI enabled..?
 
                 enum SPIConfigureTransferResult configure_transfer_result = _SPI_configure_transfer(handle);
 
@@ -514,7 +507,7 @@ _SPI_update_once(enum SPIHandle handle)
 
 
 
-        // Successfully gathered all the received SPI data.
+        // Finished gathering all(?) the received SPI data.
 
         case SPIInterruptEvent_end_of_transfer: switch (driver->state)
         {
@@ -528,7 +521,12 @@ _SPI_update_once(enum SPIHandle handle)
 
                 CMSIS_SET(GPDMA1_Channel7, CFCR, TCF, true); // Acknowledge the completion of the DMA transfer.
 
-                if (driver->state == SPIDriverState_transfer_queued)
+                if (CMSIS_GET_FROM(spi_interrupt_status, SPIx, SR, OVR)) // Somehow got data over-run?
+                {
+                    // Although we use DMA, this can still happen if we were debugging for instance.
+                    CMSIS_SET(SPIx, IFCR, OVRC, true); // Acknowledge that we missed some data.
+                }
+                else if (driver->state == SPIDriverState_transfer_queued)
                 {
                     if (!RingBuffer_push(&driver->reception, nullptr))
                         bug; // There should've been buffer space for the DMA to transfer into...
