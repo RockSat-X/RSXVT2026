@@ -18,6 +18,37 @@ struct SPIBlock
 #include "spi_driver_support.meta"
 /* #meta
 
+    # TODO We're currently only supporting SPI2 because we're
+    #      making assumptions about the DMA configuration.
+    #      This is obviously not ideal for a general purpose SPI
+    #      driver, but in the future, this can be fixed.
+
+    for target in PER_TARGET():
+
+        driver = [
+            driver
+            for driver in target.drivers
+            if driver['type'] == 'SPI'
+        ]
+
+        if len(driver) >= 2:
+            Meta.line(
+                f'#error Target {repr(target.name)} defines multiple SPI drivers; '
+                f'the current implementation does not support this currently. Sorry!'
+            )
+            continue
+
+        if driver:
+
+            driver, = driver
+
+            if driver['peripheral'] != 'SPI2':
+                Meta.line(
+                    f'#error Target {repr(target.name)} defines a SPI driver for {repr(driver['peripheral'])}; '
+                    f'the current implementation only supports SPI2. Sorry!'
+                )
+                continue
+
     IMPLEMENT_DRIVER_SUPPORT(
         driver_type = 'SPI',
         cmsis_name  = 'SPI',
