@@ -8,7 +8,7 @@
 #define MAX_ANGULAR_ACCELERATION         (200.0f)
 #define MAX_ANGULAR_VELOCITY             (2000.0f * 2.0f * PI / 60.0f)
 #define GOD_MODE                         true
-#define CONTROLLER_ENABLE                false
+#define CONTROLLER_ENABLE                true
 #define VN100_ENABLE                     false
 #define OPENMV_ENABLE                    true
 #define WATCHDOG_ENABLE                  false
@@ -53,15 +53,23 @@ static struct
     volatile struct StepperTuple          current_angular_velocities;
 
     #if GOD_MODE
-    volatile u32 replay_sequence_number;
+        volatile u32 replay_sequence_number;
     #endif
 
 } CONTROLLER = {0};
 
 static struct
 {
-    RingBuffer(struct VN100Packet , 32) vn100_packets;
-    RingBuffer(struct OpenMVPacket, 32) openmv_packets;
+
+    RingBuffer(struct VN100Packet    , 8) vn100_packets;
+    RingBuffer(struct OpenMVPacketGNC, 8) openmv_gnc_packets;
+
+    #if TV_LOGGER // TODO Not just exclusive to the TV logger.
+        u8                   framebuffer_data[16 * 1024]; // TODO Document?
+        i32                  framebuffer_length;
+        volatile _Atomic b32 framebuffer_filled;
+    #endif
+
 } LOGGER = {0};
 
 static struct
@@ -1028,15 +1036,57 @@ FREERTOS_TASK(openmv, 8192, 0)
 
             if (packet->sequence_number == 0) // @/`OpenMV Sequence Number`.
             {
+
                 if (!RingBuffer_push(&CONTROLLER.openmv_gnc_packets, &packet->gnc))
                 {
                     // OpenMV data overrun!
                 }
+
+                if (!RingBuffer_push(&LOGGER.openmv_gnc_packets, &packet->gnc))
+                {
+                    // OpenMV data overrun, but it's for the logger; who cares.
+                }
+
             }
 
-            if (!RingBuffer_push(&LOGGER.openmv_packets, packet))
+            b32 observed_framebuffer_filled =
+                atomic_load_explicit
+                (
+                    &LOGGER.framebuffer_filled,
+                    memory_order_acquire
+                );
+
+            if (!observed_framebuffer_filled)
             {
-                // OpenMV data overrun, but it's for the logger; who cares.
+                if (packet->sequence_number == 0) // @/`OpenMV Sequence Number`.
+                {
+                    if (LOGGER.framebuffer_length)
+                    {
+                        atomic_store_explicit
+                        (
+                            &LOGGER.framebuffer_filled,
+                            true,
+                            memory_order_release
+                        );
+                    }
+                }
+                else if
+                (
+                    implies(LOGGER.framebuffer_length == 0, packet->image.sequence_number == 1) &&
+                    LOGGER.framebuffer_length + sizeof(packet->image.bytes) <= sizeof(LOGGER.framebuffer_data)
+                )
+                {
+
+                    memmove
+                    (
+                        LOGGER.framebuffer_data + LOGGER.framebuffer_length,
+                        packet->image.bytes,
+                        sizeof(packet->image.bytes)
+                    );
+
+                    LOGGER.framebuffer_length += sizeof(packet->image.bytes);
+
+                }
             }
 
             if (!RingBuffer_pop(SPI_reception(SPIHandle_openmv), nullptr))
@@ -1071,27 +1121,28 @@ FREERTOS_TASK(logger, 8192, 0)
     for (;;)
     {
 
-        struct OpenMVPacket openmv_packet_data  = {0};
-        b32                 openmv_packet_exist = RingBuffer_pop(&LOGGER.openmv_packets, &openmv_packet_data);
+        b32 observed_framebuffer_filled =
+            atomic_load_explicit
+            (
+                &LOGGER.framebuffer_filled,
+                memory_order_acquire
+            );
 
-        if (openmv_packet_exist)
+        if (observed_framebuffer_filled)
         {
 
-            if (openmv_packet_data.sequence_number == 1)
-            {
-                stlink_tx(TV_TOKEN_END);
-                stlink_tx(TV_TOKEN_START);
-            }
+            stlink_tx(TV_TOKEN_START);
+            UXART_tx_bytes(UXARTHandle_stlink, LOGGER.framebuffer_data, LOGGER.framebuffer_length);
+            stlink_tx(TV_TOKEN_END);
 
-            if (openmv_packet_data.sequence_number != 0)
-            {
-                UXART_tx_bytes
-                (
-                    UXARTHandle_stlink,
-                    openmv_packet_data.image.bytes,
-                    countof(openmv_packet_data.image.bytes)
-                );
-            }
+            LOGGER.framebuffer_length = 0;
+
+            atomic_store_explicit
+            (
+                &LOGGER.framebuffer_filled,
+                false,
+                memory_order_release
+            );
 
         }
 
@@ -1211,11 +1262,11 @@ FREERTOS_TASK(logger, 8192, 0)
 
             // Make the log entry.
 
-            u32                 current_timestamp_us = TIMEKEEPING_microseconds();
-            struct VN100Packet  vn100_packet_data    = {0};
-            b32                 vn100_packet_exist   = RingBuffer_pop_to_latest(&LOGGER.vn100_packets, &vn100_packet_data);
-            struct OpenMVPacket openmv_packet_data   = {0};
-            b32                 openmv_packet_exist  = RingBuffer_pop_to_latest(&LOGGER.openmv_packets, &openmv_packet_data);
+            u32                    current_timestamp_us    = TIMEKEEPING_microseconds();
+            struct VN100Packet     vn100_packet_data       = {0};
+            b32                    vn100_packet_exist      = RingBuffer_pop_to_latest(&LOGGER.vn100_packets, &vn100_packet_data);
+            struct OpenMVPacketGNC openmv_gnc_packet_data  = {0};
+            b32                    openmv_gnc_packet_exist = RingBuffer_pop_to_latest(&LOGGER.openmv_gnc_packets, &openmv_gnc_packet_data);
 
             i32 log_entry_length =
                 snprintf_
@@ -1318,13 +1369,23 @@ FREERTOS_TASK(logger, 8192, 0)
                     working_sectors[0].bytes
                 );
 
-                if (openmv_packet_exist) // TODO Better output...?
+                if (openmv_gnc_packet_exist) // TODO Better output...?
                 {
                     stlink_tx
                     (
-                        "sequence_number : %u" "\n"
+                        "attitude_x                         : %f" "\n"
+                        "attitude_y                         : %f" "\n"
+                        "attitude_z                         : %f" "\n"
+                        "attitude_w                         : %f" "\n"
+                        "computer_vision_processing_time_ms : %u" "\n"
+                        "computer_vision_confidence         : %u" "\n"
                         "\n",
-                        openmv_packet_data.sequence_number
+                        openmv_gnc_packet_data.attitude_x,
+                        openmv_gnc_packet_data.attitude_y,
+                        openmv_gnc_packet_data.attitude_z,
+                        openmv_gnc_packet_data.attitude_w,
+                        openmv_gnc_packet_data.computer_vision_processing_time_ms,
+                        openmv_gnc_packet_data.computer_vision_confidence
                     );
                 }
 
