@@ -1,4 +1,5 @@
-#define SPI_BLOCK_SIZE 64
+#define SPI_BLOCK_SIZE                   64
+#define SPI_RECEPTION_RING_BUFFER_LENGTH 32
 
 #include "system.h"
 #include "uxart.c"

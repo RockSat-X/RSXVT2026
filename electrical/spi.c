@@ -2,6 +2,10 @@
 #error "Please define `SPI_BLOCK_SIZE` to a word-multiple value!"
 #endif
 
+#ifndef SPI_RECEPTION_RING_BUFFER_LENGTH
+#error "Please define `SPI_RECEPTION_RING_BUFFER_LENGTH`!"
+#endif
+
 struct SPIBlock
 {
     union
@@ -34,8 +38,8 @@ struct SPIBlock
 
 struct SPIDriver // @/`SPI Driver Design`.
 {
-    i32                            word_index;
-    RingBuffer(struct SPIBlock, 8) reception;
+    i32                                                           word_index;
+    RingBuffer(struct SPIBlock, SPI_RECEPTION_RING_BUFFER_LENGTH) reception;
 };
 
 static struct SPIDriver _SPI_drivers[SPIHandle_COUNT] = {0};

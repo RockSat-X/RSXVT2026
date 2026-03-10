@@ -1,17 +1,18 @@
-#define STEPPER_ENABLE_DELAY_US     500'000
-#define STEPPER_VELOCITY_UPDATE_US  25'000 // @/`Sequence Angular Accelerations Delta Time`.
-#define STEPPER_UART_TIME_MARGIN_US 2'000
-#define STEPPER_RING_BUFFER_LENGTH  8      // TODO Determine latency.
-#define SPI_BLOCK_SIZE              64     // @/`OpenMV SPI Block Size`.
-#define WATCHDOG_DURATION_US        (10 * 60'000'000)
-#define MAX_ANGULAR_ACCELERATION    (200.0f)
-#define MAX_ANGULAR_VELOCITY        (2000.0f * 2.0f * PI / 60.0f)
-#define GOD_MODE                    true
-#define CONTROLLER_ENABLE           false
-#define VN100_ENABLE                false
-#define OPENMV_ENABLE               true
-#define WATCHDOG_ENABLE             false
-#define TV_LOGGER                   true
+#define STEPPER_ENABLE_DELAY_US          500'000
+#define STEPPER_VELOCITY_UPDATE_US       25'000 // @/`Sequence Angular Accelerations Delta Time`.
+#define STEPPER_UART_TIME_MARGIN_US      2'000
+#define STEPPER_RING_BUFFER_LENGTH       8      // TODO Determine latency.
+#define SPI_BLOCK_SIZE                   64     // @/`OpenMV SPI Block Size`.
+#define SPI_RECEPTION_RING_BUFFER_LENGTH 32
+#define WATCHDOG_DURATION_US             (10 * 60'000'000)
+#define MAX_ANGULAR_ACCELERATION         (200.0f)
+#define MAX_ANGULAR_VELOCITY             (2000.0f * 2.0f * PI / 60.0f)
+#define GOD_MODE                         true
+#define CONTROLLER_ENABLE                false
+#define VN100_ENABLE                     false
+#define OPENMV_ENABLE                    true
+#define WATCHDOG_ENABLE                  false
+#define TV_LOGGER                        true
 
 #include "system.h"
 #include "timekeeping.c"
