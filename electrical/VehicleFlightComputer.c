@@ -93,6 +93,11 @@ static struct
     volatile _Atomic b32 acceleration_disturbance_exists;
 } VN100 = {0};
 
+static struct
+{
+    struct OpenMVImage openmv_image;
+} ESP32 = {0};
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1229,6 +1234,8 @@ FREERTOS_TASK(openmv, 8192, 0)
 
 
             // TODO.
+
+            openmv_process_packet_for_image(&ESP32.openmv_image, packet);
 
             #if TV_LOGGER
             {
