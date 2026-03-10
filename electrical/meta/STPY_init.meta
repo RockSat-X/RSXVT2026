@@ -4540,7 +4540,7 @@
         (
             RCC  , PLL3DIVR,
             PLL3N, 18 - 1  ,
-            PLL3P, 80 - 1  ,
+            PLL3P, 20 - 1  ,
         );
         CMSIS_SET
         (
@@ -4617,7 +4617,7 @@
 
         #define STPY_SPI2_KERNEL_SOURCE 0b010
         #define STPY_SPI2_BYPASS_DIVIDER false
-        #define STPY_SPI2_DIVIDER 0b001
+        #define STPY_SPI2_DIVIDER 0b011
 
 
 
@@ -4649,7 +4649,7 @@
     #define STPY_PLL1P_CK      (250'000'000)
     #define STPY_PLL1Q_CK      ( 10'000'000)
     #define STPY_PLL2R_CK      (240'000'000)
-    #define STPY_PLL3P_CK      (  2'400'000)
+    #define STPY_PLL3P_CK      (  9'600'000)
     #define STPY_PLL1_VCO_FREQ (500'000'000)
     #define STPY_PLL2_VCO_FREQ (480'000'000)
     #define STPY_PLL3_VCO_FREQ (192'000'000)

@@ -21,11 +21,11 @@ SPI_BLOCK_SIZE = micropython.const(64) # @/`OpenMV SPI Block Size`: Coupled.
 
 spi = pyb.SPI(
     2,
-    mode     = pyb.SPI.MASTER, # Master because it's the bottleneck.
-    baudrate = 600_000,        # @/`OpenMV SPI Baud`: Coupled.
-    polarity = 1,              # If 1, SCK is high when idle.
-    phase    = 0,              # If 0, data is sampled on first clock edge.
-    crc      = 0x107           # @/`OpenMV CRC Polynomial`:.
+    mode      = pyb.SPI.MASTER,         # Master because it's the bottleneck.
+    prescaler = 153_600_000 // 600_000, # @/`OpenMV SPI Baud`: Coupled; note that prescaler must be 2, 4, 8, ..., 256.
+    polarity  = 1,                      # If 1, SCK is high when idle.
+    phase     = 0,                      # If 0, data is sampled on first clock edge.
+    crc       = 0x107                   # @/`OpenMV CRC Polynomial`:.
 )
 
 nss = pyb.Pin(
