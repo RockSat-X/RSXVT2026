@@ -44,6 +44,23 @@ enum DiagnosticMask : u32 // Lower the bit-index, higher the priority.
     DiagnosticMask_logging_heartbeat          = 1 << 6,
 };
 
+enum OpenMVImageState : u32
+{
+    OpenMVImageState_empty,
+    OpenMVImageState_filling,
+    OpenMVImageState_filled,
+    OpenMVImageState_using,
+};
+
+struct OpenMVImage
+{
+    volatile _Atomic enum OpenMVImageState state;
+    u8                                     bytes[16 * 1024]; // Average ~3 KiB when using YUV422, QSIF, 50% quality.
+    i32                                    size;
+};
+
+
+
 static struct
 {
 
@@ -60,8 +77,14 @@ static struct
 
 static struct
 {
+
     RingBuffer(struct VN100Packet    , 8) vn100_packets;
     RingBuffer(struct OpenMVPacketGNC, 8) openmv_gnc_packets;
+
+    #if TV_LOGGER
+        struct OpenMVImage openmv_image;
+    #endif
+
 } LOGGER = {0};
 
 static struct
@@ -69,20 +92,6 @@ static struct
     volatile _Atomic b32 magnetic_disturbance_exists;
     volatile _Atomic b32 acceleration_disturbance_exists;
 } VN100 = {0};
-
-enum OpenMVImageState : u32
-{
-    OpenMVImageState_empty,
-    OpenMVImageState_filling,
-    OpenMVImageState_filled,
-};
-
-static struct
-{
-    volatile _Atomic enum OpenMVImageState image_state;
-    u8                                     image_bytes[16 * 1024]; // Average ~3 KiB when using YUV422, QSIF, 50% quality.
-    i32                                    image_size;
-} OPENMV = {0};
 
 
 
@@ -1011,6 +1020,168 @@ FREERTOS_TASK(vn100, 8192, 0)
 
 
 
+static useret b32
+openmv_use_image(struct OpenMVImage* image)
+{
+
+    if (!image)
+        sus;
+
+    b32 observed_image_state =
+        atomic_load_explicit
+        (
+            &image->state,
+            memory_order_acquire
+        );
+
+    switch (observed_image_state)
+    {
+
+        case OpenMVImageState_empty:
+        case OpenMVImageState_filling:
+        {
+            return false; // No image data available.
+        } break;
+
+        case OpenMVImageState_filled:
+        {
+
+            atomic_store_explicit
+            (
+                &image->state,
+                OpenMVImageState_using,
+                memory_order_release
+            );
+
+            return true; // User can read the image data now.
+
+        } break;
+
+        case OpenMVImageState_using:
+        {
+
+            atomic_store_explicit
+            (
+                &image->state,
+                OpenMVImageState_empty,
+                memory_order_release
+            );
+
+            return false; // The image data has been freed up.
+
+        } break;
+
+        default:
+        {
+            sus;
+            memzero(image);
+            return false; // Weird...
+        } break;
+
+    }
+
+}
+
+static void
+openmv_process_packet_for_image(struct OpenMVImage* image, struct OpenMVPacket* packet)
+{
+
+    if (!image)
+        sus;
+
+    if (!packet)
+        sus;
+
+    b32 observed_image_state =
+        atomic_load_explicit
+        (
+            &image->state,
+            memory_order_acquire
+        );
+
+    switch (observed_image_state)
+    {
+
+        case OpenMVImageState_empty:
+        {
+            if (packet->sequence_number == 0) // @/`OpenMV Sequence Number`.
+            {
+
+                image->size = 0;
+
+                atomic_store_explicit
+                (
+                    &image->state,
+                    OpenMVImageState_filling, // We've resynchronized with the OpenMV and can get the next image.
+                    memory_order_release
+                );
+
+            }
+        } break;
+
+        case OpenMVImageState_filling:
+        {
+            if (packet->sequence_number == 0) // @/`OpenMV Sequence Number`.
+            {
+
+                // We're now done collecting the image data,
+                // although whether or not it's the entire image intact is a different question.
+                // Note that because we're currently not double-buffering the images,
+                // we can only process every other imagee at most. This should be
+                // fine given that the bottle-neck will likely be in the RF transmission.
+
+                atomic_store_explicit
+                (
+                    &image->state,
+                    OpenMVImageState_filled,
+                    memory_order_release
+                );
+
+            }
+            else if
+            (
+                packet->sequence_number == image->size / sizeof(packet->image.bytes) + 1 &&
+                image->size + sizeof(packet->image.bytes) <= sizeof(image->bytes)
+            )
+            {
+
+                memmove // Append the new data to the image data we got so far.
+                (
+                    image->bytes + image->size,
+                    packet->image.bytes,
+                    sizeof(packet->image.bytes)
+                );
+
+                image->size += sizeof(packet->image.bytes);
+
+            }
+            else // We missed a packet or ran out of buffer space.
+            {
+                atomic_store_explicit
+                (
+                    &image->state,
+                    OpenMVImageState_empty, // Just invalidate the image data we got so far.
+                    memory_order_release
+                );
+            }
+        } break;
+
+        case OpenMVImageState_filled:
+        case OpenMVImageState_using:
+        {
+            // Nothing we can do until the consumer is done with the image data.
+        } break;
+
+        default:
+        {
+            sus;
+            memzero(image);
+        } break;
+
+    }
+
+}
+
 FREERTOS_TASK(openmv, 8192, 0)
 {
 
@@ -1059,88 +1230,11 @@ FREERTOS_TASK(openmv, 8192, 0)
 
             // TODO.
 
-            b32 observed_image_state =
-                atomic_load_explicit
-                (
-                    &OPENMV.image_state,
-                    memory_order_acquire
-                );
-
-            switch (observed_image_state)
+            #if TV_LOGGER
             {
-
-                case OpenMVImageState_empty:
-                {
-                    if (packet->sequence_number == 0) // @/`OpenMV Sequence Number`.
-                    {
-
-                        OPENMV.image_size = 0;
-
-                        atomic_store_explicit
-                        (
-                            &OPENMV.image_state,
-                            OpenMVImageState_filling, // We've resynchronized with the OpenMV and can get the next image.
-                            memory_order_release
-                        );
-
-                    }
-                } break;
-
-                case OpenMVImageState_filling:
-                {
-                    if (packet->sequence_number == 0) // @/`OpenMV Sequence Number`.
-                    {
-
-                        // We're now done collecting the image data,
-                        // although whether or not it's the entire image intact is a different question.
-                        // Note that because we're currently not double-buffering the images,
-                        // we can only process every other imagee at most. This should be
-                        // fine given that the bottle-neck will likely be in the RF transmission.
-
-                        atomic_store_explicit
-                        (
-                            &OPENMV.image_state,
-                            OpenMVImageState_filled,
-                            memory_order_release
-                        );
-
-                    }
-                    else if
-                    (
-                        packet->sequence_number == OPENMV.image_size / sizeof(packet->image.bytes) + 1 &&
-                        OPENMV.image_size + sizeof(packet->image.bytes) <= sizeof(OPENMV.image_bytes)
-                    )
-                    {
-
-                        memmove // Append the new data to the image data we got so far.
-                        (
-                            OPENMV.image_bytes + OPENMV.image_size,
-                            packet->image.bytes,
-                            sizeof(packet->image.bytes)
-                        );
-
-                        OPENMV.image_size += sizeof(packet->image.bytes);
-
-                    }
-                    else // We missed a packet or ran out of buffer space.
-                    {
-                        atomic_store_explicit
-                        (
-                            &OPENMV.image_state,
-                            OpenMVImageState_empty, // Just invalidate the image data we got so far.
-                            memory_order_release
-                        );
-                    }
-                } break;
-
-                case OpenMVImageState_filled:
-                {
-                    // Nothing we can do until the consumer is done with the image data.
-                } break;
-
-                default: sus;
-
+                openmv_process_packet_for_image(&LOGGER.openmv_image, packet);
             }
+            #endif
 
 
 
@@ -1181,43 +1275,16 @@ FREERTOS_TASK(logger, 8192, 0)
 
     for (;;)
     {
-
-        b32 observed_image_state =
-            atomic_load_explicit
-            (
-                &OPENMV.image_state,
-                memory_order_acquire
-            );
-
-        switch (observed_image_state)
+        if (openmv_use_image(&LOGGER.openmv_image))
         {
-
-            case OpenMVImageState_empty:
-            case OpenMVImageState_filling:
-            {
-                // No image data available.
-            } break;
-
-            case OpenMVImageState_filled:
-            {
-
-                stlink_tx(TV_TOKEN_START);
-                UXART_tx_bytes(UXARTHandle_stlink, OPENMV.image_bytes, OPENMV.image_size);
-                stlink_tx(TV_TOKEN_END);
-
-                atomic_store_explicit
-                (
-                    &OPENMV.image_state,
-                    false,
-                    memory_order_release
-                );
-
-            } break;
-
-            default: sus;
-
+            stlink_tx(TV_TOKEN_START);
+            UXART_tx_bytes(UXARTHandle_stlink, LOGGER.openmv_image.bytes, LOGGER.openmv_image.size);
+            stlink_tx(TV_TOKEN_END);
         }
-
+        else
+        {
+            FREERTOS_delay_ms(1);
+        }
     }
 
 #else
