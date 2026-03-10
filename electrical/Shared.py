@@ -873,7 +873,7 @@ TARGETS = ( # @/`Defining Targets`.
             ('openmv_spi_mosi'            , 'C3'  , 'ALTERNATE' , { 'altfunc' : 'SPI2_MOSI', 'pull' : 'UP'                   }),
             ('openmv_spi_miso'            , 'C2'  , None        , { 'altfunc' : 'SPI2_MISO'                                  }),
             ('openmv_spi_ready'           , 'D5'  , None        , { 'altfunc' : 'SPI2_RDY'                                   }),
-            ('openmv_reset'               , 'C15' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False, 'open_drain' : True }),
+            ('openmv_reset'               , 'C15' , 'OUTPUT'    , { 'initlvl' : True, 'active' : False, 'open_drain' : True  }),
             ('motor_uart'                 , 'B14' , 'ALTERNATE' , { 'altfunc' : 'USART1_TX'                                  }),
             ('vehicle_interface_i2c_data' , 'D7'  , 'ALTERNATE' , { 'altfunc' : 'I2C3_SDA', 'open_drain' : True              }),
             ('vehicle_interface_i2c_clock', 'D6'  , 'ALTERNATE' , { 'altfunc' : 'I2C3_SCL', 'open_drain' : True              }),

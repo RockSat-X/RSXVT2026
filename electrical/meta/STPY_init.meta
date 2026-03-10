@@ -4325,10 +4325,10 @@
         );
         CMSIS_SET
         (
-            GPIOC, ODR ,
-            OD0  , true,
-            OD1  , true,
-            OD15 , true,
+            GPIOC, ODR  ,
+            OD0  , true ,
+            OD1  , true ,
+            OD15 , false,
         );
         CMSIS_SET(GPIOD, ODR, OD0, false);
         CMSIS_SET(GPIOE, ODR, OD8, true);

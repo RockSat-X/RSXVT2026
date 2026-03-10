@@ -1192,68 +1192,91 @@ FREERTOS_TASK(openmv, 8192, 0)
 
 #if OPENMV_ENABLE
 
-    {
-
-        GPIO_ACTIVE(openmv_reset);
-
-        FREERTOS_delay_ms(10);
-
-        SPI_reinit(SPIHandle_openmv);
-
-        FREERTOS_delay_ms(10);
-
-        GPIO_INACTIVE(openmv_reset);
-
-    }
-
     for (;;)
     {
 
-        static_assert(sizeof(struct OpenMVPacket) == sizeof(struct SPIBlock));
+        // Reset the OpenMV for a bit...
 
-        struct OpenMVPacket* packet = (struct OpenMVPacket*) RingBuffer_reading_pointer(SPI_reception(SPIHandle_openmv));
+        GPIO_ACTIVE(openmv_reset);
+        FREERTOS_delay_ms(10);
 
-        if (packet)
+
+
+        // Reboot our SPI communication...
+
+        SPI_reinit(SPIHandle_openmv);
+
+
+
+        // Reawaken the OpenMV!
+
+        FREERTOS_delay_ms(10);
+        GPIO_INACTIVE(openmv_reset);
+
+
+
+        // Start processing packet data from the OpenMV.
+
+        while (true)
         {
 
-            if (packet->sequence_number == 0) // @/`OpenMV Sequence Number`.
+            static_assert(sizeof(struct OpenMVPacket) == sizeof(struct SPIBlock));
+
+            struct OpenMVPacket* packet = (struct OpenMVPacket*) RingBuffer_reading_pointer(SPI_reception(SPIHandle_openmv));
+
+            if (packet)
             {
 
-                if (!RingBuffer_push(&CONTROLLER.openmv_gnc_packets, &packet->gnc))
+
+
+                // Determine if the packet correspond to GNC data.
+
+                if (packet->sequence_number == 0) // @/`OpenMV Sequence Number`.
                 {
-                    // OpenMV data overrun!
+
+                    if (!RingBuffer_push(&CONTROLLER.openmv_gnc_packets, &packet->gnc))
+                    {
+                        // OpenMV data overrun!
+                    }
+
+                    if (!RingBuffer_push(&LOGGER.openmv_gnc_packets, &packet->gnc))
+                    {
+                        // OpenMV data overrun, but it's for the logger; who cares.
+                    }
+
                 }
 
-                if (!RingBuffer_push(&LOGGER.openmv_gnc_packets, &packet->gnc))
+
+
+                // If applicable and possible, have the packet's
+                // image data be queued up for RF transmission.
+
+                openmv_process_packet_for_image(&ESP32.openmv_image, packet);
+
+
+
+                // For diagnostic purposes, we can also redirect the image
+                // data to the ST-Link to be viewed in real-time-ish.
+
+                #if TV_LOGGER
                 {
-                    // OpenMV data overrun, but it's for the logger; who cares.
+                    openmv_process_packet_for_image(&LOGGER.openmv_image, packet);
                 }
+                #endif
+
+
+
+                // Acknowledge the packet.
+
+                if (!RingBuffer_pop(SPI_reception(SPIHandle_openmv), nullptr))
+                    sus;
 
             }
-
-
-
-            // TODO.
-
-            openmv_process_packet_for_image(&ESP32.openmv_image, packet);
-
-            #if TV_LOGGER
+            else
             {
-                openmv_process_packet_for_image(&LOGGER.openmv_image, packet);
+                FREERTOS_delay_ms(1);
             }
-            #endif
 
-
-
-            // TODO.
-
-            if (!RingBuffer_pop(SPI_reception(SPIHandle_openmv), nullptr))
-                sorry
-
-        }
-        else
-        {
-            FREERTOS_delay_ms(1);
         }
 
     }
