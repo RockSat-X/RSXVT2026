@@ -12,7 +12,7 @@
 #define VN100_ENABLE                     false
 #define OPENMV_ENABLE                    true
 #define WATCHDOG_ENABLE                  false
-#define TV_LOGGER                        true
+#define TRANSMIT_TV                      true
 
 #include "system.h"
 #include "timekeeping.c"
@@ -77,14 +77,8 @@ static struct
 
 static struct
 {
-
     RingBuffer(struct VN100Packet    , 8) vn100_packets;
     RingBuffer(struct OpenMVPacketGNC, 8) openmv_gnc_packets;
-
-    #if TV_LOGGER
-        struct OpenMVImage openmv_image;
-    #endif
-
 } LOGGER = {0};
 
 static struct
@@ -1258,9 +1252,20 @@ FREERTOS_TASK(openmv, 8192, 0)
                 // For diagnostic purposes, we can also redirect the image
                 // data to the ST-Link to be viewed in real-time-ish.
 
-                #if TV_LOGGER
+                #if TRANSMIT_TV
                 {
-                    openmv_process_packet_for_image(&LOGGER.openmv_image, packet);
+
+                    static struct OpenMVImage tv_image = {0};
+
+                    openmv_process_packet_for_image(&tv_image, packet);
+
+                    if (openmv_use_image(&tv_image))
+                    {
+                        stlink_tx(TV_TOKEN_START);
+                        UXART_tx_bytes(UXARTHandle_stlink, tv_image.bytes, tv_image.size);
+                        stlink_tx(TV_TOKEN_END);
+                    }
+
                 }
                 #endif
 
@@ -1300,24 +1305,6 @@ FREERTOS_TASK(openmv, 8192, 0)
 
 FREERTOS_TASK(logger, 8192, 0)
 {
-
-#if TV_LOGGER
-
-    for (;;)
-    {
-        if (openmv_use_image(&LOGGER.openmv_image))
-        {
-            stlink_tx(TV_TOKEN_START);
-            UXART_tx_bytes(UXARTHandle_stlink, LOGGER.openmv_image.bytes, LOGGER.openmv_image.size);
-            stlink_tx(TV_TOKEN_END);
-        }
-        else
-        {
-            FREERTOS_delay_ms(1);
-        }
-    }
-
-#else
 
     static struct Sector working_sectors[8]         = {0};
     b32                  completely_wipe_filesystem = false;
@@ -1526,39 +1513,43 @@ FREERTOS_TASK(logger, 8192, 0)
 
             // Also send the log out through the ST-Link periodically for convenience.
 
-            if (current_timestamp_us - most_recent_stlink_log_timestamp_us >= 250'000)
+            #if !TRANSMIT_TV // Can't conflict with sending image data over ST-Link.
             {
-
-                most_recent_stlink_log_timestamp_us = current_timestamp_us;
-
-                stlink_tx
-                (
-                    "%.*s",
-                    log_entry_length,
-                    working_sectors[0].bytes
-                );
-
-                if (openmv_gnc_packet_exist) // TODO Better output...?
+                if (current_timestamp_us - most_recent_stlink_log_timestamp_us >= 250'000)
                 {
+
+                    most_recent_stlink_log_timestamp_us = current_timestamp_us;
+
                     stlink_tx
                     (
-                        "attitude_x                         : %f" "\n"
-                        "attitude_y                         : %f" "\n"
-                        "attitude_z                         : %f" "\n"
-                        "attitude_w                         : %f" "\n"
-                        "computer_vision_processing_time_ms : %u" "\n"
-                        "computer_vision_confidence         : %u" "\n"
-                        "\n",
-                        openmv_gnc_packet_data.attitude_x,
-                        openmv_gnc_packet_data.attitude_y,
-                        openmv_gnc_packet_data.attitude_z,
-                        openmv_gnc_packet_data.attitude_w,
-                        openmv_gnc_packet_data.computer_vision_processing_time_ms,
-                        openmv_gnc_packet_data.computer_vision_confidence
+                        "%.*s",
+                        log_entry_length,
+                        working_sectors[0].bytes
                     );
-                }
 
+                    if (openmv_gnc_packet_exist) // TODO Better output...?
+                    {
+                        stlink_tx
+                        (
+                            "attitude_x                         : %f" "\n"
+                            "attitude_y                         : %f" "\n"
+                            "attitude_z                         : %f" "\n"
+                            "attitude_w                         : %f" "\n"
+                            "computer_vision_processing_time_ms : %u" "\n"
+                            "computer_vision_confidence         : %u" "\n"
+                            "\n",
+                            openmv_gnc_packet_data.attitude_x,
+                            openmv_gnc_packet_data.attitude_y,
+                            openmv_gnc_packet_data.attitude_z,
+                            openmv_gnc_packet_data.attitude_w,
+                            openmv_gnc_packet_data.computer_vision_processing_time_ms,
+                            openmv_gnc_packet_data.computer_vision_confidence
+                        );
+                    }
+
+                }
             }
+            #endif
 
 
 
@@ -1644,8 +1635,6 @@ FREERTOS_TASK(logger, 8192, 0)
         }
 
     }
-
-#endif
 
 }
 
