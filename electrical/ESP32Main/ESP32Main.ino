@@ -7,7 +7,7 @@
 
 #if LORA_ENABLE
 static volatile b32       packet_lora_radio_data_available  = false;
-static struct PacketLoRa  packet_lora_buffer[128]           = {};
+static struct LoRaPacket  packet_lora_buffer[128]           = {};
 static u32                packet_lora_writer                = 0;
 static u32                packet_lora_reader                = 0;
 static i32                packet_lora_invalid_length_count  = 0;
@@ -17,7 +17,7 @@ static i32                packet_lora_crc_error_count       = 0;
 #endif
 
 #if ESPNOW_ENABLE
-static struct PacketESP32 packet_espnow_buffer[128]          = {};
+static struct ESP32Packet packet_espnow_buffer[128]          = {};
 static volatile u32       packet_espnow_writer               = 0;
 static volatile u32       packet_espnow_reader               = 0;
 static volatile i32       packet_espnow_invalid_length_count = 0;
@@ -39,7 +39,7 @@ packet_espnow_reception_callback
 
     // Received packet is of the wrong length?
 
-    if (received_amount != sizeof(struct PacketESP32))
+    if (received_amount != sizeof(struct ESP32Packet))
     {
         packet_espnow_invalid_length_count += 1;
     }
@@ -60,7 +60,7 @@ packet_espnow_reception_callback
     else
     {
 
-        struct PacketESP32* packet = &packet_espnow_buffer[packet_espnow_writer % countof(packet_espnow_buffer)];
+        struct ESP32Packet* packet = &packet_espnow_buffer[packet_espnow_writer % countof(packet_espnow_buffer)];
 
         memmove(packet, received_data, sizeof(*packet));
 
@@ -166,7 +166,7 @@ loop(void)
 
             packet_lora_radio_data_available = false;
 
-            struct PacketLoRa* packet = &packet_lora_buffer[packet_lora_writer % countof(packet_lora_buffer)];
+            struct LoRaPacket* packet = &packet_lora_buffer[packet_lora_writer % countof(packet_lora_buffer)];
 
 
 
@@ -225,7 +225,7 @@ loop(void)
         if (packet_espnow_reader != packet_espnow_writer)
         {
 
-            struct PacketESP32* packet = &packet_espnow_buffer[packet_espnow_reader % countof(packet_espnow_buffer)];
+            struct ESP32Packet* packet = &packet_espnow_buffer[packet_espnow_reader % countof(packet_espnow_buffer)];
 
 
 
@@ -291,7 +291,7 @@ loop(void)
         if (packet_lora_reader != packet_lora_writer)
         {
 
-            struct PacketLoRa* packet = &packet_lora_buffer[packet_lora_reader % countof(packet_lora_buffer)];
+            struct LoRaPacket* packet = &packet_lora_buffer[packet_lora_reader % countof(packet_lora_buffer)];
 
 
 

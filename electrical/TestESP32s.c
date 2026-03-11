@@ -62,7 +62,7 @@ main(void)
 
         {
 
-            struct PacketESP32 payload =
+            struct ESP32Packet payload =
                 {
                     .magnetometer_x                          = 3.1f,
                     .magnetometer_y                          = 3.2f,

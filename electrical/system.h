@@ -939,7 +939,7 @@ DEBUG_BOARD_calculate_crc(u8* data, i32 length)
 
 pack_push
 
-    struct PacketLoRa
+    struct LoRaPacket
     {
         f32 quaternion_i;
         f32 quaternion_j;
@@ -957,18 +957,18 @@ pack_push
         u8  crc;
     };
 
-    struct PacketESP32
+    struct ESP32Packet
     {
         f32               magnetometer_x;
         f32               magnetometer_y;
         f32               magnetometer_z;
         u8                image_chunk[190];
-        struct PacketLoRa nonredundant;
+        struct LoRaPacket nonredundant;
     };
 
 pack_pop
 
-static_assert(sizeof(struct PacketESP32) <= 250);
+static_assert(sizeof(struct ESP32Packet) <= 250);
 
 
 

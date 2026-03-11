@@ -20,7 +20,7 @@ static_assert(countof(MAIN_ESP32_MAC_ADDRESS) == 6);
 
 
 #if ESPNOW_ENABLE || 1 // TODO Forced to be defined until we get rid of `TRAP_INVALID_RING_BUFFER_CONDITION`.
-static struct PacketESP32 packet_espnow_buffer[128]       = {};
+static struct ESP32Packet packet_espnow_buffer[128]       = {};
 static volatile u32       packet_espnow_writer            = 0;
 static volatile u32       packet_espnow_reader            = 0;
 static volatile b32       packet_espnow_transmission_busy = false;
@@ -31,7 +31,7 @@ static volatile b32       packet_espnow_transmission_busy = false;
 // it's such low throughput. If it was deep, a lot
 // of the data might be data far in the past and not
 // the more recent stuff.
-static struct PacketLoRa packet_lora_buffer[4]         = {};
+static struct LoRaPacket packet_lora_buffer[4]         = {};
 static volatile u32      packet_lora_writer            = 0;
 static volatile u32      packet_lora_reader            = 0;
 static volatile bool     packet_lora_transmission_busy = false;
@@ -190,7 +190,7 @@ setup(void)
 
 
 extern void
-process_payload(struct PacketESP32* payload)
+process_payload(struct ESP32Packet* payload)
 {
 
     u8 digest = ESP32_calculate_crc((u8*) payload, sizeof(*payload));
@@ -218,7 +218,7 @@ process_payload(struct PacketESP32* payload)
             if (packet_espnow_writer - packet_espnow_reader < countof(packet_espnow_buffer))
             {
 
-                struct PacketESP32*                                 packet                  = &packet_espnow_buffer[packet_espnow_writer % countof(packet_espnow_buffer)];
+                struct ESP32Packet*                                 packet                  = &packet_espnow_buffer[packet_espnow_writer % countof(packet_espnow_buffer)];
                 static typeof(packet->nonredundant.sequence_number) current_sequence_number = 0;
 
                 *packet                               = *payload;
@@ -246,7 +246,7 @@ process_payload(struct PacketESP32* payload)
             if (packet_lora_writer - packet_lora_reader < countof(packet_lora_buffer))
             {
 
-                struct PacketLoRa*                     packet                  = &packet_lora_buffer[packet_lora_writer % countof(packet_lora_buffer)];
+                struct LoRaPacket*                     packet                  = &packet_lora_buffer[packet_lora_writer % countof(packet_lora_buffer)];
                 static typeof(packet->sequence_number) current_sequence_number = 0;
 
                 *packet                   = payload->nonredundant;
@@ -288,14 +288,14 @@ loop(void)
 
     while
     (
-        Serial1.available() >= sizeof(struct PacketESP32)
+        Serial1.available() >= sizeof(struct ESP32Packet)
         && Serial1.read() == (PACKET_ESP32_START_TOKEN & 0xFF)
         && Serial1.peek() == ((PACKET_ESP32_START_TOKEN >> 8) & 0xFF)
         && Serial1.read() == ((PACKET_ESP32_START_TOKEN >> 8) & 0xFF)
     )
     {
 
-        struct PacketESP32 payload = {};
+        struct ESP32Packet payload = {};
 
         Serial1.readBytes((char*) &payload, sizeof(payload));
 
@@ -330,7 +330,7 @@ loop(void)
 
         if (make_dummy_packet)
         {
-            struct PacketESP32 payload = {};
+            struct ESP32Packet payload = {};
 
             payload.nonredundant.timestamp_ms = millis();
 
@@ -358,7 +358,7 @@ loop(void)
 
             packet_espnow_transmission_busy = true;
 
-            struct PacketESP32* packet = &packet_espnow_buffer[packet_espnow_reader % countof(packet_espnow_buffer)];
+            struct ESP32Packet* packet = &packet_espnow_buffer[packet_espnow_reader % countof(packet_espnow_buffer)];
 
             if (esp_now_send(MAIN_ESP32_MAC_ADDRESS, (u8*) packet, sizeof(*packet)) != ESP_OK)
             {
@@ -382,7 +382,7 @@ loop(void)
 
             packet_lora_transmission_busy = true;
 
-            struct PacketLoRa* packet = &packet_lora_buffer[packet_lora_reader % countof(packet_lora_buffer)];
+            struct LoRaPacket* packet = &packet_lora_buffer[packet_lora_reader % countof(packet_lora_buffer)];
 
             packet_lora_radio.startTransmit((u8*) packet, sizeof(*packet)); // TODO Error checking?
 
