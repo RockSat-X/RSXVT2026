@@ -179,54 +179,6 @@ enum DiagnosticLEDBehavior : u32
 
 */
 
-static b32
-diagnostics_delay_ms(u32* current_flags, u32 milliseconds)
-{
-
-    u32 new_flags = 0;
-
-    BaseType_t got_notification =
-        xTaskNotifyWait
-        (
-            0,
-            (u32) -1, // Immediately acknowledge the new diagnostics.
-            (uint32_t*) &new_flags,
-            0
-        );
-
-    enum DiagnosticMask old_diagnostic = *current_flags & -*current_flags;
-
-    if (got_notification)
-    {
-        *current_flags |= new_flags; // Add the new diagnostics to the list of existing ones to process.
-    }
-
-    enum DiagnosticMask new_diagnostic = *current_flags & -*current_flags;
-
-    if (new_diagnostic == old_diagnostic)
-    {
-
-        // Although `xTaskNotifyWait` has a time-out argument that could be used
-        // as a delay that can also be interrupted early when there's a notification,
-        // it's possible that a task set the same diagnostic repeatedly over and
-        // over again to which a delay never really happens. By using a regular
-        // task delay here, we're making things slightly less responsive because
-        // the delay won't allow for the `diagnostics` task to handle a new
-        // diagnostic of higher priority, but since this is literally just for
-        // diagnostics, it's okay.
-
-        FREERTOS_delay_ms(milliseconds);
-
-        return false;
-
-    }
-    else
-    {
-        return true; // There's a new diagnostic of higher priority that we should handle.
-    }
-
-}
-
 FREERTOS_TASK(diagnostics, 512, 1)
 {
 
@@ -235,30 +187,61 @@ FREERTOS_TASK(diagnostics, 512, 1)
     for (;;)
     {
 
-        diagnostics_delay_ms(&current_flags, 0); // To update `current_flags`.
 
-        while (!current_flags) // Wait until we get a diagnostic to handle.
+
+        // Check and wait for there to be a new diagnostic to handle.
+
+        b32 waiting = false;
+
+        do
         {
-            diagnostics_delay_ms(&current_flags, 100);
+
+            u32 new_flags = {0};
+
+            BaseType_t got_notification =
+                xTaskNotifyWait
+                (
+                    0,
+                    (u32) -1, // Immediately acknowledge the new diagnostics.
+                    (uint32_t*) &new_flags,
+                    waiting ? 100 : 0
+                );
+
+            if (got_notification)
+            {
+                current_flags |= new_flags;
+            }
+
+            waiting = true;
+
         }
+        while (!current_flags);
+
+
+
+        // Handle the highest priority diagnostic with buzzer tunes and blinking LEDs.
+
+        enum DiagnosticMask current_diagnostic = current_flags & -current_flags;
 
         GPIO_INACTIVE(led_channel_red  );
         GPIO_INACTIVE(led_channel_green);
         GPIO_INACTIVE(led_channel_blue );
 
-        enum DiagnosticMask current_diagnostic = current_flags & -current_flags;
-
         if (current_diagnostic && __builtin_ctz(current_diagnostic) < countof(DIAGNOSTIC_TABLE))
         {
 
-            auto entry = &DIAGNOSTIC_TABLE[__builtin_ctz(current_diagnostic)];
+            auto info = &DIAGNOSTIC_TABLE[__builtin_ctz(current_diagnostic)];
 
-            BUZZER_play(entry->tune);
+            BUZZER_play(info->tune);
 
             while (BUZZER_current_tune())
             {
 
-                switch (entry->behavior_red)
+
+
+                // Control the LEDs.
+
+                switch (info->behavior_red)
                 {
                     case DiagnosticLEDBehavior_inactive : GPIO_INACTIVE(led_channel_red); break;
                     case DiagnosticLEDBehavior_active   : GPIO_ACTIVE  (led_channel_red); break;
@@ -266,7 +249,7 @@ FREERTOS_TASK(diagnostics, 512, 1)
                     default                             : sus;
                 }
 
-                switch (entry->behavior_green)
+                switch (info->behavior_green)
                 {
                     case DiagnosticLEDBehavior_inactive : GPIO_INACTIVE(led_channel_green); break;
                     case DiagnosticLEDBehavior_active   : GPIO_ACTIVE  (led_channel_green); break;
@@ -274,7 +257,7 @@ FREERTOS_TASK(diagnostics, 512, 1)
                     default                             : sus;
                 }
 
-                switch (entry->behavior_blue)
+                switch (info->behavior_blue)
                 {
                     case DiagnosticLEDBehavior_inactive : GPIO_INACTIVE(led_channel_blue); break;
                     case DiagnosticLEDBehavior_active   : GPIO_ACTIVE  (led_channel_blue); break;
@@ -282,9 +265,46 @@ FREERTOS_TASK(diagnostics, 512, 1)
                     default                             : sus;
                 }
 
-                if (diagnostics_delay_ms(&current_flags, entry->delay_ms))
+
+
+                // See if there's a new higher priority diagnostic we should handle.
+
+                u32 new_flags = 0;
+
+                BaseType_t got_notification =
+                    xTaskNotifyWait
+                    (
+                        0,
+                        (u32) -1, // Immediately acknowledge the new diagnostics.
+                        (uint32_t*) &new_flags,
+                        0
+                    );
+
+                if (got_notification)
                 {
-                    goto END_OF_DIAGNOSTIC;
+                    current_flags |= new_flags; // Add the new diagnostics to the list of existing ones to process.
+                }
+
+                enum DiagnosticMask new_diagnostic = current_flags & -current_flags;
+
+                if (new_diagnostic == current_diagnostic)
+                {
+
+                    // Although `xTaskNotifyWait` has a time-out argument that could be used
+                    // as a delay that can also be interrupted early when there's a notification,
+                    // it's possible that a task set the same diagnostic repeatedly over and
+                    // over again to which a delay never really happens. By using a regular
+                    // task delay here, we're making things slightly less responsive because
+                    // the delay won't allow for the `diagnostics` task to handle a new
+                    // diagnostic of higher priority, but since this is literally just for
+                    // diagnostics, it's okay.
+
+                    FREERTOS_delay_ms(info->delay_ms);
+
+                }
+                else
+                {
+                    break; // There's a new diagnostic of higher priority that we should handle.
                 }
 
             }
@@ -292,16 +312,14 @@ FREERTOS_TASK(diagnostics, 512, 1)
         }
         else
         {
-            sus;
+            sus; // Invalid diagnostic..?
         }
-
-        END_OF_DIAGNOSTIC:;
-
-        current_flags &= ~current_diagnostic; // Acknowledge the completion of the diagnostic.
 
         GPIO_INACTIVE(led_channel_red  );
         GPIO_INACTIVE(led_channel_green);
         GPIO_INACTIVE(led_channel_blue );
+
+        current_flags &= ~current_diagnostic; // Acknowledge the completion of the diagnostic.
 
     }
 
