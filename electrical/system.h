@@ -939,30 +939,52 @@ DEBUG_BOARD_calculate_crc(u8* data, i32 length)
 
 pack_push
 
+    // @/`ESP32 Sequence Numbers`:
+    //
+    // The `.rolling_sequence_number` field is automatically filled out by the
+    // vehicle ESP32, thus the vehicle FC should leave it empty. This is
+    // because the ESP32 will handle the buffering of ESP-NOW and LoRa packets,
+    // and based on when it can queue up packets for those buffers, it'll
+    // automatically increment the rolling sequence number.
+    //
+    // In other words, the `rolling_sequence_number` is how the main FC can
+    // tell whether or not an ESP-NOW packet has been dropped, and likewise
+    // with LoRa packets.
+    //
+    // The `.timestamp_ms` field should be used to determine the elapsed time
+    // since the last received packet, but it can also be used to determine if
+    // a LoRa packet and ESP-NOW packet are the same (when their timestamps are
+    // also equal).
+    //
+    // The `.image_sequence_number` field is just to make it easier to
+    // determine the start of the OpenMV image data, although with how JPEG
+    // works, this could be omitted.
+
     struct LoRaPacket
     {
-        f32 quaternion_i;
-        f32 quaternion_j;
-        f32 quaternion_k;
-        f32 quaternion_r;
-        f32 accelerometer_x;
-        f32 accelerometer_y;
-        f32 accelerometer_z;
-        f32 gyro_x;
-        f32 gyro_y;
-        f32 gyro_z;
-        f32 computer_vision_confidence;
-        u16 timestamp_ms;
-        u8  sequence_number;
+        f32 QuatX;
+        f32 QuatY;
+        f32 QuatZ;
+        f32 QuatS;
+        f32 AccelX;
+        f32 AccelY;
+        f32 AccelZ;
+        f32 GyroX;
+        f32 GyroY;
+        f32 GyroZ;
+        u16 timestamp_ms;            // @/`ESP32 Sequence Numbers`.
+        u16 rolling_sequence_number; // @/`ESP32 Sequence Numbers`.
+        u8  computer_vision_confidence;
         u8  crc;
     };
 
     struct ESP32Packet
     {
-        f32               magnetometer_x;
-        f32               magnetometer_y;
-        f32               magnetometer_z;
-        u8                image_chunk[190];
+        f32               MagX;
+        f32               MagY;
+        f32               MagZ;
+        u16               image_sequence_number; // @/`ESP32 Sequence Numbers`.
+        u8                image_bytes[190];
         struct LoRaPacket nonredundant;
     };
 

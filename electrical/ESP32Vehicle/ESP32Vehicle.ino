@@ -218,15 +218,16 @@ process_payload(struct ESP32Packet* payload)
             if (packet_espnow_writer - packet_espnow_reader < countof(packet_espnow_buffer))
             {
 
-                struct ESP32Packet*                                 packet                  = &packet_espnow_buffer[packet_espnow_writer % countof(packet_espnow_buffer)];
-                static typeof(packet->nonredundant.sequence_number) current_sequence_number = 0;
+                struct ESP32Packet* packet = &packet_espnow_buffer[packet_espnow_writer % countof(packet_espnow_buffer)];
 
-                *packet                               = *payload;
-                packet->nonredundant.sequence_number  = current_sequence_number;
-                packet->nonredundant.crc              = ESP32_calculate_crc((u8*) packet, sizeof(*packet) - sizeof(packet->nonredundant.crc));
-                current_sequence_number              += 1;
-                packet_espnow_writer                 += 1;
-                packet_espnow_packet_count           += 1;
+                static typeof(packet->nonredundant.rolling_sequence_number) current_rolling_sequence_number = 0; // @/`ESP32 Sequence Numbers`.
+
+                *packet                                       = *payload;
+                packet->nonredundant.rolling_sequence_number  = current_rolling_sequence_number;
+                packet->nonredundant.crc                      = ESP32_calculate_crc((u8*) packet, sizeof(*packet) - sizeof(packet->nonredundant.crc));
+                current_rolling_sequence_number              += 1;
+                packet_espnow_writer                         += 1;
+                packet_espnow_packet_count                   += 1;
 
             }
             else
@@ -246,15 +247,16 @@ process_payload(struct ESP32Packet* payload)
             if (packet_lora_writer - packet_lora_reader < countof(packet_lora_buffer))
             {
 
-                struct LoRaPacket*                     packet                  = &packet_lora_buffer[packet_lora_writer % countof(packet_lora_buffer)];
-                static typeof(packet->sequence_number) current_sequence_number = 0;
+                struct LoRaPacket* packet = &packet_lora_buffer[packet_lora_writer % countof(packet_lora_buffer)];
 
-                *packet                   = payload->nonredundant;
-                packet->sequence_number   = current_sequence_number;
-                packet->crc               = ESP32_calculate_crc((u8*) packet, sizeof(*packet) - sizeof(packet->crc));
-                current_sequence_number  += 1;
-                packet_lora_writer       += 1;
-                packet_lora_packet_count += 1;
+                static typeof(packet->rolling_sequence_number) current_rolling_sequence_number = 0; // @/`ESP32 Sequence Numbers`.
+
+                *packet                           = payload->nonredundant;
+                packet->rolling_sequence_number   = current_rolling_sequence_number;
+                packet->crc                       = ESP32_calculate_crc((u8*) packet, sizeof(*packet) - sizeof(packet->crc));
+                current_rolling_sequence_number  += 1;
+                packet_lora_writer               += 1;
+                packet_lora_packet_count         += 1;
 
             }
             else

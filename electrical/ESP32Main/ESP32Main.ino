@@ -240,21 +240,21 @@ loop(void)
             else
             {
 
-                // Check sequence number.
+                // Check sequence number. @/`ESP32 Sequence Numbers`.
 
-                static typeof(packet->nonredundant.sequence_number) expected_sequence_number = 0;
+                static typeof(packet->nonredundant.rolling_sequence_number) expected_rolling_sequence_number = 0;
 
-                if (packet->nonredundant.sequence_number == expected_sequence_number)
+                if (packet->nonredundant.rolling_sequence_number == expected_rolling_sequence_number)
                 {
                     packet_espnow_consecutive_sequence_number_count += 1;
                 }
                 else
                 {
-                    expected_sequence_number                   = packet->nonredundant.sequence_number;
+                    expected_rolling_sequence_number            = packet->nonredundant.rolling_sequence_number;
                     packet_espnow_broken_sequence_number_count += 1;
                 }
 
-                expected_sequence_number += 1;
+                expected_rolling_sequence_number += 1;
 
 
 
@@ -306,21 +306,21 @@ loop(void)
             else
             {
 
-                // Check sequence number.
+                // Check sequence number. @/`ESP32 Sequence Numbers`.
 
-                static typeof(packet->sequence_number) expected_sequence_number = 0;
+                static typeof(packet->rolling_sequence_number) expected_rolling_sequence_number = 0;
 
-                if (packet->sequence_number == expected_sequence_number)
+                if (packet->rolling_sequence_number == expected_rolling_sequence_number)
                 {
                     packet_lora_consecutive_sequence_number_count += 1;
                 }
                 else
                 {
-                    expected_sequence_number                  = packet->sequence_number;
+                    expected_rolling_sequence_number          = packet->rolling_sequence_number;
                     packet_lora_broken_sequence_number_count += 1;
                 }
 
-                expected_sequence_number += 1;
+                expected_rolling_sequence_number += 1;
 
 
 
