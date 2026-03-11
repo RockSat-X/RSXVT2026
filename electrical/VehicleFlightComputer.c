@@ -1673,10 +1673,10 @@ FREERTOS_TASK(logger, 8192, 0)
                     "VN100 isuses   : %d"                 "\n"
                     "OpenMV issues  : %d"                 "\n"
                     "ESP32 issues   : %d"                 "\n"
-                    "Quaternion?    : <%f, %f, %f, %f>"   "\n" // TODO We should probably attach a timestamp to received VN-100 data.
-                    "Magnetometer?  : <%f, %f, %f>"       "\n" // TODO "
-                    "Accelerometer? : <%f, %f, %f>"       "\n" // TODO "
-                    "Gyroscope?     : <%f, %f, %f>"       "\n" // TODO "
+                    "Quaternion?    : <%f, %f, %f, %f>"   "\n"
+                    "Magnetometer?  : <%f, %f, %f>"       "\n"
+                    "Accelerometer? : <%f, %f, %f>"       "\n"
+                    "Gyroscope?     : <%f, %f, %f>"       "\n"
                     "Ext. power     : %s"                 "\n"
                     "VNKMD          : %s"                 "\n"
                     "VNKAD          : %s"                 "\n"
@@ -1708,7 +1708,7 @@ FREERTOS_TASK(logger, 8192, 0)
                     vn100_packet_exist ? vn100_packet_data.GyroX  : NAN,
                     vn100_packet_exist ? vn100_packet_data.GyroY  : NAN,
                     vn100_packet_exist ? vn100_packet_data.GyroZ  : NAN,
-                    false                                 ? "Yes" : "No", // TODO.
+                    GPIO_READ(external_detected)          ? "Yes" : "No",
                     VN100.magnetic_disturbance_exists     ? "Yes" : "No",
                     VN100.acceleration_disturbance_exists ? "Yes" : "No"
                 );
