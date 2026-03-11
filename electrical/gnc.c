@@ -157,16 +157,37 @@ pack_push
 
     // TODO Finalize structure.
     // TODO We may have two packet variations: one for IMU + image data and one for just image data.
-    struct OpenMVPacket
+
+
+    struct OpenMVPacket // @/`OpenMV Packet Format`: Coupled.
     {
-        f32 attitude_x;
-        f32 attitude_y;
-        f32 attitude_z;
-        f32 attitude_w;
-        u16 computer_vision_processing_time_ms;
-        u8  computer_vision_confidence;
-        u8  image_sequence_number;
-        u8  image_fragment[32]; // TODO To be the remainder.
+        union
+        {
+
+            // @/`OpenMV Sequence Number`:
+            // First image chunk begins at `1`; zero is reserved for `OpenMVPacketGNC`.
+
+            u16 sequence_number;
+
+            struct OpenMVPacketGNC
+            {
+                u16 zero;
+                f32 attitude_x;
+                f32 attitude_y;
+                f32 attitude_z;
+                f32 attitude_w;
+                u16 computer_vision_processing_time_ms;
+                u8  computer_vision_confidence;
+                u8  padding[43];
+            } gnc;
+
+            struct OpenMVPacketImage
+            {
+                u16 sequence_number;
+                u8  bytes[62];
+            } image;
+
+        };
     };
 
 pack_pop
@@ -176,9 +197,9 @@ pack_pop
 static void
 GNC_update
 (
-    struct Matrix*             resulting_angular_velocities,
-    const struct VN100Packet*  most_recent_imu,
-    const struct OpenMVPacket* most_recent_openmv_reading
+    struct Matrix*                resulting_angular_velocities,
+    const struct VN100Packet*     most_recent_imu,
+    const struct OpenMVPacketGNC* most_recent_openmv_reading
 )
 {
 

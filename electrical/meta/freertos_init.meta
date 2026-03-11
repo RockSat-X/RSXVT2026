@@ -261,14 +261,19 @@
 #if TARGET_NAME_IS_VehicleFlightComputer
     enum FreeRTOSTask : u32
     {
+        FreeRTOSTask_diagnostics,
         FreeRTOSTask_controller,
         FreeRTOSTask_vn100,
+        FreeRTOSTask_openmv,
         FreeRTOSTask_logger,
-        FreeRTOSTask_diagnostics,
         FreeRTOSTask_god,
         FreeRTOSTask_watchdog,
     };
-    static constexpr u32 FreeRTOSTask_COUNT = 6;
+    static constexpr u32 FreeRTOSTask_COUNT = 7;
+    static noret void   diagnostics(void*);
+    static StackType_t  diagnostics_stack[512 / sizeof(StackType_t)] = {0};
+    static StaticTask_t diagnostics_buffer = {0};
+    static TaskHandle_t diagnostics_handle = {0};
     static noret void   controller(void*);
     static StackType_t  controller_stack[1024 / sizeof(StackType_t)] = {0};
     static StaticTask_t controller_buffer = {0};
@@ -277,14 +282,14 @@
     static StackType_t  vn100_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t vn100_buffer = {0};
     static TaskHandle_t vn100_handle = {0};
+    static noret void   openmv(void*);
+    static StackType_t  openmv_stack[8192 / sizeof(StackType_t)] = {0};
+    static StaticTask_t openmv_buffer = {0};
+    static TaskHandle_t openmv_handle = {0};
     static noret void   logger(void*);
     static StackType_t  logger_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t logger_buffer = {0};
     static TaskHandle_t logger_handle = {0};
-    static noret void   diagnostics(void*);
-    static StackType_t  diagnostics_stack[512 / sizeof(StackType_t)] = {0};
-    static StaticTask_t diagnostics_buffer = {0};
-    static TaskHandle_t diagnostics_handle = {0};
     static noret void   god(void*);
     static StackType_t  god_stack[1024 / sizeof(StackType_t)] = {0};
     static StaticTask_t god_buffer = {0};
@@ -296,6 +301,17 @@
     static noret void
     FREERTOS_init(void)
     {
+        diagnostics_handle =
+            xTaskCreateStatic
+            (
+                diagnostics,
+                "diagnostics",
+                countof(diagnostics_stack),
+                nullptr,
+                1,
+                diagnostics_stack,
+                &diagnostics_buffer
+            );
         controller_handle =
             xTaskCreateStatic
             (
@@ -318,6 +334,17 @@
                 vn100_stack,
                 &vn100_buffer
             );
+        openmv_handle =
+            xTaskCreateStatic
+            (
+                openmv,
+                "openmv",
+                countof(openmv_stack),
+                nullptr,
+                0,
+                openmv_stack,
+                &openmv_buffer
+            );
         logger_handle =
             xTaskCreateStatic
             (
@@ -328,17 +355,6 @@
                 0,
                 logger_stack,
                 &logger_buffer
-            );
-        diagnostics_handle =
-            xTaskCreateStatic
-            (
-                diagnostics,
-                "diagnostics",
-                countof(diagnostics_stack),
-                nullptr,
-                1,
-                diagnostics_stack,
-                &diagnostics_buffer
             );
         god_handle =
             xTaskCreateStatic

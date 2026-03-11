@@ -322,8 +322,9 @@ TARGETS = ( # @/`Defining Targets`.
         ),
 
         interrupts = (
-            ('USART2', 0),
-            ('SPI2'  , 1),
+            ('USART2'         , 0),
+            ('SPI2'           , 1),
+            ('GPDMA1_Channel7', 2),
         ),
 
         drivers = (
@@ -868,11 +869,11 @@ TARGETS = ( # @/`Defining Targets`.
             ('battery_allowed'            , 'D0'  , 'OUTPUT'    , { 'initlvl' : False                                        }),
             ('external_detected'          , 'D1'  , 'INPUT'     , { 'pull'    : 'DOWN'                                       }),
             ('openmv_spi_nss'             , 'B12' , 'ALTERNATE' , { 'altfunc' : 'SPI2_NSS'                                   }),
-            ('openmv_spi_clock'           , 'B10' , 'ALTERNATE' , { 'altfunc' : 'SPI2_SCK'                                   }),
-            ('openmv_spi_mosi'            , 'C3'  , 'ALTERNATE' , { 'altfunc' : 'SPI2_MOSI'                                  }),
-            ('openmv_spi_miso'            , 'C2'  , 'ALTERNATE' , { 'altfunc' : 'SPI2_MISO'                                  }),
-            ('openmv_spi_ready'           , 'D5'  , 'ALTERNATE' , { 'altfunc' : 'SPI2_RDY'                                   }),
-            ('openmv_reset'               , 'C15' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False, 'open_drain' : True }),
+            ('openmv_spi_clock'           , 'B10' , 'ALTERNATE' , { 'altfunc' : 'SPI2_SCK' , 'pull' : 'UP'                   }),
+            ('openmv_spi_mosi'            , 'C3'  , 'ALTERNATE' , { 'altfunc' : 'SPI2_MOSI', 'pull' : 'UP'                   }),
+            ('openmv_spi_miso'            , 'C2'  , None        , { 'altfunc' : 'SPI2_MISO'                                  }),
+            ('openmv_spi_ready'           , 'D5'  , None        , { 'altfunc' : 'SPI2_RDY'                                   }),
+            ('openmv_reset'               , 'C15' , 'OUTPUT'    , { 'initlvl' : True, 'active' : False, 'open_drain' : True  }),
             ('motor_uart'                 , 'B14' , 'ALTERNATE' , { 'altfunc' : 'USART1_TX'                                  }),
             ('vehicle_interface_i2c_data' , 'D7'  , 'ALTERNATE' , { 'altfunc' : 'I2C3_SDA', 'open_drain' : True              }),
             ('vehicle_interface_i2c_clock', 'D6'  , 'ALTERNATE' , { 'altfunc' : 'I2C3_SCL', 'open_drain' : True              }),
@@ -887,15 +888,16 @@ TARGETS = ( # @/`Defining Targets`.
         ),
 
         interrupts = (
-            ('USART2' , 0),
-            ('SDMMC1' , 1),
-            ('USART1' , 1),
-            ('USART3' , 1),
+            ('USART2'         , 0),
+            ('USART1'         , 1),
+            ('USART3'         , 1),
+            ('SPI2'           , 1),
+            ('GPDMA1_Channel7', 2),
+            ('TIM1_UP'        , 2),
+            ('TIM8_UP'        , 3),
+            ('SDMMC1'         , 4),
             # TODO: ('I2C3_EV', 1),
             # TODO: ('I2C3_ER', 1),
-            ('TIM1_UP', 2),
-            ('TIM8_UP', 3),
-            # TODO: ('SPI2'   , 4),
         ),
 
         drivers = (
@@ -946,12 +948,11 @@ TARGETS = ( # @/`Defining Targets`.
                 'type'       : 'TIMEKEEPING',
                 'peripheral' : 'TIM2',
             },
-            # TODO.
-            # {
-            #     'type'       : 'SPI',
-            #     'peripheral' : 'SPI2',
-            #     'handle'     : 'openmv',
-            # },
+            {
+                'type'       : 'SPI',
+                'peripheral' : 'SPI2',
+                'handle'     : 'openmv',
+            },
         ),
 
         use_freertos    = True,
@@ -963,7 +964,7 @@ TARGETS = ( # @/`Defining Targets`.
             'PLL1P_CK'            : 250_000_000,
             'PLL1Q_CK'            :  10_000_000,
             'PLL2R_CK'            : 240_000_000,
-            'PLL3P_CK'            :     600_000 * 4,
+            'PLL3P_CK'            :   9_600_000,
             'CPU_CK'              : 250_000_000,
             'APB1_CK'             : 250_000_000,
             'APB2_CK'             : 250_000_000,
@@ -976,7 +977,7 @@ TARGETS = ( # @/`Defining Targets`.
             'USART3_BAUD'         : VN100_BAUD,
             # TODO: 'I2C3_BAUD'           : VEHICLE_INTERFACE_BAUD,
             # TODO: 'I2C3_TIMEOUT'        : 2,
-            # TODO: 'SPI2_BAUD'           : 600_000, # @/`OpenMV SPI Baud`.
+            'SPI2_BAUD'           : 600_000, # @/`OpenMV SPI Baud`.
             'TIM1_UPDATE_RATE'    : 1 / 0.001,
             'TIM2_COUNTER_RATE'   : 1_000_000,
             'TIM8_COUNTER_RATE'   : 1_000_000,

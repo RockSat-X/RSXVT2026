@@ -79,16 +79,6 @@ careful documentation and testing will be done to validate them.
 
 
 
-- `spi.c`
-> The driver for SPI data reception is **production-ready**.
-> The implementation is very narrow in scope,
-> but should be sufficient for our project.
-> Issues concerning usage and behavior of the SPI driver are unlikely.
->
-> \- *Phuc Doan. February 26th, 2026.*
-
-
-
 - `buzzer.c`
 > The buzzer driver is **production-ready**.
 > It's pretty simple.

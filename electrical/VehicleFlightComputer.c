@@ -1,25 +1,29 @@
-#define STEPPER_ENABLE_DELAY_US     500'000
-#define STEPPER_VELOCITY_UPDATE_US  25'000 // @/`Sequence Angular Accelerations Delta Time`.
-#define STEPPER_UART_TIME_MARGIN_US 2'000
-#define STEPPER_RING_BUFFER_LENGTH  8       // TODO Determine latency.
-#define WATCHDOG_DURATION_US        (10 * 60'000'000)
-#define MAX_ANGULAR_ACCELERATION    (200.0f)
-#define MAX_ANGULAR_VELOCITY        (2000.0f * 2.0f * PI / 60.0f)
-#define GOD_MODE                    true
-#define CONTROLLER_ENABLE           false
-#define VN100_ENABLE                true
-#define WATCHDOG_ENABLE             false
+#define STEPPER_ENABLE_DELAY_US          500'000
+#define STEPPER_VELOCITY_UPDATE_US       25'000 // @/`Sequence Angular Accelerations Delta Time`.
+#define STEPPER_UART_TIME_MARGIN_US      2'000
+#define STEPPER_RING_BUFFER_LENGTH       8      // TODO Determine latency.
+#define SPI_BLOCK_SIZE                   64     // @/`OpenMV SPI Block Size`.
+#define SPI_RECEPTION_RING_BUFFER_LENGTH 32
+#define WATCHDOG_DURATION_US             (10 * 60'000'000)
+#define MAX_ANGULAR_ACCELERATION         (200.0f)
+#define MAX_ANGULAR_VELOCITY             (2000.0f * 2.0f * PI / 60.0f)
+#define GOD_MODE                         true
+#define CONTROLLER_ENABLE                true
+#define VN100_ENABLE                     true
+#define OPENMV_ENABLE                    true
+#define WATCHDOG_ENABLE                  false
+#define TRANSMIT_TV                      false
 
 #include "system.h"
 #include "timekeeping.c"
 #include "uxart.c"
+#include "spi.c"
 #include "sd.c"
 #include "filesystem.c"
 #include "stepper.c"
 #include "buzzer.c"
 #include "gnc.c"
 
-// TODO Check if we've been able to control the stepper driver.
 // TODO Check if we've been receiving OpenMV data.
 // TODO Check if ESP32 still working.
 
@@ -29,33 +33,41 @@
 
 
 
-enum DiagnosticMask : u32 // Lower the bit-index, higher the priority.
+enum OpenMVImageState : u32
 {
-    DiagnosticMask_stepper_driver_issue       = 1 << 0,
-    DiagnosticMask_angular_velocity_saturated = 1 << 1,
-    DiagnosticMask_wiping_filesystem          = 1 << 2,
-    DiagnosticMask_vn100_mishap               = 1 << 3,
-    DiagnosticMask_logging_mishap             = 1 << 4,
-    DiagnosticMask_vn100_heartbeat            = 1 << 5,
-    DiagnosticMask_logging_heartbeat          = 1 << 6,
+    OpenMVImageState_empty,
+    OpenMVImageState_filling,
+    OpenMVImageState_filled,
+    OpenMVImageState_using,
 };
+
+struct OpenMVImage
+{
+    volatile _Atomic enum OpenMVImageState state;
+    u8                                     bytes[16 * 1024]; // Average ~3 KiB when using YUV422, QSIF, 50% quality.
+    i32                                    size;
+};
+
+
 
 static struct
 {
 
-    RingBuffer(struct VN100Packet, 4) vn100_packets;
-    volatile struct StepperTuple      current_angular_accelerations;
-    volatile struct StepperTuple      current_angular_velocities;
+    RingBuffer(struct VN100Packet    , 8) vn100_packets;
+    RingBuffer(struct OpenMVPacketGNC, 8) openmv_gnc_packets;
+    volatile struct StepperTuple          current_angular_accelerations;
+    volatile struct StepperTuple          current_angular_velocities;
 
     #if GOD_MODE
-    volatile u32 replay_sequence_number;
+        volatile u32 replay_sequence_number;
     #endif
 
 } CONTROLLER = {0};
 
 static struct
 {
-    RingBuffer(struct VN100Packet, 4) vn100_packets;
+    RingBuffer(struct VN100Packet    , 8) vn100_packets;
+    RingBuffer(struct OpenMVPacketGNC, 8) openmv_gnc_packets;
 } LOGGER = {0};
 
 static struct
@@ -63,6 +75,11 @@ static struct
     volatile _Atomic b32 magnetic_disturbance_exists;
     volatile _Atomic b32 acceleration_disturbance_exists;
 } VN100 = {0};
+
+static struct
+{
+    struct OpenMVImage openmv_image;
+} ESP32 = {0};
 
 
 
@@ -115,6 +132,197 @@ main(void)
     // Begin the FreeRTOS task scheduler.
 
     FREERTOS_init();
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+enum DiagnosticLEDBehavior : u32
+{
+    DiagnosticLEDBehavior_inactive,
+    DiagnosticLEDBehavior_active,
+    DiagnosticLEDBehavior_toggle,
+};
+
+#include "VehicleFlightComputer_diagnostics.meta"
+/* #meta
+
+    DIAGNOSTICS = ( # Ordered from highest priority to lowest priority.
+        ('stepper_driver_issue'      , 'ambulance' , ('toggle'  , 'inactive', 'inactive'),  25),
+        ('angular_velocity_saturated', 'heartbeat' , ('toggle'  , 'inactive', 'inactive'), 500),
+        ('wiping_filesystem'         , 'tetris'    , ('toggle'  , 'inactive', 'toggle'  ), 100),
+        ('openmv_mishap'             , 'three_tone', ('toggle'  , 'toggle'  , 'toggle'  ),  25),
+        ('vn100_mishap'              , 'hazard'    , ('inactive', 'inactive', 'toggle'  ),  25),
+        ('logging_mishap'            , 'heavy_beep', ('toggle'  , 'inactive', 'toggle'  ), 100),
+        ('vn100_heartbeat'           , 'burp'      , ('inactive', 'inactive', 'active'  ), 100),
+        ('logging_heartbeat'         , 'chirp'     , ('inactive', 'active'  , 'inactive'), 100),
+    )
+
+    Meta.enums('DiagnosticMask', 'u32', (
+        (name, f'1 << {diagnostic_i}')
+        for diagnostic_i, (name, tune, (behavior_red, behavior_green, behavior_blue), delay_ms) in enumerate(DIAGNOSTICS)
+    ))
+
+    Meta.lut('DIAGNOSTIC_TABLE', ((
+        (
+            ('tune'          , f'BuzzerTune_{tune}'                     ),
+            ('behavior_red'  , f'DiagnosticLEDBehavior_{behavior_red  }'),
+            ('behavior_green', f'DiagnosticLEDBehavior_{behavior_green}'),
+            ('behavior_blue' , f'DiagnosticLEDBehavior_{behavior_blue }'),
+            ('delay_ms'      , f'{delay_ms}U'                           ),
+        )
+        for diagnostic_i, (name, tune, (behavior_red, behavior_green, behavior_blue), delay_ms) in enumerate(DIAGNOSTICS)
+    )))
+
+*/
+
+FREERTOS_TASK(diagnostics, 512, 1)
+{
+
+    u32 current_flags = 0;
+
+    for (;;)
+    {
+
+
+
+        // Check and wait for there to be a new diagnostic to handle.
+
+        b32 waiting = false;
+
+        do
+        {
+
+            u32 new_flags = {0};
+
+            BaseType_t got_notification =
+                xTaskNotifyWait
+                (
+                    0,
+                    (u32) -1, // Immediately acknowledge the new diagnostics.
+                    (uint32_t*) &new_flags,
+                    waiting ? 100 : 0
+                );
+
+            if (got_notification)
+            {
+                current_flags |= new_flags;
+            }
+
+            waiting = true;
+
+        }
+        while (!current_flags);
+
+
+
+        // Handle the highest priority diagnostic with buzzer tunes and blinking LEDs.
+
+        enum DiagnosticMask current_diagnostic = current_flags & -current_flags;
+
+        GPIO_INACTIVE(led_channel_red  );
+        GPIO_INACTIVE(led_channel_green);
+        GPIO_INACTIVE(led_channel_blue );
+
+        if (current_diagnostic && __builtin_ctz(current_diagnostic) < countof(DIAGNOSTIC_TABLE))
+        {
+
+            auto info = &DIAGNOSTIC_TABLE[__builtin_ctz(current_diagnostic)];
+
+            BUZZER_play(info->tune);
+
+            while (BUZZER_current_tune())
+            {
+
+
+
+                // Control the LEDs.
+
+                switch (info->behavior_red)
+                {
+                    case DiagnosticLEDBehavior_inactive : GPIO_INACTIVE(led_channel_red); break;
+                    case DiagnosticLEDBehavior_active   : GPIO_ACTIVE  (led_channel_red); break;
+                    case DiagnosticLEDBehavior_toggle   : GPIO_TOGGLE  (led_channel_red); break;
+                    default                             : sus;
+                }
+
+                switch (info->behavior_green)
+                {
+                    case DiagnosticLEDBehavior_inactive : GPIO_INACTIVE(led_channel_green); break;
+                    case DiagnosticLEDBehavior_active   : GPIO_ACTIVE  (led_channel_green); break;
+                    case DiagnosticLEDBehavior_toggle   : GPIO_TOGGLE  (led_channel_green); break;
+                    default                             : sus;
+                }
+
+                switch (info->behavior_blue)
+                {
+                    case DiagnosticLEDBehavior_inactive : GPIO_INACTIVE(led_channel_blue); break;
+                    case DiagnosticLEDBehavior_active   : GPIO_ACTIVE  (led_channel_blue); break;
+                    case DiagnosticLEDBehavior_toggle   : GPIO_TOGGLE  (led_channel_blue); break;
+                    default                             : sus;
+                }
+
+
+
+                // See if there's a new higher priority diagnostic we should handle.
+
+                u32 new_flags = 0;
+
+                BaseType_t got_notification =
+                    xTaskNotifyWait
+                    (
+                        0,
+                        (u32) -1, // Immediately acknowledge the new diagnostics.
+                        (uint32_t*) &new_flags,
+                        0
+                    );
+
+                if (got_notification)
+                {
+                    current_flags |= new_flags; // Add the new diagnostics to the list of existing ones to process.
+                }
+
+                enum DiagnosticMask new_diagnostic = current_flags & -current_flags;
+
+                if (new_diagnostic == current_diagnostic)
+                {
+
+                    // Although `xTaskNotifyWait` has a time-out argument that could be used
+                    // as a delay that can also be interrupted early when there's a notification,
+                    // it's possible that a task set the same diagnostic repeatedly over and
+                    // over again to which a delay never really happens. By using a regular
+                    // task delay here, we're making things slightly less responsive because
+                    // the delay won't allow for the `diagnostics` task to handle a new
+                    // diagnostic of higher priority, but since this is literally just for
+                    // diagnostics, it's okay.
+
+                    FREERTOS_delay_ms(info->delay_ms);
+
+                }
+                else
+                {
+                    break; // There's a new diagnostic of higher priority that we should handle.
+                }
+
+            }
+
+        }
+        else
+        {
+            sus; // Invalid diagnostic..?
+        }
+
+        GPIO_INACTIVE(led_channel_red  );
+        GPIO_INACTIVE(led_channel_green);
+        GPIO_INACTIVE(led_channel_blue );
+
+        current_flags &= ~current_diagnostic; // Acknowledge the completion of the diagnostic.
+
+    }
 
 }
 
@@ -991,6 +1199,308 @@ FREERTOS_TASK(vn100, 8192, 0)
 
 
 
+static useret b32
+openmv_use_image(struct OpenMVImage* image)
+{
+
+    if (!image)
+        sus;
+
+    b32 observed_image_state =
+        atomic_load_explicit
+        (
+            &image->state,
+            memory_order_acquire
+        );
+
+    switch (observed_image_state)
+    {
+
+        case OpenMVImageState_empty:
+        case OpenMVImageState_filling:
+        {
+            return false; // No image data available.
+        } break;
+
+        case OpenMVImageState_filled:
+        {
+
+            atomic_store_explicit
+            (
+                &image->state,
+                OpenMVImageState_using,
+                memory_order_release
+            );
+
+            return true; // User can read the image data now.
+
+        } break;
+
+        case OpenMVImageState_using:
+        {
+
+            atomic_store_explicit
+            (
+                &image->state,
+                OpenMVImageState_empty,
+                memory_order_release
+            );
+
+            return false; // The image data has been freed up.
+
+        } break;
+
+        default:
+        {
+            sus;
+            memzero(image);
+            return false; // Weird...
+        } break;
+
+    }
+
+}
+
+static void
+openmv_process_packet_for_image(struct OpenMVImage* image, struct OpenMVPacket* packet)
+{
+
+    if (!image)
+        sus;
+
+    if (!packet)
+        sus;
+
+    b32 observed_image_state =
+        atomic_load_explicit
+        (
+            &image->state,
+            memory_order_acquire
+        );
+
+    switch (observed_image_state)
+    {
+
+        case OpenMVImageState_empty:
+        {
+            if (packet->sequence_number == 0) // @/`OpenMV Sequence Number`.
+            {
+
+                image->size = 0;
+
+                atomic_store_explicit
+                (
+                    &image->state,
+                    OpenMVImageState_filling, // We've resynchronized with the OpenMV and can get the next image.
+                    memory_order_release
+                );
+
+            }
+        } break;
+
+        case OpenMVImageState_filling:
+        {
+            if (packet->sequence_number == 0) // @/`OpenMV Sequence Number`.
+            {
+
+                // We're now done collecting the image data,
+                // although whether or not it's the entire image intact is a different question.
+                // Note that because we're currently not double-buffering the images,
+                // we can only process every other imagee at most. This should be
+                // fine given that the bottle-neck will likely be in the RF transmission.
+
+                atomic_store_explicit
+                (
+                    &image->state,
+                    OpenMVImageState_filled,
+                    memory_order_release
+                );
+
+            }
+            else if
+            (
+                packet->sequence_number == image->size / sizeof(packet->image.bytes) + 1 &&
+                image->size + sizeof(packet->image.bytes) <= sizeof(image->bytes)
+            )
+            {
+
+                memmove // Append the new data to the image data we got so far.
+                (
+                    image->bytes + image->size,
+                    packet->image.bytes,
+                    sizeof(packet->image.bytes)
+                );
+
+                image->size += sizeof(packet->image.bytes);
+
+            }
+            else // We missed a packet or ran out of buffer space.
+            {
+                atomic_store_explicit
+                (
+                    &image->state,
+                    OpenMVImageState_empty, // Just invalidate the image data we got so far.
+                    memory_order_release
+                );
+            }
+        } break;
+
+        case OpenMVImageState_filled:
+        case OpenMVImageState_using:
+        {
+            // Nothing we can do until the consumer is done with the image data.
+        } break;
+
+        default:
+        {
+            sus;
+            memzero(image);
+        } break;
+
+    }
+
+}
+
+FREERTOS_TASK(openmv, 8192, 0)
+{
+
+#if OPENMV_ENABLE
+
+    for (;;)
+    {
+
+        // Reset the OpenMV for a bit...
+
+        GPIO_ACTIVE(openmv_reset);
+        FREERTOS_delay_ms(10);
+
+
+
+        // Reboot our SPI communication...
+
+        SPI_reinit(SPIHandle_openmv);
+
+
+
+        // Reawaken the OpenMV!
+
+        FREERTOS_delay_ms(10);
+        GPIO_INACTIVE(openmv_reset);
+
+
+
+        // Start processing packet data from the OpenMV.
+
+        u32 most_recent_gnc_packet_timestamp_us = TIMEKEEPING_microseconds();
+
+        while (true)
+        {
+
+            static_assert(sizeof(struct OpenMVPacket) == sizeof(struct SPIBlock));
+
+            u32                  current_timestamp_us = TIMEKEEPING_microseconds();
+            struct OpenMVPacket* packet               = (struct OpenMVPacket*) RingBuffer_reading_pointer(SPI_reception(SPIHandle_openmv));
+
+            if (packet)
+            {
+
+                // Determine if the packet correspond to GNC data.
+
+                if (packet->sequence_number == 0) // @/`OpenMV Sequence Number`.
+                {
+
+                    most_recent_gnc_packet_timestamp_us = current_timestamp_us;
+
+                    if (!RingBuffer_push(&CONTROLLER.openmv_gnc_packets, &packet->gnc))
+                    {
+                        // OpenMV data overrun!
+                    }
+
+                    if (!RingBuffer_push(&LOGGER.openmv_gnc_packets, &packet->gnc))
+                    {
+                        // OpenMV data overrun, but it's for the logger; who cares.
+                    }
+
+                }
+
+
+
+                // If applicable and possible, have the packet's
+                // image data be queued up for RF transmission.
+
+                openmv_process_packet_for_image(&ESP32.openmv_image, packet);
+
+
+
+                // For diagnostic purposes, we can also redirect the image
+                // data to the ST-Link to be viewed in real-time-ish.
+
+                #if TRANSMIT_TV
+                {
+
+                    static struct OpenMVImage tv_image = {0};
+
+                    openmv_process_packet_for_image(&tv_image, packet);
+
+                    if (openmv_use_image(&tv_image))
+                    {
+                        stlink_tx(TV_TOKEN_START);
+                        UXART_tx_bytes(UXARTHandle_stlink, tv_image.bytes, tv_image.size);
+                        stlink_tx(TV_TOKEN_END);
+                    }
+
+                }
+                #endif
+
+
+
+                // Acknowledge the packet.
+
+                if (!RingBuffer_pop(SPI_reception(SPIHandle_openmv), nullptr))
+                    sus;
+
+            }
+            else if (current_timestamp_us - most_recent_gnc_packet_timestamp_us < 5'000'000)
+            {
+                FREERTOS_delay_ms(1); // Keep waiting...
+            }
+            else
+            {
+                break; // We haven't received valid GNC data from OpenMV in a while... maybe bricked?
+            }
+
+        }
+
+
+
+        // Something went wrong... we're going to have to reinitialize the OpenMV camera...
+
+        xTaskNotify
+        (
+            diagnostics_handle,
+            DiagnosticMask_openmv_mishap,
+            eSetBits
+        );
+
+    }
+
+#else
+
+    for (;;)
+    {
+        FREERTOS_delay_ms(1'000);
+    }
+
+#endif
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
 FREERTOS_TASK(logger, 8192, 0)
 {
 
@@ -1106,9 +1616,11 @@ FREERTOS_TASK(logger, 8192, 0)
 
             // Make the log entry.
 
-            u32                current_timestamp_us = TIMEKEEPING_microseconds();
-            struct VN100Packet vn100_packet_data    = {0};
-            b32                vn100_packet_exist   = RingBuffer_pop_to_latest(&LOGGER.vn100_packets, &vn100_packet_data);
+            u32                    current_timestamp_us    = TIMEKEEPING_microseconds();
+            struct VN100Packet     vn100_packet_data       = {0};
+            b32                    vn100_packet_exist      = RingBuffer_pop_to_latest(&LOGGER.vn100_packets, &vn100_packet_data);
+            struct OpenMVPacketGNC openmv_gnc_packet_data  = {0};
+            b32                    openmv_gnc_packet_exist = RingBuffer_pop_to_latest(&LOGGER.openmv_gnc_packets, &openmv_gnc_packet_data);
 
             i32 log_entry_length =
                 snprintf_
@@ -1199,19 +1711,43 @@ FREERTOS_TASK(logger, 8192, 0)
 
             // Also send the log out through the ST-Link periodically for convenience.
 
-            if (current_timestamp_us - most_recent_stlink_log_timestamp_us >= 250'000)
+            #if !TRANSMIT_TV // Can't conflict with sending image data over ST-Link.
             {
+                if (current_timestamp_us - most_recent_stlink_log_timestamp_us >= 250'000)
+                {
 
-                most_recent_stlink_log_timestamp_us = current_timestamp_us;
+                    most_recent_stlink_log_timestamp_us = current_timestamp_us;
 
-                stlink_tx
-                (
-                    "%.*s",
-                    log_entry_length,
-                    working_sectors[0].bytes
-                );
+                    stlink_tx
+                    (
+                        "%.*s",
+                        log_entry_length,
+                        working_sectors[0].bytes
+                    );
 
+                    if (openmv_gnc_packet_exist) // TODO Better output...?
+                    {
+                        stlink_tx
+                        (
+                            "attitude_x                         : %f" "\n"
+                            "attitude_y                         : %f" "\n"
+                            "attitude_z                         : %f" "\n"
+                            "attitude_w                         : %f" "\n"
+                            "computer_vision_processing_time_ms : %u" "\n"
+                            "computer_vision_confidence         : %u" "\n"
+                            "\n",
+                            openmv_gnc_packet_data.attitude_x,
+                            openmv_gnc_packet_data.attitude_y,
+                            openmv_gnc_packet_data.attitude_z,
+                            openmv_gnc_packet_data.attitude_w,
+                            openmv_gnc_packet_data.computer_vision_processing_time_ms,
+                            openmv_gnc_packet_data.computer_vision_confidence
+                        );
+                    }
+
+                }
             }
+            #endif
 
 
 
@@ -1295,243 +1831,6 @@ FREERTOS_TASK(logger, 8192, 0)
             }
 
         }
-
-    }
-
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-static b32
-diagnostics_delay_ms(u32* current_flags, u32 milliseconds)
-{
-
-    u32 new_flags = 0;
-
-    BaseType_t got_notification =
-        xTaskNotifyWait
-        (
-            0,
-            (u32) -1, // Immediately acknowledge the new diagnostics.
-            (uint32_t*) &new_flags,
-            0
-        );
-
-    enum DiagnosticMask old_diagnostic = *current_flags & -*current_flags;
-
-    if (got_notification)
-    {
-        *current_flags |= new_flags; // Add the new diagnostics to the list of existing ones to process.
-    }
-
-    enum DiagnosticMask new_diagnostic = *current_flags & -*current_flags;
-
-    if (new_diagnostic == old_diagnostic)
-    {
-
-        // Although `xTaskNotifyWait` has a time-out argument that could be used
-        // as a delay that can also be interrupted early when there's a notification,
-        // it's possible that a task set the same diagnostic repeatedly over and
-        // over again to which a delay never really happens. By using a regular
-        // task delay here, we're making things slightly less responsive because
-        // the delay won't allow for the `diagnostics` task to handle a new
-        // diagnostic of higher priority, but since this is literally just for
-        // diagnostics, it's okay.
-
-        FREERTOS_delay_ms(milliseconds);
-
-        return false;
-
-    }
-    else
-    {
-        return true; // There's a new diagnostic of higher priority that we should handle.
-    }
-
-}
-
-FREERTOS_TASK(diagnostics, 512, 1)
-{
-
-    u32 current_flags = 0;
-
-    for (;;)
-    {
-
-        diagnostics_delay_ms(&current_flags, 0); // To update `current_flags`.
-
-        while (!current_flags) // Wait until we get a diagnostic to handle.
-        {
-            diagnostics_delay_ms(&current_flags, 100);
-        }
-
-        enum DiagnosticMask current_diagnostic = current_flags & -current_flags;
-
-        switch (current_diagnostic)
-        {
-
-            case DiagnosticMask_stepper_driver_issue:
-            {
-
-                BUZZER_play(BuzzerTune_ambulance);
-
-                while (BUZZER_current_tune())
-                {
-
-                    GPIO_TOGGLE  (led_channel_red  );
-                    GPIO_INACTIVE(led_channel_green);
-                    GPIO_INACTIVE(led_channel_blue );
-
-                    if (diagnostics_delay_ms(&current_flags, 25))
-                    {
-                        goto END_OF_DIAGNOSTIC;
-                    }
-
-                }
-
-            } break;
-
-            case DiagnosticMask_vn100_mishap:
-            {
-
-                BUZZER_play(BuzzerTune_hazard);
-
-                while (BUZZER_current_tune())
-                {
-
-                    GPIO_INACTIVE(led_channel_red  );
-                    GPIO_INACTIVE(led_channel_green);
-                    GPIO_TOGGLE  (led_channel_blue );
-
-                    if (diagnostics_delay_ms(&current_flags, 25))
-                    {
-                        goto END_OF_DIAGNOSTIC;
-                    }
-
-                }
-
-            } break;
-
-            case DiagnosticMask_angular_velocity_saturated:
-            {
-
-                BUZZER_play(BuzzerTune_heartbeat);
-
-                while (BUZZER_current_tune())
-                {
-
-                    GPIO_TOGGLE  (led_channel_red  );
-                    GPIO_INACTIVE(led_channel_green);
-                    GPIO_INACTIVE(led_channel_blue );
-
-                    if (diagnostics_delay_ms(&current_flags, 500))
-                    {
-                        goto END_OF_DIAGNOSTIC;
-                    }
-
-                }
-
-            } break;
-
-            case DiagnosticMask_logging_mishap:
-            {
-
-                BUZZER_play(BuzzerTune_heavy_beep);
-
-                while (BUZZER_current_tune())
-                {
-
-                    GPIO_TOGGLE  (led_channel_red  );
-                    GPIO_INACTIVE(led_channel_green);
-                    GPIO_TOGGLE  (led_channel_blue );
-
-                    if (diagnostics_delay_ms(&current_flags, 100))
-                    {
-                        goto END_OF_DIAGNOSTIC;
-                    }
-
-                }
-
-            } break;
-
-            case DiagnosticMask_logging_heartbeat:
-            {
-
-                BUZZER_play(BuzzerTune_chirp);
-
-                GPIO_INACTIVE(led_channel_red  );
-                GPIO_ACTIVE  (led_channel_green);
-                GPIO_INACTIVE(led_channel_blue );
-
-                while (BUZZER_current_tune())
-                {
-                    if (diagnostics_delay_ms(&current_flags, 100))
-                    {
-                        goto END_OF_DIAGNOSTIC;
-                    }
-                }
-
-            } break;
-
-            case DiagnosticMask_vn100_heartbeat:
-            {
-
-                BUZZER_play(BuzzerTune_burp);
-
-                GPIO_INACTIVE(led_channel_red  );
-                GPIO_INACTIVE(led_channel_green);
-                GPIO_ACTIVE  (led_channel_blue );
-
-                while (BUZZER_current_tune())
-                {
-                    if (diagnostics_delay_ms(&current_flags, 100))
-                    {
-                        goto END_OF_DIAGNOSTIC;
-                    }
-                }
-
-            } break;
-
-            case DiagnosticMask_wiping_filesystem:
-            {
-
-                BUZZER_play(BuzzerTune_tetris);
-
-                GPIO_ACTIVE(led_channel_red  );
-                GPIO_ACTIVE(led_channel_green);
-                GPIO_ACTIVE(led_channel_blue );
-
-                while (BUZZER_current_tune())
-                {
-
-                    GPIO_TOGGLE(led_channel_red  );
-                    GPIO_TOGGLE(led_channel_green);
-                    GPIO_TOGGLE(led_channel_blue );
-
-                    if (diagnostics_delay_ms(&current_flags, 100))
-                    {
-                        goto END_OF_DIAGNOSTIC;
-                    }
-
-                }
-
-            } break;
-
-            default: sus;
-
-        }
-
-        END_OF_DIAGNOSTIC:;
-
-        current_flags &= ~current_diagnostic; // Acknowledge the completion of the diagnostic.
-
-        GPIO_INACTIVE(led_channel_red  );
-        GPIO_INACTIVE(led_channel_green);
-        GPIO_INACTIVE(led_channel_blue );
 
     }
 

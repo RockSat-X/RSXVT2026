@@ -1,4 +1,5 @@
-#define SPI_BLOCK_SIZE 64
+#define SPI_BLOCK_SIZE                   64
+#define SPI_RECEPTION_RING_BUFFER_LENGTH 32
 
 #include "system.h"
 #include "uxart.c"
@@ -49,7 +50,7 @@ main(void)
     for (;;)
     {
 
-        SPIBlock block_data = {0};
+        struct SPIBlock block_data = {0};
 
         if (RingBuffer_pop(SPI_reception(SPIHandle_primary), &block_data))
         {
@@ -58,11 +59,11 @@ main(void)
 
             stlink_tx("[%d]\n", block_index);
 
-            for (i32 i = 0; i < countof(block_data) / 16; i += 1)
+            for (i32 i = 0; i < countof(block_data.bytes) / 16; i += 1)
             {
                 for (i32 j = 0; j < 16; j += 1)
                 {
-                    stlink_tx("0x%02X ", block_data[i]);
+                    stlink_tx("0x%02X ", block_data.bytes[i]);
                 }
                 stlink_tx("\n");
             }
