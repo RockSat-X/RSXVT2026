@@ -322,7 +322,19 @@ loop(void)
 
         last_statistic_timestamp_ms = current_timestamp_ms;
 
-        Serial.printf("MAC Address : { 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X }"        "\n", WiFi.macAddress()[0], WiFi.macAddress()[1], WiFi.macAddress()[2], WiFi.macAddress()[3], WiFi.macAddress()[4], WiFi.macAddress()[5]);
+        u64 mac_address = ESP.getEfuseMac();
+
+        Serial.printf
+        (
+            "MAC address                                             : { 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X }" "\n",
+            (int) ((mac_address >> (0 * 8)) & 0xFF),
+            (int) ((mac_address >> (1 * 8)) & 0xFF),
+            (int) ((mac_address >> (2 * 8)) & 0xFF),
+            (int) ((mac_address >> (3 * 8)) & 0xFF),
+            (int) ((mac_address >> (4 * 8)) & 0xFF),
+            (int) ((mac_address >> (5 * 8)) & 0xFF)
+        );
+
         Serial.printf("(ESP32) Payload bytes received                          : %u"   " bytes" "\n", packet_esp32_bytes_received);
         Serial.printf("(ESP32) Average throughput since power-on               : %.0f" " KiB/s" "\n", packet_esp32_bytes_received / (millis() / 1000.0f) / 1024.0f);
         Serial.printf("(ESP32) Packets of invalid length so far                : %d"            "\n", packet_esp32_invalid_length_count);
