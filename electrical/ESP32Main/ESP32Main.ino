@@ -17,19 +17,19 @@ static i32                packet_lora_crc_error_count       = 0;
 #endif
 
 #if ESPNOW_ENABLE
-static struct PacketESP32 packet_esp32_buffer[128]          = {};
-static volatile u32       packet_esp32_writer               = 0;
-static volatile u32       packet_esp32_reader               = 0;
-static volatile i32       packet_esp32_invalid_length_count = 0;
-static volatile i32       packet_esp32_overrun_count        = 0;
-static i32                packet_esp32_crc_error_count      = 0;
+static struct PacketESP32 packet_espnow_buffer[128]          = {};
+static volatile u32       packet_espnow_writer               = 0;
+static volatile u32       packet_espnow_reader               = 0;
+static volatile i32       packet_espnow_invalid_length_count = 0;
+static volatile i32       packet_espnow_overrun_count        = 0;
+static i32                packet_espnow_crc_error_count      = 0;
 #endif
 
 
 
 #if ESPNOW_ENABLE
 extern void
-packet_esp32_reception_callback
+packet_espnow_reception_callback
 (
     const esp_now_recv_info* info,
     const u8*                received_data,
@@ -41,16 +41,16 @@ packet_esp32_reception_callback
 
     if (received_amount != sizeof(struct PacketESP32))
     {
-        packet_esp32_invalid_length_count += 1;
+        packet_espnow_invalid_length_count += 1;
     }
 
 
 
     // Not enough space in the ring-buffer?
 
-    else if (packet_esp32_writer - packet_esp32_reader >= countof(packet_esp32_buffer))
+    else if (packet_espnow_writer - packet_espnow_reader >= countof(packet_espnow_buffer))
     {
-        packet_esp32_overrun_count += 1;
+        packet_espnow_overrun_count += 1;
     }
 
 
@@ -60,11 +60,11 @@ packet_esp32_reception_callback
     else
     {
 
-        struct PacketESP32* packet = &packet_esp32_buffer[packet_esp32_writer % countof(packet_esp32_buffer)];
+        struct PacketESP32* packet = &packet_espnow_buffer[packet_espnow_writer % countof(packet_espnow_buffer)];
 
         memmove(packet, received_data, sizeof(*packet));
 
-        packet_esp32_writer += 1;
+        packet_espnow_writer += 1;
 
     }
 
@@ -108,7 +108,7 @@ setup(void)
 
         common_init_esp_now();
 
-        esp_now_register_recv_cb(packet_esp32_reception_callback);
+        esp_now_register_recv_cb(packet_espnow_reception_callback);
 
     }
     #endif
@@ -144,9 +144,9 @@ loop(void)
     digitalWrite(BUILTIN_LED, !digitalRead(BUILTIN_LED));
 
     #if ESPNOW_ENABLE
-    static u32 packet_esp32_bytes_received                    = 0;
-    static i32 packet_esp32_consecutive_sequence_number_count = 0;
-    static i32 packet_esp32_broken_sequence_number_count      = 0;
+    static u32 packet_espnow_bytes_received                    = 0;
+    static i32 packet_espnow_consecutive_sequence_number_count = 0;
+    static i32 packet_espnow_broken_sequence_number_count      = 0;
     #endif
 
     #if LORA_ENABLE
@@ -222,10 +222,10 @@ loop(void)
 
     #if ESPNOW_ENABLE
     {
-        if (packet_esp32_reader != packet_esp32_writer)
+        if (packet_espnow_reader != packet_espnow_writer)
         {
 
-            struct PacketESP32* packet = &packet_esp32_buffer[packet_esp32_reader % countof(packet_esp32_buffer)];
+            struct PacketESP32* packet = &packet_espnow_buffer[packet_espnow_reader % countof(packet_espnow_buffer)];
 
 
 
@@ -235,7 +235,7 @@ loop(void)
 
             if (digest)
             {
-                packet_esp32_crc_error_count += 1;
+                packet_espnow_crc_error_count += 1;
             }
             else
             {
@@ -246,12 +246,12 @@ loop(void)
 
                 if (packet->nonredundant.sequence_number == expected_sequence_number)
                 {
-                    packet_esp32_consecutive_sequence_number_count += 1;
+                    packet_espnow_consecutive_sequence_number_count += 1;
                 }
                 else
                 {
                     expected_sequence_number                   = packet->nonredundant.sequence_number;
-                    packet_esp32_broken_sequence_number_count += 1;
+                    packet_espnow_broken_sequence_number_count += 1;
                 }
 
                 expected_sequence_number += 1;
@@ -260,7 +260,7 @@ loop(void)
 
                 // Count the amount of data we got.
 
-                packet_esp32_bytes_received += sizeof(*packet);
+                packet_espnow_bytes_received += sizeof(*packet);
 
 
 
@@ -276,7 +276,7 @@ loop(void)
 
             // We're done with the packet.
 
-            packet_esp32_reader += 1;
+            packet_espnow_reader += 1;
 
         }
     }
@@ -376,13 +376,13 @@ loop(void)
 
         #if ESPNOW_ENABLE
         {
-            Serial.printf("(ESP32) Payload bytes received                          : %u"   " bytes" "\n", packet_esp32_bytes_received);
-            Serial.printf("(ESP32) Average throughput since power-on               : %.0f" " KiB/s" "\n", packet_esp32_bytes_received / (millis() / 1000.0f) / 1024.0f);
-            Serial.printf("(ESP32) Packets of invalid length so far                : %d"            "\n", packet_esp32_invalid_length_count);
-            Serial.printf("(ESP32) Packets dropped from ring-buffer so far         : %d"            "\n", packet_esp32_overrun_count);
-            Serial.printf("(ESP32) Packets with consecutive sequence number so far : %d"            "\n", packet_esp32_consecutive_sequence_number_count);
-            Serial.printf("(ESP32) Packets with broken sequence number so far      : %d"            "\n", packet_esp32_broken_sequence_number_count);
-            Serial.printf("(ESP32) Packets with checksum error so far              : %d"            "\n", packet_esp32_crc_error_count);
+            Serial.printf("(ESP32) Payload bytes received                          : %u"   " bytes" "\n", packet_espnow_bytes_received);
+            Serial.printf("(ESP32) Average throughput since power-on               : %.0f" " KiB/s" "\n", packet_espnow_bytes_received / (millis() / 1000.0f) / 1024.0f);
+            Serial.printf("(ESP32) Packets of invalid length so far                : %d"            "\n", packet_espnow_invalid_length_count);
+            Serial.printf("(ESP32) Packets dropped from ring-buffer so far         : %d"            "\n", packet_espnow_overrun_count);
+            Serial.printf("(ESP32) Packets with consecutive sequence number so far : %d"            "\n", packet_espnow_consecutive_sequence_number_count);
+            Serial.printf("(ESP32) Packets with broken sequence number so far      : %d"            "\n", packet_espnow_broken_sequence_number_count);
+            Serial.printf("(ESP32) Packets with checksum error so far              : %d"            "\n", packet_espnow_crc_error_count);
         }
         #endif
 
