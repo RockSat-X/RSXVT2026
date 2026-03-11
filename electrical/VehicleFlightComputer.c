@@ -1542,7 +1542,7 @@ FREERTOS_TASK(openmv, 8192, 0)
 FREERTOS_TASK(logger, 8192, 0)
 {
 
-    static struct Sector working_sectors[8]         = {0};
+    static struct Sector working_sectors[2]         = {0};
     b32                  completely_wipe_filesystem = false;
 
     for (;;)
@@ -1663,8 +1663,8 @@ FREERTOS_TASK(logger, 8192, 0)
             i32 log_entry_length =
                 snprintf_
                 (
-                    (char*) working_sectors[0].bytes,
-                    countof(working_sectors[0].bytes),
+                    (char*) working_sectors,
+                    sizeof(working_sectors),
                     "[%u us]"                             "\n"
                     "Ang. accel.    : <%.3f, %.3f, %.3f>" "\n"
                     "Ang. velocity  : <%.3f, %.3f, %.3f>" "\n"
@@ -1680,6 +1680,12 @@ FREERTOS_TASK(logger, 8192, 0)
                     "Ext. power     : %s"                 "\n"
                     "VNKMD          : %s"                 "\n"
                     "VNKAD          : %s"                 "\n"
+                    "attitude_x     : %f"                 "\n"
+                    "attitude_y     : %f"                 "\n"
+                    "attitude_z     : %f"                 "\n"
+                    "attitude_w     : %f"                 "\n"
+                    "CV processing  : %d ms"              "\n"
+                    "CV confidence  : %d"                 "\n"
                     "\n",
                     current_timestamp_us,
                     CONTROLLER.current_angular_accelerations.values[StepperUnit_axis_x],
@@ -1710,7 +1716,13 @@ FREERTOS_TASK(logger, 8192, 0)
                     vn100_packet_exist ? vn100_packet_data.GyroZ  : NAN,
                     GPIO_READ(external_detected)          ? "Yes" : "No",
                     VN100.magnetic_disturbance_exists     ? "Yes" : "No",
-                    VN100.acceleration_disturbance_exists ? "Yes" : "No"
+                    VN100.acceleration_disturbance_exists ? "Yes" : "No",
+                    openmv_gnc_packet_exist ? openmv_gnc_packet_data.attitude_x                         : NAN,
+                    openmv_gnc_packet_exist ? openmv_gnc_packet_data.attitude_y                         : NAN,
+                    openmv_gnc_packet_exist ? openmv_gnc_packet_data.attitude_z                         : NAN,
+                    openmv_gnc_packet_exist ? openmv_gnc_packet_data.attitude_w                         : NAN,
+                    openmv_gnc_packet_exist ? openmv_gnc_packet_data.computer_vision_processing_time_ms : -1,
+                    openmv_gnc_packet_exist ? openmv_gnc_packet_data.computer_vision_confidence         : -1
                 );
 
 
@@ -1719,6 +1731,7 @@ FREERTOS_TASK(logger, 8192, 0)
 
             if (log_entry_length <= -1)
             {
+                sus;
                 log_entry_length = 0;
             }
 
@@ -1726,9 +1739,10 @@ FREERTOS_TASK(logger, 8192, 0)
 
             // Log entry too long; just truncate.
 
-            if (log_entry_length > sizeof(working_sectors[0].bytes))
+            if (log_entry_length > sizeof(working_sectors))
             {
-                log_entry_length = sizeof(working_sectors[0].bytes);
+                sus;
+                log_entry_length = sizeof(working_sectors);
             }
 
 
@@ -1737,13 +1751,13 @@ FREERTOS_TASK(logger, 8192, 0)
 
             memset
             (
-                working_sectors[0].bytes + log_entry_length,
+                (u8*) working_sectors + log_entry_length,
                 '.',
-                (u32) (sizeof(working_sectors[0].bytes) - log_entry_length)
+                (u32) (sizeof(working_sectors) - log_entry_length)
             );
 
-            working_sectors[0].bytes[countof(working_sectors[0].bytes) - 2] = '\n'; // Don't care if this stamps over the string.
-            working_sectors[0].bytes[countof(working_sectors[0].bytes) - 1] = '\n'; // "
+            working_sectors[countof(working_sectors) - 1].bytes[sizeof(struct Sector) - 2] = '\n'; // Don't care if this stamps over the string.
+            working_sectors[countof(working_sectors) - 1].bytes[sizeof(struct Sector) - 1] = '\n'; // "
 
 
 
@@ -1760,28 +1774,8 @@ FREERTOS_TASK(logger, 8192, 0)
                     (
                         "%.*s",
                         log_entry_length,
-                        working_sectors[0].bytes
+                        (char*) working_sectors
                     );
-
-                    if (openmv_gnc_packet_exist) // TODO Better output...?
-                    {
-                        stlink_tx
-                        (
-                            "attitude_x                         : %f" "\n"
-                            "attitude_y                         : %f" "\n"
-                            "attitude_z                         : %f" "\n"
-                            "attitude_w                         : %f" "\n"
-                            "computer_vision_processing_time_ms : %u" "\n"
-                            "computer_vision_confidence         : %u" "\n"
-                            "\n",
-                            openmv_gnc_packet_data.attitude_x,
-                            openmv_gnc_packet_data.attitude_y,
-                            openmv_gnc_packet_data.attitude_z,
-                            openmv_gnc_packet_data.attitude_w,
-                            openmv_gnc_packet_data.computer_vision_processing_time_ms,
-                            openmv_gnc_packet_data.computer_vision_confidence
-                        );
-                    }
 
                 }
             }
@@ -1796,8 +1790,8 @@ FREERTOS_TASK(logger, 8192, 0)
                 FILESYSTEM_save
                 (
                     SDHandle_primary,
-                    &working_sectors[0],
-                    1
+                    working_sectors,
+                    countof(working_sectors)
                 );
 
             switch (save_result)
