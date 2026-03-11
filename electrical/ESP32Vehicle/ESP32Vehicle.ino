@@ -1,5 +1,7 @@
 #define COMPILING_ESP32        true
-#define GENERATE_DUMMY_PACKETS false
+#define ESPNOW_ENABLE          true
+#define LORA_ENABLE            true
+#define GENERATE_DUMMY_PACKETS true
 #include "../system.h"
 
 
@@ -17,11 +19,14 @@ static_assert(countof(MAIN_ESP32_MAC_ADDRESS) == 6);
 
 
 
+#if ESPNOW_ENABLE || 1 // TODO Forced to be defined until we get rid of `TRAP_INVALID_RING_BUFFER_CONDITION`.
 static struct PacketESP32 packet_esp32_buffer[128]       = {};
 static volatile u32       packet_esp32_writer            = 0;
 static volatile u32       packet_esp32_reader            = 0;
 static volatile b32       packet_esp32_transmission_busy = false;
+#endif
 
+#if LORA_ENABLE || 1 // TODO Forced to be defined until we get rid of `TRAP_INVALID_RING_BUFFER_CONDITION`.
 // LoRa ring-buffer shouldn't be very deep because
 // it's such low throughput. If it was deep, a lot
 // of the data might be data far in the past and not
@@ -30,14 +35,21 @@ static struct PacketLoRa  packet_lora_buffer[4]          = {};
 static volatile u32       packet_lora_writer             = 0;
 static volatile u32       packet_lora_reader             = 0;
 static volatile bool      packet_lora_transmission_busy  = false;
+#endif
 
 static i32                last_uart_packet_timestamp_ms  = 0;
 static i32                packet_uart_packet_count       = 0;
 static i32                packet_uart_crc_error_count    = 0;
+
+#if ESPNOW_ENABLE
 static i32                packet_esp32_packet_count      = 0;
 static i32                packet_esp32_overrun_count     = 0;
+#endif
+
+#if LORA_ENABLE
 static i32                packet_lora_packet_count       = 0;
 static i32                packet_lora_overrun_count      = 0;
+#endif
 
 
 
@@ -82,6 +94,7 @@ static i32                packet_lora_overrun_count      = 0;
 
 
 
+#if ESPNOW_ENABLE
 extern void
 packet_esp32_transmission_callback
 (
@@ -96,9 +109,11 @@ packet_esp32_transmission_callback
     packet_esp32_transmission_busy  = false;
 
 }
+#endif
 
 
 
+#if LORA_ENABLE
 extern void
 packet_lora_callback(void)
 {
@@ -109,6 +124,7 @@ packet_lora_callback(void)
     packet_lora_transmission_busy  = false;
 
 }
+#endif
 
 
 
@@ -132,32 +148,42 @@ setup(void)
 
     // Initialize ESP-NOW stuff.
 
-    common_init_esp_now();
-
-    esp_now_register_send_cb(packet_esp32_transmission_callback);
-
-    esp_now_peer_info_t info = {};
-    info.peer_addr[0] = MAIN_ESP32_MAC_ADDRESS[0];
-    info.peer_addr[1] = MAIN_ESP32_MAC_ADDRESS[1];
-    info.peer_addr[2] = MAIN_ESP32_MAC_ADDRESS[2];
-    info.peer_addr[3] = MAIN_ESP32_MAC_ADDRESS[3];
-    info.peer_addr[4] = MAIN_ESP32_MAC_ADDRESS[4];
-    info.peer_addr[5] = MAIN_ESP32_MAC_ADDRESS[5];
-    info.channel      = 1;
-    info.encrypt      = false;
-
-    if (esp_now_add_peer(&info) != ESP_OK)
+    #if ESPNOW_ENABLE
     {
-        Serial.printf("Failed to add peer.\n");
-        ESP.restart();
-        return;
+
+        common_init_esp_now();
+
+        esp_now_register_send_cb(packet_esp32_transmission_callback);
+
+        esp_now_peer_info_t info = {};
+        info.peer_addr[0] = MAIN_ESP32_MAC_ADDRESS[0];
+        info.peer_addr[1] = MAIN_ESP32_MAC_ADDRESS[1];
+        info.peer_addr[2] = MAIN_ESP32_MAC_ADDRESS[2];
+        info.peer_addr[3] = MAIN_ESP32_MAC_ADDRESS[3];
+        info.peer_addr[4] = MAIN_ESP32_MAC_ADDRESS[4];
+        info.peer_addr[5] = MAIN_ESP32_MAC_ADDRESS[5];
+        info.channel      = 1;
+        info.encrypt      = false;
+
+        if (esp_now_add_peer(&info) != ESP_OK)
+        {
+            Serial.printf("Failed to add peer.\n");
+            ESP.restart();
+            return;
+        }
+
     }
+    #endif
 
 
 
     // Initialize LoRa stuff.
 
-    common_init_lora();
+    #if LORA_ENABLE
+    {
+        common_init_lora();
+    }
+    #endif
 
 }
 
@@ -186,47 +212,57 @@ process_payload(struct PacketESP32* payload)
 
         // Try pushing packet into ESP-NOW ring-buffer.
 
-        if (packet_esp32_writer - packet_esp32_reader < countof(packet_esp32_buffer))
+        #if ESPNOW_ENABLE
         {
 
-            struct PacketESP32*                                 packet                  = &packet_esp32_buffer[packet_esp32_writer % countof(packet_esp32_buffer)];
-            static typeof(packet->nonredundant.sequence_number) current_sequence_number = 0;
+            if (packet_esp32_writer - packet_esp32_reader < countof(packet_esp32_buffer))
+            {
 
-            *packet                               = *payload;
-            packet->nonredundant.sequence_number  = current_sequence_number;
-            packet->nonredundant.crc              = ESP32_calculate_crc((u8*) packet, sizeof(*packet) - sizeof(packet->nonredundant.crc));
-            current_sequence_number              += 1;
-            packet_esp32_writer                  += 1;
-            packet_esp32_packet_count            += 1;
+                struct PacketESP32*                                 packet                  = &packet_esp32_buffer[packet_esp32_writer % countof(packet_esp32_buffer)];
+                static typeof(packet->nonredundant.sequence_number) current_sequence_number = 0;
+
+                *packet                               = *payload;
+                packet->nonredundant.sequence_number  = current_sequence_number;
+                packet->nonredundant.crc              = ESP32_calculate_crc((u8*) packet, sizeof(*packet) - sizeof(packet->nonredundant.crc));
+                current_sequence_number              += 1;
+                packet_esp32_writer                  += 1;
+                packet_esp32_packet_count            += 1;
+
+            }
+            else
+            {
+                packet_esp32_overrun_count += 1;
+            }
 
         }
-        else
-        {
-            packet_esp32_overrun_count += 1;
-        }
+        #endif
 
 
 
         // Try pushing packet into LoRa ring-buffer.
 
-        if (packet_lora_writer - packet_lora_reader < countof(packet_lora_buffer))
+        #if LORA_ENABLE
         {
+            if (packet_lora_writer - packet_lora_reader < countof(packet_lora_buffer))
+            {
 
-            struct PacketLoRa*                     packet                  = &packet_lora_buffer[packet_lora_writer % countof(packet_lora_buffer)];
-            static typeof(packet->sequence_number) current_sequence_number = 0;
+                struct PacketLoRa*                     packet                  = &packet_lora_buffer[packet_lora_writer % countof(packet_lora_buffer)];
+                static typeof(packet->sequence_number) current_sequence_number = 0;
 
-            *packet                   = payload->nonredundant;
-            packet->sequence_number   = current_sequence_number;
-            packet->crc               = ESP32_calculate_crc((u8*) packet, sizeof(*packet) - sizeof(packet->crc));
-            current_sequence_number  += 1;
-            packet_lora_writer       += 1;
-            packet_lora_packet_count += 1;
+                *packet                   = payload->nonredundant;
+                packet->sequence_number   = current_sequence_number;
+                packet->crc               = ESP32_calculate_crc((u8*) packet, sizeof(*packet) - sizeof(packet->crc));
+                current_sequence_number  += 1;
+                packet_lora_writer       += 1;
+                packet_lora_packet_count += 1;
 
+            }
+            else
+            {
+                packet_lora_overrun_count += 1;
+            }
         }
-        else
-        {
-            packet_lora_overrun_count += 1;
-        }
+        #endif
 
     }
 
@@ -275,11 +311,24 @@ loop(void)
     #if GENERATE_DUMMY_PACKETS
     {
 
-        // ESP-NOW will have higher throughput than LoRa,
-        // so to prevent excessive overruns, we generate a
-        // dummy payload whenever the ESP-NOW buffer can handle it.
+        b32 make_dummy_packet = false;
 
-        if (packet_esp32_writer - packet_esp32_reader < countof(packet_esp32_buffer))
+        #if ESPNOW_ENABLE
+        {
+
+            // ESP-NOW will have higher throughput than LoRa,
+            // so to prevent excessive overruns, we generate a
+            // dummy payload whenever the ESP-NOW buffer can handle it.
+
+            make_dummy_packet = packet_esp32_writer - packet_esp32_reader < countof(packet_esp32_buffer);
+        }
+        #elif LORA_ENABLE
+        {
+            make_dummy_packet = packet_lora_writer - packet_lora_reader < countof(packet_lora_buffer);
+        }
+        #endif
+
+        if (make_dummy_packet)
         {
             struct PacketESP32 payload = {};
 
@@ -302,36 +351,44 @@ loop(void)
     // See if there's an ESP32 packet to be sent and
     // that we can transmit one at all.
 
-    if (packet_esp32_reader != packet_esp32_writer && !packet_esp32_transmission_busy)
+    #if ESPNOW_ENABLE
     {
-
-        packet_esp32_transmission_busy = true;
-
-        struct PacketESP32* packet = &packet_esp32_buffer[packet_esp32_reader % countof(packet_esp32_buffer)];
-
-        if (esp_now_send(MAIN_ESP32_MAC_ADDRESS, (u8*) packet, sizeof(*packet)) != ESP_OK)
+        if (packet_esp32_reader != packet_esp32_writer && !packet_esp32_transmission_busy)
         {
-            Serial.printf("Send Error!\n");
-            packet_esp32_transmission_busy = false;
-        }
 
+            packet_esp32_transmission_busy = true;
+
+            struct PacketESP32* packet = &packet_esp32_buffer[packet_esp32_reader % countof(packet_esp32_buffer)];
+
+            if (esp_now_send(MAIN_ESP32_MAC_ADDRESS, (u8*) packet, sizeof(*packet)) != ESP_OK)
+            {
+                Serial.printf("Send Error!\n");
+                packet_esp32_transmission_busy = false;
+            }
+
+        }
     }
+    #endif
 
 
 
     // See if there's an LoRa packet to be sent and
     // that we can transmit one at all.
 
-    if (packet_lora_reader != packet_lora_writer && !packet_lora_transmission_busy)
+    #if LORA_ENABLE
     {
+        if (packet_lora_reader != packet_lora_writer && !packet_lora_transmission_busy)
+        {
 
-        packet_lora_transmission_busy = true;
+            packet_lora_transmission_busy = true;
 
-        struct PacketLoRa* packet = &packet_lora_buffer[packet_lora_reader % countof(packet_lora_buffer)];
+            struct PacketLoRa* packet = &packet_lora_buffer[packet_lora_reader % countof(packet_lora_buffer)];
 
-        packet_lora_radio.startTransmit((u8*) packet, sizeof(*packet)); // TODO Error checking?
+            packet_lora_radio.startTransmit((u8*) packet, sizeof(*packet)); // TODO Error checking?
 
+        }
     }
+    #endif
 
 
 
@@ -349,10 +406,21 @@ loop(void)
         Serial.printf("Last timestamp        : %d ms" "\n", last_uart_packet_timestamp_ms);
         Serial.printf("UART packets received : %d"    "\n", packet_uart_packet_count);
         Serial.printf("UART CRC mismatches   : %d"    "\n", packet_uart_crc_error_count);
-        Serial.printf("ESP32 packets queued  : %d"    "\n", packet_esp32_packet_count);
-        Serial.printf("ESP32 packet overruns : %d"    "\n", packet_esp32_overrun_count);
-        Serial.printf("LoRa packets queued   : %d"    "\n", packet_lora_packet_count);
-        Serial.printf("LoRa packet overruns  : %d"    "\n", packet_lora_overrun_count);
+
+        #if ESPNOW_ENABLE
+        {
+            Serial.printf("ESP32 packets queued  : %d"    "\n", packet_esp32_packet_count);
+            Serial.printf("ESP32 packet overruns : %d"    "\n", packet_esp32_overrun_count);
+        }
+        #endif
+
+        #if LORA_ENABLE
+        {
+            Serial.printf("LoRa packets queued   : %d"    "\n", packet_lora_packet_count);
+            Serial.printf("LoRa packet overruns  : %d"    "\n", packet_lora_overrun_count);
+        }
+        #endif
+
         Serial.printf("\n");
 
     }
