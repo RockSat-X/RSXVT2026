@@ -9,7 +9,7 @@
 #define MAX_ANGULAR_VELOCITY             (2000.0f * 2.0f * PI / 60.0f)
 #define GOD_MODE                         true
 #define CONTROLLER_ENABLE                true
-#define VN100_ENABLE                     false
+#define VN100_ENABLE                     true
 #define OPENMV_ENABLE                    true
 #define WATCHDOG_ENABLE                  false
 #define TRANSMIT_TV                      true
@@ -32,17 +32,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 
-
-enum DiagnosticMask : u32 // Lower the bit-index, higher the priority.
-{
-    DiagnosticMask_stepper_driver_issue       = 1 << 0,
-    DiagnosticMask_angular_velocity_saturated = 1 << 1,
-    DiagnosticMask_wiping_filesystem          = 1 << 2,
-    DiagnosticMask_vn100_mishap               = 1 << 3,
-    DiagnosticMask_logging_mishap             = 1 << 4,
-    DiagnosticMask_vn100_heartbeat            = 1 << 5,
-    DiagnosticMask_logging_heartbeat          = 1 << 6,
-};
 
 enum OpenMVImageState : u32
 {
@@ -143,6 +132,178 @@ main(void)
     // Begin the FreeRTOS task scheduler.
 
     FREERTOS_init();
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+enum DiagnosticLEDBehavior : u32
+{
+    DiagnosticLEDBehavior_inactive,
+    DiagnosticLEDBehavior_active,
+    DiagnosticLEDBehavior_toggle,
+};
+
+#include "VehicleFlightComputer_diagnostics.meta"
+/* #meta
+
+    DIAGNOSTICS = ( # Ordered from highest priority to lowest priority.
+        ('stepper_driver_issue'      , 'ambulance' , ('toggle'  , 'inactive', 'inactive'),  25),
+        ('angular_velocity_saturated', 'heartbeat' , ('toggle'  , 'inactive', 'inactive'), 500),
+        ('wiping_filesystem'         , 'tetris'    , ('toggle'  , 'inactive', 'toggle'  ), 100),
+        ('vn100_mishap'              , 'hazard'    , ('inactive', 'inactive', 'toggle'  ),  25),
+        ('logging_mishap'            , 'heavy_beep', ('toggle'  , 'inactive', 'toggle'  ), 100),
+        ('vn100_heartbeat'           , 'burp'      , ('inactive', 'inactive', 'active'  ), 100),
+        ('logging_heartbeat'         , 'chirp'     , ('inactive', 'active'  , 'inactive'), 100),
+    )
+
+    Meta.enums('DiagnosticMask', 'u32', (
+        (name, f'1 << {diagnostic_i}')
+        for diagnostic_i, (name, tune, (behavior_red, behavior_green, behavior_blue), delay_ms) in enumerate(DIAGNOSTICS)
+    ))
+
+    Meta.lut('DIAGNOSTIC_TABLE', ((
+        (
+            ('tune'          , f'BuzzerTune_{tune}'                     ),
+            ('behavior_red'  , f'DiagnosticLEDBehavior_{behavior_red  }'),
+            ('behavior_green', f'DiagnosticLEDBehavior_{behavior_green}'),
+            ('behavior_blue' , f'DiagnosticLEDBehavior_{behavior_blue }'),
+            ('delay_ms'      , f'{delay_ms}U'                           ),
+        )
+        for diagnostic_i, (name, tune, (behavior_red, behavior_green, behavior_blue), delay_ms) in enumerate(DIAGNOSTICS)
+    )))
+
+*/
+
+static b32
+diagnostics_delay_ms(u32* current_flags, u32 milliseconds)
+{
+
+    u32 new_flags = 0;
+
+    BaseType_t got_notification =
+        xTaskNotifyWait
+        (
+            0,
+            (u32) -1, // Immediately acknowledge the new diagnostics.
+            (uint32_t*) &new_flags,
+            0
+        );
+
+    enum DiagnosticMask old_diagnostic = *current_flags & -*current_flags;
+
+    if (got_notification)
+    {
+        *current_flags |= new_flags; // Add the new diagnostics to the list of existing ones to process.
+    }
+
+    enum DiagnosticMask new_diagnostic = *current_flags & -*current_flags;
+
+    if (new_diagnostic == old_diagnostic)
+    {
+
+        // Although `xTaskNotifyWait` has a time-out argument that could be used
+        // as a delay that can also be interrupted early when there's a notification,
+        // it's possible that a task set the same diagnostic repeatedly over and
+        // over again to which a delay never really happens. By using a regular
+        // task delay here, we're making things slightly less responsive because
+        // the delay won't allow for the `diagnostics` task to handle a new
+        // diagnostic of higher priority, but since this is literally just for
+        // diagnostics, it's okay.
+
+        FREERTOS_delay_ms(milliseconds);
+
+        return false;
+
+    }
+    else
+    {
+        return true; // There's a new diagnostic of higher priority that we should handle.
+    }
+
+}
+
+FREERTOS_TASK(diagnostics, 512, 1)
+{
+
+    u32 current_flags = 0;
+
+    for (;;)
+    {
+
+        diagnostics_delay_ms(&current_flags, 0); // To update `current_flags`.
+
+        while (!current_flags) // Wait until we get a diagnostic to handle.
+        {
+            diagnostics_delay_ms(&current_flags, 100);
+        }
+
+        GPIO_INACTIVE(led_channel_red  );
+        GPIO_INACTIVE(led_channel_green);
+        GPIO_INACTIVE(led_channel_blue );
+
+        enum DiagnosticMask current_diagnostic = current_flags & -current_flags;
+
+        if (current_diagnostic && __builtin_ctz(current_diagnostic) < countof(DIAGNOSTIC_TABLE))
+        {
+
+            auto entry = &DIAGNOSTIC_TABLE[__builtin_ctz(current_diagnostic)];
+
+            BUZZER_play(entry->tune);
+
+            while (BUZZER_current_tune())
+            {
+
+                switch (entry->behavior_red)
+                {
+                    case DiagnosticLEDBehavior_inactive : GPIO_INACTIVE(led_channel_red); break;
+                    case DiagnosticLEDBehavior_active   : GPIO_ACTIVE  (led_channel_red); break;
+                    case DiagnosticLEDBehavior_toggle   : GPIO_TOGGLE  (led_channel_red); break;
+                    default                             : sus;
+                }
+
+                switch (entry->behavior_green)
+                {
+                    case DiagnosticLEDBehavior_inactive : GPIO_INACTIVE(led_channel_green); break;
+                    case DiagnosticLEDBehavior_active   : GPIO_ACTIVE  (led_channel_green); break;
+                    case DiagnosticLEDBehavior_toggle   : GPIO_TOGGLE  (led_channel_green); break;
+                    default                             : sus;
+                }
+
+                switch (entry->behavior_blue)
+                {
+                    case DiagnosticLEDBehavior_inactive : GPIO_INACTIVE(led_channel_blue); break;
+                    case DiagnosticLEDBehavior_active   : GPIO_ACTIVE  (led_channel_blue); break;
+                    case DiagnosticLEDBehavior_toggle   : GPIO_TOGGLE  (led_channel_blue); break;
+                    default                             : sus;
+                }
+
+                if (diagnostics_delay_ms(&current_flags, entry->delay_ms))
+                {
+                    goto END_OF_DIAGNOSTIC;
+                }
+
+            }
+
+        }
+        else
+        {
+            sus;
+        }
+
+        END_OF_DIAGNOSTIC:;
+
+        current_flags &= ~current_diagnostic; // Acknowledge the completion of the diagnostic.
+
+        GPIO_INACTIVE(led_channel_red  );
+        GPIO_INACTIVE(led_channel_green);
+        GPIO_INACTIVE(led_channel_blue );
+
+    }
 
 }
 
@@ -1633,243 +1794,6 @@ FREERTOS_TASK(logger, 8192, 0)
             }
 
         }
-
-    }
-
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-static b32
-diagnostics_delay_ms(u32* current_flags, u32 milliseconds)
-{
-
-    u32 new_flags = 0;
-
-    BaseType_t got_notification =
-        xTaskNotifyWait
-        (
-            0,
-            (u32) -1, // Immediately acknowledge the new diagnostics.
-            (uint32_t*) &new_flags,
-            0
-        );
-
-    enum DiagnosticMask old_diagnostic = *current_flags & -*current_flags;
-
-    if (got_notification)
-    {
-        *current_flags |= new_flags; // Add the new diagnostics to the list of existing ones to process.
-    }
-
-    enum DiagnosticMask new_diagnostic = *current_flags & -*current_flags;
-
-    if (new_diagnostic == old_diagnostic)
-    {
-
-        // Although `xTaskNotifyWait` has a time-out argument that could be used
-        // as a delay that can also be interrupted early when there's a notification,
-        // it's possible that a task set the same diagnostic repeatedly over and
-        // over again to which a delay never really happens. By using a regular
-        // task delay here, we're making things slightly less responsive because
-        // the delay won't allow for the `diagnostics` task to handle a new
-        // diagnostic of higher priority, but since this is literally just for
-        // diagnostics, it's okay.
-
-        FREERTOS_delay_ms(milliseconds);
-
-        return false;
-
-    }
-    else
-    {
-        return true; // There's a new diagnostic of higher priority that we should handle.
-    }
-
-}
-
-FREERTOS_TASK(diagnostics, 512, 1)
-{
-
-    u32 current_flags = 0;
-
-    for (;;)
-    {
-
-        diagnostics_delay_ms(&current_flags, 0); // To update `current_flags`.
-
-        while (!current_flags) // Wait until we get a diagnostic to handle.
-        {
-            diagnostics_delay_ms(&current_flags, 100);
-        }
-
-        enum DiagnosticMask current_diagnostic = current_flags & -current_flags;
-
-        switch (current_diagnostic)
-        {
-
-            case DiagnosticMask_stepper_driver_issue:
-            {
-
-                BUZZER_play(BuzzerTune_ambulance);
-
-                while (BUZZER_current_tune())
-                {
-
-                    GPIO_TOGGLE  (led_channel_red  );
-                    GPIO_INACTIVE(led_channel_green);
-                    GPIO_INACTIVE(led_channel_blue );
-
-                    if (diagnostics_delay_ms(&current_flags, 25))
-                    {
-                        goto END_OF_DIAGNOSTIC;
-                    }
-
-                }
-
-            } break;
-
-            case DiagnosticMask_vn100_mishap:
-            {
-
-                BUZZER_play(BuzzerTune_hazard);
-
-                while (BUZZER_current_tune())
-                {
-
-                    GPIO_INACTIVE(led_channel_red  );
-                    GPIO_INACTIVE(led_channel_green);
-                    GPIO_TOGGLE  (led_channel_blue );
-
-                    if (diagnostics_delay_ms(&current_flags, 25))
-                    {
-                        goto END_OF_DIAGNOSTIC;
-                    }
-
-                }
-
-            } break;
-
-            case DiagnosticMask_angular_velocity_saturated:
-            {
-
-                BUZZER_play(BuzzerTune_heartbeat);
-
-                while (BUZZER_current_tune())
-                {
-
-                    GPIO_TOGGLE  (led_channel_red  );
-                    GPIO_INACTIVE(led_channel_green);
-                    GPIO_INACTIVE(led_channel_blue );
-
-                    if (diagnostics_delay_ms(&current_flags, 500))
-                    {
-                        goto END_OF_DIAGNOSTIC;
-                    }
-
-                }
-
-            } break;
-
-            case DiagnosticMask_logging_mishap:
-            {
-
-                BUZZER_play(BuzzerTune_heavy_beep);
-
-                while (BUZZER_current_tune())
-                {
-
-                    GPIO_TOGGLE  (led_channel_red  );
-                    GPIO_INACTIVE(led_channel_green);
-                    GPIO_TOGGLE  (led_channel_blue );
-
-                    if (diagnostics_delay_ms(&current_flags, 100))
-                    {
-                        goto END_OF_DIAGNOSTIC;
-                    }
-
-                }
-
-            } break;
-
-            case DiagnosticMask_logging_heartbeat:
-            {
-
-                BUZZER_play(BuzzerTune_chirp);
-
-                GPIO_INACTIVE(led_channel_red  );
-                GPIO_ACTIVE  (led_channel_green);
-                GPIO_INACTIVE(led_channel_blue );
-
-                while (BUZZER_current_tune())
-                {
-                    if (diagnostics_delay_ms(&current_flags, 100))
-                    {
-                        goto END_OF_DIAGNOSTIC;
-                    }
-                }
-
-            } break;
-
-            case DiagnosticMask_vn100_heartbeat:
-            {
-
-                BUZZER_play(BuzzerTune_burp);
-
-                GPIO_INACTIVE(led_channel_red  );
-                GPIO_INACTIVE(led_channel_green);
-                GPIO_ACTIVE  (led_channel_blue );
-
-                while (BUZZER_current_tune())
-                {
-                    if (diagnostics_delay_ms(&current_flags, 100))
-                    {
-                        goto END_OF_DIAGNOSTIC;
-                    }
-                }
-
-            } break;
-
-            case DiagnosticMask_wiping_filesystem:
-            {
-
-                BUZZER_play(BuzzerTune_tetris);
-
-                GPIO_ACTIVE(led_channel_red  );
-                GPIO_ACTIVE(led_channel_green);
-                GPIO_ACTIVE(led_channel_blue );
-
-                while (BUZZER_current_tune())
-                {
-
-                    GPIO_TOGGLE(led_channel_red  );
-                    GPIO_TOGGLE(led_channel_green);
-                    GPIO_TOGGLE(led_channel_blue );
-
-                    if (diagnostics_delay_ms(&current_flags, 100))
-                    {
-                        goto END_OF_DIAGNOSTIC;
-                    }
-
-                }
-
-            } break;
-
-            default: sus;
-
-        }
-
-        END_OF_DIAGNOSTIC:;
-
-        current_flags &= ~current_diagnostic; // Acknowledge the completion of the diagnostic.
-
-        GPIO_INACTIVE(led_channel_red  );
-        GPIO_INACTIVE(led_channel_green);
-        GPIO_INACTIVE(led_channel_blue );
 
     }
 
