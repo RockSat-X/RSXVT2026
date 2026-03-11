@@ -1666,7 +1666,6 @@ FREERTOS_TASK(logger, 8192, 0)
                     (char*) working_sectors[0].bytes,
                     countof(working_sectors[0].bytes),
                     "[%u us]"                             "\n"
-                    "Log file index : %d"                 "\n"
                     "Ang. accel.    : <%.3f, %.3f, %.3f>" "\n"
                     "Ang. velocity  : <%.3f, %.3f, %.3f>" "\n"
                     "RPM            : <%.3f, %.3f, %.3f>" "\n"
@@ -1683,7 +1682,6 @@ FREERTOS_TASK(logger, 8192, 0)
                     "VNKAD          : %s"                 "\n"
                     "\n",
                     current_timestamp_us,
-                    0, // TODO.
                     CONTROLLER.current_angular_accelerations.values[StepperUnit_axis_x],
                     CONTROLLER.current_angular_accelerations.values[StepperUnit_axis_y],
                     CONTROLLER.current_angular_accelerations.values[StepperUnit_axis_z],
