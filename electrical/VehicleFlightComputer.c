@@ -1,5 +1,5 @@
 #define STEPPER_ENABLE_DELAY_US          500'000
-#define STEPPER_VELOCITY_UPDATE_US       25'000 // @/`Sequence Angular Accelerations Delta Time`.
+#define STEPPER_VELOCITY_UPDATE_US       20'000 // @/`Sequence Angular Accelerations Delta Time`.
 #define STEPPER_UART_TIME_MARGIN_US      2'000
 #define STEPPER_RING_BUFFER_LENGTH       8      // TODO Determine latency.
 #define SPI_BLOCK_SIZE                   64     // @/`OpenMV SPI Block Size`.
@@ -373,77 +373,31 @@ FREERTOS_TASK(controller, 8192, 0)
                 #include "SEQUENCE_ANGULAR_ACCELERATIONS.meta"
                 /* #meta
 
+                    import deps.stpy.pxd.pxd as pxd
                     import math
 
-                    def impulse(t, slope):
-
-                        try:
-                            u = math.e**(4 * slope * t)
-                            return (16 * u * (-1 + u) * slope**2) / (1 + u)**3
-                        except OverflowError:
-                            return 0
-
-                    IMPULSES = {
-                        'axis_x' : (
-                            (1 + 0 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                            (1 + 1 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                            (1 + 2 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                            (1 + 3 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                            (2 + 1       ,  0.25 * 2 * math.pi, 5 ),
-                            (2 + 2       ,  0.25 * 2 * math.pi, 5 ),
-                            (2 + 3       ,  0.25 * 2 * math.pi, 5 ),
-                            (2 + 4       ,  0.25 * 2 * math.pi, 5 ),
-                            (2 + 8       , -1.00 * 2 * math.pi, 10),
-                            (2 + 9       ,  1.00 * 2 * math.pi, 10),
-                            (2 + 10      ,  1.00 * 2 * math.pi, 10),
-                            (2 + 11      ,  1.00 * 2 * math.pi, 10),
-                            (2 + 12      ,  1.00 * 2 * math.pi, 10),
-                        ),
-                        'axis_y' : (
-                            (1 + 0 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                            (1 + 1 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                            (1 + 2 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                            (1 + 3 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                            (2 + 2       ,  0.25 * 2 * math.pi, 5 ),
-                            (2 + 3       ,  0.25 * 2 * math.pi, 5 ),
-                            (2 + 4       ,  0.25 * 2 * math.pi, 5 ),
-                            (2 + 5       ,  0.25 * 2 * math.pi, 5 ),
-                            (2 + 8       , -1.00 * 2 * math.pi, 10),
-                            (2 + 9       ,  1.00 * 2 * math.pi, 2 ),
-                            (2 + 12      , -1.00 * 2 * math.pi, 2 ),
-                        ),
-                        'axis_z' : (
-                            (1 + 0 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                            (1 + 1 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                            (1 + 2 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                            (1 + 3 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                            (2 + 3       ,  0.25 * 2 * math.pi, 5 ),
-                            (2 + 4       ,  0.25 * 2 * math.pi, 5 ),
-                            (2 + 5       ,  0.25 * 2 * math.pi, 5 ),
-                            (2 + 6       ,  0.25 * 2 * math.pi, 5 ),
-                            (2 + 8       , -1.00 * 2 * math.pi, 10),
-                            (2 + 9       ,  2.00 * 2 * math.pi, 2 ),
-                            (2 + 12      , -2.00 * 2 * math.pi, 2 ),
-                        ),
-                    }
+                    entries = [
+                        [float(cell) for cell in line.split(',')]
+                        for line in pxd.make_main_relative_path('./misc/vel_rw.txt').read_text().splitlines()
+                    ]
 
                     with Meta.enter('static const struct StepperTuple SEQUENCE_ANGULAR_ACCELERATIONS[] ='):
 
-                        DURATION = 16
-                        dt       = 0.025 # @/`Sequence Angular Accelerations Delta Time`: Coupled.
+                        dt = 20_000 / 1_000_000 # @/`Sequence Angular Accelerations Delta Time`: Coupled.
 
-                        for i in range(0, round(DURATION / dt)):
+                        for entry_i, current_entry in enumerate(entries[:-1]):
 
-                            t = i * dt
+                            current_t, current_x, current_y, current_z = current_entry
+                            next_t   , next_x   , next_y   , next_z    = entries[entry_i + 1]
 
-                            Meta.line(f'''
-                                {{ {{ {', '.join(
+                            acceleration_x = (next_x - current_x) / (next_t - current_t)
+                            acceleration_y = (next_y - current_y) / (next_t - current_t)
+                            acceleration_z = (next_z - current_z) / (next_t - current_t)
 
-                                    f'[StepperUnit_{unit}] = {sum(impulse(t - center, slope) * radians for center, radians, slope in impulses) :12f}f'
-                                    for unit, impulses in IMPULSES.items()
-
-                                )} }} }}, // t = {t :f} s.
-                            ''')
+                            for i in range(round((next_t - current_t) / dt)):
+                                Meta.line(f'''
+                                    {{ {{ {acceleration_x :f}f, {acceleration_y :f}f, {acceleration_z :f}f }} }},
+                                ''')
 
                 */
 
