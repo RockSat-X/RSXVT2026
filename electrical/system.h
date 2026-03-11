@@ -934,8 +934,8 @@ DEBUG_BOARD_calculate_crc(u8* data, i32 length)
 
 
 
-#define PACKET_ESP32_START_TOKEN 0xBABE
-#define PACKET_LORA_START_TOKEN  0xCAFE
+#define ESP32_TOKEN_START "<ESP32>"
+#define LORA_TOKEN_START  "<LORA>"
 
 pack_push
 

@@ -284,24 +284,44 @@ loop(void)
 
 
 
-    // See if we received data over UART.
-    // We determine the start of a payload
-    // by looking for the magic starting token.
+    // See if we received data over UART; we determine the start
+    // of a payload by looking for the magic starting token.
 
-    while
-    (
-        Serial1.available() >= sizeof(struct ESP32Packet)
-        && Serial1.read() == (PACKET_ESP32_START_TOKEN & 0xFF)
-        && Serial1.peek() == ((PACKET_ESP32_START_TOKEN >> 8) & 0xFF)
-        && Serial1.read() == ((PACKET_ESP32_START_TOKEN >> 8) & 0xFF)
-    )
+    if (Serial1.available() >= strlen(ESP32_TOKEN_START) + sizeof(struct ESP32Packet))
     {
 
-        struct ESP32Packet payload = {};
+        b32 found_start_token = true;
 
-        Serial1.readBytes((char*) &payload, sizeof(payload));
+        for (i32 i = 0; ESP32_TOKEN_START[i]; i += 1)
+        {
+            if (Serial1.peek() == ESP32_TOKEN_START[i])
+            {
+                Serial1.read(); // Matching so far...
+            }
+            else // Nope; not the starting token we're looking for.
+            {
 
-        process_payload(&payload);
+                if (i == 0)
+                {
+                    Serial1.read(); // Progress into the buffer at least once.
+                }
+
+                found_start_token = false;
+                break;
+
+            }
+        }
+
+        if (found_start_token)
+        {
+
+            struct ESP32Packet payload = {};
+
+            Serial1.readBytes((char*) &payload, sizeof(payload));
+
+            process_payload(&payload);
+
+        }
 
     }
 
