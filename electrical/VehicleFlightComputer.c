@@ -1,5 +1,5 @@
 #define STEPPER_ENABLE_DELAY_US          500'000
-#define STEPPER_VELOCITY_UPDATE_US       25'000 // @/`Sequence Angular Accelerations Delta Time`.
+#define STEPPER_VELOCITY_UPDATE_US       20'000 // @/`Sequence Angular Accelerations Delta Time`.
 #define STEPPER_UART_TIME_MARGIN_US      2'000
 #define STEPPER_RING_BUFFER_LENGTH       8      // TODO Determine latency.
 #define SPI_BLOCK_SIZE                   64     // @/`OpenMV SPI Block Size`.
@@ -24,7 +24,6 @@
 #include "buzzer.c"
 #include "gnc.c"
 
-// TODO Check if we've been receiving OpenMV data.
 // TODO Check if ESP32 still working.
 
 
@@ -68,6 +67,10 @@ static struct
 {
     RingBuffer(struct VN100Packet    , 8) vn100_packets;
     RingBuffer(struct OpenMVPacketGNC, 8) openmv_gnc_packets;
+    volatile _Atomic i32                  stepper_issues;
+    volatile _Atomic i32                  vn100_issues;
+    volatile _Atomic i32                  openmv_issues;
+    volatile _Atomic i32                  esp32_issues;
 } LOGGER = {0};
 
 static struct
@@ -180,7 +183,7 @@ enum DiagnosticLEDBehavior : u32
 
 */
 
-FREERTOS_TASK(diagnostics, 512, 1)
+FREERTOS_TASK(diagnostics, 8192, 1)
 {
 
     u32 current_flags = 0;
@@ -332,7 +335,7 @@ FREERTOS_TASK(diagnostics, 512, 1)
 
 
 
-FREERTOS_TASK(controller, 1024, 0)
+FREERTOS_TASK(controller, 8192, 0)
 {
 
 #if CONTROLLER_ENABLE
@@ -370,77 +373,31 @@ FREERTOS_TASK(controller, 1024, 0)
                 #include "SEQUENCE_ANGULAR_ACCELERATIONS.meta"
                 /* #meta
 
+                    import deps.stpy.pxd.pxd as pxd
                     import math
 
-                    def impulse(t, slope):
-
-                        try:
-                            u = math.e**(4 * slope * t)
-                            return (16 * u * (-1 + u) * slope**2) / (1 + u)**3
-                        except OverflowError:
-                            return 0
-
-                    IMPULSES = {
-                        'axis_x' : (
-                            (1 + 0 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                            (1 + 1 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                            (1 + 2 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                            (1 + 3 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                            (2 + 1       ,  0.25 * 2 * math.pi, 5 ),
-                            (2 + 2       ,  0.25 * 2 * math.pi, 5 ),
-                            (2 + 3       ,  0.25 * 2 * math.pi, 5 ),
-                            (2 + 4       ,  0.25 * 2 * math.pi, 5 ),
-                            (2 + 8       , -1.00 * 2 * math.pi, 10),
-                            (2 + 9       ,  1.00 * 2 * math.pi, 10),
-                            (2 + 10      ,  1.00 * 2 * math.pi, 10),
-                            (2 + 11      ,  1.00 * 2 * math.pi, 10),
-                            (2 + 12      ,  1.00 * 2 * math.pi, 10),
-                        ),
-                        'axis_y' : (
-                            (1 + 0 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                            (1 + 1 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                            (1 + 2 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                            (1 + 3 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                            (2 + 2       ,  0.25 * 2 * math.pi, 5 ),
-                            (2 + 3       ,  0.25 * 2 * math.pi, 5 ),
-                            (2 + 4       ,  0.25 * 2 * math.pi, 5 ),
-                            (2 + 5       ,  0.25 * 2 * math.pi, 5 ),
-                            (2 + 8       , -1.00 * 2 * math.pi, 10),
-                            (2 + 9       ,  1.00 * 2 * math.pi, 2 ),
-                            (2 + 12      , -1.00 * 2 * math.pi, 2 ),
-                        ),
-                        'axis_z' : (
-                            (1 + 0 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                            (1 + 1 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                            (1 + 2 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                            (1 + 3 * 0.25,  0.25 * 2 * math.pi, 5 ),
-                            (2 + 3       ,  0.25 * 2 * math.pi, 5 ),
-                            (2 + 4       ,  0.25 * 2 * math.pi, 5 ),
-                            (2 + 5       ,  0.25 * 2 * math.pi, 5 ),
-                            (2 + 6       ,  0.25 * 2 * math.pi, 5 ),
-                            (2 + 8       , -1.00 * 2 * math.pi, 10),
-                            (2 + 9       ,  2.00 * 2 * math.pi, 2 ),
-                            (2 + 12      , -2.00 * 2 * math.pi, 2 ),
-                        ),
-                    }
+                    entries = [
+                        [float(cell) for cell in line.split(',')]
+                        for line in pxd.make_main_relative_path('./misc/vel_rw.txt').read_text().splitlines()
+                    ]
 
                     with Meta.enter('static const struct StepperTuple SEQUENCE_ANGULAR_ACCELERATIONS[] ='):
 
-                        DURATION = 16
-                        dt       = 0.025 # @/`Sequence Angular Accelerations Delta Time`: Coupled.
+                        dt = 20_000 / 1_000_000 # @/`Sequence Angular Accelerations Delta Time`: Coupled.
 
-                        for i in range(0, round(DURATION / dt)):
+                        for entry_i, current_entry in enumerate(entries[:-1]):
 
-                            t = i * dt
+                            current_t, current_x, current_y, current_z = current_entry
+                            next_t   , next_x   , next_y   , next_z    = entries[entry_i + 1]
 
-                            Meta.line(f'''
-                                {{ {{ {', '.join(
+                            acceleration_x = (next_x - current_x) / (next_t - current_t)
+                            acceleration_y = (next_y - current_y) / (next_t - current_t)
+                            acceleration_z = (next_z - current_z) / (next_t - current_t)
 
-                                    f'[StepperUnit_{unit}] = {sum(impulse(t - center, slope) * radians for center, radians, slope in impulses) :12f}f'
-                                    for unit, impulses in IMPULSES.items()
-
-                                )} }} }}, // t = {t :f} s.
-                            ''')
+                            for i in range(round((next_t - current_t) / dt)):
+                                Meta.line(f'''
+                                    {{ {{ {acceleration_x :f}f, {acceleration_y :f}f, {acceleration_z :f}f }} }},
+                                ''')
 
                 */
 
@@ -558,7 +515,7 @@ FREERTOS_TASK(controller, 1024, 0)
                     FREERTOS_delay_ms(1);
                 } break;
 
-                case StepperPushAngularVelocitiesResult_no_response_from_unit:  // TODO Collect statistics?
+                case StepperPushAngularVelocitiesResult_no_response_from_unit:
                 case StepperPushAngularVelocitiesResult_bad_response_from_unit:
                 case StepperPushAngularVelocitiesResult_bug:
                 default:
@@ -569,6 +526,13 @@ FREERTOS_TASK(controller, 1024, 0)
                         diagnostics_handle,
                         DiagnosticMask_stepper_driver_issue,
                         eSetBits
+                    );
+
+                    atomic_fetch_add_explicit
+                    (
+                        &LOGGER.stepper_issues,
+                        1,
+                        memory_order_relaxed // No synchronization needed.
                     );
 
                     memzero((struct StepperTuple*) &CONTROLLER.current_angular_accelerations);
@@ -1113,6 +1077,13 @@ FREERTOS_TASK(vn100, 8192, 0)
                     else // Perhaps a packet we don't recognize?
                     {
 
+                        atomic_fetch_add_explicit
+                        (
+                            &LOGGER.vn100_issues,
+                            1,
+                            memory_order_relaxed // No synchronization needed.
+                        );
+
                         xTaskNotify
                         (
                             diagnostics_handle,
@@ -1141,6 +1112,13 @@ FREERTOS_TASK(vn100, 8192, 0)
 
                 case VN100AwaitResponseResult_checksum_mismatch:
                 {
+
+                    atomic_fetch_add_explicit
+                    (
+                        &LOGGER.vn100_issues,
+                        1,
+                        memory_order_relaxed // No synchronization needed.
+                    );
 
                     xTaskNotify
                     (
@@ -1172,6 +1150,13 @@ FREERTOS_TASK(vn100, 8192, 0)
         }
 
         REINITIALIZE:;
+
+        atomic_fetch_add_explicit
+        (
+            &LOGGER.vn100_issues,
+            1,
+            memory_order_relaxed // No synchronization needed.
+        );
 
         xTaskNotify
         (
@@ -1475,6 +1460,13 @@ FREERTOS_TASK(openmv, 8192, 0)
 
         // Something went wrong... we're going to have to reinitialize the OpenMV camera...
 
+        atomic_fetch_add_explicit
+        (
+            &LOGGER.openmv_issues,
+            1,
+            memory_order_relaxed // No synchronization needed.
+        );
+
         xTaskNotify
         (
             diagnostics_handle,
@@ -1504,7 +1496,7 @@ FREERTOS_TASK(openmv, 8192, 0)
 FREERTOS_TASK(logger, 8192, 0)
 {
 
-    static struct Sector working_sectors[8]         = {0};
+    static struct Sector working_sectors[2]         = {0};
     b32                  completely_wipe_filesystem = false;
 
     for (;;)
@@ -1625,26 +1617,31 @@ FREERTOS_TASK(logger, 8192, 0)
             i32 log_entry_length =
                 snprintf_
                 (
-                    (char*) working_sectors[0].bytes,
-                    countof(working_sectors[0].bytes),
+                    (char*) working_sectors,
+                    sizeof(working_sectors),
                     "[%u us]"                             "\n"
-                    "Log file index : %d"                 "\n"
                     "Ang. accel.    : <%.3f, %.3f, %.3f>" "\n"
                     "Ang. velocity  : <%.3f, %.3f, %.3f>" "\n"
                     "RPM            : <%.3f, %.3f, %.3f>" "\n"
                     "Stepper issues : %d"                 "\n"
+                    "VN100 isuses   : %d"                 "\n"
                     "OpenMV issues  : %d"                 "\n"
                     "ESP32 issues   : %d"                 "\n"
-                    "Quaternion?    : <%f, %f, %f, %f>"   "\n" // TODO We should probably attach a timestamp to received VN-100 data.
-                    "Magnetometer?  : <%f, %f, %f>"       "\n" // TODO "
-                    "Accelerometer? : <%f, %f, %f>"       "\n" // TODO "
-                    "Gyroscope?     : <%f, %f, %f>"       "\n" // TODO "
+                    "Quaternion?    : <%f, %f, %f, %f>"   "\n"
+                    "Magnetometer?  : <%f, %f, %f>"       "\n"
+                    "Accelerometer? : <%f, %f, %f>"       "\n"
+                    "Gyroscope?     : <%f, %f, %f>"       "\n"
                     "Ext. power     : %s"                 "\n"
                     "VNKMD          : %s"                 "\n"
                     "VNKAD          : %s"                 "\n"
+                    "attitude_x     : %f"                 "\n"
+                    "attitude_y     : %f"                 "\n"
+                    "attitude_z     : %f"                 "\n"
+                    "attitude_w     : %f"                 "\n"
+                    "CV processing  : %d ms"              "\n"
+                    "CV confidence  : %d"                 "\n"
                     "\n",
                     current_timestamp_us,
-                    0, // TODO.
                     CONTROLLER.current_angular_accelerations.values[StepperUnit_axis_x],
                     CONTROLLER.current_angular_accelerations.values[StepperUnit_axis_y],
                     CONTROLLER.current_angular_accelerations.values[StepperUnit_axis_z],
@@ -1654,9 +1651,10 @@ FREERTOS_TASK(logger, 8192, 0)
                     CONTROLLER.current_angular_velocities.values[StepperUnit_axis_x] / (2.0f * PI) * 60.0f,
                     CONTROLLER.current_angular_velocities.values[StepperUnit_axis_y] / (2.0f * PI) * 60.0f,
                     CONTROLLER.current_angular_velocities.values[StepperUnit_axis_z] / (2.0f * PI) * 60.0f,
-                    0, // TODO.
-                    0, // TODO.
-                    0, // TODO.
+                    LOGGER.stepper_issues,
+                    LOGGER.vn100_issues,
+                    LOGGER.openmv_issues,
+                    LOGGER.esp32_issues,
                     vn100_packet_exist ? vn100_packet_data.QuatX  : NAN,
                     vn100_packet_exist ? vn100_packet_data.QuatY  : NAN,
                     vn100_packet_exist ? vn100_packet_data.QuatZ  : NAN,
@@ -1670,9 +1668,15 @@ FREERTOS_TASK(logger, 8192, 0)
                     vn100_packet_exist ? vn100_packet_data.GyroX  : NAN,
                     vn100_packet_exist ? vn100_packet_data.GyroY  : NAN,
                     vn100_packet_exist ? vn100_packet_data.GyroZ  : NAN,
-                    false                                 ? "Yes" : "No", // TODO.
+                    GPIO_READ(external_detected)          ? "Yes" : "No",
                     VN100.magnetic_disturbance_exists     ? "Yes" : "No",
-                    VN100.acceleration_disturbance_exists ? "Yes" : "No"
+                    VN100.acceleration_disturbance_exists ? "Yes" : "No",
+                    openmv_gnc_packet_exist ? openmv_gnc_packet_data.attitude_x                         : NAN,
+                    openmv_gnc_packet_exist ? openmv_gnc_packet_data.attitude_y                         : NAN,
+                    openmv_gnc_packet_exist ? openmv_gnc_packet_data.attitude_z                         : NAN,
+                    openmv_gnc_packet_exist ? openmv_gnc_packet_data.attitude_w                         : NAN,
+                    openmv_gnc_packet_exist ? openmv_gnc_packet_data.computer_vision_processing_time_ms : -1,
+                    openmv_gnc_packet_exist ? openmv_gnc_packet_data.computer_vision_confidence         : -1
                 );
 
 
@@ -1681,6 +1685,7 @@ FREERTOS_TASK(logger, 8192, 0)
 
             if (log_entry_length <= -1)
             {
+                sus;
                 log_entry_length = 0;
             }
 
@@ -1688,9 +1693,10 @@ FREERTOS_TASK(logger, 8192, 0)
 
             // Log entry too long; just truncate.
 
-            if (log_entry_length > sizeof(working_sectors[0].bytes))
+            if (log_entry_length > sizeof(working_sectors))
             {
-                log_entry_length = sizeof(working_sectors[0].bytes);
+                sus;
+                log_entry_length = sizeof(working_sectors);
             }
 
 
@@ -1699,13 +1705,13 @@ FREERTOS_TASK(logger, 8192, 0)
 
             memset
             (
-                working_sectors[0].bytes + log_entry_length,
+                (u8*) working_sectors + log_entry_length,
                 '.',
-                (u32) (sizeof(working_sectors[0].bytes) - log_entry_length)
+                (u32) (sizeof(working_sectors) - log_entry_length)
             );
 
-            working_sectors[0].bytes[countof(working_sectors[0].bytes) - 2] = '\n'; // Don't care if this stamps over the string.
-            working_sectors[0].bytes[countof(working_sectors[0].bytes) - 1] = '\n'; // "
+            working_sectors[countof(working_sectors) - 1].bytes[sizeof(struct Sector) - 2] = '\n'; // Don't care if this stamps over the string.
+            working_sectors[countof(working_sectors) - 1].bytes[sizeof(struct Sector) - 1] = '\n'; // "
 
 
 
@@ -1722,28 +1728,8 @@ FREERTOS_TASK(logger, 8192, 0)
                     (
                         "%.*s",
                         log_entry_length,
-                        working_sectors[0].bytes
+                        (char*) working_sectors
                     );
-
-                    if (openmv_gnc_packet_exist) // TODO Better output...?
-                    {
-                        stlink_tx
-                        (
-                            "attitude_x                         : %f" "\n"
-                            "attitude_y                         : %f" "\n"
-                            "attitude_z                         : %f" "\n"
-                            "attitude_w                         : %f" "\n"
-                            "computer_vision_processing_time_ms : %u" "\n"
-                            "computer_vision_confidence         : %u" "\n"
-                            "\n",
-                            openmv_gnc_packet_data.attitude_x,
-                            openmv_gnc_packet_data.attitude_y,
-                            openmv_gnc_packet_data.attitude_z,
-                            openmv_gnc_packet_data.attitude_w,
-                            openmv_gnc_packet_data.computer_vision_processing_time_ms,
-                            openmv_gnc_packet_data.computer_vision_confidence
-                        );
-                    }
 
                 }
             }
@@ -1758,8 +1744,8 @@ FREERTOS_TASK(logger, 8192, 0)
                 FILESYSTEM_save
                 (
                     SDHandle_primary,
-                    &working_sectors[0],
-                    1
+                    working_sectors,
+                    countof(working_sectors)
                 );
 
             switch (save_result)
