@@ -780,6 +780,8 @@ TARGETS = ( # @/`Defining Targets`.
             ('vehicle_inteface_i2c_data' , 'B7' , 'ALTERNATE', { 'altfunc' : 'I2C1_SDA' , 'open_drain' : True, 'pull' : 'UP' }),
             ('vn100_uart_rx'             , 'B10', 'ALTERNATE', { 'altfunc' : 'USART3_TX'                                     }), # TODO Just to test VN-100 reception for VehicleFlightComputer.
             ('vn100_uart_tx'             , 'B1' , 'ALTERNATE', { 'altfunc' : 'USART3_RX', 'pull' : 'UP'                      }), # TODO Just to test VN-100 reception for VehicleFlightComputer.
+            ('esp32_uart_tx'             , 'B14', 'ALTERNATE', { 'altfunc' : 'USART1_TX'                                     }),
+            ('esp32_uart_rx'             , 'B15', 'ALTERNATE', { 'altfunc' : 'USART1_RX', 'pull' : 'UP'                      }),
         ),
 
         interrupts = (
@@ -787,6 +789,7 @@ TARGETS = ( # @/`Defining Targets`.
             ('I2C1_EV', 1),
             ('I2C1_ER', 1),
             ('USART3' , 2), # TODO Just to test VN-100 reception for VehicleFlightComputer.
+            ('USART1' , 3),
         ),
 
         drivers = (
@@ -812,6 +815,12 @@ TARGETS = ( # @/`Defining Targets`.
                 'type'       : 'TIMEKEEPING',
                 'peripheral' : 'TIM2',
             },
+            {
+                'type'       : 'UXART',
+                'peripheral' : 'USART1',
+                'handle'     : 'esp32',
+                'mode'       : 'full_duplex',
+            },
         ),
 
         use_freertos    = True,
@@ -827,6 +836,7 @@ TARGETS = ( # @/`Defining Targets`.
             'APB3_CK'           : 250_000_000,
             'USART2_BAUD'       : STLINK_BAUD,
             'USART3_BAUD'       : VN100_BAUD,
+            'USART1_BAUD'       : ESP32_BAUD,
             'I2C1_BAUD'         : VEHICLE_INTERFACE_BAUD,
             'I2C1_TIMEOUT'      : 2,
             'TIM2_COUNTER_RATE' : 1_000_000,

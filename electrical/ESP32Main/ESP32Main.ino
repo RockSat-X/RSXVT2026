@@ -1,6 +1,6 @@
 #define COMPILING_ESP32 true
 #define ESPNOW_ENABLE   true
-#define LORA_ENABLE     true
+#define LORA_ENABLE     false
 #include "../system.h"
 
 
