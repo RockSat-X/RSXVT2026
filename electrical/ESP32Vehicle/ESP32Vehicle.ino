@@ -333,12 +333,7 @@ loop(void)
             struct ESP32Packet payload = {};
 
             payload.nonredundant.timestamp_ms = millis();
-
-            static typeof(payload.nonredundant.sequence_number) dummy_sequence_number = 0;
-            payload.nonredundant.sequence_number   = dummy_sequence_number;
-            dummy_sequence_number                += 1;
-
-            payload.nonredundant.crc = ESP32_calculate_crc((u8*) &payload, sizeof(payload) - sizeof(payload.nonredundant.crc));
+            payload.nonredundant.crc          = ESP32_calculate_crc((u8*) &payload, sizeof(payload) - sizeof(payload.nonredundant.crc));
 
             process_payload(&payload);
         }
