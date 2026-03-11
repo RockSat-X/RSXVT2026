@@ -183,7 +183,7 @@ enum DiagnosticLEDBehavior : u32
 
 */
 
-FREERTOS_TASK(diagnostics, 512, 1)
+FREERTOS_TASK(diagnostics, 8192, 1)
 {
 
     u32 current_flags = 0;
@@ -335,7 +335,7 @@ FREERTOS_TASK(diagnostics, 512, 1)
 
 
 
-FREERTOS_TASK(controller, 1024, 0)
+FREERTOS_TASK(controller, 8192, 0)
 {
 
 #if CONTROLLER_ENABLE

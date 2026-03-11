@@ -271,11 +271,11 @@
     };
     static constexpr u32 FreeRTOSTask_COUNT = 7;
     static noret void   diagnostics(void*);
-    static StackType_t  diagnostics_stack[512 / sizeof(StackType_t)] = {0};
+    static StackType_t  diagnostics_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t diagnostics_buffer = {0};
     static TaskHandle_t diagnostics_handle = {0};
     static noret void   controller(void*);
-    static StackType_t  controller_stack[1024 / sizeof(StackType_t)] = {0};
+    static StackType_t  controller_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t controller_buffer = {0};
     static TaskHandle_t controller_handle = {0};
     static noret void   vn100(void*);
