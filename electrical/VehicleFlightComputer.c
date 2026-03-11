@@ -44,7 +44,7 @@ enum OpenMVImageState : u32
 struct OpenMVImage
 {
     volatile _Atomic enum OpenMVImageState state;
-    u8                                     bytes[16 * 1024]; // Average ~3 KiB when using YUV422, QSIF, 50% quality.
+    u8                                     bytes[16 * 1024]; // Average worst ~8 KiB when using YUV422, SIF, 50% quality.
     i32                                    size;
 };
 
@@ -1601,7 +1601,10 @@ FREERTOS_TASK(esp32, 8192, 0)
 
             // TODO.
 
-            FREERTOS_delay_ms(20);
+            if (!image_available)
+            {
+                FREERTOS_delay_ms(20);
+            }
 
         }
 
