@@ -12,7 +12,7 @@
 #define VN100_ENABLE                     true
 #define OPENMV_ENABLE                    true
 #define WATCHDOG_ENABLE                  false
-#define TRANSMIT_TV                      true
+#define TRANSMIT_TV                      false
 
 #include "system.h"
 #include "timekeeping.c"
@@ -155,6 +155,7 @@ enum DiagnosticLEDBehavior : u32
         ('stepper_driver_issue'      , 'ambulance' , ('toggle'  , 'inactive', 'inactive'),  25),
         ('angular_velocity_saturated', 'heartbeat' , ('toggle'  , 'inactive', 'inactive'), 500),
         ('wiping_filesystem'         , 'tetris'    , ('toggle'  , 'inactive', 'toggle'  ), 100),
+        ('openmv_mishap'             , 'three_tone', ('toggle'  , 'toggle'  , 'toggle'  ),  25),
         ('vn100_mishap'              , 'hazard'    , ('inactive', 'inactive', 'toggle'  ),  25),
         ('logging_mishap'            , 'heavy_beep', ('toggle'  , 'inactive', 'toggle'  ), 100),
         ('vn100_heartbeat'           , 'burp'      , ('inactive', 'inactive', 'active'  ), 100),
@@ -1390,22 +1391,25 @@ FREERTOS_TASK(openmv, 8192, 0)
 
         // Start processing packet data from the OpenMV.
 
+        u32 most_recent_gnc_packet_timestamp_us = TIMEKEEPING_microseconds();
+
         while (true)
         {
 
             static_assert(sizeof(struct OpenMVPacket) == sizeof(struct SPIBlock));
 
-            struct OpenMVPacket* packet = (struct OpenMVPacket*) RingBuffer_reading_pointer(SPI_reception(SPIHandle_openmv));
+            u32                  current_timestamp_us = TIMEKEEPING_microseconds();
+            struct OpenMVPacket* packet               = (struct OpenMVPacket*) RingBuffer_reading_pointer(SPI_reception(SPIHandle_openmv));
 
             if (packet)
             {
-
-
 
                 // Determine if the packet correspond to GNC data.
 
                 if (packet->sequence_number == 0) // @/`OpenMV Sequence Number`.
                 {
+
+                    most_recent_gnc_packet_timestamp_us = current_timestamp_us;
 
                     if (!RingBuffer_push(&CONTROLLER.openmv_gnc_packets, &packet->gnc))
                     {
@@ -1456,12 +1460,27 @@ FREERTOS_TASK(openmv, 8192, 0)
                     sus;
 
             }
+            else if (current_timestamp_us - most_recent_gnc_packet_timestamp_us < 5'000'000)
+            {
+                FREERTOS_delay_ms(1); // Keep waiting...
+            }
             else
             {
-                FREERTOS_delay_ms(1);
+                break; // We haven't received valid GNC data from OpenMV in a while... maybe bricked?
             }
 
         }
+
+
+
+        // Something went wrong... we're going to have to reinitialize the OpenMV camera...
+
+        xTaskNotify
+        (
+            diagnostics_handle,
+            DiagnosticMask_openmv_mishap,
+            eSetBits
+        );
 
     }
 
