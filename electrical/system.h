@@ -996,7 +996,7 @@ ESP32_calculate_crc(u8* data, i32 length)
 
 
 
-#define ESP32_BAUD 400000 // @/`Coupled Baud Rate between STM32 and ESP32`.
+#define ESP32_BAUD 1000000 // @/`Coupled Baud Rate between STM32 and ESP32`.
 
 #if COMPILING_ESP32
 
