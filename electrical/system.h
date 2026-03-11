@@ -958,7 +958,8 @@ pack_push
     //
     // The `.image_sequence_number` field is just to make it easier to
     // determine the start of the OpenMV image data, although with how JPEG
-    // works, this could be omitted.
+    // works, this could be omitted. If the field is zero, this means no image
+    // data; otherwise the first image chunk begins with sequence number of 1.
 
     struct LoRaPacket
     {

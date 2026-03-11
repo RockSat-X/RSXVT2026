@@ -10,10 +10,10 @@
 #define GOD_MODE                         true
 #define CONTROLLER_ENABLE                false
 #define VN100_ENABLE                     false
-#define OPENMV_ENABLE                    false
+#define OPENMV_ENABLE                    true
 #define ESP32_ENABLE                     true
 #define WATCHDOG_ENABLE                  false
-#define TRANSMIT_TV                      false
+#define TRANSMIT_TV                      true
 
 #include "system.h"
 #include "timekeeping.c"
@@ -1504,16 +1504,22 @@ FREERTOS_TASK(esp32, 8192, 0)
 
         UXART_reinit(UXARTHandle_esp32);
 
+        b32 image_available       = false;
+        u16 image_sequence_number = {0};
+        i32 image_bytes_sent      = {0};
+
         while (true)
         {
+
+
+
+            // TODO.
 
             struct ESP32Packet packet =
                 {
                     .MagX                                    = 1.0f,
                     .MagY                                    = 2.0f,
                     .MagZ                                    = 3.0f,
-                    .image_sequence_number                   = 0, // TODO.
-                    .image_bytes                             = {0}, // TODO.
                     .nonredundant.QuatX                      = 4.0f,
                     .nonredundant.QuatY                      = 5.0f,
                     .nonredundant.QuatZ                      = 6.0f,
@@ -1529,6 +1535,54 @@ FREERTOS_TASK(esp32, 8192, 0)
                     .nonredundant.computer_vision_confidence = 67,
                 };
 
+
+
+            // Append image data, if any.
+
+            if (!image_available)
+            {
+                if (openmv_use_image(&ESP32.openmv_image))
+                {
+                    image_available       = true;
+                    image_sequence_number = 1; // @/`ESP32 Sequence Numbers`.
+                    image_bytes_sent      = 0;
+                }
+            }
+
+            if (image_available)
+            {
+
+                i32 amount_of_bytes_to_copy   = countof(packet.image_bytes);
+                i32 amount_of_bytes_remaining = ESP32.openmv_image.size - image_bytes_sent;
+
+                if (amount_of_bytes_to_copy > amount_of_bytes_remaining)
+                {
+                    amount_of_bytes_to_copy = amount_of_bytes_remaining;
+                }
+
+                memmove
+                (
+                    packet.image_bytes,
+                    ESP32.openmv_image.bytes + image_bytes_sent,
+                    (u32) amount_of_bytes_to_copy
+                );
+
+                packet.image_sequence_number = image_sequence_number;
+
+                image_sequence_number += 1;
+                image_bytes_sent      += amount_of_bytes_to_copy;
+
+                if (image_bytes_sent == ESP32.openmv_image.size)
+                {
+                    image_available = false;
+                }
+
+            }
+
+
+
+            // Calculate the checksum.
+
             packet.nonredundant.crc =
                 ESP32_calculate_crc
                 (
@@ -1536,8 +1590,16 @@ FREERTOS_TASK(esp32, 8192, 0)
                     sizeof(packet) - sizeof(packet.nonredundant.crc)
                 );
 
+
+
+            // Send the packet to the ESP32.
+
             UXART_tx_bytes(UXARTHandle_esp32, (u8*) ESP32_TOKEN_START, sizeof(ESP32_TOKEN_START) - 1);
             UXART_tx_bytes(UXARTHandle_esp32, (u8*) &packet          , sizeof(packet)               );
+
+
+
+            // TODO.
 
             FREERTOS_delay_ms(20);
 

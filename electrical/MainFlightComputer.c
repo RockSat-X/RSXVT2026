@@ -125,44 +125,64 @@ main(void)
                 }
                 else
                 {
-                    stlink_tx
-                    (
-                        "QuatX                      : %f"    "\n"
-                        "QuatY                      : %f"    "\n"
-                        "QuatZ                      : %f"    "\n"
-                        "QuatS                      : %f"    "\n"
-                        "MagX                       : %f"    "\n"
-                        "MagY                       : %f"    "\n"
-                        "MagZ                       : %f"    "\n"
-                        "AccelX                     : %f"    "\n"
-                        "AccelY                     : %f"    "\n"
-                        "AccelZ                     : %f"    "\n"
-                        "GyroX                      : %f"    "\n"
-                        "GyroY                      : %f"    "\n"
-                        "GyroZ                      : %f"    "\n"
-                        "timestamp_ms               : %u ms" "\n"
-                        "rolling_sequence_number    : %u"    "\n"
-                        "computer_vision_confidence : %u"    "\n"
-                        "image_sequence_number      : %u"    "\n"
-                        "\n",
-                        packet.nonredundant.QuatX,
-                        packet.nonredundant.QuatY,
-                        packet.nonredundant.QuatZ,
-                        packet.nonredundant.QuatS,
-                        packet.MagX,
-                        packet.MagY,
-                        packet.MagZ,
-                        packet.nonredundant.AccelX,
-                        packet.nonredundant.AccelY,
-                        packet.nonredundant.AccelZ,
-                        packet.nonredundant.GyroX,
-                        packet.nonredundant.GyroY,
-                        packet.nonredundant.GyroZ,
-                        packet.nonredundant.timestamp_ms,
-                        packet.nonredundant.rolling_sequence_number,
-                        packet.nonredundant.computer_vision_confidence,
-                        packet.image_sequence_number
-                    );
+
+                    #if 0
+                    {
+                        stlink_tx
+                        (
+                            "QuatX                      : %f"    "\n"
+                            "QuatY                      : %f"    "\n"
+                            "QuatZ                      : %f"    "\n"
+                            "QuatS                      : %f"    "\n"
+                            "MagX                       : %f"    "\n"
+                            "MagY                       : %f"    "\n"
+                            "MagZ                       : %f"    "\n"
+                            "AccelX                     : %f"    "\n"
+                            "AccelY                     : %f"    "\n"
+                            "AccelZ                     : %f"    "\n"
+                            "GyroX                      : %f"    "\n"
+                            "GyroY                      : %f"    "\n"
+                            "GyroZ                      : %f"    "\n"
+                            "timestamp_ms               : %u ms" "\n"
+                            "rolling_sequence_number    : %u"    "\n"
+                            "computer_vision_confidence : %u"    "\n"
+                            "image_sequence_number      : %u"    "\n"
+                            "\n",
+                            packet.nonredundant.QuatX,
+                            packet.nonredundant.QuatY,
+                            packet.nonredundant.QuatZ,
+                            packet.nonredundant.QuatS,
+                            packet.MagX,
+                            packet.MagY,
+                            packet.MagZ,
+                            packet.nonredundant.AccelX,
+                            packet.nonredundant.AccelY,
+                            packet.nonredundant.AccelZ,
+                            packet.nonredundant.GyroX,
+                            packet.nonredundant.GyroY,
+                            packet.nonredundant.GyroZ,
+                            packet.nonredundant.timestamp_ms,
+                            packet.nonredundant.rolling_sequence_number,
+                            packet.nonredundant.computer_vision_confidence,
+                            packet.image_sequence_number
+                        );
+                    }
+                    #else
+                    {
+
+                        if (packet.image_sequence_number == 1) // @/`ESP32 Sequence Numbers`.
+                        {
+                            stlink_tx(TV_TOKEN_END);
+                            stlink_tx(TV_TOKEN_START);
+                        }
+
+                        if (packet.image_sequence_number) // @/`ESP32 Sequence Numbers`.
+                        {
+                            UXART_tx_bytes(UXARTHandle_stlink, packet.image_bytes, countof(packet.image_bytes));
+                        }
+
+                    }
+                    #endif
                 }
 
             } break;
