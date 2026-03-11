@@ -4040,6 +4040,7 @@
     enum NVICInterrupt : u32
     {
         NVICInterrupt_USART2          = USART2_IRQn,
+        NVICInterrupt_UART4           = UART4_IRQn,
         NVICInterrupt_USART1          = USART1_IRQn,
         NVICInterrupt_USART3          = USART3_IRQn,
         NVICInterrupt_SPI2            = SPI2_IRQn,
@@ -4048,7 +4049,7 @@
         NVICInterrupt_TIM8_UP         = TIM8_UP_IRQn,
         NVICInterrupt_SDMMC1          = SDMMC1_IRQn,
     };
-    static constexpr u32 NVICInterrupt_COUNT = 8;
+    static constexpr u32 NVICInterrupt_COUNT = 9;
     extern void INTERRUPT_BusFault(void);
     extern void INTERRUPT_Default(void);
     extern void INTERRUPT_GPDMA1_Channel7(void);
@@ -4057,6 +4058,7 @@
     extern void INTERRUPT_SPI2(void);
     extern void INTERRUPT_TIM1_UP(void);
     extern void INTERRUPT_TIM8_UP(void);
+    extern void INTERRUPT_UART4(void);
     extern void INTERRUPT_USART1(void);
     extern void INTERRUPT_USART2(void);
     extern void INTERRUPT_USART3(void);
@@ -4143,7 +4145,7 @@
             INTERRUPT_USART1             , // [ 58] USART1
             INTERRUPT_USART2             , // [ 59] USART2
             INTERRUPT_USART3             , // [ 60] USART3
-            INTERRUPT_Default            , // [ 61] UART4
+            INTERRUPT_UART4              , // [ 61] UART4
             INTERRUPT_Default            , // [ 62] UART5
             INTERRUPT_Default            , // [ 63] LPUART1
             INTERRUPT_Default            , // [ 64] LPTIM1
@@ -4227,6 +4229,7 @@
     #define INTERRUPT_SysTick(...) extern void INTERRUPT_SysTick(__VA_ARGS__)
     #define INTERRUPT_TIM1_UP(...) extern void INTERRUPT_TIM1_UP(__VA_ARGS__)
     #define INTERRUPT_TIM8_UP(...) extern void INTERRUPT_TIM8_UP(__VA_ARGS__)
+    #define INTERRUPT_UART4(...) extern void INTERRUPT_UART4(__VA_ARGS__)
     #define INTERRUPT_USART1(...) extern void INTERRUPT_USART1(__VA_ARGS__)
     #define INTERRUPT_USART2(...) extern void INTERRUPT_USART2(__VA_ARGS__)
     #define INTERRUPT_USART3(...) extern void INTERRUPT_USART3(__VA_ARGS__)
@@ -4460,6 +4463,8 @@
 
         static_assert(0 <= 0 && 0 < (1 << __NVIC_PRIO_BITS));
         NVIC->IPR[NVICInterrupt_USART2] = 0 << __NVIC_PRIO_BITS;
+        static_assert(0 <= 0 && 0 < (1 << __NVIC_PRIO_BITS));
+        NVIC->IPR[NVICInterrupt_UART4] = 0 << __NVIC_PRIO_BITS;
         static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
         NVIC->IPR[NVICInterrupt_USART1] = 1 << __NVIC_PRIO_BITS;
         static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
@@ -4635,6 +4640,15 @@
 
         #define STPY_USART3_KERNEL_SOURCE 0b000
         #define STPY_USART3_BAUD_DIVIDER 2170
+
+
+
+        /////////////////////////////////// UART4 ////////////////////////////////////
+
+
+
+        #define STPY_UART4_KERNEL_SOURCE 0b000
+        #define STPY_UART4_BAUD_DIVIDER 250
 
 
 

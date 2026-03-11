@@ -8,9 +8,10 @@
 #define MAX_ANGULAR_ACCELERATION         (200.0f)
 #define MAX_ANGULAR_VELOCITY             (2000.0f * 2.0f * PI / 60.0f)
 #define GOD_MODE                         true
-#define CONTROLLER_ENABLE                true
-#define VN100_ENABLE                     true
-#define OPENMV_ENABLE                    true
+#define CONTROLLER_ENABLE                false
+#define VN100_ENABLE                     false
+#define OPENMV_ENABLE                    false
+#define ESP32_ENABLE                     true
 #define WATCHDOG_ENABLE                  false
 #define TRANSMIT_TV                      false
 
@@ -1473,6 +1474,74 @@ FREERTOS_TASK(openmv, 8192, 0)
             DiagnosticMask_openmv_mishap,
             eSetBits
         );
+
+    }
+
+#else
+
+    for (;;)
+    {
+        FREERTOS_delay_ms(1'000);
+    }
+
+#endif
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+FREERTOS_TASK(esp32, 8192, 0)
+{
+
+#if ESP32_ENABLE
+
+    for (;;)
+    {
+
+        UXART_reinit(UXARTHandle_esp32);
+
+        while (true)
+        {
+
+            struct ESP32Packet packet =
+                {
+                    .MagX                                    = 1.0f,
+                    .MagY                                    = 2.0f,
+                    .MagZ                                    = 3.0f,
+                    .image_sequence_number                   = 0, // TODO.
+                    .image_bytes                             = {0}, // TODO.
+                    .nonredundant.QuatX                      = 4.0f,
+                    .nonredundant.QuatY                      = 5.0f,
+                    .nonredundant.QuatZ                      = 6.0f,
+                    .nonredundant.QuatS                      = 7.0f,
+                    .nonredundant.AccelX                     = 8.0f,
+                    .nonredundant.AccelY                     = 9.0f,
+                    .nonredundant.AccelZ                     = 10.0f,
+                    .nonredundant.GyroX                      = 11.0f,
+                    .nonredundant.GyroY                      = 12.0f,
+                    .nonredundant.GyroZ                      = 13.0f,
+                    .nonredundant.timestamp_ms               = (u16) (TIMEKEEPING_microseconds() / 1'000),
+                    .nonredundant.rolling_sequence_number    = 0, // @/`ESP32 Sequence Numbers`.
+                    .nonredundant.computer_vision_confidence = 67,
+                };
+
+            packet.nonredundant.crc =
+                ESP32_calculate_crc
+                (
+                    (u8*) &packet,
+                    sizeof(packet) - sizeof(packet.nonredundant.crc)
+                );
+
+            UXART_tx_bytes(UXARTHandle_esp32, (u8*) ESP32_TOKEN_START, sizeof(ESP32_TOKEN_START) - 1);
+            UXART_tx_bytes(UXARTHandle_esp32, (u8*) &packet          , sizeof(packet)               );
+
+            FREERTOS_delay_ms(20);
+
+        }
 
     }
 

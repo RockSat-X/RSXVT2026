@@ -899,6 +899,7 @@ TARGETS = ( # @/`Defining Targets`.
 
         interrupts = (
             ('USART2'         , 0),
+            ('UART4'          , 0),
             ('USART1'         , 1),
             ('USART3'         , 1),
             ('SPI2'           , 1),
@@ -932,6 +933,12 @@ TARGETS = ( # @/`Defining Targets`.
                 'type'       : 'UXART',
                 'peripheral' : 'USART3',
                 'handle'     : 'vn100',
+                'mode'       : 'full_duplex',
+            },
+            {
+                'type'       : 'UXART',
+                'peripheral' : 'UART4',
+                'handle'     : 'esp32',
                 'mode'       : 'full_duplex',
             },
             # TODO.
@@ -985,6 +992,7 @@ TARGETS = ( # @/`Defining Targets`.
             'SDMMC1_FULL_BAUD'    : 24_000_000,
             'USART1_BAUD'         :    200_000,
             'USART3_BAUD'         : VN100_BAUD,
+            'UART4_BAUD'          : ESP32_BAUD,
             # TODO: 'I2C3_BAUD'           : VEHICLE_INTERFACE_BAUD,
             # TODO: 'I2C3_TIMEOUT'        : 2,
             'SPI2_BAUD'           : 600_000, # @/`OpenMV SPI Baud`.
