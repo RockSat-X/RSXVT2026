@@ -24,7 +24,6 @@
 #include "buzzer.c"
 #include "gnc.c"
 
-// TODO Check if we've been receiving OpenMV data.
 // TODO Check if ESP32 still working.
 
 
@@ -68,6 +67,10 @@ static struct
 {
     RingBuffer(struct VN100Packet    , 8) vn100_packets;
     RingBuffer(struct OpenMVPacketGNC, 8) openmv_gnc_packets;
+    volatile _Atomic i32                  stepper_issues;
+    volatile _Atomic i32                  vn100_issues;
+    volatile _Atomic i32                  openmv_issues;
+    volatile _Atomic i32                  esp32_issues;
 } LOGGER = {0};
 
 static struct
@@ -558,7 +561,7 @@ FREERTOS_TASK(controller, 1024, 0)
                     FREERTOS_delay_ms(1);
                 } break;
 
-                case StepperPushAngularVelocitiesResult_no_response_from_unit:  // TODO Collect statistics?
+                case StepperPushAngularVelocitiesResult_no_response_from_unit:
                 case StepperPushAngularVelocitiesResult_bad_response_from_unit:
                 case StepperPushAngularVelocitiesResult_bug:
                 default:
@@ -569,6 +572,13 @@ FREERTOS_TASK(controller, 1024, 0)
                         diagnostics_handle,
                         DiagnosticMask_stepper_driver_issue,
                         eSetBits
+                    );
+
+                    atomic_fetch_add_explicit
+                    (
+                        &LOGGER.stepper_issues,
+                        1,
+                        memory_order_relaxed // No synchronization needed.
                     );
 
                     memzero((struct StepperTuple*) &CONTROLLER.current_angular_accelerations);
@@ -1113,6 +1123,13 @@ FREERTOS_TASK(vn100, 8192, 0)
                     else // Perhaps a packet we don't recognize?
                     {
 
+                        atomic_fetch_add_explicit
+                        (
+                            &LOGGER.vn100_issues,
+                            1,
+                            memory_order_relaxed // No synchronization needed.
+                        );
+
                         xTaskNotify
                         (
                             diagnostics_handle,
@@ -1141,6 +1158,13 @@ FREERTOS_TASK(vn100, 8192, 0)
 
                 case VN100AwaitResponseResult_checksum_mismatch:
                 {
+
+                    atomic_fetch_add_explicit
+                    (
+                        &LOGGER.vn100_issues,
+                        1,
+                        memory_order_relaxed // No synchronization needed.
+                    );
 
                     xTaskNotify
                     (
@@ -1172,6 +1196,13 @@ FREERTOS_TASK(vn100, 8192, 0)
         }
 
         REINITIALIZE:;
+
+        atomic_fetch_add_explicit
+        (
+            &LOGGER.vn100_issues,
+            1,
+            memory_order_relaxed // No synchronization needed.
+        );
 
         xTaskNotify
         (
@@ -1475,6 +1506,13 @@ FREERTOS_TASK(openmv, 8192, 0)
 
         // Something went wrong... we're going to have to reinitialize the OpenMV camera...
 
+        atomic_fetch_add_explicit
+        (
+            &LOGGER.openmv_issues,
+            1,
+            memory_order_relaxed // No synchronization needed.
+        );
+
         xTaskNotify
         (
             diagnostics_handle,
@@ -1633,6 +1671,7 @@ FREERTOS_TASK(logger, 8192, 0)
                     "Ang. velocity  : <%.3f, %.3f, %.3f>" "\n"
                     "RPM            : <%.3f, %.3f, %.3f>" "\n"
                     "Stepper issues : %d"                 "\n"
+                    "VN100 isuses   : %d"                 "\n"
                     "OpenMV issues  : %d"                 "\n"
                     "ESP32 issues   : %d"                 "\n"
                     "Quaternion?    : <%f, %f, %f, %f>"   "\n" // TODO We should probably attach a timestamp to received VN-100 data.
@@ -1654,9 +1693,10 @@ FREERTOS_TASK(logger, 8192, 0)
                     CONTROLLER.current_angular_velocities.values[StepperUnit_axis_x] / (2.0f * PI) * 60.0f,
                     CONTROLLER.current_angular_velocities.values[StepperUnit_axis_y] / (2.0f * PI) * 60.0f,
                     CONTROLLER.current_angular_velocities.values[StepperUnit_axis_z] / (2.0f * PI) * 60.0f,
-                    0, // TODO.
-                    0, // TODO.
-                    0, // TODO.
+                    LOGGER.stepper_issues,
+                    LOGGER.vn100_issues,
+                    LOGGER.openmv_issues,
+                    LOGGER.esp32_issues,
                     vn100_packet_exist ? vn100_packet_data.QuatX  : NAN,
                     vn100_packet_exist ? vn100_packet_data.QuatY  : NAN,
                     vn100_packet_exist ? vn100_packet_data.QuatZ  : NAN,
