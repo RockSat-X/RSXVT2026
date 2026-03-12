@@ -23,6 +23,7 @@
 #include "filesystem.c"
 #include "stepper.c"
 #include "buzzer.c"
+#include "i2c.c"
 #include "gnc.c"
 
 
@@ -119,22 +120,24 @@ main(void)
 
 
 
-    // More peripheral initializations that depend on the above initializations.
-
-    BUZZER_partial_init();
-
-
-
     // When the vehicle becomes powered on, it's typically because
     // of the external power supply through the vehicle interface.
     // To make sure that the vehicle should stay powered on with
     // the battery supply, we play a tune that'll act as the delay.
+
+    BUZZER_partial_init();
 
     BUZZER_play(BuzzerTune_waking_up);
 
     while (BUZZER_current_tune());
 
     GPIO_ACTIVE(battery_allowed);
+
+
+
+    // Set up direct communication with main.
+
+    I2C_partial_reinit(I2CHandle_vehicle_interface);
 
 
 
@@ -2282,5 +2285,109 @@ FREERTOS_TASK(watchdog, 512, 2)
     }
 
 #endif
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+INTERRUPT_I2Cx_vehicle_interface(enum I2CSlaveCallbackEvent event, u8* data)
+{
+
+    static b32 payload_has_valid_data = false;
+
+    switch (event)
+    {
+
+        // Send next byte of the vehicle interface payload over.
+
+        case I2CSlaveCallbackEvent_ready_to_transmit_data:
+        {
+
+            // Prepare the payload.
+
+            static i32                            byte_index = 0;
+            static struct VehicleInterfacePayload payload    = {0};
+
+            if (!payload_has_valid_data)
+            {
+
+                byte_index = 0;
+
+                payload =
+                    (struct VehicleInterfacePayload)
+                    {
+                        .timestamp_us = (u16) TIMEKEEPING_microseconds(),
+                        .flags        = 0, // TODO.
+                    };
+
+                payload.crc =
+                    VEHICLE_INTERFACE_calculate_crc
+                    (
+                        (u8*) &payload,
+                        sizeof(payload) - sizeof(payload.crc)
+                    );
+
+                payload_has_valid_data = true;
+
+            }
+
+
+
+            // Prepare next byte.
+
+            if (byte_index < sizeof(payload))
+            {
+                *data = ((u8*) &payload)[byte_index];
+            }
+            else
+            {
+                *data = 0xFF; // Garbage.
+            }
+
+            byte_index += 1;
+
+        } break;
+
+
+
+        // TODO.
+
+        case I2CSlaveCallbackEvent_transmission_initiated:
+        case I2CSlaveCallbackEvent_transmission_repeated:
+        case I2CSlaveCallbackEvent_stop_signaled:
+        {
+            payload_has_valid_data = false;
+        } break;
+
+
+
+        // TODO
+
+        case I2CSlaveCallbackEvent_data_available_to_read:
+        case I2CSlaveCallbackEvent_reception_initiated:
+        case I2CSlaveCallbackEvent_reception_repeated:
+        {
+            sus;
+            payload_has_valid_data = false;
+        } break;
+
+
+
+        // TODO.
+
+        case I2CSlaveCallbackEvent_bus_misbehaved:
+        case I2CSlaveCallbackEvent_watchdog_expired:
+        case I2CSlaveCallbackEvent_clock_stretch_timeout:
+        case I2CSlaveCallbackEvent_bug:
+        default:
+        {
+            I2C_partial_reinit(I2CHandle_vehicle_interface);
+        } break;
+
+    }
 
 }

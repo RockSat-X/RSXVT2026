@@ -116,7 +116,7 @@ FREERTOS_TASK(vehicle_interface, 1024, 0)
     for (;;)
     {
 
-#if 0
+#if 1
 
         struct VehicleInterfacePayload payload = {0};
 
@@ -293,7 +293,7 @@ FREERTOS_TASK(esp32, 8192, 0)
                 else
                 {
 
-                    #if 1
+                    #if 0
                     {
                         stlink_tx
                         (
@@ -334,7 +334,7 @@ FREERTOS_TASK(esp32, 8192, 0)
                             packet.image_sequence_number
                         );
                     }
-                    #else
+                    #elif 0
                     {
 
                         if (packet.image_sequence_number == 1) // @/`ESP32 Sequence Numbers`.

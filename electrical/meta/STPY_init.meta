@@ -4048,11 +4048,15 @@
         NVICInterrupt_TIM1_UP         = TIM1_UP_IRQn,
         NVICInterrupt_TIM8_UP         = TIM8_UP_IRQn,
         NVICInterrupt_SDMMC1          = SDMMC1_IRQn,
+        NVICInterrupt_I2C3_EV         = I2C3_EV_IRQn,
+        NVICInterrupt_I2C3_ER         = I2C3_ER_IRQn,
     };
-    static constexpr u32 NVICInterrupt_COUNT = 9;
+    static constexpr u32 NVICInterrupt_COUNT = 11;
     extern void INTERRUPT_BusFault(void);
     extern void INTERRUPT_Default(void);
     extern void INTERRUPT_GPDMA1_Channel7(void);
+    extern void INTERRUPT_I2C3_ER(void);
+    extern void INTERRUPT_I2C3_EV(void);
     extern void INTERRUPT_Reset(void);
     extern void INTERRUPT_SDMMC1(void);
     extern void INTERRUPT_SPI2(void);
@@ -4164,8 +4168,8 @@
             INTERRUPT_Default            , // [ 77] FMC
             INTERRUPT_Default            , // [ 78] OCTOSPI1
             INTERRUPT_SDMMC1             , // [ 79] SDMMC1
-            INTERRUPT_Default            , // [ 80] I2C3_EV
-            INTERRUPT_Default            , // [ 81] I2C3_ER
+            INTERRUPT_I2C3_EV            , // [ 80] I2C3_EV
+            INTERRUPT_I2C3_ER            , // [ 81] I2C3_ER
             INTERRUPT_Default            , // [ 82] SPI4
             INTERRUPT_Default            , // [ 83] Reserved
             INTERRUPT_Default            , // [ 84] Reserved
@@ -4221,6 +4225,8 @@
     #define INTERRUPT_BusFault(...) extern void INTERRUPT_BusFault(__VA_ARGS__)
     #define INTERRUPT_Default(...) extern void INTERRUPT_Default(__VA_ARGS__)
     #define INTERRUPT_GPDMA1_Channel7(...) extern void INTERRUPT_GPDMA1_Channel7(__VA_ARGS__)
+    #define INTERRUPT_I2C3_ER(...) extern void INTERRUPT_I2C3_ER(__VA_ARGS__)
+    #define INTERRUPT_I2C3_EV(...) extern void INTERRUPT_I2C3_EV(__VA_ARGS__)
     #define INTERRUPT_PendSV(...) extern void INTERRUPT_PendSV(__VA_ARGS__)
     #define INTERRUPT_Reset(...) extern void INTERRUPT_Reset(__VA_ARGS__)
     #define INTERRUPT_SDMMC1(...) extern void INTERRUPT_SDMMC1(__VA_ARGS__)
@@ -4479,6 +4485,10 @@
         NVIC->IPR[NVICInterrupt_TIM8_UP] = 3 << __NVIC_PRIO_BITS;
         static_assert(0 <= 4 && 4 < (1 << __NVIC_PRIO_BITS));
         NVIC->IPR[NVICInterrupt_SDMMC1] = 4 << __NVIC_PRIO_BITS;
+        static_assert(0 <= 5 && 5 < (1 << __NVIC_PRIO_BITS));
+        NVIC->IPR[NVICInterrupt_I2C3_EV] = 5 << __NVIC_PRIO_BITS;
+        static_assert(0 <= 5 && 5 < (1 << __NVIC_PRIO_BITS));
+        NVIC->IPR[NVICInterrupt_I2C3_ER] = 5 << __NVIC_PRIO_BITS;
         CMSIS_SET
         (
             SCB        , SHCSR,
@@ -4649,6 +4659,18 @@
 
         #define STPY_UART4_KERNEL_SOURCE 0b000
         #define STPY_UART4_BAUD_DIVIDER 250
+
+
+
+        //////////////////////////////////// I2C3 ////////////////////////////////////
+
+
+
+        #define STPY_I2C3_KERNEL_SOURCE 0b11
+        #define STPY_I2C3_PRESC 0
+        #define STPY_I2C3_SCLH 200
+        #define STPY_I2C3_SCLL 200
+        #define STPY_I2C3_TIMEOUTR_TIMEOUTA 3905
 
 
 

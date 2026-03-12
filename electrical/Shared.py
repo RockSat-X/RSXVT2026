@@ -907,8 +907,8 @@ TARGETS = ( # @/`Defining Targets`.
             ('TIM1_UP'        , 2),
             ('TIM8_UP'        , 3),
             ('SDMMC1'         , 4),
-            # TODO: ('I2C3_EV', 1),
-            # TODO: ('I2C3_ER', 1),
+            ('I2C3_EV'        , 5),
+            ('I2C3_ER'        , 5),
         ),
 
         drivers = (
@@ -941,14 +941,13 @@ TARGETS = ( # @/`Defining Targets`.
                 'handle'     : 'esp32',
                 'mode'       : 'full_duplex',
             },
-            # TODO.
-            # {
-            #     'type'       : 'I2C',
-            #     'peripheral' : 'I2C3',
-            #     'handle'     : 'vehicle_interface',
-            #     'mode'       : 'slave',
-            #     'address'    : VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS,
-            # },
+            {
+                'type'       : 'I2C',
+                'peripheral' : 'I2C3',
+                'handle'     : 'vehicle_interface',
+                'mode'       : 'slave',
+                'address'    : VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS,
+            },
             {
                 'type'                         : 'Stepper',
                 'uxart_handle'                 : 'stepper_uart',
@@ -993,8 +992,8 @@ TARGETS = ( # @/`Defining Targets`.
             'USART1_BAUD'         :    200_000,
             'USART3_BAUD'         : VN100_BAUD,
             'UART4_BAUD'          : ESP32_BAUD,
-            # TODO: 'I2C3_BAUD'           : VEHICLE_INTERFACE_BAUD,
-            # TODO: 'I2C3_TIMEOUT'        : 2,
+            'I2C3_BAUD'           : VEHICLE_INTERFACE_BAUD,
+            'I2C3_TIMEOUT'        : 2,
             'SPI2_BAUD'           : 600_000, # @/`OpenMV SPI Baud`.
             'TIM1_UPDATE_RATE'    : 1 / 0.001,
             'TIM2_COUNTER_RATE'   : 1_000_000,
