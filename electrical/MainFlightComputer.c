@@ -43,22 +43,66 @@ main(void)
 
 
 
-static enum ESP32FindStartTokenResult : u32
-{
-    ESP32FindStartTokenResult_esp32,
-    ESP32FindStartTokenResult_lora,
-}
-esp32_find_start_token(void)
+static useret b32
+esp32_get_byte(u8* dst)
 {
 
-    i32 esp32_match_length = 0;
-    i32 lora_match_length  = 0;
+    u32 start_timestamp_us = TIMEKEEPING_microseconds();
+
+    while (true)
+    {
+
+        u32 current_timestamp_us = TIMEKEEPING_microseconds();
+
+        if (UXART_rx(UXARTHandle_esp32, dst))
+        {
+            return true; // Got what we needed.
+        }
+        else if (current_timestamp_us - start_timestamp_us < 3'000'000) // TODO Time-out duration when we first power-on?
+        {
+            FREERTOS_delay_ms(1); // Hmm, just give the ESP32 a moment...
+        }
+        else
+        {
+            return false; // The ESP32's been quiet... maybe it's bricked..?
+        }
+
+    }
+
+}
+
+static useret enum ESP32GetPacketResult : u32
+{
+    ESP32GetPacketResult_esp32,
+    ESP32GetPacketResult_lora,
+    ESP32GetPacketResult_timeout,
+    ESP32GetPacketResult_crc_mismatch,
+}
+esp32_get_packet(struct ESP32Packet* dst_packet)
+{
+
+    if (!dst_packet)
+        sus;
+
+    memzero(dst_packet);
+
+
+
+    // First find the starting token of the payload.
+
+    i32                        esp32_match_length = 0;
+    i32                        lora_match_length  = 0;
+    enum ESP32GetPacketResult kind               = {0};
 
     while (true)
     {
 
         u8 data = {0};
-        while (!UXART_rx(UXARTHandle_esp32, &data));
+
+        if (!esp32_get_byte(&data))
+        {
+            return ESP32GetPacketResult_timeout;
+        }
 
         if (ESP32_TOKEN_START[esp32_match_length] != data) // Reset the search for the ESP32 token?
         {
@@ -72,7 +116,8 @@ esp32_find_start_token(void)
 
             if (ESP32_TOKEN_START[esp32_match_length] == '\0')
             {
-                return ESP32FindStartTokenResult_esp32;
+                kind = ESP32GetPacketResult_esp32;
+                break; // Found the ESP32 start token!
             }
 
         }
@@ -89,12 +134,44 @@ esp32_find_start_token(void)
 
             if (LORA_TOKEN_START[lora_match_length] == '\0')
             {
-                return ESP32FindStartTokenResult_lora;
+                kind = ESP32GetPacketResult_lora;
+                break; // Found the LoRa start token!
             }
 
         }
 
     }
+
+
+
+    // Get the payload data based on the token.
+
+    u8* write_pointer = kind == ESP32GetPacketResult_esp32 ? (u8*) dst_packet    : (u8*) &dst_packet->nonredundant;
+    i32 write_size    = kind == ESP32GetPacketResult_esp32 ? sizeof(*dst_packet) : sizeof(dst_packet->nonredundant);
+
+    for (i32 i = 0; i < write_size; i += 1)
+    {
+        if (!esp32_get_byte(&write_pointer[i]))
+        {
+            return ESP32GetPacketResult_timeout;
+        }
+    }
+
+
+
+    // Verify integrity of the payload.
+
+    u8 digest = ESP32_calculate_crc(write_pointer, write_size);
+
+    if (digest)
+    {
+        return ESP32GetPacketResult_crc_mismatch;
+    }
+    else
+    {
+        return kind;
+    }
+
 }
 
 FREERTOS_TASK(esp32, 0)
@@ -124,89 +201,101 @@ FREERTOS_TASK(esp32, 0)
 
         // TODO.
 
-        while (true)
+        b32 need_to_reinitialize = false;
+
+        while (!need_to_reinitialize)
         {
 
-            enum ESP32FindStartTokenResult result = esp32_find_start_token();
+            struct ESP32Packet        packet = {0};
+            enum ESP32GetPacketResult result = esp32_get_packet(&packet);
 
             switch (result)
             {
 
-                case ESP32FindStartTokenResult_esp32:
+
+
+                // TODO.
+
+                case ESP32GetPacketResult_esp32:
                 {
-
-                    struct ESP32Packet packet = {0};
-
-                    for (i32 i = 0; i < sizeof(packet); i += 1)
-                    {
-                        u8 data = {0};
-                        while (!UXART_rx(UXARTHandle_esp32, &data))
-                        {
-                            FREERTOS_delay_ms(1);
-                        }
-                        ((u8*) &packet)[i] = data;
-                    }
-
-                    u8 digest = ESP32_calculate_crc((u8*) &packet, sizeof(packet));
-
-                    if (digest)
-                    {
-                        stlink_tx(">>>> CRC mismatch! Maybe due to UART RX-FIFO overflow... <<<<\n\n");
-                    }
-                    else
-                    {
-                        stlink_tx
-                        (
-                            "QuatX                      : %f"    "\n"
-                            "QuatY                      : %f"    "\n"
-                            "QuatZ                      : %f"    "\n"
-                            "QuatS                      : %f"    "\n"
-                            "MagX                       : %f"    "\n"
-                            "MagY                       : %f"    "\n"
-                            "MagZ                       : %f"    "\n"
-                            "AccelX                     : %f"    "\n"
-                            "AccelY                     : %f"    "\n"
-                            "AccelZ                     : %f"    "\n"
-                            "GyroX                      : %f"    "\n"
-                            "GyroY                      : %f"    "\n"
-                            "GyroZ                      : %f"    "\n"
-                            "timestamp_ms               : %u ms" "\n"
-                            "rolling_sequence_number    : %u"    "\n"
-                            "computer_vision_confidence : %u"    "\n"
-                            "image_sequence_number      : %u"    "\n"
-                            "\n",
-                            packet.nonredundant.QuatX,
-                            packet.nonredundant.QuatY,
-                            packet.nonredundant.QuatZ,
-                            packet.nonredundant.QuatS,
-                            packet.MagX,
-                            packet.MagY,
-                            packet.MagZ,
-                            packet.nonredundant.AccelX,
-                            packet.nonredundant.AccelY,
-                            packet.nonredundant.AccelZ,
-                            packet.nonredundant.GyroX,
-                            packet.nonredundant.GyroY,
-                            packet.nonredundant.GyroZ,
-                            packet.nonredundant.timestamp_ms,
-                            packet.nonredundant.rolling_sequence_number,
-                            packet.nonredundant.computer_vision_confidence,
-                            packet.image_sequence_number
-                        );
-                    }
-
+                    stlink_tx
+                    (
+                        "QuatX                      : %f"    "\n"
+                        "QuatY                      : %f"    "\n"
+                        "QuatZ                      : %f"    "\n"
+                        "QuatS                      : %f"    "\n"
+                        "MagX                       : %f"    "\n"
+                        "MagY                       : %f"    "\n"
+                        "MagZ                       : %f"    "\n"
+                        "AccelX                     : %f"    "\n"
+                        "AccelY                     : %f"    "\n"
+                        "AccelZ                     : %f"    "\n"
+                        "GyroX                      : %f"    "\n"
+                        "GyroY                      : %f"    "\n"
+                        "GyroZ                      : %f"    "\n"
+                        "timestamp_ms               : %u ms" "\n"
+                        "rolling_sequence_number    : %u"    "\n"
+                        "computer_vision_confidence : %u"    "\n"
+                        "image_sequence_number      : %u"    "\n"
+                        "\n",
+                        packet.nonredundant.QuatX,
+                        packet.nonredundant.QuatY,
+                        packet.nonredundant.QuatZ,
+                        packet.nonredundant.QuatS,
+                        packet.MagX,
+                        packet.MagY,
+                        packet.MagZ,
+                        packet.nonredundant.AccelX,
+                        packet.nonredundant.AccelY,
+                        packet.nonredundant.AccelZ,
+                        packet.nonredundant.GyroX,
+                        packet.nonredundant.GyroY,
+                        packet.nonredundant.GyroZ,
+                        packet.nonredundant.timestamp_ms,
+                        packet.nonredundant.rolling_sequence_number,
+                        packet.nonredundant.computer_vision_confidence,
+                        packet.image_sequence_number
+                    );
                 } break;
 
-                case ESP32FindStartTokenResult_lora:
+
+
+                // TODO.
+
+                case ESP32GetPacketResult_lora:
                 {
                     sorry
                 } break;
+
+
+
+                // TODO.
+
+                case ESP32GetPacketResult_timeout:
+                {
+                    need_to_reinitialize = true;
+                } break;
+
+
+
+                // TODO.
+
+                case ESP32GetPacketResult_crc_mismatch:
+                {
+                    stlink_tx(">>>> CRC mismatch! Maybe due to UART RX-FIFO overflow... <<<<\n\n");
+                } break;
+
+
 
                 default: sorry
 
             }
 
         }
+
+
+
+        // TODO Indicate there was an ESP32 error.
 
     }
 }
