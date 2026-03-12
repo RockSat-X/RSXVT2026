@@ -2238,7 +2238,7 @@ FREERTOS_TASK(god, 2)
 
 
 
-FREERTOS_TASK(watchdog, 2)
+FREERTOS_TASK(watchdog, 3)
 {
 
 #if WATCHDOG_ENABLE
@@ -2254,7 +2254,7 @@ FREERTOS_TASK(watchdog, 2)
 
             // Indicate that this is why the vehicle is suddenly shut off.
 
-            BUZZER_play(BuzzerTune_mario);
+            BUZZER_play(BuzzerTune_sleeping);
             while (BUZZER_current_tune());
 
 
@@ -2262,7 +2262,8 @@ FREERTOS_TASK(watchdog, 2)
             // Try cut off battery power.
 
             GPIO_INACTIVE(battery_allowed);
-            FREERTOS_delay_ms(1'000'000);
+            spinlock_us(1'000'000);
+
 
 
             // If we're still alive by this point, then

@@ -406,7 +406,7 @@
                 "watchdog",
                 countof(watchdog_stack),
                 nullptr,
-                2,
+                3,
                 watchdog_stack,
                 &watchdog_buffer
             );
