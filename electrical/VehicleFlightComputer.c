@@ -166,6 +166,7 @@ enum DiagnosticLEDBehavior : u32
         ('stepper_driver_issue'      , 'ambulance' , ('toggle'  , 'inactive', 'inactive'),  25),
         ('angular_velocity_saturated', 'heartbeat' , ('toggle'  , 'inactive', 'inactive'), 500),
         ('wiping_filesystem'         , 'tetris'    , ('toggle'  , 'inactive', 'toggle'  ), 100),
+        ('esp32_mishap'              , 'mario'     , ('toggle'  , 'toggle'  , 'toggle'  ),  25),
         ('openmv_mishap'             , 'three_tone', ('toggle'  , 'toggle'  , 'toggle'  ),  25),
         ('vn100_mishap'              , 'hazard'    , ('inactive', 'inactive', 'toggle'  ),  25),
         ('logging_mishap'            , 'heavy_beep', ('toggle'  , 'inactive', 'toggle'  ), 100),
@@ -1561,9 +1562,10 @@ FREERTOS_TASK(esp32, 8192, 0)
 
         // TODO.
 
-        b32 image_available       = false;
-        u16 image_sequence_number = {0};
-        i32 image_bytes_sent      = {0};
+        b32 image_available                   = false;
+        u16 image_sequence_number             = {0};
+        i32 image_bytes_sent                  = {0};
+        u32 most_recent_response_timestamp_us = TIMEKEEPING_microseconds();
 
         while (true)
         {
@@ -1673,6 +1675,24 @@ FREERTOS_TASK(esp32, 8192, 0)
                 UXART_tx_bytes(UXARTHandle_esp32, (u8*) ESP32_TOKEN_START, sizeof(ESP32_TOKEN_START) - 1);
                 UXART_tx_bytes(UXARTHandle_esp32, (u8*) &packet          , sizeof(packet)               );
 
+
+
+                // Ensure the ESP32 is still transmitting.
+
+                u8 response = {0};
+
+                while (UXART_rx(UXARTHandle_esp32, &response))
+                {
+                    most_recent_response_timestamp_us = TIMEKEEPING_microseconds();
+                }
+
+                u32 current_timestamp_us = TIMEKEEPING_microseconds();
+
+                if (current_timestamp_us - most_recent_response_timestamp_us >= 2'000'000)
+                {
+                    break; // It's been too long since we last heard from the ESP32...
+                }
+
                 FREERTOS_delay_ms(2); // TODO.
 
             }
@@ -1682,6 +1702,17 @@ FREERTOS_TASK(esp32, 8192, 0)
             }
 
         }
+
+
+
+        // Something went wrong... we're going to have to reinitialize the ESP32...
+
+        xTaskNotify
+        (
+            diagnostics_handle,
+            DiagnosticMask_esp32_mishap,
+            eSetBits
+        );
 
     }
 

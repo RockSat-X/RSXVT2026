@@ -229,6 +229,8 @@ process_payload(struct ESP32Packet* payload)
                 packet_espnow_writer                         += 1;
                 packet_espnow_packet_count                   += 1;
 
+                Serial1.write((u8) packet_espnow_packet_count); // Indicate to the VFC that we're still transmitting over ESP-NOW.
+
             }
             else
             {
