@@ -770,18 +770,18 @@ TARGETS = ( # @/`Defining Targets`.
         kicad_project = None,
 
         gpios = (
-            ('led_green'                 , 'A5' , 'OUTPUT'   , { 'initlvl' : False                                           }),
-            ('stlink_tx'                 , 'A2' , 'ALTERNATE', { 'altfunc' : 'USART2_TX'                                     }),
-            ('stlink_rx'                 , 'A3' , 'ALTERNATE', { 'altfunc' : 'USART2_RX'                                     }),
-            ('swdio'                     , 'A13', None       , {                                                             }),
-            ('swclk'                     , 'A14', None       , {                                                             }),
-            ('button'                    , 'C13', 'INPUT'    , { 'pull' : None, 'active' : True                              }),
-            ('vehicle_inteface_i2c_clock', 'B6' , 'ALTERNATE', { 'altfunc' : 'I2C1_SCL' , 'open_drain' : True, 'pull' : 'UP' }),
-            ('vehicle_inteface_i2c_data' , 'B7' , 'ALTERNATE', { 'altfunc' : 'I2C1_SDA' , 'open_drain' : True, 'pull' : 'UP' }),
-            ('vn100_uart_rx'             , 'B10', 'ALTERNATE', { 'altfunc' : 'USART3_TX'                                     }), # TODO Just to test VN-100 reception for VehicleFlightComputer.
-            ('vn100_uart_tx'             , 'B1' , 'ALTERNATE', { 'altfunc' : 'USART3_RX', 'pull' : 'UP'                      }), # TODO Just to test VN-100 reception for VehicleFlightComputer.
-            ('esp32_uart_tx'             , 'B14', 'ALTERNATE', { 'altfunc' : 'USART1_TX'                                     }),
-            ('esp32_uart_rx'             , 'B15', 'ALTERNATE', { 'altfunc' : 'USART1_RX', 'pull' : 'UP'                      }),
+            ('led_green'                  , 'A5' , 'OUTPUT'   , { 'initlvl' : False                                           }),
+            ('stlink_tx'                  , 'A2' , 'ALTERNATE', { 'altfunc' : 'USART2_TX'                                     }),
+            ('stlink_rx'                  , 'A3' , 'ALTERNATE', { 'altfunc' : 'USART2_RX'                                     }),
+            ('swdio'                      , 'A13', None       , {                                                             }),
+            ('swclk'                      , 'A14', None       , {                                                             }),
+            ('button'                     , 'C13', 'INPUT'    , { 'pull' : None, 'active' : True                              }),
+            ('vehicle_interface_i2c_clock', 'B6' , 'ALTERNATE', { 'altfunc' : 'I2C1_SCL' , 'open_drain' : True, 'pull' : 'UP' }),
+            ('vehicle_interface_i2c_data' , 'B7' , 'ALTERNATE', { 'altfunc' : 'I2C1_SDA' , 'open_drain' : True, 'pull' : 'UP' }),
+            ('vn100_uart_rx'              , 'B10', 'ALTERNATE', { 'altfunc' : 'USART3_TX'                                     }), # TODO Just to test VN-100 reception for VehicleFlightComputer.
+            ('vn100_uart_tx'              , 'B1' , 'ALTERNATE', { 'altfunc' : 'USART3_RX', 'pull' : 'UP'                      }), # TODO Just to test VN-100 reception for VehicleFlightComputer.
+            ('esp32_uart_tx'              , 'B14', 'ALTERNATE', { 'altfunc' : 'USART1_TX'                                     }),
+            ('esp32_uart_rx'              , 'B15', 'ALTERNATE', { 'altfunc' : 'USART1_RX', 'pull' : 'UP'                      }),
         ),
 
         interrupts = (

@@ -3774,12 +3774,12 @@
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__button C
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__button 13
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__button
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__vehicle_inteface_i2c_clock B
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__vehicle_inteface_i2c_clock 6
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__vehicle_inteface_i2c_clock
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__vehicle_inteface_i2c_data B
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__vehicle_inteface_i2c_data 7
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__vehicle_inteface_i2c_data
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__vehicle_interface_i2c_clock B
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__vehicle_interface_i2c_clock 6
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__vehicle_interface_i2c_clock
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__vehicle_interface_i2c_data B
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__vehicle_interface_i2c_data 7
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__vehicle_interface_i2c_data
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__vn100_uart_rx B
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__vn100_uart_rx 10
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__vn100_uart_rx
