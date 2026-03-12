@@ -42,7 +42,7 @@ SECTIONS
 
     .stack_output_section : ALIGN(32) /* For MPU region alignment. TODO If we're going to use the MPU to detect stack overflow? */
     {
-        .                     += MAIN_STACK_SIZE;
+        .                     += STACK_SIZE;
         INITIAL_STACK_ADDRESS  = .;
 
         #define STACK_LOCATION_STM32H533RET6 SRAM

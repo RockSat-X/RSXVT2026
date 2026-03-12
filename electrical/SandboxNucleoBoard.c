@@ -74,7 +74,7 @@ static volatile b32 blink_green_led_fast = false;
 
 
 
-FREERTOS_TASK(button_observer, 1024, 0)
+FREERTOS_TASK(button_observer, 0)
 {
     for (;;)
     {
@@ -109,7 +109,7 @@ FREERTOS_TASK(button_observer, 1024, 0)
 
 
 
-FREERTOS_TASK(green_blinker, 1024, 0)
+FREERTOS_TASK(green_blinker, 0)
 {
     for (;;)
     {
@@ -139,7 +139,7 @@ FREERTOS_TASK(green_blinker, 1024, 0)
 
 
 
-FREERTOS_TASK(red_blinker, 1024, 0)
+FREERTOS_TASK(red_blinker, 0)
 {
 
     // The Nucleo-H533RE board doesn't have a red LED,
@@ -159,7 +159,7 @@ FREERTOS_TASK(red_blinker, 1024, 0)
 
 
 
-FREERTOS_TASK(yellow_blinker, 1024, 0)
+FREERTOS_TASK(yellow_blinker, 0)
 {
 
     // The Nucleo-H533RE board doesn't have a yellow LED,
@@ -179,7 +179,7 @@ FREERTOS_TASK(yellow_blinker, 1024, 0)
 
 
 
-FREERTOS_TASK(yapper, 1024, 0)
+FREERTOS_TASK(yapper, 0)
 {
     for (;;) // We send out text to the ST-Link.
     {
@@ -201,7 +201,7 @@ FREERTOS_TASK(yapper, 1024, 0)
 
 
 
-FREERTOS_TASK(captain_allears, 1024, 0)
+FREERTOS_TASK(captain_allears, 0)
 {
     for (;;)
     {

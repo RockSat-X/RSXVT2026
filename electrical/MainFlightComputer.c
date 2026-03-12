@@ -111,7 +111,7 @@ main(void)
 
 
 
-FREERTOS_TASK(vehicle_interface, 1024, 0)
+FREERTOS_TASK(vehicle_interface, 0)
 {
     for (;;)
     {
@@ -191,7 +191,7 @@ FREERTOS_TASK(vehicle_interface, 1024, 0)
 
 
 
-FREERTOS_TASK(vn100_uart, 1024, 0)
+FREERTOS_TASK(vn100_uart, 0)
 {
     for (;;)
     {
@@ -244,7 +244,7 @@ FREERTOS_TASK(vn100_uart, 1024, 0)
 
 
 
-FREERTOS_TASK(heartbeat, 1024, 0)
+FREERTOS_TASK(heartbeat, 0)
 {
     for (;;)
     {
@@ -259,7 +259,7 @@ FREERTOS_TASK(heartbeat, 1024, 0)
 
 
 
-FREERTOS_TASK(esp32, 8192, 0)
+FREERTOS_TASK(esp32, 0)
 {
     for (;;)
     {

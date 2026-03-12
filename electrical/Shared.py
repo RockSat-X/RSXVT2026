@@ -1,6 +1,6 @@
 #meta global STLINK_BAUD, TARGETS, PER_MCU, PER_TARGET
 #meta global OVCAM_DEFAULT_RESOLUTION
-#meta global TV_WRITE_BYTE, TV_TOKEN, OVCAM_JPEG_CTRL3_FIELDS
+#meta global STACK_SIZE, TV_WRITE_BYTE, TV_TOKEN, OVCAM_JPEG_CTRL3_FIELDS
 
 import types, collections
 import deps.stpy.pxd.pxd as pxd
@@ -11,6 +11,8 @@ from deps.stpy.mcus import MCUS
 ################################################################################
 
 
+
+STACK_SIZE = 8192
 
 OVCAM_DEFAULT_RESOLUTION = (800, 480)
 
@@ -126,9 +128,8 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = True,
-        main_stack_size = 8192,
-        schema          = {
+        use_freertos = True,
+        schema       = {
             'HSI_ENABLE'   : True,
             'HSI48_ENABLE' : True,
             'CSI_ENABLE'   : True,
@@ -205,9 +206,8 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = False,
-        main_stack_size = 8192,
-        schema          = {
+        use_freertos = False,
+        schema       = {
             'HSI_ENABLE'        : True,
             'HSI48_ENABLE'      : True,
             'CSI_ENABLE'        : True,
@@ -274,9 +274,8 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = False,
-        main_stack_size = 8192,
-        schema          = {
+        use_freertos = False,
+        schema       = {
             'HSI_ENABLE'        : True,
             'HSI48_ENABLE'      : True,
             'CSI_ENABLE'        : True,
@@ -345,9 +344,8 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = False,
-        main_stack_size = 8192,
-        schema          = {
+        use_freertos = False,
+        schema       = {
             'HSI_ENABLE'        : True,
             'HSI48_ENABLE'      : True,
             'CSI_ENABLE'        : True,
@@ -405,9 +403,8 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = False,
-        main_stack_size = 8192,
-        schema          = {
+        use_freertos = False,
+        schema       = {
             'HSI_ENABLE'        : True,
             'HSI48_ENABLE'      : True,
             'CSI_ENABLE'        : True,
@@ -460,9 +457,8 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = False,
-        main_stack_size = 8192,
-        schema          = {
+        use_freertos = False,
+        schema       = {
             'HSI_ENABLE'   : True,
             'HSI48_ENABLE' : True,
             'CSI_ENABLE'   : True,
@@ -517,9 +513,8 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = False,
-        main_stack_size = 8192,
-        schema          = {
+        use_freertos = False,
+        schema       = {
             'HSI_ENABLE'       : True,
             'HSI48_ENABLE'     : True,
             'CSI_ENABLE'       : True,
@@ -576,9 +571,8 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = False,
-        main_stack_size = 8192,
-        schema          = {
+        use_freertos = False,
+        schema       = {
             'HSI_ENABLE'        : True,
             'HSI48_ENABLE'      : True,
             'CSI_ENABLE'        : True,
@@ -647,9 +641,8 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = True,
-        main_stack_size = 8192,
-        schema          = {
+        use_freertos = True,
+        schema       = {
             'HSI_ENABLE'          : True,
             'HSI48_ENABLE'        : True,
             'CSI_ENABLE'          : True,
@@ -747,9 +740,8 @@ TARGETS = ( # @/`Defining Targets`.
 
         drivers = (),
 
-        use_freertos    = False,
-        main_stack_size = 8192,
-        schema          = None,
+        use_freertos = False,
+        schema       = None,
 
     ),
 
@@ -823,9 +815,8 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = True,
-        main_stack_size = 8192,
-        schema          = {
+        use_freertos = True,
+        schema       = {
             'HSI_ENABLE'        : True,
             'HSI48_ENABLE'      : True,
             'CSI_ENABLE'        : True,
@@ -971,9 +962,8 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = True,
-        main_stack_size = 8192,
-        schema          = {
+        use_freertos = True,
+        schema       = {
             'HSI_ENABLE'          : True,
             'HSI48_ENABLE'        : True,
             'CSI_ENABLE'          : True,
@@ -1096,9 +1086,8 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = True,
-        main_stack_size = 8192,
-        schema          = {
+        use_freertos = True,
+        schema       = {
             'HSI_ENABLE'          : True,
             'HSI48_ENABLE'        : True,
             'CSI_ENABLE'          : True,
@@ -1206,9 +1195,8 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = False,
-        main_stack_size = 8192,
-        schema          = {
+        use_freertos = False,
+        schema       = {
             'HSI_ENABLE'          : True,
             'HSI48_ENABLE'        : True,
             'CSI_ENABLE'          : True,
@@ -1297,9 +1285,8 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = False,
-        main_stack_size = 8192,
-        schema          = {
+        use_freertos = False,
+        schema       = {
             'HSI_ENABLE'        : True,
             'HSI48_ENABLE'      : True,
             'CSI_ENABLE'        : True,
@@ -1356,9 +1343,8 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = False,
-        main_stack_size = 8192,
-        schema          = {
+        use_freertos = False,
+        schema       = {
             'HSI_ENABLE'                   : True,
             'HSI48_ENABLE'                 : True,
             'CSI_ENABLE'                   : True,
@@ -1487,7 +1473,7 @@ for target in TARGETS:
         ('TARGET_NAME'                        , target.name                                   ),
         ('TARGET_MCU'                         , target.mcu                                    ),
         ('TARGET_USES_FREERTOS'               , target.use_freertos                           ),
-        ('MAIN_STACK_SIZE'                    , target.main_stack_size                        ),
+        ('STACK_SIZE'                         , STACK_SIZE                                    ),
         ('COMPILING_ESP32'                    , False                                         ),
         ('VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS', VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS           ),
         ('ESP32_BAUD'                         , ESP32_BAUD                                    ),
@@ -1715,12 +1701,6 @@ def PER_MCU():
 #       Whether or not the FreeRTOS task scheduler is compiled as a part
 #       of the firmware binary and is enabled.
 #       Example usage on FreeRTOS can be found elsewhere.
-#
-#   - `main_stack_size`
-#       Amount of bytes reserved for the stack for the `main` function.
-#       Without FreeRTOS, this stack size is all there is for the entire program.
-#       With FreeRTOS, each task will have their own stack size defined,
-#       so this configuration matters slightly less.
 #
 #   - `schema`
 #       Essentially a set of configurations for defining the clock-tree of the MCU.

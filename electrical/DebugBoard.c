@@ -104,7 +104,7 @@ main(void)
 
 
 
-FREERTOS_TASK(display, 1024, 0)
+FREERTOS_TASK(display, 0)
 {
 
     struct MainFlightComputerDebugPacket   current_packet           = {0};
@@ -215,7 +215,7 @@ FREERTOS_TASK(display, 1024, 0)
 
 
 
-FREERTOS_TASK(kicker, 256, 0)
+FREERTOS_TASK(kicker, 0)
 {
     for (;;)
     {

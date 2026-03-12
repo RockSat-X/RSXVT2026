@@ -10,27 +10,27 @@
     };
     static constexpr u32 FreeRTOSTask_COUNT = 6;
     static noret void   button_observer(void*);
-    static StackType_t  button_observer_stack[1024 / sizeof(StackType_t)] = {0};
+    static StackType_t  button_observer_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t button_observer_buffer = {0};
     static TaskHandle_t button_observer_handle = {0};
     static noret void   green_blinker(void*);
-    static StackType_t  green_blinker_stack[1024 / sizeof(StackType_t)] = {0};
+    static StackType_t  green_blinker_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t green_blinker_buffer = {0};
     static TaskHandle_t green_blinker_handle = {0};
     static noret void   red_blinker(void*);
-    static StackType_t  red_blinker_stack[1024 / sizeof(StackType_t)] = {0};
+    static StackType_t  red_blinker_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t red_blinker_buffer = {0};
     static TaskHandle_t red_blinker_handle = {0};
     static noret void   yellow_blinker(void*);
-    static StackType_t  yellow_blinker_stack[1024 / sizeof(StackType_t)] = {0};
+    static StackType_t  yellow_blinker_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t yellow_blinker_buffer = {0};
     static TaskHandle_t yellow_blinker_handle = {0};
     static noret void   yapper(void*);
-    static StackType_t  yapper_stack[1024 / sizeof(StackType_t)] = {0};
+    static StackType_t  yapper_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t yapper_buffer = {0};
     static TaskHandle_t yapper_handle = {0};
     static noret void   captain_allears(void*);
-    static StackType_t  captain_allears_stack[1024 / sizeof(StackType_t)] = {0};
+    static StackType_t  captain_allears_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t captain_allears_buffer = {0};
     static TaskHandle_t captain_allears_handle = {0};
     static noret void
@@ -143,7 +143,7 @@
     };
     static constexpr u32 FreeRTOSTask_COUNT = 3;
     static noret void   heartbeat(void*);
-    static StackType_t  heartbeat_stack[256 / sizeof(StackType_t)] = {0};
+    static StackType_t  heartbeat_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t heartbeat_buffer = {0};
     static TaskHandle_t heartbeat_handle = {0};
     static noret void   using_filesystem(void*);
@@ -151,7 +151,7 @@
     static StaticTask_t using_filesystem_buffer = {0};
     static TaskHandle_t using_filesystem_handle = {0};
     static noret void   reporting(void*);
-    static StackType_t  reporting_stack[1024 / sizeof(StackType_t)] = {0};
+    static StackType_t  reporting_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t reporting_buffer = {0};
     static TaskHandle_t reporting_handle = {0};
     static noret void
@@ -208,15 +208,15 @@
     };
     static constexpr u32 FreeRTOSTask_COUNT = 4;
     static noret void   vehicle_interface(void*);
-    static StackType_t  vehicle_interface_stack[1024 / sizeof(StackType_t)] = {0};
+    static StackType_t  vehicle_interface_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t vehicle_interface_buffer = {0};
     static TaskHandle_t vehicle_interface_handle = {0};
     static noret void   vn100_uart(void*);
-    static StackType_t  vn100_uart_stack[1024 / sizeof(StackType_t)] = {0};
+    static StackType_t  vn100_uart_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t vn100_uart_buffer = {0};
     static TaskHandle_t vn100_uart_handle = {0};
     static noret void   heartbeat(void*);
-    static StackType_t  heartbeat_stack[1024 / sizeof(StackType_t)] = {0};
+    static StackType_t  heartbeat_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t heartbeat_buffer = {0};
     static TaskHandle_t heartbeat_handle = {0};
     static noret void   esp32(void*);
@@ -312,11 +312,11 @@
     static StaticTask_t logger_buffer = {0};
     static TaskHandle_t logger_handle = {0};
     static noret void   god(void*);
-    static StackType_t  god_stack[1024 / sizeof(StackType_t)] = {0};
+    static StackType_t  god_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t god_buffer = {0};
     static TaskHandle_t god_handle = {0};
     static noret void   watchdog(void*);
-    static StackType_t  watchdog_stack[512 / sizeof(StackType_t)] = {0};
+    static StackType_t  watchdog_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t watchdog_buffer = {0};
     static TaskHandle_t watchdog_handle = {0};
     static noret void
@@ -422,11 +422,11 @@
     };
     static constexpr u32 FreeRTOSTask_COUNT = 2;
     static noret void   display(void*);
-    static StackType_t  display_stack[1024 / sizeof(StackType_t)] = {0};
+    static StackType_t  display_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t display_buffer = {0};
     static TaskHandle_t display_handle = {0};
     static noret void   kicker(void*);
-    static StackType_t  kicker_stack[256 / sizeof(StackType_t)] = {0};
+    static StackType_t  kicker_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t kicker_buffer = {0};
     static TaskHandle_t kicker_handle = {0};
     static noret void

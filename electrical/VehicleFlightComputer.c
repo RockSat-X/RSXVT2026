@@ -193,7 +193,7 @@ enum DiagnosticLEDBehavior : u32
 
 */
 
-FREERTOS_TASK(diagnostics, 8192, 1)
+FREERTOS_TASK(diagnostics, 1)
 {
 
     u32 current_flags = 0;
@@ -345,7 +345,7 @@ FREERTOS_TASK(diagnostics, 8192, 1)
 
 
 
-FREERTOS_TASK(controller, 8192, 0)
+FREERTOS_TASK(controller, 0)
 {
 
 #if CONTROLLER_ENABLE
@@ -840,7 +840,7 @@ vn100_await_command(enum VN100Command command)
 
 }
 
-FREERTOS_TASK(vn100, 8192, 0)
+FREERTOS_TASK(vn100, 0)
 {
 
 #if VN100_ENABLE
@@ -1386,7 +1386,7 @@ openmv_process_packet_for_image(struct OpenMVImage* image, struct OpenMVPacket* 
 
 }
 
-FREERTOS_TASK(openmv, 8192, 0)
+FREERTOS_TASK(openmv, 0)
 {
 
 #if OPENMV_ENABLE
@@ -1533,7 +1533,7 @@ FREERTOS_TASK(openmv, 8192, 0)
 
 
 
-FREERTOS_TASK(esp32, 8192, 0)
+FREERTOS_TASK(esp32, 0)
 {
 
 #if ESP32_ENABLE
@@ -1741,7 +1741,7 @@ FREERTOS_TASK(esp32, 8192, 0)
 
 
 
-FREERTOS_TASK(logger, 8192, 0)
+FREERTOS_TASK(logger, 0)
 {
 
     static struct Sector working_sectors[2]         = {0};
@@ -2076,7 +2076,7 @@ FREERTOS_TASK(logger, 8192, 0)
 
 
 
-FREERTOS_TASK(god, 1024, 2)
+FREERTOS_TASK(god, 2)
 {
 
 #if GOD_MODE
@@ -2238,7 +2238,7 @@ FREERTOS_TASK(god, 1024, 2)
 
 
 
-FREERTOS_TASK(watchdog, 512, 2)
+FREERTOS_TASK(watchdog, 2)
 {
 
 #if WATCHDOG_ENABLE
