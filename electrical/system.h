@@ -1180,25 +1180,15 @@ VEHICLE_INTERFACE_calculate_crc(u8* data, i32 length)
 
 
 pack_push
-
-    enum VehicleInterfacePayloadFlag : u16
-    {
-        VehicleInterfacePayloadFlag_stepper_motor_axis_x_okay,
-        VehicleInterfacePayloadFlag_stepper_motor_axis_y_okay,
-        VehicleInterfacePayloadFlag_stepper_motor_axis_z_okay,
-        VehicleInterfacePayloadFlag_wifi_okay,
-        VehicleInterfacePayloadFlag_lora_okay,
-        VehicleInterfacePayloadFlag_openmv_okay,
-        VehicleInterfacePayloadFlag_vn100_okay,
-    };
-
     struct VehicleInterfacePayload
     {
-        u16                              timestamp_us;
-        enum VehicleInterfacePayloadFlag flags;
-        u8                               crc;
+        u16 timestamp_us;
+        u8  stepper_issues;
+        u8  vn100_issues;
+        u8  openmv_issues;
+        u8  esp32_issues;
+        u8  crc;
     };
-
 pack_pop
 
 

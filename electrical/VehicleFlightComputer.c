@@ -2314,47 +2314,44 @@ INTERRUPT_I2Cx_vehicle_interface(enum I2CSlaveCallbackEvent event, u8* data)
             if (!payload_has_valid_data)
             {
 
+                i32 observed_stepper_issues =
+                    atomic_load_explicit
+                    (
+                        &LOGGER.stepper_issues,
+                        memory_order_relaxed // No synchronization needed.
+                    );
+
+                i32 observed_vn100_issues =
+                    atomic_load_explicit
+                    (
+                        &LOGGER.vn100_issues,
+                        memory_order_relaxed // No synchronization needed.
+                    );
+
+                i32 observed_openmv_issues =
+                    atomic_load_explicit
+                    (
+                        &LOGGER.openmv_issues,
+                        memory_order_relaxed // No synchronization needed.
+                    );
+
+                i32 observed_esp32_issues =
+                    atomic_load_explicit
+                    (
+                        &LOGGER.esp32_issues,
+                        memory_order_relaxed // No synchronization needed.
+                    );
+
                 byte_index = 0;
                 payload    =
                     (struct VehicleInterfacePayload)
                     {
-                        .timestamp_us = (u16) TIMEKEEPING_microseconds(),
+                        .timestamp_us   = (u16) TIMEKEEPING_microseconds(),
+                        .stepper_issues = observed_stepper_issues >= 256 ? 255 : (u8) observed_stepper_issues,
+                        .vn100_issues   = observed_vn100_issues   >= 256 ? 255 : (u8) observed_vn100_issues,
+                        .openmv_issues  = observed_openmv_issues  >= 256 ? 255 : (u8) observed_openmv_issues,
+                        .esp32_issues   = observed_esp32_issues   >= 256 ? 255 : (u8) observed_esp32_issues,
                     };
-
-                if (false) // TODO.
-                {
-                    payload.flags |= 1 << VehicleInterfacePayloadFlag_stepper_motor_axis_x_okay;
-                }
-
-                if (false) // TODO.
-                {
-                    payload.flags |= 1 << VehicleInterfacePayloadFlag_stepper_motor_axis_y_okay;
-                }
-
-                if (false) // TODO.
-                {
-                    payload.flags |= 1 << VehicleInterfacePayloadFlag_stepper_motor_axis_z_okay;
-                }
-
-                if (false) // TODO.
-                {
-                    payload.flags |= 1 << VehicleInterfacePayloadFlag_wifi_okay;
-                }
-
-                if (false) // TODO.
-                {
-                    payload.flags |= 1 << VehicleInterfacePayloadFlag_lora_okay;
-                }
-
-                if (false) // TODO.
-                {
-                    payload.flags |= 1 << VehicleInterfacePayloadFlag_openmv_okay;
-                }
-
-                if (false) // TODO.
-                {
-                    payload.flags |= 1 << VehicleInterfacePayloadFlag_vn100_okay;
-                }
 
                 payload.crc =
                     VEHICLE_INTERFACE_calculate_crc

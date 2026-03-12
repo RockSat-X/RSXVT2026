@@ -153,10 +153,18 @@ FREERTOS_TASK(vehicle_interface, 0)
 
                 stlink_tx
                 (
-                    "%6u ms : 0x%02X : (0x%02X)\n",
+                    "[%u ms] (0x%02X)"    "\n"
+                    "stepper_issues : %d" "\n"
+                    "vn100_issues   : %d" "\n"
+                    "openmv_issues  : %d" "\n"
+                    "esp32_issues   : %d" "\n"
+                    "\n",
                     elapsed_timestamp_us / 1000,
-                    payload.flags,
-                    digest
+                    digest,
+                    payload.stepper_issues,
+                    payload.vn100_issues,
+                    payload.openmv_issues,
+                    payload.esp32_issues
                 );
 
             } break;
