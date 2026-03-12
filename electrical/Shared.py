@@ -671,7 +671,9 @@ TARGETS = ( # @/`Defining Targets`.
 
         name              = 'MainFlightComputer',
         mcu               = 'STM32H533VET6',
-        source_file_paths = (),
+        source_file_paths = (
+            pxd.make_main_relative_path('./electrical/MainFlightComputer.c'),
+        ),
 
         kicad_project = 'MainFlightComputer',
 
@@ -736,52 +738,8 @@ TARGETS = ( # @/`Defining Targets`.
             ('testpoint_D'                    , 'H0' , None        , {                                                          }),
         ),
 
-        interrupts = None,
-
-        drivers = (),
-
-        use_freertos = False,
-        schema       = None,
-
-    ),
-
-
-
-    ########################################
-
-
-
-    types.SimpleNamespace(
-
-        name              = 'MainFlightComputer_NUCLEO',
-        mcu               = 'STM32H533RET6',
-        source_file_paths = (
-            pxd.make_main_relative_path('./electrical/MainFlightComputer.c'),
-        ),
-
-        kicad_project = None,
-
-        gpios = (
-            ('led_green'                  , 'A5' , 'OUTPUT'   , { 'initlvl' : False                                           }),
-            ('stlink_tx'                  , 'A2' , 'ALTERNATE', { 'altfunc' : 'USART2_TX'                                     }),
-            ('stlink_rx'                  , 'A3' , 'ALTERNATE', { 'altfunc' : 'USART2_RX'                                     }),
-            ('swdio'                      , 'A13', None       , {                                                             }),
-            ('swclk'                      , 'A14', None       , {                                                             }),
-            ('button'                     , 'C13', 'INPUT'    , { 'pull' : None, 'active' : True                              }),
-            ('vehicle_interface_i2c_clock', 'B6' , 'ALTERNATE', { 'altfunc' : 'I2C1_SCL' , 'open_drain' : True                }),
-            ('vehicle_interface_i2c_data' , 'B7' , 'ALTERNATE', { 'altfunc' : 'I2C1_SDA' , 'open_drain' : True                }),
-            ('vn100_uart_rx'              , 'B10', 'ALTERNATE', { 'altfunc' : 'USART3_TX'                                     }), # TODO Just to test VN-100 reception for VehicleFlightComputer.
-            ('vn100_uart_tx'              , 'B1' , 'ALTERNATE', { 'altfunc' : 'USART3_RX', 'pull' : 'UP'                      }), # TODO Just to test VN-100 reception for VehicleFlightComputer.
-            ('esp32_uart_tx'              , 'B14', 'ALTERNATE', { 'altfunc' : 'USART1_TX'                                     }),
-            ('esp32_uart_rx'              , 'B15', 'ALTERNATE', { 'altfunc' : 'USART1_RX', 'pull' : 'UP'                      }),
-        ),
-
         interrupts = (
-            ('USART2' , 0),
-            ('I2C1_EV', 1),
-            ('I2C1_ER', 1),
-            ('USART3' , 2), # TODO Just to test VN-100 reception for VehicleFlightComputer.
-            ('USART1' , 3),
+            ('USART2', 0),
         ),
 
         drivers = (
@@ -792,45 +750,26 @@ TARGETS = ( # @/`Defining Targets`.
                 'mode'       : 'full_duplex',
             },
             {
-                'type'       : 'I2C',
-                'peripheral' : 'I2C1',
-                'handle'     : 'vehicle_interface',
-                'mode'       : 'master',
-            },
-            { # TODO Just to test VN-100 reception for VehicleFlightComputer.
-                'type'       : 'UXART',
-                'peripheral' : 'USART3',
-                'handle'     : 'vn100',
-                'mode'       : 'full_duplex',
-            },
-            {
                 'type'       : 'TIMEKEEPING',
                 'peripheral' : 'TIM2',
-            },
-            {
-                'type'       : 'UXART',
-                'peripheral' : 'USART1',
-                'handle'     : 'esp32',
-                'mode'       : 'full_duplex',
             },
         ),
 
         use_freertos = True,
         schema       = {
-            'HSI_ENABLE'        : True,
-            'HSI48_ENABLE'      : True,
-            'CSI_ENABLE'        : True,
-            'PLL1P_CK'          : 250_000_000,
-            'CPU_CK'            : 250_000_000,
-            'APB1_CK'           : 250_000_000,
-            'APB2_CK'           : 250_000_000,
-            'APB3_CK'           : 250_000_000,
-            'USART2_BAUD'       : STLINK_BAUD,
-            'USART3_BAUD'       : VN100_BAUD,
-            'USART1_BAUD'       : ESP32_BAUD,
-            'I2C1_BAUD'         : VEHICLE_INTERFACE_BAUD,
-            'I2C1_TIMEOUT'      : 2,
-            'TIM2_COUNTER_RATE' : 1_000_000,
+            'HSI_ENABLE'                   : True,
+            'HSI48_ENABLE'                 : True,
+            'CSI_ENABLE'                   : True,
+            'PLL1P_CK'                     : 250_000_000,
+            'PLL2R_CK'                     : 50_000_000,
+            'CPU_CK'                       : 250_000_000,
+            'APB1_CK'                      : 250_000_000,
+            'APB2_CK'                      : 250_000_000,
+            'APB3_CK'                      : 250_000_000,
+            'USART2_BAUD'                  : STLINK_BAUD,
+            'TIM1_UPDATE_RATE'             : 1 / 0.001,
+            'TIM2_COUNTER_RATE'            : 1_000_000,
+            'ANALOG_POSTDIVIDER_KERNEL_CK' : 50_000_000,
         },
 
     ),

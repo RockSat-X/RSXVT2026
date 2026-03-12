@@ -195,59 +195,18 @@
     }
 #endif
 #if TARGET_NAME_IS_MainFlightComputer
-    enum FreeRTOSTask : u32;
-    static constexpr u32 FreeRTOSTask_COUNT = 0;
-#endif
-#if TARGET_NAME_IS_MainFlightComputer_NUCLEO
     enum FreeRTOSTask : u32
     {
-        FreeRTOSTask_vehicle_interface,
-        FreeRTOSTask_vn100_uart,
         FreeRTOSTask_heartbeat,
-        FreeRTOSTask_esp32,
     };
-    static constexpr u32 FreeRTOSTask_COUNT = 4;
-    static noret void   vehicle_interface(void*);
-    static StackType_t  vehicle_interface_stack[8192 / sizeof(StackType_t)] = {0};
-    static StaticTask_t vehicle_interface_buffer = {0};
-    static TaskHandle_t vehicle_interface_handle = {0};
-    static noret void   vn100_uart(void*);
-    static StackType_t  vn100_uart_stack[8192 / sizeof(StackType_t)] = {0};
-    static StaticTask_t vn100_uart_buffer = {0};
-    static TaskHandle_t vn100_uart_handle = {0};
+    static constexpr u32 FreeRTOSTask_COUNT = 1;
     static noret void   heartbeat(void*);
     static StackType_t  heartbeat_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t heartbeat_buffer = {0};
     static TaskHandle_t heartbeat_handle = {0};
-    static noret void   esp32(void*);
-    static StackType_t  esp32_stack[8192 / sizeof(StackType_t)] = {0};
-    static StaticTask_t esp32_buffer = {0};
-    static TaskHandle_t esp32_handle = {0};
     static noret void
     FREERTOS_init(void)
     {
-        vehicle_interface_handle =
-            xTaskCreateStatic
-            (
-                vehicle_interface,
-                "vehicle_interface",
-                countof(vehicle_interface_stack),
-                nullptr,
-                0,
-                vehicle_interface_stack,
-                &vehicle_interface_buffer
-            );
-        vn100_uart_handle =
-            xTaskCreateStatic
-            (
-                vn100_uart,
-                "vn100_uart",
-                countof(vn100_uart_stack),
-                nullptr,
-                0,
-                vn100_uart_stack,
-                &vn100_uart_buffer
-            );
         heartbeat_handle =
             xTaskCreateStatic
             (
@@ -258,17 +217,6 @@
                 0,
                 heartbeat_stack,
                 &heartbeat_buffer
-            );
-        esp32_handle =
-            xTaskCreateStatic
-            (
-                esp32,
-                "esp32",
-                countof(esp32_stack),
-                nullptr,
-                0,
-                esp32_stack,
-                &esp32_buffer
             );
         vTaskStartScheduler();
         for(;;);

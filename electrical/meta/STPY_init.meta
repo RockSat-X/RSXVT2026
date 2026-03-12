@@ -3564,25 +3564,15 @@
     #define STPY_SYS_CK        (240'000'000)
 #endif
 #if TARGET_NAME_IS_MainFlightComputer
-#endif
-#if TARGET_NAME_IS_MainFlightComputer_NUCLEO
     enum NVICInterrupt : u32
     {
-        NVICInterrupt_USART2  = USART2_IRQn,
-        NVICInterrupt_I2C1_EV = I2C1_EV_IRQn,
-        NVICInterrupt_I2C1_ER = I2C1_ER_IRQn,
-        NVICInterrupt_USART3  = USART3_IRQn,
-        NVICInterrupt_USART1  = USART1_IRQn,
+        NVICInterrupt_USART2 = USART2_IRQn,
     };
-    static constexpr u32 NVICInterrupt_COUNT = 5;
+    static constexpr u32 NVICInterrupt_COUNT = 1;
     extern void INTERRUPT_BusFault(void);
     extern void INTERRUPT_Default(void);
-    extern void INTERRUPT_I2C1_ER(void);
-    extern void INTERRUPT_I2C1_EV(void);
     extern void INTERRUPT_Reset(void);
-    extern void INTERRUPT_USART1(void);
     extern void INTERRUPT_USART2(void);
-    extern void INTERRUPT_USART3(void);
     extern void INTERRUPT_UsageFault(void);
     extern void PendSV_Handler(void);
     extern void SVC_Handler(void);
@@ -3656,16 +3646,16 @@
             INTERRUPT_Default            , // [ 48] TIM5
             INTERRUPT_Default            , // [ 49] TIM6
             INTERRUPT_Default            , // [ 50] TIM7
-            INTERRUPT_I2C1_EV            , // [ 51] I2C1_EV
-            INTERRUPT_I2C1_ER            , // [ 52] I2C1_ER
+            INTERRUPT_Default            , // [ 51] I2C1_EV
+            INTERRUPT_Default            , // [ 52] I2C1_ER
             INTERRUPT_Default            , // [ 53] I2C2_EV
             INTERRUPT_Default            , // [ 54] I2C2_ER
             INTERRUPT_Default            , // [ 55] SPI1
             INTERRUPT_Default            , // [ 56] SPI2
             INTERRUPT_Default            , // [ 57] SPI3
-            INTERRUPT_USART1             , // [ 58] USART1
+            INTERRUPT_Default            , // [ 58] USART1
             INTERRUPT_USART2             , // [ 59] USART2
-            INTERRUPT_USART3             , // [ 60] USART3
+            INTERRUPT_Default            , // [ 60] USART3
             INTERRUPT_Default            , // [ 61] UART4
             INTERRUPT_Default            , // [ 62] UART5
             INTERRUPT_Default            , // [ 63] LPUART1
@@ -3741,15 +3731,11 @@
         };
     #define INTERRUPT_BusFault(...) extern void INTERRUPT_BusFault(__VA_ARGS__)
     #define INTERRUPT_Default(...) extern void INTERRUPT_Default(__VA_ARGS__)
-    #define INTERRUPT_I2C1_ER(...) extern void INTERRUPT_I2C1_ER(__VA_ARGS__)
-    #define INTERRUPT_I2C1_EV(...) extern void INTERRUPT_I2C1_EV(__VA_ARGS__)
     #define INTERRUPT_PendSV(...) extern void INTERRUPT_PendSV(__VA_ARGS__)
     #define INTERRUPT_Reset(...) extern void INTERRUPT_Reset(__VA_ARGS__)
     #define INTERRUPT_SVCall(...) extern void INTERRUPT_SVCall(__VA_ARGS__)
     #define INTERRUPT_SysTick(...) extern void INTERRUPT_SysTick(__VA_ARGS__)
-    #define INTERRUPT_USART1(...) extern void INTERRUPT_USART1(__VA_ARGS__)
     #define INTERRUPT_USART2(...) extern void INTERRUPT_USART2(__VA_ARGS__)
-    #define INTERRUPT_USART3(...) extern void INTERRUPT_USART3(__VA_ARGS__)
     #define INTERRUPT_UsageFault(...) extern void INTERRUPT_UsageFault(__VA_ARGS__)
     extern void
     STPY_init(void)
@@ -3761,95 +3747,248 @@
 
 
 
-        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__led_green GPIO_BSRR_BS
-        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__led_green GPIO_BSRR_BR
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__led_green A
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__led_green 5
+        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__led_channel_red GPIO_BSRR_BR
+        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__led_channel_red GPIO_BSRR_BS
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__led_channel_red E
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__led_channel_red 2
+        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__led_channel_green GPIO_BSRR_BR
+        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__led_channel_green GPIO_BSRR_BS
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__led_channel_green E
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__led_channel_green 3
+        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__led_channel_blue GPIO_BSRR_BR
+        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__led_channel_blue GPIO_BSRR_BS
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__led_channel_blue E
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__led_channel_blue 4
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__stlink_tx A
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_tx 2
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__stlink_tx
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__stlink_rx A
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__stlink_rx 3
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__stlink_rx
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__button C
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__button 13
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__button
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__vehicle_interface_i2c_clock B
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__vehicle_interface_i2c_clock 6
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__vehicle_interface_i2c_clock
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__logic_timer_event_1 B
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__logic_timer_event_1 9
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__logic_timer_event_1
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__buzzer C
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__buzzer 6
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__buzzer
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__sd_cmd D
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__sd_cmd 2
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__sd_cmd
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__sd_data_0 C
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__sd_data_0 8
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__sd_data_0
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__sd_data_1 C
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__sd_data_1 9
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__sd_data_1
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__sd_data_2 C
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__sd_data_2 10
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__sd_data_2
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__sd_data_3 C
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__sd_data_3 11
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__sd_data_3
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__sd_clock C
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__sd_clock 12
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__sd_clock
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__spi_nss_A A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__spi_nss_A 11
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__spi_nss_A
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__spi_clock_A B
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__spi_clock_A 13
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__spi_clock_A
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__spi_mosi_A C
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__spi_mosi_A 1
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__spi_mosi_A
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__spi_miso_A C
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__spi_miso_A 2
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__spi_miso_A
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__spi_ready_A D
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__spi_ready_A 5
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__spi_ready_A
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__spi_nss_B A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__spi_nss_B 4
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__spi_nss_B
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__spi_clock_B A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__spi_clock_B 5
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__spi_clock_B
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__spi_mosi_B B
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__spi_mosi_B 5
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__spi_mosi_B
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__spi_miso_B A
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__spi_miso_B 6
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__spi_miso_B
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__spi_ready_B B
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__spi_ready_B 2
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__spi_ready_B
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__vehicle_interface_i2c_data B
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__vehicle_interface_i2c_data 7
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__vehicle_interface_i2c_data
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__vn100_uart_rx B
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__vn100_uart_rx 10
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__vn100_uart_rx
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__vn100_uart_tx B
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__vn100_uart_tx 1
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__vn100_uart_tx
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__vehicle_interface_i2c_clock B
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__vehicle_interface_i2c_clock 6
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__vehicle_interface_i2c_clock
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__sensor_i2c_data B
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__sensor_i2c_data 12
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__sensor_i2c_data
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__sensor_i2c_clock B
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__sensor_i2c_clock 10
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__sensor_i2c_clock
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__flight_computer_debug_i2c_data D
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__flight_computer_debug_i2c_data 7
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__flight_computer_debug_i2c_data
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__flight_computer_debug_i2c_clock D
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__flight_computer_debug_i2c_clock 6
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__flight_computer_debug_i2c_clock
+        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_ACTIVE__esp32_reset GPIO_BSRR_BR
+        #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__esp32_reset GPIO_BSRR_BS
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__esp32_reset D
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__esp32_reset 10
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__esp32_uart_tx B
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__esp32_uart_tx 14
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__esp32_uart_tx
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__esp32_uart_rx B
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__esp32_uart_rx 15
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__esp32_uart_rx
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__uart_tx_B D
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__uart_tx_B 8
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__uart_tx_B
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__uart_rx_B B
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__uart_rx_B 1
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__uart_rx_B
+        #define __MACRO_OVERLOAD___ADC_FOR_GPIO_ANALOG__solarboard_analog_A ADC1
+        #define __MACRO_OVERLOAD___CHANNEL_NUMBER_FOR_GPIO_ANALOG__solarboard_analog_A 0
+        #define __MACRO_OVERLOAD___ADC_FOR_GPIO_ANALOG__solarboard_analog_B ADC1
+        #define __MACRO_OVERLOAD___CHANNEL_NUMBER_FOR_GPIO_ANALOG__solarboard_analog_B 1
+        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__logic_gse_1 D
+        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__logic_gse_1 4
+        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__logic_gse_1
         CMSIS_SET
         (
             RCC    , AHB2ENR,
             GPIOAEN, true   ,
             GPIOBEN, true   ,
             GPIOCEN, true   ,
+            GPIODEN, true   ,
+            GPIOEEN, true   ,
+            GPIOHEN, true   ,
         );
+        CMSIS_SET(GPIOD, OTYPER, OT10, true);
+        CMSIS_SET(GPIOD, ODR, OD10, true);
         CMSIS_SET
         (
-            GPIOB, OTYPER,
-            OT6  , true  ,
-            OT7  , true  ,
-        );
-        CMSIS_SET(GPIOA, ODR, OD5, false);
-        CMSIS_SET
-        (
-            GPIOB , PUPDR,
-            PUPD1 , 0b01 ,
-            PUPD15, 0b01 ,
+            GPIOE, ODR ,
+            OD2  , true,
+            OD3  , true,
+            OD4  , true,
         );
         CMSIS_WRITE
         (
             GPIO_AFRL, GPIOA->AFR[0],
             AFSEL2   , 7            ,
             AFSEL3   , 7            ,
+            AFSEL4   , 5            ,
+            AFSEL5   , 5            ,
+            AFSEL6   , 5            ,
         );
+        CMSIS_WRITE(GPIO_AFRH, GPIOA->AFR[1], AFSEL11, 5);
         CMSIS_WRITE
         (
             GPIO_AFRL, GPIOB->AFR[0],
             AFSEL1   , 7            ,
+            AFSEL2   , 4            ,
+            AFSEL5   , 5            ,
             AFSEL6   , 4            ,
             AFSEL7   , 4            ,
         );
         CMSIS_WRITE
         (
             GPIO_AFRH, GPIOB->AFR[1],
-            AFSEL10  , 7            ,
+            AFSEL10  , 4            ,
+            AFSEL12  , 4            ,
+            AFSEL13  , 5            ,
             AFSEL14  , 4            ,
             AFSEL15  , 4            ,
         );
+        CMSIS_WRITE
+        (
+            GPIO_AFRL, GPIOC->AFR[0],
+            AFSEL1   , 5            ,
+            AFSEL2   , 5            ,
+            AFSEL6   , 3            ,
+        );
+        CMSIS_WRITE
+        (
+            GPIO_AFRH, GPIOC->AFR[1],
+            AFSEL8   , 12           ,
+            AFSEL9   , 12           ,
+            AFSEL10  , 12           ,
+            AFSEL11  , 12           ,
+            AFSEL12  , 12           ,
+        );
+        CMSIS_WRITE
+        (
+            GPIO_AFRL, GPIOD->AFR[0],
+            AFSEL2   , 12           ,
+            AFSEL5   , 5            ,
+            AFSEL6   , 4            ,
+            AFSEL7   , 4            ,
+        );
+        CMSIS_WRITE(GPIO_AFRH, GPIOD->AFR[1], AFSEL8, 7);
         CMSIS_SET
         (
-            GPIOA, MODER,
-            MODE2, 0b10 ,
-            MODE3, 0b10 ,
-            MODE5, 0b01 ,
+            GPIOA , MODER,
+            MODE0 , 0b11 ,
+            MODE1 , 0b11 ,
+            MODE2 , 0b10 ,
+            MODE3 , 0b10 ,
+            MODE4 , 0b10 ,
+            MODE5 , 0b10 ,
+            MODE6 , 0b10 ,
+            MODE11, 0b10 ,
         );
         CMSIS_SET
         (
             GPIOB , MODER,
             MODE1 , 0b10 ,
+            MODE2 , 0b10 ,
+            MODE5 , 0b10 ,
             MODE6 , 0b10 ,
             MODE7 , 0b10 ,
+            MODE9 , 0b00 ,
             MODE10, 0b10 ,
+            MODE12, 0b10 ,
+            MODE13, 0b10 ,
             MODE14, 0b10 ,
             MODE15, 0b10 ,
         );
-        CMSIS_SET(GPIOC, MODER, MODE13, 0b00);
+        CMSIS_SET
+        (
+            GPIOC , MODER,
+            MODE1 , 0b10 ,
+            MODE2 , 0b10 ,
+            MODE6 , 0b10 ,
+            MODE8 , 0b10 ,
+            MODE9 , 0b10 ,
+            MODE10, 0b10 ,
+            MODE11, 0b10 ,
+            MODE12, 0b10 ,
+        );
+        CMSIS_SET
+        (
+            GPIOD , MODER,
+            MODE2 , 0b10 ,
+            MODE4 , 0b00 ,
+            MODE5 , 0b10 ,
+            MODE6 , 0b10 ,
+            MODE7 , 0b10 ,
+            MODE8 , 0b10 ,
+            MODE10, 0b01 ,
+        );
+        CMSIS_SET
+        (
+            GPIOE, MODER,
+            MODE2, 0b01 ,
+            MODE3, 0b01 ,
+            MODE4, 0b01 ,
+        );
 
 
 
@@ -3859,14 +3998,6 @@
 
         static_assert(0 <= 0 && 0 < (1 << __NVIC_PRIO_BITS));
         NVIC->IPR[NVICInterrupt_USART2] = 0 << __NVIC_PRIO_BITS;
-        static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
-        NVIC->IPR[NVICInterrupt_I2C1_EV] = 1 << __NVIC_PRIO_BITS;
-        static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
-        NVIC->IPR[NVICInterrupt_I2C1_ER] = 1 << __NVIC_PRIO_BITS;
-        static_assert(0 <= 2 && 2 < (1 << __NVIC_PRIO_BITS));
-        NVIC->IPR[NVICInterrupt_USART3] = 2 << __NVIC_PRIO_BITS;
-        static_assert(0 <= 3 && 3 < (1 << __NVIC_PRIO_BITS));
-        NVIC->IPR[NVICInterrupt_USART1] = 3 << __NVIC_PRIO_BITS;
         CMSIS_SET
         (
             SCB        , SHCSR,
@@ -3944,8 +4075,28 @@
             PLL1N, 125 - 1 ,
             PLL1P, 2 - 1   ,
         );
-        CMSIS_SET(RCC, CR, PLL1ON, true);
+        CMSIS_SET
+        (
+            RCC    , PLL2CFGR,
+            PLL2SRC, 0b01    ,
+            PLL2M  , 4       ,
+            PLL2RGE, 3       ,
+            PLL2REN, true    ,
+        );
+        CMSIS_SET
+        (
+            RCC  , PLL2DIVR,
+            PLL2N, 25 - 1  ,
+            PLL2R, 4 - 1   ,
+        );
+        CMSIS_SET
+        (
+            RCC   , CR  ,
+            PLL1ON, true,
+            PLL2ON, true,
+        );
         while (!CMSIS_GET(RCC, CR, PLL1RDY));
+        while (!CMSIS_GET(RCC, CR, PLL2RDY));
 
 
 
@@ -3966,15 +4117,6 @@
 
 
 
-        /////////////////////////////////// USART1 ///////////////////////////////////
-
-
-
-        #define STPY_USART1_KERNEL_SOURCE 0b000
-        #define STPY_USART1_BAUD_DIVIDER 250
-
-
-
         /////////////////////////////////// USART2 ///////////////////////////////////
 
 
@@ -3984,33 +4126,34 @@
 
 
 
-        /////////////////////////////////// USART3 ///////////////////////////////////
-
-
-
-        #define STPY_USART3_KERNEL_SOURCE 0b000
-        #define STPY_USART3_BAUD_DIVIDER 2170
-
-
-
-        //////////////////////////////////// I2C1 ////////////////////////////////////
-
-
-
-        #define STPY_I2C1_KERNEL_SOURCE 0b11
-        #define STPY_I2C1_PRESC 0
-        #define STPY_I2C1_SCLH 200
-        #define STPY_I2C1_SCLL 200
-        #define STPY_I2C1_TIMEOUTR_TIMEOUTA 3905
-
-
-
         /////////////////////////////////// Timers ///////////////////////////////////
 
 
 
         #define STPY_GLOBAL_TIMER_PRESCALER false
+        #define STPY_TIM1_DIVIDER (4 - 1)
+        #define STPY_TIM1_MODULATION (62500 - 1)
         #define STPY_TIM2_DIVIDER (250 - 1)
+
+
+
+        /////////////////////////////////// Analog ///////////////////////////////////
+
+
+
+        CMSIS_SET(RCC, CCIPR5, ADCDACSEL, 0b010);
+        CMSIS_SET(RCC, AHB2ENR, ADCEN, true);
+        CMSIS_SET(ADC12_COMMON, CCR, PRESC, 0b0000);
+        CMSIS_SET
+        (
+            ADC1    , CR   ,
+            DEEPPWD , false,
+            ADVREGEN, true ,
+            ADEN    , true ,
+        );
+        while (!CMSIS_GET(ADC1, ISR, ADRDY));
+        CMSIS_SET(ADC1, CR, ADCAL, true);
+        while (!CMSIS_GET(ADC1, CR, ADCAL));
 
 
 
@@ -4021,18 +4164,22 @@
         CMSIS_SET(DWT, CTRL, CYCCNTENA, true);
 
     }
-    #define STPY_0             (          0)
-    #define STPY_CPU_CK        (250'000'000)
-    #define STPY_HSI_CK        ( 32'000'000)
-    #define STPY_HSI48_CK      ( 48'000'000)
-    #define STPY_CSI_CK        (  4'000'000)
-    #define STPY_AXI_AHB_CK    (250'000'000)
-    #define STPY_PLL1P_CK      (250'000'000)
-    #define STPY_PLL1_VCO_FREQ (500'000'000)
-    #define STPY_APB1_CK       (250'000'000)
-    #define STPY_APB2_CK       (250'000'000)
-    #define STPY_APB3_CK       (250'000'000)
-    #define STPY_SYS_CK        (250'000'000)
+    #define STPY_0                            (          0)
+    #define STPY_CPU_CK                       (250'000'000)
+    #define STPY_HSI_CK                       ( 32'000'000)
+    #define STPY_HSI48_CK                     ( 48'000'000)
+    #define STPY_CSI_CK                       (  4'000'000)
+    #define STPY_AXI_AHB_CK                   (250'000'000)
+    #define STPY_PLL1P_CK                     (250'000'000)
+    #define STPY_PLL2R_CK                     ( 50'000'000)
+    #define STPY_PLL1_VCO_FREQ                (500'000'000)
+    #define STPY_PLL2_VCO_FREQ                (200'000'000)
+    #define STPY_APB1_CK                      (250'000'000)
+    #define STPY_APB2_CK                      (250'000'000)
+    #define STPY_APB3_CK                      (250'000'000)
+    #define STPY_SYS_CK                       (250'000'000)
+    #define STPY_ANALOG_PREDIVIDER_KERNEL_CK  ( 50'000'000)
+    #define STPY_ANALOG_POSTDIVIDER_KERNEL_CK ( 50'000'000)
 #endif
 #if TARGET_NAME_IS_VehicleFlightComputer
     enum NVICInterrupt : u32
