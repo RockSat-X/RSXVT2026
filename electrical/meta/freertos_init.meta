@@ -197,26 +197,26 @@
 #if TARGET_NAME_IS_MainFlightComputer
     enum FreeRTOSTask : u32
     {
-        FreeRTOSTask_heartbeat,
+        FreeRTOSTask_esp32,
     };
     static constexpr u32 FreeRTOSTask_COUNT = 1;
-    static noret void   heartbeat(void*);
-    static StackType_t  heartbeat_stack[8192 / sizeof(StackType_t)] = {0};
-    static StaticTask_t heartbeat_buffer = {0};
-    static TaskHandle_t heartbeat_handle = {0};
+    static noret void   esp32(void*);
+    static StackType_t  esp32_stack[8192 / sizeof(StackType_t)] = {0};
+    static StaticTask_t esp32_buffer = {0};
+    static TaskHandle_t esp32_handle = {0};
     static noret void
     FREERTOS_init(void)
     {
-        heartbeat_handle =
+        esp32_handle =
             xTaskCreateStatic
             (
-                heartbeat,
-                "heartbeat",
-                countof(heartbeat_stack),
+                esp32,
+                "esp32",
+                countof(esp32_stack),
                 nullptr,
                 0,
-                heartbeat_stack,
-                &heartbeat_buffer
+                esp32_stack,
+                &esp32_buffer
             );
         vTaskStartScheduler();
         for(;;);

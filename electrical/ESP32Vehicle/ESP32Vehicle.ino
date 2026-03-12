@@ -1,7 +1,7 @@
 #define COMPILING_ESP32        true
 #define ESPNOW_ENABLE          true
-#define LORA_ENABLE            true
-#define GENERATE_DUMMY_PACKETS false
+#define LORA_ENABLE            false
+#define GENERATE_DUMMY_PACKETS true
 #include "../system.h"
 
 

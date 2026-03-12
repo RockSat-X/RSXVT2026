@@ -3567,11 +3567,13 @@
     enum NVICInterrupt : u32
     {
         NVICInterrupt_USART2 = USART2_IRQn,
+        NVICInterrupt_USART1 = USART1_IRQn,
     };
-    static constexpr u32 NVICInterrupt_COUNT = 1;
+    static constexpr u32 NVICInterrupt_COUNT = 2;
     extern void INTERRUPT_BusFault(void);
     extern void INTERRUPT_Default(void);
     extern void INTERRUPT_Reset(void);
+    extern void INTERRUPT_USART1(void);
     extern void INTERRUPT_USART2(void);
     extern void INTERRUPT_UsageFault(void);
     extern void PendSV_Handler(void);
@@ -3653,7 +3655,7 @@
             INTERRUPT_Default            , // [ 55] SPI1
             INTERRUPT_Default            , // [ 56] SPI2
             INTERRUPT_Default            , // [ 57] SPI3
-            INTERRUPT_Default            , // [ 58] USART1
+            INTERRUPT_USART1             , // [ 58] USART1
             INTERRUPT_USART2             , // [ 59] USART2
             INTERRUPT_Default            , // [ 60] USART3
             INTERRUPT_Default            , // [ 61] UART4
@@ -3735,6 +3737,7 @@
     #define INTERRUPT_Reset(...) extern void INTERRUPT_Reset(__VA_ARGS__)
     #define INTERRUPT_SVCall(...) extern void INTERRUPT_SVCall(__VA_ARGS__)
     #define INTERRUPT_SysTick(...) extern void INTERRUPT_SysTick(__VA_ARGS__)
+    #define INTERRUPT_USART1(...) extern void INTERRUPT_USART1(__VA_ARGS__)
     #define INTERRUPT_USART2(...) extern void INTERRUPT_USART2(__VA_ARGS__)
     #define INTERRUPT_UsageFault(...) extern void INTERRUPT_UsageFault(__VA_ARGS__)
     extern void
@@ -3841,9 +3844,6 @@
         #define __MACRO_OVERLOAD___LOCATION_FOR_GPIO_INACTIVE__esp32_reset GPIO_BSRR_BS
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_SET__esp32_reset D
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_SET__esp32_reset 10
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__esp32_uart_tx B
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__esp32_uart_tx 14
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__esp32_uart_tx
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__esp32_uart_rx B
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__esp32_uart_rx 15
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__esp32_uart_rx
@@ -3871,7 +3871,7 @@
             GPIOHEN, true   ,
         );
         CMSIS_SET(GPIOD, OTYPER, OT10, true);
-        CMSIS_SET(GPIOD, ODR, OD10, true);
+        CMSIS_SET(GPIOD, ODR, OD10, false);
         CMSIS_SET
         (
             GPIOE, ODR ,
@@ -3904,7 +3904,6 @@
             AFSEL10  , 4            ,
             AFSEL12  , 4            ,
             AFSEL13  , 5            ,
-            AFSEL14  , 4            ,
             AFSEL15  , 4            ,
         );
         CMSIS_WRITE
@@ -3956,7 +3955,6 @@
             MODE10, 0b10 ,
             MODE12, 0b10 ,
             MODE13, 0b10 ,
-            MODE14, 0b10 ,
             MODE15, 0b10 ,
         );
         CMSIS_SET
@@ -3998,6 +3996,8 @@
 
         static_assert(0 <= 0 && 0 < (1 << __NVIC_PRIO_BITS));
         NVIC->IPR[NVICInterrupt_USART2] = 0 << __NVIC_PRIO_BITS;
+        static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
+        NVIC->IPR[NVICInterrupt_USART1] = 1 << __NVIC_PRIO_BITS;
         CMSIS_SET
         (
             SCB        , SHCSR,
@@ -4114,6 +4114,15 @@
         );
         CMSIS_SET(RCC, CFGR1, SW, 0b011);
         while (CMSIS_GET(RCC, CFGR1, SWS) != 0b011);
+
+
+
+        /////////////////////////////////// USART1 ///////////////////////////////////
+
+
+
+        #define STPY_USART1_KERNEL_SOURCE 0b000
+        #define STPY_USART1_BAUD_DIVIDER 250
 
 
 
