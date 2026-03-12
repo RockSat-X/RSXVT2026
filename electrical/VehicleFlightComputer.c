@@ -1539,7 +1539,27 @@ FREERTOS_TASK(esp32, 8192, 0)
     for (;;)
     {
 
+        // Reset the ESP32 for a bit...
+
+        GPIO_ACTIVE(esp32_reset);
+        FREERTOS_delay_ms(10);
+
+
+
+        // Reboot our UART communication...
+
         UXART_reinit(UXARTHandle_esp32);
+
+
+
+        // Reawaken the ESP32!
+
+        FREERTOS_delay_ms(10);
+        GPIO_INACTIVE(esp32_reset);
+
+
+
+        // TODO.
 
         b32 image_available       = false;
         u16 image_sequence_number = {0};

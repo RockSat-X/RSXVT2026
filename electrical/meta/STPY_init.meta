@@ -4363,7 +4363,7 @@
             OD15 , false,
         );
         CMSIS_SET(GPIOD, ODR, OD0, false);
-        CMSIS_SET(GPIOE, ODR, OD8, true);
+        CMSIS_SET(GPIOE, ODR, OD8, false);
         CMSIS_SET(GPIOB, PUPDR, PUPD10, 0b01);
         CMSIS_SET(GPIOC, PUPDR, PUPD3, 0b01);
         CMSIS_SET

@@ -892,7 +892,7 @@ TARGETS = ( # @/`Defining Targets`.
             ('vn100_uart_rx'              , 'D9'  , 'ALTERNATE' , { 'altfunc' : 'USART3_RX', 'pull' : 'UP'                   }),
             ('esp32_uart_tx'              , 'A0'  , 'ALTERNATE' , { 'altfunc' : 'UART4_TX'                                   }),
             ('esp32_uart_rx'              , 'A1'  , 'ALTERNATE' , { 'altfunc' : 'UART4_RX'                                   }),
-            ('esp32_reset'                , 'E8'  , 'OUTPUT'    , { 'initlvl' : False, 'active' : False, 'open_drain' : True }),
+            ('esp32_reset'                , 'E8'  , 'OUTPUT'    , { 'initlvl' : True, 'active' : False, 'open_drain' : True  }),
             ('testpoint_A'                , 'A10' , None        , {                                                          }),
             ('testpoint_B'                , 'A11' , None        , {                                                          }),
         ),
