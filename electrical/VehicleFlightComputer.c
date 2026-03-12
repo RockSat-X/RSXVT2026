@@ -2356,8 +2356,8 @@ INTERRUPT_I2Cx_vehicle_interface(enum I2CSlaveCallbackEvent event, u8* data)
 
         // TODO.
 
-        case I2CSlaveCallbackEvent_transmission_initiated:
-        case I2CSlaveCallbackEvent_transmission_repeated:
+        case I2CSlaveCallbackEvent_master_initiates_read:
+        case I2CSlaveCallbackEvent_master_repeats_read:
         case I2CSlaveCallbackEvent_stop_signaled:
         {
             payload_has_valid_data = false;
@@ -2368,8 +2368,8 @@ INTERRUPT_I2Cx_vehicle_interface(enum I2CSlaveCallbackEvent event, u8* data)
         // TODO
 
         case I2CSlaveCallbackEvent_data_available_to_read:
-        case I2CSlaveCallbackEvent_reception_initiated:
-        case I2CSlaveCallbackEvent_reception_repeated:
+        case I2CSlaveCallbackEvent_master_initiates_write:
+        case I2CSlaveCallbackEvent_master_repeats_write:
         {
             sus;
             payload_has_valid_data = false;

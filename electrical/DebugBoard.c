@@ -242,7 +242,7 @@ INTERRUPT_I2Cx_communication(enum I2CSlaveCallbackEvent event, u8* data)
 
 
 
-        case I2CSlaveCallbackEvent_reception_initiated:
+        case I2CSlaveCallbackEvent_master_initiates_write:
         case I2CSlaveCallbackEvent_stop_signaled:
         {
 
@@ -315,9 +315,9 @@ INTERRUPT_I2Cx_communication(enum I2CSlaveCallbackEvent event, u8* data)
 
 
 
-        case I2CSlaveCallbackEvent_transmission_initiated : sorry
-        case I2CSlaveCallbackEvent_transmission_repeated  : sorry
-        case I2CSlaveCallbackEvent_reception_repeated     : sorry
+        case I2CSlaveCallbackEvent_master_initiates_read  : sorry
+        case I2CSlaveCallbackEvent_master_repeats_read    : sorry
+        case I2CSlaveCallbackEvent_master_repeats_write   : sorry
         case I2CSlaveCallbackEvent_ready_to_transmit_data : sorry
         case I2CSlaveCallbackEvent_clock_stretch_timeout  : sorry
         case I2CSlaveCallbackEvent_bus_misbehaved         : sorry

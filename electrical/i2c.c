@@ -12,10 +12,10 @@ enum I2CDriverMode : u32
 
 enum I2CSlaveCallbackEvent : u32
 {
-    I2CSlaveCallbackEvent_transmission_initiated,
-    I2CSlaveCallbackEvent_reception_initiated,
-    I2CSlaveCallbackEvent_transmission_repeated,
-    I2CSlaveCallbackEvent_reception_repeated,
+    I2CSlaveCallbackEvent_master_initiates_read,
+    I2CSlaveCallbackEvent_master_initiates_write,
+    I2CSlaveCallbackEvent_master_repeats_read,
+    I2CSlaveCallbackEvent_master_repeats_write,
     I2CSlaveCallbackEvent_data_available_to_read,
     I2CSlaveCallbackEvent_ready_to_transmit_data,
     I2CSlaveCallbackEvent_stop_signaled,
@@ -609,8 +609,8 @@ _I2C_update_once_slave_handle_address_match(enum I2CHandle handle, u32 interrupt
 
             enum I2CSlaveCallbackEvent event =
                 driver->slave.state == I2CSlaveState_standby
-                    ? master_wants_to_read ? I2CSlaveCallbackEvent_transmission_initiated : I2CSlaveCallbackEvent_reception_initiated
-                    : master_wants_to_read ? I2CSlaveCallbackEvent_transmission_repeated  : I2CSlaveCallbackEvent_reception_repeated;
+                    ? master_wants_to_read ? I2CSlaveCallbackEvent_master_initiates_read : I2CSlaveCallbackEvent_master_initiates_write
+                    : master_wants_to_read ? I2CSlaveCallbackEvent_master_repeats_read   : I2CSlaveCallbackEvent_master_repeats_write;
 
             if (master_wants_to_read)
             {
