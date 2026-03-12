@@ -1707,6 +1707,13 @@ FREERTOS_TASK(esp32, 8192, 0)
 
         // Something went wrong... we're going to have to reinitialize the ESP32...
 
+        atomic_fetch_add_explicit
+        (
+            &LOGGER.esp32_issues,
+            1,
+            memory_order_relaxed // No synchronization needed.
+        );
+
         xTaskNotify
         (
             diagnostics_handle,
