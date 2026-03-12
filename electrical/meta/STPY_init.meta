@@ -3810,8 +3810,6 @@
         (
             GPIOB , PUPDR,
             PUPD1 , 0b01 ,
-            PUPD6 , 0b01 ,
-            PUPD7 , 0b01 ,
             PUPD15, 0b01 ,
         );
         CMSIS_WRITE

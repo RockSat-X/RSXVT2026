@@ -12,7 +12,7 @@
 #define VN100_ENABLE                     true
 #define OPENMV_ENABLE                    true
 #define ESP32_ENABLE                     true
-#define WATCHDOG_ENABLE                  false
+#define WATCHDOG_ENABLE                  true
 #define TRANSMIT_TV                      false
 
 #include "system.h"
@@ -90,6 +90,11 @@ static struct
     RingBuffer(struct GNCInfo, 8) gnc_infos;
     struct OpenMVImage            openmv_image;
 } ESP32 = {0};
+
+static struct
+{
+    volatile _Atomic u32 most_recent_transfer_timestamp_us;
+} VEHICLE_INTERFACE = {0};
 
 
 
@@ -2248,15 +2253,59 @@ FREERTOS_TASK(watchdog, 3)
     for (;;)
     {
 
-        // To prevent the vehicle from being perpetually on forever
-        // and drain the batteries empty, we turn ourselves off automatically.
+        u32 current_timestamp_us = TIMEKEEPING_microseconds();
 
-        if (TIMEKEEPING_microseconds() >= WATCHDOG_DURATION_US)
+
+
+        // Ensure the vehicle doesn't stay on for too long and drain the battery;
+        // not completely fool-proof since the stepper motor drivers will draw
+        // some current from the batteries even when there's external power supplied,
+        // but should be good enough.
+
+        b32 live_for_too_long = current_timestamp_us >= WATCHDOG_DURATION_US;
+
+
+
+        // We also need to ensure the vehicle doesn't stay on for long when it's still
+        // docked in the ejection mechanism. This is especially important during sequence
+        // testing when the vehicle might be powered on but no ejection will take place.
+        //
+        // We can tell when we have ejected if we're no longer detecting external
+        // power, haven't received I2C transfers through the vehicle interface in a while,
+        // and that the I2C bus lines are held high by the on-board's pull-up resistors.
+        //
+        // However, if we're still docked, then the I2C bus lines will actually be pulled
+        // low because main is no longer powered, and the on-board's pull-up resistors are
+        // weak enough that the MCU doesn't register this as an active level. In this
+        // scenario, we should do a reset also.
+
+        u32 observed_most_recent_transfer_timestamp_us =
+            atomic_load_explicit
+            (
+                &VEHICLE_INTERFACE.most_recent_transfer_timestamp_us,
+                memory_order_relaxed // No synchronization needed.
+            );
+
+        b32 theres_still_external_power   = GPIO_READ(external_detected);
+        b32 vehicle_interface_pulled_down = !GPIO_READ(vehicle_interface_i2c_clock) && !GPIO_READ(vehicle_interface_i2c_data);
+
+        b32 docked_reset =
+            (
+                current_timestamp_us - observed_most_recent_transfer_timestamp_us >= 10'000'000 &&
+                !theres_still_external_power &&
+                vehicle_interface_pulled_down
+            );
+
+
+
+        // Say farewell.
+
+        if (live_for_too_long || docked_reset)
         {
 
             // Indicate that this is why the vehicle is suddenly shut off.
 
-            BUZZER_play(BuzzerTune_sleeping);
+            BUZZER_play(live_for_too_long ? BuzzerTune_sleeping : BuzzerTune_starwars);
             while (BUZZER_current_tune());
 
 
@@ -2275,8 +2324,10 @@ FREERTOS_TASK(watchdog, 3)
             WARM_RESET();
 
         }
-
-        FREERTOS_delay_ms(1'000);
+        else
+        {
+            FREERTOS_delay_ms(1'000);
+        }
 
     }
 
@@ -2316,6 +2367,15 @@ INTERRUPT_I2Cx_vehicle_interface(enum I2CSlaveCallbackEvent event, u8* data)
 
             if (!payload_has_valid_data)
             {
+
+                u32 current_timestamp_us = TIMEKEEPING_microseconds();
+
+                atomic_store_explicit
+                (
+                    &VEHICLE_INTERFACE.most_recent_transfer_timestamp_us,
+                    current_timestamp_us,
+                    memory_order_relaxed // No synchronization needed.
+                );
 
                 i32 observed_stepper_issues =
                     atomic_load_explicit
