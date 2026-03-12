@@ -934,41 +934,64 @@ DEBUG_BOARD_calculate_crc(u8* data, i32 length)
 
 
 
-#define PACKET_ESP32_START_TOKEN 0xBABE
-#define PACKET_LORA_START_TOKEN  0xCAFE
+#define ESP32_TOKEN_START "<ESP32>"
+#define LORA_TOKEN_START  "<LORA>"
 
 pack_push
 
-    struct PacketLoRa
+    // @/`ESP32 Sequence Numbers`:
+    //
+    // The `.rolling_sequence_number` field is automatically filled out by the
+    // vehicle ESP32, thus the vehicle FC should leave it empty. This is
+    // because the ESP32 will handle the buffering of ESP-NOW and LoRa packets,
+    // and based on when it can queue up packets for those buffers, it'll
+    // automatically increment the rolling sequence number.
+    //
+    // In other words, the `rolling_sequence_number` is how the main FC can
+    // tell whether or not an ESP-NOW packet has been dropped, and likewise
+    // with LoRa packets.
+    //
+    // The `.timestamp_ms` field should be used to determine the elapsed time
+    // since the last received packet, but it can also be used to determine if
+    // a LoRa packet and ESP-NOW packet are the same (when their timestamps are
+    // also equal).
+    //
+    // The `.image_sequence_number` field is just to make it easier to
+    // determine the start of the OpenMV image data, although with how JPEG
+    // works, this could be omitted. If the field is zero, this means no image
+    // data; otherwise the first image chunk begins with sequence number of 1.
+
+    struct LoRaPacket
     {
-        f32 quaternion_i;
-        f32 quaternion_j;
-        f32 quaternion_k;
-        f32 quaternion_r;
-        f32 accelerometer_x;
-        f32 accelerometer_y;
-        f32 accelerometer_z;
-        f32 gyro_x;
-        f32 gyro_y;
-        f32 gyro_z;
-        f32 computer_vision_confidence;
-        u16 timestamp_ms;
-        u8  sequence_number;
+        f32 QuatX;
+        f32 QuatY;
+        f32 QuatZ;
+        f32 QuatS;
+        f32 AccelX;
+        f32 AccelY;
+        f32 AccelZ;
+        f32 GyroX;
+        f32 GyroY;
+        f32 GyroZ;
+        u16 timestamp_ms;            // @/`ESP32 Sequence Numbers`.
+        u16 rolling_sequence_number; // @/`ESP32 Sequence Numbers`.
+        u8  computer_vision_confidence;
         u8  crc;
     };
 
-    struct PacketESP32
+    struct ESP32Packet
     {
-        f32               magnetometer_x;
-        f32               magnetometer_y;
-        f32               magnetometer_z;
-        u8                image_chunk[190];
-        struct PacketLoRa nonredundant;
+        f32               MagX;
+        f32               MagY;
+        f32               MagZ;
+        u16               image_sequence_number; // @/`ESP32 Sequence Numbers`.
+        u8                image_bytes[190];
+        struct LoRaPacket nonredundant;
     };
 
 pack_pop
 
-static_assert(sizeof(struct PacketESP32) <= 250);
+static_assert(sizeof(struct ESP32Packet) <= 250);
 
 
 
@@ -996,7 +1019,7 @@ ESP32_calculate_crc(u8* data, i32 length)
 
 
 
-#define ESP32_BAUD 400000 // @/`Coupled Baud Rate between STM32 and ESP32`.
+#define ESP32_BAUD 1000000 // @/`Coupled Baud Rate between STM32 and ESP32`.
 
 #if COMPILING_ESP32
 

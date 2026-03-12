@@ -42,7 +42,7 @@ led_blue  = pyb.LED(3)
 
 sensor.reset()
 sensor.set_pixformat(sensor.YUV422)
-sensor.set_framesize(sensor.QSIF)
+sensor.set_framesize(sensor.SIF)
 
 
 

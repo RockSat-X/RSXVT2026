@@ -30,8 +30,6 @@
 #endif
 #if TARGET_NAME_IS_DemoAnalog
 #endif
-#if TARGET_NAME_IS_TestESP32s
-#endif
 #if TARGET_NAME_IS_SandboxNucleoH533RE
     #error Target 'SandboxNucleoH533RE' defines no handle for the 'SPI' driver.
 #endif
@@ -111,9 +109,6 @@
 #endif
 #if TARGET_NAME_IS_DemoAnalog
     #error Target 'DemoAnalog' defines no handle for the 'SPI' driver.
-#endif
-#if TARGET_NAME_IS_TestESP32s
-    #error Target 'TestESP32s' defines no handle for the 'SPI' driver.
 #endif
 #undef _EXPAND_HANDLE
 #define _EXPAND_HANDLE\

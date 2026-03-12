@@ -52,7 +52,7 @@ TV_TOKEN = types.SimpleNamespace(
 )
 
 STLINK_BAUD = 1_000_000
-ESP32_BAUD  =   400_000 # @/`Coupled Baud Rate between STM32 and ESP32`.
+ESP32_BAUD  = 1_000_000 # @/`Coupled Baud Rate between STM32 and ESP32`.
 VN100_BAUD  =   115_200
 
 VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS = 0x12
@@ -780,6 +780,8 @@ TARGETS = ( # @/`Defining Targets`.
             ('vehicle_inteface_i2c_data' , 'B7' , 'ALTERNATE', { 'altfunc' : 'I2C1_SDA' , 'open_drain' : True, 'pull' : 'UP' }),
             ('vn100_uart_rx'             , 'B10', 'ALTERNATE', { 'altfunc' : 'USART3_TX'                                     }), # TODO Just to test VN-100 reception for VehicleFlightComputer.
             ('vn100_uart_tx'             , 'B1' , 'ALTERNATE', { 'altfunc' : 'USART3_RX', 'pull' : 'UP'                      }), # TODO Just to test VN-100 reception for VehicleFlightComputer.
+            ('esp32_uart_tx'             , 'B14', 'ALTERNATE', { 'altfunc' : 'USART1_TX'                                     }),
+            ('esp32_uart_rx'             , 'B15', 'ALTERNATE', { 'altfunc' : 'USART1_RX', 'pull' : 'UP'                      }),
         ),
 
         interrupts = (
@@ -787,6 +789,7 @@ TARGETS = ( # @/`Defining Targets`.
             ('I2C1_EV', 1),
             ('I2C1_ER', 1),
             ('USART3' , 2), # TODO Just to test VN-100 reception for VehicleFlightComputer.
+            ('USART1' , 3),
         ),
 
         drivers = (
@@ -812,6 +815,12 @@ TARGETS = ( # @/`Defining Targets`.
                 'type'       : 'TIMEKEEPING',
                 'peripheral' : 'TIM2',
             },
+            {
+                'type'       : 'UXART',
+                'peripheral' : 'USART1',
+                'handle'     : 'esp32',
+                'mode'       : 'full_duplex',
+            },
         ),
 
         use_freertos    = True,
@@ -827,6 +836,7 @@ TARGETS = ( # @/`Defining Targets`.
             'APB3_CK'           : 250_000_000,
             'USART2_BAUD'       : STLINK_BAUD,
             'USART3_BAUD'       : VN100_BAUD,
+            'USART1_BAUD'       : ESP32_BAUD,
             'I2C1_BAUD'         : VEHICLE_INTERFACE_BAUD,
             'I2C1_TIMEOUT'      : 2,
             'TIM2_COUNTER_RATE' : 1_000_000,
@@ -882,13 +892,14 @@ TARGETS = ( # @/`Defining Targets`.
             ('vn100_uart_rx'              , 'D9'  , 'ALTERNATE' , { 'altfunc' : 'USART3_RX', 'pull' : 'UP'                   }),
             ('esp32_uart_tx'              , 'A0'  , 'ALTERNATE' , { 'altfunc' : 'UART4_TX'                                   }),
             ('esp32_uart_rx'              , 'A1'  , 'ALTERNATE' , { 'altfunc' : 'UART4_RX'                                   }),
-            ('esp32_reset'                , 'E8'  , 'OUTPUT'    , { 'initlvl' : False, 'active' : False, 'open_drain' : True }),
+            ('esp32_reset'                , 'E8'  , 'OUTPUT'    , { 'initlvl' : True, 'active' : False, 'open_drain' : True  }),
             ('testpoint_A'                , 'A10' , None        , {                                                          }),
             ('testpoint_B'                , 'A11' , None        , {                                                          }),
         ),
 
         interrupts = (
             ('USART2'         , 0),
+            ('UART4'          , 0),
             ('USART1'         , 1),
             ('USART3'         , 1),
             ('SPI2'           , 1),
@@ -922,6 +933,12 @@ TARGETS = ( # @/`Defining Targets`.
                 'type'       : 'UXART',
                 'peripheral' : 'USART3',
                 'handle'     : 'vn100',
+                'mode'       : 'full_duplex',
+            },
+            {
+                'type'       : 'UXART',
+                'peripheral' : 'UART4',
+                'handle'     : 'esp32',
                 'mode'       : 'full_duplex',
             },
             # TODO.
@@ -975,6 +992,7 @@ TARGETS = ( # @/`Defining Targets`.
             'SDMMC1_FULL_BAUD'    : 24_000_000,
             'USART1_BAUD'         :    200_000,
             'USART3_BAUD'         : VN100_BAUD,
+            'UART4_BAUD'          : ESP32_BAUD,
             # TODO: 'I2C3_BAUD'           : VEHICLE_INTERFACE_BAUD,
             # TODO: 'I2C3_TIMEOUT'        : 2,
             'SPI2_BAUD'           : 600_000, # @/`OpenMV SPI Baud`.
@@ -1362,70 +1380,6 @@ TARGETS = ( # @/`Defining Targets`.
     ########################################
 
 
-
-    types.SimpleNamespace(
-
-        name              = 'TestESP32s',
-        mcu               = 'STM32H533RET6',
-        source_file_paths = (
-            pxd.make_main_relative_path('./electrical/TestESP32s.c'),
-        ),
-
-        kicad_project = None,
-
-        gpios = (
-            ('led_green', 'A5' , 'OUTPUT'    , { 'initlvl' : False              }),
-            ('stlink_tx', 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'        }),
-            ('stlink_rx', 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'        }),
-            ('swdio'    , 'A13', None        , {                                }),
-            ('swclk'    , 'A14', None        , {                                }),
-            ('button'   , 'C13', 'INPUT'     , { 'pull' : None, 'active' : True }),
-            ('esp32_tx' , 'B10', 'ALTERNATE' , { 'altfunc' : 'USART3_TX'        }),
-            ('esp32_rx' , 'C4' , 'ALTERNATE' , { 'altfunc' : 'USART3_RX'        }),
-            ('debug'    , 'C2' , 'OUTPUT'    , { 'initlvl' : False              }),
-        ),
-
-        interrupts = (
-            ('USART2', 0),
-            ('USART3', 1),
-        ),
-
-        drivers = (
-            {
-                'type'       : 'UXART',
-                'peripheral' : 'USART2',
-                'handle'     : 'stlink',
-                'mode'       : 'full_duplex',
-            },
-            {
-                'type'       : 'UXART',
-                'peripheral' : 'USART3',
-                'handle'     : 'esp32',
-                'mode'       : 'full_duplex',
-            },
-        ),
-
-        use_freertos    = False,
-        main_stack_size = 8192,
-        schema          = {
-            'HSI_ENABLE'        : True,
-            'HSI48_ENABLE'      : True,
-            'CSI_ENABLE'        : True,
-            'PLL1P_CK'          : 250_000_000,
-            'CPU_CK'            : 250_000_000,
-            'APB1_CK'           : 250_000_000,
-            'APB2_CK'           : 250_000_000 / 8,
-            'APB3_CK'           : 250_000_000,
-            'USART2_BAUD'       : STLINK_BAUD,
-            'USART3_BAUD'       : ESP32_BAUD, # @/`Coupled Baud Rate between STM32 and ESP32`.
-            'TIM1_COUNTER_RATE' : 1_000,
-        },
-
-    ),
-
-
-
-    ########################################
 
 )
 

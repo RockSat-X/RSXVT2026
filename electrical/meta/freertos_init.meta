@@ -204,8 +204,9 @@
         FreeRTOSTask_vehicle_interface,
         FreeRTOSTask_vn100_uart,
         FreeRTOSTask_heartbeat,
+        FreeRTOSTask_esp32,
     };
-    static constexpr u32 FreeRTOSTask_COUNT = 3;
+    static constexpr u32 FreeRTOSTask_COUNT = 4;
     static noret void   vehicle_interface(void*);
     static StackType_t  vehicle_interface_stack[1024 / sizeof(StackType_t)] = {0};
     static StaticTask_t vehicle_interface_buffer = {0};
@@ -218,6 +219,10 @@
     static StackType_t  heartbeat_stack[1024 / sizeof(StackType_t)] = {0};
     static StaticTask_t heartbeat_buffer = {0};
     static TaskHandle_t heartbeat_handle = {0};
+    static noret void   esp32(void*);
+    static StackType_t  esp32_stack[8192 / sizeof(StackType_t)] = {0};
+    static StaticTask_t esp32_buffer = {0};
+    static TaskHandle_t esp32_handle = {0};
     static noret void
     FREERTOS_init(void)
     {
@@ -254,6 +259,17 @@
                 heartbeat_stack,
                 &heartbeat_buffer
             );
+        esp32_handle =
+            xTaskCreateStatic
+            (
+                esp32,
+                "esp32",
+                countof(esp32_stack),
+                nullptr,
+                0,
+                esp32_stack,
+                &esp32_buffer
+            );
         vTaskStartScheduler();
         for(;;);
     }
@@ -265,11 +281,12 @@
         FreeRTOSTask_controller,
         FreeRTOSTask_vn100,
         FreeRTOSTask_openmv,
+        FreeRTOSTask_esp32,
         FreeRTOSTask_logger,
         FreeRTOSTask_god,
         FreeRTOSTask_watchdog,
     };
-    static constexpr u32 FreeRTOSTask_COUNT = 7;
+    static constexpr u32 FreeRTOSTask_COUNT = 8;
     static noret void   diagnostics(void*);
     static StackType_t  diagnostics_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t diagnostics_buffer = {0};
@@ -286,6 +303,10 @@
     static StackType_t  openmv_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t openmv_buffer = {0};
     static TaskHandle_t openmv_handle = {0};
+    static noret void   esp32(void*);
+    static StackType_t  esp32_stack[8192 / sizeof(StackType_t)] = {0};
+    static StaticTask_t esp32_buffer = {0};
+    static TaskHandle_t esp32_handle = {0};
     static noret void   logger(void*);
     static StackType_t  logger_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t logger_buffer = {0};
@@ -344,6 +365,17 @@
                 0,
                 openmv_stack,
                 &openmv_buffer
+            );
+        esp32_handle =
+            xTaskCreateStatic
+            (
+                esp32,
+                "esp32",
+                countof(esp32_stack),
+                nullptr,
+                0,
+                esp32_stack,
+                &esp32_buffer
             );
         logger_handle =
             xTaskCreateStatic
@@ -435,10 +467,6 @@
     static constexpr u32 FreeRTOSTask_COUNT = 0;
 #endif
 #if TARGET_NAME_IS_DemoAnalog
-    enum FreeRTOSTask : u32;
-    static constexpr u32 FreeRTOSTask_COUNT = 0;
-#endif
-#if TARGET_NAME_IS_TestESP32s
     enum FreeRTOSTask : u32;
     static constexpr u32 FreeRTOSTask_COUNT = 0;
 #endif
