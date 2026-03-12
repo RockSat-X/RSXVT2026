@@ -2473,7 +2473,13 @@ INTERRUPT_I2Cx_vehicle_interface(enum I2CSlaveCallbackEvent event, u8* data)
         case I2CSlaveCallbackEvent_bug:
         default:
         {
+
             I2C_partial_reinit(I2CHandle_vehicle_interface);
+
+            memzero(&payload_has_valid_data);
+            memzero(&byte_index);
+            memzero(&payload);
+
         } break;
 
 
