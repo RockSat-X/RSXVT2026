@@ -8,12 +8,12 @@
 #define MAX_ANGULAR_ACCELERATION         (200.0f)
 #define MAX_ANGULAR_VELOCITY             (2000.0f * 2.0f * PI / 60.0f)
 #define GOD_MODE                         true
-#define CONTROLLER_ENABLE                false
-#define VN100_ENABLE                     false
+#define CONTROLLER_ENABLE                true
+#define VN100_ENABLE                     true
 #define OPENMV_ENABLE                    true
 #define ESP32_ENABLE                     true
 #define WATCHDOG_ENABLE                  false
-#define TRANSMIT_TV                      true
+#define TRANSMIT_TV                      false
 
 #include "system.h"
 #include "timekeeping.c"
@@ -46,6 +46,12 @@ struct OpenMVImage
     volatile _Atomic enum OpenMVImageState state;
     u8                                     bytes[16 * 1024]; // Average worst ~8 KiB when using YUV422, SIF, 50% quality.
     i32                                    size;
+};
+
+struct GNCInfo
+{
+    struct VN100Packet vn100_packet;
+    u8                 computer_vision_confidence;
 };
 
 
@@ -82,7 +88,8 @@ static struct
 
 static struct
 {
-    struct OpenMVImage openmv_image;
+    RingBuffer(struct GNCInfo, 8) gnc_infos;
+    struct OpenMVImage            openmv_image;
 } ESP32 = {0};
 
 
@@ -421,10 +428,40 @@ FREERTOS_TASK(controller, 8192, 0)
 
 
 
+        // TODO Use `pop_to_latest` or just `pop`?
+
+        struct VN100Packet     vn100_packet_data       = {0};
+        b32                    vn100_packet_exist      = RingBuffer_pop_to_latest(&CONTROLLER.vn100_packets, &vn100_packet_data);
+        struct OpenMVPacketGNC openmv_gnc_packet_data  = {0};
+        b32                    openmv_gnc_packet_exist = RingBuffer_pop_to_latest(&CONTROLLER.openmv_gnc_packets, &openmv_gnc_packet_data);
+
+
+
         // Perform GNC calculations.
 
         {
             // TODO.
+        }
+
+
+
+        // Have some of the GNC data be queued up for RF transmission.
+
+        if (vn100_packet_exist && openmv_gnc_packet_exist)
+        {
+
+            struct GNCInfo gnc_info =
+                {
+                    .vn100_packet               = vn100_packet_data,
+                    .computer_vision_confidence = openmv_gnc_packet_data.computer_vision_confidence,
+                };
+
+            if (!RingBuffer_push(&ESP32.gnc_infos, &gnc_info))
+            {
+                // No more space to queue data for RF transmission!
+                // Hopefully it'll clear up soon...
+            }
+
         }
 
 
@@ -1511,29 +1548,41 @@ FREERTOS_TASK(esp32, 8192, 0)
         while (true)
         {
 
-
-
-            // TODO.
-
-            struct ESP32Packet packet =
+            b32                should_transmit = false;
+            struct ESP32Packet packet          =
                 {
-                    .MagX                                    = 1.0f,
-                    .MagY                                    = 2.0f,
-                    .MagZ                                    = 3.0f,
-                    .nonredundant.QuatX                      = 4.0f,
-                    .nonredundant.QuatY                      = 5.0f,
-                    .nonredundant.QuatZ                      = 6.0f,
-                    .nonredundant.QuatS                      = 7.0f,
-                    .nonredundant.AccelX                     = 8.0f,
-                    .nonredundant.AccelY                     = 9.0f,
-                    .nonredundant.AccelZ                     = 10.0f,
-                    .nonredundant.GyroX                      = 11.0f,
-                    .nonredundant.GyroY                      = 12.0f,
-                    .nonredundant.GyroZ                      = 13.0f,
-                    .nonredundant.timestamp_ms               = (u16) (TIMEKEEPING_microseconds() / 1'000),
-                    .nonredundant.rolling_sequence_number    = 0, // @/`ESP32 Sequence Numbers`.
-                    .nonredundant.computer_vision_confidence = 67,
+                    .nonredundant.timestamp_ms = (u16) (TIMEKEEPING_microseconds() / 1'000),
                 };
+
+
+
+            // See if there's any GNC info we can transmit back to main.
+
+            struct GNCInfo gnc_info = {0};
+
+            if (RingBuffer_pop_to_latest(&ESP32.gnc_infos, &gnc_info))
+            {
+                should_transmit                                = true;
+                packet.MagX                                    = gnc_info.vn100_packet.MagX;
+                packet.MagY                                    = gnc_info.vn100_packet.MagY;
+                packet.MagZ                                    = gnc_info.vn100_packet.MagZ;
+                packet.nonredundant.QuatX                      = gnc_info.vn100_packet.QuatX;
+                packet.nonredundant.QuatY                      = gnc_info.vn100_packet.QuatY;
+                packet.nonredundant.QuatZ                      = gnc_info.vn100_packet.QuatZ;
+                packet.nonredundant.QuatS                      = gnc_info.vn100_packet.QuatS;
+                packet.nonredundant.AccelX                     = gnc_info.vn100_packet.AccelX;
+                packet.nonredundant.AccelY                     = gnc_info.vn100_packet.AccelY;
+                packet.nonredundant.AccelZ                     = gnc_info.vn100_packet.AccelZ;
+                packet.nonredundant.GyroX                      = gnc_info.vn100_packet.GyroX;
+                packet.nonredundant.GyroY                      = gnc_info.vn100_packet.GyroY;
+                packet.nonredundant.GyroZ                      = gnc_info.vn100_packet.GyroZ;
+                packet.nonredundant.computer_vision_confidence = gnc_info.computer_vision_confidence;
+            }
+            else
+            {
+                // We haven't gotten the first GNC info yet. This should because we're very
+                // early on in the experiment run-time where we haven't done GNC stuff yet.
+            }
 
 
 
@@ -1551,6 +1600,8 @@ FREERTOS_TASK(esp32, 8192, 0)
 
             if (image_available)
             {
+
+                should_transmit = true;
 
                 i32 amount_of_bytes_to_copy   = countof(packet.image_bytes);
                 i32 amount_of_bytes_remaining = ESP32.openmv_image.size - image_bytes_sent;
@@ -1581,29 +1632,33 @@ FREERTOS_TASK(esp32, 8192, 0)
 
 
 
-            // Calculate the checksum.
+            // If there was actual data we filled out in the packet, we'll send it to the ESP32.
 
-            packet.nonredundant.crc =
-                ESP32_calculate_crc
-                (
-                    (u8*) &packet,
-                    sizeof(packet) - sizeof(packet.nonredundant.crc)
-                );
-
-
-
-            // Send the packet to the ESP32.
-
-            UXART_tx_bytes(UXARTHandle_esp32, (u8*) ESP32_TOKEN_START, sizeof(ESP32_TOKEN_START) - 1);
-            UXART_tx_bytes(UXARTHandle_esp32, (u8*) &packet          , sizeof(packet)               );
-
-
-
-            // TODO.
-
-            if (!image_available)
+            if (should_transmit)
             {
-                FREERTOS_delay_ms(20);
+
+                // Calculate the checksum.
+
+                packet.nonredundant.crc =
+                    ESP32_calculate_crc
+                    (
+                        (u8*) &packet,
+                        sizeof(packet) - sizeof(packet.nonredundant.crc)
+                    );
+
+
+
+                // Send the packet to the ESP32.
+
+                UXART_tx_bytes(UXARTHandle_esp32, (u8*) ESP32_TOKEN_START, sizeof(ESP32_TOKEN_START) - 1);
+                UXART_tx_bytes(UXARTHandle_esp32, (u8*) &packet          , sizeof(packet)               );
+
+                FREERTOS_delay_ms(2); // TODO.
+
+            }
+            else // Nothing new yet...
+            {
+                FREERTOS_delay_ms(1);
             }
 
         }
