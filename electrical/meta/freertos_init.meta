@@ -198,12 +198,17 @@
     enum FreeRTOSTask : u32
     {
         FreeRTOSTask_esp32,
+        FreeRTOSTask_debug_board,
     };
-    static constexpr u32 FreeRTOSTask_COUNT = 1;
+    static constexpr u32 FreeRTOSTask_COUNT = 2;
     static noret void   esp32(void*);
     static StackType_t  esp32_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t esp32_buffer = {0};
     static TaskHandle_t esp32_handle = {0};
+    static noret void   debug_board(void*);
+    static StackType_t  debug_board_stack[8192 / sizeof(StackType_t)] = {0};
+    static StaticTask_t debug_board_buffer = {0};
+    static TaskHandle_t debug_board_handle = {0};
     static noret void
     FREERTOS_init(void)
     {
@@ -217,6 +222,17 @@
                 0,
                 esp32_stack,
                 &esp32_buffer
+            );
+        debug_board_handle =
+            xTaskCreateStatic
+            (
+                debug_board,
+                "debug_board",
+                countof(debug_board_stack),
+                nullptr,
+                0,
+                debug_board_stack,
+                &debug_board_buffer
             );
         vTaskStartScheduler();
         for(;;);

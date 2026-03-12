@@ -1,6 +1,7 @@
 #include "system.h"
 #include "timekeeping.c"
 #include "uxart.c"
+#include "i2c.c"
 
 
 
@@ -296,6 +297,85 @@ FREERTOS_TASK(esp32, 0)
 
 
         // TODO Indicate there was an ESP32 error.
+
+    }
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+FREERTOS_TASK(debug_board, 0)
+{
+    for (;;)
+    {
+
+        I2C_partial_reinit(I2CHandle_debug_board);
+
+        b32 need_to_reinitialize = false;
+
+        while (!need_to_reinitialize)
+        {
+
+            struct MainFlightComputerDebugPacket packet =
+                {
+                    .timestamp_us           = TIMEKEEPING_microseconds(),
+                    .solarboard_voltages[0] = 67, // TODO.
+                    .solarboard_voltages[1] = 69, // TODO.
+                    .flags                  = 0,  // TODO.
+                };
+
+            packet.crc = DEBUG_BOARD_calculate_crc((u8*) &packet, sizeof(packet) - sizeof(packet.crc));
+
+            struct I2CDoJob job =
+                {
+                    .handle       = I2CHandle_debug_board,
+                    .address_type = I2CAddressType_seven,
+                    .address      = MFC_DEBUG_BOARD_SEVEN_BIT_ADDRESS,
+                    .writing      = true,
+                    .repeating    = false,
+                    .pointer      = (u8*) &packet,
+                    .amount       = sizeof(packet)
+                };
+
+            for (b32 yield = false; !yield;)
+            {
+
+                enum I2CDoResult result = I2C_do(&job);
+
+                switch (result)
+                {
+
+                    case I2CDoResult_working:
+                    {
+                        FREERTOS_delay_ms(1); // We'll keep on spin-locking until the transfer is done...
+                    } break;
+
+                    case I2CDoResult_success:
+                    {
+                        yield = true;
+                    } break;
+
+                    case I2CDoResult_no_acknowledge:
+                    case I2CDoResult_clock_stretch_timeout:
+                    case I2CDoResult_bus_misbehaved:
+                    case I2CDoResult_watchdog_expired:
+                    case I2CDoResult_bug:
+                    default:
+                    {
+                        need_to_reinitialize = true;
+                        yield                = true;
+                    } break;
+
+                }
+
+            }
+
+            FREERTOS_delay_ms(100);
+
+        }
 
     }
 }

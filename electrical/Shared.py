@@ -60,6 +60,9 @@ VN100_BAUD  =   115_200
 VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS = 0x12
 VEHICLE_INTERFACE_BAUD              = 10_000
 
+MFC_DEBUG_BOARD_BAUD              = 1_000
+MFC_DEBUG_BOARD_SEVEN_BIT_ADDRESS = 0x1E
+
 MCU_SUPPORT = {
 
     'STM32H533RET6' : {
@@ -704,12 +707,12 @@ TARGETS = ( # @/`Defining Targets`.
             ('spi_mosi_B'                     , 'B5' , 'ALTERNATE' , { 'altfunc' : 'SPI1_MOSI'                                 }),
             ('spi_miso_B'                     , 'A6' , 'ALTERNATE' , { 'altfunc' : 'SPI1_MISO'                                 }),
             ('spi_ready_B'                    , 'B2' , 'ALTERNATE' , { 'altfunc' : 'SPI1_RDY'                                  }),
-            ('vehicle_interface_i2c_data'     , 'B7' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA'                                  }),
-            ('vehicle_interface_i2c_clock'    , 'B6' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL'                                  }),
-            ('sensor_i2c_data'                , 'B12', 'ALTERNATE' , { 'altfunc' : 'I2C2_SDA'                                  }),
-            ('sensor_i2c_clock'               , 'B10', 'ALTERNATE' , { 'altfunc' : 'I2C2_SCL'                                  }),
-            ('flight_computer_debug_i2c_data' , 'D7' , 'ALTERNATE' , { 'altfunc' : 'I2C3_SDA'                                  }),
-            ('flight_computer_debug_i2c_clock', 'D6' , 'ALTERNATE' , { 'altfunc' : 'I2C3_SCL'                                  }),
+            ('vehicle_interface_i2c_data'     , 'B7' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA', 'open_drain' : True             }),
+            ('vehicle_interface_i2c_clock'    , 'B6' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL', 'open_drain' : True             }),
+            ('sensor_i2c_data'                , 'B12', 'ALTERNATE' , { 'altfunc' : 'I2C2_SDA', 'open_drain' : True             }),
+            ('sensor_i2c_clock'               , 'B10', 'ALTERNATE' , { 'altfunc' : 'I2C2_SCL', 'open_drain' : True             }),
+            ('flight_computer_debug_i2c_data' , 'D7' , 'ALTERNATE' , { 'altfunc' : 'I2C3_SDA', 'open_drain' : True             }),
+            ('flight_computer_debug_i2c_clock', 'D6' , 'ALTERNATE' , { 'altfunc' : 'I2C3_SCL', 'open_drain' : True             }),
             ('esp32_reset'                    , 'D10', 'OUTPUT'    , { 'initlvl' : True, 'active' : False, 'open_drain' : True }),
             ('esp32_uart_tx'                  , 'B14', None        , {                                                         }),
             ('esp32_uart_rx'                  , 'B15', 'ALTERNATE' , { 'altfunc' : 'USART1_RX'                                 }),
@@ -739,8 +742,10 @@ TARGETS = ( # @/`Defining Targets`.
         ),
 
         interrupts = (
-            ('USART2', 0),
-            ('USART1', 1),
+            ('USART2' , 0),
+            ('USART1' , 1),
+            ('I2C3_EV', 2),
+            ('I2C3_ER', 2),
         ),
 
         drivers = (
@@ -760,6 +765,12 @@ TARGETS = ( # @/`Defining Targets`.
                 'type'       : 'TIMEKEEPING',
                 'peripheral' : 'TIM2',
             },
+            {
+                'type'       : 'I2C',
+                'peripheral' : 'I2C3',
+                'handle'     : 'debug_board',
+                'mode'       : 'master',
+            },
         ),
 
         use_freertos = True,
@@ -778,6 +789,8 @@ TARGETS = ( # @/`Defining Targets`.
             'TIM1_UPDATE_RATE'             : 1 / 0.001,
             'TIM2_COUNTER_RATE'            : 1_000_000,
             'ANALOG_POSTDIVIDER_KERNEL_CK' : 50_000_000,
+            'I2C3_BAUD'                    : MFC_DEBUG_BOARD_BAUD,
+            'I2C3_TIMEOUT'                 : 2,
         },
 
     ),
@@ -1014,7 +1027,7 @@ TARGETS = ( # @/`Defining Targets`.
                 'peripheral' : 'I2C1',
                 'handle'     : 'communication',
                 'mode'       : 'slave',
-                'address'    : 0b_001_1110,
+                'address'    : MFC_DEBUG_BOARD_SEVEN_BIT_ADDRESS,
             },
             {
                 'type'       : 'I2C',
@@ -1045,7 +1058,7 @@ TARGETS = ( # @/`Defining Targets`.
             'APB2_CK'             : 250_000_000,
             'APB3_CK'             : 250_000_000,
             'USART2_BAUD'         : STLINK_BAUD,
-            'I2C1_BAUD'           : 1_000,
+            'I2C1_BAUD'           : MFC_DEBUG_BOARD_BAUD,
             'I2C1_TIMEOUT'        : 2,
             'I2C2_BAUD'           : 1_000_000,
             'I2C2_TIMEOUT'        : 0.030,
@@ -1427,6 +1440,7 @@ for target in TARGETS:
         ('TV_TOKEN_START'                     , f'STRINGIFY({TV_TOKEN.START.decode('UTF-8')})'),
         ('TV_TOKEN_END'                       , f'STRINGIFY({TV_TOKEN.END  .decode('UTF-8')})'),
         ('TV_WRITE_BYTE'                      , f'0x{TV_WRITE_BYTE :02X}'                     ),
+        ('MFC_DEBUG_BOARD_SEVEN_BIT_ADDRESS'  , f'0x{MFC_DEBUG_BOARD_SEVEN_BIT_ADDRESS :02X}' ),
     ]
 
     for other_target in TARGETS:

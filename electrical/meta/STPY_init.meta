@@ -3566,12 +3566,16 @@
 #if TARGET_NAME_IS_MainFlightComputer
     enum NVICInterrupt : u32
     {
-        NVICInterrupt_USART2 = USART2_IRQn,
-        NVICInterrupt_USART1 = USART1_IRQn,
+        NVICInterrupt_USART2  = USART2_IRQn,
+        NVICInterrupt_USART1  = USART1_IRQn,
+        NVICInterrupt_I2C3_EV = I2C3_EV_IRQn,
+        NVICInterrupt_I2C3_ER = I2C3_ER_IRQn,
     };
-    static constexpr u32 NVICInterrupt_COUNT = 2;
+    static constexpr u32 NVICInterrupt_COUNT = 4;
     extern void INTERRUPT_BusFault(void);
     extern void INTERRUPT_Default(void);
+    extern void INTERRUPT_I2C3_ER(void);
+    extern void INTERRUPT_I2C3_EV(void);
     extern void INTERRUPT_Reset(void);
     extern void INTERRUPT_USART1(void);
     extern void INTERRUPT_USART2(void);
@@ -3677,8 +3681,8 @@
             INTERRUPT_Default            , // [ 77] FMC
             INTERRUPT_Default            , // [ 78] OCTOSPI1
             INTERRUPT_Default            , // [ 79] SDMMC1
-            INTERRUPT_Default            , // [ 80] I2C3_EV
-            INTERRUPT_Default            , // [ 81] I2C3_ER
+            INTERRUPT_I2C3_EV            , // [ 80] I2C3_EV
+            INTERRUPT_I2C3_ER            , // [ 81] I2C3_ER
             INTERRUPT_Default            , // [ 82] SPI4
             INTERRUPT_Default            , // [ 83] Reserved
             INTERRUPT_Default            , // [ 84] Reserved
@@ -3733,6 +3737,8 @@
         };
     #define INTERRUPT_BusFault(...) extern void INTERRUPT_BusFault(__VA_ARGS__)
     #define INTERRUPT_Default(...) extern void INTERRUPT_Default(__VA_ARGS__)
+    #define INTERRUPT_I2C3_ER(...) extern void INTERRUPT_I2C3_ER(__VA_ARGS__)
+    #define INTERRUPT_I2C3_EV(...) extern void INTERRUPT_I2C3_EV(__VA_ARGS__)
     #define INTERRUPT_PendSV(...) extern void INTERRUPT_PendSV(__VA_ARGS__)
     #define INTERRUPT_Reset(...) extern void INTERRUPT_Reset(__VA_ARGS__)
     #define INTERRUPT_SVCall(...) extern void INTERRUPT_SVCall(__VA_ARGS__)
@@ -3870,7 +3876,21 @@
             GPIOEEN, true   ,
             GPIOHEN, true   ,
         );
-        CMSIS_SET(GPIOD, OTYPER, OT10, true);
+        CMSIS_SET
+        (
+            GPIOB, OTYPER,
+            OT6  , true  ,
+            OT7  , true  ,
+            OT10 , true  ,
+            OT12 , true  ,
+        );
+        CMSIS_SET
+        (
+            GPIOD, OTYPER,
+            OT6  , true  ,
+            OT7  , true  ,
+            OT10 , true  ,
+        );
         CMSIS_SET(GPIOD, ODR, OD10, false);
         CMSIS_SET
         (
@@ -3998,6 +4018,10 @@
         NVIC->IPR[NVICInterrupt_USART2] = 0 << __NVIC_PRIO_BITS;
         static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
         NVIC->IPR[NVICInterrupt_USART1] = 1 << __NVIC_PRIO_BITS;
+        static_assert(0 <= 2 && 2 < (1 << __NVIC_PRIO_BITS));
+        NVIC->IPR[NVICInterrupt_I2C3_EV] = 2 << __NVIC_PRIO_BITS;
+        static_assert(0 <= 2 && 2 < (1 << __NVIC_PRIO_BITS));
+        NVIC->IPR[NVICInterrupt_I2C3_ER] = 2 << __NVIC_PRIO_BITS;
         CMSIS_SET
         (
             SCB        , SHCSR,
@@ -4132,6 +4156,18 @@
 
         #define STPY_USART2_KERNEL_SOURCE 0b000
         #define STPY_USART2_BAUD_DIVIDER 250
+
+
+
+        //////////////////////////////////// I2C3 ////////////////////////////////////
+
+
+
+        #define STPY_I2C3_KERNEL_SOURCE 0b11
+        #define STPY_I2C3_PRESC 7
+        #define STPY_I2C3_SCLH 250
+        #define STPY_I2C3_SCLL 250
+        #define STPY_I2C3_TIMEOUTR_TIMEOUTA 3905
 
 
 
