@@ -2297,32 +2297,64 @@ FREERTOS_TASK(watchdog, 2)
 INTERRUPT_I2Cx_vehicle_interface(enum I2CSlaveCallbackEvent event, u8* data)
 {
 
-    static b32 payload_has_valid_data = false;
+    static b32                            payload_has_valid_data = false;
+    static i32                            byte_index             = 0;
+    static struct VehicleInterfacePayload payload                = {0};
 
     switch (event)
     {
+
+
 
         // Send next byte of the vehicle interface payload over.
 
         case I2CSlaveCallbackEvent_ready_to_transmit_data:
         {
 
-            // Prepare the payload.
-
-            static i32                            byte_index = 0;
-            static struct VehicleInterfacePayload payload    = {0};
-
             if (!payload_has_valid_data)
             {
 
                 byte_index = 0;
-
-                payload =
+                payload    =
                     (struct VehicleInterfacePayload)
                     {
                         .timestamp_us = (u16) TIMEKEEPING_microseconds(),
-                        .flags        = 0, // TODO.
                     };
+
+                if (false) // TODO.
+                {
+                    payload.flags |= 1 << VehicleInterfacePayloadFlag_stepper_motor_axis_x_okay;
+                }
+
+                if (false) // TODO.
+                {
+                    payload.flags |= 1 << VehicleInterfacePayloadFlag_stepper_motor_axis_y_okay;
+                }
+
+                if (false) // TODO.
+                {
+                    payload.flags |= 1 << VehicleInterfacePayloadFlag_stepper_motor_axis_z_okay;
+                }
+
+                if (false) // TODO.
+                {
+                    payload.flags |= 1 << VehicleInterfacePayloadFlag_wifi_okay;
+                }
+
+                if (false) // TODO.
+                {
+                    payload.flags |= 1 << VehicleInterfacePayloadFlag_lora_okay;
+                }
+
+                if (false) // TODO.
+                {
+                    payload.flags |= 1 << VehicleInterfacePayloadFlag_openmv_okay;
+                }
+
+                if (false) // TODO.
+                {
+                    payload.flags |= 1 << VehicleInterfacePayloadFlag_vn100_okay;
+                }
 
                 payload.crc =
                     VEHICLE_INTERFACE_calculate_crc
@@ -2334,10 +2366,6 @@ INTERRUPT_I2Cx_vehicle_interface(enum I2CSlaveCallbackEvent event, u8* data)
                 payload_has_valid_data = true;
 
             }
-
-
-
-            // Prepare next byte.
 
             if (byte_index < sizeof(payload))
             {
@@ -2354,7 +2382,7 @@ INTERRUPT_I2Cx_vehicle_interface(enum I2CSlaveCallbackEvent event, u8* data)
 
 
 
-        // TODO.
+        // End/beginning of the transfer.
 
         case I2CSlaveCallbackEvent_master_initiates_read:
         case I2CSlaveCallbackEvent_master_repeats_read:
@@ -2365,11 +2393,11 @@ INTERRUPT_I2Cx_vehicle_interface(enum I2CSlaveCallbackEvent event, u8* data)
 
 
 
-        // TODO
+        // Main is sending us data for some reason...  We'll just ignore it.
 
-        case I2CSlaveCallbackEvent_data_available_to_read:
         case I2CSlaveCallbackEvent_master_initiates_write:
         case I2CSlaveCallbackEvent_master_repeats_write:
+        case I2CSlaveCallbackEvent_data_available_to_read:
         {
             sus;
             payload_has_valid_data = false;
@@ -2377,7 +2405,7 @@ INTERRUPT_I2Cx_vehicle_interface(enum I2CSlaveCallbackEvent event, u8* data)
 
 
 
-        // TODO.
+        // There's a bus or driver issue of some sort.
 
         case I2CSlaveCallbackEvent_bus_misbehaved:
         case I2CSlaveCallbackEvent_watchdog_expired:
@@ -2387,6 +2415,8 @@ INTERRUPT_I2Cx_vehicle_interface(enum I2CSlaveCallbackEvent event, u8* data)
         {
             I2C_partial_reinit(I2CHandle_vehicle_interface);
         } break;
+
+
 
     }
 
