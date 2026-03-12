@@ -140,14 +140,14 @@ FREERTOS_TASK(vehicle_interface, 0)
             case I2CDoResult_success:
             {
 
-                static u16 previous_timestamp_us = 0;
+                static u32 previous_timestamp_us = 0;
                 static u32 elapsed_timestamp_us  = 0;
 
                 u8 digest = VEHICLE_INTERFACE_calculate_crc((u8*) &payload, sizeof(payload));
 
                 if (!digest)
                 {
-                    elapsed_timestamp_us  += (u16) (payload.timestamp_us - previous_timestamp_us);
+                    elapsed_timestamp_us  += payload.timestamp_us - previous_timestamp_us;
                     previous_timestamp_us  = payload.timestamp_us;
                 }
 

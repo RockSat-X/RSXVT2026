@@ -1182,7 +1182,7 @@ VEHICLE_INTERFACE_calculate_crc(u8* data, i32 length)
 pack_push
     struct VehicleInterfacePayload
     {
-        u16 timestamp_us;
+        u32 timestamp_us;
         u8  stepper_issues;
         u8  vn100_issues;
         u8  openmv_issues;

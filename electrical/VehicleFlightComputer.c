@@ -1574,6 +1574,8 @@ FREERTOS_TASK(esp32, 0)
             b32                should_transmit = false;
             struct ESP32Packet packet          =
                 {
+                    // Note that this will create a small error when `TIMEKEEPING_microseconds`
+                    // overflows because `1'000` is not a perfect power of two, but it's pretty negligible.
                     .nonredundant.timestamp_ms = (u16) (TIMEKEEPING_microseconds() / 1'000),
                 };
 
@@ -2347,7 +2349,7 @@ INTERRUPT_I2Cx_vehicle_interface(enum I2CSlaveCallbackEvent event, u8* data)
                 payload    =
                     (struct VehicleInterfacePayload)
                     {
-                        .timestamp_us   = (u16) TIMEKEEPING_microseconds(),
+                        .timestamp_us   = TIMEKEEPING_microseconds(),
                         .stepper_issues = observed_stepper_issues >= 256 ? 255 : (u8) observed_stepper_issues,
                         .vn100_issues   = observed_vn100_issues   >= 256 ? 255 : (u8) observed_vn100_issues,
                         .openmv_issues  = observed_openmv_issues  >= 256 ? 255 : (u8) observed_openmv_issues,
