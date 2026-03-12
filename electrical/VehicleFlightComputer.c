@@ -12,7 +12,7 @@
 #define VN100_ENABLE                     true
 #define OPENMV_ENABLE                    true
 #define ESP32_ENABLE                     true
-#define WATCHDOG_ENABLE                  false
+#define WATCHDOG_ENABLE                  true
 #define TRANSMIT_TV                      false
 
 #include "system.h"
@@ -23,6 +23,7 @@
 #include "filesystem.c"
 #include "stepper.c"
 #include "buzzer.c"
+#include "i2c.c"
 #include "gnc.c"
 
 
@@ -90,6 +91,11 @@ static struct
     struct OpenMVImage            openmv_image;
 } ESP32 = {0};
 
+static struct
+{
+    volatile _Atomic u32 most_recent_transfer_timestamp_us;
+} VEHICLE_INTERFACE = {0};
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -119,22 +125,24 @@ main(void)
 
 
 
-    // More peripheral initializations that depend on the above initializations.
-
-    BUZZER_partial_init();
-
-
-
     // When the vehicle becomes powered on, it's typically because
     // of the external power supply through the vehicle interface.
     // To make sure that the vehicle should stay powered on with
     // the battery supply, we play a tune that'll act as the delay.
+
+    BUZZER_partial_init();
 
     BUZZER_play(BuzzerTune_waking_up);
 
     while (BUZZER_current_tune());
 
     GPIO_ACTIVE(battery_allowed);
+
+
+
+    // Set up direct communication with main.
+
+    I2C_partial_reinit(I2CHandle_vehicle_interface);
 
 
 
@@ -190,7 +198,7 @@ enum DiagnosticLEDBehavior : u32
 
 */
 
-FREERTOS_TASK(diagnostics, 8192, 1)
+FREERTOS_TASK(diagnostics, 1)
 {
 
     u32 current_flags = 0;
@@ -342,7 +350,7 @@ FREERTOS_TASK(diagnostics, 8192, 1)
 
 
 
-FREERTOS_TASK(controller, 8192, 0)
+FREERTOS_TASK(controller, 0)
 {
 
 #if CONTROLLER_ENABLE
@@ -837,7 +845,7 @@ vn100_await_command(enum VN100Command command)
 
 }
 
-FREERTOS_TASK(vn100, 8192, 0)
+FREERTOS_TASK(vn100, 0)
 {
 
 #if VN100_ENABLE
@@ -1383,7 +1391,7 @@ openmv_process_packet_for_image(struct OpenMVImage* image, struct OpenMVPacket* 
 
 }
 
-FREERTOS_TASK(openmv, 8192, 0)
+FREERTOS_TASK(openmv, 0)
 {
 
 #if OPENMV_ENABLE
@@ -1530,7 +1538,7 @@ FREERTOS_TASK(openmv, 8192, 0)
 
 
 
-FREERTOS_TASK(esp32, 8192, 0)
+FREERTOS_TASK(esp32, 0)
 {
 
 #if ESP32_ENABLE
@@ -1571,6 +1579,8 @@ FREERTOS_TASK(esp32, 8192, 0)
             b32                should_transmit = false;
             struct ESP32Packet packet          =
                 {
+                    // Note that this will create a small error when `TIMEKEEPING_microseconds`
+                    // overflows because `1'000` is not a perfect power of two, but it's pretty negligible.
                     .nonredundant.timestamp_ms = (u16) (TIMEKEEPING_microseconds() / 1'000),
                 };
 
@@ -1738,7 +1748,7 @@ FREERTOS_TASK(esp32, 8192, 0)
 
 
 
-FREERTOS_TASK(logger, 8192, 0)
+FREERTOS_TASK(logger, 0)
 {
 
     static struct Sector working_sectors[2]         = {0};
@@ -2073,7 +2083,7 @@ FREERTOS_TASK(logger, 8192, 0)
 
 
 
-FREERTOS_TASK(god, 1024, 2)
+FREERTOS_TASK(god, 2)
 {
 
 #if GOD_MODE
@@ -2235,7 +2245,7 @@ FREERTOS_TASK(god, 1024, 2)
 
 
 
-FREERTOS_TASK(watchdog, 512, 2)
+FREERTOS_TASK(watchdog, 3)
 {
 
 #if WATCHDOG_ENABLE
@@ -2243,15 +2253,59 @@ FREERTOS_TASK(watchdog, 512, 2)
     for (;;)
     {
 
-        // To prevent the vehicle from being perpetually on forever
-        // and drain the batteries empty, we turn ourselves off automatically.
+        u32 current_timestamp_us = TIMEKEEPING_microseconds();
 
-        if (TIMEKEEPING_microseconds() >= WATCHDOG_DURATION_US)
+
+
+        // Ensure the vehicle doesn't stay on for too long and drain the battery;
+        // not completely fool-proof since the stepper motor drivers will draw
+        // some current from the batteries even when there's external power supplied,
+        // but should be good enough.
+
+        b32 live_for_too_long = current_timestamp_us >= WATCHDOG_DURATION_US;
+
+
+
+        // We also need to ensure the vehicle doesn't stay on for long when it's still
+        // docked in the ejection mechanism. This is especially important during sequence
+        // testing when the vehicle might be powered on but no ejection will take place.
+        //
+        // We can tell when we have ejected if we're no longer detecting external
+        // power, haven't received I2C transfers through the vehicle interface in a while,
+        // and that the I2C bus lines are held high by the on-board's pull-up resistors.
+        //
+        // However, if we're still docked, then the I2C bus lines will actually be pulled
+        // low because main is no longer powered, and the on-board's pull-up resistors are
+        // weak enough that the MCU doesn't register this as an active level. In this
+        // scenario, we should do a reset also.
+
+        u32 observed_most_recent_transfer_timestamp_us =
+            atomic_load_explicit
+            (
+                &VEHICLE_INTERFACE.most_recent_transfer_timestamp_us,
+                memory_order_relaxed // No synchronization needed.
+            );
+
+        b32 theres_still_external_power   = GPIO_READ(external_detected);
+        b32 vehicle_interface_pulled_down = !GPIO_READ(vehicle_interface_i2c_clock) && !GPIO_READ(vehicle_interface_i2c_data);
+
+        b32 docked_reset =
+            (
+                current_timestamp_us - observed_most_recent_transfer_timestamp_us >= 10'000'000 &&
+                !theres_still_external_power &&
+                vehicle_interface_pulled_down
+            );
+
+
+
+        // Say farewell.
+
+        if (live_for_too_long || docked_reset)
         {
 
             // Indicate that this is why the vehicle is suddenly shut off.
 
-            BUZZER_play(BuzzerTune_mario);
+            BUZZER_play(live_for_too_long ? BuzzerTune_sleeping : BuzzerTune_starwars);
             while (BUZZER_current_tune());
 
 
@@ -2259,7 +2313,8 @@ FREERTOS_TASK(watchdog, 512, 2)
             // Try cut off battery power.
 
             GPIO_INACTIVE(battery_allowed);
-            FREERTOS_delay_ms(1'000'000);
+            spinlock_us(1'000'000);
+
 
 
             // If we're still alive by this point, then
@@ -2269,8 +2324,10 @@ FREERTOS_TASK(watchdog, 512, 2)
             WARM_RESET();
 
         }
-
-        FREERTOS_delay_ms(1'000);
+        else
+        {
+            FREERTOS_delay_ms(1'000);
+        }
 
     }
 
@@ -2282,5 +2339,151 @@ FREERTOS_TASK(watchdog, 512, 2)
     }
 
 #endif
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+INTERRUPT_I2Cx_vehicle_interface(enum I2CSlaveCallbackEvent event, u8* data)
+{
+
+    static b32                            payload_has_valid_data = false;
+    static i32                            byte_index             = 0;
+    static struct VehicleInterfacePayload payload                = {0};
+
+    switch (event)
+    {
+
+
+
+        // Send next byte of the vehicle interface payload over.
+
+        case I2CSlaveCallbackEvent_ready_to_transmit_data:
+        {
+
+            if (!payload_has_valid_data)
+            {
+
+                u32 current_timestamp_us = TIMEKEEPING_microseconds();
+
+                atomic_store_explicit
+                (
+                    &VEHICLE_INTERFACE.most_recent_transfer_timestamp_us,
+                    current_timestamp_us,
+                    memory_order_relaxed // No synchronization needed.
+                );
+
+                i32 observed_stepper_issues =
+                    atomic_load_explicit
+                    (
+                        &LOGGER.stepper_issues,
+                        memory_order_relaxed // No synchronization needed.
+                    );
+
+                i32 observed_vn100_issues =
+                    atomic_load_explicit
+                    (
+                        &LOGGER.vn100_issues,
+                        memory_order_relaxed // No synchronization needed.
+                    );
+
+                i32 observed_openmv_issues =
+                    atomic_load_explicit
+                    (
+                        &LOGGER.openmv_issues,
+                        memory_order_relaxed // No synchronization needed.
+                    );
+
+                i32 observed_esp32_issues =
+                    atomic_load_explicit
+                    (
+                        &LOGGER.esp32_issues,
+                        memory_order_relaxed // No synchronization needed.
+                    );
+
+                byte_index = 0;
+                payload    =
+                    (struct VehicleInterfacePayload)
+                    {
+                        .timestamp_us   = TIMEKEEPING_microseconds(),
+                        .stepper_issues = observed_stepper_issues >= 256 ? 255 : (u8) observed_stepper_issues,
+                        .vn100_issues   = observed_vn100_issues   >= 256 ? 255 : (u8) observed_vn100_issues,
+                        .openmv_issues  = observed_openmv_issues  >= 256 ? 255 : (u8) observed_openmv_issues,
+                        .esp32_issues   = observed_esp32_issues   >= 256 ? 255 : (u8) observed_esp32_issues,
+                    };
+
+                payload.crc =
+                    VEHICLE_INTERFACE_calculate_crc
+                    (
+                        (u8*) &payload,
+                        sizeof(payload) - sizeof(payload.crc)
+                    );
+
+                payload_has_valid_data = true;
+
+            }
+
+            if (byte_index < sizeof(payload))
+            {
+                *data = ((u8*) &payload)[byte_index];
+            }
+            else
+            {
+                *data = 0xFF; // Garbage.
+            }
+
+            byte_index += 1;
+
+        } break;
+
+
+
+        // End/beginning of the transfer.
+
+        case I2CSlaveCallbackEvent_master_initiates_read:
+        case I2CSlaveCallbackEvent_master_repeats_read:
+        case I2CSlaveCallbackEvent_stop_signaled:
+        {
+            payload_has_valid_data = false;
+        } break;
+
+
+
+        // Main is sending us data for some reason...  We'll just ignore it.
+
+        case I2CSlaveCallbackEvent_master_initiates_write:
+        case I2CSlaveCallbackEvent_master_repeats_write:
+        case I2CSlaveCallbackEvent_data_available_to_read:
+        {
+            sus;
+            payload_has_valid_data = false;
+        } break;
+
+
+
+        // There's a bus or driver issue of some sort.
+
+        case I2CSlaveCallbackEvent_bus_misbehaved:
+        case I2CSlaveCallbackEvent_watchdog_expired:
+        case I2CSlaveCallbackEvent_clock_stretch_timeout:
+        case I2CSlaveCallbackEvent_bug:
+        default:
+        {
+
+            I2C_partial_reinit(I2CHandle_vehicle_interface);
+
+            memzero(&payload_has_valid_data);
+            memzero(&byte_index);
+            memzero(&payload);
+
+        } break;
+
+
+
+    }
 
 }

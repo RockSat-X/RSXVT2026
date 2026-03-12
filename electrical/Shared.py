@@ -1,6 +1,6 @@
 #meta global STLINK_BAUD, TARGETS, PER_MCU, PER_TARGET
 #meta global OVCAM_DEFAULT_RESOLUTION
-#meta global TV_WRITE_BYTE, TV_TOKEN, OVCAM_JPEG_CTRL3_FIELDS
+#meta global STACK_SIZE, TV_WRITE_BYTE, TV_TOKEN, OVCAM_JPEG_CTRL3_FIELDS
 
 import types, collections
 import deps.stpy.pxd.pxd as pxd
@@ -11,6 +11,8 @@ from deps.stpy.mcus import MCUS
 ################################################################################
 
 
+
+STACK_SIZE = 8192
 
 OVCAM_DEFAULT_RESOLUTION = (800, 480)
 
@@ -126,9 +128,8 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = True,
-        main_stack_size = 8192,
-        schema          = {
+        use_freertos = True,
+        schema       = {
             'HSI_ENABLE'   : True,
             'HSI48_ENABLE' : True,
             'CSI_ENABLE'   : True,
@@ -205,9 +206,8 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = False,
-        main_stack_size = 8192,
-        schema          = {
+        use_freertos = False,
+        schema       = {
             'HSI_ENABLE'        : True,
             'HSI48_ENABLE'      : True,
             'CSI_ENABLE'        : True,
@@ -274,9 +274,8 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = False,
-        main_stack_size = 8192,
-        schema          = {
+        use_freertos = False,
+        schema       = {
             'HSI_ENABLE'        : True,
             'HSI48_ENABLE'      : True,
             'CSI_ENABLE'        : True,
@@ -345,9 +344,8 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = False,
-        main_stack_size = 8192,
-        schema          = {
+        use_freertos = False,
+        schema       = {
             'HSI_ENABLE'        : True,
             'HSI48_ENABLE'      : True,
             'CSI_ENABLE'        : True,
@@ -405,9 +403,8 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = False,
-        main_stack_size = 8192,
-        schema          = {
+        use_freertos = False,
+        schema       = {
             'HSI_ENABLE'        : True,
             'HSI48_ENABLE'      : True,
             'CSI_ENABLE'        : True,
@@ -460,9 +457,8 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = False,
-        main_stack_size = 8192,
-        schema          = {
+        use_freertos = False,
+        schema       = {
             'HSI_ENABLE'   : True,
             'HSI48_ENABLE' : True,
             'CSI_ENABLE'   : True,
@@ -517,9 +513,8 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = False,
-        main_stack_size = 8192,
-        schema          = {
+        use_freertos = False,
+        schema       = {
             'HSI_ENABLE'       : True,
             'HSI48_ENABLE'     : True,
             'CSI_ENABLE'       : True,
@@ -576,9 +571,8 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = False,
-        main_stack_size = 8192,
-        schema          = {
+        use_freertos = False,
+        schema       = {
             'HSI_ENABLE'        : True,
             'HSI48_ENABLE'      : True,
             'CSI_ENABLE'        : True,
@@ -647,9 +641,8 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = True,
-        main_stack_size = 8192,
-        schema          = {
+        use_freertos = True,
+        schema       = {
             'HSI_ENABLE'          : True,
             'HSI48_ENABLE'        : True,
             'CSI_ENABLE'          : True,
@@ -747,9 +740,8 @@ TARGETS = ( # @/`Defining Targets`.
 
         drivers = (),
 
-        use_freertos    = False,
-        main_stack_size = 8192,
-        schema          = None,
+        use_freertos = False,
+        schema       = None,
 
     ),
 
@@ -770,18 +762,18 @@ TARGETS = ( # @/`Defining Targets`.
         kicad_project = None,
 
         gpios = (
-            ('led_green'                 , 'A5' , 'OUTPUT'   , { 'initlvl' : False                                           }),
-            ('stlink_tx'                 , 'A2' , 'ALTERNATE', { 'altfunc' : 'USART2_TX'                                     }),
-            ('stlink_rx'                 , 'A3' , 'ALTERNATE', { 'altfunc' : 'USART2_RX'                                     }),
-            ('swdio'                     , 'A13', None       , {                                                             }),
-            ('swclk'                     , 'A14', None       , {                                                             }),
-            ('button'                    , 'C13', 'INPUT'    , { 'pull' : None, 'active' : True                              }),
-            ('vehicle_inteface_i2c_clock', 'B6' , 'ALTERNATE', { 'altfunc' : 'I2C1_SCL' , 'open_drain' : True, 'pull' : 'UP' }),
-            ('vehicle_inteface_i2c_data' , 'B7' , 'ALTERNATE', { 'altfunc' : 'I2C1_SDA' , 'open_drain' : True, 'pull' : 'UP' }),
-            ('vn100_uart_rx'             , 'B10', 'ALTERNATE', { 'altfunc' : 'USART3_TX'                                     }), # TODO Just to test VN-100 reception for VehicleFlightComputer.
-            ('vn100_uart_tx'             , 'B1' , 'ALTERNATE', { 'altfunc' : 'USART3_RX', 'pull' : 'UP'                      }), # TODO Just to test VN-100 reception for VehicleFlightComputer.
-            ('esp32_uart_tx'             , 'B14', 'ALTERNATE', { 'altfunc' : 'USART1_TX'                                     }),
-            ('esp32_uart_rx'             , 'B15', 'ALTERNATE', { 'altfunc' : 'USART1_RX', 'pull' : 'UP'                      }),
+            ('led_green'                  , 'A5' , 'OUTPUT'   , { 'initlvl' : False                                           }),
+            ('stlink_tx'                  , 'A2' , 'ALTERNATE', { 'altfunc' : 'USART2_TX'                                     }),
+            ('stlink_rx'                  , 'A3' , 'ALTERNATE', { 'altfunc' : 'USART2_RX'                                     }),
+            ('swdio'                      , 'A13', None       , {                                                             }),
+            ('swclk'                      , 'A14', None       , {                                                             }),
+            ('button'                     , 'C13', 'INPUT'    , { 'pull' : None, 'active' : True                              }),
+            ('vehicle_interface_i2c_clock', 'B6' , 'ALTERNATE', { 'altfunc' : 'I2C1_SCL' , 'open_drain' : True                }),
+            ('vehicle_interface_i2c_data' , 'B7' , 'ALTERNATE', { 'altfunc' : 'I2C1_SDA' , 'open_drain' : True                }),
+            ('vn100_uart_rx'              , 'B10', 'ALTERNATE', { 'altfunc' : 'USART3_TX'                                     }), # TODO Just to test VN-100 reception for VehicleFlightComputer.
+            ('vn100_uart_tx'              , 'B1' , 'ALTERNATE', { 'altfunc' : 'USART3_RX', 'pull' : 'UP'                      }), # TODO Just to test VN-100 reception for VehicleFlightComputer.
+            ('esp32_uart_tx'              , 'B14', 'ALTERNATE', { 'altfunc' : 'USART1_TX'                                     }),
+            ('esp32_uart_rx'              , 'B15', 'ALTERNATE', { 'altfunc' : 'USART1_RX', 'pull' : 'UP'                      }),
         ),
 
         interrupts = (
@@ -823,9 +815,8 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = True,
-        main_stack_size = 8192,
-        schema          = {
+        use_freertos = True,
+        schema       = {
             'HSI_ENABLE'        : True,
             'HSI48_ENABLE'      : True,
             'CSI_ENABLE'        : True,
@@ -907,8 +898,8 @@ TARGETS = ( # @/`Defining Targets`.
             ('TIM1_UP'        , 2),
             ('TIM8_UP'        , 3),
             ('SDMMC1'         , 4),
-            # TODO: ('I2C3_EV', 1),
-            # TODO: ('I2C3_ER', 1),
+            ('I2C3_EV'        , 5),
+            ('I2C3_ER'        , 5),
         ),
 
         drivers = (
@@ -941,14 +932,13 @@ TARGETS = ( # @/`Defining Targets`.
                 'handle'     : 'esp32',
                 'mode'       : 'full_duplex',
             },
-            # TODO.
-            # {
-            #     'type'       : 'I2C',
-            #     'peripheral' : 'I2C3',
-            #     'handle'     : 'vehicle_interface',
-            #     'mode'       : 'slave',
-            #     'address'    : VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS,
-            # },
+            {
+                'type'       : 'I2C',
+                'peripheral' : 'I2C3',
+                'handle'     : 'vehicle_interface',
+                'mode'       : 'slave',
+                'address'    : VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS,
+            },
             {
                 'type'                         : 'Stepper',
                 'uxart_handle'                 : 'stepper_uart',
@@ -972,9 +962,8 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = True,
-        main_stack_size = 8192,
-        schema          = {
+        use_freertos = True,
+        schema       = {
             'HSI_ENABLE'          : True,
             'HSI48_ENABLE'        : True,
             'CSI_ENABLE'          : True,
@@ -993,8 +982,8 @@ TARGETS = ( # @/`Defining Targets`.
             'USART1_BAUD'         :    200_000,
             'USART3_BAUD'         : VN100_BAUD,
             'UART4_BAUD'          : ESP32_BAUD,
-            # TODO: 'I2C3_BAUD'           : VEHICLE_INTERFACE_BAUD,
-            # TODO: 'I2C3_TIMEOUT'        : 2,
+            'I2C3_BAUD'           : VEHICLE_INTERFACE_BAUD,
+            'I2C3_TIMEOUT'        : 2,
             'SPI2_BAUD'           : 600_000, # @/`OpenMV SPI Baud`.
             'TIM1_UPDATE_RATE'    : 1 / 0.001,
             'TIM2_COUNTER_RATE'   : 1_000_000,
@@ -1097,9 +1086,8 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = True,
-        main_stack_size = 8192,
-        schema          = {
+        use_freertos = True,
+        schema       = {
             'HSI_ENABLE'          : True,
             'HSI48_ENABLE'        : True,
             'CSI_ENABLE'          : True,
@@ -1207,9 +1195,8 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = False,
-        main_stack_size = 8192,
-        schema          = {
+        use_freertos = False,
+        schema       = {
             'HSI_ENABLE'          : True,
             'HSI48_ENABLE'        : True,
             'CSI_ENABLE'          : True,
@@ -1298,9 +1285,8 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = False,
-        main_stack_size = 8192,
-        schema          = {
+        use_freertos = False,
+        schema       = {
             'HSI_ENABLE'        : True,
             'HSI48_ENABLE'      : True,
             'CSI_ENABLE'        : True,
@@ -1357,9 +1343,8 @@ TARGETS = ( # @/`Defining Targets`.
             },
         ),
 
-        use_freertos    = False,
-        main_stack_size = 8192,
-        schema          = {
+        use_freertos = False,
+        schema       = {
             'HSI_ENABLE'                   : True,
             'HSI48_ENABLE'                 : True,
             'CSI_ENABLE'                   : True,
@@ -1488,7 +1473,7 @@ for target in TARGETS:
         ('TARGET_NAME'                        , target.name                                   ),
         ('TARGET_MCU'                         , target.mcu                                    ),
         ('TARGET_USES_FREERTOS'               , target.use_freertos                           ),
-        ('MAIN_STACK_SIZE'                    , target.main_stack_size                        ),
+        ('STACK_SIZE'                         , STACK_SIZE                                    ),
         ('COMPILING_ESP32'                    , False                                         ),
         ('VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS', VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS           ),
         ('ESP32_BAUD'                         , ESP32_BAUD                                    ),
@@ -1716,12 +1701,6 @@ def PER_MCU():
 #       Whether or not the FreeRTOS task scheduler is compiled as a part
 #       of the firmware binary and is enabled.
 #       Example usage on FreeRTOS can be found elsewhere.
-#
-#   - `main_stack_size`
-#       Amount of bytes reserved for the stack for the `main` function.
-#       Without FreeRTOS, this stack size is all there is for the entire program.
-#       With FreeRTOS, each task will have their own stack size defined,
-#       so this configuration matters slightly less.
 #
 #   - `schema`
 #       Essentially a set of configurations for defining the clock-tree of the MCU.

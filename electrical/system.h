@@ -266,7 +266,7 @@ static_assert(configMAX_SYSCALL_INTERRUPT_PRIORITY <= 255);
 
 // @/`FREERTOS_TASK Macro`.
 
-#define FREERTOS_TASK(NAME, STACK_SIZE, PRIORITY)                                                             \
+#define FREERTOS_TASK(NAME, PRIORITY)                                                                         \
     static_assert                                                                                             \
     (                                                                                                         \
         FreeRTOSTask_##NAME >= 0 || "The `FREERTOS_TASK` macro is being invoked with an unrecognized syntax!" \
@@ -295,7 +295,7 @@ static_assert(configMAX_SYSCALL_INTERRUPT_PRIORITY <= 255);
         for source_file_path in target.source_file_paths:
 
             for match in re.findall(
-                r'FREERTOS_TASK\s*\((\s*[a-zA-Z0-9_]+\s*,\s*[0-9\']+\s*,\s*[a-zA-Z0-9_]+\s*)\)',
+                r'FREERTOS_TASK\s*\((\s*[a-zA-Z0-9_]+\s*,\s*[a-zA-Z0-9_]+\s*)\)',
                 '\n'.join(
                     line
                     for line in source_file_path.read_text().splitlines()
@@ -303,12 +303,11 @@ static_assert(configMAX_SYSCALL_INTERRUPT_PRIORITY <= 255);
                 )
             ):
 
-                task_name, stack_size, priority = (field.strip() for field in match.split(','))
+                task_name, priority = (field.strip() for field in match.split(','))
 
                 tasks += [types.SimpleNamespace(
-                    name       = task_name,
-                    stack_size = int(stack_size),
-                    priority   = priority
+                    name     = task_name,
+                    priority = priority
                 )]
 
 
@@ -333,7 +332,7 @@ static_assert(configMAX_SYSCALL_INTERRUPT_PRIORITY <= 255);
         for task in tasks:
             Meta.line(f'''
                 static noret void   {task.name}(void*);
-                static StackType_t  {task.name}_stack[{task.stack_size} / sizeof(StackType_t)] = {{0}};
+                static StackType_t  {task.name}_stack[{STACK_SIZE} / sizeof(StackType_t)] = {{0}};
                 static StaticTask_t {task.name}_buffer = {{0}};
                 static TaskHandle_t {task.name}_handle = {{0}};
             ''')
@@ -1181,25 +1180,15 @@ VEHICLE_INTERFACE_calculate_crc(u8* data, i32 length)
 
 
 pack_push
-
-    enum VehicleInterfacePayloadFlag : u16
-    {
-        VehicleInterfacePayloadFlag_stepper_motor_axis_x_okay,
-        VehicleInterfacePayloadFlag_stepper_motor_axis_y_okay,
-        VehicleInterfacePayloadFlag_stepper_motor_axis_z_okay,
-        VehicleInterfacePayloadFlag_wifi_okay,
-        VehicleInterfacePayloadFlag_lora_okay,
-        VehicleInterfacePayloadFlag_openmv_okay,
-        VehicleInterfacePayloadFlag_vn100_okay,
-    };
-
     struct VehicleInterfacePayload
     {
-        u16                              timestamp_us;
-        enum VehicleInterfacePayloadFlag flags;
-        u8                               crc;
+        u32 timestamp_us;
+        u8  stepper_issues;
+        u8  vn100_issues;
+        u8  openmv_issues;
+        u8  esp32_issues;
+        u8  crc;
     };
-
 pack_pop
 
 

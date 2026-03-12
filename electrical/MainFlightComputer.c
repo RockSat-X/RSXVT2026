@@ -111,12 +111,12 @@ main(void)
 
 
 
-FREERTOS_TASK(vehicle_interface, 1024, 0)
+FREERTOS_TASK(vehicle_interface, 0)
 {
     for (;;)
     {
 
-#if 0
+#if 1
 
         struct VehicleInterfacePayload payload = {0};
 
@@ -140,23 +140,31 @@ FREERTOS_TASK(vehicle_interface, 1024, 0)
             case I2CDoResult_success:
             {
 
-                static u16 previous_timestamp_us = 0;
+                static u32 previous_timestamp_us = 0;
                 static u32 elapsed_timestamp_us  = 0;
 
                 u8 digest = VEHICLE_INTERFACE_calculate_crc((u8*) &payload, sizeof(payload));
 
                 if (!digest)
                 {
-                    elapsed_timestamp_us  += (u16) (payload.timestamp_us - previous_timestamp_us);
+                    elapsed_timestamp_us  += payload.timestamp_us - previous_timestamp_us;
                     previous_timestamp_us  = payload.timestamp_us;
                 }
 
                 stlink_tx
                 (
-                    "%6u ms : 0x%02X : (0x%02X)\n",
+                    "[%u ms] (0x%02X)"    "\n"
+                    "stepper_issues : %d" "\n"
+                    "vn100_issues   : %d" "\n"
+                    "openmv_issues  : %d" "\n"
+                    "esp32_issues   : %d" "\n"
+                    "\n",
                     elapsed_timestamp_us / 1000,
-                    payload.flags,
-                    digest
+                    digest,
+                    payload.stepper_issues,
+                    payload.vn100_issues,
+                    payload.openmv_issues,
+                    payload.esp32_issues
                 );
 
             } break;
@@ -191,7 +199,7 @@ FREERTOS_TASK(vehicle_interface, 1024, 0)
 
 
 
-FREERTOS_TASK(vn100_uart, 1024, 0)
+FREERTOS_TASK(vn100_uart, 0)
 {
     for (;;)
     {
@@ -244,7 +252,7 @@ FREERTOS_TASK(vn100_uart, 1024, 0)
 
 
 
-FREERTOS_TASK(heartbeat, 1024, 0)
+FREERTOS_TASK(heartbeat, 0)
 {
     for (;;)
     {
@@ -259,7 +267,7 @@ FREERTOS_TASK(heartbeat, 1024, 0)
 
 
 
-FREERTOS_TASK(esp32, 8192, 0)
+FREERTOS_TASK(esp32, 0)
 {
     for (;;)
     {
@@ -293,7 +301,7 @@ FREERTOS_TASK(esp32, 8192, 0)
                 else
                 {
 
-                    #if 1
+                    #if 0
                     {
                         stlink_tx
                         (
@@ -334,7 +342,7 @@ FREERTOS_TASK(esp32, 8192, 0)
                             packet.image_sequence_number
                         );
                     }
-                    #else
+                    #elif 0
                     {
 
                         if (packet.image_sequence_number == 1) // @/`ESP32 Sequence Numbers`.

@@ -528,7 +528,7 @@ main(void)
 
 
 
-FREERTOS_TASK(heartbeat, 256, 0)
+FREERTOS_TASK(heartbeat, 0)
 {
     for (;;)
     {
@@ -539,14 +539,14 @@ FREERTOS_TASK(heartbeat, 256, 0)
 
 
 
-FREERTOS_TASK(using_filesystem, 8192, 0)
+FREERTOS_TASK(using_filesystem, 0)
 {
     test_filesystem();
 }
 
 
 
-FREERTOS_TASK(reporting, 1024, 0)
+FREERTOS_TASK(reporting, 0)
 {
     for (;;)
     {
