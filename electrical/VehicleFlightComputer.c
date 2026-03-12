@@ -25,8 +25,6 @@
 #include "buzzer.c"
 #include "gnc.c"
 
-// TODO Check if ESP32 still working.
-
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1560,7 +1558,7 @@ FREERTOS_TASK(esp32, 8192, 0)
 
 
 
-        // TODO.
+        // Begin putting together data packets for the ESP32 to transmit.
 
         b32 image_available                   = false;
         u16 image_sequence_number             = {0};
@@ -1693,7 +1691,7 @@ FREERTOS_TASK(esp32, 8192, 0)
                     break; // It's been too long since we last heard from the ESP32...
                 }
 
-                FREERTOS_delay_ms(2); // TODO.
+                FREERTOS_delay_ms(2); // TODO Determine how to not overwhelm the ESP32?
 
             }
             else // Nothing new yet...
