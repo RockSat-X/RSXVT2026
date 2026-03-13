@@ -219,44 +219,48 @@ FREERTOS_TASK(esp32, 0)
 
                 case ESP32GetPacketResult_esp32:
                 {
-                    stlink_tx
-                    (
-                        "QuatX                      : %f"    "\n"
-                        "QuatY                      : %f"    "\n"
-                        "QuatZ                      : %f"    "\n"
-                        "QuatS                      : %f"    "\n"
-                        "MagX                       : %f"    "\n"
-                        "MagY                       : %f"    "\n"
-                        "MagZ                       : %f"    "\n"
-                        "AccelX                     : %f"    "\n"
-                        "AccelY                     : %f"    "\n"
-                        "AccelZ                     : %f"    "\n"
-                        "GyroX                      : %f"    "\n"
-                        "GyroY                      : %f"    "\n"
-                        "GyroZ                      : %f"    "\n"
-                        "timestamp_ms               : %u ms" "\n"
-                        "rolling_sequence_number    : %u"    "\n"
-                        "computer_vision_confidence : %u"    "\n"
-                        "image_sequence_number      : %u"    "\n"
-                        "\n",
-                        packet.nonredundant.QuatX,
-                        packet.nonredundant.QuatY,
-                        packet.nonredundant.QuatZ,
-                        packet.nonredundant.QuatS,
-                        packet.MagX,
-                        packet.MagY,
-                        packet.MagZ,
-                        packet.nonredundant.AccelX,
-                        packet.nonredundant.AccelY,
-                        packet.nonredundant.AccelZ,
-                        packet.nonredundant.GyroX,
-                        packet.nonredundant.GyroY,
-                        packet.nonredundant.GyroZ,
-                        packet.nonredundant.timestamp_ms,
-                        packet.nonredundant.rolling_sequence_number,
-                        packet.nonredundant.computer_vision_confidence,
-                        packet.image_sequence_number
-                    );
+                    #if 0
+                    {
+                        stlink_tx
+                        (
+                            "QuatX                      : %f"    "\n"
+                            "QuatY                      : %f"    "\n"
+                            "QuatZ                      : %f"    "\n"
+                            "QuatS                      : %f"    "\n"
+                            "MagX                       : %f"    "\n"
+                            "MagY                       : %f"    "\n"
+                            "MagZ                       : %f"    "\n"
+                            "AccelX                     : %f"    "\n"
+                            "AccelY                     : %f"    "\n"
+                            "AccelZ                     : %f"    "\n"
+                            "GyroX                      : %f"    "\n"
+                            "GyroY                      : %f"    "\n"
+                            "GyroZ                      : %f"    "\n"
+                            "timestamp_ms               : %u ms" "\n"
+                            "rolling_sequence_number    : %u"    "\n"
+                            "computer_vision_confidence : %u"    "\n"
+                            "image_sequence_number      : %u"    "\n"
+                            "\n",
+                            packet.nonredundant.QuatX,
+                            packet.nonredundant.QuatY,
+                            packet.nonredundant.QuatZ,
+                            packet.nonredundant.QuatS,
+                            packet.MagX,
+                            packet.MagY,
+                            packet.MagZ,
+                            packet.nonredundant.AccelX,
+                            packet.nonredundant.AccelY,
+                            packet.nonredundant.AccelZ,
+                            packet.nonredundant.GyroX,
+                            packet.nonredundant.GyroY,
+                            packet.nonredundant.GyroZ,
+                            packet.nonredundant.timestamp_ms,
+                            packet.nonredundant.rolling_sequence_number,
+                            packet.nonredundant.computer_vision_confidence,
+                            packet.image_sequence_number
+                        );
+                    }
+                    #endif
                 } break;
 
 
@@ -297,6 +301,100 @@ FREERTOS_TASK(esp32, 0)
 
 
         // TODO Indicate there was an ESP32 error.
+
+    }
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+FREERTOS_TASK(vehicle_interface, 0)
+{
+    for (;;)
+    {
+
+        I2C_partial_reinit(I2CHandle_vehicle_interface);
+
+        b32 need_to_reinitialize = false;
+
+        while (!need_to_reinitialize)
+        {
+
+            struct VehicleInterfacePayload payload = {0};
+
+            struct I2CDoJob job =
+                {
+                    .handle       = I2CHandle_vehicle_interface,
+                    .address_type = I2CAddressType_seven,
+                    .address      = VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS,
+                    .writing      = false,
+                    .repeating    = false,
+                    .pointer      = (u8*) &payload,
+                    .amount       = sizeof(payload)
+                };
+
+            for (b32 yield = false; !yield;)
+            {
+
+                enum I2CDoResult result = I2C_do(&job);
+
+                switch (result)
+                {
+
+                    case I2CDoResult_working:
+                    {
+                        FREERTOS_delay_ms(1); // We'll keep on spin-locking until the transfer is done...
+                    } break;
+
+                    case I2CDoResult_success:
+                    {
+
+                        // TODO CRC.
+
+                        #if 1
+                        {
+                            stlink_tx
+                            (
+                                "timestamp_us   : %u"   "\n"
+                                "stepper_issues : %d"   "\n"
+                                "vn100_issues   : %d"   "\n"
+                                "openmv_issues  : %d"   "\n"
+                                "esp32_issues   : %d"   "\n"
+                                "\n",
+                                payload.timestamp_us,
+                                payload.stepper_issues,
+                                payload.vn100_issues,
+                                payload.openmv_issues,
+                                payload.esp32_issues
+                            );
+                        }
+                        #endif
+
+                        yield = true;
+
+                    } break;
+
+                    case I2CDoResult_no_acknowledge:
+                    case I2CDoResult_clock_stretch_timeout:
+                    case I2CDoResult_bus_misbehaved:
+                    case I2CDoResult_watchdog_expired:
+                    case I2CDoResult_bug:
+                    default:
+                    {
+                        need_to_reinitialize = true;
+                        yield                = true;
+                    } break;
+
+                }
+
+            }
+
+            FREERTOS_delay_ms(100);
+
+        }
 
     }
 }

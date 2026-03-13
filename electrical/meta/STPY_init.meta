@@ -3568,12 +3568,16 @@
     {
         NVICInterrupt_USART2  = USART2_IRQn,
         NVICInterrupt_USART1  = USART1_IRQn,
+        NVICInterrupt_I2C1_EV = I2C1_EV_IRQn,
+        NVICInterrupt_I2C1_ER = I2C1_ER_IRQn,
         NVICInterrupt_I2C3_EV = I2C3_EV_IRQn,
         NVICInterrupt_I2C3_ER = I2C3_ER_IRQn,
     };
-    static constexpr u32 NVICInterrupt_COUNT = 4;
+    static constexpr u32 NVICInterrupt_COUNT = 6;
     extern void INTERRUPT_BusFault(void);
     extern void INTERRUPT_Default(void);
+    extern void INTERRUPT_I2C1_ER(void);
+    extern void INTERRUPT_I2C1_EV(void);
     extern void INTERRUPT_I2C3_ER(void);
     extern void INTERRUPT_I2C3_EV(void);
     extern void INTERRUPT_Reset(void);
@@ -3652,8 +3656,8 @@
             INTERRUPT_Default            , // [ 48] TIM5
             INTERRUPT_Default            , // [ 49] TIM6
             INTERRUPT_Default            , // [ 50] TIM7
-            INTERRUPT_Default            , // [ 51] I2C1_EV
-            INTERRUPT_Default            , // [ 52] I2C1_ER
+            INTERRUPT_I2C1_EV            , // [ 51] I2C1_EV
+            INTERRUPT_I2C1_ER            , // [ 52] I2C1_ER
             INTERRUPT_Default            , // [ 53] I2C2_EV
             INTERRUPT_Default            , // [ 54] I2C2_ER
             INTERRUPT_Default            , // [ 55] SPI1
@@ -3737,6 +3741,8 @@
         };
     #define INTERRUPT_BusFault(...) extern void INTERRUPT_BusFault(__VA_ARGS__)
     #define INTERRUPT_Default(...) extern void INTERRUPT_Default(__VA_ARGS__)
+    #define INTERRUPT_I2C1_ER(...) extern void INTERRUPT_I2C1_ER(__VA_ARGS__)
+    #define INTERRUPT_I2C1_EV(...) extern void INTERRUPT_I2C1_EV(__VA_ARGS__)
     #define INTERRUPT_I2C3_ER(...) extern void INTERRUPT_I2C3_ER(__VA_ARGS__)
     #define INTERRUPT_I2C3_EV(...) extern void INTERRUPT_I2C3_EV(__VA_ARGS__)
     #define INTERRUPT_PendSV(...) extern void INTERRUPT_PendSV(__VA_ARGS__)
@@ -4018,6 +4024,10 @@
         NVIC->IPR[NVICInterrupt_USART2] = 0 << __NVIC_PRIO_BITS;
         static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
         NVIC->IPR[NVICInterrupt_USART1] = 1 << __NVIC_PRIO_BITS;
+        static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
+        NVIC->IPR[NVICInterrupt_I2C1_EV] = 1 << __NVIC_PRIO_BITS;
+        static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
+        NVIC->IPR[NVICInterrupt_I2C1_ER] = 1 << __NVIC_PRIO_BITS;
         static_assert(0 <= 2 && 2 < (1 << __NVIC_PRIO_BITS));
         NVIC->IPR[NVICInterrupt_I2C3_EV] = 2 << __NVIC_PRIO_BITS;
         static_assert(0 <= 2 && 2 < (1 << __NVIC_PRIO_BITS));
@@ -4156,6 +4166,18 @@
 
         #define STPY_USART2_KERNEL_SOURCE 0b000
         #define STPY_USART2_BAUD_DIVIDER 250
+
+
+
+        //////////////////////////////////// I2C1 ////////////////////////////////////
+
+
+
+        #define STPY_I2C1_KERNEL_SOURCE 0b11
+        #define STPY_I2C1_PRESC 0
+        #define STPY_I2C1_SCLH 200
+        #define STPY_I2C1_SCLL 200
+        #define STPY_I2C1_TIMEOUTR_TIMEOUTA 3905
 
 
 

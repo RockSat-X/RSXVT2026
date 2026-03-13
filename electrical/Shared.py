@@ -744,6 +744,8 @@ TARGETS = ( # @/`Defining Targets`.
         interrupts = (
             ('USART2' , 0),
             ('USART1' , 1),
+            ('I2C1_EV', 1),
+            ('I2C1_ER', 1),
             ('I2C3_EV', 2),
             ('I2C3_ER', 2),
         ),
@@ -764,6 +766,12 @@ TARGETS = ( # @/`Defining Targets`.
             {
                 'type'       : 'TIMEKEEPING',
                 'peripheral' : 'TIM2',
+            },
+            {
+                'type'       : 'I2C',
+                'peripheral' : 'I2C1',
+                'handle'     : 'vehicle_interface',
+                'mode'       : 'master',
             },
             {
                 'type'       : 'I2C',
@@ -789,6 +797,8 @@ TARGETS = ( # @/`Defining Targets`.
             'TIM1_UPDATE_RATE'             : 1 / 0.001,
             'TIM2_COUNTER_RATE'            : 1_000_000,
             'ANALOG_POSTDIVIDER_KERNEL_CK' : 50_000_000,
+            'I2C1_BAUD'                    : VEHICLE_INTERFACE_BAUD,
+            'I2C1_TIMEOUT'                 : 2,
             'I2C3_BAUD'                    : MFC_DEBUG_BOARD_BAUD,
             'I2C3_TIMEOUT'                 : 2,
         },
