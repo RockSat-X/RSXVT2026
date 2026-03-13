@@ -856,7 +856,7 @@ sorry_(void) // @/`Halting`.
 #pragma GCC diagnostic ignored "-Wconversion"
 #define ARM_MATH_CM33
 
-#include "CMSIS-DSP/include/arm_math.h"
+#include "CMSIS-DSP/Include/arm_math.h"
 #include "CMSIS-DSP/Source/FastMathFunctions/FastMathFunctions.c"
 
 // TODO `CommonTables.c` can't be included because it blows up the flash code size usage for some reason,
