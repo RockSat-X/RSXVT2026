@@ -200,8 +200,8 @@
         FreeRTOSTask_diagnostics,
         FreeRTOSTask_esp32,
         FreeRTOSTask_vehicle_interface,
+        FreeRTOSTask_logger,
         FreeRTOSTask_debug_board,
-        FreeRTOSTask_logging,
         FreeRTOSTask_vn100,
     };
     static constexpr u32 FreeRTOSTask_COUNT = 6;
@@ -217,14 +217,14 @@
     static StackType_t  vehicle_interface_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t vehicle_interface_buffer = {0};
     static TaskHandle_t vehicle_interface_handle = {0};
+    static noret void   logger(void*);
+    static StackType_t  logger_stack[8192 / sizeof(StackType_t)] = {0};
+    static StaticTask_t logger_buffer = {0};
+    static TaskHandle_t logger_handle = {0};
     static noret void   debug_board(void*);
     static StackType_t  debug_board_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t debug_board_buffer = {0};
     static TaskHandle_t debug_board_handle = {0};
-    static noret void   logging(void*);
-    static StackType_t  logging_stack[8192 / sizeof(StackType_t)] = {0};
-    static StaticTask_t logging_buffer = {0};
-    static TaskHandle_t logging_handle = {0};
     static noret void   vn100(void*);
     static StackType_t  vn100_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t vn100_buffer = {0};
@@ -265,6 +265,17 @@
                 vehicle_interface_stack,
                 &vehicle_interface_buffer
             );
+        logger_handle =
+            xTaskCreateStatic
+            (
+                logger,
+                "logger",
+                countof(logger_stack),
+                nullptr,
+                0,
+                logger_stack,
+                &logger_buffer
+            );
         debug_board_handle =
             xTaskCreateStatic
             (
@@ -275,17 +286,6 @@
                 0,
                 debug_board_stack,
                 &debug_board_buffer
-            );
-        logging_handle =
-            xTaskCreateStatic
-            (
-                logging,
-                "logging",
-                countof(logging_stack),
-                nullptr,
-                1,
-                logging_stack,
-                &logging_buffer
             );
         vn100_handle =
             xTaskCreateStatic

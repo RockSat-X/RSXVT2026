@@ -744,11 +744,12 @@ TARGETS = ( # @/`Defining Targets`.
         interrupts = (
             ('USART2' , 0),
             ('USART1' , 1),
-            ('I2C1_EV', 1),
-            ('I2C1_ER', 1),
-            ('I2C3_EV', 2),
-            ('I2C3_ER', 2),
-            ('USART3' , 3), # TODO Here just to mock a VN-100.
+            ('SDMMC1' , 2),
+            ('I2C1_EV', 3),
+            ('I2C1_ER', 3),
+            ('I2C3_EV', 4),
+            ('I2C3_ER', 4),
+            ('USART3' , 5), # TODO Here just to mock a VN-100.
         ),
 
         drivers = (
@@ -786,6 +787,11 @@ TARGETS = ( # @/`Defining Targets`.
                 'handle'     : 'vn100',
                 'mode'       : 'full_duplex',
             },
+            {
+                'type'       : 'SD',
+                'peripheral' : 'SDMMC1',
+                'handle'     : 'primary',
+            },
         ),
 
         use_freertos = True,
@@ -794,7 +800,7 @@ TARGETS = ( # @/`Defining Targets`.
             'HSI48_ENABLE'                 : True,
             'CSI_ENABLE'                   : True,
             'PLL1P_CK'                     : 250_000_000,
-            'PLL2R_CK'                     : 50_000_000,
+            'PLL2R_CK'                     : 240_000_000,
             'CPU_CK'                       : 250_000_000,
             'APB1_CK'                      : 250_000_000,
             'APB2_CK'                      : 250_000_000,
@@ -804,11 +810,14 @@ TARGETS = ( # @/`Defining Targets`.
             'USART3_BAUD'                  : VN100_BAUD, # TODO Here just to mock a VN-100.
             'TIM1_UPDATE_RATE'             : 1 / 0.001,
             'TIM2_COUNTER_RATE'            : 1_000_000,
-            'ANALOG_POSTDIVIDER_KERNEL_CK' : 50_000_000,
+            'ANALOG_POSTDIVIDER_KERNEL_CK' : 32_000_000,
             'I2C1_BAUD'                    : VEHICLE_INTERFACE_BAUD,
             'I2C1_TIMEOUT'                 : 2,
             'I2C3_BAUD'                    : MFC_DEBUG_BOARD_BAUD,
             'I2C3_TIMEOUT'                 : 2,
+            'SDMMC1_TIMEOUT'               : 0.250,
+            'SDMMC1_INITIAL_BAUD'          :    400_000,
+            'SDMMC1_FULL_BAUD'             : 24_000_000,
         },
 
     ),

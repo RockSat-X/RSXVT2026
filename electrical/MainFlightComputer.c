@@ -2,6 +2,8 @@
 #include "timekeeping.c"
 #include "uxart.c"
 #include "i2c.c"
+#include "sd.c"
+#include "filesystem.c"
 
 
 
@@ -55,7 +57,8 @@ enum DiagnosticLEDBehavior : u32
 /* #meta
 
     DIAGNOSTICS = ( # Ordered from highest priority to lowest priority.
-        ('logging_heartbeat', ('inactive', 'active', 'inactive'), 25, 25),
+        ('logging_mishap'   , ('active'  , 'inactive', 'inactive'), 100, 100),
+        ('logging_heartbeat', ('inactive', 'active'  , 'inactive'),  25,  25),
     )
 
     Meta.enums('DiagnosticMask', 'u32', (
@@ -589,6 +592,229 @@ FREERTOS_TASK(vehicle_interface, 0)
 
 
 
+FREERTOS_TASK(logger, 0)
+{
+
+    static struct Sector working_sectors[2] = {0};
+
+    for (;;)
+    {
+
+        REINITIALIZE:;
+
+
+
+        // Try setting up the file-system.
+
+        enum FileSystemReinitResult reinit_result =
+            FILESYSTEM_reinit
+            (
+                SDHandle_primary,
+                nullptr, // TODO How to handle?
+                0        // TODO "
+            );
+
+        switch (reinit_result)
+        {
+
+
+
+            case FileSystemReinitResult_success:
+            {
+                // Ready to go!
+            } break;
+
+
+
+            // Couldn't successfully communicate with the SD card,
+            // likely because of poor connection or there's no card mounted.
+            // Either way, we indicate this as a soft error.
+
+            case FileSystemReinitResult_couldnt_ready_card:
+            case FileSystemReinitResult_transfer_error:
+            {
+
+                xTaskNotify
+                (
+                    diagnostics_handle,
+                    DiagnosticMask_logging_mishap,
+                    eSetBits
+                );
+
+                FREERTOS_delay_ms(500);
+
+                goto REINITIALIZE;
+
+            } break;
+
+
+
+            // Something went wrong trying to mount the file-system;
+            // best thing we can do is format the card and hope it'll work out.
+
+            case FileSystemReinitResult_invalid_filesystem:
+            case FileSystemReinitResult_no_more_space_for_new_file:
+            case FileSystemReinitResult_fatfs_internal_error:
+            case FileSystemReinitResult_bug:
+            default:
+            {
+                sorry
+            } break;
+
+        }
+
+
+
+        // Alright, file-system is ready. Let's start logging!
+
+        u32 most_recent_heartbeat_timestamp_us  = 0;
+        u32 most_recent_stlink_log_timestamp_us = 0;
+
+        while (true)
+        {
+
+            // Make the log entry.
+
+            u32 current_timestamp_us = TIMEKEEPING_microseconds();
+
+            i32 log_entry_length =
+                snprintf_
+                (
+                    (char*) working_sectors,
+                    sizeof(working_sectors),
+                    "[%u us]"             "\n"
+                    "Something here : %s" "\n"
+                    "\n",
+                    current_timestamp_us,
+                    "meow!"
+                );
+
+
+
+            // Formatting error, if for some reason.
+
+            if (log_entry_length <= -1)
+            {
+                sus;
+                log_entry_length = 0;
+            }
+
+
+
+            // Log entry too long; just truncate.
+
+            if (log_entry_length > sizeof(working_sectors))
+            {
+                sus;
+                log_entry_length = sizeof(working_sectors);
+            }
+
+
+
+            // The remaining space in the log buffer will be used for the divider.
+
+            memset
+            (
+                (u8*) working_sectors + log_entry_length,
+                '.',
+                (u32) (sizeof(working_sectors) - log_entry_length)
+            );
+
+            working_sectors[countof(working_sectors) - 1].bytes[sizeof(struct Sector) - 2] = '\n'; // Don't care if this stamps over the string.
+            working_sectors[countof(working_sectors) - 1].bytes[sizeof(struct Sector) - 1] = '\n'; // "
+
+
+
+            // Save onto SD card for us to verify the vehicle
+            // is operating as intended after sequence testing.
+
+            enum FileSystemSaveResult save_result =
+                FILESYSTEM_save
+                (
+                    SDHandle_primary,
+                    working_sectors,
+                    countof(working_sectors)
+                );
+
+            switch (save_result)
+            {
+
+
+
+                // Successfully saved the log entry;
+                // periodically indicate that we're logging data too.
+
+                case FileSystemSaveResult_success:
+                {
+                    if (current_timestamp_us - most_recent_heartbeat_timestamp_us >= 500'000)
+                    {
+
+                        most_recent_heartbeat_timestamp_us = current_timestamp_us;
+
+                        xTaskNotify
+                        (
+                            diagnostics_handle,
+                            DiagnosticMask_logging_heartbeat,
+                            eSetBits
+                        );
+
+                    }
+                } break;
+
+
+
+                // Small error occured; let's just reinitialize the file-system
+                // as quickly as possible to be able to continue logging, if still possible.
+
+                case FileSystemSaveResult_transfer_error:
+                {
+
+                    xTaskNotify
+                    (
+                        diagnostics_handle,
+                        DiagnosticMask_logging_mishap,
+                        eSetBits
+                    );
+
+                    goto REINITIALIZE;
+
+                } break;
+
+
+
+                // Uh oh, let's just wipe the SD card so we can continue logging new data.
+
+                case FileSystemSaveResult_no_more_space_for_data:
+                case FileSystemSaveResult_fatfs_internal_error:
+                {
+                    sorry
+                } break;
+
+
+
+                // Something weird happened. Let's just reinitialize
+                // the file-system and hope for the best...
+
+                case FileSystemSaveResult_bug:
+                default:
+                {
+                    sorry
+                } break;
+
+            }
+
+        }
+
+    }
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
 FREERTOS_TASK(debug_board, 0)
 {
     for (;;)
@@ -658,29 +884,6 @@ FREERTOS_TASK(debug_board, 0)
             FREERTOS_delay_ms(100);
 
         }
-
-    }
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-FREERTOS_TASK(logging, 1)
-{
-    for (;;)
-    {
-
-        xTaskNotify
-        (
-            diagnostics_handle,
-            DiagnosticMask_logging_heartbeat,
-            eSetBits
-        );
-
-        FREERTOS_delay_ms(1'000);
 
     }
 }

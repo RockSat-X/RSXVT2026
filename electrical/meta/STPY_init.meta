@@ -3568,13 +3568,14 @@
     {
         NVICInterrupt_USART2  = USART2_IRQn,
         NVICInterrupt_USART1  = USART1_IRQn,
+        NVICInterrupt_SDMMC1  = SDMMC1_IRQn,
         NVICInterrupt_I2C1_EV = I2C1_EV_IRQn,
         NVICInterrupt_I2C1_ER = I2C1_ER_IRQn,
         NVICInterrupt_I2C3_EV = I2C3_EV_IRQn,
         NVICInterrupt_I2C3_ER = I2C3_ER_IRQn,
         NVICInterrupt_USART3  = USART3_IRQn,
     };
-    static constexpr u32 NVICInterrupt_COUNT = 7;
+    static constexpr u32 NVICInterrupt_COUNT = 8;
     extern void INTERRUPT_BusFault(void);
     extern void INTERRUPT_Default(void);
     extern void INTERRUPT_I2C1_ER(void);
@@ -3582,6 +3583,7 @@
     extern void INTERRUPT_I2C3_ER(void);
     extern void INTERRUPT_I2C3_EV(void);
     extern void INTERRUPT_Reset(void);
+    extern void INTERRUPT_SDMMC1(void);
     extern void INTERRUPT_USART1(void);
     extern void INTERRUPT_USART2(void);
     extern void INTERRUPT_USART3(void);
@@ -3686,7 +3688,7 @@
             INTERRUPT_Default            , // [ 76] UCPD1
             INTERRUPT_Default            , // [ 77] FMC
             INTERRUPT_Default            , // [ 78] OCTOSPI1
-            INTERRUPT_Default            , // [ 79] SDMMC1
+            INTERRUPT_SDMMC1             , // [ 79] SDMMC1
             INTERRUPT_I2C3_EV            , // [ 80] I2C3_EV
             INTERRUPT_I2C3_ER            , // [ 81] I2C3_ER
             INTERRUPT_Default            , // [ 82] SPI4
@@ -3749,6 +3751,7 @@
     #define INTERRUPT_I2C3_EV(...) extern void INTERRUPT_I2C3_EV(__VA_ARGS__)
     #define INTERRUPT_PendSV(...) extern void INTERRUPT_PendSV(__VA_ARGS__)
     #define INTERRUPT_Reset(...) extern void INTERRUPT_Reset(__VA_ARGS__)
+    #define INTERRUPT_SDMMC1(...) extern void INTERRUPT_SDMMC1(__VA_ARGS__)
     #define INTERRUPT_SVCall(...) extern void INTERRUPT_SVCall(__VA_ARGS__)
     #define INTERRUPT_SysTick(...) extern void INTERRUPT_SysTick(__VA_ARGS__)
     #define INTERRUPT_USART1(...) extern void INTERRUPT_USART1(__VA_ARGS__)
@@ -4027,16 +4030,18 @@
         NVIC->IPR[NVICInterrupt_USART2] = 0 << __NVIC_PRIO_BITS;
         static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
         NVIC->IPR[NVICInterrupt_USART1] = 1 << __NVIC_PRIO_BITS;
-        static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
-        NVIC->IPR[NVICInterrupt_I2C1_EV] = 1 << __NVIC_PRIO_BITS;
-        static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
-        NVIC->IPR[NVICInterrupt_I2C1_ER] = 1 << __NVIC_PRIO_BITS;
         static_assert(0 <= 2 && 2 < (1 << __NVIC_PRIO_BITS));
-        NVIC->IPR[NVICInterrupt_I2C3_EV] = 2 << __NVIC_PRIO_BITS;
-        static_assert(0 <= 2 && 2 < (1 << __NVIC_PRIO_BITS));
-        NVIC->IPR[NVICInterrupt_I2C3_ER] = 2 << __NVIC_PRIO_BITS;
+        NVIC->IPR[NVICInterrupt_SDMMC1] = 2 << __NVIC_PRIO_BITS;
         static_assert(0 <= 3 && 3 < (1 << __NVIC_PRIO_BITS));
-        NVIC->IPR[NVICInterrupt_USART3] = 3 << __NVIC_PRIO_BITS;
+        NVIC->IPR[NVICInterrupt_I2C1_EV] = 3 << __NVIC_PRIO_BITS;
+        static_assert(0 <= 3 && 3 < (1 << __NVIC_PRIO_BITS));
+        NVIC->IPR[NVICInterrupt_I2C1_ER] = 3 << __NVIC_PRIO_BITS;
+        static_assert(0 <= 4 && 4 < (1 << __NVIC_PRIO_BITS));
+        NVIC->IPR[NVICInterrupt_I2C3_EV] = 4 << __NVIC_PRIO_BITS;
+        static_assert(0 <= 4 && 4 < (1 << __NVIC_PRIO_BITS));
+        NVIC->IPR[NVICInterrupt_I2C3_ER] = 4 << __NVIC_PRIO_BITS;
+        static_assert(0 <= 5 && 5 < (1 << __NVIC_PRIO_BITS));
+        NVIC->IPR[NVICInterrupt_USART3] = 5 << __NVIC_PRIO_BITS;
         CMSIS_SET
         (
             SCB        , SHCSR,
@@ -4118,15 +4123,15 @@
         (
             RCC    , PLL2CFGR,
             PLL2SRC, 0b01    ,
-            PLL2M  , 4       ,
+            PLL2M  , 3       ,
             PLL2RGE, 3       ,
             PLL2REN, true    ,
         );
         CMSIS_SET
         (
             RCC  , PLL2DIVR,
-            PLL2N, 25 - 1  ,
-            PLL2R, 4 - 1   ,
+            PLL2N, 45 - 1  ,
+            PLL2R, 2 - 1   ,
         );
         CMSIS_SET
         (
@@ -4218,11 +4223,23 @@
 
 
 
+        /////////////////////////////////// SDMMC1 ///////////////////////////////////
+
+
+
+        #define STPY_SDMMC1_KERNEL_SOURCE 0b1
+        #define STPY_SDMMC1_INITIAL_DIVIDER 0x12c
+        #define STPY_SDMMC1_INITIAL_DATATIME 100000
+        #define STPY_SDMMC1_FULL_DIVIDER 0x005
+        #define STPY_SDMMC1_FULL_DATATIME 6000000
+
+
+
         /////////////////////////////////// Analog ///////////////////////////////////
 
 
 
-        CMSIS_SET(RCC, CCIPR5, ADCDACSEL, 0b010);
+        CMSIS_SET(RCC, CCIPR5, ADCDACSEL, 0b100);
         CMSIS_SET(RCC, AHB2ENR, ADCEN, true);
         CMSIS_SET(ADC12_COMMON, CCR, PRESC, 0b0000);
         CMSIS_SET
@@ -4252,15 +4269,15 @@
     #define STPY_CSI_CK                       (  4'000'000)
     #define STPY_AXI_AHB_CK                   (250'000'000)
     #define STPY_PLL1P_CK                     (250'000'000)
-    #define STPY_PLL2R_CK                     ( 50'000'000)
+    #define STPY_PLL2R_CK                     (240'000'000)
     #define STPY_PLL1_VCO_FREQ                (500'000'000)
-    #define STPY_PLL2_VCO_FREQ                (200'000'000)
+    #define STPY_PLL2_VCO_FREQ                (480'000'000)
     #define STPY_APB1_CK                      (250'000'000)
     #define STPY_APB2_CK                      (250'000'000)
     #define STPY_APB3_CK                      (250'000'000)
     #define STPY_SYS_CK                       (250'000'000)
-    #define STPY_ANALOG_PREDIVIDER_KERNEL_CK  ( 50'000'000)
-    #define STPY_ANALOG_POSTDIVIDER_KERNEL_CK ( 50'000'000)
+    #define STPY_ANALOG_PREDIVIDER_KERNEL_CK  ( 32'000'000)
+    #define STPY_ANALOG_POSTDIVIDER_KERNEL_CK ( 32'000'000)
 #endif
 #if TARGET_NAME_IS_VehicleFlightComputer
     enum NVICInterrupt : u32
