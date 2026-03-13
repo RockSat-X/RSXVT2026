@@ -180,19 +180,19 @@ QUATERNION_conjugate(struct Quaternion quaternion)
 static useret struct Quaternion
 QUATERNION_error(struct Quaternion quaternion_s, struct Quaternion quaternion_r)
 {
-    return QUATERNION_multiply(QUATERNION_conjugate(quaternion_s), quaterion_r);
+    return QUATERNION_multiply(QUATERNION_conjugate(quaternion_s), quaternion_r);
 }
 
 static useret struct Quaternion
 QUATERNION_from_euler_angles(struct EulerAngles angles)
 {
 
-    f32 cy = cosf(angles.yaw   * 0.5f);
-    f32 sy = sinf(angles.yaw   * 0.5f);
-    f32 cp = cosf(angles.pitch * 0.5f);
-    f32 sp = sinf(angles.pitch * 0.5f);
-    f32 cr = cosf(angles.roll  * 0.5f);
-    f32 sr = sinf(angles.roll  * 0.5f);
+    f32 cy = arm_cos_f32(angles.yaw   * 0.5f);
+    f32 sy = arm_sin_f32(angles.yaw   * 0.5f);
+    f32 cp = arm_cos_f32(angles.pitch * 0.5f);
+    f32 sp = arm_sin_f32(angles.pitch * 0.5f);
+    f32 cr = arm_cos_f32(angles.roll  * 0.5f);
+    f32 sr = arm_sin_f32(angles.roll  * 0.5f);
 
     return
         (struct Quaternion)
@@ -221,7 +221,7 @@ EULER_from_quaternion(struct Quaternion q)
         (struct EulerAngles)
         {
             .yaw   = atan2f(siny_cosp, cosy_cosp),
-            .pitch = (fabsf(sinp) >= 1.0f) ? copysignf(PI / 2.0f, sinp) : asinf(sinp),
+            .pitch = (fabsf(sinp) >= 1.0f) ? copysignf(PI / 2.0f, sinp) : acosf(sinp),
             .roll  = atan2f(sinr_cosp, cosr_cosp),
         };
 
@@ -274,7 +274,7 @@ pack_push
                 u16 zero;
                 f32 attitude_yaw;
                 f32 attitude_pitch;
-                f32 attitude_row;
+                f32 attitude_roll;
                 f32 unused;
                 u16 computer_vision_processing_time_ms;
                 u8  computer_vision_confidence;
@@ -301,8 +301,7 @@ struct GNCParameters
     u32                    most_recent_openmv_reading_timestamp_us;
     u32                    ejection_timestamp_us;
     u32                    current_timestamp_us;
-
-    b32                    target_found; 
+    b32                    target_found;
     i32                    target_conflict_count;
     u32                    target_lost_timestamp_us;
     struct Quaternion      desired_orientation;
@@ -320,7 +319,7 @@ GNC_update(struct GNCParameters* parameters)
 
     if (parameters->target_found)
     {
-        if (most_recent_openmv_reading->computer_vision_confidence)
+        if (parameters->most_recent_openmv_reading.computer_vision_confidence)
         {
             parameters->target_conflict_count = 0; // We still see the target!
         }
@@ -337,10 +336,9 @@ GNC_update(struct GNCParameters* parameters)
     }
     else
     {
-        if (!most_recent_openmv_reading->computer_vision_confidence)
+        if (!parameters->most_recent_openmv_reading.computer_vision_confidence)
         {
             parameters->target_conflict_count = 0; // Target still missing...
-            
         }
         else if (parameters->target_conflict_count < 3)
         {
@@ -361,7 +359,7 @@ GNC_update(struct GNCParameters* parameters)
 
     if (parameters->target_found)
     {
-        if (most_recent_openmv_reading->computer_vision_confidence)
+        if (parameters->most_recent_openmv_reading.computer_vision_confidence)
         {
 
             parameters->desired_orientation =
@@ -369,9 +367,9 @@ GNC_update(struct GNCParameters* parameters)
                 (
                     (struct EulerAngles)
                     {
-                        .yaw   = most_recent_openmv_reading->attitude_yaw,
-                        .pitch = most_recent_openmv_reading->attitude_pitch,
-                        .roll  = most_recent_openmv_reading->attitude_roll,
+                        .yaw   = parameters->most_recent_openmv_reading.attitude_yaw,
+                        .pitch = parameters->most_recent_openmv_reading.attitude_pitch,
+                        .roll  = parameters->most_recent_openmv_reading.attitude_roll,
                     }
                 );
 
@@ -383,7 +381,7 @@ GNC_update(struct GNCParameters* parameters)
             gain = nullptr;
         }
     }
-    else if (current_timestamp_us - parameters->time_since_ejection < 20'000'000)
+    else if (time_since_ejection_us < 20'000'000)
     {
 
         parameters->desired_orientation =
@@ -402,7 +400,7 @@ GNC_update(struct GNCParameters* parameters)
     }
     else // Do the process of searching.
     {
-        
+
         f32 t = 0.0f;
 
         parameters->desired_orientation =
@@ -411,7 +409,7 @@ GNC_update(struct GNCParameters* parameters)
                 (struct EulerAngles)
                 {
                     .yaw   = t, // TODO: Function of t?
-                    .pitch = sinf(t), // TODO: Function of t?
+                    .pitch = arm_sin_f32(t), // TODO: Function of t?
                     .roll  = 0, // TODO: Function of t?
                 }
             );
@@ -422,9 +420,7 @@ GNC_update(struct GNCParameters* parameters)
 
 
 
-    // 
-
-    QUATERNION_error(quaternion_s, quaternion_r);
+    // TODO.
 
 }
 

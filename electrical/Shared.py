@@ -1413,6 +1413,10 @@ for target in TARGETS:
         pxd.make_main_relative_path('./deps/printf/src'),
         pxd.make_main_relative_path('.'),
         pxd.make_main_relative_path('./electrical'),
+        pxd.make_main_relative_path('./deps'),
+        pxd.make_main_relative_path('./deps/CMSIS-DSP/include'),
+        pxd.make_main_relative_path('./deps/CMSIS-DSP/PrivateInclude'),
+        pxd.make_main_relative_path('./deps/CMSIS-DSP'),
         *MCU_SUPPORT[target.mcu]['include_paths'],
     )
 
