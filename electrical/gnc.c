@@ -275,10 +275,9 @@ pack_push
                 f32 attitude_yaw;
                 f32 attitude_pitch;
                 f32 attitude_roll;
-                f32 unused;
                 u16 computer_vision_processing_time_ms;
                 u8  computer_vision_confidence;
-                u8  padding[43];
+                u8  padding[47];
             } gnc;
 
             struct OpenMVPacketImage

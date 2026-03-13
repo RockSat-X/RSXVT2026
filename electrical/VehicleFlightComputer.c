@@ -1889,10 +1889,9 @@ FREERTOS_TASK(logger, 0)
                     "Ext. power     : %s"                 "\n"
                     "VNKMD          : %s"                 "\n"
                     "VNKAD          : %s"                 "\n"
-                    "attitude_x     : %f"                 "\n"
-                    "attitude_y     : %f"                 "\n"
-                    "attitude_z     : %f"                 "\n"
-                    "attitude_w     : %f"                 "\n"
+                    "Attitude yaw   : %f"                 "\n"
+                    "Attitude pitch : %f"                 "\n"
+                    "Attitude roll  : %f"                 "\n"
                     "CV processing  : %d ms"              "\n"
                     "CV confidence  : %d"                 "\n"
                     "\n",
@@ -1926,10 +1925,9 @@ FREERTOS_TASK(logger, 0)
                     GPIO_READ(external_detected)          ? "Yes" : "No",
                     VN100.magnetic_disturbance_exists     ? "Yes" : "No",
                     VN100.acceleration_disturbance_exists ? "Yes" : "No",
-                    openmv_gnc_packet_exist ? openmv_gnc_packet_data.attitude_x                         : NAN,
-                    openmv_gnc_packet_exist ? openmv_gnc_packet_data.attitude_y                         : NAN,
-                    openmv_gnc_packet_exist ? openmv_gnc_packet_data.attitude_z                         : NAN,
-                    openmv_gnc_packet_exist ? openmv_gnc_packet_data.attitude_w                         : NAN,
+                    openmv_gnc_packet_exist ? openmv_gnc_packet_data.attitude_yaw                       : NAN,
+                    openmv_gnc_packet_exist ? openmv_gnc_packet_data.attitude_pitch                     : NAN,
+                    openmv_gnc_packet_exist ? openmv_gnc_packet_data.attitude_roll                      : NAN,
                     openmv_gnc_packet_exist ? openmv_gnc_packet_data.computer_vision_processing_time_ms : -1,
                     openmv_gnc_packet_exist ? openmv_gnc_packet_data.computer_vision_confidence         : -1
                 );

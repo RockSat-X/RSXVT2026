@@ -62,20 +62,18 @@ while True:
 
     # Send the GNC packet to VFC.
 
-    attitude_x                       = 1.0
-    attitude_y                       = 2.0
-    attitude_z                       = 3.0
-    attitude_w                       = 4.0
+    attitude_yaw                     = 1.0
+    attitude_pitch                   = 2.0
+    attitude_roll                    = 3.0
     computer_vision_processing_time  = 123
     computer_vision_confidence       = 456
 
     block = struct.pack(
-        '<HffffHB',  # @/`OpenMV Packet Format`.
-        0,           # @/`OpenMV Sequence Number`.
-        attitude_x,
-        attitude_y,
-        attitude_z,
-        attitude_w,
+        '<HfffHB',  # @/`OpenMV Packet Format`.
+        0,          # @/`OpenMV Sequence Number`.
+        attitude_yaw,
+        attitude_pitch,
+        attitude_roll,
         computer_vision_processing_time,
         computer_vision_confidence,
     )
