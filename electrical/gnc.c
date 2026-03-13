@@ -289,6 +289,9 @@ pack_push
         };
     };
 
+    static_assert(sizeof(struct OpenMVPacketGNC  ) == sizeof(struct OpenMVPacket));
+    static_assert(sizeof(struct OpenMVPacketImage) == sizeof(struct OpenMVPacket));
+
 pack_pop
 
 
