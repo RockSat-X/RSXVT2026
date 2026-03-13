@@ -1,0 +1,11 @@
+enum DiagnosticMask : u32
+{
+    DiagnosticMask_logging_mishap    = 1 << 0,
+    DiagnosticMask_logging_heartbeat = 1 << 1,
+};
+static constexpr u32 DiagnosticMask_COUNT = 2;
+static const struct { typeof(DiagnosticLEDBehavior_active) behavior_red; typeof(DiagnosticLEDBehavior_inactive) behavior_green; typeof(DiagnosticLEDBehavior_inactive) behavior_blue; typeof(100U) delay_ms; typeof(100U) duration_ms; } DIAGNOSTIC_TABLE[] =
+    {
+        { .behavior_red = DiagnosticLEDBehavior_active  , .behavior_green = DiagnosticLEDBehavior_inactive, .behavior_blue = DiagnosticLEDBehavior_inactive, .delay_ms = 100U, .duration_ms = 100U },
+        { .behavior_red = DiagnosticLEDBehavior_inactive, .behavior_green = DiagnosticLEDBehavior_active  , .behavior_blue = DiagnosticLEDBehavior_inactive, .delay_ms = 25U , .duration_ms = 25U  },
+    };

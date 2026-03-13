@@ -198,7 +198,7 @@ enum DiagnosticLEDBehavior : u32
 
 */
 
-FREERTOS_TASK(diagnostics, 1)
+FREERTOS_TASK(diagnostics, 1) // TODO Duplicative.
 {
 
     u32 current_flags = 0;
@@ -2250,10 +2250,11 @@ FREERTOS_TASK(watchdog, 3)
 
 #if WATCHDOG_ENABLE
 
+    b32 noticed_vehicle_interface_pulled_down      = false;
+    u32 vehicle_interface_pulled_down_timestamp_us = {0};
+
     for (;;)
     {
-
-        u32 current_timestamp_us = TIMEKEEPING_microseconds();
 
 
 
@@ -2262,7 +2263,7 @@ FREERTOS_TASK(watchdog, 3)
         // some current from the batteries even when there's external power supplied,
         // but should be good enough.
 
-        b32 live_for_too_long = current_timestamp_us >= WATCHDOG_DURATION_US;
+        b32 live_for_too_long = TIMEKEEPING_microseconds() >= WATCHDOG_DURATION_US;
 
 
 
@@ -2286,14 +2287,25 @@ FREERTOS_TASK(watchdog, 3)
                 memory_order_relaxed // No synchronization needed.
             );
 
-        b32 theres_still_external_power   = GPIO_READ(external_detected);
-        b32 vehicle_interface_pulled_down = !GPIO_READ(vehicle_interface_i2c_clock) && !GPIO_READ(vehicle_interface_i2c_data);
+        b32 theres_still_external_power             = GPIO_READ(external_detected);
+        b32 vehicle_interface_currently_pulled_down = !GPIO_READ(vehicle_interface_i2c_clock) && !GPIO_READ(vehicle_interface_i2c_data);
+
+        if (!vehicle_interface_currently_pulled_down)
+        {
+            noticed_vehicle_interface_pulled_down = false;
+        }
+        else if (!noticed_vehicle_interface_pulled_down)
+        {
+            noticed_vehicle_interface_pulled_down      = true;
+            vehicle_interface_pulled_down_timestamp_us = TIMEKEEPING_microseconds();
+        }
 
         b32 docked_reset =
             (
-                current_timestamp_us - observed_most_recent_transfer_timestamp_us >= 10'000'000 &&
                 !theres_still_external_power &&
-                vehicle_interface_pulled_down
+                vehicle_interface_currently_pulled_down &&
+                TIMEKEEPING_microseconds() - vehicle_interface_pulled_down_timestamp_us >= 10'000'000 &&
+                TIMEKEEPING_microseconds() - observed_most_recent_transfer_timestamp_us >= 10'000'000
             );
 
 

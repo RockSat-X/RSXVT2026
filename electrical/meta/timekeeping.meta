@@ -42,8 +42,6 @@
     #define TIMEKEEPING_TIMER          TIM2
 #endif
 #if TARGET_NAME_IS_MainFlightComputer
-#endif
-#if TARGET_NAME_IS_MainFlightComputer_NUCLEO
     static constexpr auto TIMEKEEPING_TIMER_ENABLE = (struct CMSISTuple) { &RCC->APB1LENR, CONCAT(RCC_, APB1LENR_TIM2EN_Pos), CONCAT(RCC_, APB1LENR_TIM2EN_Msk) };
     static constexpr auto TIMEKEEPING_DIVIDER      = STPY_TIM2_DIVIDER;
     #define TIMEKEEPING_microseconds() CMSIS_GET(TIM2, CNT, CNT)

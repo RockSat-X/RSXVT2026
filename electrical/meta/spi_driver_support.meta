@@ -18,8 +18,6 @@
 #endif
 #if TARGET_NAME_IS_MainFlightComputer
 #endif
-#if TARGET_NAME_IS_MainFlightComputer_NUCLEO
-#endif
 #if TARGET_NAME_IS_VehicleFlightComputer
 #endif
 #if TARGET_NAME_IS_DebugBoard
@@ -75,9 +73,6 @@
 #endif
 #if TARGET_NAME_IS_MainFlightComputer
     #error Target 'MainFlightComputer' defines no handle for the 'SPI' driver.
-#endif
-#if TARGET_NAME_IS_MainFlightComputer_NUCLEO
-    #error Target 'MainFlightComputer_NUCLEO' defines no handle for the 'SPI' driver.
 #endif
 #if TARGET_NAME_IS_VehicleFlightComputer
     enum SPIHandle : u32
