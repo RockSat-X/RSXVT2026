@@ -748,6 +748,7 @@ TARGETS = ( # @/`Defining Targets`.
             ('I2C1_ER', 1),
             ('I2C3_EV', 2),
             ('I2C3_ER', 2),
+            ('USART3' , 3), # TODO Here just to mock a VN-100.
         ),
 
         drivers = (
@@ -779,6 +780,12 @@ TARGETS = ( # @/`Defining Targets`.
                 'handle'     : 'debug_board',
                 'mode'       : 'master',
             },
+            { # TODO Here just to mock a VN-100.
+                'type'       : 'UXART',
+                'peripheral' : 'USART3',
+                'handle'     : 'vn100',
+                'mode'       : 'full_duplex',
+            },
         ),
 
         use_freertos = True,
@@ -792,8 +799,9 @@ TARGETS = ( # @/`Defining Targets`.
             'APB1_CK'                      : 250_000_000,
             'APB2_CK'                      : 250_000_000,
             'APB3_CK'                      : 250_000_000,
-            'USART2_BAUD'                  : STLINK_BAUD,
             'USART1_BAUD'                  : ESP32_BAUD,
+            'USART2_BAUD'                  : STLINK_BAUD,
+            'USART3_BAUD'                  : VN100_BAUD, # TODO Here just to mock a VN-100.
             'TIM1_UPDATE_RATE'             : 1 / 0.001,
             'TIM2_COUNTER_RATE'            : 1_000_000,
             'ANALOG_POSTDIVIDER_KERNEL_CK' : 50_000_000,
