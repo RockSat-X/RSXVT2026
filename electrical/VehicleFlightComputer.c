@@ -625,7 +625,7 @@ FREERTOS_TASK(controller, 0)
     )
 
     messages = [
-        f'${text}*{functools.reduce(lambda x, y: x^ord(y), text, 0):02X}'
+        f'${text}*{functools.reduce(lambda x, y: x^ord(y), text, 0):02X}\\n'
         for name, text in COMMANDS
     ]
 
@@ -635,7 +635,7 @@ FREERTOS_TASK(controller, 0)
         (
             f'VN100Command_{name}',
             ('message', f'(const u8*) "{message}"'),
-            ('length' , len(message)),
+            ('length' , f'sizeof("{message}") - 1'),
         )
         for (name, text), message in zip(COMMANDS, messages)
     ))
@@ -780,6 +780,8 @@ static enum VN100AwaitCommandResult : u32
 vn100_await_command(enum VN100Command command)
 {
 
+    while (UXART_rx(UXARTHandle_vn100, nullptr));
+
     UXART_tx_bytes
     (
         UXARTHandle_vn100,
@@ -808,12 +810,12 @@ vn100_await_command(enum VN100Command command)
             {
 
                 b32 matching_response =
-                    response_length == VN100Command_TABLE[command].length &&
+                    response_length == VN100Command_TABLE[command].length - 1 &&
                     !memcmp
                     (
                         response_buffer,
                         VN100Command_TABLE[command].message,
-                        (u32) VN100Command_TABLE[command].length
+                        (u32) VN100Command_TABLE[command].length - 1
                     );
 
                 if (matching_response)
