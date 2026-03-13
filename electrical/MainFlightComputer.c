@@ -44,6 +44,190 @@ main(void)
 
 
 
+enum DiagnosticLEDBehavior : u32
+{
+    DiagnosticLEDBehavior_inactive,
+    DiagnosticLEDBehavior_active,
+    DiagnosticLEDBehavior_toggle,
+};
+
+#include "MainFlightComputer_diagnostics.meta"
+/* #meta
+
+    DIAGNOSTICS = ( # Ordered from highest priority to lowest priority.
+        ('logging_heartbeat', ('inactive', 'active', 'inactive'), 25, 25),
+    )
+
+    Meta.enums('DiagnosticMask', 'u32', (
+        (name, f'1 << {diagnostic_i}')
+        for diagnostic_i, (name, (behavior_red, behavior_green, behavior_blue), delay_ms, duration_ms) in enumerate(DIAGNOSTICS)
+    ))
+
+    Meta.lut('DIAGNOSTIC_TABLE', ((
+        (
+            ('behavior_red'  , f'DiagnosticLEDBehavior_{behavior_red  }'),
+            ('behavior_green', f'DiagnosticLEDBehavior_{behavior_green}'),
+            ('behavior_blue' , f'DiagnosticLEDBehavior_{behavior_blue }'),
+            ('delay_ms'      , f'{delay_ms}U'                           ),
+            ('duration_ms'   , f'{duration_ms}U'                        ),
+        )
+        for diagnostic_i, (name, (behavior_red, behavior_green, behavior_blue), delay_ms, duration_ms) in enumerate(DIAGNOSTICS)
+    )))
+
+*/
+
+FREERTOS_TASK(diagnostics, 1) // TODO Duplicative.
+{
+
+    u32 current_flags = 0;
+
+    for (;;)
+    {
+
+
+
+        // Check and wait for there to be a new diagnostic to handle.
+
+        b32 waiting = false;
+
+        do
+        {
+
+            u32 new_flags = {0};
+
+            BaseType_t got_notification =
+                xTaskNotifyWait
+                (
+                    0,
+                    (u32) -1, // Immediately acknowledge the new diagnostics.
+                    (uint32_t*) &new_flags,
+                    waiting ? 100 : 0
+                );
+
+            if (got_notification)
+            {
+                current_flags |= new_flags;
+            }
+
+            waiting = true;
+
+        }
+        while (!current_flags);
+
+
+
+        // Handle the highest priority diagnostic with blinking LEDs.
+
+        enum DiagnosticMask current_diagnostic = current_flags & -current_flags;
+
+        GPIO_INACTIVE(led_channel_red  );
+        GPIO_INACTIVE(led_channel_green);
+        GPIO_INACTIVE(led_channel_blue );
+
+        if (current_diagnostic && __builtin_ctz(current_diagnostic) < countof(DIAGNOSTIC_TABLE))
+        {
+
+            auto info = &DIAGNOSTIC_TABLE[__builtin_ctz(current_diagnostic)];
+
+            u32 start_timestamp_us = TIMEKEEPING_microseconds();
+
+            while (TIMEKEEPING_microseconds() - start_timestamp_us < info->duration_ms)
+            {
+
+
+
+                // Control the LEDs.
+
+                switch (info->behavior_red)
+                {
+                    case DiagnosticLEDBehavior_inactive : GPIO_INACTIVE(led_channel_red); break;
+                    case DiagnosticLEDBehavior_active   : GPIO_ACTIVE  (led_channel_red); break;
+                    case DiagnosticLEDBehavior_toggle   : GPIO_TOGGLE  (led_channel_red); break;
+                    default                             : sus;
+                }
+
+                switch (info->behavior_green)
+                {
+                    case DiagnosticLEDBehavior_inactive : GPIO_INACTIVE(led_channel_green); break;
+                    case DiagnosticLEDBehavior_active   : GPIO_ACTIVE  (led_channel_green); break;
+                    case DiagnosticLEDBehavior_toggle   : GPIO_TOGGLE  (led_channel_green); break;
+                    default                             : sus;
+                }
+
+                switch (info->behavior_blue)
+                {
+                    case DiagnosticLEDBehavior_inactive : GPIO_INACTIVE(led_channel_blue); break;
+                    case DiagnosticLEDBehavior_active   : GPIO_ACTIVE  (led_channel_blue); break;
+                    case DiagnosticLEDBehavior_toggle   : GPIO_TOGGLE  (led_channel_blue); break;
+                    default                             : sus;
+                }
+
+
+
+                // See if there's a new higher priority diagnostic we should handle.
+
+                u32 new_flags = 0;
+
+                BaseType_t got_notification =
+                    xTaskNotifyWait
+                    (
+                        0,
+                        (u32) -1, // Immediately acknowledge the new diagnostics.
+                        (uint32_t*) &new_flags,
+                        0
+                    );
+
+                if (got_notification)
+                {
+                    current_flags |= new_flags; // Add the new diagnostics to the list of existing ones to process.
+                }
+
+                enum DiagnosticMask new_diagnostic = current_flags & -current_flags;
+
+                if (new_diagnostic == current_diagnostic)
+                {
+
+                    // Although `xTaskNotifyWait` has a time-out argument that could be used
+                    // as a delay that can also be interrupted early when there's a notification,
+                    // it's possible that a task set the same diagnostic repeatedly over and
+                    // over again to which a delay never really happens. By using a regular
+                    // task delay here, we're making things slightly less responsive because
+                    // the delay won't allow for the `diagnostics` task to handle a new
+                    // diagnostic of higher priority, but since this is literally just for
+                    // diagnostics, it's okay.
+
+                    FREERTOS_delay_ms(info->delay_ms);
+
+                }
+                else
+                {
+                    break; // There's a new diagnostic of higher priority that we should handle.
+                }
+
+            }
+
+        }
+        else
+        {
+            sus; // Invalid diagnostic..?
+        }
+
+        GPIO_INACTIVE(led_channel_red  );
+        GPIO_INACTIVE(led_channel_green);
+        GPIO_INACTIVE(led_channel_blue );
+
+        current_flags &= ~current_diagnostic; // Acknowledge the completion of the diagnostic.
+
+    }
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
 static useret b32
 esp32_get_byte(u8* dst)
 {
@@ -474,6 +658,29 @@ FREERTOS_TASK(debug_board, 0)
             FREERTOS_delay_ms(100);
 
         }
+
+    }
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+FREERTOS_TASK(logging, 1)
+{
+    for (;;)
+    {
+
+        xTaskNotify
+        (
+            diagnostics_handle,
+            DiagnosticMask_logging_heartbeat,
+            eSetBits
+        );
+
+        FREERTOS_delay_ms(1'000);
 
     }
 }

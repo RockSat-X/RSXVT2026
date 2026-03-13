@@ -198,7 +198,7 @@ enum DiagnosticLEDBehavior : u32
 
 */
 
-FREERTOS_TASK(diagnostics, 1)
+FREERTOS_TASK(diagnostics, 1) // TODO Duplicative.
 {
 
     u32 current_flags = 0;
