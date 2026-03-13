@@ -131,6 +131,106 @@ MATRIX_stlink_tx(struct Matrix* matrix)
 
 ////////////////////////////////////////////////////////////////////////////////
 //
+// Quaternion stuff.
+//
+
+
+
+struct Quaternion
+{
+    f32 s;
+    f32 i;
+    f32 j;
+    f32 k;
+};
+
+struct EulerAngles
+{
+    f32 yaw;
+    f32 pitch;
+    f32 roll;
+};
+
+static useret struct Quaternion
+QUATERNION_multiply(struct Quaternion lhs, struct Quaternion rhs)
+{
+    return
+        (struct Quaternion)
+        {
+            .s = lhs.s*rhs.s - lhs.i*rhs.i - lhs.j*rhs.j - lhs.k*rhs.k,
+            .i = lhs.s*rhs.i + lhs.i*rhs.s + lhs.j*rhs.k - lhs.k*rhs.j,
+            .j = lhs.s*rhs.j - lhs.i*rhs.k + lhs.j*rhs.s + lhs.k*rhs.i,
+            .k = lhs.s*rhs.k + lhs.i*rhs.j - lhs.j*rhs.i + lhs.k*rhs.s,
+        };
+}
+
+static useret struct Quaternion
+QUATERNION_conjugate(struct Quaternion quaternion)
+{
+    return
+        (struct Quaternion)
+        {
+            .s = +quaternion.s,
+            .i = -quaternion.i,
+            .j = -quaternion.j,
+            .k = -quaternion.k,
+        };
+}
+
+static useret struct Quaternion
+QUATERNION_error(struct Quaternion quaternion_s, struct Quaternion quaternion_r)
+{
+    return QUATERNION_multiply(QUATERNION_conjugate(quaternion_s), quaterion_r);
+}
+
+static useret struct Quaternion
+QUATERNION_from_euler_angles(struct EulerAngles angles)
+{
+
+    f32 cy = cosf(angles.yaw   * 0.5f);
+    f32 sy = sinf(angles.yaw   * 0.5f);
+    f32 cp = cosf(angles.pitch * 0.5f);
+    f32 sp = sinf(angles.pitch * 0.5f);
+    f32 cr = cosf(angles.roll  * 0.5f);
+    f32 sr = sinf(angles.roll  * 0.5f);
+
+    return
+        (struct Quaternion)
+        {
+            .s = cr*cp*cy + sr*sp*sy,
+            .i = sr*cp*cy - cr*sp*sy,
+            .j = cr*sp*cy + sr*cp*sy,
+            .k = cr*cp*sy - sr*sp*cy,
+        };
+
+}
+
+static useret struct EulerAngles
+EULER_from_quaternion(struct Quaternion q)
+{
+
+    f32 sinr_cosp = 2.0f * (q.s*q.i + q.j*q.k);
+    f32 cosr_cosp = 1.0f - 2.0f * (q.i*q.i + q.j*q.j);
+
+    f32 sinp = 2.0f * (q.s*q.j - q.k*q.i);
+
+    f32 siny_cosp = 2.0f * (q.s*q.k + q.i*q.j);
+    f32 cosy_cosp = 1.0f - 2.0f * (q.j*q.j + q.k*q.k);
+
+    return
+        (struct EulerAngles)
+        {
+            .yaw   = atan2f(siny_cosp, cosy_cosp),
+            .pitch = (fabsf(sinp) >= 1.0f) ? copysignf(PI / 2.0f, sinp) : asinf(sinp),
+            .roll  = atan2f(sinr_cosp, cosr_cosp),
+        };
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
 // Actual GNC stuff.
 //
 
@@ -172,10 +272,10 @@ pack_push
             struct OpenMVPacketGNC
             {
                 u16 zero;
-                f32 attitude_x;
-                f32 attitude_y;
-                f32 attitude_z;
-                f32 attitude_w;
+                f32 attitude_yaw;
+                f32 attitude_pitch;
+                f32 attitude_row;
+                f32 unused;
                 u16 computer_vision_processing_time_ms;
                 u8  computer_vision_confidence;
                 u8  padding[43];
@@ -194,62 +294,140 @@ pack_pop
 
 
 
+struct GNCParameters
+{
+    struct VN100Packet     most_recent_imu;
+    struct OpenMVPacketGNC most_recent_openmv_reading;
+    u32                    most_recent_openmv_reading_timestamp_us;
+    u32                    ejection_timestamp_us;
+    u32                    current_timestamp_us;
+
+    b32                    target_found; 
+    i32                    target_conflict_count;
+    u32                    target_lost_timestamp_us;
+    struct Quaternion      desired_orientation;
+};
+
 static void
-GNC_update
-(
-    struct Matrix*                resulting_angular_velocities,
-    const struct VN100Packet*     most_recent_imu,
-    const struct OpenMVPacketGNC* most_recent_openmv_reading
-)
+GNC_update(struct GNCParameters* parameters)
 {
 
-    if (!resulting_angular_velocities)
-        sus;
-
-    if (!most_recent_imu)
-        sus;
-
-    if (!most_recent_openmv_reading)
-        sus;
+     u32 time_since_ejection_us = parameters->current_timestamp_us - parameters->ejection_timestamp_us;
 
 
 
-    struct Matrix* gain =
-        Matrix
-        (
-            3, 6,
-            1, 0, 0, 1, 0, 0,
-            0, 1, 0, 0, 1, 0,
-            0, 0, 1, 0, 0, 1,
-        );
+    // Apply hesterisis to CVT's target confidence.
 
-    struct Matrix* state =
-        Matrix
-        (
-            6, 1,
-            1,
-            1,
-            most_recent_openmv_reading->attitude_x,
-            1,
-            1,
-            1,
-        );
+    if (parameters->target_found)
+    {
+        if (most_recent_openmv_reading->computer_vision_confidence)
+        {
+            parameters->target_conflict_count = 0; // We still see the target!
+        }
+        else if (parameters->target_conflict_count < 3)
+        {
+            parameters->target_conflict_count += 1; // Hmm, we're losing the target..?
+        }
+        else
+        {
+            parameters->target_found             = false; // Target definitely lost!
+            parameters->target_conflict_count    = 0;
+            parameters->target_lost_timestamp_us = parameters->current_timestamp_us;
+        }
+    }
+    else
+    {
+        if (!most_recent_openmv_reading->computer_vision_confidence)
+        {
+            parameters->target_conflict_count = 0; // Target still missing...
+            
+        }
+        else if (parameters->target_conflict_count < 3)
+        {
+            parameters->target_conflict_count += 1; // Oh, we're starting to see the target..?
+        }
+        else
+        {
+            parameters->target_found          = true; // Confident we now see the target!
+            parameters->target_conflict_count = 0;
+        }
+    }
 
-    MATRIX_multiply
-    (
-        resulting_angular_velocities,
-        gain,
-        state
-    );
 
-    MATRIX_multiply_add
-    (
-        resulting_angular_velocities,
-        resulting_angular_velocities,
-        most_recent_imu->QuatX
-    );
+
+    // Determine the orientation the vehicle should have.
+
+    struct Matrix* gain = {0};
+
+    if (parameters->target_found)
+    {
+        if (most_recent_openmv_reading->computer_vision_confidence)
+        {
+
+            parameters->desired_orientation =
+                QUATERNION_from_euler_angles
+                (
+                    (struct EulerAngles)
+                    {
+                        .yaw   = most_recent_openmv_reading->attitude_yaw,
+                        .pitch = most_recent_openmv_reading->attitude_pitch,
+                        .roll  = most_recent_openmv_reading->attitude_roll,
+                    }
+                );
+
+            gain = nullptr; // TODO Determine the gain matrix for this situation.
+
+        }
+        else
+        {
+            gain = nullptr;
+        }
+    }
+    else if (current_timestamp_us - parameters->time_since_ejection < 20'000'000)
+    {
+
+        parameters->desired_orientation =
+            QUATERNION_from_euler_angles
+            (
+                (struct EulerAngles)
+                {
+                    .yaw   = 0.0f, // TODO: Yaw value?
+                    .pitch = 0.0f, // Reset pitch so we can do the search process.,
+                    .roll  = 0.0f, // TODO: Roll value?
+                }
+            );
+
+        gain = nullptr; // TODO Determine the gain matrix for this situation.
+
+    }
+    else // Do the process of searching.
+    {
+        
+        f32 t = 0.0f;
+
+        parameters->desired_orientation =
+            QUATERNION_from_euler_angles
+            (
+                (struct EulerAngles)
+                {
+                    .yaw   = t, // TODO: Function of t?
+                    .pitch = sinf(t), // TODO: Function of t?
+                    .roll  = 0, // TODO: Function of t?
+                }
+            );
+
+        gain = nullptr; // TODO Determine the gain matrix for this situation.
+
+    }
+
+
+
+    // 
+
+    QUATERNION_error(quaternion_s, quaternion_r);
 
 }
+
 
 
 
