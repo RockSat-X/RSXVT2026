@@ -1,63 +1,61 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Matrix stuff. @/`Using Matrices`.
+// Matrix stuff.
 //
 
 
 
-#define Matrix(ROWS, COLUMNS, VALUES...)  \
-    (                                     \
-        (struct Matrix*)                  \
-        (f32[2 + (ROWS) * (COLUMNS)])     \
-        {                                 \
-            *(f32*) &(i32) { (ROWS   ) }, \
-            *(f32*) &(i32) { (COLUMNS) }, \
-            VALUES                        \
-        }                                 \
-    )
+#define Matrix_AxB(ROWS, COLUMNS)    \
+    struct Matrix_##ROWS##x##COLUMNS \
+    {                                \
+        f32 rows[(ROWS)][(COLUMNS)]; \
+    }
 
-#define AT(MATRIX, ROW, COLUMN) \
-    (MATRIX)->values[(ROW) * (MATRIX)->columns + (COLUMN)]
+Matrix_AxB(1, 1); Matrix_AxB(2, 1); Matrix_AxB(3, 1); Matrix_AxB(4, 1); Matrix_AxB(5, 1); Matrix_AxB(6, 1);
+Matrix_AxB(1, 2); Matrix_AxB(2, 2); Matrix_AxB(3, 2); Matrix_AxB(4, 2); Matrix_AxB(5, 2); Matrix_AxB(6, 2);
+Matrix_AxB(1, 3); Matrix_AxB(2, 3); Matrix_AxB(3, 3); Matrix_AxB(4, 3); Matrix_AxB(5, 3); Matrix_AxB(6, 3);
+Matrix_AxB(1, 4); Matrix_AxB(2, 4); Matrix_AxB(3, 4); Matrix_AxB(4, 4); Matrix_AxB(5, 4); Matrix_AxB(6, 4);
+Matrix_AxB(1, 5); Matrix_AxB(2, 5); Matrix_AxB(3, 5); Matrix_AxB(4, 5); Matrix_AxB(5, 5); Matrix_AxB(6, 5);
+Matrix_AxB(1, 6); Matrix_AxB(2, 6); Matrix_AxB(3, 6); Matrix_AxB(4, 6); Matrix_AxB(5, 6); Matrix_AxB(6, 6);
 
-struct Matrix
-{
-    i32 rows;
-    i32 columns;
-    f32 values[];
-};
+#undef Matrix_AxB
 
 
 
-
+#define MATRIX_multiply(DST, LHS, RHS)                                     \
+    do                                                                     \
+    {                                                                      \
+        static_assert(countof((DST)->rows   ) == countof((LHS)->rows   )); \
+        static_assert(countof((DST)->rows[0]) == countof((RHS)->rows[0])); \
+        static_assert(countof((LHS)->rows[0]) == countof((RHS)->rows   )); \
+        MATRIX_multiply_                                                   \
+        (                                                                  \
+            &(DST)->rows[0][0],                                            \
+            &(LHS)->rows[0][0],                                            \
+            &(RHS)->rows[0][0],                                            \
+            countof((DST)->rows   ),                                       \
+            countof((DST)->rows[0]),                                       \
+            countof((LHS)->rows[0])                                        \
+        );                                                                 \
+    }                                                                      \
+    while (false)
 static void
-MATRIX_multiply(struct Matrix* dst, struct Matrix* lhs, struct Matrix* rhs)
+MATRIX_multiply_(f32* dst, f32* lhs, f32* rhs, i32 rows, i32 columns, i32 common)
 {
-
-    if (!dst || !lhs || !rhs)
-        sus; // Missing arguments.
 
     if (dst == lhs || dst == rhs)
         sus; // No destination aliasing (e.g. `A = A * B;` is disallowed).
 
-    if (dst->rows != lhs->rows)
-        sus; // Incorrect dimensions.
-
-    if (dst->columns != rhs->columns)
-        sus; // Incorrect dimensions.
-
-    if (lhs->columns != rhs->rows)
-        sus; // Incorrect dimensions.
-
-    for (i32 i = 0; i < lhs->rows; i += 1)
+    for (i32 i = 0; i < rows; i += 1)
     {
-        for (i32 j = 0; j < rhs->columns; j += 1)
+        for (i32 j = 0; j < columns; j += 1)
         {
 
-            dst->values[i * dst->columns + j] = 0;
+            dst[i * columns + j] = 0;
 
-            for (i32 k = 0; k < rhs->rows; k += 1)
+            for (i32 k = 0; k < common; k += 1)
             {
-                AT(dst, i, j) += AT(lhs, i, k) * AT(rhs, k, j);
+                dst[i * columns + j] += lhs[i * common + k] * rhs[k * columns + j];
             }
 
         }
@@ -67,60 +65,39 @@ MATRIX_multiply(struct Matrix* dst, struct Matrix* lhs, struct Matrix* rhs)
 
 
 
+#define MATRIX_stlink_tx(MATRIX)    \
+    MATRIX_stlink_tx_               \
+    (                               \
+        &(MATRIX)->rows[0][0],      \
+        countof((MATRIX)->rows   ), \
+        countof((MATRIX)->rows[0])  \
+    )
 static void
-MATRIX_multiply_add(struct Matrix* accumulator, struct Matrix* addend, f32 factor)
+MATRIX_stlink_tx_(f32* matrix, i32 rows, i32 columns)
 {
 
-    if (!accumulator || !addend)
-        sus; // Missing arguments.
-
-    if (accumulator->rows != addend->rows)
-        sus; // Incorrect dimensions.
-
-    if (accumulator->columns != addend->columns)
-        sus; // Incorrect dimensions.
-
-    for (i32 i = 0; i < accumulator->rows; i += 1)
-    {
-        for (i32 j = 0; j < accumulator->columns; j += 1)
-        {
-            AT(accumulator, i, j) += AT(addend, i, j) * factor;
-        }
-    }
-
-}
-
-
-
-static void
-MATRIX_stlink_tx(struct Matrix* matrix)
-{
-
-    if (!matrix)
-        sus; // Missing argument.
-
-    for (i32 i = 0; i < matrix->rows; i += 1)
+    for (i32 i = 0; i < rows; i += 1)
     {
 
         stlink_tx
         (
             "%c ",
-            matrix->rows == 1     ? '<'  :
-            i == 0                ? '/'  :
-            i == matrix->rows - 1 ? '\\' : '|'
+            rows == 1     ? '<'  :
+            i == 0        ? '/'  :
+            i == rows - 1 ? '\\' : '|'
         );
 
-        for (i32 j = 0; j < matrix->columns; j += 1)
+        for (i32 j = 0; j < columns; j += 1)
         {
-            stlink_tx("%9.5g ", AT(matrix, i, j));
+            stlink_tx("%9.5g ", matrix[i * columns + j]);
         }
 
         stlink_tx
         (
             "%c\n",
-            matrix->rows == 1     ? '>'  :
-            i == 0                ? '\\' :
-            i == matrix->rows - 1 ? '/'  : '|'
+            rows == 1     ? '>'  :
+            i == 0        ? '\\' :
+            i == rows - 1 ? '/'  : '|'
         );
 
     }
@@ -357,7 +334,7 @@ GNC_update(struct GNCParameters* parameters)
 
     // Determine the orientation the vehicle should have.
 
-    struct Matrix* gain = {0};
+    struct Matrix_3x6 gain = {0};
 
     if (parameters->target_found)
     {
@@ -375,12 +352,30 @@ GNC_update(struct GNCParameters* parameters)
                     }
                 );
 
-            gain = nullptr; // TODO Determine the gain matrix for this situation.
+            gain =
+                (struct Matrix_3x6) // TODO Determine the gain matrix for this situation.
+                {
+                    .rows =
+                        {
+                            { 1, 2, 3, 4, 5, 6, },
+                            { 2, 3, 4, 5, 6, 7, },
+                            { 3, 4, 5, 6, 7, 8, },
+                        },
+                };
 
         }
         else
         {
-            gain = nullptr;
+            gain =
+                (struct Matrix_3x6) // TODO Determine the gain matrix for this situation.
+                {
+                    .rows =
+                        {
+                            { 1, 2, 3, 4, 5, 6, },
+                            { 2, 3, 4, 5, 6, 7, },
+                            { 3, 4, 5, 6, 7, 8, },
+                        },
+                };
         }
     }
     else if (time_since_ejection_us < 20'000'000)
@@ -397,7 +392,16 @@ GNC_update(struct GNCParameters* parameters)
                 }
             );
 
-        gain = nullptr; // TODO Determine the gain matrix for this situation.
+        gain =
+            (struct Matrix_3x6) // TODO Determine the gain matrix for this situation.
+            {
+                .rows =
+                    {
+                        { 1, 2, 3, 4, 5, 6, },
+                        { 2, 3, 4, 5, 6, 7, },
+                        { 3, 4, 5, 6, 7, 8, },
+                    },
+            };
 
     }
     else // Do the process of searching.
@@ -416,7 +420,16 @@ GNC_update(struct GNCParameters* parameters)
                 }
             );
 
-        gain = nullptr; // TODO Determine the gain matrix for this situation.
+        gain =
+            (struct Matrix_3x6) // TODO Determine the gain matrix for this situation.
+            {
+                .rows =
+                    {
+                        { 1, 2, 3, 4, 5, 6, },
+                        { 2, 3, 4, 5, 6, 7, },
+                        { 3, 4, 5, 6, 7, 8, },
+                    },
+            };
 
     }
 
@@ -425,32 +438,3 @@ GNC_update(struct GNCParameters* parameters)
     // TODO.
 
 }
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-//
-// Notes.
-//
-
-
-
-// @/`Using Matrices`:
-//
-// Matrices should be made by doing `Matrix(A, B)` to create
-// an AxB matrix of zeros, or `Matrix(A, B, ...)` where all
-// elements are listed out explicitly; it should be noted that
-// it's not checked if the amount of listed elements matches up
-// with AxB, so if too few elements are given, the rest of the
-// matrix's elements are initialized to zero (but too many and
-// the compiler will complain, so that's okay).
-//
-// The `Matrix` macro creates a `Matrix` instance on the stack.
-// This means matrices should not be used as return values as
-// they are allocated in the called function's stack frame.
-//
-// Matrix elements are stored as a flat array in row-major order.
-// To access a specific element of the matrix, use the `AT` macro,
-// like: `AT(my_matrix, 5, 6)` to get the element in the 6th row,
-// 7th column (because zero-indexing).
