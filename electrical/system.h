@@ -849,13 +849,6 @@ sorry_(void) // @/`Halting`.
 #include <printf/printf.c>
 #pragma GCC diagnostic pop
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#pragma GCC diagnostic ignored "-Wconversion"
-#include "CMSIS-DSP/Source/CommonTables/CommonTables.c"
-#include "CMSIS-DSP/Source/FastMathFunctions/FastMathFunctions.c"
-#pragma GCC diagnostic pop
-
 #include "ringbuffer.c"
 
 

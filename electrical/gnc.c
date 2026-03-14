@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Matrix stuff.
+// Math stuff.
 //
 
 
@@ -19,6 +19,61 @@ Matrix_AxB(1, 5); Matrix_AxB(2, 5); Matrix_AxB(3, 5); Matrix_AxB(4, 5); Matrix_A
 Matrix_AxB(1, 6); Matrix_AxB(2, 6); Matrix_AxB(3, 6); Matrix_AxB(4, 6); Matrix_AxB(5, 6); Matrix_AxB(6, 6);
 
 #undef Matrix_AxB
+
+struct Quaternion
+{
+    f32 s;
+    f32 i;
+    f32 j;
+    f32 k;
+};
+
+struct EulerZYX
+{
+    f32 yaw;   // Z-axis.
+    f32 pitch; // Y-axis.
+    f32 roll;  // X-axis.
+};
+
+
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#pragma GCC diagnostic ignored "-Wconversion"
+#include "CMSIS-DSP/Include/arm_common_tables.h"
+#include "CMSIS-DSP/Source/CommonTables/CommonTables.c"
+#include "CMSIS-DSP/Source/FastMathFunctions/FastMathFunctions.c"
+#pragma GCC diagnostic pop
+
+static useret f32
+atan2_f32(f32 y, f32 x)
+{
+
+    f32        result = {0};
+    arm_status status = arm_atan2_f32(y, x, &result);
+
+    if (status != ARM_MATH_SUCCESS)
+        sus;
+
+    return result;
+
+}
+
+static useret f32
+asin_f32(f32 x)
+{
+
+    f32        y      = {0};
+    arm_status status = arm_sqrt_f32(1 - x * x, &y);
+
+    if (status != ARM_MATH_SUCCESS)
+        sus;
+
+    f32 result = atan2_f32(x, y);
+
+    return result;
+
+}
 
 
 
@@ -106,62 +161,44 @@ MATRIX_stlink_tx_(f32* matrix, i32 rows, i32 columns)
 
 
 
-////////////////////////////////////////////////////////////////////////////////
-//
-// Quaternion stuff.
-//
-
-
-
-struct Quaternion
-{
-    f32 s;
-    f32 i;
-    f32 j;
-    f32 k;
-};
-
-struct EulerAngles
-{
-    f32 yaw;
-    f32 pitch;
-    f32 roll;
-};
-
 static useret struct Quaternion
 QUATERNION_multiply(struct Quaternion lhs, struct Quaternion rhs)
 {
-    return
-        (struct Quaternion)
+
+    struct Quaternion result =
         {
-            .s = lhs.s*rhs.s - lhs.i*rhs.i - lhs.j*rhs.j - lhs.k*rhs.k,
-            .i = lhs.s*rhs.i + lhs.i*rhs.s + lhs.j*rhs.k - lhs.k*rhs.j,
-            .j = lhs.s*rhs.j - lhs.i*rhs.k + lhs.j*rhs.s + lhs.k*rhs.i,
-            .k = lhs.s*rhs.k + lhs.i*rhs.j - lhs.j*rhs.i + lhs.k*rhs.s,
+            .s = lhs.s * rhs.s - lhs.i * rhs.i - lhs.j * rhs.j - lhs.k * rhs.k,
+            .i = lhs.s * rhs.i + lhs.i * rhs.s + lhs.j * rhs.k - lhs.k * rhs.j,
+            .j = lhs.s * rhs.j - lhs.i * rhs.k + lhs.j * rhs.s + lhs.k * rhs.i,
+            .k = lhs.s * rhs.k + lhs.i * rhs.j - lhs.j * rhs.i + lhs.k * rhs.s,
         };
+
+    return result;
+
 }
 
+
+
 static useret struct Quaternion
-QUATERNION_conjugate(struct Quaternion quaternion)
+QUATERNION_conjugate(struct Quaternion q)
 {
-    return
-        (struct Quaternion)
+
+    struct Quaternion result =
         {
-            .s = +quaternion.s,
-            .i = -quaternion.i,
-            .j = -quaternion.j,
-            .k = -quaternion.k,
+            .s = +q.s,
+            .i = -q.i,
+            .j = -q.j,
+            .k = -q.k,
         };
+
+    return result;
+
 }
 
-static useret struct Quaternion
-QUATERNION_error(struct Quaternion quaternion_s, struct Quaternion quaternion_r)
-{
-    return QUATERNION_multiply(QUATERNION_conjugate(quaternion_s), quaternion_r);
-}
+
 
 static useret struct Quaternion
-QUATERNION_from_euler_angles(struct EulerAngles angles)
+QUATERNION_from_euler_zyx(struct EulerZYX angles)
 {
 
     f32 cy = arm_cos_f32(angles.yaw   * 0.5f);
@@ -171,36 +208,38 @@ QUATERNION_from_euler_angles(struct EulerAngles angles)
     f32 cr = arm_cos_f32(angles.roll  * 0.5f);
     f32 sr = arm_sin_f32(angles.roll  * 0.5f);
 
-    return
-        (struct Quaternion)
+    struct Quaternion result =
         {
-            .s = cr*cp*cy + sr*sp*sy,
-            .i = sr*cp*cy - cr*sp*sy,
-            .j = cr*sp*cy + sr*cp*sy,
-            .k = cr*cp*sy - sr*sp*cy,
+            .s = cr * cp*cy + sr * sp * sy,
+            .i = sr * cp*cy - cr * sp * sy,
+            .j = cr * sp*cy + sr * cp * sy,
+            .k = cr * cp*sy - sr * sp * cy,
         };
+
+    return result;
 
 }
 
-static useret struct EulerAngles
-EULER_from_quaternion(struct Quaternion q)
+
+
+static useret struct EulerZYX
+QUATERNION_to_euler_zyx(struct Quaternion q)
 {
 
-    f32 sinr_cosp = 2.0f * (q.s*q.i + q.j*q.k);
-    f32 cosr_cosp = 1.0f - 2.0f * (q.i*q.i + q.j*q.j);
+    f32 sinr_cosp = 2.0f * (q.s * q.i + q.j * q.k);
+    f32 cosr_cosp = 1.0f - 2.0f * (q.i*q.i + q.j * q.j);
+    f32 sinp      = 2.0f * (q.s * q.j - q.k * q.i);
+    f32 siny_cosp = 2.0f * (q.s * q.k + q.i * q.j);
+    f32 cosy_cosp = 1.0f - 2.0f * (q.j * q.j + q.k * q.k);
 
-    f32 sinp = 2.0f * (q.s*q.j - q.k*q.i);
-
-    f32 siny_cosp = 2.0f * (q.s*q.k + q.i*q.j);
-    f32 cosy_cosp = 1.0f - 2.0f * (q.j*q.j + q.k*q.k);
-
-    return
-        (struct EulerAngles)
+    struct EulerZYX result =
         {
-            .yaw   = atan2f(siny_cosp, cosy_cosp),
-            .pitch = (fabsf(sinp) >= 1.0f) ? copysignf(PI / 2.0f, sinp) : acosf(sinp),
-            .roll  = atan2f(sinr_cosp, cosr_cosp),
+            .yaw   = atan2_f32(siny_cosp, cosy_cosp),
+            .pitch = (fabsf(sinp) >= 1.0f) ? copysignf(PI / 2.0f, sinp) : asin_f32(sinp),
+            .roll  = atan2_f32(sinr_cosp, cosr_cosp),
         };
+
+    return result;
 
 }
 
@@ -342,9 +381,9 @@ GNC_update(struct GNCParameters* parameters)
         {
 
             parameters->desired_orientation =
-                QUATERNION_from_euler_angles
+                QUATERNION_from_euler_zyx
                 (
-                    (struct EulerAngles)
+                    (struct EulerZYX)
                     {
                         .yaw   = parameters->most_recent_openmv_reading.attitude_yaw,
                         .pitch = parameters->most_recent_openmv_reading.attitude_pitch,
@@ -382,9 +421,9 @@ GNC_update(struct GNCParameters* parameters)
     {
 
         parameters->desired_orientation =
-            QUATERNION_from_euler_angles
+            QUATERNION_from_euler_zyx
             (
-                (struct EulerAngles)
+                (struct EulerZYX)
                 {
                     .yaw   = 0.0f, // TODO: Yaw value?
                     .pitch = 0.0f, // Reset pitch so we can do the search process.,
@@ -410,9 +449,9 @@ GNC_update(struct GNCParameters* parameters)
         f32 t = 0.0f;
 
         parameters->desired_orientation =
-            QUATERNION_from_euler_angles
+            QUATERNION_from_euler_zyx
             (
-                (struct EulerAngles)
+                (struct EulerZYX)
                 {
                     .yaw   = t, // TODO: Function of t?
                     .pitch = arm_sin_f32(t), // TODO: Function of t?
@@ -432,9 +471,5 @@ GNC_update(struct GNCParameters* parameters)
             };
 
     }
-
-
-
-    // TODO.
 
 }
