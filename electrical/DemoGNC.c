@@ -50,7 +50,7 @@ main(void)
 
         GNC_update(GNC_MOCK_SIMULATION[index], &context);
 
-        stlink_tx("[%6d/%d] ", index + 1, countof(GNC_MOCK_SIMULATION));
+        stlink_tx("Row %-6d ", index + 2);
         stlink_tx_GNCContext(context);
 
     }
