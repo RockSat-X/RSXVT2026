@@ -120,15 +120,15 @@ MATRIX_multiply_(f32* dst, f32* lhs, f32* rhs, i32 rows, i32 columns, i32 common
 
 
 
-#define MATRIX_stlink_tx(MATRIX)    \
-    MATRIX_stlink_tx_               \
+#define stlink_tx_Matrix(MATRIX)    \
+    stlink_tx_Matrix_               \
     (                               \
         &(MATRIX)->rows[0][0],      \
         countof((MATRIX)->rows   ), \
         countof((MATRIX)->rows[0])  \
     )
 static void
-MATRIX_stlink_tx_(f32* matrix, i32 rows, i32 columns)
+stlink_tx_Matrix_(f32* matrix, i32 rows, i32 columns)
 {
 
     for (i32 i = 0; i < rows; i += 1)
