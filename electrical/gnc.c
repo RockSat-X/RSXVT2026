@@ -341,7 +341,7 @@ struct GNCInput
 
     FIELDS = pxd.SimpleNamespaceTable(
         ('name'                    , 'type'             , 'format'),
-        ('initialized'             , 'b32'              , ...     ),
+        ('initialized'             , 'b32'              , None    ),
         ('angular_accelerations'   , 'struct Matrix_3x1', ...     ),
         ('target_found'            , 'b32'              , ...     ),
         ('target_conflict_count'   , 'i32'              , ...     ),
@@ -375,6 +375,10 @@ struct GNCInput
             if format_string is ...:
 
                 match field.type:
+
+                    case None:
+                        format_string = None
+                        argument      = None
 
                     case 'i8' | 'i16' | 'i32' | 'i64':
                         format_string = '%d'
@@ -417,11 +421,13 @@ struct GNCInput
         whole_format_string = ' | '.join(
             f'.{field.name} = {format_string}'
             for field, (format_string, argument) in zip(FIELDS, format_string_argument_pairs)
+            if format_string is not None
         )
 
         whole_argument = ', '.join(
             argument
             for format_string, argument in format_string_argument_pairs
+            if format_string is not None
         )
 
         Meta.line(f'''
