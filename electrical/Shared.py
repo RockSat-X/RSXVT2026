@@ -1505,6 +1505,7 @@ for target in TARGETS:
             -fno-strict-aliasing
             -fno-eliminate-unused-debug-types
             -ffunction-sections
+            -fdata-sections
             -fcompare-debug-second
             -fdiagnostics-color=always
             {'\n'.join(f'-D {name}="{pxd.c_repr(value)}"' for name, value in defines                  )}
