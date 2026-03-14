@@ -271,10 +271,6 @@ pack_push
         f32 GyroZ;
     };
 
-    // TODO Finalize structure.
-    // TODO We may have two packet variations: one for IMU + image data and one for just image data.
-
-
     struct OpenMVPacket // @/`OpenMV Packet Format`: Coupled.
     {
         union
@@ -312,60 +308,115 @@ pack_pop
 
 
 
-struct GNCParameters
+struct GNCInput
 {
+
+    // Data in here is stuff the caller of `GNC_update` will provide us,
+    // and thus shouldn't be modified (can't anyways because it's marked as `const`).
+
     struct VN100Packet     most_recent_imu;
     struct OpenMVPacketGNC most_recent_openmv_reading;
     u32                    most_recent_openmv_reading_timestamp_us;
     u32                    ejection_timestamp_us;
     u32                    current_timestamp_us;
-    b32                    target_found;
-    i32                    target_conflict_count;
-    u32                    target_lost_timestamp_us;
-    struct Quaternion      desired_orientation;
+
+};
+
+struct GNCContext
+{
+
+    // This structure contains stuff that `GNC_update` will use to figure out what to do,
+    // and ultimately produce an updated value of `angular_accelerations` that the caller
+    // will use to update the stepper motors.
+    //
+    // The only value the caller cares about is `angular_accelerations`; everything else
+    // is up to us to modify and use at our discretion.
+
+    b32               initialized;
+    struct Matrix_3x1 angular_accelerations;
+    b32               target_found;
+    i32               target_conflict_count;
+    u32               target_lost_timestamp_us;
+    struct Quaternion desired_orientation;
+
 };
 
 static void
-GNC_update(struct GNCParameters* parameters)
+GNC_update(const struct GNCInput input, struct GNCContext* context)
 {
 
-     u32 time_since_ejection_us = parameters->current_timestamp_us - parameters->ejection_timestamp_us;
+    if (!context)
+        sus;
+
+
+
+    // See if we need to set some default values for the GNC context.
+
+    if (!context->initialized)
+    {
+
+        // Let's make sure all values are zero instead of potentially any left-over garbage.
+
+        memzero(context);
+
+
+
+        // We'll start off as if we lost the target from the moment we have ejected.
+
+        context->target_found             = false;
+        context->target_conflict_count    = 0;
+        context->target_lost_timestamp_us = input.ejection_timestamp_us;
+
+
+
+        // An actual value will be computed for these fields later on.
+
+        context->angular_accelerations = (struct Matrix_3x1) {0};
+        context->desired_orientation   = (struct Quaternion) {0};
+
+
+
+        // We're done setting the initial values for the rest of the GNC algorithm to work on.
+
+        context->initialized = true;
+
+    }
 
 
 
     // Apply hesterisis to CVT's target confidence.
 
-    if (parameters->target_found)
+    if (context->target_found)
     {
-        if (parameters->most_recent_openmv_reading.computer_vision_confidence)
+        if (input.most_recent_openmv_reading.computer_vision_confidence)
         {
-            parameters->target_conflict_count = 0; // We still see the target!
+            context->target_conflict_count = 0; // We still see the target!
         }
-        else if (parameters->target_conflict_count < 3)
+        else if (context->target_conflict_count < 3)
         {
-            parameters->target_conflict_count += 1; // Hmm, we're losing the target..?
+            context->target_conflict_count += 1; // Hmm, we're losing the target..?
         }
         else
         {
-            parameters->target_found             = false; // Target definitely lost!
-            parameters->target_conflict_count    = 0;
-            parameters->target_lost_timestamp_us = parameters->current_timestamp_us;
+            context->target_found             = false; // Target definitely lost!
+            context->target_conflict_count    = 0;
+            context->target_lost_timestamp_us = input.current_timestamp_us;
         }
     }
     else
     {
-        if (!parameters->most_recent_openmv_reading.computer_vision_confidence)
+        if (!input.most_recent_openmv_reading.computer_vision_confidence)
         {
-            parameters->target_conflict_count = 0; // Target still missing...
+            context->target_conflict_count = 0; // Target still missing...
         }
-        else if (parameters->target_conflict_count < 3)
+        else if (context->target_conflict_count < 3)
         {
-            parameters->target_conflict_count += 1; // Oh, we're starting to see the target..?
+            context->target_conflict_count += 1; // Oh, we're starting to see the target..?
         }
         else
         {
-            parameters->target_found          = true; // Confident we now see the target!
-            parameters->target_conflict_count = 0;
+            context->target_found          = true; // Confident we now see the target!
+            context->target_conflict_count = 0;
         }
     }
 
@@ -373,21 +424,22 @@ GNC_update(struct GNCParameters* parameters)
 
     // Determine the orientation the vehicle should have.
 
-    struct Matrix_3x6 gain = {0};
+    u32               time_since_ejection_us = input.current_timestamp_us - input.ejection_timestamp_us;
+    struct Matrix_3x6 gain                   = {0};
 
-    if (parameters->target_found)
+    if (context->target_found)
     {
-        if (parameters->most_recent_openmv_reading.computer_vision_confidence)
+        if (input.most_recent_openmv_reading.computer_vision_confidence)
         {
 
-            parameters->desired_orientation =
+            context->desired_orientation =
                 QUATERNION_from_euler_zyx
                 (
                     (struct EulerZYX)
                     {
-                        .yaw   = parameters->most_recent_openmv_reading.attitude_yaw,
-                        .pitch = parameters->most_recent_openmv_reading.attitude_pitch,
-                        .roll  = parameters->most_recent_openmv_reading.attitude_roll,
+                        .yaw   = input.most_recent_openmv_reading.attitude_yaw,
+                        .pitch = input.most_recent_openmv_reading.attitude_pitch,
+                        .roll  = input.most_recent_openmv_reading.attitude_roll,
                     }
                 );
 
@@ -420,7 +472,7 @@ GNC_update(struct GNCParameters* parameters)
     else if (time_since_ejection_us < 20'000'000)
     {
 
-        parameters->desired_orientation =
+        context->desired_orientation =
             QUATERNION_from_euler_zyx
             (
                 (struct EulerZYX)
@@ -448,7 +500,7 @@ GNC_update(struct GNCParameters* parameters)
 
         f32 t = 0.0f;
 
-        parameters->desired_orientation =
+        context->desired_orientation =
             QUATERNION_from_euler_zyx
             (
                 (struct EulerZYX)

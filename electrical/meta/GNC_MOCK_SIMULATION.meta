@@ -1,9 +1,9 @@
-static struct GNCParameters GNC_MOCK_SIMULATION[] =
+static const struct GNCInput GNC_MOCK_SIMULATION[] =
     {
-        [0] = { .current_timestamp_us = 0 },
-        [1] = { .current_timestamp_us = 20000 },
-        [2] = { .current_timestamp_us = 40000 },
-        [3] = { .current_timestamp_us = 60000 },
-        [4] = { .current_timestamp_us = 80000 },
+        [0] = { .current_timestamp_us = 0      },
+        [1] = { .current_timestamp_us = 20000  },
+        [2] = { .current_timestamp_us = 40000  },
+        [3] = { .current_timestamp_us = 60000  },
+        [4] = { .current_timestamp_us = 80000  },
         [5] = { .current_timestamp_us = 100000 },
     };

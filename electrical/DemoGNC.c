@@ -11,8 +11,6 @@ main(void)
     STPY_init();
     UXART_reinit(UXARTHandle_stlink);
 
-
-
     #include "GNC_MOCK_SIMULATION.meta"
     /* #meta
 
@@ -29,21 +27,21 @@ main(void)
             for key, value in entry.items():
                 entries[key] += [value]
 
-        with Meta.enter('static struct GNCParameters GNC_MOCK_SIMULATION[] ='):
-
+        Meta.lut('struct GNCInput', 'GNC_MOCK_SIMULATION', (
+            (
+                entry_i,
+                *entry.items()
+            )
             for entry_i, entry in enumerate(csv.DictReader(
                 pxd.make_main_relative_path('./misc/GNC_MOCK_SIMULATION.csv')
                     .read_text()
                     .splitlines()
-            )):
-                Meta.line(f'''
-                    [{entry_i}] = {{ {','.join(f'.{key} = {value}' for key, value in entry.items())} }},
-                ''')
-
+            ))
+        ))
 
     */
 
-
+    struct GNCContext context = {0};
 
     for (;;)
     {
@@ -51,7 +49,7 @@ main(void)
         for (i32 index = 0; index < countof(GNC_MOCK_SIMULATION); index += 1)
         {
 
-            GNC_update(&GNC_MOCK_SIMULATION[index]);
+            GNC_update(GNC_MOCK_SIMULATION[index], &context);
 
             stlink_tx
             (
