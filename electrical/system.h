@@ -59,7 +59,7 @@
 #define memeq(X, Y)             (static_assert_expr(sizeof(X) == sizeof(Y)), !memcmp(&(X), &(Y), sizeof(Y)))
 #define memzero(X)              memset((X), 0, sizeof(*(X)))
 #define static_assert_expr(...) ((void) sizeof(struct { static_assert(__VA_ARGS__, #__VA_ARGS__); }))
-#define PI                      3.14159265359f
+#define PI                      3.14159265358979f
 #ifndef offsetof
 #define offsetof __builtin_offsetof
 #endif

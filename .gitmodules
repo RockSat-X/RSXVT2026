@@ -18,3 +18,7 @@
 	path = deps/stpy
 	url = https://github.com/PhucXDoan/stpy
 	branch = master
+[submodule "deps/CMSIS-DSP"]
+	path = deps/CMSIS-DSP
+	url = https://github.com/ARM-software/CMSIS-DSP
+	branch = main

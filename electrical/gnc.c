@@ -1,63 +1,116 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Matrix stuff. @/`Using Matrices`.
+// Math stuff.
 //
 
 
 
-#define Matrix(ROWS, COLUMNS, VALUES...)  \
-    (                                     \
-        (struct Matrix*)                  \
-        (f32[2 + (ROWS) * (COLUMNS)])     \
-        {                                 \
-            *(f32*) &(i32) { (ROWS   ) }, \
-            *(f32*) &(i32) { (COLUMNS) }, \
-            VALUES                        \
-        }                                 \
-    )
+#define Matrix_AxB(ROWS, COLUMNS)    \
+    struct Matrix_##ROWS##x##COLUMNS \
+    {                                \
+        f32 rows[(ROWS)][(COLUMNS)]; \
+    }
 
-#define AT(MATRIX, ROW, COLUMN) \
-    (MATRIX)->values[(ROW) * (MATRIX)->columns + (COLUMN)]
+Matrix_AxB(1, 1); Matrix_AxB(2, 1); Matrix_AxB(3, 1); Matrix_AxB(4, 1); Matrix_AxB(5, 1); Matrix_AxB(6, 1);
+Matrix_AxB(1, 2); Matrix_AxB(2, 2); Matrix_AxB(3, 2); Matrix_AxB(4, 2); Matrix_AxB(5, 2); Matrix_AxB(6, 2);
+Matrix_AxB(1, 3); Matrix_AxB(2, 3); Matrix_AxB(3, 3); Matrix_AxB(4, 3); Matrix_AxB(5, 3); Matrix_AxB(6, 3);
+Matrix_AxB(1, 4); Matrix_AxB(2, 4); Matrix_AxB(3, 4); Matrix_AxB(4, 4); Matrix_AxB(5, 4); Matrix_AxB(6, 4);
+Matrix_AxB(1, 5); Matrix_AxB(2, 5); Matrix_AxB(3, 5); Matrix_AxB(4, 5); Matrix_AxB(5, 5); Matrix_AxB(6, 5);
+Matrix_AxB(1, 6); Matrix_AxB(2, 6); Matrix_AxB(3, 6); Matrix_AxB(4, 6); Matrix_AxB(5, 6); Matrix_AxB(6, 6);
 
-struct Matrix
+#undef Matrix_AxB
+
+struct Quaternion
 {
-    i32 rows;
-    i32 columns;
-    f32 values[];
+    f32 s;
+    f32 i;
+    f32 j;
+    f32 k;
+};
+
+struct EulerZYX
+{
+    f32 yaw;   // Z-axis.
+    f32 pitch; // Y-axis.
+    f32 roll;  // X-axis.
 };
 
 
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#pragma GCC diagnostic ignored "-Wconversion"
+#include "CMSIS-DSP/Include/arm_common_tables.h"
+#include "CMSIS-DSP/Source/CommonTables/CommonTables.c"
+#include "CMSIS-DSP/Source/FastMathFunctions/FastMathFunctions.c"
+#pragma GCC diagnostic pop
 
-static void
-MATRIX_multiply(struct Matrix* dst, struct Matrix* lhs, struct Matrix* rhs)
+static useret f32
+atan2_f32(f32 y, f32 x)
 {
 
-    if (!dst || !lhs || !rhs)
-        sus; // Missing arguments.
+    f32        result = {0};
+    arm_status status = arm_atan2_f32(y, x, &result);
+
+    if (status != ARM_MATH_SUCCESS)
+        sus;
+
+    return result;
+
+}
+
+static useret f32
+asin_f32(f32 x)
+{
+
+    f32        y      = {0};
+    arm_status status = arm_sqrt_f32(1 - x * x, &y);
+
+    if (status != ARM_MATH_SUCCESS)
+        sus;
+
+    f32 result = atan2_f32(x, y);
+
+    return result;
+
+}
+
+
+
+#define MATRIX_multiply(DST, LHS, RHS)                                     \
+    do                                                                     \
+    {                                                                      \
+        static_assert(countof((DST)->rows   ) == countof((LHS)->rows   )); \
+        static_assert(countof((DST)->rows[0]) == countof((RHS)->rows[0])); \
+        static_assert(countof((LHS)->rows[0]) == countof((RHS)->rows   )); \
+        MATRIX_multiply_                                                   \
+        (                                                                  \
+            &(DST)->rows[0][0],                                            \
+            &(LHS)->rows[0][0],                                            \
+            &(RHS)->rows[0][0],                                            \
+            countof((DST)->rows   ),                                       \
+            countof((DST)->rows[0]),                                       \
+            countof((LHS)->rows[0])                                        \
+        );                                                                 \
+    }                                                                      \
+    while (false)
+static void
+MATRIX_multiply_(f32* dst, f32* lhs, f32* rhs, i32 rows, i32 columns, i32 common)
+{
 
     if (dst == lhs || dst == rhs)
         sus; // No destination aliasing (e.g. `A = A * B;` is disallowed).
 
-    if (dst->rows != lhs->rows)
-        sus; // Incorrect dimensions.
-
-    if (dst->columns != rhs->columns)
-        sus; // Incorrect dimensions.
-
-    if (lhs->columns != rhs->rows)
-        sus; // Incorrect dimensions.
-
-    for (i32 i = 0; i < lhs->rows; i += 1)
+    for (i32 i = 0; i < rows; i += 1)
     {
-        for (i32 j = 0; j < rhs->columns; j += 1)
+        for (i32 j = 0; j < columns; j += 1)
         {
 
-            dst->values[i * dst->columns + j] = 0;
+            dst[i * columns + j] = 0;
 
-            for (i32 k = 0; k < rhs->rows; k += 1)
+            for (i32 k = 0; k < common; k += 1)
             {
-                AT(dst, i, j) += AT(lhs, i, k) * AT(rhs, k, j);
+                dst[i * columns + j] += lhs[i * common + k] * rhs[k * columns + j];
             }
 
         }
@@ -67,63 +120,126 @@ MATRIX_multiply(struct Matrix* dst, struct Matrix* lhs, struct Matrix* rhs)
 
 
 
+#define stlink_tx_Matrix(MATRIX)    \
+    stlink_tx_Matrix_               \
+    (                               \
+        &(MATRIX)->rows[0][0],      \
+        countof((MATRIX)->rows   ), \
+        countof((MATRIX)->rows[0])  \
+    )
 static void
-MATRIX_multiply_add(struct Matrix* accumulator, struct Matrix* addend, f32 factor)
+stlink_tx_Matrix_(f32* matrix, i32 rows, i32 columns)
 {
 
-    if (!accumulator || !addend)
-        sus; // Missing arguments.
-
-    if (accumulator->rows != addend->rows)
-        sus; // Incorrect dimensions.
-
-    if (accumulator->columns != addend->columns)
-        sus; // Incorrect dimensions.
-
-    for (i32 i = 0; i < accumulator->rows; i += 1)
+    for (i32 i = 0; i < rows; i += 1)
     {
-        for (i32 j = 0; j < accumulator->columns; j += 1)
+
+        stlink_tx
+        (
+            "%c ",
+            rows == 1     ? '<'  :
+            i == 0        ? '/'  :
+            i == rows - 1 ? '\\' : '|'
+        );
+
+        for (i32 j = 0; j < columns; j += 1)
         {
-            AT(accumulator, i, j) += AT(addend, i, j) * factor;
+            stlink_tx("%9.5g ", matrix[i * columns + j]);
         }
+
+        stlink_tx
+        (
+            "%c\n",
+            rows == 1     ? '>'  :
+            i == 0        ? '\\' :
+            i == rows - 1 ? '/'  : '|'
+        );
+
     }
 
 }
 
 
 
-static void
-MATRIX_stlink_tx(struct Matrix* matrix)
+static useret struct Quaternion
+QUATERNION_multiply(struct Quaternion lhs, struct Quaternion rhs)
 {
 
-    if (!matrix)
-        sus; // Missing argument.
-
-    for (i32 i = 0; i < matrix->rows; i += 1)
-    {
-
-        stlink_tx
-        (
-            "%c ",
-            matrix->rows == 1     ? '<'  :
-            i == 0                ? '/'  :
-            i == matrix->rows - 1 ? '\\' : '|'
-        );
-
-        for (i32 j = 0; j < matrix->columns; j += 1)
+    struct Quaternion result =
         {
-            stlink_tx("%9.5g ", AT(matrix, i, j));
-        }
+            .s = lhs.s * rhs.s - lhs.i * rhs.i - lhs.j * rhs.j - lhs.k * rhs.k,
+            .i = lhs.s * rhs.i + lhs.i * rhs.s + lhs.j * rhs.k - lhs.k * rhs.j,
+            .j = lhs.s * rhs.j - lhs.i * rhs.k + lhs.j * rhs.s + lhs.k * rhs.i,
+            .k = lhs.s * rhs.k + lhs.i * rhs.j - lhs.j * rhs.i + lhs.k * rhs.s,
+        };
 
-        stlink_tx
-        (
-            "%c\n",
-            matrix->rows == 1     ? '>'  :
-            i == 0                ? '\\' :
-            i == matrix->rows - 1 ? '/'  : '|'
-        );
+    return result;
 
-    }
+}
+
+
+
+static useret struct Quaternion
+QUATERNION_conjugate(struct Quaternion q)
+{
+
+    struct Quaternion result =
+        {
+            .s = +q.s,
+            .i = -q.i,
+            .j = -q.j,
+            .k = -q.k,
+        };
+
+    return result;
+
+}
+
+
+
+static useret struct Quaternion
+QUATERNION_from_euler_zyx(struct EulerZYX angles)
+{
+
+    f32 cy = arm_cos_f32(angles.yaw   * 0.5f);
+    f32 sy = arm_sin_f32(angles.yaw   * 0.5f);
+    f32 cp = arm_cos_f32(angles.pitch * 0.5f);
+    f32 sp = arm_sin_f32(angles.pitch * 0.5f);
+    f32 cr = arm_cos_f32(angles.roll  * 0.5f);
+    f32 sr = arm_sin_f32(angles.roll  * 0.5f);
+
+    struct Quaternion result =
+        {
+            .s = cr * cp*cy + sr * sp * sy,
+            .i = sr * cp*cy - cr * sp * sy,
+            .j = cr * sp*cy + sr * cp * sy,
+            .k = cr * cp*sy - sr * sp * cy,
+        };
+
+    return result;
+
+}
+
+
+
+static useret struct EulerZYX
+QUATERNION_to_euler_zyx(struct Quaternion q)
+{
+
+    f32 sinr_cosp = 2.0f * (q.s * q.i + q.j * q.k);
+    f32 cosr_cosp = 1.0f - 2.0f * (q.i*q.i + q.j * q.j);
+    f32 sinp      = 2.0f * (q.s * q.j - q.k * q.i);
+    f32 siny_cosp = 2.0f * (q.s * q.k + q.i * q.j);
+    f32 cosy_cosp = 1.0f - 2.0f * (q.j * q.j + q.k * q.k);
+
+    struct EulerZYX result =
+        {
+            .yaw   = atan2_f32(siny_cosp, cosy_cosp),
+            .pitch = (fabsf(sinp) >= 1.0f) ? copysignf(PI / 2.0f, sinp) : asin_f32(sinp),
+            .roll  = atan2_f32(sinr_cosp, cosr_cosp),
+        };
+
+    return result;
 
 }
 
@@ -155,10 +271,6 @@ pack_push
         f32 GyroZ;
     };
 
-    // TODO Finalize structure.
-    // TODO We may have two packet variations: one for IMU + image data and one for just image data.
-
-
     struct OpenMVPacket // @/`OpenMV Packet Format`: Coupled.
     {
         union
@@ -172,13 +284,12 @@ pack_push
             struct OpenMVPacketGNC
             {
                 u16 zero;
-                f32 attitude_x;
-                f32 attitude_y;
-                f32 attitude_z;
-                f32 attitude_w;
-                u16 computer_vision_processing_time_ms;
+                f32 attitude_yaw;
+                f32 attitude_pitch;
+                f32 attitude_roll;
+                u16 computer_vision_processing_time_ms; // Do not use in `GNC_update`! Use `.most_recent_openmv_reading_timestamp_us` instead.
                 u8  computer_vision_confidence;
-                u8  padding[43];
+                u8  padding[47];
             } gnc;
 
             struct OpenMVPacketImage
@@ -190,91 +301,322 @@ pack_push
         };
     };
 
+    static_assert(sizeof(struct OpenMVPacketGNC  ) == sizeof(struct OpenMVPacket));
+    static_assert(sizeof(struct OpenMVPacketImage) == sizeof(struct OpenMVPacket));
+
 pack_pop
 
 
 
-static void
-GNC_update
-(
-    struct Matrix*                resulting_angular_velocities,
-    const struct VN100Packet*     most_recent_imu,
-    const struct OpenMVPacketGNC* most_recent_openmv_reading
-)
+struct GNCInput
 {
 
-    if (!resulting_angular_velocities)
+    // Data in here is stuff the caller of `GNC_update` will provide us,
+    // and thus shouldn't be modified (can't anyways because it's marked as `const`).
+    //
+    // All of the fields (and that field's subfields) below should have its own column
+    // in the spreadsheet `./misc/GNC_MOCK_SIMULATION.csv`. For example, there should
+    // be a column for `current_timestamp_us`, `most_recent_imu.QuatX`, `most_recent_imu.QuatY`, etc.
+
+    u32                    current_timestamp_us;
+    u32                    ejection_timestamp_us;
+    struct VN100Packet     most_recent_imu;
+    struct OpenMVPacketGNC most_recent_openmv_reading;
+    u32                    most_recent_openmv_reading_timestamp_us;
+
+};
+
+#include "GNCContext.meta"
+/* #meta
+
+    import deps.stpy.pxd.pxd as pxd
+    import builtins
+
+    # This structure contains stuff that `GNC_update` will use to figure out what to do,
+    # and ultimately produce an updated value of `angular_accelerations` that the caller
+    # will use to update the stepper motors.
+    #
+    # The only value the caller cares about is `angular_accelerations`; everything else
+    # is up to us to modify and use at our discretion.
+
+    FIELDS = pxd.SimpleNamespaceTable(
+        ('name'                    , 'type'             , 'format'),
+        ('initialized'             , 'b32'              , None    ),
+        ('angular_accelerations'   , 'struct Matrix_3x1', ...     ),
+        ('target_found'            , 'b32'              , ...     ),
+        ('target_conflict_count'   , 'i32'              , ...     ),
+        ('target_lost_timestamp_us', 'u32'              , "%u us" ),
+        ('desired_orientation'     , 'struct Quaternion', ...     ),
+    )
+
+    with Meta.enter('struct GNCContext'):
+        for field in FIELDS:
+            Meta.line(f'''
+                {field.type} {field.name};
+            ''')
+
+
+
+    # Everything here below is just so we can print out the data in the `GNCContext`
+    # structure in a nice looking output; see `DemoGNC` for its usage.
+
+    with Meta.enter('''
+        static void
+        stlink_tx_GNCContext(struct GNCContext context)
+    '''):
+
+        format_string_argument_pairs = []
+
+        for field in FIELDS:
+
+            format_string = field.format
+            argument      = f'context.{field.name}'
+
+            if format_string is ...:
+
+                match field.type:
+
+                    case None:
+                        format_string = None
+                        argument      = None
+
+                    case 'i8' | 'i16' | 'i32' | 'i64':
+                        format_string = '%d'
+                        argument      = f'context.{field.name}'
+
+                    case 'u8' | 'u16' | 'u32' | 'u64':
+                        format_string = '%u'
+                        argument      = f'context.{field.name}'
+
+                    case 'b8' | 'b16' | 'b32' | 'b64':
+                        format_string = '%s'
+                        argument      = f'context.{field.name} ? "true " : "false"'
+
+                    case 'f32' | 'f64':
+                        format_string = '%f'
+                        argument      = f'context.{field.name}'
+
+                    case 'struct Matrix_3x1':
+                        format_string = '< (%f) (%f) (%f) >'
+                        argument      = (
+                            f'context.{field.name}.rows[0][0], '
+                            f'context.{field.name}.rows[1][0], '
+                            f'context.{field.name}.rows[2][0]'
+                        )
+
+                    case 'struct Quaternion':
+                        format_string = '(%f) + (%f) i + (%f) j + (%f) k'
+                        argument      = (
+                            f'context.{field.name}.s, '
+                            f'context.{field.name}.i, '
+                            f'context.{field.name}.j, '
+                            f'context.{field.name}.k'
+                        )
+
+                    case idk:
+                        raise NotImplementedError(f"Unhandled formatting for field's type: {repr(field)}.")
+
+            format_string_argument_pairs += [(format_string, argument)]
+
+        whole_format_string = ' | '.join(
+            f'.{field.name} = {format_string}'
+            for field, (format_string, argument) in zip(FIELDS, format_string_argument_pairs)
+            if format_string is not None
+        )
+
+        whole_argument = ', '.join(
+            argument
+            for format_string, argument in format_string_argument_pairs
+            if format_string is not None
+        )
+
+        Meta.line(f'''
+            stlink_tx("{whole_format_string}\\n", {whole_argument});
+        ''')
+
+*/
+
+static void
+GNC_update(const struct GNCInput input, struct GNCContext* context)
+{
+
+    if (!context)
         sus;
 
-    if (!most_recent_imu)
-        sus;
-
-    if (!most_recent_openmv_reading)
-        sus;
 
 
+    // See if we need to set some default values for the GNC context.
 
-    struct Matrix* gain =
-        Matrix
-        (
-            3, 6,
-            1, 0, 0, 1, 0, 0,
-            0, 1, 0, 0, 1, 0,
-            0, 0, 1, 0, 0, 1,
-        );
+    if (!context->initialized)
+    {
 
-    struct Matrix* state =
-        Matrix
-        (
-            6, 1,
-            1,
-            1,
-            most_recent_openmv_reading->attitude_x,
-            1,
-            1,
-            1,
-        );
+        // Let's make sure all values are zero instead of potentially any left-over garbage.
 
-    MATRIX_multiply
-    (
-        resulting_angular_velocities,
-        gain,
-        state
-    );
+        memzero(context);
 
-    MATRIX_multiply_add
-    (
-        resulting_angular_velocities,
-        resulting_angular_velocities,
-        most_recent_imu->QuatX
-    );
+
+
+        // We'll start off as if we lost the target from the moment we have ejected.
+
+        context->target_found             = false;
+        context->target_conflict_count    = 0;
+        context->target_lost_timestamp_us = input.ejection_timestamp_us;
+
+
+
+        // An actual value will be computed for these fields later on.
+
+        context->angular_accelerations = (struct Matrix_3x1) {0};
+        context->desired_orientation   = (struct Quaternion) {0};
+
+
+
+        // We're done setting the initial values for the rest of the GNC algorithm to work on.
+
+        context->initialized = true;
+
+    }
+
+
+
+    // Apply hesterisis to CVT's target confidence.
+
+    if (context->target_found)
+    {
+        if (input.most_recent_openmv_reading.computer_vision_confidence)
+        {
+            context->target_conflict_count = 0; // We still see the target!
+        }
+        else if (context->target_conflict_count < 3)
+        {
+            context->target_conflict_count += 1; // Hmm, we're losing the target..?
+        }
+        else
+        {
+            context->target_found             = false; // Target definitely lost!
+            context->target_conflict_count    = 0;
+            context->target_lost_timestamp_us = input.current_timestamp_us;
+        }
+    }
+    else
+    {
+        if (!input.most_recent_openmv_reading.computer_vision_confidence)
+        {
+            context->target_conflict_count = 0; // Target still missing...
+        }
+        else if (context->target_conflict_count < 3)
+        {
+            context->target_conflict_count += 1; // Oh, we're starting to see the target..?
+        }
+        else
+        {
+            context->target_found          = true; // Confident we now see the target!
+            context->target_conflict_count = 0;
+        }
+    }
+
+
+
+    // Determine the orientation the vehicle should have.
+
+    u32               time_since_ejection_us = input.current_timestamp_us - input.ejection_timestamp_us;
+    struct Matrix_3x6 gain                   = {0};
+
+    if (context->target_found)
+    {
+        if (input.most_recent_openmv_reading.computer_vision_confidence)
+        {
+
+            context->desired_orientation =
+                QUATERNION_from_euler_zyx
+                (
+                    (struct EulerZYX)
+                    {
+                        .yaw   = input.most_recent_openmv_reading.attitude_yaw,
+                        .pitch = input.most_recent_openmv_reading.attitude_pitch,
+                        .roll  = input.most_recent_openmv_reading.attitude_roll,
+                    }
+                );
+
+            gain =
+                (struct Matrix_3x6) // TODO Determine the gain matrix for this situation.
+                {
+                    .rows =
+                        {
+                            { 1, 2, 3, 4, 5, 6, },
+                            { 2, 3, 4, 5, 6, 7, },
+                            { 3, 4, 5, 6, 7, 8, },
+                        },
+                };
+
+        }
+        else
+        {
+            gain =
+                (struct Matrix_3x6) // TODO Determine the gain matrix for this situation.
+                {
+                    .rows =
+                        {
+                            { 1, 2, 3, 4, 5, 6, },
+                            { 2, 3, 4, 5, 6, 7, },
+                            { 3, 4, 5, 6, 7, 8, },
+                        },
+                };
+        }
+    }
+    else if (time_since_ejection_us < 20'000'000)
+    {
+
+        context->desired_orientation =
+            QUATERNION_from_euler_zyx
+            (
+                (struct EulerZYX)
+                {
+                    .yaw   = 0.0f, // TODO: Yaw value?
+                    .pitch = 0.0f, // Reset pitch so we can do the search process.,
+                    .roll  = 0.0f, // TODO: Roll value?
+                }
+            );
+
+        gain =
+            (struct Matrix_3x6) // TODO Determine the gain matrix for this situation.
+            {
+                .rows =
+                    {
+                        { 1, 2, 3, 4, 5, 6, },
+                        { 2, 3, 4, 5, 6, 7, },
+                        { 3, 4, 5, 6, 7, 8, },
+                    },
+            };
+
+    }
+    else // Do the process of searching.
+    {
+
+        f32 t = 0.0f;
+
+        context->desired_orientation =
+            QUATERNION_from_euler_zyx
+            (
+                (struct EulerZYX)
+                {
+                    .yaw   = t, // TODO: Function of t?
+                    .pitch = arm_sin_f32(t), // TODO: Function of t?
+                    .roll  = 0, // TODO: Function of t?
+                }
+            );
+
+        gain =
+            (struct Matrix_3x6) // TODO Determine the gain matrix for this situation.
+            {
+                .rows =
+                    {
+                        { 1, 2, 3, 4, 5, 6, },
+                        { 2, 3, 4, 5, 6, 7, },
+                        { 3, 4, 5, 6, 7, 8, },
+                    },
+            };
+
+    }
 
 }
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-//
-// Notes.
-//
-
-
-
-// @/`Using Matrices`:
-//
-// Matrices should be made by doing `Matrix(A, B)` to create
-// an AxB matrix of zeros, or `Matrix(A, B, ...)` where all
-// elements are listed out explicitly; it should be noted that
-// it's not checked if the amount of listed elements matches up
-// with AxB, so if too few elements are given, the rest of the
-// matrix's elements are initialized to zero (but too many and
-// the compiler will complain, so that's okay).
-//
-// The `Matrix` macro creates a `Matrix` instance on the stack.
-// This means matrices should not be used as return values as
-// they are allocated in the called function's stack frame.
-//
-// Matrix elements are stored as a flat array in row-major order.
-// To access a specific element of the matrix, use the `AT` macro,
-// like: `AT(my_matrix, 5, 6)` to get the element in the 6th row,
-// 7th column (because zero-indexing).

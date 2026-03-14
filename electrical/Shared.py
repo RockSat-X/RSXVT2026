@@ -1413,6 +1413,10 @@ for target in TARGETS:
         pxd.make_main_relative_path('./deps/printf/src'),
         pxd.make_main_relative_path('.'),
         pxd.make_main_relative_path('./electrical'),
+        pxd.make_main_relative_path('./deps'),
+        pxd.make_main_relative_path('./deps/CMSIS-DSP/Include'),
+        pxd.make_main_relative_path('./deps/CMSIS-DSP/PrivateInclude'),
+        pxd.make_main_relative_path('./deps/CMSIS-DSP'),
         *MCU_SUPPORT[target.mcu]['include_paths'],
     )
 
@@ -1501,6 +1505,7 @@ for target in TARGETS:
             -fno-strict-aliasing
             -fno-eliminate-unused-debug-types
             -ffunction-sections
+            -fdata-sections
             -fcompare-debug-second
             -fdiagnostics-color=always
             {'\n'.join(f'-D {name}="{pxd.c_repr(value)}"' for name, value in defines                  )}
