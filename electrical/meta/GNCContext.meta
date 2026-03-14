@@ -1,0 +1,14 @@
+struct GNCContext
+{
+    b32 initialized;
+    struct Matrix_3x1 angular_accelerations;
+    b32 target_found;
+    i32 target_conflict_count;
+    u32 target_lost_timestamp_us;
+    struct Quaternion desired_orientation;
+};
+static void
+stlink_tx_GNCContext(struct GNCContext context)
+{
+    stlink_tx(".initialized = %s | .angular_accelerations = < (%f) (%f) (%f) > | .target_found = %s | .target_conflict_count = %d | .target_lost_timestamp_us = %u us | .desired_orientation = (%f) + (%f) i + (%f) j + (%f) k\n", context.initialized ? "true" : "false", context.angular_accelerations.rows[0][0], context.angular_accelerations.rows[1][0], context.angular_accelerations.rows[2][0], context.target_found ? "true" : "false", context.target_conflict_count, context.target_lost_timestamp_us, context.desired_orientation.s, context.desired_orientation.i, context.desired_orientation.j, context.desired_orientation.k);
+}
