@@ -287,7 +287,7 @@ pack_push
                 f32 attitude_yaw;
                 f32 attitude_pitch;
                 f32 attitude_roll;
-                u16 computer_vision_processing_time_ms;
+                u16 computer_vision_processing_time_ms; // Do not use in `GNC_update`! Use `.most_recent_openmv_reading_timestamp_us` instead.
                 u8  computer_vision_confidence;
                 u8  padding[47];
             } gnc;
@@ -313,12 +313,16 @@ struct GNCInput
 
     // Data in here is stuff the caller of `GNC_update` will provide us,
     // and thus shouldn't be modified (can't anyways because it's marked as `const`).
+    //
+    // All of the fields (and that field's subfields) below should have its own column
+    // in the spreadsheet `./misc/GNC_MOCK_SIMULATION.csv`. For example, there should
+    // be a column for `current_timestamp_us`, `most_recent_imu.QuatX`, `most_recent_imu.QuatY`, etc.
 
+    u32                    current_timestamp_us;
+    u32                    ejection_timestamp_us;
     struct VN100Packet     most_recent_imu;
     struct OpenMVPacketGNC most_recent_openmv_reading;
     u32                    most_recent_openmv_reading_timestamp_us;
-    u32                    ejection_timestamp_us;
-    u32                    current_timestamp_us;
 
 };
 
@@ -382,7 +386,7 @@ struct GNCInput
 
                     case 'b8' | 'b16' | 'b32' | 'b64':
                         format_string = '%s'
-                        argument      = f'context.{field.name} ? "true" : "false"'
+                        argument      = f'context.{field.name} ? "true " : "false"'
 
                     case 'f32' | 'f64':
                         format_string = '%f'

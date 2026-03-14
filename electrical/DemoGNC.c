@@ -41,22 +41,24 @@ main(void)
 
     */
 
+    stlink_tx("\n>>> Beginning <<<<\n");
+
     struct GNCContext context = {0};
+
+    for (i32 index = 0; index < countof(GNC_MOCK_SIMULATION); index += 1)
+    {
+
+        GNC_update(GNC_MOCK_SIMULATION[index], &context);
+
+        stlink_tx("[%6d/%d] ", index + 1, countof(GNC_MOCK_SIMULATION));
+        stlink_tx_GNCContext(context);
+
+    }
+
+    stlink_tx(">>> Done <<<<\n");
 
     for (;;)
     {
-
-        for (i32 index = 0; index < countof(GNC_MOCK_SIMULATION); index += 1)
-        {
-
-            GNC_update(GNC_MOCK_SIMULATION[index], &context);
-
-            stlink_tx("[%d/%d] ", index + 1, countof(GNC_MOCK_SIMULATION));
-            stlink_tx_GNCContext(context);
-
-        }
-
-        stlink_tx("\n");
 
         GPIO_TOGGLE(led_green);
         spinlock_nop(250'000'000);
