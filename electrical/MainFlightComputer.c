@@ -447,6 +447,21 @@ FREERTOS_TASK(esp32, 0)
                             packet.image_sequence_number
                         );
                     }
+                    #elif 1
+                    {
+
+                        if (packet.image_sequence_number == 1) // @/`ESP32 Sequence Numbers`.
+                        {
+                            stlink_tx(TV_TOKEN_END);
+                            stlink_tx(TV_TOKEN_START);
+                        }
+
+                        if (packet.image_sequence_number) // @/`ESP32 Sequence Numbers`.
+                        {
+                            UXART_tx_bytes(UXARTHandle_stlink, packet.image_bytes, countof(packet.image_bytes));
+                        }
+
+                    }
                     #endif
                 } break;
 
