@@ -14,8 +14,9 @@
 
 
 
+#define panic panic_()
 static noret void
-ERROR_FATAL(void)
+panic_(void)
 {
 
     WATCHDOG_KICK(); // Let the below pattern play out entirely.
@@ -77,12 +78,12 @@ try_reinitializing_ovcam(void)
                 }
                 else
                 {
-                    ERROR_FATAL(); // Something's wrong with the camera module...
+                    panic; // Something's wrong with the camera module...
                 }
             } break;
 
-            case OVCAMReinitResult_bug : ERROR_FATAL();
-            default                    : ERROR_FATAL();
+            case OVCAMReinitResult_bug : panic;
+            default                    : panic;
 
         }
 
@@ -185,33 +186,27 @@ main(void)
                 case FileSystemReinitResult_no_more_space_for_new_file:
                 case FileSystemReinitResult_fatfs_internal_error:
                 {
-                    #if ALLOW_FILESYSTEM_TO_BE_FORMATTED
-                    {
-                        if (attempts < 256)
-                        {
-                            // Let's recheck to be SUPER sure we actually need to wipe the SD card...
-                        }
-                        else
-                        {
-
-                            if (!completely_wipe_filesystem)
-                            {
-                                WATCHDOG_KICK();
-                            }
-
-                            completely_wipe_filesystem = true;
-
-                        }
-                    }
-                    #else
+                    if (!ALLOW_FILESYSTEM_TO_BE_FORMATTED)
                     {
                         // Nothing we can honestly do...
                     }
-                    #endif
+                    else if (attempts < 256)
+                    {
+                        // Let's recheck to be SUPER sure we actually need to wipe the SD card...
+                    }
+                    else if (completely_wipe_filesystem)
+                    {
+                        // Hmm... we'll just try to reformat again...
+                    }
+                    else
+                    {
+                        WATCHDOG_KICK();
+                        completely_wipe_filesystem = true;
+                    }
                 } break;
 
-                case FileSystemReinitResult_bug : ERROR_FATAL();
-                default                         : ERROR_FATAL();
+                case FileSystemReinitResult_bug : panic;
+                default                         : panic;
 
             }
 
@@ -254,28 +249,39 @@ main(void)
 
 
                     // We first insert some meta-data about the image.
+                    //
+                    // The fact that the image meta-data header begins with the TV end token
+                    // and ends with the TV start token is to allow for the `tv` verb to be
+                    // able to parse the logged data as if it was image data that was streamed
+                    // from `DemoOVCAM`. It also furthermore denotes the start and (rough) end
+                    // of an image frame.
 
                     pack_push
 
-                        union ImageMetadata
+                        struct ImageMetadata
                         {
-                            struct Sector sector;
-                            struct
+                            union
                             {
-                                u8  ending_token[sizeof(TV_TOKEN_END) - 1]; // @/`Image Metadata Tokens`.
-                                u32 image_index;
-                                u32 image_size;
-                                u32 image_timestamp_us;
-                                u32 cpu_cycle_counter;
-                                u8  padding[512 - (sizeof(TV_TOKEN_END) - 1) - (sizeof(TV_TOKEN_START) - 1) - 4 * sizeof(u32)];
-                                u8  starting_token[sizeof(TV_TOKEN_START) - 1]; // @/`Image Metadata Tokens`.
+                                struct Sector sector;
+                                struct
+                                {
+                                    u8  ending_token[sizeof(TV_TOKEN_END) - 1];
+                                    u32 image_index;
+                                    u32 image_size;
+                                    u32 image_timestamp_us;
+                                    u32 cpu_cycle_counter;
+                                    u8  padding[512 - (sizeof(TV_TOKEN_END) - 1) - (sizeof(TV_TOKEN_START) - 1) - 4 * sizeof(u32)];
+                                    u8  starting_token[sizeof(TV_TOKEN_START) - 1];
 
+                                };
                             };
                         };
 
+                        static_assert(sizeof(struct ImageMetadata) == sizeof(struct Sector));
+
                     pack_pop
 
-                    union ImageMetadata metadata =
+                    struct ImageMetadata metadata =
                         {
                             .ending_token       = TV_TOKEN_END,
                             .image_index        = image_index,
@@ -286,8 +292,6 @@ main(void)
                         };
 
                     {
-
-                        static_assert(sizeof(metadata) == sizeof(struct Sector));
 
                         enum FileSystemSaveResult save_result =
                             FILESYSTEM_save
@@ -305,11 +309,11 @@ main(void)
                                 // All good saving the meta-data.
                             } break;
 
-                            case FileSystemSaveResult_transfer_error         : ERROR_FATAL();
-                            case FileSystemSaveResult_no_more_space_for_data : ERROR_FATAL();
-                            case FileSystemSaveResult_fatfs_internal_error   : ERROR_FATAL();
-                            case FileSystemSaveResult_bug                    : ERROR_FATAL();
-                            default                                          : ERROR_FATAL();
+                            case FileSystemSaveResult_transfer_error         : WARM_RESET();
+                            case FileSystemSaveResult_no_more_space_for_data : WARM_RESET();
+                            case FileSystemSaveResult_fatfs_internal_error   : panic;
+                            case FileSystemSaveResult_bug                    : panic;
+                            default                                          : panic;
 
                         }
 
@@ -346,11 +350,11 @@ main(void)
                                 // All good saving the meta-data.
                             } break;
 
-                            case FileSystemSaveResult_transfer_error         : ERROR_FATAL();
-                            case FileSystemSaveResult_no_more_space_for_data : ERROR_FATAL();
-                            case FileSystemSaveResult_fatfs_internal_error   : ERROR_FATAL();
-                            case FileSystemSaveResult_bug                    : ERROR_FATAL();
-                            default                                          : ERROR_FATAL();
+                            case FileSystemSaveResult_transfer_error         : WARM_RESET();
+                            case FileSystemSaveResult_no_more_space_for_data : WARM_RESET();
+                            case FileSystemSaveResult_fatfs_internal_error   : panic;
+                            case FileSystemSaveResult_bug                    : panic;
+                            default                                          : panic;
 
                         }
 
@@ -383,25 +387,11 @@ main(void)
 
             // Catastrophic error!
 
-            case OVCAMSwapFramebufferResult_bug : ERROR_FATAL();
-            default                             : ERROR_FATAL();
+            case OVCAMSwapFramebufferResult_bug : panic;
+            default                             : panic;
 
         }
 
     }
 
 }
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-// @/`Image Metadata Tokens`:
-//
-// The fact that the image meta-data header begins with the TV end token
-// and ends with the TV start token is to allow for the `tv` verb to be
-// able to parse the logged data as if it was image data that was streamed
-// from `DemoOVCAM`. It also furthermore denotes the start and (rough) end
-// of an image frame.
