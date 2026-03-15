@@ -18,9 +18,56 @@ static RingBuffer(struct MainFlightComputerDebugPacket, 16) packets = {0};
 
 
 ////////////////////////////////////////////////////////////////////////////////
-//
-// Pre-scheduler initialization.
-//
+
+
+
+#define panic panic_()
+static noret void
+panic_(void)
+{
+
+    WATCHDOG_KICK(); // Let the below pattern play out entirely.
+
+    for (i32 i = 0; i < 32; i += 1)
+    {
+
+        GPIO_ACTIVE  (led_channel_red_A  );
+        GPIO_INACTIVE(led_channel_green_A);
+        GPIO_INACTIVE(led_channel_blue_A );
+        GPIO_ACTIVE  (led_channel_red_B  );
+        GPIO_INACTIVE(led_channel_green_B);
+        GPIO_INACTIVE(led_channel_blue_B );
+        GPIO_ACTIVE  (led_channel_red_C  );
+        GPIO_INACTIVE(led_channel_green_C);
+        GPIO_INACTIVE(led_channel_blue_C );
+        GPIO_ACTIVE  (led_channel_red_D  );
+        GPIO_INACTIVE(led_channel_green_D);
+        GPIO_INACTIVE(led_channel_blue_D );
+        spinlock_us(50'000);
+
+        GPIO_INACTIVE(led_channel_red_A  );
+        GPIO_INACTIVE(led_channel_green_A);
+        GPIO_INACTIVE(led_channel_blue_A );
+        GPIO_INACTIVE(led_channel_red_B  );
+        GPIO_INACTIVE(led_channel_green_B);
+        GPIO_INACTIVE(led_channel_blue_B );
+        GPIO_INACTIVE(led_channel_red_C  );
+        GPIO_INACTIVE(led_channel_green_C);
+        GPIO_INACTIVE(led_channel_blue_C );
+        GPIO_INACTIVE(led_channel_red_D  );
+        GPIO_INACTIVE(led_channel_green_D);
+        GPIO_INACTIVE(led_channel_blue_D );
+        spinlock_us(50'000);
+
+    }
+
+    WARM_RESET();
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -67,8 +114,8 @@ main(void)
                 // Something went wrong; we'll try again.
             } break;
 
-            case SSD1306ReinitResult_bug : sorry
-            default                      : sorry
+            case SSD1306ReinitResult_bug : panic;
+            default                      : panic;
 
         }
 
@@ -98,9 +145,6 @@ main(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-//
-// Render stuff to the screen.
-//
 
 
 
@@ -184,9 +228,9 @@ FREERTOS_TASK(display, 0)
         switch (result)
         {
             case SSD1306RefreshResult_success            : break;
-            case SSD1306RefreshResult_i2c_transfer_error : sorry
-            case SSD1306RefreshResult_bug                : sorry
-            default                                      : sorry
+            case SSD1306RefreshResult_i2c_transfer_error : panic;
+            case SSD1306RefreshResult_bug                : panic;
+            default                                      : panic;
         }
 
         GPIO_INACTIVE(led_channel_red_A  );
@@ -226,9 +270,6 @@ FREERTOS_TASK(kicker, 0)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-//
-// Handle received data from the debugged device.
-//
 
 
 
@@ -263,7 +304,7 @@ INTERRUPT_I2Cx_communication(enum I2CSlaveCallbackEvent event, u8* data)
                     {
 
                         if (!RingBuffer_push(&packets, nullptr))
-                            sorry
+                            panic;
 
                         GPIO_INACTIVE(led_channel_red_D  );
                         GPIO_TOGGLE  (led_channel_green_D);
@@ -315,15 +356,15 @@ INTERRUPT_I2Cx_communication(enum I2CSlaveCallbackEvent event, u8* data)
 
 
 
-        case I2CSlaveCallbackEvent_master_initiates_read  : sorry
-        case I2CSlaveCallbackEvent_master_repeats_read    : sorry
-        case I2CSlaveCallbackEvent_master_repeats_write   : sorry
-        case I2CSlaveCallbackEvent_ready_to_transmit_data : sorry
-        case I2CSlaveCallbackEvent_clock_stretch_timeout  : sorry
-        case I2CSlaveCallbackEvent_bus_misbehaved         : sorry
-        case I2CSlaveCallbackEvent_watchdog_expired       : sorry
-        case I2CSlaveCallbackEvent_bug                    : sorry
-        default                                           : sorry
+        case I2CSlaveCallbackEvent_master_initiates_read  : panic;
+        case I2CSlaveCallbackEvent_master_repeats_read    : panic;
+        case I2CSlaveCallbackEvent_master_repeats_write   : panic;
+        case I2CSlaveCallbackEvent_ready_to_transmit_data : panic;
+        case I2CSlaveCallbackEvent_clock_stretch_timeout  : panic;
+        case I2CSlaveCallbackEvent_bus_misbehaved         : panic;
+        case I2CSlaveCallbackEvent_watchdog_expired       : panic;
+        case I2CSlaveCallbackEvent_bug                    : panic;
+        default                                           : panic;
 
     }
 
