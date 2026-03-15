@@ -1,4 +1,8 @@
-import os
+#! /usr/bin/env python3
+
+
+
+import os, sys
 import cv2
 import numpy as np
 # include operation systems, OpenCV (decodes JPEG and creates/writes video), numpy so we can convert raw bites into array data for CV
@@ -10,9 +14,9 @@ END_TOKEN = b"</TV>"
 # Binary tokens representing the start and end of JPEG image frames
 # <TV> [JPEG DATA] </TV>
 
-INPUT_FILE = "example_tv_data.bin"
+_, INPUT_FILE, *_ = sys.argv
 OUTPUT_VIDEO = "output_video.mp4" #output mp4 name
-FPS = 11.1  # frame rate
+FPS = 24  # frame rate
 
 
 
