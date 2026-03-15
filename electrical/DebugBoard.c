@@ -283,52 +283,6 @@ INTERRUPT_I2Cx_communication(enum I2CSlaveCallbackEvent event, u8* data)
 
 
 
-        case I2CSlaveCallbackEvent_master_initiates_write:
-        case I2CSlaveCallbackEvent_stop_signaled:
-        {
-
-            struct MainFlightComputerDebugPacket* packet = RingBuffer_writing_pointer(&packets);
-
-            if (packet)
-            {
-                if (byte_index == sizeof(*packet))
-                {
-
-                    u8 digest = DEBUG_BOARD_calculate_crc((u8*) packet, sizeof(*packet));
-
-                    if (digest)
-                    {
-                        // TODO.
-                    }
-                    else
-                    {
-
-                        if (!RingBuffer_push(&packets, nullptr))
-                            panic;
-
-                        GPIO_INACTIVE(led_channel_red_D  );
-                        GPIO_TOGGLE  (led_channel_green_D);
-                        GPIO_INACTIVE(led_channel_blue_D );
-
-                    }
-
-                }
-                else
-                {
-                    // TODO.
-                }
-            }
-            else
-            {
-                // TODO.
-            }
-
-            byte_index = 0;
-
-        } break;
-
-
-
         case I2CSlaveCallbackEvent_data_available_to_read:
         {
 
@@ -339,9 +293,7 @@ INTERRUPT_I2Cx_communication(enum I2CSlaveCallbackEvent event, u8* data)
 
                 if (byte_index < sizeof(*packet))
                 {
-
                     ((u8*) packet)[byte_index] = *data;
-
                 }
 
                 byte_index += 1;
@@ -349,22 +301,64 @@ INTERRUPT_I2Cx_communication(enum I2CSlaveCallbackEvent event, u8* data)
             }
             else
             {
-                // TODO.
+                // No available space to write the received packet to yet.
             }
 
         } break;
 
 
 
-        case I2CSlaveCallbackEvent_master_initiates_read  : panic;
-        case I2CSlaveCallbackEvent_master_repeats_read    : panic;
-        case I2CSlaveCallbackEvent_master_repeats_write   : panic;
-        case I2CSlaveCallbackEvent_ready_to_transmit_data : panic;
-        case I2CSlaveCallbackEvent_clock_stretch_timeout  : panic;
-        case I2CSlaveCallbackEvent_bus_misbehaved         : panic;
-        case I2CSlaveCallbackEvent_watchdog_expired       : panic;
-        case I2CSlaveCallbackEvent_bug                    : panic;
-        default                                           : panic;
+        case I2CSlaveCallbackEvent_master_initiates_write:
+        case I2CSlaveCallbackEvent_master_repeats_write:
+        case I2CSlaveCallbackEvent_stop_signaled:
+        {
+
+            struct MainFlightComputerDebugPacket* packet = RingBuffer_writing_pointer(&packets);
+
+            if (!packet)
+            {
+                // The buffer's full, so we definitely didn't fill out any new debug packet.
+            }
+            else if (byte_index != sizeof(*packet))
+            {
+                // Either we missed some received bytes, or too many bytes were sent.
+            }
+            else
+            {
+
+                u8 digest = DEBUG_BOARD_calculate_crc((u8*) packet, sizeof(*packet));
+
+                if (digest)
+                {
+                    // Checksum mismatch!
+                }
+                else
+                {
+
+                    // Alright, we actually got valid debug data packet.
+                    // Queue it up for processing.
+
+                    if (!RingBuffer_push(&packets, nullptr))
+                        panic;
+
+                }
+
+            }
+
+            byte_index = 0;
+
+        } break;
+
+
+
+        case I2CSlaveCallbackEvent_master_initiates_read  : panic; // We currently don't support read operations.
+        case I2CSlaveCallbackEvent_master_repeats_read    : panic; // "
+        case I2CSlaveCallbackEvent_ready_to_transmit_data : panic; // "
+        case I2CSlaveCallbackEvent_clock_stretch_timeout  : panic; // Something weird happened with the I2C communication.
+        case I2CSlaveCallbackEvent_bus_misbehaved         : panic; // "
+        case I2CSlaveCallbackEvent_watchdog_expired       : panic; // "
+        case I2CSlaveCallbackEvent_bug                    : panic; // "
+        default                                           : panic; // "
 
     }
 
