@@ -13,7 +13,8 @@
 
 
 
-static RingBuffer(struct MainFlightComputerDebugPacket, 16) packets = {0};
+static RingBuffer(struct MainFlightComputerDebugPacket, 16) packets                         = {0};
+static volatile _Atomic u32                                 most_recent_packet_timestamp_us = {0};
 
 
 
@@ -26,7 +27,8 @@ static noret void
 panic_(void)
 {
 
-    WATCHDOG_KICK(); // Let the below pattern play out entirely.
+    vTaskSuspendAll(); // Let the below pattern play out entirely.
+    WATCHDOG_KICK();   // "
 
     for (i32 i = 0; i < 32; i += 1)
     {
@@ -151,23 +153,27 @@ main(void)
 FREERTOS_TASK(display, 0)
 {
 
-    struct MainFlightComputerDebugPacket   current_packet           = {0};
     enum MainFlightComputerDebugStatusFlag first_status_flag        = 0;
     u32                                    status_flag_timestamp_us = TIMEKEEPING_microseconds();
 
     while (true)
     {
 
-        // TODO.
 
-        if (RingBuffer_pop(&packets, &current_packet))
-        {
-            // TODO.
-        }
-        else
-        {
-            // TODO.
-        }
+
+        // Get information about the latest debug packet we have so far.
+
+        struct MainFlightComputerDebugPacket packet_data  = {0};
+        b32                                  packet_exist = RingBuffer_pop_to_latest(&packets, &packet_data);
+
+        u32 observed_most_recent_packet_timestamp_us =
+            atomic_load_explicit
+            (
+                &most_recent_packet_timestamp_us,
+                memory_order_relaxed // No synchronization needed.
+            );
+
+        b32 havent_received_a_packet_in_a_while = TIMEKEEPING_microseconds() - observed_most_recent_packet_timestamp_us >= 3'000'000;
 
 
 
@@ -183,10 +189,10 @@ FREERTOS_TASK(display, 0)
             "MFC-T %7.2f s"  "\n"
             "SCB-A %7.2f V" "\n"
             "SCB-B %7.2f V" "\n",
-            (f32) TIMEKEEPING_microseconds()  / 1000.0f / 1000.0f,
-            (f32) current_packet.timestamp_us / 1000.0f / 1000.0f,
-            current_packet.solarboard_voltages[0] / 100.0f, // TODO Arbitrary right now...
-            current_packet.solarboard_voltages[1] / 100.0f  // TODO Arbitrary right now...
+            (f32) TIMEKEEPING_microseconds() / 1000.0f / 1000.0f,
+            packet_exist ? (f32) packet_data.timestamp_us / 1000.0f / 1000.0f : NAN,
+            packet_exist ? packet_data.solarboard_voltages[0] / 100.0f        : NAN, // TODO Arbitrary right now...
+            packet_exist ? packet_data.solarboard_voltages[1] / 100.0f        : NAN  // TODO Arbitrary right now...
         );
 
         for (i32 i = 0; i < 4; i += 1)
@@ -200,9 +206,11 @@ FREERTOS_TASK(display, 0)
                 4 + i,
                 "%-10s %s",
                 MainFlightComputerDebugStatusFlag_TABLE[flag].name,
-                current_packet.flags & (1 << flag)
-                    ? "OK"
-                    : "NOPE"
+                packet_exist
+                    ? packet_data.flags & (1 << flag)
+                        ? "OK"
+                        : "NOPE"
+                    : "???"
             );
 
         }
@@ -222,7 +230,7 @@ FREERTOS_TASK(display, 0)
             SSD1306_refresh
             (
                 TIMEKEEPING_microseconds() / 1000 / 1000 / 2 % 2,
-                false
+                !!havent_received_a_packet_in_a_while
             );
 
         switch (result)
@@ -232,18 +240,6 @@ FREERTOS_TASK(display, 0)
             case SSD1306RefreshResult_bug                : panic;
             default                                      : panic;
         }
-
-        GPIO_INACTIVE(led_channel_red_A  );
-        GPIO_TOGGLE  (led_channel_green_A);
-        GPIO_INACTIVE(led_channel_blue_A );
-
-        GPIO_INACTIVE(led_channel_red_B  );
-        GPIO_TOGGLE  (led_channel_green_B);
-        GPIO_INACTIVE(led_channel_blue_B );
-
-        GPIO_INACTIVE(led_channel_red_C  );
-        GPIO_TOGGLE  (led_channel_green_C);
-        GPIO_INACTIVE(led_channel_blue_C );
 
     }
 
@@ -340,6 +336,13 @@ INTERRUPT_I2Cx_communication(enum I2CSlaveCallbackEvent event, u8* data)
 
                     if (!RingBuffer_push(&packets, nullptr))
                         panic;
+
+                    atomic_store_explicit
+                    (
+                        &most_recent_packet_timestamp_us,
+                        TIMEKEEPING_microseconds(),
+                        memory_order_relaxed // No synchronization needed.
+                    );
 
                 }
 
