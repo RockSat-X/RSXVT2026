@@ -44,8 +44,8 @@ sensor.skip_frames(time=2000)
 frame_files = os.listdir(FRAME_PATH)
 frames = sorted([f for f in frame_files if f.endswith(".jpg")])
 if not frames:
-    raise Exception("No .jpg frames in {}".format(FRAME_PATH))
-print("Found {} frames".format(len(frames)))
+    raise Exception(f"No .jpg frames in {FRAME_PATH}")
+print(f"Found {len(frames)} frames")
 
 color_fb = sensor.alloc_extra_fb(sensor.width(), sensor.height(), sensor.RGB565)
 gray_fb = sensor.alloc_extra_fb(sensor.width(), sensor.height(), sensor.GRAYSCALE)
@@ -371,7 +371,7 @@ def is_plausible_horizon(coeffs, inliers, n_candidates, orient):
     # Check a value for quadratic fit.
 
     if abs(a) > MAX_CURVATURE:
-        return (False, "curvature |a|={:.5f} > {}".format(abs(a), MAX_CURVATURE))
+        return (False, f"curvature |a|={abs(a) :.5f} > {MAX_CURVATURE}")
 
 
 
@@ -379,7 +379,7 @@ def is_plausible_horizon(coeffs, inliers, n_candidates, orient):
     if n_candidates > 0:
         ratio = len(inliers) / n_candidates
         if ratio < MIN_INLIER_RATIO:
-            return (False, "inlier ratio {:.2f} < {}".format(ratio, MIN_INLIER_RATIO))
+            return (False, f"inlier ratio {ratio :.2f} < {MIN_INLIER_RATIO}")
 
 
 
@@ -393,7 +393,7 @@ def is_plausible_horizon(coeffs, inliers, n_candidates, orient):
         frame_dim = H
     span = max(coords) - min(coords)
     if span < MIN_SPREAD_RATIO * frame_dim:
-        return (False, "spread {:.0f}px < {:.0f}px".format(span, MIN_SPREAD_RATIO * frame_dim))
+        return (False, f"spread {span :.0f}px < {MIN_SPREAD_RATIO * frame_dim :.0f}px")
 
 
 
@@ -402,7 +402,7 @@ def is_plausible_horizon(coeffs, inliers, n_candidates, orient):
     res = sorted([residual(p, coeffs, orientation) for p in inliers])
     med_res = res[len(res) // 2]
     if med_res > MAX_RESIDUAL:
-        return (False, "median residual {:.1f} > {}".format(med_res, MAX_RESIDUAL))
+        return (False, f"median residual {med_res :.1f} > {MAX_RESIDUAL}")
 
 
 
@@ -413,7 +413,7 @@ def is_plausible_horizon(coeffs, inliers, n_candidates, orient):
     else:
         in_frame = sum(1 for y in range(0, H, 15) if 0 <= int(a * y * y + b * y + c) < W)
     if in_frame < 3:
-        return (False, "curve barely crosses frame ({} pts visible)".format(in_frame))
+        return (False, f"curve barely crosses frame ({in_frame} pts visible)")
 
     return (True, '')
 
@@ -461,14 +461,14 @@ for idx, fname in enumerate(frames):
     gc.collect()
     clock.tick()
 
-    fpath = "{}/{}".format(FRAME_PATH, fname)
+    fpath = f"{FRAME_PATH}/{fname}"
     try:
         loaded = image.Image(fpath)
         color_fb.draw_image(loaded, 0, 0)
         gray_fb.draw_image(loaded, 0, 0)
         del loaded
     except Exception as e:
-        print("ERR {}: {}".format(fname, e))
+        print(f"ERR {fname}: {e}")
         continue
 
 
@@ -495,7 +495,7 @@ for idx, fname in enumerate(frames):
     broad = broad_find_horizon(gray_fb)
     if broad is None:
         sensor.snapshot().draw_image(color_fb, 0, 0)
-        print("[{}/{}] no horizon".format(idx + 1, len(frames)))
+        print(f"[{idx + 1}/{len(frames)}] no horizon")
         time.sleep_ms(FRAME_DELAY_MS)
         continue
 
@@ -509,7 +509,7 @@ for idx, fname in enumerate(frames):
 
     if len(pts) < MIN_POINTS:
         sensor.snapshot().draw_image(color_fb, 0, 0)
-        print("[{}/{}] too few points ({})".format(idx + 1, len(frames), len(pts)))
+        print(f"[{idx + 1}/{len(frames)}] too few points ({len(pts)})")
         time.sleep_ms(FRAME_DELAY_MS)
         continue
 
@@ -521,7 +521,7 @@ for idx, fname in enumerate(frames):
 
     if coeffs is None:
         sensor.snapshot().draw_image(color_fb, 0, 0)
-        print("[{}/{}] fit failed".format(idx + 1, len(frames)))
+        print(f"[{idx + 1}/{len(frames)}] fit failed")
         time.sleep_ms(FRAME_DELAY_MS)
         continue
 
@@ -532,7 +532,7 @@ for idx, fname in enumerate(frames):
     ok, reason = is_plausible_horizon(coeffs, inliers, len(pts), orientation)
     if not ok:
         sensor.snapshot().draw_image(color_fb, 0, 0)
-        print("[{}/{}] rejected: {}".format(idx + 1, len(frames), reason))
+        print(f"[{idx + 1}/{len(frames)}] rejected: {reason}")
         time.sleep_ms(FRAME_DELAY_MS)
         continue
 
@@ -565,8 +565,7 @@ for idx, fname in enumerate(frames):
     color_fb.draw_arrow(ax1, ay1, ax2, ay2, color=(0, 0, 255), thickness=3)
 
     a_c, b_c, c_c = coeffs
-    print("[{}/{}] {} side={} pts={} a={:.7f} b={:.4f} c={:.1f}".format(
-        idx + 1, len(frames), orientation, dark_side, len(inliers), a_c, b_c, c_c))
+    print(f"[{idx + 1}/{len(frames)}] {orientation} side={dark_side} pts={len(inliers)} a={a_c :.7f} b={b_c :.4f} c={c_c :.1f}")
 
     sensor.snapshot().draw_image(color_fb, 0, 0)
     time.sleep_ms(FRAME_DELAY_MS)
@@ -579,4 +578,4 @@ for idx, fname in enumerate(frames):
 
 sensor.dealloc_extra_fb()
 sensor.dealloc_extra_fb()
-print("Done. {} frames processed.".format(len(frames)))
+print(f"Done. {len(frames)} frames processed.")
