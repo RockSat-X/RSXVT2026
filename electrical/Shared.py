@@ -1532,7 +1532,7 @@ for target in TARGETS:
     target.compiler_flags = (
         f'''
             {architecture_flags}
-            -O0
+            {'-O3' if target.flight_ready else '-O0'}
             -ggdb3
             -std=gnu2x
             -pipe
