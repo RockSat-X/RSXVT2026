@@ -1,10 +1,9 @@
 import sensor, image, time, os, gc, micropython
 
 # Configuration.
-FRAME_PATH     = "frames"
-FRAME_DELAY_MS = 1000
-MIN_BRIGHTNESS = 10
-MAX_BRIGHTNESS = 200
+FRAME_DELAY_MS              = 1000
+MIN_BRIGHTNESS              = 10
+MAX_BRIGHTNESS              = 200
 
 # Broad pass.
 STRIP_HEIGHT    = 8  # Height for ROI scan
@@ -38,18 +37,18 @@ sensor.skip_frames(time=2000)
 
 
 ################################################################################
-
+#
+# TODO Document.
+#
 
 
 micropython.alloc_emergency_exception_buf(200)
 
-frame_files = os.listdir(FRAME_PATH)
-frames = sorted([f for f in frame_files if f.endswith(".jpg")])
-if not frames:
-    raise Exception(f"No .jpg frames in {FRAME_PATH}")
-print(f"Found {len(frames)} frames")
 
-gray_fb = sensor.alloc_extra_fb(sensor.width(), sensor.height(), sensor.GRAYSCALE)
+
+################################################################################
+
+
 
 clock = time.clock()
 W     = sensor.width()
@@ -457,29 +456,79 @@ def draw_fitted_curve(img, coeffs, orient):
 
 
 
-for idx, fname in enumerate(frames):
+################################################################################
+#
+# TODO Explain.
+#
+
+
+
+working_framebuffer = sensor.alloc_extra_fb(sensor.width(), sensor.height(), sensor.GRAYSCALE)
+
+
+
+################################################################################
+#
+# Perform CVT algorithm on pre-existing sample frames.
+#
+# TODO Enable-switch?
+#
+
+
+
+SAMPLE_FRAME_DIRECTORY_PATH = "frames"
+
+sample_frame_file_names = sorted(
+    file_name
+    for file_name in os.listdir(SAMPLE_FRAME_DIRECTORY_PATH)
+    if file_name.endswith('.jpg')
+)
+
+print(f'Found {len(sample_frame_file_names)} sample frames.')
+
+for sample_frame_file_name_i, sample_frame_file_name in enumerate(sample_frame_file_names):
+
+
+
+    # TODO Explain.
 
     gc.collect()
     clock.tick()
 
-    fpath = f"{FRAME_PATH}/{fname}"
+
+
+    # Load the sample frame.
+
     try:
-        loaded = image.Image(fpath)
-        gray_fb.draw_image(loaded, 0, 0, hint = image.SCALE_ASPECT_IGNORE)
-        gray_fb.draw_image(loaded, 0, 0, hint = image.SCALE_ASPECT_IGNORE)
-        del loaded
-    except Exception as e:
-        print(f"ERR {fname}: {e}")
-        continue
+
+        working_framebuffer.draw_image(
+            image.Image(f'{SAMPLE_FRAME_DIRECTORY_PATH}/{sample_frame_file_name}'),
+            x    = 0,
+            y    = 0,
+            hint = image.SCALE_ASPECT_IGNORE
+        )
+
+    except Exception as error:
+
+        print(f'Error {repr(sample_frame_file_name)} : {error}')
+
+        continue # Just move onto the next sample frame.
 
 
 
     # Check minimum brightness.
 
-    mean_b = gray_fb.get_statistics().mean()
-    if not (MIN_BRIGHTNESS < mean_b < MAX_BRIGHTNESS):
-        sensor.snapshot().draw_image(gray_fb, 0, 0)
+    mean_brightness = working_framebuffer.get_statistics().mean()
+
+    if MIN_BRIGHTNESS < mean_brightness < MAX_BRIGHTNESS:
+
+        pass
+
+    else:
+
+        sensor.snapshot().draw_image(working_framebuffer, 0, 0)
         time.sleep_ms(FRAME_DELAY_MS)
+
         continue
 
 
@@ -487,17 +536,20 @@ for idx, fname in enumerate(frames):
     # Apply blur.
 
     if BLUR_SIZE > 0:
-        gray_fb.mean(BLUR_SIZE)
+        working_framebuffer.mean(BLUR_SIZE)
 
 
 
     # Broad scan.
 
-    broad = broad_find_horizon(gray_fb)
+    broad = broad_find_horizon(working_framebuffer)
     if broad is None:
-        sensor.snapshot().draw_image(gray_fb, 0, 0)
-        print(f"[{idx + 1}/{len(frames)}] no horizon")
+
+        print(f"[{sample_frame_file_name_i + 1}/{len(sample_frame_file_names)}] no horizon")
+
+        sensor.snapshot().draw_image(working_framebuffer, 0, 0)
         time.sleep_ms(FRAME_DELAY_MS)
+
         continue
 
     orientation, coarse_position, dark_side = broad
@@ -506,12 +558,15 @@ for idx, fname in enumerate(frames):
 
     # Narrow scan.
 
-    pts = find_gradient_points(gray_fb, orientation, coarse_position, dark_side)
+    pts = find_gradient_points(working_framebuffer, orientation, coarse_position, dark_side)
 
     if len(pts) < MIN_POINTS:
-        sensor.snapshot().draw_image(gray_fb, 0, 0)
-        print(f"[{idx + 1}/{len(frames)}] too few points ({len(pts)})")
+
+        print(f"[{sample_frame_file_name_i + 1}/{len(sample_frame_file_names)}] too few points ({len(pts)})")
+
+        sensor.snapshot().draw_image(working_framebuffer, 0, 0)
         time.sleep_ms(FRAME_DELAY_MS)
+
         continue
 
 
@@ -521,9 +576,12 @@ for idx, fname in enumerate(frames):
     coeffs, inliers = fit_with_rejection(pts, orientation)
 
     if coeffs is None:
-        sensor.snapshot().draw_image(gray_fb, 0, 0)
-        print(f"[{idx + 1}/{len(frames)}] fit failed")
+
+        print(f"[{sample_frame_file_name_i + 1}/{len(sample_frame_file_names)}] fit failed")
+
+        sensor.snapshot().draw_image(working_framebuffer, 0, 0)
         time.sleep_ms(FRAME_DELAY_MS)
+
         continue
 
 
@@ -532,9 +590,12 @@ for idx, fname in enumerate(frames):
 
     ok, reason = is_plausible_horizon(coeffs, inliers, len(pts), orientation)
     if not ok:
-        sensor.snapshot().draw_image(gray_fb, 0, 0)
-        print(f"[{idx + 1}/{len(frames)}] {fname} rejected: {reason}")
+
+        print(f"[{sample_frame_file_name_i + 1}/{len(sample_frame_file_names)}] {sample_frame_file_name} rejected: {reason}")
+
+        sensor.snapshot().draw_image(working_framebuffer, 0, 0)
         time.sleep_ms(FRAME_DELAY_MS)
+
         continue
 
 
@@ -542,14 +603,14 @@ for idx, fname in enumerate(frames):
     # Draw results.
 
     for p in inliers:
-        gray_fb.draw_circle(int(p[0] + 0.5), int(p[1] + 0.5), 3,
+        working_framebuffer.draw_circle(int(p[0] + 0.5), int(p[1] + 0.5), 3,
                              color=(255, 0, 0), thickness=1, fill=True)
 
 
 
     # Green quadratic curve.
 
-    draw_fitted_curve(gray_fb, coeffs, orientation)
+    draw_fitted_curve(working_framebuffer, coeffs, orientation)
 
 
 
@@ -563,17 +624,13 @@ for idx, fname in enumerate(frames):
         'right':  (cx - 20, cy, cx + 20, cy),
     }
     ax1, ay1, ax2, ay2 = arrow_map[dark_side]
-    gray_fb.draw_arrow(ax1, ay1, ax2, ay2, color=(0, 0, 255), thickness=3)
+    working_framebuffer.draw_arrow(ax1, ay1, ax2, ay2, color=(0, 0, 255), thickness=3)
 
     a_c, b_c, c_c = coeffs
-    print(f"[{idx + 1}/{len(frames)}] {fname} {orientation} side={dark_side} pts={len(inliers)} a={a_c :.7f} b={b_c :.4f} c={c_c :.1f}")
+    print(f"[{sample_frame_file_name_i + 1}/{len(sample_frame_file_names)}] {sample_frame_file_name} {orientation} side={dark_side} pts={len(inliers)} a={a_c :.7f} b={b_c :.4f} c={c_c :.1f}")
 
-    sensor.snapshot().draw_image(gray_fb, 0, 0)
+    sensor.snapshot().draw_image(working_framebuffer, 0, 0)
     time.sleep_ms(FRAME_DELAY_MS)
-
-
-
-################################################################################
 
 
 
@@ -582,4 +639,4 @@ time.sleep_ms(FRAME_DELAY_MS) # TODO it probably has something to do with deallo
 
 sensor.dealloc_extra_fb()
 sensor.dealloc_extra_fb()
-print(f"Done. {len(frames)} frames processed.")
+print(f"Done. {len(sample_frame_file_names)} frames processed.")
