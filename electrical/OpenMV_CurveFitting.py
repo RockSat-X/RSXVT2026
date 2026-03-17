@@ -466,8 +466,8 @@ for idx, fname in enumerate(frames):
     fpath = f"{FRAME_PATH}/{fname}"
     try:
         loaded = image.Image(fpath)
-        color_fb.draw_image(loaded, 0, 0)
-        gray_fb.draw_image(loaded, 0, 0)
+        color_fb.draw_image(loaded, 0, 0, hint = image.SCALE_ASPECT_IGNORE)
+        gray_fb.draw_image(loaded, 0, 0, hint = image.SCALE_ASPECT_IGNORE)
         del loaded
     except Exception as e:
         print(f"ERR {fname}: {e}")
