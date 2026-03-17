@@ -1,39 +1,45 @@
 import sensor, image, time, os, gc
 
-#Configuration
-FRAME_PATH = "/frames"
+# Configuration.
+FRAME_PATH     = "frames"
 FRAME_DELAY_MS = 0
 MIN_BRIGHTNESS = 10
 MAX_BRIGHTNESS = 200
 
-# Broad Pass
-STRIP_HEIGHT = 8          # Height for ROI scan
-BROAD_THRESHOLD = 5     # Minimum Brightness jump to be considered horizon
+# Broad pass.
+STRIP_HEIGHT    = 8  # Height for ROI scan
+BROAD_THRESHOLD = 5  # Minimum Brightness jump to be considered horizon
 
-# Narrow Pass
-SCAN_SPACING = 4
-SCAN_BAND = 150            # Area adjacent to broad pass to check
+# Narrow Pass.
+SCAN_SPACING  = 4
+SCAN_BAND     = 150  # Area adjacent to broad pass to check
 GRADIENT_STEP = 4
-MIN_GRADIENT = 25
-BLUR_SIZE = 1
+MIN_GRADIENT  = 25
+BLUR_SIZE     = 1
 
-# Curve fitting
-MIN_POINTS = 20
-OUTLIER_PASSES = 3        # Number of outlier rejection iterations
-OUTLIER_MULT = 2.0        # Reject points with residual > OUTLIER_MULT * median_residual
-DRAW_STEP = 3             # Pixel step when drawing the fitted curve
+# Curve fitting.
+MIN_POINTS     = 20
+OUTLIER_PASSES = 3   # Number of outlier rejection iterations
+OUTLIER_MULT   = 2.0 # Reject points with residual > OUTLIER_MULT * median_residual
+DRAW_STEP      = 3   # Pixel step when drawing the fitted curve
 
-# Reject bad Curves
-MAX_CURVATURE = 0.003
+# Reject bad curves.
+MAX_CURVATURE    = 0.003
 MIN_INLIER_RATIO = 0.35
 MIN_SPREAD_RATIO = 0.45
-MAX_RESIDUAL = 12.0
+MAX_RESIDUAL     = 12.0
 
-# Sensors
+# Sensors.
 sensor.reset()
 sensor.set_framesize(sensor.QVGA)
 sensor.set_pixformat(sensor.RGB565)
 sensor.skip_frames(time=2000)
+
+
+
+################################################################################
+
+
 
 frame_files = os.listdir(FRAME_PATH)
 frames = sorted([f for f in frame_files if f.endswith(".jpg")])
@@ -45,18 +51,28 @@ color_fb = sensor.alloc_extra_fb(sensor.width(), sensor.height(), sensor.RGB565)
 gray_fb = sensor.alloc_extra_fb(sensor.width(), sensor.height(), sensor.GRAYSCALE)
 
 clock = time.clock()
-W = sensor.width()   # 320
-H = sensor.height()  # 240
+W     = sensor.width()
+H     = sensor.height()
 
 
-# Broad scan
+
+################################################################################
+#
+# Broad scan.
+#
+
+
+
 def broad_find_horizon(img):
 
     best_gradient = 0
     best_position = 0
     best_orientation = 'h'
 
-    # Horizontal strips
+
+
+    # Horizontal strips.
+
     previous_mean = -1
     for y in range(0, H - STRIP_HEIGHT, STRIP_HEIGHT):
         currrent_mean = img.get_statistics(roi=(0, y, W, STRIP_HEIGHT)).mean()
@@ -68,7 +84,10 @@ def broad_find_horizon(img):
                 best_orientation = 'h'
         previous_mean = currrent_mean
 
-    # Vertical strips
+
+
+    # Vertical strips.
+
     previous_mean = -1
     for x in range(0, W - STRIP_HEIGHT, STRIP_HEIGHT):
         current_mean = img.get_statistics(roi=(x, 0, STRIP_HEIGHT, H)).mean()
@@ -83,7 +102,10 @@ def broad_find_horizon(img):
     if abs(best_gradient) < BROAD_THRESHOLD:
         return None
 
-    # Determine which side is space
+
+
+    # Determine which side is space.
+
     if best_orientation == 'h':
         if best_gradient > 0:
             dark_side = 'top'
@@ -98,7 +120,13 @@ def broad_find_horizon(img):
     return (best_orientation, best_position, dark_side)
 
 
-#Scan within identified region
+
+################################################################################
+#
+# Scan within identified region.
+#
+
+
 
 def find_gradient_points(img, orientation, broad_position, dark_side):
 
@@ -106,7 +134,9 @@ def find_gradient_points(img, orientation, broad_position, dark_side):
     step = GRADIENT_STEP
 
     if orientation == 'h':
-        # Horizontal, scan columns
+
+        # Horizontal, scan columns.
+
         y_lo = max(step, coarse_position - SCAN_BAND)
         y_hi = min(H - 1, coarse_position + SCAN_BAND)
         v_sign = 1 if dark_side == 'top' else -1
@@ -122,14 +152,18 @@ def find_gradient_points(img, orientation, broad_position, dark_side):
                     best_g = g
                     best_y = y
             if best_y >= 0 and best_g >= MIN_GRADIENT:
-                # Check neighboring pixels
+
+                # Check neighboring pixels.
+
                 if best_y > y_lo + step and best_y < y_hi - 1:
                     above_g = img.get_pixel(x, best_y - 1) - img.get_pixel(x, best_y - step - 1)
                     below_g = img.get_pixel(x, best_y + 1) - img.get_pixel(x, best_y - step + 1)
                     if dark_side != 'top':
                         above_g = -above_g
                         below_g = -below_g
-                    # Ignore negative gradients
+
+                    # Ignore negative gradients.
+
                     above_g = max(0, above_g)
                     below_g = max(0, below_g)
                     total = above_g + best_g + below_g
@@ -142,7 +176,9 @@ def find_gradient_points(img, orientation, broad_position, dark_side):
                     points.append((x, float(best_y)))
 
     else:
-        # Vertical horizon
+
+        # Vertical horizon.
+
         x_lo = max(step, coarse_position - SCAN_BAND)
         x_hi = min(W - 1, coarse_position + SCAN_BAND)
         h_sign = 1 if dark_side == 'left' else -1
@@ -158,13 +194,16 @@ def find_gradient_points(img, orientation, broad_position, dark_side):
                     best_g = g
                     best_x = x
             if best_x >= 0 and best_g >= MIN_GRADIENT:
+
                 if best_x > x_lo + step and best_x < x_hi - 1:
                     left_g = img.get_pixel(best_x - 1, y) - img.get_pixel(best_x - step - 1, y)
                     right_g = img.get_pixel(best_x + 1, y) - img.get_pixel(best_x - step + 1, y)
                     if dark_side != 'left':
                         left_g = -left_g
                         right_g = -right_g
-                    # Ignore negative gradients
+
+                    # Ignore negative gradients.
+
                     left_g = max(0, left_g)
                     right_g = max(0, right_g)
                     total = left_g + best_g + right_g
@@ -173,16 +212,27 @@ def find_gradient_points(img, orientation, broad_position, dark_side):
                         points.append((refined_x, y))
                     else:
                         points.append((float(best_x), y))
+
                 else:
                     points.append((float(best_x), y))
 
     return points
 
 
-#RANSAC
+
+################################################################################
+#
+# RANSAC.
+#
+
+
 
 def solve_3x3(m, v):
-    # Linear algebra least squares
+
+
+
+    # Linear algebra least squares.
+
     a = [[m[0][0], m[0][1], m[0][2], v[0]],
          [m[1][0], m[1][1], m[1][2], v[1]],
          [m[2][0], m[2][1], m[2][2], v[2]]]
@@ -216,6 +266,7 @@ def solve_3x3(m, v):
     return x
 
 
+
 def fit_quadratic(pts, orient):
 
     if len(pts) < 3:
@@ -240,6 +291,7 @@ def fit_quadratic(pts, orient):
     )
 
 
+
 def residual(p, coeffs, orientation):
     a, b, c = coeffs
     if orientation == 'h':
@@ -250,11 +302,19 @@ def residual(p, coeffs, orientation):
         return abs(p[0] - (a * t * t + b * t + c))
 
 
-#Reject outliars
+
+################################################################################
+#
+# Reject outliars.
+#
+
+
+
 def fit_with_rejection(pts, orientation):
     working = list(pts)
 
     for _ in range(OUTLIER_PASSES):
+
         if len(working) < MIN_POINTS:
             return (None, [])
 
@@ -262,44 +322,69 @@ def fit_with_rejection(pts, orientation):
         if coeffs is None:
             return (None, [])
 
-        # Compute residuals
+
+
+        # Compute residuals.
+
         res = [residual(p, coeffs, orientation) for p in working]
 
-        # Median residual
-        sorted_res = sorted(res)
-        med = sorted_res[len(sorted_res) // 2]
-        thresh = max(OUTLIER_MULT * med + 0.5, 3.0)
 
-        # Keep only inliers
+
+        # Median residual.
+
+        sorted_res = sorted(res)
+        med        = sorted_res[len(sorted_res) // 2]
+        thresh     = max(OUTLIER_MULT * med + 0.5, 3.0)
+
+        # Keep only inliers.
+
         new_working = [working[i] for i in range(len(working)) if res[i] <= thresh]
 
         if len(new_working) < MIN_POINTS:
             break
         working = new_working
 
+
+
     if len(working) < MIN_POINTS:
         return (None, [])
+
     coeffs = fit_quadratic(working, orientation)
+
     return (coeffs, working) if coeffs else (None, [])
 
 
-#Reject awful curves
+
+################################################################################
+#
+# Reject awful curves
+#
+
+
 
 def is_plausible_horizon(coeffs, inliers, n_candidates, orient):
 
     a, b, c = coeffs
 
-    #Check a value for quadratic fit
+
+
+    # Check a value for quadratic fit.
+
     if abs(a) > MAX_CURVATURE:
         return (False, "curvature |a|={:.5f} > {}".format(abs(a), MAX_CURVATURE))
 
-    # 2. Check inliers
+
+
+    # Check inliers.
     if n_candidates > 0:
         ratio = len(inliers) / n_candidates
         if ratio < MIN_INLIER_RATIO:
             return (False, "inlier ratio {:.2f} < {}".format(ratio, MIN_INLIER_RATIO))
 
-    # check inliar spread
+
+
+    # Check inlier spread.
+
     if orientation == 'h':
         coords = [p[0] for p in inliers]
         frame_dim = W
@@ -310,13 +395,19 @@ def is_plausible_horizon(coeffs, inliers, n_candidates, orient):
     if span < MIN_SPREAD_RATIO * frame_dim:
         return (False, "spread {:.0f}px < {:.0f}px".format(span, MIN_SPREAD_RATIO * frame_dim))
 
-    # Check inliar residual
+
+
+    # Check inlier residual.
+
     res = sorted([residual(p, coeffs, orientation) for p in inliers])
     med_res = res[len(res) // 2]
     if med_res > MAX_RESIDUAL:
         return (False, "median residual {:.1f} > {}".format(med_res, MAX_RESIDUAL))
 
-    # 5. Check curve crosses the frame
+
+
+    # Check curve crosses the frame.
+
     if orientation == 'h':
         in_frame = sum(1 for x in range(0, W, 20) if 0 <= int(a * x * x + b * x + c) < H)
     else:
@@ -327,10 +418,20 @@ def is_plausible_horizon(coeffs, inliers, n_candidates, orient):
     return (True, '')
 
 
-#Drawing
+
+################################################################################
+#
+# Drawing.
+#
+
+
 
 def draw_fitted_curve(img, coeffs, orient):
-    #Draw the quadratic curve as line segments.
+
+
+
+    # Draw the quadratic curve as line segments.
+
     a, b, c = coeffs
     prev = None
 
@@ -356,6 +457,7 @@ def draw_fitted_curve(img, coeffs, orient):
 
 
 for idx, fname in enumerate(frames):
+
     gc.collect()
     clock.tick()
 
@@ -369,18 +471,27 @@ for idx, fname in enumerate(frames):
         print("ERR {}: {}".format(fname, e))
         continue
 
-    # Check minimum brightness
+
+
+    # Check minimum brightness.
+
     mean_b = gray_fb.get_statistics().mean()
     if not (MIN_BRIGHTNESS < mean_b < MAX_BRIGHTNESS):
         sensor.snapshot().draw_image(color_fb, 0, 0)
         time.sleep_ms(FRAME_DELAY_MS)
         continue
 
-    # apply blur
+
+
+    # Apply blur.
+
     if BLUR_SIZE > 0:
         gray_fb.mean(BLUR_SIZE)
 
-    # Broad scan
+
+
+    # Broad scan.
+
     broad = broad_find_horizon(gray_fb)
     if broad is None:
         sensor.snapshot().draw_image(color_fb, 0, 0)
@@ -390,7 +501,10 @@ for idx, fname in enumerate(frames):
 
     orientation, coarse_position, dark_side = broad
 
-    # Narrow Scan
+
+
+    # Narrow scan.
+
     pts = find_gradient_points(gray_fb, orientation, coarse_position, dark_side)
 
     if len(pts) < MIN_POINTS:
@@ -399,7 +513,10 @@ for idx, fname in enumerate(frames):
         time.sleep_ms(FRAME_DELAY_MS)
         continue
 
-    # RANSAC
+
+
+    # RANSAC.
+
     coeffs, inliers = fit_with_rejection(pts, orientation)
 
     if coeffs is None:
@@ -408,7 +525,10 @@ for idx, fname in enumerate(frames):
         time.sleep_ms(FRAME_DELAY_MS)
         continue
 
-    # Reject bad a values
+
+
+    # Reject bad values.
+
     ok, reason = is_plausible_horizon(coeffs, inliers, len(pts), orientation)
     if not ok:
         sensor.snapshot().draw_image(color_fb, 0, 0)
@@ -416,16 +536,24 @@ for idx, fname in enumerate(frames):
         time.sleep_ms(FRAME_DELAY_MS)
         continue
 
-    # Draw results
+
+
+    # Draw results.
 
     for p in inliers:
         color_fb.draw_circle(int(p[0] + 0.5), int(p[1] + 0.5), 3,
                              color=(255, 0, 0), thickness=1, fill=True)
 
-    # Green quadratic curve
+
+
+    # Green quadratic curve.
+
     draw_fitted_curve(color_fb, coeffs, orientation)
 
-    # Arrow to point to space
+
+
+    # Arrow to point to space.
+
     cx, cy = W // 2, H // 2
     arrow_map = {
         'top':    (cx, cy + 20, cx, cy - 20),
@@ -442,6 +570,12 @@ for idx, fname in enumerate(frames):
 
     sensor.snapshot().draw_image(color_fb, 0, 0)
     time.sleep_ms(FRAME_DELAY_MS)
+
+
+
+################################################################################
+
+
 
 sensor.dealloc_extra_fb()
 sensor.dealloc_extra_fb()
