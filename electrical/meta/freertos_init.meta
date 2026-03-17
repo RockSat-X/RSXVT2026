@@ -446,12 +446,17 @@
     enum FreeRTOSTask : u32
     {
         FreeRTOSTask_display,
+        FreeRTOSTask_logger,
     };
-    static constexpr u32 FreeRTOSTask_COUNT = 1;
+    static constexpr u32 FreeRTOSTask_COUNT = 2;
     static noret void   display(void*);
     static StackType_t  display_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t display_buffer = {0};
     static TaskHandle_t display_handle = {0};
+    static noret void   logger(void*);
+    static StackType_t  logger_stack[8192 / sizeof(StackType_t)] = {0};
+    static StaticTask_t logger_buffer = {0};
+    static TaskHandle_t logger_handle = {0};
     static noret void
     FREERTOS_init(void)
     {
@@ -465,6 +470,17 @@
                 0,
                 display_stack,
                 &display_buffer
+            );
+        logger_handle =
+            xTaskCreateStatic
+            (
+                logger,
+                "logger",
+                countof(logger_stack),
+                nullptr,
+                0,
+                logger_stack,
+                &logger_buffer
             );
         vTaskStartScheduler();
         for(;;);
