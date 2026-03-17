@@ -476,17 +476,7 @@ working_framebuffer = sensor.alloc_extra_fb(sensor.width(), sensor.height(), sen
 
 
 
-SAMPLE_FRAME_DIRECTORY_PATH = "frames"
-
-sample_frame_file_names = sorted(
-    file_name
-    for file_name in os.listdir(SAMPLE_FRAME_DIRECTORY_PATH)
-    if file_name.endswith('.jpg')
-)
-
-print(f'Found {len(sample_frame_file_names)} sample frames.')
-
-for sample_frame_file_name_i, sample_frame_file_name in enumerate(sample_frame_file_names):
+def process_sample_frame(sample_frame_file_name_i, sample_frame_file_name):
 
 
 
@@ -502,17 +492,17 @@ for sample_frame_file_name_i, sample_frame_file_name in enumerate(sample_frame_f
     try:
 
         working_framebuffer.draw_image(
-            image.Image(f'{SAMPLE_FRAME_DIRECTORY_PATH}/{sample_frame_file_name}'),
-            x    = 0,
-            y    = 0,
-            hint = image.SCALE_ASPECT_IGNORE
+            image = image.Image(f'{SAMPLE_FRAME_DIRECTORY_PATH}/{sample_frame_file_name}'),
+            x     = 0,
+            y     = 0,
+            hint  = image.SCALE_ASPECT_IGNORE
         )
 
     except Exception as error:
 
         print(f'Error {repr(sample_frame_file_name)} : {error}')
 
-        continue # Just move onto the next sample frame.
+        return
 
 
 
@@ -520,16 +510,13 @@ for sample_frame_file_name_i, sample_frame_file_name in enumerate(sample_frame_f
 
     mean_brightness = working_framebuffer.get_statistics().mean()
 
-    if MIN_BRIGHTNESS < mean_brightness < MAX_BRIGHTNESS:
+    if MIN_BRIGHTNESS <= mean_brightness <= MAX_BRIGHTNESS:
 
         pass
 
     else:
 
-        sensor.snapshot().draw_image(working_framebuffer, 0, 0)
-        time.sleep_ms(FRAME_DELAY_MS)
-
-        continue
+        return
 
 
 
@@ -547,10 +534,7 @@ for sample_frame_file_name_i, sample_frame_file_name in enumerate(sample_frame_f
 
         print(f"[{sample_frame_file_name_i + 1}/{len(sample_frame_file_names)}] no horizon")
 
-        sensor.snapshot().draw_image(working_framebuffer, 0, 0)
-        time.sleep_ms(FRAME_DELAY_MS)
-
-        continue
+        return
 
     orientation, coarse_position, dark_side = broad
 
@@ -564,10 +548,7 @@ for sample_frame_file_name_i, sample_frame_file_name in enumerate(sample_frame_f
 
         print(f"[{sample_frame_file_name_i + 1}/{len(sample_frame_file_names)}] too few points ({len(pts)})")
 
-        sensor.snapshot().draw_image(working_framebuffer, 0, 0)
-        time.sleep_ms(FRAME_DELAY_MS)
-
-        continue
+        return
 
 
 
@@ -579,10 +560,7 @@ for sample_frame_file_name_i, sample_frame_file_name in enumerate(sample_frame_f
 
         print(f"[{sample_frame_file_name_i + 1}/{len(sample_frame_file_names)}] fit failed")
 
-        sensor.snapshot().draw_image(working_framebuffer, 0, 0)
-        time.sleep_ms(FRAME_DELAY_MS)
-
-        continue
+        return
 
 
 
@@ -593,10 +571,7 @@ for sample_frame_file_name_i, sample_frame_file_name in enumerate(sample_frame_f
 
         print(f"[{sample_frame_file_name_i + 1}/{len(sample_frame_file_names)}] {sample_frame_file_name} rejected: {reason}")
 
-        sensor.snapshot().draw_image(working_framebuffer, 0, 0)
-        time.sleep_ms(FRAME_DELAY_MS)
-
-        continue
+        return
 
 
 
@@ -629,6 +604,23 @@ for sample_frame_file_name_i, sample_frame_file_name in enumerate(sample_frame_f
     a_c, b_c, c_c = coeffs
     print(f"[{sample_frame_file_name_i + 1}/{len(sample_frame_file_names)}] {sample_frame_file_name} {orientation} side={dark_side} pts={len(inliers)} a={a_c :.7f} b={b_c :.4f} c={c_c :.1f}")
 
+    return
+
+
+
+SAMPLE_FRAME_DIRECTORY_PATH = "frames"
+
+sample_frame_file_names = sorted(
+    file_name
+    for file_name in os.listdir(SAMPLE_FRAME_DIRECTORY_PATH)
+    if file_name.endswith('.jpg')
+)
+
+print(f'Found {len(sample_frame_file_names)} sample frames.')
+
+for sample_frame_file_name_i, sample_frame_file_name in enumerate(sample_frame_file_names):
+
+    process_sample_frame(sample_frame_file_name_i, sample_frame_file_name)
     sensor.snapshot().draw_image(working_framebuffer, 0, 0)
     time.sleep_ms(FRAME_DELAY_MS)
 
