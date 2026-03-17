@@ -1,5 +1,3 @@
-#define ALLOW_FILESYSTEM_TO_BE_FORMATTED true
-
 #include "system.h"
 #include "timekeeping.c"
 #include "uxart.c"
@@ -186,6 +184,33 @@ main(void)
                 case FileSystemReinitResult_no_more_space_for_new_file:
                 case FileSystemReinitResult_fatfs_internal_error:
                 {
+
+                    // On March 15th, 2026, I ran a quick experiment to see how long it'd take to fill an SD card.
+                    // After 10 hours and 45 minutes and 37 seconds, a binary blob file of 45,964,307,968 bytes bytes
+                    // was made. This results in an average data throughput of ~1.13 MiB/s, which means it'd take 8 hours
+                    // to record a 32 GiB file, double that if we're using a 64 GiB card. There's some file-system overhead
+                    // to account for, so a 64 GiB SD card is not really 64 GiB, but overall, the camera system will not be
+                    // generating enough data to have any worry about maxing out the SD card after doing a bunch of
+                    // sequence tests and what not. Of course these numbers will change and have to be reevaluated if
+                    // the camera drivers are updated or depending on the complexity of the scene that the camera is taking
+                    // images of, but yeah.
+                    //
+                    // Regardless, we still need to address this edge-case of what happens if the file-system on the
+                    // SD card is unmountable. This is likely due to a corrupted file-system, but whether or not we
+                    // should lock-up because of it or reformat the card with a new file-system is the question.
+                    //
+                    // If we were to power-on very early in the experiment's run-time, like right when GSE-1 is enabled,
+                    // then we should do a file-system wipe. However, if during the flight, after most of the interesting
+                    // stuff has already happened and is recorded, we shouldn't do a file-system wipe. Unfortunately,
+                    // there's no good way to have the best of both worlds, because there's really no good way to tell
+                    // if the data on the SD card is worthwhile to keep.
+                    //
+                    // What we will likely do in the end is have one camera system be programmed to wipe the filesystem
+                    // and another to never do it. This doesn't really eliminate the problem, but it's a compromise of
+                    // something at least...
+
+                    #define ALLOW_FILESYSTEM_TO_BE_FORMATTED true
+
                     if (!ALLOW_FILESYSTEM_TO_BE_FORMATTED)
                     {
                         // Nothing we can honestly do...
@@ -203,6 +228,7 @@ main(void)
                         WATCHDOG_KICK();
                         completely_wipe_filesystem = true;
                     }
+
                 } break;
 
                 case FileSystemReinitResult_bug : panic;
