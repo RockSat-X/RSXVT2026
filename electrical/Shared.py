@@ -144,6 +144,8 @@ TARGETS = ( # @/`Defining Targets`.
             'USART2_BAUD'  : STLINK_BAUD,
         },
 
+        flight_ready = False,
+
     ),
 
 
@@ -227,7 +229,13 @@ TARGETS = ( # @/`Defining Targets`.
             'TIM2_COUNTER_RATE' : 1_000_000,
         },
 
+        flight_ready = False,
+
     ),
+
+
+
+    ################################################################################
 
 
 
@@ -292,6 +300,8 @@ TARGETS = ( # @/`Defining Targets`.
             'I2C1_TIMEOUT'      : 0.030,
             'TIM2_COUNTER_RATE' : 1_000_000,
         },
+
+        flight_ready = False,
 
     ),
 
@@ -363,6 +373,8 @@ TARGETS = ( # @/`Defining Targets`.
             'TIM2_COUNTER_RATE' : 1_000_000,
         },
 
+        flight_ready = False,
+
     ),
 
 
@@ -420,6 +432,8 @@ TARGETS = ( # @/`Defining Targets`.
             'TIM8_COUNTER_RATE' : 1_000_000,
         },
 
+        flight_ready = False,
+
     ),
 
 
@@ -472,6 +486,8 @@ TARGETS = ( # @/`Defining Targets`.
             'APB3_CK'      : 250_000_000,
             'USART2_BAUD'  : STLINK_BAUD,
         },
+
+        flight_ready = False,
 
     ),
 
@@ -530,6 +546,8 @@ TARGETS = ( # @/`Defining Targets`.
             'TIM1_UPDATE_RATE' : 16,
         },
 
+        flight_ready = False,
+
     ),
 
 
@@ -587,6 +605,8 @@ TARGETS = ( # @/`Defining Targets`.
             'USART2_BAUD'       : STLINK_BAUD,
             'TIM2_COUNTER_RATE' : 1_000_000,
         },
+
+        flight_ready = False,
 
     ),
 
@@ -661,6 +681,8 @@ TARGETS = ( # @/`Defining Targets`.
             'SDMMC1_INITIAL_BAUD' :    400_000,
             'SDMMC1_FULL_BAUD'    : 24_000_000,
         },
+
+        flight_ready = False,
 
     ),
 
@@ -820,6 +842,8 @@ TARGETS = ( # @/`Defining Targets`.
             'SDMMC1_FULL_BAUD'             : 24_000_000,
         },
 
+        flight_ready = False,
+
     ),
 
 
@@ -977,6 +1001,8 @@ TARGETS = ( # @/`Defining Targets`.
             'TIM8_COUNTER_RATE'   : 1_000_000,
         },
 
+        flight_ready = False,
+
     ),
 
 
@@ -1097,6 +1123,8 @@ TARGETS = ( # @/`Defining Targets`.
             'WATCHDOG_DURATION'   : 10,
         },
 
+        flight_ready = False,
+
     ),
 
 
@@ -1200,8 +1228,10 @@ TARGETS = ( # @/`Defining Targets`.
             'SDMMC1_TIMEOUT'      : 0.250,
             'SDMMC1_INITIAL_BAUD' :    400_000,
             'SDMMC1_FULL_BAUD'    : 24_000_000,
-            'WATCHDOG_DURATION'   : 10,
+            'WATCHDOG_DURATION'   : 10, # Must be long enough so that the filesystem can be formatted in time.
         },
+
+        flight_ready = True,
 
     ),
 
@@ -1288,6 +1318,8 @@ TARGETS = ( # @/`Defining Targets`.
             'TIM2_COUNTER_RATE' : 1_000_000,
         },
 
+        flight_ready = False,
+
     ),
 
 
@@ -1344,6 +1376,8 @@ TARGETS = ( # @/`Defining Targets`.
             'USART2_BAUD'                  : STLINK_BAUD,
             'ANALOG_POSTDIVIDER_KERNEL_CK' : 50_000_000,
         },
+
+        flight_ready = False,
 
     ),
 
@@ -1472,6 +1506,7 @@ for target in TARGETS:
         ('TV_TOKEN_END'                       , f'STRINGIFY({TV_TOKEN.END  .decode('UTF-8')})'),
         ('TV_WRITE_BYTE'                      , f'0x{TV_WRITE_BYTE :02X}'                     ),
         ('MFC_DEBUG_BOARD_SEVEN_BIT_ADDRESS'  , f'0x{MFC_DEBUG_BOARD_SEVEN_BIT_ADDRESS :02X}' ),
+        ('FLIGHT_READY'                       , target.flight_ready                           ),
     ]
 
     for other_target in TARGETS:
@@ -1497,7 +1532,7 @@ for target in TARGETS:
     target.compiler_flags = (
         f'''
             {architecture_flags}
-            -O0
+            {'-O3' if target.flight_ready else '-O0'}
             -ggdb3
             -std=gnu2x
             -pipe
@@ -1703,3 +1738,7 @@ def PER_MCU():
 #       frequency associated with it (e.g. baud). I will not go into
 #       much detail about it here, as this setting is pretty experimental,
 #       and the other existing targets should give good enough examples to infer from.
+#
+#   - `flight_ready`
+#       A boolean that is a switch for disabling certain code paths that were only for
+#       development purposes. Things like `sorry` will now result in a compilation error.

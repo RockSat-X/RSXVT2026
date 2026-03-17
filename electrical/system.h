@@ -104,32 +104,39 @@ typedef double             f64; static_assert(sizeof(f64) == 8);
 
 
 
-static volatile struct
-{
-
-    // When `sorry` gets triggered, the debugger might show the location
-    // at a completely irrelevant line. This is very likely due to optimizations,
-    // so to aid with debugging, the file name and line number will be saved for inspection.
-
-    char* file_name;
-    i32   line_number;
-
-} SORRY = {0};
-
-static noret
-void sorry_(void);
-
-#define sorry                                           \
-    do                                                  \
-    {                                                   \
-        SORRY = (typeof(SORRY)) { __FILE__, __LINE__ }; \
-        sorry_();                                       \
-    }                                                   \
-    while (false); /* Semicolon on purpose. */
-
 #define BUG_CODE 0xDEADC0DE // Large arbitrary value that an enum will unlikely overlap with.
 
-#if 1
+#if FLIGHT_READY
+
+    #define bug return BUG_CODE // Bugs are bubbled up and handled by the caller.
+    #define sus
+
+#else
+
+    static volatile struct
+    {
+
+        // When `sorry` gets triggered, the debugger might show the location
+        // at a completely irrelevant line. This is very likely due to optimizations,
+        // so to aid with debugging, the file name and line number will be saved for inspection.
+
+        char* file_name;
+        i32   line_number;
+
+    } SORRY = {0};
+
+    static noret
+    void sorry_(void);
+
+    #define sorry                                           \
+        do                                                  \
+        {                                                   \
+            SORRY = (typeof(SORRY)) { __FILE__, __LINE__ }; \
+            sorry_();                                       \
+        }                                                   \
+        while (false); /* Semicolon on purpose. */
+
+    #define sus sorry
 
     #define bug                                                                  \
         do                                                                       \
@@ -139,11 +146,6 @@ void sorry_(void);
         }                                                                        \
         while (false)
 
-    #define sus sorry
-
-#else
-    #define bug return BUG_CODE // Bugs are bubbled up and handled by the caller.
-    #define sus
 #endif
 
 
@@ -224,14 +226,14 @@ extern nullptr_t INITIAL_STACK_ADDRESS[];
 #define configMINIMAL_STACK_SIZE              (256 / sizeof(StackType_t))
 #define configTASK_NOTIFICATION_ARRAY_ENTRIES 1
 
-#define configASSERT(CONDITION) /* TODO Have a switch? */ \
-    do                                                    \
-    {                                                     \
-        if (!(CONDITION))                                 \
-        {                                                 \
-            sorry                                         \
-        }                                                 \
-    }                                                     \
+#define configASSERT(CONDITION) \
+    do                          \
+    {                           \
+        if (!(CONDITION))       \
+        {                       \
+            sus;                \
+        }                       \
+    }                           \
     while (false)
 
 #define configMAX_PRIORITIES 8 // @/`FreeRTOS Max Priorities`.
@@ -482,7 +484,9 @@ INTERRUPT_UsageFault(void)
     u32 usage_fault_status = CMSIS_GET(SCB, CFSR, USGFAULTSR);
     b32 stack_overflow     = (usage_fault_status >> 4) & 1; // This is only defined on Armv8-M.
 
-    sorry // See the values above to determine what caused this UsageFault.
+    sus; // See the values above to determine what caused this UsageFault.
+
+    WARM_RESET();
 
 }
 
@@ -503,7 +507,9 @@ INTERRUPT_BusFault(void)
     // @/pg 1471/sec D1.2.6/`Armv8-M`.
     u32 bus_fault_address = SCB->BFAR;
 
-    sorry // See the values above to determine what caused this BusFault.
+    sus; // See the values above to determine what caused this BusFault.
+
+    WARM_RESET();
 
 }
 
@@ -520,14 +526,16 @@ INTERRUPT_Default(void)
     {
         case HardFault_IRQn:
         {
-            sorry // There was a HardFault for some unhandled reason...
+            sus; // There was a HardFault for some unhandled reason...
         } break;
 
         default:
         {
-            sorry // TODO.
+            sus; // TODO.
         } break;
     }
+
+    WARM_RESET();
 
 }
 
@@ -819,9 +827,8 @@ sorry_(void) // @/`Halting`.
         with Meta.enter('#define _EXPAND_HANDLE'):
 
             Meta.line(f'''
-                if (!(0 <= handle && handle < {driver_type}Handle_COUNT))
-                    sorry
-            ''') # TODO Replace sorry with bug.
+                if (!(0 <= handle && handle < {driver_type}Handle_COUNT)) {{ sus; }}
+            ''')
 
             for identifier, value in expansions:
                 Meta.line(f'''

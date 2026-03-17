@@ -690,7 +690,7 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
             case SDMMCInterruptEvent_command_with_bad_crc                   : bug;
             case SDMMCInterruptEvent_cmd12_aborted_data_transfer            : bug;
             case SDMMCInterruptEvent_completed_transfer                     : bug;
-            case SDMMCInterruptEvent_data_timeout                           : bug;
+            case SDMMCInterruptEvent_data_timeout                           : return SDCmderIterateResult_card_glitch; // @/`SD Bus Anomalies`.
             case SDMMCInterruptEvent_data_with_bad_crc                      : bug;
             default                                                         : bug;
 

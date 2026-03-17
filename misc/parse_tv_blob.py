@@ -1,4 +1,8 @@
-import os
+#! /usr/bin/env python3
+
+
+
+import os, sys
 import cv2
 import numpy as np
 # include operation systems, OpenCV (decodes JPEG and creates/writes video), numpy so we can convert raw bites into array data for CV
@@ -10,9 +14,9 @@ END_TOKEN = b"</TV>"
 # Binary tokens representing the start and end of JPEG image frames
 # <TV> [JPEG DATA] </TV>
 
-INPUT_FILE = "example_tv_data.bin"
+_, INPUT_FILE, *_ = sys.argv
 OUTPUT_VIDEO = "output_video.mp4" #output mp4 name
-FPS = 11.1  # frame rate
+FPS = 24  # frame rate
 
 
 
@@ -23,17 +27,20 @@ def extract_frames_from_blob(file_path):
     """
 
     # reads entire file and stores raw bytes as blob
-    with open(file_path, "rb") as f:
-        blob = f.read()
+    f = open(file_path, "rb")
 
-    # cursor used to move around in file
     # initialize frames to 0
-    cursor = 0
     total_frames = 0
     recovered_frames = 0
 
+    blob = b''
+
     while True:
-        start = blob.find(START_TOKEN, cursor)
+
+        if len(blob) < 100 * 1024:
+            blob += f.read(100 * 1024)
+
+        start = blob.find(START_TOKEN)
         if start == -1:
             break
         # finds start token, if none break
@@ -52,7 +59,7 @@ def extract_frames_from_blob(file_path):
 
         # Basic JPEG sanity check, makes sure the file begins with FF D8
         if not jpeg_data.startswith(b"\xFF\xD8"):
-            cursor = end + len(END_TOKEN)
+            blob = blob[end + len(END_TOKEN):]
             continue
 
         # Attempt to decode
@@ -74,7 +81,7 @@ def extract_frames_from_blob(file_path):
             # corrupted frame? skip
             pass
 
-        cursor = end + len(END_TOKEN)
+        blob = blob[end + len(END_TOKEN):]
 
     print(f"Total frames found: {total_frames}")
     print(f"Valid frames recovered: {recovered_frames}")

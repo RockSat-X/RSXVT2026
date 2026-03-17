@@ -320,8 +320,7 @@
 #endif
 #undef _EXPAND_HANDLE
 #define _EXPAND_HANDLE\
-    if (!(0 <= handle && handle < UXARTHandle_COUNT))\
-        sorry\
+    if (!(0 <= handle && handle < UXARTHandle_COUNT)) { sus; }\
     auto const driver = &_UXART_drivers[handle];\
     auto const UXARTx = UXART_TABLE[handle].UXARTx;\
     auto const NVICInterrupt_UXARTx = UXART_TABLE[handle].NVICInterrupt_UXARTx;\
