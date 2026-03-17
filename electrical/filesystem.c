@@ -790,6 +790,57 @@ FILESYSTEM_reinit_(enum SDHandle sd_handle, struct Sector* formatting_sector_buf
 
 
 
+    // Check if the file-system is full.
+
+    DWORD   nclst       = {0};
+    FRESULT free_result =
+        f_getfree
+        (
+            "",
+            &nclst,
+            &(FATFS*) { &_FILESYSTEM_driver.fatfs }
+        );
+
+    switch (mounting_result)
+    {
+
+        case FR_OK:
+        {
+            if (nclst)
+            {
+                // There's still some space left on the card.
+            }
+            else
+            {
+                return FileSystemReinitResult_no_more_space_for_new_file;
+            }
+        } break;
+
+        case FR_DISK_ERR            : return FileSystemReinitResult_transfer_error;
+        case FR_INT_ERR             : return FileSystemReinitResult_fatfs_internal_error;
+        case FR_NOT_READY           : return FileSystemReinitResult_couldnt_ready_card;
+        case FR_NO_FILESYSTEM       : return FileSystemReinitResult_invalid_filesystem;
+        case FR_NOT_ENABLED         : bug; // Shouldn't happen in practice...
+        case FR_INVALID_DRIVE       : bug; // "
+        case FR_TIMEOUT             : bug; // "
+        case FR_NO_FILE             : bug; // Not "valid" return value according to documentation.
+        case FR_NO_PATH             : bug; // "
+        case FR_INVALID_NAME        : bug; // "
+        case FR_DENIED              : bug; // "
+        case FR_EXIST               : bug; // "
+        case FR_INVALID_OBJECT      : bug; // "
+        case FR_WRITE_PROTECTED     : bug; // "
+        case FR_MKFS_ABORTED        : bug; // "
+        case FR_LOCKED              : bug; // "
+        case FR_NOT_ENOUGH_CORE     : bug; // "
+        case FR_TOO_MANY_OPEN_FILES : bug; // "
+        case FR_INVALID_PARAMETER   : bug; // "
+        default                     : bug; // "
+
+    }
+
+
+
     // Create the log file.
 
     for (b32 yield = false; !yield;)
