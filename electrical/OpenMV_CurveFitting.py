@@ -31,7 +31,7 @@ MAX_RESIDUAL     = 12.0
 
 # Sensors.
 sensor.reset()
-sensor.set_framesize(sensor.QQVGA)
+sensor.set_framesize(sensor.QVGA)
 sensor.set_pixformat(sensor.RGB565)
 sensor.skip_frames(time=2000)
 
@@ -49,7 +49,6 @@ if not frames:
     raise Exception(f"No .jpg frames in {FRAME_PATH}")
 print(f"Found {len(frames)} frames")
 
-color_fb = sensor.alloc_extra_fb(sensor.width(), sensor.height(), sensor.RGB565)
 gray_fb = sensor.alloc_extra_fb(sensor.width(), sensor.height(), sensor.GRAYSCALE)
 
 clock = time.clock()
@@ -466,7 +465,7 @@ for idx, fname in enumerate(frames):
     fpath = f"{FRAME_PATH}/{fname}"
     try:
         loaded = image.Image(fpath)
-        color_fb.draw_image(loaded, 0, 0, hint = image.SCALE_ASPECT_IGNORE)
+        gray_fb.draw_image(loaded, 0, 0, hint = image.SCALE_ASPECT_IGNORE)
         gray_fb.draw_image(loaded, 0, 0, hint = image.SCALE_ASPECT_IGNORE)
         del loaded
     except Exception as e:
@@ -479,7 +478,7 @@ for idx, fname in enumerate(frames):
 
     mean_b = gray_fb.get_statistics().mean()
     if not (MIN_BRIGHTNESS < mean_b < MAX_BRIGHTNESS):
-        sensor.snapshot().draw_image(color_fb, 0, 0)
+        sensor.snapshot().draw_image(gray_fb, 0, 0)
         time.sleep_ms(FRAME_DELAY_MS)
         continue
 
@@ -496,7 +495,7 @@ for idx, fname in enumerate(frames):
 
     broad = broad_find_horizon(gray_fb)
     if broad is None:
-        sensor.snapshot().draw_image(color_fb, 0, 0)
+        sensor.snapshot().draw_image(gray_fb, 0, 0)
         print(f"[{idx + 1}/{len(frames)}] no horizon")
         time.sleep_ms(FRAME_DELAY_MS)
         continue
@@ -510,7 +509,7 @@ for idx, fname in enumerate(frames):
     pts = find_gradient_points(gray_fb, orientation, coarse_position, dark_side)
 
     if len(pts) < MIN_POINTS:
-        sensor.snapshot().draw_image(color_fb, 0, 0)
+        sensor.snapshot().draw_image(gray_fb, 0, 0)
         print(f"[{idx + 1}/{len(frames)}] too few points ({len(pts)})")
         time.sleep_ms(FRAME_DELAY_MS)
         continue
@@ -522,7 +521,7 @@ for idx, fname in enumerate(frames):
     coeffs, inliers = fit_with_rejection(pts, orientation)
 
     if coeffs is None:
-        sensor.snapshot().draw_image(color_fb, 0, 0)
+        sensor.snapshot().draw_image(gray_fb, 0, 0)
         print(f"[{idx + 1}/{len(frames)}] fit failed")
         time.sleep_ms(FRAME_DELAY_MS)
         continue
@@ -533,7 +532,7 @@ for idx, fname in enumerate(frames):
 
     ok, reason = is_plausible_horizon(coeffs, inliers, len(pts), orientation)
     if not ok:
-        sensor.snapshot().draw_image(color_fb, 0, 0)
+        sensor.snapshot().draw_image(gray_fb, 0, 0)
         print(f"[{idx + 1}/{len(frames)}] {fname} rejected: {reason}")
         time.sleep_ms(FRAME_DELAY_MS)
         continue
@@ -543,14 +542,14 @@ for idx, fname in enumerate(frames):
     # Draw results.
 
     for p in inliers:
-        color_fb.draw_circle(int(p[0] + 0.5), int(p[1] + 0.5), 3,
+        gray_fb.draw_circle(int(p[0] + 0.5), int(p[1] + 0.5), 3,
                              color=(255, 0, 0), thickness=1, fill=True)
 
 
 
     # Green quadratic curve.
 
-    draw_fitted_curve(color_fb, coeffs, orientation)
+    draw_fitted_curve(gray_fb, coeffs, orientation)
 
 
 
@@ -564,12 +563,12 @@ for idx, fname in enumerate(frames):
         'right':  (cx - 20, cy, cx + 20, cy),
     }
     ax1, ay1, ax2, ay2 = arrow_map[dark_side]
-    color_fb.draw_arrow(ax1, ay1, ax2, ay2, color=(0, 0, 255), thickness=3)
+    gray_fb.draw_arrow(ax1, ay1, ax2, ay2, color=(0, 0, 255), thickness=3)
 
     a_c, b_c, c_c = coeffs
     print(f"[{idx + 1}/{len(frames)}] {fname} {orientation} side={dark_side} pts={len(inliers)} a={a_c :.7f} b={b_c :.4f} c={c_c :.1f}")
 
-    sensor.snapshot().draw_image(color_fb, 0, 0)
+    sensor.snapshot().draw_image(gray_fb, 0, 0)
     time.sleep_ms(FRAME_DELAY_MS)
 
 
