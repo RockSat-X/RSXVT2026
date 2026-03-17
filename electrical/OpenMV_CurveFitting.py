@@ -1,4 +1,4 @@
-import sensor, image, time, os, gc
+import sensor, image, time, os, gc, micropython
 
 # Configuration.
 FRAME_PATH     = "frames"
@@ -40,6 +40,8 @@ sensor.skip_frames(time=2000)
 ################################################################################
 
 
+
+micropython.alloc_emergency_exception_buf(200)
 
 frame_files = os.listdir(FRAME_PATH)
 frames = sorted([f for f in frame_files if f.endswith(".jpg")])
