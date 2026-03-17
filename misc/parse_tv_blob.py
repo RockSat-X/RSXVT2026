@@ -27,17 +27,20 @@ def extract_frames_from_blob(file_path):
     """
 
     # reads entire file and stores raw bytes as blob
-    with open(file_path, "rb") as f:
-        blob = f.read()
+    f = open(file_path, "rb")
 
-    # cursor used to move around in file
     # initialize frames to 0
-    cursor = 0
     total_frames = 0
     recovered_frames = 0
 
+    blob = b''
+
     while True:
-        start = blob.find(START_TOKEN, cursor)
+
+        if len(blob) < 100 * 1024:
+            blob += f.read(100 * 1024)
+
+        start = blob.find(START_TOKEN)
         if start == -1:
             break
         # finds start token, if none break
@@ -56,7 +59,7 @@ def extract_frames_from_blob(file_path):
 
         # Basic JPEG sanity check, makes sure the file begins with FF D8
         if not jpeg_data.startswith(b"\xFF\xD8"):
-            cursor = end + len(END_TOKEN)
+            blob = blob[end + len(END_TOKEN):]
             continue
 
         # Attempt to decode
@@ -78,7 +81,7 @@ def extract_frames_from_blob(file_path):
             # corrupted frame? skip
             pass
 
-        cursor = end + len(END_TOKEN)
+        blob = blob[end + len(END_TOKEN):]
 
     print(f"Total frames found: {total_frames}")
     print(f"Valid frames recovered: {recovered_frames}")
