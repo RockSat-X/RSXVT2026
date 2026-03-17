@@ -241,26 +241,10 @@ FREERTOS_TASK(display, 0)
             default                                      : panic;
         }
 
-    }
-
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-//
-// TODO Check if there's enough errors to the point where we
-//      should induce a reset to see if it'll fix anything.
-//
-
-
-
-FREERTOS_TASK(kicker, 0)
-{
-    for (;;)
-    {
         WATCHDOG_KICK();
+
     }
+
 }
 
 

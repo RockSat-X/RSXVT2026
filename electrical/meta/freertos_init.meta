@@ -446,17 +446,12 @@
     enum FreeRTOSTask : u32
     {
         FreeRTOSTask_display,
-        FreeRTOSTask_kicker,
     };
-    static constexpr u32 FreeRTOSTask_COUNT = 2;
+    static constexpr u32 FreeRTOSTask_COUNT = 1;
     static noret void   display(void*);
     static StackType_t  display_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t display_buffer = {0};
     static TaskHandle_t display_handle = {0};
-    static noret void   kicker(void*);
-    static StackType_t  kicker_stack[8192 / sizeof(StackType_t)] = {0};
-    static StaticTask_t kicker_buffer = {0};
-    static TaskHandle_t kicker_handle = {0};
     static noret void
     FREERTOS_init(void)
     {
@@ -470,17 +465,6 @@
                 0,
                 display_stack,
                 &display_buffer
-            );
-        kicker_handle =
-            xTaskCreateStatic
-            (
-                kicker,
-                "kicker",
-                countof(kicker_stack),
-                nullptr,
-                0,
-                kicker_stack,
-                &kicker_buffer
             );
         vTaskStartScheduler();
         for(;;);
