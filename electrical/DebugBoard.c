@@ -153,8 +153,9 @@ main(void)
 FREERTOS_TASK(display, 0)
 {
 
-    enum MainFlightComputerDebugStatusFlag first_status_flag        = 0;
-    u32                                    status_flag_timestamp_us = TIMEKEEPING_microseconds();
+    enum MainFlightComputerDebugStatusFlag first_status_flag               = 0;
+    u32                                    status_flag_timestamp_us        = TIMEKEEPING_microseconds();
+    u32                                    last_bad_condition_timestamp_us = TIMEKEEPING_microseconds();
 
     while (true)
     {
@@ -200,10 +201,46 @@ FREERTOS_TASK(display, 0)
             packet_exist ? packet_data.solarboard_voltages[1] / 100.0f        : NAN  // TODO Arbitrary right now...
         );
 
+        GPIO_INACTIVE(led_channel_red_B  );
+        GPIO_ACTIVE  (led_channel_green_B);
+        GPIO_INACTIVE(led_channel_blue_B );
+
         for (i32 i = 0; i < 4; i += 1)
         {
 
             enum MainFlightComputerDebugStatusFlag flag = (first_status_flag + i) % MainFlightComputerDebugStatusFlag_COUNT;
+
+            const char* condition = {0};
+
+            if (!packet_exist)
+            {
+                condition = "???";
+
+                GPIO_ACTIVE(led_channel_red_B  );
+                GPIO_ACTIVE(led_channel_green_B);
+                GPIO_ACTIVE(led_channel_blue_B );
+
+            }
+            else if (packet_data.flags & (1 << flag))
+            {
+                condition = "OK";
+            }
+            else
+            {
+
+                condition = "NOPE";
+
+                GPIO_ACTIVE  (led_channel_red_B  );
+                GPIO_INACTIVE(led_channel_green_B);
+                GPIO_INACTIVE(led_channel_blue_B );
+
+                if (TIMEKEEPING_microseconds() - last_bad_condition_timestamp_us >= 5'000'000 && !BUZZER_current_tune())
+                {
+                    last_bad_condition_timestamp_us = TIMEKEEPING_microseconds();
+                    BUZZER_play(BuzzerTune_deep_beep);
+                }
+
+            }
 
             SSD1306_write_format
             (
@@ -211,11 +248,7 @@ FREERTOS_TASK(display, 0)
                 4 + i,
                 "%-10s %s",
                 MainFlightComputerDebugStatusFlag_TABLE[flag].name,
-                packet_exist
-                    ? packet_data.flags & (1 << flag)
-                        ? "OK"
-                        : "NOPE"
-                    : "???"
+                condition
             );
 
         }
@@ -332,6 +365,10 @@ INTERRUPT_I2Cx_communication(enum I2CSlaveCallbackEvent event, u8* data)
                         TIMEKEEPING_microseconds(),
                         memory_order_relaxed // No synchronization needed.
                     );
+
+                    GPIO_TOGGLE(led_channel_red_C  );
+                    GPIO_TOGGLE(led_channel_green_C);
+                    GPIO_TOGGLE(led_channel_blue_C );
 
                 }
 
