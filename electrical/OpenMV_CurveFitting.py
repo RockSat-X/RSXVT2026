@@ -2,7 +2,7 @@ import sensor, image, time, os, gc, micropython
 
 # Configuration.
 FRAME_PATH     = "frames"
-FRAME_DELAY_MS = 0
+FRAME_DELAY_MS = 1000
 MIN_BRIGHTNESS = 10
 MAX_BRIGHTNESS = 200
 
@@ -31,7 +31,7 @@ MAX_RESIDUAL     = 12.0
 
 # Sensors.
 sensor.reset()
-sensor.set_framesize(sensor.QVGA)
+sensor.set_framesize(sensor.QQVGA)
 sensor.set_pixformat(sensor.RGB565)
 sensor.skip_frames(time=2000)
 
@@ -534,7 +534,7 @@ for idx, fname in enumerate(frames):
     ok, reason = is_plausible_horizon(coeffs, inliers, len(pts), orientation)
     if not ok:
         sensor.snapshot().draw_image(color_fb, 0, 0)
-        print(f"[{idx + 1}/{len(frames)}] rejected: {reason}")
+        print(f"[{idx + 1}/{len(frames)}] {fname} rejected: {reason}")
         time.sleep_ms(FRAME_DELAY_MS)
         continue
 
@@ -567,7 +567,7 @@ for idx, fname in enumerate(frames):
     color_fb.draw_arrow(ax1, ay1, ax2, ay2, color=(0, 0, 255), thickness=3)
 
     a_c, b_c, c_c = coeffs
-    print(f"[{idx + 1}/{len(frames)}] {orientation} side={dark_side} pts={len(inliers)} a={a_c :.7f} b={b_c :.4f} c={c_c :.1f}")
+    print(f"[{idx + 1}/{len(frames)}] {fname} {orientation} side={dark_side} pts={len(inliers)} a={a_c :.7f} b={b_c :.4f} c={c_c :.1f}")
 
     sensor.snapshot().draw_image(color_fb, 0, 0)
     time.sleep_ms(FRAME_DELAY_MS)
@@ -577,6 +577,9 @@ for idx, fname in enumerate(frames):
 ################################################################################
 
 
+
+sensor.snapshot()             # TODO Temporary hack here to make the IDE display the last sample frame;
+time.sleep_ms(FRAME_DELAY_MS) # TODO it probably has something to do with deallocation of the previous `sensor.snapshot()` call.
 
 sensor.dealloc_extra_fb()
 sensor.dealloc_extra_fb()
