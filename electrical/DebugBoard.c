@@ -175,6 +175,11 @@ FREERTOS_TASK(display, 0)
 
         b32 havent_received_a_packet_in_a_while = TIMEKEEPING_microseconds() - observed_most_recent_packet_timestamp_us >= 3'000'000;
 
+        if (havent_received_a_packet_in_a_while && !BUZZER_current_tune())
+        {
+            BUZZER_play(BuzzerTune_hazard); // Disconnected from the debugged-device?
+        }
+
 
 
         // Update framebuffer.
