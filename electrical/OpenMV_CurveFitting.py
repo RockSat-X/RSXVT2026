@@ -137,8 +137,8 @@ def find_gradient_points(img, orientation, broad_position, dark_side):
 
         # Horizontal, scan columns.
 
-        y_lo = max(step, coarse_position - SCAN_BAND)
-        y_hi = min(H - 1, coarse_position + SCAN_BAND)
+        y_lo = max(step, broad_position - SCAN_BAND)
+        y_hi = min(H - 1, broad_position + SCAN_BAND)
         v_sign = 1 if dark_side == 'top' else -1
 
         for x in range(SCAN_SPACING, W - SCAN_SPACING, SCAN_SPACING):
@@ -179,8 +179,8 @@ def find_gradient_points(img, orientation, broad_position, dark_side):
 
         # Vertical horizon.
 
-        x_lo = max(step, coarse_position - SCAN_BAND)
-        x_hi = min(W - 1, coarse_position + SCAN_BAND)
+        x_lo = max(step, broad_position - SCAN_BAND)
+        x_hi = min(W - 1, broad_position + SCAN_BAND)
         h_sign = 1 if dark_side == 'left' else -1
 
         for y in range(SCAN_SPACING, H - SCAN_SPACING, SCAN_SPACING):
@@ -267,7 +267,7 @@ def solve_3x3(m, v):
 
 
 
-def fit_quadratic(pts, orient):
+def fit_quadratic(pts, orientation):
 
     if len(pts) < 3:
         return None
@@ -362,7 +362,7 @@ def fit_with_rejection(pts, orientation):
 
 
 
-def is_plausible_horizon(coeffs, inliers, n_candidates, orient):
+def is_plausible_horizon(coeffs, inliers, n_candidates, orientation):
 
     a, b, c = coeffs
 
@@ -426,7 +426,7 @@ def is_plausible_horizon(coeffs, inliers, n_candidates, orient):
 
 
 
-def draw_fitted_curve(img, coeffs, orient):
+def draw_fitted_curve(img, coeffs, orientation):
 
 
 
