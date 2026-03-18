@@ -2,8 +2,6 @@ import sensor, image, time, os, gc, micropython
 
 # Configuration.
 FRAME_DELAY_MS = 1000
-MIN_BRIGHTNESS = 10
-MAX_BRIGHTNESS = 200
 
 # Broad pass.
 STRIP_HEIGHT    = 8  # Height for ROI scan
@@ -14,7 +12,6 @@ SCAN_SPACING  = 4
 SCAN_BAND     = 150  # Area adjacent to broad pass to check
 GRADIENT_STEP = 4
 MIN_GRADIENT  = 25
-BLUR_SIZE     = 1
 
 # Curve fitting.
 MIN_POINTS     = 20
@@ -487,7 +484,7 @@ def process_sample_frame(sample_frame_file_path):
 
 
 
-    # Load the sample frame.
+    # Load the sample frame, which may fail if the image we're loading takes up too much memory.
 
     try:
 
@@ -499,8 +496,7 @@ def process_sample_frame(sample_frame_file_path):
         )
 
     except Exception as error:
-
-        return f'Exception :: `{error}`'
+        return f'Exception :: `{error}`.'
 
 
 
@@ -508,29 +504,25 @@ def process_sample_frame(sample_frame_file_path):
 
     mean_brightness = working_framebuffer.get_statistics().mean()
 
-    if MIN_BRIGHTNESS <= mean_brightness <= MAX_BRIGHTNESS:
-
-        pass
-
-    else:
-
-        return 'Not within expected brightness.'
+    if not (10 <= mean_brightness <= 200):
+        return 'Rejected :: Not within expected brightness.'
 
 
 
     # Apply blur.
 
-    if BLUR_SIZE > 0:
-        working_framebuffer.mean(BLUR_SIZE)
+    working_framebuffer.mean(1) # TODO By what amount?
 
 
 
     # Broad scan.
 
-    broad = broad_find_horizon(working_framebuffer)
+    broad = broad_find_horizon(
+        working_framebuffer
+    )
 
     if broad is None:
-        return 'No horizon.'
+        return 'Rejected :: `broad_find_horizon` failed.'
 
     orientation, coarse_position, dark_side = broad
 
@@ -538,62 +530,95 @@ def process_sample_frame(sample_frame_file_path):
 
     # Narrow scan.
 
-    points = find_gradient_points(working_framebuffer, orientation, coarse_position, dark_side)
+    points = find_gradient_points(
+        working_framebuffer,
+        orientation,
+        coarse_position,
+        dark_side
+    )
 
     if len(points) < MIN_POINTS:
-
-        return f'Too few points ({len(points)}).'
+        return f'Rejected :: Too few points ({len(points)}).'
 
 
 
     # RANSAC.
 
-    coefficients, inliers = fit_with_rejection(points, orientation)
+    coefficients, inliers = fit_with_rejection(
+        points,
+        orientation
+    )
 
     if coefficients is None:
-
-        return f'Fit failed.'
+        return f'Rejected :: `fit_with_rejection` failed.'
 
 
 
     # Reject bad values.
 
-    ok, reason = is_plausible_horizon(coefficients, inliers, len(points), orientation)
+    ok, reason = is_plausible_horizon(
+        coefficients,
+        inliers,
+        len(points),
+        orientation
+    )
 
     if not ok:
-        return f'Rejected: {reason}'
+        return f'Rejected :: `is_plausible_horizon` says `{reason}`.'
 
 
 
     # Draw results.
 
     for point in inliers:
-        working_framebuffer.draw_circle(int(point[0] + 0.5), int(point[1] + 0.5), 3,
-                             color=(255, 0, 0), thickness=1, fill=True)
+
+        working_framebuffer.draw_circle(
+            round(point[0] + 0.5),
+            round(point[1] + 0.5),
+            3,
+            color     = (255, 0, 0),
+            thickness = 1,
+            fill      = True,
+        )
 
 
 
     # Green quadratic curve.
 
-    draw_fitted_curve(working_framebuffer, coefficients, orientation)
+    draw_fitted_curve(
+        working_framebuffer,
+        coefficients,
+        orientation
+    )
 
 
 
     # Arrow to point to space.
 
-    cx, cy = W // 2, H // 2
+    cx = W // 2
+    cy = H // 2
+
     arrow_map = {
-        'top':    (cx, cy + 20, cx, cy - 20),
-        'bottom': (cx, cy - 20, cx, cy + 20),
-        'left':   (cx + 20, cy, cx - 20, cy),
-        'right':  (cx - 20, cy, cx + 20, cy),
+        'top':    (cx     , cy + 20, cx     , cy - 20),
+        'bottom': (cx     , cy - 20, cx     , cy + 20),
+        'left':   (cx + 20, cy     , cx - 20, cy     ),
+        'right':  (cx - 20, cy     , cx + 20, cy     ),
     }
+
     ax1, ay1, ax2, ay2 = arrow_map[dark_side]
-    working_framebuffer.draw_arrow(ax1, ay1, ax2, ay2, color=(0, 0, 255), thickness=3)
+
+    working_framebuffer.draw_arrow(
+        ax1,
+        ay1,
+        ax2,
+        ay2,
+        color     = (0, 0, 255),
+        thickness = 3,
+    )
 
     a_c, b_c, c_c = coefficients
 
-    return f'{orientation} side={dark_side} points={len(inliers)} a={a_c :.7f} b={b_c :.4f} c={c_c :.1f}'
+    return f'{orientation=} {dark_side=} {len(inliers)=} {a_c=:.7f} {b_c=:.4f} {c_c=:.1f}'
 
 
 
