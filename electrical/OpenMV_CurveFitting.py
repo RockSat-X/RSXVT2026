@@ -63,7 +63,7 @@ H     = sensor.height()
 
 
 
-def broad_find_horizon(img):
+def broad_find_horizon(picture):
 
     best_gradient = 0
     best_position = 0
@@ -75,7 +75,7 @@ def broad_find_horizon(img):
 
     previous_mean = -1
     for y in range(0, H - STRIP_HEIGHT, STRIP_HEIGHT):
-        currrent_mean = img.get_statistics(roi=(0, y, W, STRIP_HEIGHT)).mean()
+        currrent_mean = picture.get_statistics(roi=(0, y, W, STRIP_HEIGHT)).mean()
         if previous_mean >= 0:
             grad = currrent_mean - previous_mean
             if abs(grad) > abs(best_gradient):
@@ -90,7 +90,7 @@ def broad_find_horizon(img):
 
     previous_mean = -1
     for x in range(0, W - STRIP_HEIGHT, STRIP_HEIGHT):
-        current_mean = img.get_statistics(roi=(x, 0, STRIP_HEIGHT, H)).mean()
+        current_mean = picture.get_statistics(roi=(x, 0, STRIP_HEIGHT, H)).mean()
         if previous_mean >= 0:
             grad = current_mean - previous_mean
             if abs(grad) > abs(best_gradient):
@@ -128,7 +128,7 @@ def broad_find_horizon(img):
 
 
 
-def find_gradient_points(img, orientation, broad_position, dark_side):
+def find_gradient_points(picture, orientation, broad_position, dark_side):
 
     points = []
     step = GRADIENT_STEP
@@ -145,8 +145,8 @@ def find_gradient_points(img, orientation, broad_position, dark_side):
             best_g = 0
             best_y = -1
             for y in range(y_lo + step, y_hi):
-                above = img.get_pixel(x, y - step)
-                below = img.get_pixel(x, y)
+                above = picture.get_pixel(x, y - step)
+                below = picture.get_pixel(x, y)
                 g = v_sign * (below - above)
                 if g > best_g:
                     best_g = g
@@ -156,8 +156,8 @@ def find_gradient_points(img, orientation, broad_position, dark_side):
                 # Check neighboring pixels.
 
                 if best_y > y_lo + step and best_y < y_hi - 1:
-                    above_g = img.get_pixel(x, best_y - 1) - img.get_pixel(x, best_y - step - 1)
-                    below_g = img.get_pixel(x, best_y + 1) - img.get_pixel(x, best_y - step + 1)
+                    above_g = picture.get_pixel(x, best_y - 1) - picture.get_pixel(x, best_y - step - 1)
+                    below_g = picture.get_pixel(x, best_y + 1) - picture.get_pixel(x, best_y - step + 1)
                     if dark_side != 'top':
                         above_g = -above_g
                         below_g = -below_g
@@ -187,8 +187,8 @@ def find_gradient_points(img, orientation, broad_position, dark_side):
             best_g = 0
             best_x = -1
             for x in range(x_lo + step, x_hi):
-                left_v = img.get_pixel(x - step, y)
-                right_v = img.get_pixel(x, y)
+                left_v = picture.get_pixel(x - step, y)
+                right_v = picture.get_pixel(x, y)
                 g = h_sign * (right_v - left_v)
                 if g > best_g:
                     best_g = g
@@ -196,8 +196,8 @@ def find_gradient_points(img, orientation, broad_position, dark_side):
             if best_x >= 0 and best_g >= MIN_GRADIENT:
 
                 if best_x > x_lo + step and best_x < x_hi - 1:
-                    left_g = img.get_pixel(best_x - 1, y) - img.get_pixel(best_x - step - 1, y)
-                    right_g = img.get_pixel(best_x + 1, y) - img.get_pixel(best_x - step + 1, y)
+                    left_g = picture.get_pixel(best_x - 1, y) - picture.get_pixel(best_x - step - 1, y)
+                    right_g = picture.get_pixel(best_x + 1, y) - picture.get_pixel(best_x - step + 1, y)
                     if dark_side != 'left':
                         left_g = -left_g
                         right_g = -right_g
@@ -227,15 +227,15 @@ def find_gradient_points(img, orientation, broad_position, dark_side):
 
 
 
-def solve_3x3(m, v):
+def solve_3x3(matrix, vector):
 
 
 
     # Linear algebra least squares.
 
-    a = [[m[0][0], m[0][1], m[0][2], v[0]],
-         [m[1][0], m[1][1], m[1][2], v[1]],
-         [m[2][0], m[2][1], m[2][2], v[2]]]
+    a = [[matrix[0][0], matrix[0][1], matrix[0][2], vector[0]],
+         [matrix[1][0], matrix[1][1], matrix[1][2], vector[1]],
+         [matrix[2][0], matrix[2][1], matrix[2][2], vector[2]]]
 
     for col in range(3):
         mx_row = col
@@ -267,20 +267,20 @@ def solve_3x3(m, v):
 
 
 
-def fit_quadratic(pts, orientation):
+def fit_quadratic(points, orientation):
 
-    if len(pts) < 3:
+    if len(points) < 3:
         return None
 
-    s0 = float(len(pts))
+    s0 = float(len(points))
     s1 = s2 = s3 = s4 = 0.0
     r0 = r1 = r2 = 0.0
 
-    for p in pts:
+    for point in points:
         if orientation == 'h':
-            t = p[0]; val = p[1]
+            t = point[0]; val = point[1]
         else:
-            t = p[1]; val = p[0]
+            t = point[1]; val = point[0]
         t2 = t * t
         s1 += t; s2 += t2; s3 += t * t2; s4 += t2 * t2
         r0 += val; r1 += t * val; r2 += t2 * val
@@ -292,14 +292,14 @@ def fit_quadratic(pts, orientation):
 
 
 
-def residual(p, coeffs, orientation):
-    a, b, c = coeffs
+def residual(point, coefficients, orientation):
+    a, b, c = coefficients
     if orientation == 'h':
-        t = p[0]
-        return abs(p[1] - (a * t * t + b * t + c))
+        t = point[0]
+        return abs(point[1] - (a * t * t + b * t + c))
     else:
-        t = p[1]
-        return abs(p[0] - (a * t * t + b * t + c))
+        t = point[1]
+        return abs(point[0] - (a * t * t + b * t + c))
 
 
 
@@ -310,23 +310,23 @@ def residual(p, coeffs, orientation):
 
 
 
-def fit_with_rejection(pts, orientation):
-    working = list(pts)
+def fit_with_rejection(points, orientation):
+    working = list(points)
 
     for _ in range(OUTLIER_PASSES):
 
         if len(working) < MIN_POINTS:
             return (None, [])
 
-        coeffs = fit_quadratic(working, orientation)
-        if coeffs is None:
+        coefficients = fit_quadratic(working, orientation)
+        if coefficients is None:
             return (None, [])
 
 
 
         # Compute residuals.
 
-        res = [residual(p, coeffs, orientation) for p in working]
+        res = [residual(point, coefficients, orientation) for point in working]
 
 
 
@@ -349,9 +349,9 @@ def fit_with_rejection(pts, orientation):
     if len(working) < MIN_POINTS:
         return (None, [])
 
-    coeffs = fit_quadratic(working, orientation)
+    coefficients = fit_quadratic(working, orientation)
 
-    return (coeffs, working) if coeffs else (None, [])
+    return (coefficients, working) if coefficients else (None, [])
 
 
 
@@ -362,9 +362,9 @@ def fit_with_rejection(pts, orientation):
 
 
 
-def is_plausible_horizon(coeffs, inliers, n_candidates, orientation):
+def is_plausible_horizon(coefficients, inliers, n_candidates, orientation):
 
-    a, b, c = coeffs
+    a, b, c = coefficients
 
 
 
@@ -386,10 +386,10 @@ def is_plausible_horizon(coeffs, inliers, n_candidates, orientation):
     # Check inlier spread.
 
     if orientation == 'h':
-        coords = [p[0] for p in inliers]
+        coords = [point[0] for point in inliers]
         frame_dim = W
     else:
-        coords = [p[1] for p in inliers]
+        coords = [point[1] for point in inliers]
         frame_dim = H
     span = max(coords) - min(coords)
     if span < MIN_SPREAD_RATIO * frame_dim:
@@ -399,7 +399,7 @@ def is_plausible_horizon(coeffs, inliers, n_candidates, orientation):
 
     # Check inlier residual.
 
-    res = sorted([residual(p, coeffs, orientation) for p in inliers])
+    res = sorted([residual(point, coefficients, orientation) for point in inliers])
     med_res = res[len(res) // 2]
     if med_res > MAX_RESIDUAL:
         return (False, f"median residual {med_res :.1f} > {MAX_RESIDUAL}")
@@ -413,7 +413,7 @@ def is_plausible_horizon(coeffs, inliers, n_candidates, orientation):
     else:
         in_frame = sum(1 for y in range(0, H, 15) if 0 <= int(a * y * y + b * y + c) < W)
     if in_frame < 3:
-        return (False, f"curve barely crosses frame ({in_frame} pts visible)")
+        return (False, f"curve barely crosses frame ({in_frame} points visible)")
 
     return (True, '')
 
@@ -426,13 +426,13 @@ def is_plausible_horizon(coeffs, inliers, n_candidates, orientation):
 
 
 
-def draw_fitted_curve(img, coeffs, orientation):
+def draw_fitted_curve(picture, coefficients, orientation):
 
 
 
     # Draw the quadratic curve as line segments.
 
-    a, b, c = coeffs
+    a, b, c = coefficients
     prev = None
 
     if orientation == 'h':
@@ -440,7 +440,7 @@ def draw_fitted_curve(img, coeffs, orientation):
             y = int(a * x * x + b * x + c + 0.5)
             if 0 <= y < H:
                 if prev:
-                    img.draw_line(prev[0], prev[1], x, y, color=(0, 255, 0), thickness=2)
+                    picture.draw_line(prev[0], prev[1], x, y, color=(0, 255, 0), thickness=2)
                 prev = (x, y)
             else:
                 prev = None
@@ -449,7 +449,7 @@ def draw_fitted_curve(img, coeffs, orientation):
             x = int(a * y * y + b * y + c + 0.5)
             if 0 <= x < W:
                 if prev:
-                    img.draw_line(prev[0], prev[1], x, y, color=(0, 255, 0), thickness=2)
+                    picture.draw_line(prev[0], prev[1], x, y, color=(0, 255, 0), thickness=2)
                 prev = (x, y)
             else:
                 prev = None
@@ -542,11 +542,11 @@ def process_sample_frame(sample_frame_file_name_i, sample_frame_file_name):
 
     # Narrow scan.
 
-    pts = find_gradient_points(working_framebuffer, orientation, coarse_position, dark_side)
+    points = find_gradient_points(working_framebuffer, orientation, coarse_position, dark_side)
 
-    if len(pts) < MIN_POINTS:
+    if len(points) < MIN_POINTS:
 
-        print(f"[{sample_frame_file_name_i + 1}/{len(sample_frame_file_names)}] too few points ({len(pts)})")
+        print(f"[{sample_frame_file_name_i + 1}/{len(sample_frame_file_names)}] too few points ({len(points)})")
 
         return
 
@@ -554,9 +554,9 @@ def process_sample_frame(sample_frame_file_name_i, sample_frame_file_name):
 
     # RANSAC.
 
-    coeffs, inliers = fit_with_rejection(pts, orientation)
+    coefficients, inliers = fit_with_rejection(points, orientation)
 
-    if coeffs is None:
+    if coefficients is None:
 
         print(f"[{sample_frame_file_name_i + 1}/{len(sample_frame_file_names)}] fit failed")
 
@@ -566,7 +566,7 @@ def process_sample_frame(sample_frame_file_name_i, sample_frame_file_name):
 
     # Reject bad values.
 
-    ok, reason = is_plausible_horizon(coeffs, inliers, len(pts), orientation)
+    ok, reason = is_plausible_horizon(coefficients, inliers, len(points), orientation)
     if not ok:
 
         print(f"[{sample_frame_file_name_i + 1}/{len(sample_frame_file_names)}] {sample_frame_file_name} rejected: {reason}")
@@ -577,15 +577,15 @@ def process_sample_frame(sample_frame_file_name_i, sample_frame_file_name):
 
     # Draw results.
 
-    for p in inliers:
-        working_framebuffer.draw_circle(int(p[0] + 0.5), int(p[1] + 0.5), 3,
+    for point in inliers:
+        working_framebuffer.draw_circle(int(point[0] + 0.5), int(point[1] + 0.5), 3,
                              color=(255, 0, 0), thickness=1, fill=True)
 
 
 
     # Green quadratic curve.
 
-    draw_fitted_curve(working_framebuffer, coeffs, orientation)
+    draw_fitted_curve(working_framebuffer, coefficients, orientation)
 
 
 
@@ -601,8 +601,8 @@ def process_sample_frame(sample_frame_file_name_i, sample_frame_file_name):
     ax1, ay1, ax2, ay2 = arrow_map[dark_side]
     working_framebuffer.draw_arrow(ax1, ay1, ax2, ay2, color=(0, 0, 255), thickness=3)
 
-    a_c, b_c, c_c = coeffs
-    print(f"[{sample_frame_file_name_i + 1}/{len(sample_frame_file_names)}] {sample_frame_file_name} {orientation} side={dark_side} pts={len(inliers)} a={a_c :.7f} b={b_c :.4f} c={c_c :.1f}")
+    a_c, b_c, c_c = coefficients
+    print(f"[{sample_frame_file_name_i + 1}/{len(sample_frame_file_names)}] {sample_frame_file_name} {orientation} side={dark_side} points={len(inliers)} a={a_c :.7f} b={b_c :.4f} c={c_c :.1f}")
 
     return
 
