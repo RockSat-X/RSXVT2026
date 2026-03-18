@@ -1,9 +1,9 @@
 import sensor, image, time, os, gc, micropython
 
 # Configuration.
-FRAME_DELAY_MS              = 1000
-MIN_BRIGHTNESS              = 10
-MAX_BRIGHTNESS              = 200
+FRAME_DELAY_MS = 1000
+MIN_BRIGHTNESS = 10
+MAX_BRIGHTNESS = 200
 
 # Broad pass.
 STRIP_HEIGHT    = 8  # Height for ROI scan
@@ -476,7 +476,7 @@ working_framebuffer = sensor.alloc_extra_fb(sensor.width(), sensor.height(), sen
 
 
 
-def process_sample_frame(sample_frame_file_name_i, sample_frame_file_name):
+def process_sample_frame(sample_frame_file_name):
 
 
 
@@ -500,9 +500,7 @@ def process_sample_frame(sample_frame_file_name_i, sample_frame_file_name):
 
     except Exception as error:
 
-        print(f'Error {repr(sample_frame_file_name)} : {error}')
-
-        return
+        return f'Exception :: `{error}`'
 
 
 
@@ -516,7 +514,7 @@ def process_sample_frame(sample_frame_file_name_i, sample_frame_file_name):
 
     else:
 
-        return
+        return 'Not within expected brightness.'
 
 
 
@@ -530,11 +528,9 @@ def process_sample_frame(sample_frame_file_name_i, sample_frame_file_name):
     # Broad scan.
 
     broad = broad_find_horizon(working_framebuffer)
+
     if broad is None:
-
-        print(f"[{sample_frame_file_name_i + 1}/{len(sample_frame_file_names)}] no horizon")
-
-        return
+        return 'No horizon.'
 
     orientation, coarse_position, dark_side = broad
 
@@ -546,9 +542,7 @@ def process_sample_frame(sample_frame_file_name_i, sample_frame_file_name):
 
     if len(points) < MIN_POINTS:
 
-        print(f"[{sample_frame_file_name_i + 1}/{len(sample_frame_file_names)}] too few points ({len(points)})")
-
-        return
+        return f'Too few points ({len(points)}).'
 
 
 
@@ -558,20 +552,16 @@ def process_sample_frame(sample_frame_file_name_i, sample_frame_file_name):
 
     if coefficients is None:
 
-        print(f"[{sample_frame_file_name_i + 1}/{len(sample_frame_file_names)}] fit failed")
-
-        return
+        return f'Fit failed.'
 
 
 
     # Reject bad values.
 
     ok, reason = is_plausible_horizon(coefficients, inliers, len(points), orientation)
+
     if not ok:
-
-        print(f"[{sample_frame_file_name_i + 1}/{len(sample_frame_file_names)}] {sample_frame_file_name} rejected: {reason}")
-
-        return
+        return f'Rejected: {reason}'
 
 
 
@@ -602,13 +592,12 @@ def process_sample_frame(sample_frame_file_name_i, sample_frame_file_name):
     working_framebuffer.draw_arrow(ax1, ay1, ax2, ay2, color=(0, 0, 255), thickness=3)
 
     a_c, b_c, c_c = coefficients
-    print(f"[{sample_frame_file_name_i + 1}/{len(sample_frame_file_names)}] {sample_frame_file_name} {orientation} side={dark_side} points={len(inliers)} a={a_c :.7f} b={b_c :.4f} c={c_c :.1f}")
 
-    return
-
+    return f'{orientation} side={dark_side} points={len(inliers)} a={a_c :.7f} b={b_c :.4f} c={c_c :.1f}'
 
 
-SAMPLE_FRAME_DIRECTORY_PATH = "frames"
+
+SAMPLE_FRAME_DIRECTORY_PATH = 'frames'
 
 sample_frame_file_names = sorted(
     file_name
@@ -620,8 +609,12 @@ print(f'Found {len(sample_frame_file_names)} sample frames.')
 
 for sample_frame_file_name_i, sample_frame_file_name in enumerate(sample_frame_file_names):
 
-    process_sample_frame(sample_frame_file_name_i, sample_frame_file_name)
+    result_message = process_sample_frame(sample_frame_file_name)
+
+    print(f'[{sample_frame_file_name_i + 1}/{len(sample_frame_file_names)}] `{sample_frame_file_name}` : {result_message}')
+
     sensor.snapshot().draw_image(working_framebuffer, 0, 0)
+
     time.sleep_ms(FRAME_DELAY_MS)
 
 
@@ -631,4 +624,4 @@ time.sleep_ms(FRAME_DELAY_MS) # TODO it probably has something to do with deallo
 
 sensor.dealloc_extra_fb()
 sensor.dealloc_extra_fb()
-print(f"Done. {len(sample_frame_file_names)} frames processed.")
+print(f'Done. {len(sample_frame_file_names)} frames processed.')
