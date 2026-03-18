@@ -476,7 +476,7 @@ working_framebuffer = sensor.alloc_extra_fb(sensor.width(), sensor.height(), sen
 
 
 
-def process_sample_frame(sample_frame_file_name):
+def process_sample_frame(sample_frame_file_path):
 
 
 
@@ -492,7 +492,7 @@ def process_sample_frame(sample_frame_file_name):
     try:
 
         working_framebuffer.draw_image(
-            image = image.Image(f'{SAMPLE_FRAME_DIRECTORY_PATH}/{sample_frame_file_name}'),
+            image = image.Image(sample_frame_file_path),
             x     = 0,
             y     = 0,
             hint  = image.SCALE_ASPECT_IGNORE
@@ -597,21 +597,25 @@ def process_sample_frame(sample_frame_file_name):
 
 
 
+################################################################################
+
+
+
 SAMPLE_FRAME_DIRECTORY_PATH = 'frames'
 
-sample_frame_file_names = sorted(
-    file_name
+sample_frame_file_paths = sorted(
+    f'{SAMPLE_FRAME_DIRECTORY_PATH}/{file_name}'
     for file_name in os.listdir(SAMPLE_FRAME_DIRECTORY_PATH)
     if file_name.endswith('.jpg')
 )
 
-print(f'Found {len(sample_frame_file_names)} sample frames.')
+print(f'Found {len(sample_frame_file_paths)} sample frames.')
 
-for sample_frame_file_name_i, sample_frame_file_name in enumerate(sample_frame_file_names):
+for sample_frame_file_path_i, sample_frame_file_path in enumerate(sample_frame_file_paths):
 
-    result_message = process_sample_frame(sample_frame_file_name)
+    result_message = process_sample_frame(sample_frame_file_path)
 
-    print(f'[{sample_frame_file_name_i + 1}/{len(sample_frame_file_names)}] `{sample_frame_file_name}` : {result_message}')
+    print(f'[{sample_frame_file_path_i + 1}/{len(sample_frame_file_paths)}] `{sample_frame_file_path}` : {result_message}')
 
     sensor.snapshot().draw_image(working_framebuffer, 0, 0)
 
@@ -624,4 +628,4 @@ time.sleep_ms(FRAME_DELAY_MS) # TODO it probably has something to do with deallo
 
 sensor.dealloc_extra_fb()
 sensor.dealloc_extra_fb()
-print(f'Done. {len(sample_frame_file_names)} frames processed.')
+print(f'Done. {len(sample_frame_file_paths)} frames processed.')
