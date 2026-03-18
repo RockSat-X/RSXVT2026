@@ -418,43 +418,6 @@ def is_plausible_horizon(coefficients, inliers, n_candidates, orientation):
 
 ################################################################################
 #
-# Drawing.
-#
-
-
-
-def draw_fitted_curve(picture, coefficients, orientation):
-
-
-
-    # Draw the quadratic curve as line segments.
-
-    a, b, c = coefficients
-    prev = None
-
-    if orientation == 'h':
-        for x in range(0, W, DRAW_STEP):
-            y = int(a * x * x + b * x + c + 0.5)
-            if 0 <= y < H:
-                if prev:
-                    picture.draw_line(prev[0], prev[1], x, y, color=(0, 255, 0), thickness=2)
-                prev = (x, y)
-            else:
-                prev = None
-    else:
-        for y in range(0, H, DRAW_STEP):
-            x = int(a * y * y + b * y + c + 0.5)
-            if 0 <= x < W:
-                if prev:
-                    picture.draw_line(prev[0], prev[1], x, y, color=(0, 255, 0), thickness=2)
-                prev = (x, y)
-            else:
-                prev = None
-
-
-
-################################################################################
-#
 # TODO Explain.
 #
 
@@ -583,13 +546,58 @@ def process_sample_frame(sample_frame_file_path):
 
 
 
-    # Green quadratic curve.
+    # Draw the fitted quadratic curve.
 
-    draw_fitted_curve(
-        working_framebuffer,
-        coefficients,
-        orientation
-    )
+    a, b, c = coefficients
+    prev    = None
+
+    if orientation == 'h':
+
+        for x in range(0, W, DRAW_STEP):
+
+            y = round(a*x**2 + b*x + c)
+
+            if 0 <= y < H:
+
+                if prev:
+                    working_framebuffer.draw_line(
+                        prev[0],
+                        prev[1],
+                        x,
+                        y,
+                        color     = (0, 255, 0),
+                        thickness = 2,
+                    )
+
+                prev = (x, y)
+
+            else:
+
+                prev = None
+
+    else:
+
+        for y in range(0, H, DRAW_STEP):
+
+            x = round(a*y**2 + b*y + c)
+
+            if 0 <= x < W:
+
+                if prev:
+                    working_framebuffer.draw_line(
+                        prev[0],
+                        prev[1],
+                        x,
+                        y,
+                        color     = (0, 255, 0),
+                        thickness = 2,
+                    )
+
+                prev = (x, y)
+
+            else:
+
+                prev = None
 
 
 
