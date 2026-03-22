@@ -5,7 +5,6 @@ FRAME_DELAY_MS = 1000
 
 # Broad pass.
 STRIP_HEIGHT    = 8  # Height for ROI scan
-BROAD_THRESHOLD = 5  # Minimum Brightness jump to be considered horizon
 
 # Narrow Pass.
 SCAN_SPACING  = 4
@@ -44,71 +43,6 @@ micropython.alloc_emergency_exception_buf(200)
 clock = time.clock()
 W     = sensor.width()
 H     = sensor.height()
-
-
-
-################################################################################
-#
-# Broad scan.
-#
-
-
-
-def broad_find_horizon(picture):
-
-    best_gradient = 0
-    best_position = 0
-    best_orientation = 'h'
-
-
-
-    # Horizontal strips.
-
-    previous_mean = -1
-    for y in range(0, H - STRIP_HEIGHT, STRIP_HEIGHT):
-        currrent_mean = picture.get_statistics(roi=(0, y, W, STRIP_HEIGHT)).mean()
-        if previous_mean >= 0:
-            grad = currrent_mean - previous_mean
-            if abs(grad) > abs(best_gradient):
-                best_gradient = grad
-                best_position = y + STRIP_HEIGHT // 2
-                best_orientation = 'h'
-        previous_mean = currrent_mean
-
-
-
-    # Vertical strips.
-
-    previous_mean = -1
-    for x in range(0, W - STRIP_HEIGHT, STRIP_HEIGHT):
-        current_mean = picture.get_statistics(roi=(x, 0, STRIP_HEIGHT, H)).mean()
-        if previous_mean >= 0:
-            grad = current_mean - previous_mean
-            if abs(grad) > abs(best_gradient):
-                best_gradient = grad
-                best_position = x + STRIP_HEIGHT // 2
-                best_orientation = 'v'
-        previous_mean = current_mean
-
-    if abs(best_gradient) < BROAD_THRESHOLD:
-        return None
-
-
-
-    # Determine which side is space.
-
-    if best_orientation == 'h':
-        if best_gradient > 0:
-            dark_side = 'top'
-        else:
-            dark_side = 'bottom'
-    else:
-        if best_gradient > 0:
-            dark_side = 'left'
-        else:
-            dark_side = 'right'
-
-    return (best_orientation, best_position, dark_side)
 
 
 
@@ -408,16 +342,67 @@ def process_sample_frame(sample_frame_file_path):
 
 
 
-    # Broad scan.
+    # Horizontal strips.
 
-    broad = broad_find_horizon(
-        working_framebuffer
-    )
+    best_gradient   = 0
+    coarse_position = 0
+    orientation     = 'h'
 
-    if broad is None:
-        return 'Rejected :: `broad_find_horizon` failed.'
+    previous_mean = -1
 
-    orientation, coarse_position, dark_side = broad
+    for y in range(0, H - STRIP_HEIGHT, STRIP_HEIGHT):
+
+        current_mean = working_framebuffer.get_statistics(roi=(0, y, W, STRIP_HEIGHT)).mean()
+
+        if previous_mean >= 0:
+
+            grad = current_mean - previous_mean
+
+            if abs(grad) > abs(best_gradient):
+                best_gradient   = grad
+                coarse_position = y + STRIP_HEIGHT // 2
+                orientation     = 'h'
+
+        previous_mean = current_mean
+
+
+
+    # Vertical strips.
+
+    previous_mean = -1
+
+    for x in range(0, W - STRIP_HEIGHT, STRIP_HEIGHT):
+
+        current_mean = working_framebuffer.get_statistics(roi=(x, 0, STRIP_HEIGHT, H)).mean()
+
+        if previous_mean >= 0:
+
+            grad = current_mean - previous_mean
+
+            if abs(grad) > abs(best_gradient):
+                best_gradient   = grad
+                coarse_position = x + STRIP_HEIGHT // 2
+                orientation     = 'v'
+
+        previous_mean = current_mean
+
+    if abs(best_gradient) < 5:
+        return f'Rejected :: Best gradient too small.'
+
+
+
+    # Determine which side is space.
+
+    if orientation == 'h':
+        if best_gradient > 0:
+            dark_side = 'top'
+        else:
+            dark_side = 'bottom'
+    else:
+        if best_gradient > 0:
+            dark_side = 'left'
+        else:
+            dark_side = 'right'
 
 
 
@@ -427,7 +412,7 @@ def process_sample_frame(sample_frame_file_path):
         working_framebuffer,
         orientation,
         coarse_position,
-        dark_side
+        dark_side,
     )
 
     if len(points) < MIN_POINTS:
