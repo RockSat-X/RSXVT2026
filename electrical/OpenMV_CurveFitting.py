@@ -48,105 +48,6 @@ H     = sensor.height()
 
 ################################################################################
 #
-# Scan within identified region.
-#
-
-
-
-def find_gradient_points(picture, orientation, broad_position, dark_side):
-
-    points = []
-    step = GRADIENT_STEP
-
-    if orientation == 'h':
-
-        # Horizontal, scan columns.
-
-        y_lo = max(step, broad_position - SCAN_BAND)
-        y_hi = min(H - 1, broad_position + SCAN_BAND)
-        v_sign = 1 if dark_side == 'top' else -1
-
-        for x in range(SCAN_SPACING, W - SCAN_SPACING, SCAN_SPACING):
-            best_g = 0
-            best_y = -1
-            for y in range(y_lo + step, y_hi):
-                above = picture.get_pixel(x, y - step)
-                below = picture.get_pixel(x, y)
-                g = v_sign * (below - above)
-                if g > best_g:
-                    best_g = g
-                    best_y = y
-            if best_y >= 0 and best_g >= MIN_GRADIENT:
-
-                # Check neighboring pixels.
-
-                if best_y > y_lo + step and best_y < y_hi - 1:
-                    above_g = picture.get_pixel(x, best_y - 1) - picture.get_pixel(x, best_y - step - 1)
-                    below_g = picture.get_pixel(x, best_y + 1) - picture.get_pixel(x, best_y - step + 1)
-                    if dark_side != 'top':
-                        above_g = -above_g
-                        below_g = -below_g
-
-                    # Ignore negative gradients.
-
-                    above_g = max(0, above_g)
-                    below_g = max(0, below_g)
-                    total = above_g + best_g + below_g
-                    if total > 0:
-                        refined_y = (above_g * (best_y - 1) + best_g * best_y + below_g * (best_y + 1)) / total
-                        points.append((x, refined_y))
-                    else:
-                        points.append((x, float(best_y)))
-                else:
-                    points.append((x, float(best_y)))
-
-    else:
-
-        # Vertical horizon.
-
-        x_lo = max(step, broad_position - SCAN_BAND)
-        x_hi = min(W - 1, broad_position + SCAN_BAND)
-        h_sign = 1 if dark_side == 'left' else -1
-
-        for y in range(SCAN_SPACING, H - SCAN_SPACING, SCAN_SPACING):
-            best_g = 0
-            best_x = -1
-            for x in range(x_lo + step, x_hi):
-                left_v = picture.get_pixel(x - step, y)
-                right_v = picture.get_pixel(x, y)
-                g = h_sign * (right_v - left_v)
-                if g > best_g:
-                    best_g = g
-                    best_x = x
-            if best_x >= 0 and best_g >= MIN_GRADIENT:
-
-                if best_x > x_lo + step and best_x < x_hi - 1:
-                    left_g = picture.get_pixel(best_x - 1, y) - picture.get_pixel(best_x - step - 1, y)
-                    right_g = picture.get_pixel(best_x + 1, y) - picture.get_pixel(best_x - step + 1, y)
-                    if dark_side != 'left':
-                        left_g = -left_g
-                        right_g = -right_g
-
-                    # Ignore negative gradients.
-
-                    left_g = max(0, left_g)
-                    right_g = max(0, right_g)
-                    total = left_g + best_g + right_g
-                    if total > 0:
-                        refined_x = (left_g * (best_x - 1) + best_g * best_x + right_g * (best_x + 1)) / total
-                        points.append((refined_x, y))
-                    else:
-                        points.append((float(best_x), y))
-
-                else:
-                    points.append((float(best_x), y))
-
-    return points
-
-
-
-################################################################################
-#
 # RANSAC.
 #
 
@@ -408,12 +309,89 @@ def process_sample_frame(sample_frame_file_path):
 
     # Narrow scan.
 
-    points = find_gradient_points(
-        working_framebuffer,
-        orientation,
-        coarse_position,
-        dark_side,
-    )
+    points = []
+    step = GRADIENT_STEP
+
+    if orientation == 'h':
+
+        y_lo   = max(step, coarse_position - SCAN_BAND)
+        y_hi   = min(H - 1, coarse_position + SCAN_BAND)
+        v_sign = 1 if dark_side == 'top' else -1
+
+        for x in range(SCAN_SPACING, W - SCAN_SPACING, SCAN_SPACING):
+            best_g = 0
+            best_y = -1
+            for y in range(y_lo + step, y_hi):
+                above = working_framebuffer.get_pixel(x, y - step)
+                below = working_framebuffer.get_pixel(x, y)
+                g = v_sign * (below - above)
+                if g > best_g:
+                    best_g = g
+                    best_y = y
+            if best_y >= 0 and best_g >= MIN_GRADIENT:
+
+                # Check neighboring pixels.
+
+                if best_y > y_lo + step and best_y < y_hi - 1:
+                    above_g = working_framebuffer.get_pixel(x, best_y - 1) - working_framebuffer.get_pixel(x, best_y - step - 1)
+                    below_g = working_framebuffer.get_pixel(x, best_y + 1) - working_framebuffer.get_pixel(x, best_y - step + 1)
+                    if dark_side != 'top':
+                        above_g = -above_g
+                        below_g = -below_g
+
+                    # Ignore negative gradients.
+
+                    above_g = max(0, above_g)
+                    below_g = max(0, below_g)
+                    total = above_g + best_g + below_g
+                    if total > 0:
+                        refined_y = (above_g * (best_y - 1) + best_g * best_y + below_g * (best_y + 1)) / total
+                        points.append((x, refined_y))
+                    else:
+                        points.append((x, float(best_y)))
+                else:
+                    points.append((x, float(best_y)))
+
+    else:
+
+        x_lo   = max(step, coarse_position - SCAN_BAND)
+        x_hi   = min(W - 1, coarse_position + SCAN_BAND)
+        h_sign = 1 if dark_side == 'left' else -1
+
+        for y in range(SCAN_SPACING, H - SCAN_SPACING, SCAN_SPACING):
+            best_g = 0
+            best_x = -1
+            for x in range(x_lo + step, x_hi):
+                left_v = working_framebuffer.get_pixel(x - step, y)
+                right_v = working_framebuffer.get_pixel(x, y)
+                g = h_sign * (right_v - left_v)
+                if g > best_g:
+                    best_g = g
+                    best_x = x
+            if best_x >= 0 and best_g >= MIN_GRADIENT:
+
+                if best_x > x_lo + step and best_x < x_hi - 1:
+                    left_g = working_framebuffer.get_pixel(best_x - 1, y) - working_framebuffer.get_pixel(best_x - step - 1, y)
+                    right_g = working_framebuffer.get_pixel(best_x + 1, y) - working_framebuffer.get_pixel(best_x - step + 1, y)
+                    if dark_side != 'left':
+                        left_g = -left_g
+                        right_g = -right_g
+
+                    # Ignore negative gradients.
+
+                    left_g = max(0, left_g)
+                    right_g = max(0, right_g)
+                    total = left_g + best_g + right_g
+                    if total > 0:
+                        refined_x = (left_g * (best_x - 1) + best_g * best_x + right_g * (best_x + 1)) / total
+                        points.append((refined_x, y))
+                    else:
+                        points.append((float(best_x), y))
+
+                else:
+                    points.append((float(best_x), y))
+
+
 
     if len(points) < MIN_POINTS:
         return f'Rejected :: Too few points ({len(points)}).'
