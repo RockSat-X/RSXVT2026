@@ -19,12 +19,6 @@ OUTLIER_PASSES = 3   # Number of outlier rejection iterations
 OUTLIER_MULT   = 2.0 # Reject points with residual > OUTLIER_MULT * median_residual
 DRAW_STEP      = 3   # Pixel step when drawing the fitted curve
 
-# Reject bad curves.
-MAX_CURVATURE    = 0.003
-MIN_INLIER_RATIO = 0.35
-MIN_SPREAD_RATIO = 0.45
-MAX_RESIDUAL     = 12.0
-
 # Sensors.
 sensor.reset()
 sensor.set_framesize(sensor.QVGA)
@@ -354,70 +348,6 @@ def fit_with_rejection(points, orientation):
 
 ################################################################################
 #
-# Reject awful curves
-#
-
-
-
-def is_plausible_horizon(coefficients, inliers, n_candidates, orientation):
-
-    a, b, c = coefficients
-
-
-
-    # Check a value for quadratic fit.
-
-    if abs(a) > MAX_CURVATURE:
-        return (False, f"curvature |a|={abs(a) :.5f} > {MAX_CURVATURE}")
-
-
-
-    # Check inliers.
-    if n_candidates > 0:
-        ratio = len(inliers) / n_candidates
-        if ratio < MIN_INLIER_RATIO:
-            return (False, f"inlier ratio {ratio :.2f} < {MIN_INLIER_RATIO}")
-
-
-
-    # Check inlier spread.
-
-    if orientation == 'h':
-        coords = [point[0] for point in inliers]
-        frame_dim = W
-    else:
-        coords = [point[1] for point in inliers]
-        frame_dim = H
-    span = max(coords) - min(coords)
-    if span < MIN_SPREAD_RATIO * frame_dim:
-        return (False, f"spread {span :.0f}px < {MIN_SPREAD_RATIO * frame_dim :.0f}px")
-
-
-
-    # Check inlier residual.
-
-    res = sorted([residual(point, coefficients, orientation) for point in inliers])
-    med_res = res[len(res) // 2]
-    if med_res > MAX_RESIDUAL:
-        return (False, f"median residual {med_res :.1f} > {MAX_RESIDUAL}")
-
-
-
-    # Check curve crosses the frame.
-
-    if orientation == 'h':
-        in_frame = sum(1 for x in range(0, W, 20) if 0 <= int(a * x * x + b * x + c) < H)
-    else:
-        in_frame = sum(1 for y in range(0, H, 15) if 0 <= int(a * y * y + b * y + c) < W)
-    if in_frame < 3:
-        return (False, f"curve barely crosses frame ({in_frame} points visible)")
-
-    return (True, '')
-
-
-
-################################################################################
-#
 # TODO Explain.
 #
 
@@ -517,17 +447,59 @@ def process_sample_frame(sample_frame_file_path):
 
 
 
-    # Reject bad values.
+    # Check a value for quadratic fit.
 
-    ok, reason = is_plausible_horizon(
-        coefficients,
-        inliers,
-        len(points),
-        orientation
-    )
+    a, b, c = coefficients
 
-    if not ok:
-        return f'Rejected :: `is_plausible_horizon` says `{reason}`.'
+    if abs(a) > 0.003:
+        return f'Rejected :: Too large of a curvature (|a| = {abs(a) :.5f}).'
+
+
+
+    # Check inliers.
+
+    ratio = len(inliers) / len(points)
+
+    if ratio < 0.35:
+        return f'Rejected :: Inlier ratio too small ({ratio :.2f}).'
+
+
+
+    # Check inlier spread.
+
+    if orientation == 'h':
+        coords    = [point[0] for point in inliers]
+        frame_dim = W
+    else:
+        coords    = [point[1] for point in inliers]
+        frame_dim = H
+
+    span = max(coords) - min(coords)
+
+    if span < 0.45 * frame_dim:
+        return 'Rejected :: Span too small ({span :.0f}px).'
+
+
+
+    # Check inlier residual.
+
+    res     = sorted([residual(point, coefficients, orientation) for point in inliers])
+    med_res = res[len(res) // 2]
+
+    if med_res > 12.0:
+        return f'Rejected :: Median residual too large ({med_res :.1f}).'
+
+
+
+    # Check curve crosses the frame.
+
+    if orientation == 'h':
+        in_frame = sum(1 for x in range(0, W, 20) if 0 <= int(a * x * x + b * x + c) < H)
+    else:
+        in_frame = sum(1 for y in range(0, H, 15) if 0 <= int(a * y * y + b * y + c) < W)
+
+    if in_frame < 3:
+        return f'Rejected :: Curve barely crosses frame (only {in_frame} points visible).'
 
 
 
