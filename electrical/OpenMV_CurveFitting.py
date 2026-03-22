@@ -131,58 +131,6 @@ def residual(point, coefficients, orientation):
 
 ################################################################################
 #
-# Reject outliars.
-#
-
-
-
-def fit_with_rejection(points, orientation):
-    working = list(points)
-
-    for _ in range(OUTLIER_PASSES):
-
-        if len(working) < MIN_POINTS:
-            return (None, [])
-
-        coefficients = fit_quadratic(working, orientation)
-        if coefficients is None:
-            return (None, [])
-
-
-
-        # Compute residuals.
-
-        res = [residual(point, coefficients, orientation) for point in working]
-
-
-
-        # Median residual.
-
-        sorted_res = sorted(res)
-        med        = sorted_res[len(sorted_res) // 2]
-        thresh     = max(OUTLIER_MULT * med + 0.5, 3.0)
-
-        # Keep only inliers.
-
-        new_working = [working[i] for i in range(len(working)) if res[i] <= thresh]
-
-        if len(new_working) < MIN_POINTS:
-            break
-        working = new_working
-
-
-
-    if len(working) < MIN_POINTS:
-        return (None, [])
-
-    coefficients = fit_quadratic(working, orientation)
-
-    return (coefficients, working) if coefficients else (None, [])
-
-
-
-################################################################################
-#
 # TODO Explain.
 #
 
@@ -400,13 +348,48 @@ def process_sample_frame(sample_frame_file_path):
 
     # RANSAC.
 
-    coefficients, inliers = fit_with_rejection(
-        points,
-        orientation
-    )
+    inliers = list(points)
+
+    for _ in range(OUTLIER_PASSES):
+
+        if len(inliers) < MIN_POINTS:
+            return f'Rejected :: Too few inliers.'
+
+        coefficients = fit_quadratic(inliers, orientation)
+        if coefficients is None:
+            return f'Rejected :: `fit_quadratic` failed.'
+
+
+
+        # Compute residuals.
+
+        res = [residual(point, coefficients, orientation) for point in inliers]
+
+
+
+        # Median residual.
+
+        sorted_res = sorted(res)
+        med        = sorted_res[len(sorted_res) // 2]
+        thresh     = max(OUTLIER_MULT * med + 0.5, 3.0)
+
+        # Keep only inliers.
+
+        new_working = [inliers[i] for i in range(len(inliers)) if res[i] <= thresh]
+
+        if len(new_working) < MIN_POINTS:
+            break
+        inliers = new_working
+
+
+
+    if len(inliers) < MIN_POINTS:
+        return f'Rejected :: Too few inliers.'
+
+    coefficients = fit_quadratic(inliers, orientation)
 
     if coefficients is None:
-        return f'Rejected :: `fit_with_rejection` failed.'
+        return f'Rejected :: `fit_quadratic` failed.'
 
 
 
