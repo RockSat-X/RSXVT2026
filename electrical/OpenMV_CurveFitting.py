@@ -4,9 +4,7 @@ import sensor, image, time, os, gc, micropython
 FRAME_DELAY_MS = 1000
 
 # Narrow Pass.
-SCAN_SPACING  = 4
 SCAN_BAND     = 150  # Area adjacent to broad pass to check
-GRADIENT_STEP = 4
 MIN_GRADIENT  = 25
 
 # Curve fitting.
@@ -212,68 +210,72 @@ def process_sample_frame(sample_frame_file_path):
 
     STRIP_THICKNESS = 8
 
-    def find_largest_gradient(strips):
-
-        largest_gradient  = None
-        gradient_position = None
-
-        for i in range(len(strips) - 1):
-
-            current_position, current_mean = strips[i    ]
-            next_position   , next_mean    = strips[i + 1]
-
-            current_gradient = next_mean - current_mean
-
-            if largest_gradient is None or abs(largest_gradient) < abs(current_gradient):
-
-                largest_gradient  = current_gradient
-                gradient_position = round((current_position + next_position) / 2)
-
-        return largest_gradient, gradient_position
 
 
+    def find_peak_delta(*, step, xs, f, use_abs):
 
-    largest_horizontal_gradient, horizontal_gradient_position = find_largest_gradient([
-        (
-            y,
-            working_framebuffer.get_statistics(
-                roi = (
-                    0,
-                    y,
-                    working_framebuffer.width(),
-                    STRIP_THICKNESS
-                )
-            ).mean()
+        points = tuple(
+            (x, f(x))
+            for x in xs
         )
-        for y in range(0, working_framebuffer.height() - STRIP_THICKNESS, STRIP_THICKNESS)
-    ])
+
+        peak_x     = None
+        peak_delta = None
+
+        for i in range(len(points) - step):
+
+            current_x, current_value = points[i       ]
+            next_x   , next_value    = points[i + step]
+
+            current_delta = next_value - current_value
+
+            if peak_delta is None or (
+                abs(peak_delta) < abs(current_delta)
+                if use_abs else # TODO Get rid of.
+                peak_delta < current_delta
+            ):
+                peak_x     = (current_x + next_x) / 2
+                peak_delta = current_delta
+
+        return peak_x, peak_delta
 
 
 
-    largest_vertical_gradient, vertical_gradient_position = find_largest_gradient([
-        (
-            x,
-            working_framebuffer.get_statistics(
-                roi = (
-                    x,
-                    0,
-                    STRIP_THICKNESS,
-                    working_framebuffer.height()
-                )
-            ).mean()
-        )
-        for x in range(0, working_framebuffer.width() - STRIP_THICKNESS, STRIP_THICKNESS)
-    ])
+    horizontal_gradient_position, largest_horizontal_gradient = find_peak_delta(
+        step = 1,
+        xs   = range(0, working_framebuffer.height() - STRIP_THICKNESS, STRIP_THICKNESS),
+        f    = lambda y: working_framebuffer.get_statistics(
+            roi = (
+                0,
+                y,
+                working_framebuffer.width(),
+                STRIP_THICKNESS
+            )
+        ).mean(),
+        use_abs = True,
+    )
 
-
+    vertical_gradient_position, largest_vertical_gradient = find_peak_delta(
+        step = 1,
+        xs   = range(0, working_framebuffer.width() - STRIP_THICKNESS, STRIP_THICKNESS),
+        f    = lambda x: working_framebuffer.get_statistics(
+            roi = (
+                x,
+                0,
+                STRIP_THICKNESS,
+                working_framebuffer.height()
+            )
+        ).mean(),
+        use_abs = True,
+    )
 
     if abs(largest_horizontal_gradient) > abs(largest_vertical_gradient):
         largest_gradient = largest_horizontal_gradient
-        coarse_position  = horizontal_gradient_position
+        coarse_position  = round(horizontal_gradient_position)
         orientation      = 'h'
     else:
         largest_gradient = largest_vertical_gradient
-        coarse_position  = vertical_gradient_position
+        coarse_position  = round(vertical_gradient_position)
         orientation      = 'v'
 
     if abs(largest_gradient) < 5:
@@ -297,60 +299,64 @@ def process_sample_frame(sample_frame_file_path):
     # Narrow scan.
     #
 
+    GRADIENT_STEP = 4
+    SCAN_SPACING  = 4
+
     points = []
-    step = GRADIENT_STEP
 
     if orientation == 'h':
 
-        y_lo   = max(step, coarse_position - SCAN_BAND)
+        y_lo   = max(GRADIENT_STEP, coarse_position - SCAN_BAND)
         y_hi   = min(working_framebuffer.height() - 1, coarse_position + SCAN_BAND)
         v_sign = 1 if dark_side == 'top' else -1
 
         for x in range(SCAN_SPACING, working_framebuffer.width() - SCAN_SPACING, SCAN_SPACING):
-            best_g = 0
-            best_y = -1
-            for y in range(y_lo + step, y_hi):
-                above = working_framebuffer.get_pixel(x, y - step)
-                below = working_framebuffer.get_pixel(x, y)
-                g = v_sign * (below - above)
-                if g > best_g:
-                    best_g = g
-                    best_y = y
-            if best_y >= 0 and best_g >= MIN_GRADIENT:
 
-                # Check neighboring pixels.
+            best_position, best_gradient = find_peak_delta(
+                step    = GRADIENT_STEP,
+                xs      = range(y_lo + GRADIENT_STEP, y_hi),
+                f       = lambda y: v_sign * working_framebuffer.get_pixel(x, y),
+                use_abs = False,
+            )
 
-                if best_y > y_lo + step and best_y < y_hi - 1:
-                    above_g = working_framebuffer.get_pixel(x, best_y - 1) - working_framebuffer.get_pixel(x, best_y - step - 1)
-                    below_g = working_framebuffer.get_pixel(x, best_y + 1) - working_framebuffer.get_pixel(x, best_y - step + 1)
+            best_position = round(best_position)
+
+            if best_position >= 0 and best_gradient >= MIN_GRADIENT:
+
+                if best_position > y_lo + GRADIENT_STEP and best_position < y_hi - 1:
+
+                    above_g = working_framebuffer.get_pixel(x, best_position - 1) - working_framebuffer.get_pixel(x, best_position - GRADIENT_STEP - 1)
+                    below_g = working_framebuffer.get_pixel(x, best_position + 1) - working_framebuffer.get_pixel(x, best_position - GRADIENT_STEP + 1)
+
                     if dark_side != 'top':
                         above_g = -above_g
                         below_g = -below_g
 
-                    # Ignore negative gradients.
-
                     above_g = max(0, above_g)
                     below_g = max(0, below_g)
-                    total = above_g + best_g + below_g
+                    total = above_g + best_gradient + below_g
+
                     if total > 0:
-                        refined_y = (above_g * (best_y - 1) + best_g * best_y + below_g * (best_y + 1)) / total
+                        refined_y = (above_g * (best_position - 1) + best_gradient * best_position + below_g * (best_position + 1)) / total
                         points.append((x, refined_y))
                     else:
-                        points.append((x, float(best_y)))
+                        points.append((x, float(best_position)))
+
                 else:
-                    points.append((x, float(best_y)))
+
+                    points.append((x, float(best_position)))
 
     else:
 
-        x_lo   = max(step, coarse_position - SCAN_BAND)
+        x_lo   = max(GRADIENT_STEP, coarse_position - SCAN_BAND)
         x_hi   = min(working_framebuffer.width() - 1, coarse_position + SCAN_BAND)
         h_sign = 1 if dark_side == 'left' else -1
 
         for y in range(SCAN_SPACING, working_framebuffer.height() - SCAN_SPACING, SCAN_SPACING):
             best_g = 0
             best_x = -1
-            for x in range(x_lo + step, x_hi):
-                left_v = working_framebuffer.get_pixel(x - step, y)
+            for x in range(x_lo + GRADIENT_STEP, x_hi):
+                left_v = working_framebuffer.get_pixel(x - GRADIENT_STEP, y)
                 right_v = working_framebuffer.get_pixel(x, y)
                 g = h_sign * (right_v - left_v)
                 if g > best_g:
@@ -358,9 +364,9 @@ def process_sample_frame(sample_frame_file_path):
                     best_x = x
             if best_x >= 0 and best_g >= MIN_GRADIENT:
 
-                if best_x > x_lo + step and best_x < x_hi - 1:
-                    left_g = working_framebuffer.get_pixel(best_x - 1, y) - working_framebuffer.get_pixel(best_x - step - 1, y)
-                    right_g = working_framebuffer.get_pixel(best_x + 1, y) - working_framebuffer.get_pixel(best_x - step + 1, y)
+                if best_x > x_lo + GRADIENT_STEP and best_x < x_hi - 1:
+                    left_g = working_framebuffer.get_pixel(best_x - 1, y) - working_framebuffer.get_pixel(best_x - GRADIENT_STEP - 1, y)
+                    right_g = working_framebuffer.get_pixel(best_x + 1, y) - working_framebuffer.get_pixel(best_x - GRADIENT_STEP + 1, y)
                     if dark_side != 'left':
                         left_g = -left_g
                         right_g = -right_g
