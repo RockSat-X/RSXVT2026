@@ -22,7 +22,6 @@ DRAW_STEP      = 3   # Pixel step when drawing the fitted curve
 sensor.reset()
 sensor.set_framesize(sensor.QVGA)
 sensor.set_pixformat(sensor.RGB565)
-sensor.skip_frames(time=2000)
 
 
 
