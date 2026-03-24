@@ -29,6 +29,7 @@ panic_(void)
 
     vTaskSuspendAll(); // Let the below pattern play out entirely.
     WATCHDOG_KICK();   // "
+    __disable_irq();   // "
 
     for (i32 i = 0; i < 32; i += 1)
     {
