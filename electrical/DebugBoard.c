@@ -311,9 +311,9 @@ FREERTOS_TASK(logger, 0)
         if (completely_wipe_filesystem)
         {
             BUZZER_play(BuzzerTune_tetris);
-            GPIO_INACTIVE(led_channel_red_D  );
-            GPIO_INACTIVE(led_channel_green_D);
-            GPIO_INACTIVE(led_channel_blue_D );
+            GPIO_ACTIVE(led_channel_red_D  );
+            GPIO_ACTIVE(led_channel_green_D);
+            GPIO_ACTIVE(led_channel_blue_D );
         }
         else
         {
@@ -336,6 +336,10 @@ FREERTOS_TASK(logger, 0)
 
         completely_wipe_filesystem = false;
 
+        GPIO_INACTIVE(led_channel_red_D  );
+        GPIO_INACTIVE(led_channel_green_D);
+        GPIO_INACTIVE(led_channel_blue_D );
+
         switch (reinit_result)
         {
 
@@ -355,10 +359,6 @@ FREERTOS_TASK(logger, 0)
             case FileSystemReinitResult_couldnt_ready_card:
             case FileSystemReinitResult_transfer_error:
             {
-
-                GPIO_INACTIVE(led_channel_red_D  );
-                GPIO_INACTIVE(led_channel_green_D);
-                GPIO_INACTIVE(led_channel_blue_D );
 
                 for (i32 i = 0; i < 32; i += 1)
                 {
@@ -385,10 +385,6 @@ FREERTOS_TASK(logger, 0)
             case FileSystemReinitResult_bug:
             default:
             {
-
-                GPIO_INACTIVE(led_channel_red_D  );
-                GPIO_INACTIVE(led_channel_green_D);
-                GPIO_INACTIVE(led_channel_blue_D );
 
                 for (i32 i = 0; i < 128; i += 1)
                 {
@@ -487,7 +483,7 @@ FREERTOS_TASK(logger, 0)
 
                 case FileSystemSaveResult_success:
                 {
-                    if (TIMEKEEPING_microseconds() - most_recent_heartbeat_timestamp_us >= 5'000'000)
+                    if (TIMEKEEPING_microseconds() - most_recent_heartbeat_timestamp_us >= 1'000'000)
                     {
                         most_recent_heartbeat_timestamp_us = TIMEKEEPING_microseconds();
                         GPIO_INACTIVE(led_channel_red_D  );
