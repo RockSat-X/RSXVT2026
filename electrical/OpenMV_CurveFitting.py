@@ -333,80 +333,33 @@ def process_sample_frame(sample_frame_file_path):
 
     if orientation == 'h':
 
-        scan_start = max(coarse_position - SCAN_BAND, 1                               )
-        scan_end   = min(coarse_position + SCAN_BAND, working_framebuffer.height() - 1)
+        scan_start = max(coarse_position - SCAN_BAND, 0                           )
+        scan_end   = min(coarse_position + SCAN_BAND, working_framebuffer.height())
 
-        for x in range(SCAN_SPACING, working_framebuffer.width() - SCAN_SPACING, SCAN_SPACING):
+        for x in range(0, working_framebuffer.width(), SCAN_SPACING):
 
             best_position, best_gradient = scan_peak_delta(
-                xs = range(scan_start + 1, scan_end),
+                xs = range(scan_start, scan_end),
                 f  = lambda y: (1 if dark_side == 'top' else -1) * working_framebuffer.get_pixel(x, y),
             )
 
-            best_position = round(best_position)
-
             if abs(best_gradient) >= MIN_GRADIENT:
-
-                point_position = best_position
-
-                if scan_start + 1 < best_position < scan_end - 1:
-
-                    above_g = working_framebuffer.get_pixel(x, best_position - 1) - working_framebuffer.get_pixel(x, best_position - 2)
-                    below_g = working_framebuffer.get_pixel(x, best_position + 1) - working_framebuffer.get_pixel(x, best_position    )
-
-                    if dark_side != 'top':
-                        above_g = -above_g
-                        below_g = -below_g
-
-                    above_g = max(0, above_g)
-                    below_g = max(0, below_g)
-                    total = above_g + best_gradient + below_g
-
-                    if total > 0:
-                        point_position = (above_g * (best_position - 1) + best_gradient * best_position + below_g * (best_position + 1)) / total
-
-                points += [(x, point_position)]
-
-
+                points += [(x, round(best_position))]
 
     else:
 
-        x_lo   = max(1, coarse_position - SCAN_BAND)
-        x_hi   = min(working_framebuffer.width() - 1, coarse_position + SCAN_BAND)
-        h_sign = 1 if dark_side == 'left' else -1
+        scan_start = max(coarse_position - SCAN_BAND, 0                          )
+        scan_end   = min(coarse_position + SCAN_BAND, working_framebuffer.width())
 
-        for y in range(SCAN_SPACING, working_framebuffer.height() - SCAN_SPACING, SCAN_SPACING):
-            best_g = 0
-            best_x = -1
-            for x in range(x_lo + 1, x_hi):
-                left_v = working_framebuffer.get_pixel(x - 1, y)
-                right_v = working_framebuffer.get_pixel(x, y)
-                g = h_sign * (right_v - left_v)
-                if g > best_g:
-                    best_g = g
-                    best_x = x
-            if best_x >= 0 and best_g >= MIN_GRADIENT:
+        for y in range(0, working_framebuffer.height(), SCAN_SPACING):
 
-                if best_x > x_lo + 1 and best_x < x_hi - 1:
-                    left_g = working_framebuffer.get_pixel(best_x - 1, y) - working_framebuffer.get_pixel(best_x - 1 - 1, y)
-                    right_g = working_framebuffer.get_pixel(best_x + 1, y) - working_framebuffer.get_pixel(best_x - 1 + 1, y)
-                    if dark_side != 'left':
-                        left_g = -left_g
-                        right_g = -right_g
+            best_position, best_gradient = scan_peak_delta(
+                xs = range(scan_start, scan_end),
+                f  = lambda x: (1 if dark_side == 'left' else -1) * working_framebuffer.get_pixel(x, y),
+            )
 
-                    # Ignore negative gradients.
-
-                    left_g = max(0, left_g)
-                    right_g = max(0, right_g)
-                    total = left_g + best_g + right_g
-                    if total > 0:
-                        refined_x = (left_g * (best_x - 1) + best_g * best_x + right_g * (best_x + 1)) / total
-                        points.append((refined_x, y))
-                    else:
-                        points.append((float(best_x), y))
-
-                else:
-                    points.append((float(best_x), y))
+            if abs(best_gradient) >= MIN_GRADIENT:
+                points += [(round(best_position), y)]
 
 
 
