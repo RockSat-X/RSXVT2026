@@ -128,6 +128,39 @@ working_framebuffer = sensor.alloc_extra_fb(sensor.width(), sensor.height(), sen
 colored_framebuffer = sensor.alloc_extra_fb(sensor.width(), sensor.height(), sensor.RGB565   )
 
 
+################################################################################
+#
+# TODO Explain.
+#
+
+
+
+def scan_peak_delta(*, xs, f):
+
+    points = tuple(
+        (x, f(x))
+        for x in xs
+    )
+
+    peak_delta    = None
+    peak_x        = None
+    peak_gradient = None
+
+    for i in range(len(points) - 1):
+
+        current_x, current_value = points[i    ]
+        next_x   , next_value    = points[i + 1]
+
+        current_delta = next_value - current_value
+
+        if peak_delta is None or peak_delta < current_delta:
+            peak_delta    = current_delta
+            peak_x        = (current_x + next_x) / 2
+            peak_gradient = current_delta / (next_x - current_x)
+
+    return peak_x, peak_gradient
+
+
 
 ################################################################################
 #
@@ -212,39 +245,14 @@ def process_sample_frame(sample_frame_file_path):
     # horizon will roughly be.
     #
     # TODO This is making the assumption that the curvature of the horizon is small
-    #      enough that it can be approximated as a rectangular strip.
+    #      enough that it can be approximated as a rectangular strip?
     #
 
     STRIP_THICKNESS = 8
 
 
 
-    def find_peak_delta(*, xs, f):
-
-        points = tuple(
-            (x, f(x))
-            for x in xs
-        )
-
-        peak_x     = None
-        peak_delta = None
-
-        for i in range(len(points) - 1):
-
-            current_x, current_value = points[i    ]
-            next_x   , next_value    = points[i + 1]
-
-            current_delta = next_value - current_value
-
-            if peak_delta is None or peak_delta < current_delta:
-                peak_x     = (current_x + next_x) / 2
-                peak_delta = current_delta
-
-        return peak_x, peak_delta
-
-
-
-    horizontal_gradient_position_A, largest_horizontal_gradient_A = find_peak_delta(
+    spacetop_position, spacetop_gradient = scan_peak_delta(
         xs = range(0, working_framebuffer.height() - STRIP_THICKNESS, STRIP_THICKNESS),
         f  = lambda y: working_framebuffer.get_statistics(
             roi = (
@@ -256,7 +264,7 @@ def process_sample_frame(sample_frame_file_path):
         ).mean(),
     )
 
-    horizontal_gradient_position_B, largest_horizontal_gradient_B = find_peak_delta(
+    spacebottom_position, spacebottom_gradient = scan_peak_delta(
         xs = reversed(range(0, working_framebuffer.height() - STRIP_THICKNESS, STRIP_THICKNESS)),
         f  = lambda y: working_framebuffer.get_statistics(
             roi = (
@@ -268,18 +276,7 @@ def process_sample_frame(sample_frame_file_path):
         ).mean(),
     )
 
-    largest_horizontal_gradient_B = -largest_horizontal_gradient_B
-
-    if abs(largest_horizontal_gradient_B) < abs(largest_horizontal_gradient_A):
-        horizontal_gradient_position = horizontal_gradient_position_A
-        largest_horizontal_gradient  = largest_horizontal_gradient_A
-    else:
-        horizontal_gradient_position = horizontal_gradient_position_B
-        largest_horizontal_gradient  = largest_horizontal_gradient_B
-
-
-
-    vertical_gradient_position_A, largest_vertical_gradient_A = find_peak_delta(
+    spaceleft_position, spaceleft_gradient = scan_peak_delta(
         xs = range(0, working_framebuffer.width() - STRIP_THICKNESS, STRIP_THICKNESS),
         f  = lambda x: working_framebuffer.get_statistics(
             roi = (
@@ -291,7 +288,7 @@ def process_sample_frame(sample_frame_file_path):
         ).mean(),
     )
 
-    vertical_gradient_position_B, largest_vertical_gradient_B = find_peak_delta(
+    spaceright_position, spaceright_gradient = scan_peak_delta(
         xs = reversed(range(0, working_framebuffer.width() - STRIP_THICKNESS, STRIP_THICKNESS)),
         f  = lambda x: working_framebuffer.get_statistics(
             roi = (
@@ -303,24 +300,24 @@ def process_sample_frame(sample_frame_file_path):
         ).mean(),
     )
 
-    largest_vertical_gradient_B = -largest_vertical_gradient_B
-
-    if abs(largest_vertical_gradient_B) < abs(largest_vertical_gradient_A):
-        vertical_gradient_position = vertical_gradient_position_A
-        largest_vertical_gradient  = largest_vertical_gradient_A
-    else:
-        vertical_gradient_position = vertical_gradient_position_B
-        largest_vertical_gradient  = largest_vertical_gradient_B
 
 
+    coarse_position, coarse_gradient, orientation, dark_side = max(
+        (
+            (round(spacetop_position   ), spacetop_gradient   , 'h', 'top'   ),
+            (round(spacebottom_position), spacebottom_gradient, 'h', 'bottom'),
+            (round(spaceleft_position  ), spaceleft_gradient  , 'v', 'left'  ),
+            (round(spaceright_position ), spaceright_gradient , 'v', 'right' ),
+        ),
+        key = lambda t: abs(t[1])
+    )
+
+    if abs(coarse_gradient) < 1:
+        return f'Rejected :: Gradient too small.'
 
 
 
-    if abs(largest_horizontal_gradient) > abs(largest_vertical_gradient):
-
-        largest_gradient = largest_horizontal_gradient
-        coarse_position  = round(horizontal_gradient_position)
-        orientation      = 'h'
+    if orientation == 'h':
 
         colored_framebuffer.draw_line(
             0,
@@ -332,9 +329,6 @@ def process_sample_frame(sample_frame_file_path):
         )
 
     else:
-        largest_gradient = largest_vertical_gradient
-        coarse_position  = round(vertical_gradient_position)
-        orientation      = 'v'
 
         colored_framebuffer.draw_line(
             coarse_position,
@@ -344,20 +338,6 @@ def process_sample_frame(sample_frame_file_path):
             color     = (0, 255, 255),
             thickness = STRIP_THICKNESS,
         )
-
-    if abs(largest_gradient) < 5:
-        return f'Rejected :: Gradient too small.'
-
-    if orientation == 'h':
-        if largest_gradient > 0:
-            dark_side = 'top'
-        else:
-            dark_side = 'bottom'
-    else:
-        if largest_gradient > 0:
-            dark_side = 'left'
-        else:
-            dark_side = 'right'
 
 
 
@@ -379,14 +359,14 @@ def process_sample_frame(sample_frame_file_path):
 
         for x in range(SCAN_SPACING, working_framebuffer.width() - SCAN_SPACING, SCAN_SPACING):
 
-            best_position, best_gradient = find_peak_delta(
+            best_position, best_gradient = scan_peak_delta(
                 xs = range(scan_start + 1, scan_end),
                 f  = lambda y: (1 if dark_side == 'top' else -1) * working_framebuffer.get_pixel(x, y),
             )
 
             best_position = round(best_position)
 
-            if best_gradient >= MIN_GRADIENT:
+            if abs(best_gradient) >= MIN_GRADIENT:
 
                 point_position = best_position
 
