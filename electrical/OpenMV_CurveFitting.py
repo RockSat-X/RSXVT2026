@@ -1,11 +1,7 @@
 import sensor, image, time, os, gc, micropython
 
 # Configuration.
-FRAME_DELAY_MS = 1000
-
-# Narrow Pass.
-SCAN_BAND     = 150  # Area adjacent to broad pass to check
-MIN_GRADIENT  = 25
+FRAME_DELAY_MS = 10
 
 # Curve fitting.
 MIN_POINTS     = 20
@@ -15,7 +11,7 @@ DRAW_STEP      = 3   # Pixel step when drawing the fitted curve
 
 # Sensors.
 sensor.reset()
-sensor.set_framesize(sensor.QVGA)
+sensor.set_framesize(sensor.QQVGA)
 sensor.set_pixformat(sensor.RGB565)
 
 
@@ -301,29 +297,32 @@ def process_sample_frame(sample_frame_file_path):
 
     GRADIENT_STEP = 4
     SCAN_SPACING  = 4
+    SCAN_BAND     = 150
+    MIN_GRADIENT  = 25
 
     points = []
 
     if orientation == 'h':
 
-        y_lo   = max(GRADIENT_STEP, coarse_position - SCAN_BAND)
-        y_hi   = min(working_framebuffer.height() - 1, coarse_position + SCAN_BAND)
-        v_sign = 1 if dark_side == 'top' else -1
+        scan_start = max(coarse_position - SCAN_BAND, GRADIENT_STEP                   )
+        scan_end   = min(coarse_position + SCAN_BAND, working_framebuffer.height() - 1)
 
         for x in range(SCAN_SPACING, working_framebuffer.width() - SCAN_SPACING, SCAN_SPACING):
 
             best_position, best_gradient = find_peak_delta(
                 step    = GRADIENT_STEP,
-                xs      = range(y_lo + GRADIENT_STEP, y_hi),
-                f       = lambda y: v_sign * working_framebuffer.get_pixel(x, y),
+                xs      = range(scan_start + GRADIENT_STEP, scan_end),
+                f       = lambda y: (1 if dark_side == 'top' else -1) * working_framebuffer.get_pixel(x, y),
                 use_abs = False,
             )
 
             best_position = round(best_position)
 
-            if best_position >= 0 and best_gradient >= MIN_GRADIENT:
+            if best_gradient >= MIN_GRADIENT:
 
-                if best_position > y_lo + GRADIENT_STEP and best_position < y_hi - 1:
+                point_position = best_position
+
+                if scan_start + GRADIENT_STEP < best_position < scan_end - 1:
 
                     above_g = working_framebuffer.get_pixel(x, best_position - 1) - working_framebuffer.get_pixel(x, best_position - GRADIENT_STEP - 1)
                     below_g = working_framebuffer.get_pixel(x, best_position + 1) - working_framebuffer.get_pixel(x, best_position - GRADIENT_STEP + 1)
@@ -337,14 +336,11 @@ def process_sample_frame(sample_frame_file_path):
                     total = above_g + best_gradient + below_g
 
                     if total > 0:
-                        refined_y = (above_g * (best_position - 1) + best_gradient * best_position + below_g * (best_position + 1)) / total
-                        points.append((x, refined_y))
-                    else:
-                        points.append((x, float(best_position)))
+                        point_position = (above_g * (best_position - 1) + best_gradient * best_position + below_g * (best_position + 1)) / total
 
-                else:
+                points += [(x, point_position)]
 
-                    points.append((x, float(best_position)))
+
 
     else:
 
