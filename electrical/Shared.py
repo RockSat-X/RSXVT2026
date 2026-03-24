@@ -110,16 +110,20 @@ TARGETS = ( # @/`Defining Targets`.
         kicad_project = None,
 
         gpios = (
-            ('led_green', 'A5' , 'OUTPUT'    , { 'initlvl' : False              }),
-            ('stlink_tx', 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'        }),
-            ('stlink_rx', 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'        }),
-            ('swdio'    , 'A13', None        , {                                }),
-            ('swclk'    , 'A14', None        , {                                }),
-            ('button'   , 'C13', 'INPUT'     , { 'pull' : None, 'active' : True }),
+            ('led_green'        , 'A5' , 'OUTPUT'    , { 'initlvl' : False              }),
+            ('stlink_tx'        , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'        }),
+            ('stlink_rx'        , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'        }),
+            ('swdio'            , 'A13', None        , {                                }),
+            ('swclk'            , 'A14', None        , {                                }),
+            ('button'           , 'C13', 'INPUT'     , { 'pull' : None, 'active' : True }),
+            ('debug_board_clock', 'B6' , 'ALTERNATE', { 'altfunc' : 'I2C1_SCL', 'open_drain' : True, 'pull' : 'UP' }),
+            ('debug_board_data' , 'B7' , 'ALTERNATE', { 'altfunc' : 'I2C1_SDA', 'open_drain' : True, 'pull' : 'UP' }),
         ),
 
         interrupts = (
             ('USART2', 0),
+            ('I2C1_EV', 1),
+            ('I2C1_ER', 1),
         ),
 
         drivers = (
@@ -128,6 +132,16 @@ TARGETS = ( # @/`Defining Targets`.
                 'peripheral' : 'USART2',
                 'handle'     : 'stlink',
                 'mode'       : 'full_duplex',
+            },
+            {
+                'type'       : 'I2C',
+                'peripheral' : 'I2C1',
+                'handle'     : 'debug_board',
+                'mode'       : 'master',
+            },
+            {
+                'type'       : 'TIMEKEEPING',
+                'peripheral' : 'TIM2',
             },
         ),
 
@@ -142,6 +156,9 @@ TARGETS = ( # @/`Defining Targets`.
             'APB2_CK'      : 250_000_000,
             'APB3_CK'      : 250_000_000,
             'USART2_BAUD'  : STLINK_BAUD,
+            'I2C1_BAUD'         : MFC_DEBUG_BOARD_BAUD,
+            'I2C1_TIMEOUT'      : 0.030,
+            'TIM2_COUNTER_RATE' : 1_000_000,
         },
 
         flight_ready = False,
