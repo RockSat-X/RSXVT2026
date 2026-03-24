@@ -410,8 +410,6 @@ FREERTOS_TASK(logger, 0)
 
         // Alright, file-system is ready. Let's start logging!
 
-        u32 most_recent_heartbeat_timestamp_us = 0;
-
         while (true)
         {
 
@@ -536,13 +534,9 @@ FREERTOS_TASK(logger, 0)
 
                     case FileSystemSaveResult_success:
                     {
-                        if (TIMEKEEPING_microseconds() - most_recent_heartbeat_timestamp_us >= 1'000'000)
-                        {
-                            most_recent_heartbeat_timestamp_us = TIMEKEEPING_microseconds();
-                            GPIO_INACTIVE(led_channel_red_D  );
-                            GPIO_TOGGLE  (led_channel_green_D);
-                            GPIO_INACTIVE(led_channel_blue_D );
-                        }
+                        GPIO_INACTIVE(led_channel_red_D  );
+                        GPIO_TOGGLE  (led_channel_green_D);
+                        GPIO_INACTIVE(led_channel_blue_D );
                     } break;
 
 
