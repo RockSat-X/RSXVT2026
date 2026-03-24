@@ -447,8 +447,9 @@
     {
         FreeRTOSTask_display,
         FreeRTOSTask_logger,
+        FreeRTOSTask_buzzer_indicator,
     };
-    static constexpr u32 FreeRTOSTask_COUNT = 2;
+    static constexpr u32 FreeRTOSTask_COUNT = 3;
     static noret void   display(void*);
     static StackType_t  display_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t display_buffer = {0};
@@ -457,6 +458,10 @@
     static StackType_t  logger_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t logger_buffer = {0};
     static TaskHandle_t logger_handle = {0};
+    static noret void   buzzer_indicator(void*);
+    static StackType_t  buzzer_indicator_stack[8192 / sizeof(StackType_t)] = {0};
+    static StaticTask_t buzzer_indicator_buffer = {0};
+    static TaskHandle_t buzzer_indicator_handle = {0};
     static noret void
     FREERTOS_init(void)
     {
@@ -481,6 +486,17 @@
                 0,
                 logger_stack,
                 &logger_buffer
+            );
+        buzzer_indicator_handle =
+            xTaskCreateStatic
+            (
+                buzzer_indicator,
+                "buzzer_indicator",
+                countof(buzzer_indicator_stack),
+                nullptr,
+                0,
+                buzzer_indicator_stack,
+                &buzzer_indicator_buffer
             );
         vTaskStartScheduler();
         for(;;);

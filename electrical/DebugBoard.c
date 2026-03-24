@@ -587,6 +587,61 @@ FREERTOS_TASK(logger, 0)
 
 
 
+FREERTOS_TASK(buzzer_indicator, 0)
+{
+    for (;;)
+    {
+
+        while (BUZZER_current_tune())
+        {
+
+            GPIO_ACTIVE  (led_channel_red_A  );
+            GPIO_INACTIVE(led_channel_green_A);
+            GPIO_INACTIVE(led_channel_blue_A );
+            FREERTOS_delay_ms(20);
+
+            GPIO_ACTIVE  (led_channel_red_A  );
+            GPIO_ACTIVE  (led_channel_green_A);
+            GPIO_INACTIVE(led_channel_blue_A );
+            FREERTOS_delay_ms(20);
+
+            GPIO_INACTIVE(led_channel_red_A  );
+            GPIO_ACTIVE  (led_channel_green_A);
+            GPIO_INACTIVE(led_channel_blue_A );
+            FREERTOS_delay_ms(20);
+
+            GPIO_INACTIVE(led_channel_red_A  );
+            GPIO_ACTIVE  (led_channel_green_A);
+            GPIO_ACTIVE  (led_channel_blue_A );
+            FREERTOS_delay_ms(20);
+
+            GPIO_INACTIVE(led_channel_red_A  );
+            GPIO_INACTIVE(led_channel_green_A);
+            GPIO_ACTIVE  (led_channel_blue_A );
+            FREERTOS_delay_ms(20);
+
+            GPIO_ACTIVE  (led_channel_red_A  );
+            GPIO_INACTIVE(led_channel_green_A);
+            GPIO_ACTIVE  (led_channel_blue_A );
+            FREERTOS_delay_ms(20);
+
+        }
+
+        GPIO_INACTIVE(led_channel_red_A  );
+        GPIO_INACTIVE(led_channel_green_A);
+        GPIO_INACTIVE(led_channel_blue_A );
+
+        FREERTOS_delay_ms(100);
+
+    }
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
 INTERRUPT_I2Cx_communication(enum I2CSlaveCallbackEvent event, u8* data)
 {
 
