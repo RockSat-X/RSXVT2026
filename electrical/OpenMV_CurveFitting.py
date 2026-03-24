@@ -1,19 +1,5 @@
 import sensor, image, time, os, gc, micropython
 
-# Configuration.
-FRAME_DELAY_MS = 10
-
-# Curve fitting.
-MIN_POINTS     = 20
-OUTLIER_PASSES = 3   # Number of outlier rejection iterations
-OUTLIER_MULT   = 2.0 # Reject points with residual > OUTLIER_MULT * median_residual
-DRAW_STEP      = 3   # Pixel step when drawing the fitted curve
-
-# Sensors.
-sensor.reset()
-sensor.set_framesize(sensor.QQVGA)
-sensor.set_pixformat(sensor.RGB565)
-
 
 
 ################################################################################
@@ -24,11 +10,9 @@ sensor.set_pixformat(sensor.RGB565)
 
 micropython.alloc_emergency_exception_buf(200)
 
-
-
-################################################################################
-
-
+sensor.reset()
+sensor.set_framesize(sensor.QQVGA)
+sensor.set_pixformat(sensor.RGB565)
 
 clock = time.clock()
 
@@ -36,8 +20,47 @@ clock = time.clock()
 
 ################################################################################
 #
-# RANSAC.
+# TODO Explain.
 #
+
+
+
+working_framebuffer = sensor.alloc_extra_fb(sensor.width(), sensor.height(), sensor.GRAYSCALE)
+colored_framebuffer = sensor.alloc_extra_fb(sensor.width(), sensor.height(), sensor.RGB565   )
+
+
+
+################################################################################
+#
+# TODO Explain.
+#
+
+
+
+def scan_peak_delta(*, xs, f):
+
+    points = tuple(
+        (x, f(x))
+        for x in xs
+    )
+
+    peak_delta    = None
+    peak_x        = None
+    peak_gradient = None
+
+    for i in range(len(points) - 1):
+
+        current_x, current_value = points[i    ]
+        next_x   , next_value    = points[i + 1]
+
+        current_delta = next_value - current_value
+
+        if peak_delta is None or peak_delta < current_delta:
+            peak_delta    = current_delta
+            peak_x        = (current_x + next_x) / 2
+            peak_gradient = current_delta / (next_x - current_x)
+
+    return peak_x, peak_gradient
 
 
 
@@ -114,51 +137,6 @@ def residual(point, coefficients, orientation):
     else:
         t = point[1]
         return abs(point[0] - (a * t * t + b * t + c))
-
-
-
-################################################################################
-#
-# TODO Explain.
-#
-
-
-
-working_framebuffer = sensor.alloc_extra_fb(sensor.width(), sensor.height(), sensor.GRAYSCALE)
-colored_framebuffer = sensor.alloc_extra_fb(sensor.width(), sensor.height(), sensor.RGB565   )
-
-
-################################################################################
-#
-# TODO Explain.
-#
-
-
-
-def scan_peak_delta(*, xs, f):
-
-    points = tuple(
-        (x, f(x))
-        for x in xs
-    )
-
-    peak_delta    = None
-    peak_x        = None
-    peak_gradient = None
-
-    for i in range(len(points) - 1):
-
-        current_x, current_value = points[i    ]
-        next_x   , next_value    = points[i + 1]
-
-        current_delta = next_value - current_value
-
-        if peak_delta is None or peak_delta < current_delta:
-            peak_delta    = current_delta
-            peak_x        = (current_x + next_x) / 2
-            peak_gradient = current_delta / (next_x - current_x)
-
-    return peak_x, peak_gradient
 
 
 
@@ -346,6 +324,7 @@ def process_sample_frame(sample_frame_file_path):
     # Narrow scan.
     #
 
+    MIN_POINTS    = 20
     SCAN_SPACING  = 4
     SCAN_BAND     = 150
     MIN_GRADIENT  = 6
@@ -440,6 +419,9 @@ def process_sample_frame(sample_frame_file_path):
     #
     # RANSAC.
     #
+
+    OUTLIER_PASSES = 3   # Number of outlier rejection iterations
+    OUTLIER_MULT   = 2.0 # Reject points with residual > OUTLIER_MULT * median_residual
 
     inliers = list(points)
 
@@ -579,6 +561,8 @@ def process_sample_frame(sample_frame_file_path):
     # Draw the fitted quadratic curve.
     #
 
+    DRAW_STEP      = 3   # Pixel step when drawing the fitted curve
+
     a, b, c = coefficients
     prev    = None
 
@@ -685,14 +669,8 @@ for sample_frame_file_path_i, sample_frame_file_path in enumerate(sample_frame_f
     print(f'[{sample_frame_file_path_i + 1}/{len(sample_frame_file_paths)}] `{sample_frame_file_path}` : {result_message}')
 
     sensor.snapshot().draw_image(colored_framebuffer, 0, 0)
+    time.sleep_ms(10)
 
-    time.sleep_ms(FRAME_DELAY_MS)
+sensor.snapshot().draw_image(colored_framebuffer, 0, 0)
 
-
-
-sensor.snapshot()             # TODO Temporary hack here to make the IDE display the last sample frame;
-time.sleep_ms(FRAME_DELAY_MS) # TODO it probably has something to do with deallocation of the previous `sensor.snapshot()` call.
-
-sensor.dealloc_extra_fb()
-sensor.dealloc_extra_fb()
 print(f'Done. {len(sample_frame_file_paths)} frames processed.')
