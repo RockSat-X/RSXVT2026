@@ -46,8 +46,8 @@ main(void)
             struct MainFlightComputerDebugPacket packet =
                 {
                     .timestamp_us           = TIMEKEEPING_microseconds(),
-                    .solarboard_voltages[0] = (i16) (67 + TIMEKEEPING_microseconds() / 1'000'000), // TODO.
-                    .solarboard_voltages[1] = (i16) (69 + TIMEKEEPING_microseconds() / 2'000'000), // TODO.
+                    .solarboard_voltages[0] = 67.0f + (f32) TIMEKEEPING_microseconds() / 100'000.0f, // TODO.
+                    .solarboard_voltages[1] = 69.0f + (f32) TIMEKEEPING_microseconds() / 200'000.0f, // TODO.
                     .flags                  = TMP,  // TODO.
                 };
 

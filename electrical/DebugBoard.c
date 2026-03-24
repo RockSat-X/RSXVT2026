@@ -198,8 +198,8 @@ FREERTOS_TASK(display, 0)
             "SCB-B %7.2f V" "\n",
             (f32) TIMEKEEPING_microseconds() / 1000.0f / 1000.0f,
             packet_exist ? (f32) packet_data.timestamp_us / 1000.0f / 1000.0f : NAN,
-            packet_exist ? packet_data.solarboard_voltages[0] / 100.0f        : NAN, // TODO Arbitrary right now...
-            packet_exist ? packet_data.solarboard_voltages[1] / 100.0f        : NAN  // TODO Arbitrary right now...
+            packet_exist ? packet_data.solarboard_voltages[0]                 : NAN,
+            packet_exist ? packet_data.solarboard_voltages[1]                 : NAN
         );
 
         GPIO_INACTIVE(led_channel_red_B  );
