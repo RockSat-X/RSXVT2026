@@ -801,7 +801,7 @@ FILESYSTEM_reinit_(enum SDHandle sd_handle, struct Sector* formatting_sector_buf
             &(FATFS*) { &_FILESYSTEM_driver.fatfs }
         );
 
-    switch (mounting_result)
+    switch (free_result)
     {
 
         case FR_OK:
