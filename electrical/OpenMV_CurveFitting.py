@@ -125,6 +125,7 @@ def residual(point, coefficients, orientation):
 
 
 working_framebuffer = sensor.alloc_extra_fb(sensor.width(), sensor.height(), sensor.GRAYSCALE)
+colored_framebuffer = sensor.alloc_extra_fb(sensor.width(), sensor.height(), sensor.RGB565   )
 
 
 
@@ -161,6 +162,13 @@ def process_sample_frame(sample_frame_file_path):
     try:
 
         working_framebuffer.draw_image(
+            image = image.Image(sample_frame_file_path),
+            x     = 0,
+            y     = 0,
+            hint  = image.SCALE_ASPECT_IGNORE
+        )
+
+        colored_framebuffer.draw_image(
             image = image.Image(sample_frame_file_path),
             x     = 0,
             y     = 0,
@@ -515,9 +523,9 @@ def process_sample_frame(sample_frame_file_path):
 
     for point in inliers:
 
-        working_framebuffer.draw_circle(
-            round(point[0] + 0.5),
-            round(point[1] + 0.5),
+        colored_framebuffer.draw_circle(
+            round(point[0]),
+            round(point[1]),
             3,
             color     = (255, 0, 0),
             thickness = 1,
@@ -536,14 +544,14 @@ def process_sample_frame(sample_frame_file_path):
 
     if orientation == 'h':
 
-        for x in range(0, working_framebuffer.width(), DRAW_STEP):
+        for x in range(0, colored_framebuffer.width(), DRAW_STEP):
 
             y = round(a*x**2 + b*x + c)
 
-            if 0 <= y < working_framebuffer.height():
+            if 0 <= y < colored_framebuffer.height():
 
                 if prev:
-                    working_framebuffer.draw_line(
+                    colored_framebuffer.draw_line(
                         prev[0],
                         prev[1],
                         x,
@@ -560,14 +568,14 @@ def process_sample_frame(sample_frame_file_path):
 
     else:
 
-        for y in range(0, working_framebuffer.height(), DRAW_STEP):
+        for y in range(0, colored_framebuffer.height(), DRAW_STEP):
 
             x = round(a*y**2 + b*y + c)
 
-            if 0 <= x < working_framebuffer.width():
+            if 0 <= x < colored_framebuffer.width():
 
                 if prev:
-                    working_framebuffer.draw_line(
+                    colored_framebuffer.draw_line(
                         prev[0],
                         prev[1],
                         x,
@@ -589,8 +597,8 @@ def process_sample_frame(sample_frame_file_path):
     # Arrow to point to space.
     #
 
-    cx = working_framebuffer.width()  // 2
-    cy = working_framebuffer.height() // 2
+    cx = colored_framebuffer.width()  // 2
+    cy = colored_framebuffer.height() // 2
 
     arrow_map = {
         'top':    (cx     , cy + 20, cx     , cy - 20),
@@ -601,7 +609,7 @@ def process_sample_frame(sample_frame_file_path):
 
     ax1, ay1, ax2, ay2 = arrow_map[dark_side]
 
-    working_framebuffer.draw_arrow(
+    colored_framebuffer.draw_arrow(
         ax1,
         ay1,
         ax2,
@@ -636,7 +644,7 @@ for sample_frame_file_path_i, sample_frame_file_path in enumerate(sample_frame_f
 
     print(f'[{sample_frame_file_path_i + 1}/{len(sample_frame_file_paths)}] `{sample_frame_file_path}` : {result_message}')
 
-    sensor.snapshot().draw_image(working_framebuffer, 0, 0)
+    sensor.snapshot().draw_image(colored_framebuffer, 0, 0)
 
     time.sleep_ms(FRAME_DELAY_MS)
 
