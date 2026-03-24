@@ -10,15 +10,11 @@
 #if TARGET_NAME_IS_SandboxNucleoH533RE
     enum NVICInterrupt : u32
     {
-        NVICInterrupt_USART2  = USART2_IRQn,
-        NVICInterrupt_I2C1_EV = I2C1_EV_IRQn,
-        NVICInterrupt_I2C1_ER = I2C1_ER_IRQn,
+        NVICInterrupt_USART2 = USART2_IRQn,
     };
-    static constexpr u32 NVICInterrupt_COUNT = 3;
+    static constexpr u32 NVICInterrupt_COUNT = 1;
     extern void INTERRUPT_BusFault(void);
     extern void INTERRUPT_Default(void);
-    extern void INTERRUPT_I2C1_ER(void);
-    extern void INTERRUPT_I2C1_EV(void);
     extern void INTERRUPT_Reset(void);
     extern void INTERRUPT_USART2(void);
     extern void INTERRUPT_UsageFault(void);
@@ -94,8 +90,8 @@
             INTERRUPT_Default            , // [ 48] TIM5
             INTERRUPT_Default            , // [ 49] TIM6
             INTERRUPT_Default            , // [ 50] TIM7
-            INTERRUPT_I2C1_EV            , // [ 51] I2C1_EV
-            INTERRUPT_I2C1_ER            , // [ 52] I2C1_ER
+            INTERRUPT_Default            , // [ 51] I2C1_EV
+            INTERRUPT_Default            , // [ 52] I2C1_ER
             INTERRUPT_Default            , // [ 53] I2C2_EV
             INTERRUPT_Default            , // [ 54] I2C2_ER
             INTERRUPT_Default            , // [ 55] SPI1
@@ -179,8 +175,6 @@
         };
     #define INTERRUPT_BusFault(...) extern void INTERRUPT_BusFault(__VA_ARGS__)
     #define INTERRUPT_Default(...) extern void INTERRUPT_Default(__VA_ARGS__)
-    #define INTERRUPT_I2C1_ER(...) extern void INTERRUPT_I2C1_ER(__VA_ARGS__)
-    #define INTERRUPT_I2C1_EV(...) extern void INTERRUPT_I2C1_EV(__VA_ARGS__)
     #define INTERRUPT_PendSV(...) extern void INTERRUPT_PendSV(__VA_ARGS__)
     #define INTERRUPT_Reset(...) extern void INTERRUPT_Reset(__VA_ARGS__)
     #define INTERRUPT_SVCall(...) extern void INTERRUPT_SVCall(__VA_ARGS__)
@@ -210,43 +204,18 @@
         #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__button C
         #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__button 13
         #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__button
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__debug_board_clock B
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__debug_board_clock 6
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__debug_board_clock
-        #define __MACRO_OVERLOAD___PORT_FOR_GPIO_READ__debug_board_data B
-        #define __MACRO_OVERLOAD___NUMBER_FOR_GPIO_READ__debug_board_data 7
-        #define __MACRO_OVERLOAD___ACTIVE_FOR_GPIO_READ__debug_board_data
         CMSIS_SET
         (
             RCC    , AHB2ENR,
             GPIOAEN, true   ,
-            GPIOBEN, true   ,
             GPIOCEN, true   ,
         );
-        CMSIS_SET
-        (
-            GPIOB, OTYPER,
-            OT6  , true  ,
-            OT7  , true  ,
-        );
         CMSIS_SET(GPIOA, ODR, OD5, false);
-        CMSIS_SET
-        (
-            GPIOB, PUPDR,
-            PUPD6, 0b01 ,
-            PUPD7, 0b01 ,
-        );
         CMSIS_WRITE
         (
             GPIO_AFRL, GPIOA->AFR[0],
             AFSEL2   , 7            ,
             AFSEL3   , 7            ,
-        );
-        CMSIS_WRITE
-        (
-            GPIO_AFRL, GPIOB->AFR[0],
-            AFSEL6   , 4            ,
-            AFSEL7   , 4            ,
         );
         CMSIS_SET
         (
@@ -254,12 +223,6 @@
             MODE2, 0b10 ,
             MODE3, 0b10 ,
             MODE5, 0b01 ,
-        );
-        CMSIS_SET
-        (
-            GPIOB, MODER,
-            MODE6, 0b10 ,
-            MODE7, 0b10 ,
         );
         CMSIS_SET(GPIOC, MODER, MODE13, 0b00);
 
@@ -271,10 +234,6 @@
 
         static_assert(0 <= 0 && 0 < (1 << __NVIC_PRIO_BITS));
         NVIC->IPR[NVICInterrupt_USART2] = 0 << __NVIC_PRIO_BITS;
-        static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
-        NVIC->IPR[NVICInterrupt_I2C1_EV] = 1 << __NVIC_PRIO_BITS;
-        static_assert(0 <= 1 && 1 < (1 << __NVIC_PRIO_BITS));
-        NVIC->IPR[NVICInterrupt_I2C1_ER] = 1 << __NVIC_PRIO_BITS;
         CMSIS_SET
         (
             SCB        , SHCSR,
@@ -380,27 +339,6 @@
 
         #define STPY_USART2_KERNEL_SOURCE 0b000
         #define STPY_USART2_BAUD_DIVIDER 250
-
-
-
-        //////////////////////////////////// I2C1 ////////////////////////////////////
-
-
-
-        #define STPY_I2C1_KERNEL_SOURCE 0b11
-        #define STPY_I2C1_PRESC 7
-        #define STPY_I2C1_SCLH 250
-        #define STPY_I2C1_SCLL 250
-        #define STPY_I2C1_TIMEOUTR_TIMEOUTA 58
-
-
-
-        /////////////////////////////////// Timers ///////////////////////////////////
-
-
-
-        #define STPY_GLOBAL_TIMER_PRESCALER false
-        #define STPY_TIM2_DIVIDER (250 - 1)
 
 
 

@@ -1,7 +1,5 @@
 #include "system.h"
 #include "uxart.c"
-#include "timekeeping.c"
-#include "i2c.c"
 
 
 
@@ -11,98 +9,6 @@ main(void)
 
     STPY_init();
     UXART_reinit(UXARTHandle_stlink);
-
-    {
-
-        // Set the prescaler that'll affect all timers' kernel frequency.
-
-        CMSIS_SET(RCC, CFGR1, TIMPRE, STPY_GLOBAL_TIMER_PRESCALER);
-
-
-
-        // Configure the other registers to get timekeeping up and going.
-
-        TIMEKEEPING_partial_init();
-
-    }
-
-    for (;;)
-    {
-
-        I2C_partial_reinit(I2CHandle_debug_board);
-
-        b32 need_to_reinitialize = false;
-
-        while (!need_to_reinitialize)
-        {
-
-            static u8 TMP = 0;
-
-            if (GPIO_READ(button))
-            {
-                TMP += 1;
-            }
-
-            struct MainFlightComputerDebugPacket packet =
-                {
-                    .timestamp_us           = TIMEKEEPING_microseconds(),
-                    .solarboard_voltages[0] = 67.0f + (f32) TIMEKEEPING_microseconds() / 100'000.0f, // TODO.
-                    .solarboard_voltages[1] = 69.0f + (f32) TIMEKEEPING_microseconds() / 200'000.0f, // TODO.
-                    .flags                  = TMP,  // TODO.
-                };
-
-            packet.crc = DEBUG_BOARD_calculate_crc((u8*) &packet, sizeof(packet) - sizeof(packet.crc));
-
-            struct I2CDoJob job =
-                {
-                    .handle       = I2CHandle_debug_board,
-                    .address_type = I2CAddressType_seven,
-                    .address      = MFC_DEBUG_BOARD_SEVEN_BIT_ADDRESS,
-                    .writing      = true,
-                    .repeating    = false,
-                    .pointer      = (u8*) &packet,
-                    .amount       = sizeof(packet)
-                };
-
-            for (b32 yield = false; !yield;)
-            {
-
-                enum I2CDoResult result = I2C_do(&job);
-
-                switch (result)
-                {
-
-                    case I2CDoResult_working:
-                    {
-                        spinlock_us(1'000); // We'll keep on spin-locking until the transfer is done...
-                    } break;
-
-                    case I2CDoResult_success:
-                    {
-                        yield = true;
-                    } break;
-
-                    case I2CDoResult_no_acknowledge:
-                    case I2CDoResult_clock_stretch_timeout:
-                    case I2CDoResult_bus_misbehaved:
-                    case I2CDoResult_watchdog_expired:
-                    case I2CDoResult_bug:
-                    default:
-                    {
-                        need_to_reinitialize = true;
-                        yield                = true;
-                    } break;
-
-                }
-
-            }
-
-            spinlock_us(100'000);
-            GPIO_TOGGLE(led_green);
-
-        }
-
-    }
 
     #if TARGET_USES_FREERTOS
 
