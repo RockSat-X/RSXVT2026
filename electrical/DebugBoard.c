@@ -433,10 +433,10 @@ FREERTOS_TASK(logger, 0)
                         (
                             ((char*) working_sectors) + log_entry_length,
                             (u32) (sizeof(working_sectors) - log_entry_length),
-                            "DB-T  %7.2f s" "\n"
-                            "MFC-T %7.2f s" "\n"
-                            "SCB-A %7.2f V" "\n"
-                            "SCB-B %7.2f V" "\n",
+                            "DB-T       : %7.2f s" "\n"
+                            "MFC-T      : %7.2f s" "\n"
+                            "SCB-A      : %7.2f V" "\n"
+                            "SCB-B      : %7.2f V" "\n",
                             (f32) TIMEKEEPING_microseconds() / 1000.0f / 1000.0f,
                             (f32) packet_data.timestamp_us / 1000.0f / 1000.0f,
                             packet_data.solarboard_voltages[0],
@@ -470,7 +470,7 @@ FREERTOS_TASK(logger, 0)
                         (
                             ((char*) working_sectors) + log_entry_length,
                             (u32) (sizeof(working_sectors) - log_entry_length),
-                            "%-10s %s%s" "\n",
+                            "%-10s : %s%s" "\n",
                             MainFlightComputerDebugStatusFlag_TABLE[flag].name,
                             (packet_data.flags & (1 << flag))
                                 ? "OK"
