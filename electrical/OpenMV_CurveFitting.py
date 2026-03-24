@@ -156,7 +156,8 @@ def process_sample_frame(sample_frame_file_path):
     #
     # Load the sample frame, which may fail
     # if the image we're loading takes up
-    # too much memory.
+    # too much memory or if the image is
+    # unsupported.
     #
 
     try:
@@ -205,8 +206,10 @@ def process_sample_frame(sample_frame_file_path):
 
     ########################################
     #
-    # Determine orientation of the horizon
-    # based on the brightness gradient.
+    # Divide the image into strips and find
+    # the largest change in brightness;
+    # this is where we're assuming the
+    # horizon will roughly be.
     #
     # TODO This is making the assumption that the curvature of the horizon is small
     #      enough that it can be approximated as a rectangular strip.
@@ -216,7 +219,7 @@ def process_sample_frame(sample_frame_file_path):
 
 
 
-    def find_peak_delta(*, step, xs, f, use_abs):
+    def find_peak_delta(*, xs, f, use_abs):
 
         points = tuple(
             (x, f(x))
@@ -226,10 +229,10 @@ def process_sample_frame(sample_frame_file_path):
         peak_x     = None
         peak_delta = None
 
-        for i in range(len(points) - step):
+        for i in range(len(points) - 1):
 
-            current_x, current_value = points[i       ]
-            next_x   , next_value    = points[i + step]
+            current_x, current_value = points[i    ]
+            next_x   , next_value    = points[i + 1]
 
             current_delta = next_value - current_value
 
@@ -246,9 +249,8 @@ def process_sample_frame(sample_frame_file_path):
 
 
     horizontal_gradient_position, largest_horizontal_gradient = find_peak_delta(
-        step = 1,
-        xs   = range(0, working_framebuffer.height() - STRIP_THICKNESS, STRIP_THICKNESS),
-        f    = lambda y: working_framebuffer.get_statistics(
+        xs = range(0, working_framebuffer.height() - STRIP_THICKNESS, STRIP_THICKNESS),
+        f  = lambda y: working_framebuffer.get_statistics(
             roi = (
                 0,
                 y,
@@ -260,9 +262,8 @@ def process_sample_frame(sample_frame_file_path):
     )
 
     vertical_gradient_position, largest_vertical_gradient = find_peak_delta(
-        step = 1,
-        xs   = range(0, working_framebuffer.width() - STRIP_THICKNESS, STRIP_THICKNESS),
-        f    = lambda x: working_framebuffer.get_statistics(
+        xs = range(0, working_framebuffer.width() - STRIP_THICKNESS, STRIP_THICKNESS),
+        f  = lambda x: working_framebuffer.get_statistics(
             roi = (
                 x,
                 0,
@@ -318,335 +319,327 @@ def process_sample_frame(sample_frame_file_path):
 
 
 
-    ################################################################################
+    ########################################
+    #
+    # Narrow scan.
+    #
+
+    SCAN_SPACING  = 4
+    SCAN_BAND     = 150
+    MIN_GRADIENT  = 6
+
+    points = []
+
+    if orientation == 'h':
+
+        scan_start = max(coarse_position - SCAN_BAND, 1                               )
+        scan_end   = min(coarse_position + SCAN_BAND, working_framebuffer.height() - 1)
+
+        for x in range(SCAN_SPACING, working_framebuffer.width() - SCAN_SPACING, SCAN_SPACING):
+
+            best_position, best_gradient = find_peak_delta(
+                xs      = range(scan_start + 1, scan_end),
+                f       = lambda y: (1 if dark_side == 'top' else -1) * working_framebuffer.get_pixel(x, y),
+                use_abs = False,
+            )
+
+            best_position = round(best_position)
+
+            if best_gradient >= MIN_GRADIENT:
+
+                point_position = best_position
+
+                if scan_start + 1 < best_position < scan_end - 1:
+
+                    above_g = working_framebuffer.get_pixel(x, best_position - 1) - working_framebuffer.get_pixel(x, best_position - 2)
+                    below_g = working_framebuffer.get_pixel(x, best_position + 1) - working_framebuffer.get_pixel(x, best_position    )
+
+                    if dark_side != 'top':
+                        above_g = -above_g
+                        below_g = -below_g
+
+                    above_g = max(0, above_g)
+                    below_g = max(0, below_g)
+                    total = above_g + best_gradient + below_g
+
+                    if total > 0:
+                        point_position = (above_g * (best_position - 1) + best_gradient * best_position + below_g * (best_position + 1)) / total
+
+                points += [(x, point_position)]
 
 
 
-    if False: # TODO.
+    else:
 
-        ########################################
-        #
-        # Narrow scan.
-        #
+        x_lo   = max(1, coarse_position - SCAN_BAND)
+        x_hi   = min(working_framebuffer.width() - 1, coarse_position + SCAN_BAND)
+        h_sign = 1 if dark_side == 'left' else -1
 
-        GRADIENT_STEP = 4
-        SCAN_SPACING  = 4
-        SCAN_BAND     = 150
-        MIN_GRADIENT  = 25
+        for y in range(SCAN_SPACING, working_framebuffer.height() - SCAN_SPACING, SCAN_SPACING):
+            best_g = 0
+            best_x = -1
+            for x in range(x_lo + 1, x_hi):
+                left_v = working_framebuffer.get_pixel(x - 1, y)
+                right_v = working_framebuffer.get_pixel(x, y)
+                g = h_sign * (right_v - left_v)
+                if g > best_g:
+                    best_g = g
+                    best_x = x
+            if best_x >= 0 and best_g >= MIN_GRADIENT:
 
-        points = []
+                if best_x > x_lo + 1 and best_x < x_hi - 1:
+                    left_g = working_framebuffer.get_pixel(best_x - 1, y) - working_framebuffer.get_pixel(best_x - 1 - 1, y)
+                    right_g = working_framebuffer.get_pixel(best_x + 1, y) - working_framebuffer.get_pixel(best_x - 1 + 1, y)
+                    if dark_side != 'left':
+                        left_g = -left_g
+                        right_g = -right_g
 
-        if orientation == 'h':
+                    # Ignore negative gradients.
 
-            scan_start = max(coarse_position - SCAN_BAND, GRADIENT_STEP                   )
-            scan_end   = min(coarse_position + SCAN_BAND, working_framebuffer.height() - 1)
-
-            for x in range(SCAN_SPACING, working_framebuffer.width() - SCAN_SPACING, SCAN_SPACING):
-
-                best_position, best_gradient = find_peak_delta(
-                    step    = GRADIENT_STEP,
-                    xs      = range(scan_start + GRADIENT_STEP, scan_end),
-                    f       = lambda y: (1 if dark_side == 'top' else -1) * working_framebuffer.get_pixel(x, y),
-                    use_abs = False,
-                )
-
-                best_position = round(best_position)
-
-                if best_gradient >= MIN_GRADIENT:
-
-                    point_position = best_position
-
-                    if scan_start + GRADIENT_STEP < best_position < scan_end - 1:
-
-                        above_g = working_framebuffer.get_pixel(x, best_position - 1) - working_framebuffer.get_pixel(x, best_position - GRADIENT_STEP - 1)
-                        below_g = working_framebuffer.get_pixel(x, best_position + 1) - working_framebuffer.get_pixel(x, best_position - GRADIENT_STEP + 1)
-
-                        if dark_side != 'top':
-                            above_g = -above_g
-                            below_g = -below_g
-
-                        above_g = max(0, above_g)
-                        below_g = max(0, below_g)
-                        total = above_g + best_gradient + below_g
-
-                        if total > 0:
-                            point_position = (above_g * (best_position - 1) + best_gradient * best_position + below_g * (best_position + 1)) / total
-
-                    points += [(x, point_position)]
-
-
-
-        else:
-
-            x_lo   = max(GRADIENT_STEP, coarse_position - SCAN_BAND)
-            x_hi   = min(working_framebuffer.width() - 1, coarse_position + SCAN_BAND)
-            h_sign = 1 if dark_side == 'left' else -1
-
-            for y in range(SCAN_SPACING, working_framebuffer.height() - SCAN_SPACING, SCAN_SPACING):
-                best_g = 0
-                best_x = -1
-                for x in range(x_lo + GRADIENT_STEP, x_hi):
-                    left_v = working_framebuffer.get_pixel(x - GRADIENT_STEP, y)
-                    right_v = working_framebuffer.get_pixel(x, y)
-                    g = h_sign * (right_v - left_v)
-                    if g > best_g:
-                        best_g = g
-                        best_x = x
-                if best_x >= 0 and best_g >= MIN_GRADIENT:
-
-                    if best_x > x_lo + GRADIENT_STEP and best_x < x_hi - 1:
-                        left_g = working_framebuffer.get_pixel(best_x - 1, y) - working_framebuffer.get_pixel(best_x - GRADIENT_STEP - 1, y)
-                        right_g = working_framebuffer.get_pixel(best_x + 1, y) - working_framebuffer.get_pixel(best_x - GRADIENT_STEP + 1, y)
-                        if dark_side != 'left':
-                            left_g = -left_g
-                            right_g = -right_g
-
-                        # Ignore negative gradients.
-
-                        left_g = max(0, left_g)
-                        right_g = max(0, right_g)
-                        total = left_g + best_g + right_g
-                        if total > 0:
-                            refined_x = (left_g * (best_x - 1) + best_g * best_x + right_g * (best_x + 1)) / total
-                            points.append((refined_x, y))
-                        else:
-                            points.append((float(best_x), y))
-
+                    left_g = max(0, left_g)
+                    right_g = max(0, right_g)
+                    total = left_g + best_g + right_g
+                    if total > 0:
+                        refined_x = (left_g * (best_x - 1) + best_g * best_x + right_g * (best_x + 1)) / total
+                        points.append((refined_x, y))
                     else:
                         points.append((float(best_x), y))
 
-
-
-        if len(points) < MIN_POINTS:
-            return f'Rejected :: Too few points ({len(points)}).'
-
-
-
-        ########################################
-        #
-        # RANSAC.
-        #
-
-        inliers = list(points)
-
-        for _ in range(OUTLIER_PASSES):
-
-            if len(inliers) < MIN_POINTS:
-                return f'Rejected :: Too few inliers.'
-
-            coefficients = fit_quadratic(inliers, orientation)
-            if coefficients is None:
-                return f'Rejected :: `fit_quadratic` failed.'
+                else:
+                    points.append((float(best_x), y))
 
 
 
-            # Compute residuals.
-
-            res = [residual(point, coefficients, orientation) for point in inliers]
-
+    if len(points) < MIN_POINTS:
+        return f'Rejected :: Too few points ({len(points)}).'
 
 
-            # Median residual.
 
-            sorted_res = sorted(res)
-            med        = sorted_res[len(sorted_res) // 2]
-            thresh     = max(OUTLIER_MULT * med + 0.5, 3.0)
+    ########################################
+    #
+    # RANSAC.
+    #
 
-            # Keep only inliers.
+    inliers = list(points)
 
-            new_working = [inliers[i] for i in range(len(inliers)) if res[i] <= thresh]
-
-            if len(new_working) < MIN_POINTS:
-                break
-            inliers = new_working
-
-
+    for _ in range(OUTLIER_PASSES):
 
         if len(inliers) < MIN_POINTS:
             return f'Rejected :: Too few inliers.'
 
         coefficients = fit_quadratic(inliers, orientation)
-
         if coefficients is None:
             return f'Rejected :: `fit_quadratic` failed.'
 
 
-        ########################################
-        #
-        # Check a value for quadratic fit.
-        #
 
-        a, b, c = coefficients
+        # Compute residuals.
 
-        if abs(a) > 0.003:
-            return f'Rejected :: Too large of a curvature (|a| = {abs(a) :.5f}).'
+        res = [residual(point, coefficients, orientation) for point in inliers]
 
 
 
-        ########################################
-        #
-        # Check inliers.
-        #
+        # Median residual.
 
-        ratio = len(inliers) / len(points)
+        sorted_res = sorted(res)
+        med        = sorted_res[len(sorted_res) // 2]
+        thresh     = max(OUTLIER_MULT * med + 0.5, 3.0)
 
-        if ratio < 0.35:
-            return f'Rejected :: Inlier ratio too small ({ratio :.2f}).'
+        # Keep only inliers.
 
+        new_working = [inliers[i] for i in range(len(inliers)) if res[i] <= thresh]
 
-
-        ########################################
-        #
-        # Check inlier spread.
-        #
-
-        if orientation == 'h':
-            coords    = [point[0] for point in inliers]
-            frame_dim = working_framebuffer.width()
-        else:
-            coords    = [point[1] for point in inliers]
-            frame_dim = working_framebuffer.height()
-
-        span = max(coords) - min(coords)
-
-        if span < 0.45 * frame_dim:
-            return 'Rejected :: Span too small ({span :.0f}px).'
+        if len(new_working) < MIN_POINTS:
+            break
+        inliers = new_working
 
 
 
-        ########################################
-        #
-        # Check inlier residual.
-        #
+    if len(inliers) < MIN_POINTS:
+        return f'Rejected :: Too few inliers.'
 
-        res     = sorted([residual(point, coefficients, orientation) for point in inliers])
-        med_res = res[len(res) // 2]
+    coefficients = fit_quadratic(inliers, orientation)
 
-        if med_res > 12.0:
-            return f'Rejected :: Median residual too large ({med_res :.1f}).'
+    if coefficients is None:
+        return f'Rejected :: `fit_quadratic` failed.'
 
 
+    ########################################
+    #
+    # Check a value for quadratic fit.
+    #
 
-        ########################################
-        #
-        # Check curve crosses the frame.
-        #
+    a, b, c = coefficients
 
-        if orientation == 'h':
-            in_frame = sum(1 for x in range(0, working_framebuffer.width(), 20) if 0 <= int(a * x * x + b * x + c) < working_framebuffer.height())
-        else:
-            in_frame = sum(1 for y in range(0, working_framebuffer.height(), 15) if 0 <= int(a * y * y + b * y + c) < working_framebuffer.width())
-
-        if in_frame < 3:
-            return f'Rejected :: Curve barely crosses frame (only {in_frame} points visible).'
+    if abs(a) > 0.003:
+        return f'Rejected :: Too large of a curvature (|a| = {abs(a) :.5f}).'
 
 
 
-        ########################################
-        #
-        # Draw results.
-        #
+    ########################################
+    #
+    # Check inliers.
+    #
 
-        for point in inliers:
+    ratio = len(inliers) / len(points)
 
-            colored_framebuffer.draw_circle(
-                round(point[0]),
-                round(point[1]),
-                3,
-                color     = (255, 0, 0),
-                thickness = 1,
-                fill      = True,
-            )
+    if ratio < 0.35:
+        return f'Rejected :: Inlier ratio too small ({ratio :.2f}).'
 
 
 
-        ########################################
-        #
-        # Draw the fitted quadratic curve.
-        #
+    ########################################
+    #
+    # Check inlier spread.
+    #
 
-        a, b, c = coefficients
-        prev    = None
+    if orientation == 'h':
+        coords    = [point[0] for point in inliers]
+        frame_dim = working_framebuffer.width()
+    else:
+        coords    = [point[1] for point in inliers]
+        frame_dim = working_framebuffer.height()
 
-        if orientation == 'h':
+    span = max(coords) - min(coords)
 
-            for x in range(0, colored_framebuffer.width(), DRAW_STEP):
-
-                y = round(a*x**2 + b*x + c)
-
-                if 0 <= y < colored_framebuffer.height():
-
-                    if prev:
-                        colored_framebuffer.draw_line(
-                            prev[0],
-                            prev[1],
-                            x,
-                            y,
-                            color     = (0, 255, 0),
-                            thickness = 2,
-                        )
-
-                    prev = (x, y)
-
-                else:
-
-                    prev = None
-
-        else:
-
-            for y in range(0, colored_framebuffer.height(), DRAW_STEP):
-
-                x = round(a*y**2 + b*y + c)
-
-                if 0 <= x < colored_framebuffer.width():
-
-                    if prev:
-                        colored_framebuffer.draw_line(
-                            prev[0],
-                            prev[1],
-                            x,
-                            y,
-                            color     = (0, 255, 0),
-                            thickness = 2,
-                        )
-
-                    prev = (x, y)
-
-                else:
-
-                    prev = None
+    if span < 0.45 * frame_dim:
+        return 'Rejected :: Span too small ({span :.0f}px).'
 
 
 
-        ########################################
-        #
-        # Arrow to point to space.
-        #
+    ########################################
+    #
+    # Check inlier residual.
+    #
 
-        cx = colored_framebuffer.width()  // 2
-        cy = colored_framebuffer.height() // 2
+    res     = sorted([residual(point, coefficients, orientation) for point in inliers])
+    med_res = res[len(res) // 2]
 
-        arrow_map = {
-            'top':    (cx     , cy + 20, cx     , cy - 20),
-            'bottom': (cx     , cy - 20, cx     , cy + 20),
-            'left':   (cx + 20, cy     , cx - 20, cy     ),
-            'right':  (cx - 20, cy     , cx + 20, cy     ),
-        }
+    if med_res > 12.0:
+        return f'Rejected :: Median residual too large ({med_res :.1f}).'
 
-        ax1, ay1, ax2, ay2 = arrow_map[dark_side]
 
-        colored_framebuffer.draw_arrow(
-            ax1,
-            ay1,
-            ax2,
-            ay2,
-            color     = (0, 0, 255),
-            thickness = 3,
+
+    ########################################
+    #
+    # Check curve crosses the frame.
+    #
+
+    if orientation == 'h':
+        in_frame = sum(1 for x in range(0, working_framebuffer.width(), 20) if 0 <= int(a * x * x + b * x + c) < working_framebuffer.height())
+    else:
+        in_frame = sum(1 for y in range(0, working_framebuffer.height(), 15) if 0 <= int(a * y * y + b * y + c) < working_framebuffer.width())
+
+    if in_frame < 3:
+        return f'Rejected :: Curve barely crosses frame (only {in_frame} points visible).'
+
+
+
+    ########################################
+    #
+    # Draw results.
+    #
+
+    for point in inliers:
+
+        colored_framebuffer.draw_circle(
+            round(point[0]),
+            round(point[1]),
+            3,
+            color     = (255, 0, 0),
+            thickness = 1,
+            fill      = True,
         )
 
-        a_c, b_c, c_c = coefficients
 
-        return f'{orientation=} {dark_side=} {len(inliers)=} {a_c=:.7f} {b_c=:.4f} {c_c=:.1f}'
+
+    ########################################
+    #
+    # Draw the fitted quadratic curve.
+    #
+
+    a, b, c = coefficients
+    prev    = None
+
+    if orientation == 'h':
+
+        for x in range(0, colored_framebuffer.width(), DRAW_STEP):
+
+            y = round(a*x**2 + b*x + c)
+
+            if 0 <= y < colored_framebuffer.height():
+
+                if prev:
+                    colored_framebuffer.draw_line(
+                        prev[0],
+                        prev[1],
+                        x,
+                        y,
+                        color     = (0, 255, 0),
+                        thickness = 2,
+                    )
+
+                prev = (x, y)
+
+            else:
+
+                prev = None
+
+    else:
+
+        for y in range(0, colored_framebuffer.height(), DRAW_STEP):
+
+            x = round(a*y**2 + b*y + c)
+
+            if 0 <= x < colored_framebuffer.width():
+
+                if prev:
+                    colored_framebuffer.draw_line(
+                        prev[0],
+                        prev[1],
+                        x,
+                        y,
+                        color     = (0, 255, 0),
+                        thickness = 2,
+                    )
+
+                prev = (x, y)
+
+            else:
+
+                prev = None
+
+
+
+    ########################################
+    #
+    # Arrow to point to space.
+    #
+
+    cx = colored_framebuffer.width()  // 2
+    cy = colored_framebuffer.height() // 2
+
+    arrow_map = {
+        'top':    (cx     , cy + 20, cx     , cy - 20),
+        'bottom': (cx     , cy - 20, cx     , cy + 20),
+        'left':   (cx + 20, cy     , cx - 20, cy     ),
+        'right':  (cx - 20, cy     , cx + 20, cy     ),
+    }
+
+    ax1, ay1, ax2, ay2 = arrow_map[dark_side]
+
+    colored_framebuffer.draw_arrow(
+        ax1,
+        ay1,
+        ax2,
+        ay2,
+        color     = (0, 0, 255),
+        thickness = 3,
+    )
+
+    a_c, b_c, c_c = coefficients
+
+    return f'{orientation=} {dark_side=} {len(inliers)=} {a_c=:.7f} {b_c=:.4f} {c_c=:.1f}'
 
 
 
