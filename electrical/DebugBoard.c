@@ -13,7 +13,8 @@
 
 
 
-static RingBuffer(struct MainFlightComputerDebugPacket, 16) packets                         = {0};
+static RingBuffer(struct MainFlightComputerDebugPacket, 16) display_packets                 = {0};
+static RingBuffer(struct MainFlightComputerDebugPacket, 16) logger_packets                  = {0};
 static volatile _Atomic u32                                 most_recent_packet_timestamp_us = {0};
 
 
@@ -166,7 +167,7 @@ FREERTOS_TASK(display, 0)
         // Get information about the latest debug packet we have so far.
 
         struct MainFlightComputerDebugPacket packet_data  = {0};
-        b32                                  packet_exist = RingBuffer_pop_to_latest(&packets, &packet_data);
+        b32                                  packet_exist = RingBuffer_pop_to_latest(&display_packets, &packet_data);
 
         u32 observed_most_recent_packet_timestamp_us =
             atomic_load_explicit
@@ -192,8 +193,8 @@ FREERTOS_TASK(display, 0)
         (
             0,
             0,
-            "DB-T  %7.2f s"  "\n"
-            "MFC-T %7.2f s"  "\n"
+            "DB-T  %7.2f s" "\n"
+            "MFC-T %7.2f s" "\n"
             "SCB-A %7.2f V" "\n"
             "SCB-B %7.2f V" "\n",
             (f32) TIMEKEEPING_microseconds() / 1000.0f / 1000.0f,
@@ -206,14 +207,14 @@ FREERTOS_TASK(display, 0)
         GPIO_ACTIVE  (led_channel_green_B);
         GPIO_INACTIVE(led_channel_blue_B );
 
-        for (i32 i = 0; i < 4; i += 1)
+        for (i32 i = 0; i < 4; i += 1) // Display as many system statuses as we can on the little screen.
         {
 
             enum MainFlightComputerDebugStatusFlag flag = (first_status_flag + i) % MainFlightComputerDebugStatusFlag_COUNT;
 
             const char* condition = {0};
 
-            if (!packet_exist)
+            if (!packet_exist) // Still haven't gotten the first packet yet.
             {
                 condition = "???";
 
@@ -222,11 +223,11 @@ FREERTOS_TASK(display, 0)
                 GPIO_ACTIVE(led_channel_blue_B );
 
             }
-            else if (packet_data.flags & (1 << flag))
+            else if (packet_data.flags & (1 << flag)) // Debugged-device reports that this system is working.
             {
                 condition = "OK";
             }
-            else
+            else // Debugged-device reports that a particular system is not working.
             {
 
                 condition = "NOPE";
@@ -254,7 +255,7 @@ FREERTOS_TASK(display, 0)
 
         }
 
-        if (TIMEKEEPING_microseconds() - status_flag_timestamp_us >= 500'000)
+        if (TIMEKEEPING_microseconds() - status_flag_timestamp_us >= 500'000) // Scroll the statuses slowly over time.
         {
             status_flag_timestamp_us  = TIMEKEEPING_microseconds();
             first_status_flag        += 1;
@@ -414,116 +415,169 @@ FREERTOS_TASK(logger, 0)
         while (true)
         {
 
+
+
             // Make the log entry.
 
-            i32 log_entry_length =
-                snprintf_
-                (
-                    (char*) working_sectors,
-                    sizeof(working_sectors),
-                    "[%lu us]" "\n"
-                    "Meow"     "\n"
-                    "\n",
-                    TIMEKEEPING_microseconds()
-                );
+            struct MainFlightComputerDebugPacket packet_data = {0};
 
-
-
-            // Formatting error, if for some reason.
-
-            if (log_entry_length <= -1)
-            {
-                sus;
-                log_entry_length = 0;
-            }
-
-
-
-            // Log entry too long; just truncate.
-
-            if (log_entry_length > sizeof(working_sectors))
-            {
-                sus;
-                log_entry_length = sizeof(working_sectors);
-            }
-
-
-
-            // The remaining space in the log buffer will be used for the divider.
-
-            memset
-            (
-                (u8*) working_sectors + log_entry_length,
-                '.',
-                (u32) (sizeof(working_sectors) - log_entry_length)
-            );
-
-            working_sectors[countof(working_sectors) - 1].bytes[sizeof(struct Sector) - 2] = '\n'; // Don't care if this stamps over the string.
-            working_sectors[countof(working_sectors) - 1].bytes[sizeof(struct Sector) - 1] = '\n'; // "
-
-
-
-            // Save onto SD card for us to verify the vehicle
-            // is operating as intended after sequence testing.
-
-            enum FileSystemSaveResult save_result =
-                FILESYSTEM_save
-                (
-                    SDHandle_primary,
-                    working_sectors,
-                    countof(working_sectors)
-                );
-
-            switch (save_result)
+            if (RingBuffer_pop(&logger_packets, &packet_data))
             {
 
+                i32 log_entry_length = 0;
 
-
-                // Successfully saved the log entry;
-                // periodically indicate that we're logging data too.
-
-                case FileSystemSaveResult_success:
                 {
-                    if (TIMEKEEPING_microseconds() - most_recent_heartbeat_timestamp_us >= 1'000'000)
+
+                    i32 append_length =
+                        snprintf_
+                        (
+                            ((char*) working_sectors) + log_entry_length,
+                            (u32) (sizeof(working_sectors) - log_entry_length),
+                            "DB-T  %7.2f s" "\n"
+                            "MFC-T %7.2f s" "\n"
+                            "SCB-A %7.2f V" "\n"
+                            "SCB-B %7.2f V" "\n",
+                            (f32) TIMEKEEPING_microseconds() / 1000.0f / 1000.0f,
+                            (f32) packet_data.timestamp_us / 1000.0f / 1000.0f,
+                            packet_data.solarboard_voltages[0],
+                            packet_data.solarboard_voltages[1]
+                        );
+
+                    if (append_length <= -1)
                     {
-                        most_recent_heartbeat_timestamp_us = TIMEKEEPING_microseconds();
-                        GPIO_INACTIVE(led_channel_red_D  );
-                        GPIO_TOGGLE  (led_channel_green_D);
-                        GPIO_INACTIVE(led_channel_blue_D );
+                        sus;
                     }
-                } break;
+                    else
+                    {
 
+                        log_entry_length += append_length;
 
+                        if (log_entry_length > sizeof(working_sectors))
+                        {
+                            sus;
+                            log_entry_length = sizeof(working_sectors);
+                        }
 
-                // Small error occured; let's just reinitialize the file-system
-                // as quickly as possible to be able to continue logging, if still possible.
+                    }
 
-                case FileSystemSaveResult_transfer_error:
+                }
+
+                for (enum MainFlightComputerDebugStatusFlag flag = {0}; flag < MainFlightComputerDebugStatusFlag_COUNT; flag += 1)
                 {
-                    goto REINITIALIZE;
-                } break;
+
+                    i32 append_length =
+                        snprintf_
+                        (
+                            ((char*) working_sectors) + log_entry_length,
+                            (u32) (sizeof(working_sectors) - log_entry_length),
+                            "%-10s %s%s" "\n",
+                            MainFlightComputerDebugStatusFlag_TABLE[flag].name,
+                            (packet_data.flags & (1 << flag))
+                                ? "OK"
+                                : "NOPE",
+                            flag + 1 == MainFlightComputerDebugStatusFlag_COUNT
+                                ? "\n"
+                                : ""
+                        );
+
+                    if (append_length <= -1)
+                    {
+                        sus;
+                    }
+                    else
+                    {
+
+                        log_entry_length += append_length;
+
+                        if (log_entry_length > sizeof(working_sectors))
+                        {
+                            sus;
+                            log_entry_length = sizeof(working_sectors);
+                        }
+
+                    }
+
+                }
 
 
 
-                // Uh oh, let's just wipe the SD card so we can continue logging new data.
+                // The remaining space in the log buffer will be used for the divider.
 
-                case FileSystemSaveResult_no_more_space_for_data:
-                case FileSystemSaveResult_fatfs_internal_error:
+                memset
+                (
+                    (u8*) working_sectors + log_entry_length,
+                    '.',
+                    (u32) (sizeof(working_sectors) - log_entry_length)
+                );
+
+                working_sectors[countof(working_sectors) - 1].bytes[sizeof(struct Sector) - 2] = '\n'; // Don't care if this stamps over the string.
+                working_sectors[countof(working_sectors) - 1].bytes[sizeof(struct Sector) - 1] = '\n'; // "
+
+
+
+                // Save onto SD card for us to verify the vehicle
+                // is operating as intended after sequence testing.
+
+                enum FileSystemSaveResult save_result =
+                    FILESYSTEM_save
+                    (
+                        SDHandle_primary,
+                        working_sectors,
+                        countof(working_sectors)
+                    );
+
+                switch (save_result)
                 {
-                    completely_wipe_filesystem = true;
-                    goto REINITIALIZE;
-                } break;
 
 
 
-                // Something weird happened. Let's just reinitialize
-                // the file-system and hope for the best...
+                    // Successfully saved the log entry;
+                    // periodically indicate that we're logging data too.
 
-                case FileSystemSaveResult_bug:
-                default:
-                {
-                    goto REINITIALIZE;
-                } break;
+                    case FileSystemSaveResult_success:
+                    {
+                        if (TIMEKEEPING_microseconds() - most_recent_heartbeat_timestamp_us >= 1'000'000)
+                        {
+                            most_recent_heartbeat_timestamp_us = TIMEKEEPING_microseconds();
+                            GPIO_INACTIVE(led_channel_red_D  );
+                            GPIO_TOGGLE  (led_channel_green_D);
+                            GPIO_INACTIVE(led_channel_blue_D );
+                        }
+                    } break;
+
+
+
+                    // Small error occured; let's just reinitialize the file-system
+                    // as quickly as possible to be able to continue logging, if still possible.
+
+                    case FileSystemSaveResult_transfer_error:
+                    {
+                        goto REINITIALIZE;
+                    } break;
+
+
+
+                    // Uh oh, let's just wipe the SD card so we can continue logging new data.
+
+                    case FileSystemSaveResult_no_more_space_for_data:
+                    case FileSystemSaveResult_fatfs_internal_error:
+                    {
+                        completely_wipe_filesystem = true;
+                        goto REINITIALIZE;
+                    } break;
+
+
+
+                    // Something weird happened. Let's just reinitialize
+                    // the file-system and hope for the best...
+
+                    case FileSystemSaveResult_bug:
+                    default:
+                    {
+                        goto REINITIALIZE;
+                    } break;
+
+                }
 
             }
 
@@ -542,7 +596,8 @@ FREERTOS_TASK(logger, 0)
 INTERRUPT_I2Cx_communication(enum I2CSlaveCallbackEvent event, u8* data)
 {
 
-    static i32 byte_index = 0;
+    static i32                                  byte_index = 0;
+    static struct MainFlightComputerDebugPacket packet     = {0};
 
     switch (event)
     {
@@ -552,23 +607,12 @@ INTERRUPT_I2Cx_communication(enum I2CSlaveCallbackEvent event, u8* data)
         case I2CSlaveCallbackEvent_data_available_to_read:
         {
 
-            struct MainFlightComputerDebugPacket* packet = RingBuffer_writing_pointer(&packets);
-
-            if (packet)
+            if (byte_index < sizeof(packet))
             {
-
-                if (byte_index < sizeof(*packet))
-                {
-                    ((u8*) packet)[byte_index] = *data;
-                }
-
-                byte_index += 1;
-
+                ((u8*) &packet)[byte_index] = *data;
             }
-            else
-            {
-                // No available space to write the received packet to yet.
-            }
+
+            byte_index += 1;
 
         } break;
 
@@ -579,20 +623,14 @@ INTERRUPT_I2Cx_communication(enum I2CSlaveCallbackEvent event, u8* data)
         case I2CSlaveCallbackEvent_stop_signaled:
         {
 
-            struct MainFlightComputerDebugPacket* packet = RingBuffer_writing_pointer(&packets);
-
-            if (!packet)
-            {
-                // The buffer's full, so we definitely didn't fill out any new debug packet.
-            }
-            else if (byte_index != sizeof(*packet))
+            if (byte_index != sizeof(packet))
             {
                 // Either we missed some received bytes, or too many bytes were sent.
             }
             else
             {
 
-                u8 digest = DEBUG_BOARD_calculate_crc((u8*) packet, sizeof(*packet));
+                u8 digest = DEBUG_BOARD_calculate_crc((u8*) &packet, sizeof(packet));
 
                 if (digest)
                 {
@@ -604,15 +642,22 @@ INTERRUPT_I2Cx_communication(enum I2CSlaveCallbackEvent event, u8* data)
                     // Alright, we actually got valid debug data packet.
                     // Queue it up for processing.
 
-                    if (!RingBuffer_push(&packets, nullptr))
-                        panic;
-
                     atomic_store_explicit
                     (
                         &most_recent_packet_timestamp_us,
                         TIMEKEEPING_microseconds(),
                         memory_order_relaxed // No synchronization needed.
                     );
+
+                    if (!RingBuffer_push(&display_packets, &packet))
+                    {
+                        // Ring-buffer full! Should be fine though...
+                    }
+
+                    if (!RingBuffer_push(&logger_packets, &packet))
+                    {
+                        // Ring-buffer full! Should be fine though...
+                    }
 
                     GPIO_TOGGLE(led_channel_red_C  );
                     GPIO_TOGGLE(led_channel_green_C);
@@ -623,6 +668,7 @@ INTERRUPT_I2Cx_communication(enum I2CSlaveCallbackEvent event, u8* data)
             }
 
             byte_index = 0;
+            memzero(&packet);
 
         } break;
 
