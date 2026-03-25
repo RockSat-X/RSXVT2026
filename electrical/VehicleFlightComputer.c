@@ -1778,6 +1778,8 @@ FREERTOS_TASK(logger, 0)
 
         // Try setting up the file-system.
 
+        stlink_tx("Trying to initialize file-system...\n");
+
         enum FileSystemReinitResult reinit_result =
             FILESYSTEM_reinit
             (
