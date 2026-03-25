@@ -1,7 +1,7 @@
 #define STEPPER_ENABLE_DELAY_US          500'000
 #define STEPPER_VELOCITY_UPDATE_US       20'000 // @/`Sequence Angular Accelerations Delta Time`.
 #define STEPPER_UART_TIME_MARGIN_US      2'000
-#define STEPPER_RING_BUFFER_LENGTH       8      // TODO Determine latency.
+#define STEPPER_RING_BUFFER_LENGTH       8
 #define SPI_BLOCK_SIZE                   64     // @/`OpenMV SPI Block Size`.
 #define SPI_RECEPTION_RING_BUFFER_LENGTH 32
 #define WATCHDOG_DURATION_US             (10 * 60'000'000)
@@ -198,7 +198,7 @@ enum DiagnosticLEDBehavior : u32
 
 */
 
-FREERTOS_TASK(diagnostics, 1) // TODO Duplicative.
+FREERTOS_TASK(diagnostics, 1)
 {
 
     u32 current_flags = 0;
