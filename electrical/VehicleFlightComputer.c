@@ -1430,8 +1430,7 @@ FREERTOS_TASK(openmv, 0)
 
             static_assert(sizeof(struct OpenMVPacket) == sizeof(struct SPIBlock));
 
-            u32                  current_timestamp_us = TIMEKEEPING_microseconds();
-            struct OpenMVPacket* packet               = (struct OpenMVPacket*) RingBuffer_reading_pointer(SPI_reception(SPIHandle_openmv));
+            struct OpenMVPacket* packet = (struct OpenMVPacket*) RingBuffer_reading_pointer(SPI_reception(SPIHandle_openmv));
 
             if (packet)
             {
@@ -1441,7 +1440,7 @@ FREERTOS_TASK(openmv, 0)
                 if (packet->sequence_number == 0) // @/`OpenMV Sequence Number`.
                 {
 
-                    most_recent_gnc_packet_timestamp_us = current_timestamp_us;
+                    most_recent_gnc_packet_timestamp_us = TIMEKEEPING_microseconds();
 
                     if (!RingBuffer_push(&CONTROLLER.openmv_gnc_packets, &packet->gnc))
                     {
@@ -1492,7 +1491,7 @@ FREERTOS_TASK(openmv, 0)
                     sus;
 
             }
-            else if (current_timestamp_us - most_recent_gnc_packet_timestamp_us < 5'000'000)
+            else if (TIMEKEEPING_microseconds() - most_recent_gnc_packet_timestamp_us < 5'000'000)
             {
                 FREERTOS_delay_ms(1); // Keep waiting...
             }
@@ -1696,9 +1695,7 @@ FREERTOS_TASK(esp32, 0)
                     most_recent_response_timestamp_us = TIMEKEEPING_microseconds();
                 }
 
-                u32 current_timestamp_us = TIMEKEEPING_microseconds();
-
-                if (current_timestamp_us - most_recent_response_timestamp_us >= 2'000'000)
+                if (TIMEKEEPING_microseconds() - most_recent_response_timestamp_us >= 2'000'000)
                 {
                     break; // It's been too long since we last heard from the ESP32...
                 }
@@ -1865,7 +1862,6 @@ FREERTOS_TASK(logger, 0)
 
             // Make the log entry.
 
-            u32                    current_timestamp_us    = TIMEKEEPING_microseconds();
             struct VN100Packet     vn100_packet_data       = {0};
             b32                    vn100_packet_exist      = RingBuffer_pop_to_latest(&LOGGER.vn100_packets, &vn100_packet_data);
             struct OpenMVPacketGNC openmv_gnc_packet_data  = {0};
@@ -1876,7 +1872,7 @@ FREERTOS_TASK(logger, 0)
                 (
                     (char*) working_sectors,
                     sizeof(working_sectors),
-                    "[%u us]"                             "\n"
+                    "[%lu us]"                            "\n"
                     "Ang. accel.    : <%.3f, %.3f, %.3f>" "\n"
                     "Ang. velocity  : <%.3f, %.3f, %.3f>" "\n"
                     "RPM            : <%.3f, %.3f, %.3f>" "\n"
@@ -1897,7 +1893,7 @@ FREERTOS_TASK(logger, 0)
                     "CV processing  : %d ms"              "\n"
                     "CV confidence  : %d"                 "\n"
                     "\n",
-                    current_timestamp_us,
+                    TIMEKEEPING_microseconds(),
                     CONTROLLER.current_angular_accelerations.values[StepperUnit_axis_x],
                     CONTROLLER.current_angular_accelerations.values[StepperUnit_axis_y],
                     CONTROLLER.current_angular_accelerations.values[StepperUnit_axis_z],
@@ -1974,10 +1970,10 @@ FREERTOS_TASK(logger, 0)
 
             #if !TRANSMIT_TV // Can't conflict with sending image data over ST-Link.
             {
-                if (current_timestamp_us - most_recent_stlink_log_timestamp_us >= 250'000)
+                if (TIMEKEEPING_microseconds() - most_recent_stlink_log_timestamp_us >= 250'000)
                 {
 
-                    most_recent_stlink_log_timestamp_us = current_timestamp_us;
+                    most_recent_stlink_log_timestamp_us = TIMEKEEPING_microseconds();
 
                     stlink_tx
                     (
@@ -2013,10 +2009,10 @@ FREERTOS_TASK(logger, 0)
 
                 case FileSystemSaveResult_success:
                 {
-                    if (current_timestamp_us - most_recent_heartbeat_timestamp_us >= 5'000'000)
+                    if (TIMEKEEPING_microseconds() - most_recent_heartbeat_timestamp_us >= 5'000'000)
                     {
 
-                        most_recent_heartbeat_timestamp_us = current_timestamp_us;
+                        most_recent_heartbeat_timestamp_us = TIMEKEEPING_microseconds();
 
                         xTaskNotify
                         (
@@ -2380,12 +2376,10 @@ INTERRUPT_I2Cx_vehicle_interface(enum I2CSlaveCallbackEvent event, u8* data)
             if (!payload_has_valid_data)
             {
 
-                u32 current_timestamp_us = TIMEKEEPING_microseconds();
-
                 atomic_store_explicit
                 (
                     &VEHICLE_INTERFACE.most_recent_transfer_timestamp_us,
-                    current_timestamp_us,
+                    TIMEKEEPING_microseconds(),
                     memory_order_relaxed // No synchronization needed.
                 );
 
