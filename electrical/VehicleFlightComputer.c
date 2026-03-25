@@ -2254,16 +2254,7 @@ FREERTOS_TASK(watchdog, 3)
 
 
 
-        // Ensure the vehicle doesn't stay on for too long and drain the battery;
-        // not completely fool-proof since the stepper motor drivers will draw
-        // some current from the batteries even when there's external power supplied,
-        // but should be good enough.
-
-        b32 live_for_too_long = TIMEKEEPING_microseconds() >= WATCHDOG_DURATION_US;
-
-
-
-        // We also need to ensure the vehicle doesn't stay on for long when it's still
+        // We need to ensure the vehicle doesn't stay on for long when it's still
         // docked in the ejection mechanism. This is especially important during sequence
         // testing when the vehicle might be powered on but no ejection will take place.
         //
@@ -2304,16 +2295,12 @@ FREERTOS_TASK(watchdog, 3)
                 TIMEKEEPING_microseconds() - observed_most_recent_transfer_timestamp_us >= 10'000'000
             );
 
-
-
-        // Say farewell.
-
-        if (live_for_too_long || docked_reset)
+        if (docked_reset)
         {
 
             // Indicate that this is why the vehicle is suddenly shut off.
 
-            BUZZER_play(live_for_too_long ? BuzzerTune_sleeping : BuzzerTune_starwars);
+            BUZZER_play(BuzzerTune_starwars);
             while (BUZZER_current_tune());
 
 
