@@ -5,12 +5,12 @@
 #define SPI_BLOCK_SIZE                   64     // @/`OpenMV SPI Block Size`.
 #define SPI_RECEPTION_RING_BUFFER_LENGTH 32
 #define WATCHDOG_DURATION_US             (10 * 60'000'000)
-#define MAX_ANGULAR_ACCELERATION         (200.0f)
-#define MAX_ANGULAR_VELOCITY             (2000.0f * 2.0f * PI / 60.0f)
+#define MAX_ANGULAR_ACCELERATION         (100.0f)
+#define MAX_ANGULAR_VELOCITY             (900.0f * 2.0f * PI / 60.0f)
 #define GOD_MODE                         true
 #define CONTROLLER_ENABLE                true
-#define VN100_ENABLE                     true
-#define OPENMV_ENABLE                    true
+#define VN100_ENABLE                     false
+#define OPENMV_ENABLE                    false
 #define ESP32_ENABLE                     true
 #define WATCHDOG_ENABLE                  true
 #define TRANSMIT_TV                      false
@@ -2145,7 +2145,7 @@ FREERTOS_TASK(god, 2)
                 {
                     for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
                     {
-                        CONTROLLER.current_angular_accelerations.values[unit] -= 200.0f;
+                        CONTROLLER.current_angular_accelerations.values[unit] -= MAX_ANGULAR_ACCELERATION;
                     }
                 } break;
 
@@ -2153,7 +2153,7 @@ FREERTOS_TASK(god, 2)
                 {
                     for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
                     {
-                        CONTROLLER.current_angular_accelerations.values[unit] += 200.0f;
+                        CONTROLLER.current_angular_accelerations.values[unit] += MAX_ANGULAR_ACCELERATION;
                     }
                 } break;
 
