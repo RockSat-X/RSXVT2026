@@ -1047,25 +1047,63 @@ ESP32_calculate_crc(u8* data, i32 length)
     }
 
 
+    bool espnow_initialized = false; //to check status of esp init
+    uint32_t espnow_retry_delay = 1000; //start with 1 sec
+    uint32_t max_espnow_delay = 8000; //max delay for esp reset
 
-    // TODO Look more into the specs.
-    // TODO Make robust.
-    extern void
-    common_init_esp_now(void)
+    //changed to bool so it outputs if init was successful
+    bool common_init_esp_now(void)
     {
-
         WiFi.mode(WIFI_STA);
-        esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE);
 
-        if (esp_now_init() != ESP_OK)
-        {
-            Serial.printf("Error initializing ESP-NOW.\n");
-            ESP.restart();
-            return;
+        //this checks both the wifi channel set and init for errors
+        esp_err_t err = esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE);
+        if (err != ESP_OK) {
+            Serial.printf("ESP-NOW failed to set channel (%d)\n", err);
+            return false;
         }
 
+        err = esp_now_init();
+        if (err != ESP_OK)
+        {
+            Serial.printf("ESP-NOW init failed (%d)\n", err);
+            return false;
+        }
+
+        //if wifi set and init pass, then we reset retry timer to 1 sec
+        espnow_initialized = true;
+        espnow_retry_delay = 1000; //reset delay on success
+        Serial.println("ESP-NOW initialized.");
+        return true;
     }
 
+    //function that handles esp-now reset based on retry timer
+    void handle_espnow() 
+    {
+        static uint32_t last_attempt = 0;
+
+        if (!espnow_initialized) {
+
+            if (millis() - last_attempt > espnow_retry_delay) {
+
+                last_attempt = millis();
+
+                if (!common_init_esp_now()) {
+
+                    //in the case of multiple resets, we can extend the timer to avoid straining the CPU from constant restarts
+                    //as of now, max delay is set to 8 seconds
+                    if (espnow_retry_delay < max_espnow_delay) {
+                        espnow_retry_delay = min(espnow_retry_delay * 2, 30000UL);
+                    }
+
+                    else {
+                        espnow_retry_delay = max_espnow_delay;
+                    }
+                    
+                }
+            }
+        }
+    }
 
 
     #if FSPI_PATCH
@@ -1086,11 +1124,14 @@ ESP32_calculate_crc(u8* data, i32 length)
     #endif
 
 
+	bool lora_initialized = false;
+	uint32_t lora_retry_delay = 1000;
+	uint32_t max_lora_delay = 8000; //max delay for esp reset
+
 
     // TODO Make robust.
-    extern void
-    common_init_lora()
-    {
+     bool common_init_lora()
+ {
 
         #if FSPI_PATCH
 
@@ -1101,55 +1142,116 @@ ESP32_calculate_crc(u8* data, i32 length)
 
         #endif
 
-        if (packet_lora_radio.begin() != RADIOLIB_ERR_NONE)
-        {
-            Serial.printf("Failed to initialize radio.\n");
-            ESP.restart();
-            return;
-        }
+            int state = packet_lora_radio.begin();
+    if (state != RADIOLIB_ERR_NONE)
+    {
+        Serial.printf("LoRa init failed (%d)\n", state);
+        return false;
+    }
+
+	//Apply settings with error checking
 
         // 915 MHz Center Frequency (common frequency used in North America)
         // Should range from 902-928 for most cases
         // Find out if different frequencies affect range
-        packet_lora_radio.setFrequency(915.0);
+        if (packet_lora_radio.setFrequency(915.0) != RADIOLIB_ERR_NONE) return false;
 
         // 7.8kHz Bandwidth (Narrow)
         // Ranges from 7.8kHz to 500kHz
         // Slower data rate but longer range compare to a larger bandwidth
-        packet_lora_radio.setBandwidth(7.8);
+        if (packet_lora_radio.setBandwidth(7.8) != RADIOLIB_ERR_NONE) return false;
 
         // 6 (less than 22 kbps) Usually ranges from 7-12 (22-250 kbps)
         // May need to be reconfigured depending on range/speed desired
         // What's essential to know: A higher spreading factor means slower data rate but further transmission and vice versa
-        packet_lora_radio.setSpreadingFactor(6);
+        if (packet_lora_radio.setSpreadingFactor(6) != RADIOLIB_ERR_NONE) return false;
 
         // (4/5) Coding Rate
         // Proportion of foward error correction bits added to payload
         // A higher coding rate makes transmission less noisy but reduces effective data rate
-        packet_lora_radio.setCodingRate(5);
+        if (packet_lora_radio.setCodingRate(5) != RADIOLIB_ERR_NONE) return false;
 
         // 22 dBm, for the SX1262 this is the specified max TX output power
         // Max output power gives the most range and its recommended to run the LoRa at this level
         // Dont go above this or may risk damaging component
         // test to see minimum power, likely -9dBm
-        packet_lora_radio.setOutputPower(22);
+        if (packet_lora_radio.setOutputPower(22) != RADIOLIB_ERR_NONE) return false;
 
         // 8 Symbol Preamble Length (Standard for LoRa)
         // Synchronizes reciever with transmitter
-        packet_lora_radio.setPreambleLength(8);
+        if (packet_lora_radio.setPreambleLength(8) != RADIOLIB_ERR_NONE) return false;
 
         // 0x34 LoRaWAN Public Network sync word
-        packet_lora_radio.setSyncWord(0x34);
+        if (packet_lora_radio.setPreambleLength(8) != RADIOLIB_ERR_NONE) return false;
 
         // Adds Error Detection to packets
-        packet_lora_radio.setCRC(true);
+        if (packet_lora_radio.setCRC(true) != RADIOLIB_ERR_NONE) return false;
 
 
-        extern void packet_lora_callback(void);
+    extern void packet_lora_callback(void);
 
-        packet_lora_radio.setDio1Action(packet_lora_callback);
+    packet_lora_radio.setDio1Action(packet_lora_callback);
 
+    lora_initialized = true;
+    lora_retry_delay = 1000; //delay reset to 1 sec
+    Serial.println("LoRa initialized.");
+    return true;
+}
+
+
+//if lora fails to initialize, reset and try again depending on timer
+void handle_lora() 
+{
+    static uint32_t last_attempt = 0;
+
+    if (!lora_initialized)
+    {
+        if (millis() - last_attempt > lora_retry_delay)
+        {
+            last_attempt = millis();
+
+            //hard reset radio before retry
+            packet_lora_radio.sleep();
+            delay(100);
+
+            if (!common_init_lora())
+            {
+                //in the case of multiple resets, we can extend the timer to avoid straining the CPU from constant restarts
+                //as of now, max delay is set to 8 seconds
+                if (lora_retry_delay < max_lora_delay) {
+                    lora_retry_delay = min(lora_retry_delay * 2, 30000UL);
+                }
+
+                else {
+                    lora_retry_delay = max_lora_delay;
+                }
+            }
+        }
     }
+}
+
+//integers to track runtime errors (if packets aren't being delivered in time, resets RF channel)
+//needs to be linked with main
+//uint32_t last_lora_rx = 0; 
+//uint32_t last_espnow_rx = 0;
+
+
+//void check_rf_health()
+//{
+//    //check between esp_now and lora for gaps in packets recieved
+//    //need to connect 
+//    if (lora_initialized && millis() - last_lora_rx > 10000)
+//    {
+//        Serial.println("LoRa timeout: resetting");
+//        lora_initialized = false;
+//    }
+
+//    if (espnow_initialized && millis() - last_espnow_rx > 10000)
+//    {
+//        Serial.println("ESP-NOW timeout: resetting");
+//        espnow_initialized = false;
+//    }
+//}
 
 #endif
 
