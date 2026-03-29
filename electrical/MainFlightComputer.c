@@ -57,9 +57,10 @@ enum DiagnosticLEDBehavior : u32
 /* #meta
 
     DIAGNOSTICS = ( # Ordered from highest priority to lowest priority.
-        ('logging_mishap'      , ('active'  , 'inactive', 'inactive'), 50, 500),
-        ('esp32_mishap'        , ('inactive', 'inactive', 'toggle'  ), 50, 500),
-        ('logging_heartbeat'   , ('inactive', 'active'  , 'inactive'), 25,  25),
+        ('wiping_filesystem', ('toggle'  , 'toggle'  , 'toggle'  ), 25, 4000),
+        ('logging_mishap'   , ('toggle'  , 'inactive', 'toggle'  ), 25,  250),
+        ('esp32_mishap'     , ('inactive', 'inactive', 'toggle'  ), 50,  500),
+        ('logging_heartbeat', ('inactive', 'active'  , 'inactive'), 25,   25),
     )
 
     Meta.enums('DiagnosticMask', 'u32', (
@@ -80,7 +81,7 @@ enum DiagnosticLEDBehavior : u32
 
 */
 
-FREERTOS_TASK(diagnostics, 1) // TODO Duplicative.
+FREERTOS_TASK(diagnostics, 1)
 {
 
     u32 current_flags = 0;
@@ -626,7 +627,8 @@ FREERTOS_TASK(vehicle_interface, 0)
 FREERTOS_TASK(logger, 0)
 {
 
-    static struct Sector working_sectors[2] = {0};
+    static struct Sector working_sectors[2]         = {0};
+    b32                  completely_wipe_filesystem = false;
 
     for (;;)
     {
@@ -637,22 +639,41 @@ FREERTOS_TASK(logger, 0)
 
         // Try setting up the file-system.
 
+        if (completely_wipe_filesystem) // TODO Think about file-system wiping policy.
+        {
+            xTaskNotify
+            (
+                diagnostics_handle,
+                DiagnosticMask_wiping_filesystem,
+                eSetBits
+            );
+        }
+
         enum FileSystemReinitResult reinit_result =
             FILESYSTEM_reinit
             (
                 SDHandle_primary,
-                nullptr, // TODO How to handle?
-                0        // TODO "
+                working_sectors,
+                completely_wipe_filesystem ? countof(working_sectors) : 0
             );
+
+        completely_wipe_filesystem = false;
 
         switch (reinit_result)
         {
 
 
 
+            // Ready to go!
+
             case FileSystemReinitResult_success:
             {
-                // Ready to go!
+                xTaskNotify
+                (
+                    diagnostics_handle,
+                    DiagnosticMask_logging_heartbeat,
+                    eSetBits
+                );
             } break;
 
 
@@ -672,8 +693,6 @@ FREERTOS_TASK(logger, 0)
                     eSetBits
                 );
 
-                FREERTOS_delay_ms(500);
-
                 goto REINITIALIZE;
 
             } break;
@@ -686,10 +705,19 @@ FREERTOS_TASK(logger, 0)
             case FileSystemReinitResult_invalid_filesystem:
             case FileSystemReinitResult_no_more_space_for_new_file:
             case FileSystemReinitResult_fatfs_internal_error:
-            case FileSystemReinitResult_bug:
             default:
             {
-                sorry
+                completely_wipe_filesystem = true;
+                goto REINITIALIZE;
+            } break;
+
+
+
+            // Something weird happened.
+
+            case FileSystemReinitResult_bug:
+            {
+                goto REINITIALIZE;
             } break;
 
         }
@@ -818,18 +846,18 @@ FREERTOS_TASK(logger, 0)
                 case FileSystemSaveResult_no_more_space_for_data:
                 case FileSystemSaveResult_fatfs_internal_error:
                 {
-                    sorry
+                    completely_wipe_filesystem = true;
+                    goto REINITIALIZE;
                 } break;
 
 
 
-                // Something weird happened. Let's just reinitialize
-                // the file-system and hope for the best...
+                // Something weird happened.
 
                 case FileSystemSaveResult_bug:
                 default:
                 {
-                    sorry
+                    goto REINITIALIZE;
                 } break;
 
             }
