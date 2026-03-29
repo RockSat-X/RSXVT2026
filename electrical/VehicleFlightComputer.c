@@ -11,8 +11,8 @@
 #define CONTROLLER_ENABLE                true
 #define VN100_ENABLE                     false
 #define OPENMV_ENABLE                    false
-#define ESP32_ENABLE                     true
-#define WATCHDOG_ENABLE                  true
+#define ESP32_ENABLE                     false
+#define WATCHDOG_ENABLE                  false
 #define TRANSMIT_TV                      false
 
 #include "system.h"
@@ -366,7 +366,7 @@ FREERTOS_TASK(controller, 0)
     {
         for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
         {
-            CONTROLLER.current_angular_velocities.values[unit] = 1.0f;
+            CONTROLLER.current_angular_velocities.values[unit] = 0.0f;
         }
     }
     #endif
@@ -382,6 +382,11 @@ FREERTOS_TASK(controller, 0)
 
         #if GOD_MODE
         {
+            if (!CONTROLLER.replay_sequence_number)
+            {
+                CONTROLLER.replay_sequence_number = 1;
+            }
+
             if (CONTROLLER.replay_sequence_number)
             {
 
@@ -391,28 +396,27 @@ FREERTOS_TASK(controller, 0)
                     import deps.stpy.pxd.pxd as pxd
                     import math
 
-                    entries = [
-                        [float(cell) for cell in line.split(',')]
-                        for line in pxd.make_main_relative_path('./misc/vel_rw.txt').read_text().splitlines()
-                    ]
-
                     with Meta.enter('static const struct StepperTuple SEQUENCE_ANGULAR_ACCELERATIONS[] ='):
 
-                        dt = 20_000 / 1_000_000 # @/`Sequence Angular Accelerations Delta Time`: Coupled.
+                        for i in range(500):
 
-                        for entry_i, current_entry in enumerate(entries[:-1]):
+                            x = 0
+                            y = 0
+                            z = 0
 
-                            current_t, current_x, current_y, current_z = current_entry
-                            next_t   , next_x   , next_y   , next_z    = entries[entry_i + 1]
+                            # Change which motor to spin here.
+                            # Will be clamped to max acceleration automatically.
+                            x = 10000
 
-                            acceleration_x = (next_x - current_x) / (next_t - current_t)
-                            acceleration_y = (next_y - current_y) / (next_t - current_t)
-                            acceleration_z = (next_z - current_z) / (next_t - current_t)
+                            # Flip direction eventually.
+                            if i >= 250:
+                                x *= -1
+                                y *= -1
+                                z *= -1
 
-                            for i in range(round((next_t - current_t) / dt)):
-                                Meta.line(f'''
-                                    {{ {{ {acceleration_x :f}f, {acceleration_y :f}f, {acceleration_z :f}f }} }},
-                                ''')
+                            Meta.line(f'''
+                                {{ {{ {x :.6f}f, {y :.6f}f, {z :.6f}f }} }},
+                            ''')
 
                 */
 
@@ -422,11 +426,7 @@ FREERTOS_TASK(controller, 0)
 
                 if (!CONTROLLER.replay_sequence_number)
                 {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit] = 0.0f;
-                        CONTROLLER.current_angular_velocities   .values[unit] = 0.0f;
-                    }
+                    CONTROLLER.replay_sequence_number = 1;
                 }
 
             }
