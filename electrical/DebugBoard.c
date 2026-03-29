@@ -354,9 +354,13 @@ FREERTOS_TASK(logger, 0)
 
 
 
+            // Ready to go!
+
             case FileSystemReinitResult_success:
             {
-                // Ready to go!
+                GPIO_INACTIVE(led_channel_red_D  );
+                GPIO_ACTIVE  (led_channel_green_D);
+                GPIO_INACTIVE(led_channel_blue_D );
             } break;
 
 
