@@ -3573,9 +3573,8 @@
         NVICInterrupt_I2C1_ER = I2C1_ER_IRQn,
         NVICInterrupt_I2C3_EV = I2C3_EV_IRQn,
         NVICInterrupt_I2C3_ER = I2C3_ER_IRQn,
-        NVICInterrupt_USART3  = USART3_IRQn,
     };
-    static constexpr u32 NVICInterrupt_COUNT = 8;
+    static constexpr u32 NVICInterrupt_COUNT = 7;
     extern void INTERRUPT_BusFault(void);
     extern void INTERRUPT_Default(void);
     extern void INTERRUPT_I2C1_ER(void);
@@ -3586,7 +3585,6 @@
     extern void INTERRUPT_SDMMC1(void);
     extern void INTERRUPT_USART1(void);
     extern void INTERRUPT_USART2(void);
-    extern void INTERRUPT_USART3(void);
     extern void INTERRUPT_UsageFault(void);
     extern void PendSV_Handler(void);
     extern void SVC_Handler(void);
@@ -3669,7 +3667,7 @@
             INTERRUPT_Default            , // [ 57] SPI3
             INTERRUPT_USART1             , // [ 58] USART1
             INTERRUPT_USART2             , // [ 59] USART2
-            INTERRUPT_USART3             , // [ 60] USART3
+            INTERRUPT_Default            , // [ 60] USART3
             INTERRUPT_Default            , // [ 61] UART4
             INTERRUPT_Default            , // [ 62] UART5
             INTERRUPT_Default            , // [ 63] LPUART1
@@ -3756,7 +3754,6 @@
     #define INTERRUPT_SysTick(...) extern void INTERRUPT_SysTick(__VA_ARGS__)
     #define INTERRUPT_USART1(...) extern void INTERRUPT_USART1(__VA_ARGS__)
     #define INTERRUPT_USART2(...) extern void INTERRUPT_USART2(__VA_ARGS__)
-    #define INTERRUPT_USART3(...) extern void INTERRUPT_USART3(__VA_ARGS__)
     #define INTERRUPT_UsageFault(...) extern void INTERRUPT_UsageFault(__VA_ARGS__)
     extern void
     STPY_init(void)
@@ -4040,8 +4037,6 @@
         NVIC->IPR[NVICInterrupt_I2C3_EV] = 4 << __NVIC_PRIO_BITS;
         static_assert(0 <= 4 && 4 < (1 << __NVIC_PRIO_BITS));
         NVIC->IPR[NVICInterrupt_I2C3_ER] = 4 << __NVIC_PRIO_BITS;
-        static_assert(0 <= 5 && 5 < (1 << __NVIC_PRIO_BITS));
-        NVIC->IPR[NVICInterrupt_USART3] = 5 << __NVIC_PRIO_BITS;
         CMSIS_SET
         (
             SCB        , SHCSR,
@@ -4176,15 +4171,6 @@
 
         #define STPY_USART2_KERNEL_SOURCE 0b000
         #define STPY_USART2_BAUD_DIVIDER 250
-
-
-
-        /////////////////////////////////// USART3 ///////////////////////////////////
-
-
-
-        #define STPY_USART3_KERNEL_SOURCE 0b000
-        #define STPY_USART3_BAUD_DIVIDER 2170
 
 
 
