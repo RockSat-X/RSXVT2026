@@ -57,8 +57,9 @@ enum DiagnosticLEDBehavior : u32
 /* #meta
 
     DIAGNOSTICS = ( # Ordered from highest priority to lowest priority.
-        ('logging_mishap'   , ('active'  , 'inactive', 'inactive'), 100, 100),
-        ('logging_heartbeat', ('inactive', 'active'  , 'inactive'),  25,  25),
+        ('logging_mishap'      , ('active'  , 'inactive', 'inactive'), 50, 500),
+        ('esp32_mishap'        , ('inactive', 'inactive', 'toggle'  ), 50, 500),
+        ('logging_heartbeat'   , ('inactive', 'active'  , 'inactive'), 25,  25),
     )
 
     Meta.enums('DiagnosticMask', 'u32', (
@@ -134,7 +135,7 @@ FREERTOS_TASK(diagnostics, 1) // TODO Duplicative.
 
             u32 start_timestamp_us = TIMEKEEPING_microseconds();
 
-            while (TIMEKEEPING_microseconds() - start_timestamp_us < info->duration_ms)
+            while (TIMEKEEPING_microseconds() - start_timestamp_us < info->duration_ms * 1000)
             {
 
 
@@ -387,7 +388,7 @@ FREERTOS_TASK(esp32, 0)
 
 
 
-        // TODO.
+        // Begin parsing incoming packets.
 
         b32 need_to_reinitialize = false;
 
@@ -402,7 +403,7 @@ FREERTOS_TASK(esp32, 0)
 
 
 
-                // TODO.
+                // Got full ESP-NOW packet data.
 
                 case ESP32GetPacketResult_esp32:
                 {
@@ -467,7 +468,7 @@ FREERTOS_TASK(esp32, 0)
 
 
 
-                // TODO.
+                // Got the small LoRa packet data.
 
                 case ESP32GetPacketResult_lora:
                 {
@@ -476,7 +477,7 @@ FREERTOS_TASK(esp32, 0)
 
 
 
-                // TODO.
+                // Hmm, maybe the ESP32 is bricked?
 
                 case ESP32GetPacketResult_timeout:
                 {
@@ -485,16 +486,22 @@ FREERTOS_TASK(esp32, 0)
 
 
 
-                // TODO.
+                // Bad signal or perhaps the UART RX-FIFO overflowed...
 
                 case ESP32GetPacketResult_crc_mismatch:
                 {
-                    stlink_tx(">>>> CRC mismatch! Maybe due to UART RX-FIFO overflow... <<<<\n\n");
+                    // TODO.
                 } break;
 
 
 
-                default: sorry
+                // Weird.
+
+                default:
+                {
+                    sus;
+                    need_to_reinitialize = true;
+                } break;
 
             }
 
@@ -503,6 +510,15 @@ FREERTOS_TASK(esp32, 0)
 
 
         // TODO Indicate there was an ESP32 error.
+
+        xTaskNotify
+        (
+            diagnostics_handle,
+            DiagnosticMask_esp32_mishap,
+            eSetBits
+        );
+
+        FREERTOS_delay_ms(500);
 
     }
 }
@@ -761,7 +777,7 @@ FREERTOS_TASK(logger, 0)
 
                 case FileSystemSaveResult_success:
                 {
-                    if (current_timestamp_us - most_recent_heartbeat_timestamp_us >= 500'000)
+                    if (current_timestamp_us - most_recent_heartbeat_timestamp_us >= 1'000'000)
                     {
 
                         most_recent_heartbeat_timestamp_us = current_timestamp_us;
