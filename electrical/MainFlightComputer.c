@@ -239,6 +239,13 @@ esp32_get_byte(u8* dst)
 
     u32 start_timestamp_us = TIMEKEEPING_microseconds();
 
+    u32 timeout_duration_us =
+        start_timestamp_us < 10'000'000
+            ? 10'000'000  // We'd like to give the vehicle extra time when we are first powering on.
+            :  3'000'000; // Any other time, we'd like to reset the ESP32 more frequently.
+
+    b32 got_byte = {0};
+
     while (true)
     {
 
@@ -246,18 +253,22 @@ esp32_get_byte(u8* dst)
 
         if (UXART_rx(UXARTHandle_esp32, dst))
         {
-            return true; // Got what we needed.
+            got_byte = true; // Got what we needed.
+            break;
         }
-        else if (current_timestamp_us - start_timestamp_us < 3'000'000) // TODO Time-out duration when we first power-on?
+        else if (current_timestamp_us - start_timestamp_us < timeout_duration_us)
         {
             FREERTOS_delay_ms(1); // Hmm, just give the ESP32 a moment...
         }
         else
         {
-            return false; // The ESP32's been quiet... maybe it's bricked..?
+            got_byte = false; // The ESP32's been quiet... maybe it's bricked..?
+            break;
         }
 
     }
+
+    return got_byte;
 
 }
 
@@ -280,8 +291,8 @@ esp32_get_packet(struct ESP32Packet* dst_packet)
 
     // First find the starting token of the payload.
 
-    i32                        esp32_match_length = 0;
-    i32                        lora_match_length  = 0;
+    i32                       esp32_match_length = 0;
+    i32                       lora_match_length  = 0;
     enum ESP32GetPacketResult kind               = {0};
 
     while (true)
