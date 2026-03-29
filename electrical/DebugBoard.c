@@ -176,11 +176,18 @@ FREERTOS_TASK(display, 0)
                 memory_order_relaxed // No synchronization needed.
             );
 
+
+
+        // Indicate that we might be disconnected from the debugged-device.
+
         b32 havent_received_a_packet_in_a_while = TIMEKEEPING_microseconds() - observed_most_recent_packet_timestamp_us >= 3'000'000;
 
         if (havent_received_a_packet_in_a_while && !BUZZER_current_tune())
         {
-            BUZZER_play(BuzzerTune_hazard); // Disconnected from the debugged-device?
+            BUZZER_play(BuzzerTune_hazard);
+            GPIO_TOGGLE  (led_channel_red_C  );
+            GPIO_INACTIVE(led_channel_green_C);
+            GPIO_INACTIVE(led_channel_blue_C );
         }
 
 
@@ -681,9 +688,11 @@ INTERRUPT_I2Cx_communication(enum I2CSlaveCallbackEvent event, u8* data)
 
                 u8 digest = DEBUG_BOARD_calculate_crc((u8*) &packet, sizeof(packet));
 
-                if (digest)
+                if (digest) // Checksum mismatch?
                 {
-                    // Checksum mismatch!
+                    GPIO_ACTIVE  (led_channel_red_C  );
+                    GPIO_INACTIVE(led_channel_green_C);
+                    GPIO_INACTIVE(led_channel_blue_C );
                 }
                 else
                 {
@@ -708,9 +717,9 @@ INTERRUPT_I2Cx_communication(enum I2CSlaveCallbackEvent event, u8* data)
                         // Ring-buffer full! Should be fine though...
                     }
 
-                    GPIO_TOGGLE(led_channel_red_C  );
-                    GPIO_TOGGLE(led_channel_green_C);
-                    GPIO_TOGGLE(led_channel_blue_C );
+                    GPIO_INACTIVE(led_channel_red_C  );
+                    GPIO_TOGGLE  (led_channel_green_C);
+                    GPIO_INACTIVE(led_channel_blue_C );
 
                 }
 
