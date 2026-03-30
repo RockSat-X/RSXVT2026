@@ -1,6 +1,6 @@
 #define WATCHDOG_ENABLE                  true
 #define ALLOW_FILESYSTEM_TO_BE_FORMATTED true
-#define TRANSMIT_TV                      false // TODO Implement.
+#define TRANSMIT_TV                      false
 
 #include "system.h"
 #include "timekeeping.c"
@@ -893,6 +893,11 @@ FREERTOS_TASK(logger, 0)
 
             // Make the log entry.
 
+            struct ESP32Packet esp32_packet_data  = {0};
+            b32                esp32_packet_exist = RingBuffer_pop(&esp32_packets, &esp32_packet_data);
+            struct LoRaPacket  lora_packet_data   = {0};
+            b32                lora_packet_exist  = RingBuffer_pop(&lora_packets, &lora_packet_data);
+
             i32 log_entry_length =
                 snprintf_
                 (
@@ -943,7 +948,25 @@ FREERTOS_TASK(logger, 0)
 
             // Also send the log out through the ST-Link periodically for convenience.
 
-            #if !TRANSMIT_TV // Can't conflict with sending image data over ST-Link.
+            #if TRANSMIT_TV
+            {
+                if (esp32_packet_exist)
+                {
+
+                    if (esp32_packet_data.image_sequence_number == 1) // @/`ESP32 Sequence Numbers`.
+                    {
+                        stlink_tx(TV_TOKEN_END);
+                        stlink_tx(TV_TOKEN_START);
+                    }
+
+                    if (esp32_packet_data.image_sequence_number) // @/`ESP32 Sequence Numbers`.
+                    {
+                        UXART_tx_bytes(UXARTHandle_stlink, esp32_packet_data.image_bytes, countof(esp32_packet_data.image_bytes));
+                    }
+
+                }
+            }
+            #else
             {
                 if (TIMEKEEPING_microseconds() - most_recent_stlink_log_timestamp_us >= 250'000)
                 {
