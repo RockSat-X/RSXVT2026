@@ -1,3 +1,5 @@
+#define WATCHDOG_ENABLE true
+
 #include "system.h"
 #include "timekeeping.c"
 #include "uxart.c"
@@ -57,10 +59,11 @@ enum DiagnosticLEDBehavior : u32
 /* #meta
 
     DIAGNOSTICS = ( # Ordered from highest priority to lowest priority.
-        ('wiping_filesystem', ('toggle'  , 'toggle'  , 'toggle'  ), 25, 4000),
-        ('logging_mishap'   , ('toggle'  , 'inactive', 'toggle'  ), 25,  250),
-        ('esp32_mishap'     , ('inactive', 'inactive', 'toggle'  ), 50,  500),
-        ('logging_heartbeat', ('inactive', 'active'  , 'inactive'), 25,   25),
+        ('watchdog_reset'   , ('toggle'  , 'inactive', 'inactive'), 200, 3000),
+        ('wiping_filesystem', ('toggle'  , 'toggle'  , 'toggle'  ),  25, 4000),
+        ('logging_mishap'   , ('toggle'  , 'inactive', 'toggle'  ),  25,  250),
+        ('esp32_mishap'     , ('inactive', 'inactive', 'toggle'  ),  50,  500),
+        ('logging_heartbeat', ('inactive', 'active'  , 'inactive'),  25,   25),
     )
 
     Meta.enums('DiagnosticMask', 'u32', (
@@ -224,6 +227,86 @@ FREERTOS_TASK(diagnostics, 1)
         current_flags &= ~current_diagnostic; // Acknowledge the completion of the diagnostic.
 
     }
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+static volatile _Atomic u32 most_recent_logging_timestamp_us = 0;
+
+FREERTOS_TASK(watchdog, 3)
+{
+
+#if WATCHDOG_ENABLE
+
+    // The main flight computer is fine to be resetted
+    // as there's nothing critical to keep online throughout
+    // the entire mission. A reset will result in a gap
+    // in the data collection, but if it means potentially
+    // recovering from a bugged scenario, it's worthwhile to
+    // nonethless try. The same cannot be said about the vehicle
+    // because it runs off of battery power which is controlled
+    // by the vehicle flight computer, so if the MCU resets,
+    // the vehicle powers off entirely.
+
+    for (;;)
+    {
+
+        FREERTOS_delay_ms(1'000);
+
+        // Currently the only condition for a watchdog reset
+        // would be if we couldn't do any data logging in a while.
+        // We could also reset if we haven't received any ESP32 data
+        // in a while, but that'd be much more likely be due to the
+        // vehicle going out of range rather than any hardware issues
+        // on the main side.
+
+        u32 observed_most_recent_logging_timestamp_us =
+            atomic_load_explicit
+            (
+                &most_recent_logging_timestamp_us,
+                memory_order_relaxed // No synchronization needed.
+            );
+
+        u32 current_timestamp_us = TIMEKEEPING_microseconds();
+
+        if (current_timestamp_us - observed_most_recent_logging_timestamp_us >= 15'000'000) // Should be long enough to account for reformatting.
+        {
+
+            xTaskNotify
+            (
+                diagnostics_handle,
+                DiagnosticMask_watchdog_reset,
+                eSetBits
+            );
+
+            FREERTOS_delay_ms(3'000);
+
+            WARM_RESET();
+
+        }
+
+
+
+        // Serves as an additional layer of recovery in we for
+        // whatever reason ended up in a locked-up situation.
+
+        WATCHDOG_KICK();
+
+    }
+
+#else
+
+    for (;;)
+    {
+        FREERTOS_delay_ms(1'000);
+    }
+
+#endif
 
 }
 
@@ -745,17 +828,15 @@ FREERTOS_TASK(logger, 0)
 
             // Make the log entry.
 
-            u32 current_timestamp_us = TIMEKEEPING_microseconds();
-
             i32 log_entry_length =
                 snprintf_
                 (
                     (char*) working_sectors,
                     sizeof(working_sectors),
-                    "[%u us]"             "\n"
+                    "[%lu us]"            "\n"
                     "Something here : %s" "\n"
                     "\n",
-                    current_timestamp_us,
+                    TIMEKEEPING_microseconds(),
                     "meow!"
                 );
 
@@ -816,10 +897,18 @@ FREERTOS_TASK(logger, 0)
 
                 case FileSystemSaveResult_success:
                 {
-                    if (current_timestamp_us - most_recent_heartbeat_timestamp_us >= 1'000'000)
+
+                    atomic_store_explicit
+                    (
+                        &most_recent_logging_timestamp_us,
+                        TIMEKEEPING_microseconds(),
+                        memory_order_relaxed // No synchronization necessary.
+                    );
+
+                    if (TIMEKEEPING_microseconds() - most_recent_heartbeat_timestamp_us >= 1'000'000)
                     {
 
-                        most_recent_heartbeat_timestamp_us = current_timestamp_us;
+                        most_recent_heartbeat_timestamp_us = TIMEKEEPING_microseconds();
 
                         xTaskNotify
                         (
@@ -829,6 +918,7 @@ FREERTOS_TASK(logger, 0)
                         );
 
                     }
+
                 } break;
 
 

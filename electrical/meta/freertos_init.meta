@@ -198,16 +198,21 @@
     enum FreeRTOSTask : u32
     {
         FreeRTOSTask_diagnostics,
+        FreeRTOSTask_watchdog,
         FreeRTOSTask_esp32,
         FreeRTOSTask_vehicle_interface,
         FreeRTOSTask_logger,
         FreeRTOSTask_debug_board,
     };
-    static constexpr u32 FreeRTOSTask_COUNT = 5;
+    static constexpr u32 FreeRTOSTask_COUNT = 6;
     static noret void   diagnostics(void*);
     static StackType_t  diagnostics_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t diagnostics_buffer = {0};
     static TaskHandle_t diagnostics_handle = {0};
+    static noret void   watchdog(void*);
+    static StackType_t  watchdog_stack[8192 / sizeof(StackType_t)] = {0};
+    static StaticTask_t watchdog_buffer = {0};
+    static TaskHandle_t watchdog_handle = {0};
     static noret void   esp32(void*);
     static StackType_t  esp32_stack[8192 / sizeof(StackType_t)] = {0};
     static StaticTask_t esp32_buffer = {0};
@@ -237,6 +242,17 @@
                 1,
                 diagnostics_stack,
                 &diagnostics_buffer
+            );
+        watchdog_handle =
+            xTaskCreateStatic
+            (
+                watchdog,
+                "watchdog",
+                countof(watchdog_stack),
+                nullptr,
+                3,
+                watchdog_stack,
+                &watchdog_buffer
             );
         esp32_handle =
             xTaskCreateStatic
