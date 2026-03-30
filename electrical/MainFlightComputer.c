@@ -1,4 +1,5 @@
-#define WATCHDOG_ENABLE true
+#define WATCHDOG_ENABLE                  true
+#define ALLOW_FILESYSTEM_TO_BE_FORMATTED true
 
 #include "system.h"
 #include "timekeeping.c"
@@ -743,8 +744,16 @@ FREERTOS_TASK(vehicle_interface, 0)
 FREERTOS_TASK(logger, 0)
 {
 
-    static struct Sector working_sectors[2]         = {0};
-    b32                  completely_wipe_filesystem = false;
+    static union
+    {
+        struct Sector formatting[8];
+        struct Sector logging[2];
+    } sectors = {0};
+
+    #if ALLOW_FILESYSTEM_TO_BE_FORMATTED
+    #define WIPE_FILESYSTEM_THRESHOLD 16
+    i32 completely_wipe_filesystem_tick = 0;
+    #endif
 
     for (;;)
     {
@@ -755,25 +764,46 @@ FREERTOS_TASK(logger, 0)
 
         // Try setting up the file-system.
 
-        if (completely_wipe_filesystem) // TODO Think about file-system wiping policy.
+        #if ALLOW_FILESYSTEM_TO_BE_FORMATTED
         {
-            xTaskNotify
-            (
-                diagnostics_handle,
-                DiagnosticMask_wiping_filesystem,
-                eSetBits
-            );
+            if (completely_wipe_filesystem_tick >= WIPE_FILESYSTEM_THRESHOLD)
+            {
+                xTaskNotify
+                (
+                    diagnostics_handle,
+                    DiagnosticMask_wiping_filesystem,
+                    eSetBits
+                );
+            }
         }
+        #endif
 
         enum FileSystemReinitResult reinit_result =
             FILESYSTEM_reinit
             (
                 SDHandle_primary,
-                working_sectors,
-                completely_wipe_filesystem ? countof(working_sectors) : 0
+                sectors.formatting,
+                #if ALLOW_FILESYSTEM_TO_BE_FORMATTED
+                (
+                    completely_wipe_filesystem_tick >= WIPE_FILESYSTEM_THRESHOLD
+                        ? countof(sectors.formatting)
+                        : 0
+                )
+                #else
+                (
+                    0
+                )
+                #endif
             );
 
-        completely_wipe_filesystem = false;
+        #if ALLOW_FILESYSTEM_TO_BE_FORMATTED
+        {
+            if (completely_wipe_filesystem_tick >= WIPE_FILESYSTEM_THRESHOLD)
+            {
+                completely_wipe_filesystem_tick = 0;
+            }
+        }
+        #endif
 
         switch (reinit_result)
         {
@@ -784,12 +814,16 @@ FREERTOS_TASK(logger, 0)
 
             case FileSystemReinitResult_success:
             {
+
+                completely_wipe_filesystem_tick = 0;
+
                 xTaskNotify
                 (
                     diagnostics_handle,
                     DiagnosticMask_logging_heartbeat,
                     eSetBits
                 );
+
             } break;
 
 
@@ -818,13 +852,19 @@ FREERTOS_TASK(logger, 0)
             // Something went wrong trying to mount the file-system;
             // best thing we can do is format the card and hope it'll work out.
 
-            case FileSystemReinitResult_invalid_filesystem:
             case FileSystemReinitResult_no_more_space_for_new_file:
+            case FileSystemReinitResult_invalid_filesystem:
             case FileSystemReinitResult_fatfs_internal_error:
-            default:
             {
-                completely_wipe_filesystem = true;
+
+                #if ALLOW_FILESYSTEM_TO_BE_FORMATTED
+                {
+                    completely_wipe_filesystem_tick += 1;
+                }
+                #endif
+
                 goto REINITIALIZE;
+
             } break;
 
 
@@ -832,6 +872,7 @@ FREERTOS_TASK(logger, 0)
             // Something weird happened.
 
             case FileSystemReinitResult_bug:
+            default:
             {
                 goto REINITIALIZE;
             } break;
@@ -853,8 +894,8 @@ FREERTOS_TASK(logger, 0)
             i32 log_entry_length =
                 snprintf_
                 (
-                    (char*) working_sectors,
-                    sizeof(working_sectors),
+                    (char*) sectors.logging,
+                    sizeof(sectors.logging),
                     "[%lu us]"            "\n"
                     "Something here : %s" "\n"
                     "\n",
@@ -876,10 +917,10 @@ FREERTOS_TASK(logger, 0)
 
             // Log entry too long; just truncate.
 
-            if (log_entry_length > sizeof(working_sectors))
+            if (log_entry_length > sizeof(sectors.logging))
             {
                 sus;
-                log_entry_length = sizeof(working_sectors);
+                log_entry_length = sizeof(sectors.logging);
             }
 
 
@@ -888,13 +929,13 @@ FREERTOS_TASK(logger, 0)
 
             memset
             (
-                (u8*) working_sectors + log_entry_length,
+                (u8*) sectors.logging + log_entry_length,
                 '.',
-                (u32) (sizeof(working_sectors) - log_entry_length)
+                (u32) (sizeof(sectors.logging) - log_entry_length)
             );
 
-            working_sectors[countof(working_sectors) - 1].bytes[sizeof(struct Sector) - 2] = '\n'; // Don't care if this stamps over the string.
-            working_sectors[countof(working_sectors) - 1].bytes[sizeof(struct Sector) - 1] = '\n'; // "
+            sectors.logging[countof(sectors.logging) - 1].bytes[sizeof(struct Sector) - 2] = '\n'; // Don't care if this stamps over the string.
+            sectors.logging[countof(sectors.logging) - 1].bytes[sizeof(struct Sector) - 1] = '\n'; // "
 
 
 
@@ -905,8 +946,8 @@ FREERTOS_TASK(logger, 0)
                 FILESYSTEM_save
                 (
                     SDHandle_primary,
-                    working_sectors,
-                    countof(working_sectors)
+                    sectors.logging,
+                    countof(sectors.logging)
                 );
 
             switch (save_result)
@@ -945,10 +986,14 @@ FREERTOS_TASK(logger, 0)
 
 
 
-                // Small error occured; let's just reinitialize the file-system
+                // Some sort of error happened; let's just reinitialize the file-system
                 // as quickly as possible to be able to continue logging, if still possible.
 
                 case FileSystemSaveResult_transfer_error:
+                case FileSystemSaveResult_no_more_space_for_data:
+                case FileSystemSaveResult_fatfs_internal_error:
+                case FileSystemSaveResult_bug:
+                default:
                 {
 
                     xTaskNotify
@@ -960,27 +1005,6 @@ FREERTOS_TASK(logger, 0)
 
                     goto REINITIALIZE;
 
-                } break;
-
-
-
-                // Uh oh, let's just wipe the SD card so we can continue logging new data.
-
-                case FileSystemSaveResult_no_more_space_for_data:
-                case FileSystemSaveResult_fatfs_internal_error:
-                {
-                    completely_wipe_filesystem = true;
-                    goto REINITIALIZE;
-                } break;
-
-
-
-                // Something weird happened.
-
-                case FileSystemSaveResult_bug:
-                default:
-                {
-                    goto REINITIALIZE;
                 } break;
 
             }
