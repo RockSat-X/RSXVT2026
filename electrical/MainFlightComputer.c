@@ -1,5 +1,6 @@
 #define WATCHDOG_ENABLE                  true
 #define ALLOW_FILESYSTEM_TO_BE_FORMATTED true
+#define TRANSMIT_TV                      false // TODO Implement.
 
 #include "system.h"
 #include "timekeeping.c"
@@ -763,6 +764,8 @@ FREERTOS_TASK(logger, 0)
 
         // Try setting up the file-system.
 
+        stlink_tx("Trying to initialize file-system...\n");
+
         #if ALLOW_FILESYSTEM_TO_BE_FORMATTED
         {
             if (completely_wipe_filesystem_tick >= WIPE_FILESYSTEM_THRESHOLD)
@@ -883,7 +886,7 @@ FREERTOS_TASK(logger, 0)
         // Alright, file-system is ready. Let's start logging!
 
         u32 most_recent_heartbeat_timestamp_us  = 0;
-        u32 most_recent_stlink_log_timestamp_us = 0; // TODO Use.
+        u32 most_recent_stlink_log_timestamp_us = 0;
 
         while (true)
         {
@@ -935,6 +938,28 @@ FREERTOS_TASK(logger, 0)
 
             sectors.logging[countof(sectors.logging) - 1].bytes[sizeof(struct Sector) - 2] = '\n'; // Don't care if this stamps over the string.
             sectors.logging[countof(sectors.logging) - 1].bytes[sizeof(struct Sector) - 1] = '\n'; // "
+
+
+
+            // Also send the log out through the ST-Link periodically for convenience.
+
+            #if !TRANSMIT_TV // Can't conflict with sending image data over ST-Link.
+            {
+                if (TIMEKEEPING_microseconds() - most_recent_stlink_log_timestamp_us >= 250'000)
+                {
+
+                    most_recent_stlink_log_timestamp_us = TIMEKEEPING_microseconds();
+
+                    stlink_tx
+                    (
+                        "%.*s",
+                        log_entry_length,
+                        (char*) sectors.logging
+                    );
+
+                }
+            }
+            #endif
 
 
 
