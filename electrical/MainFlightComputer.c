@@ -60,11 +60,12 @@ enum DiagnosticLEDBehavior : u32
 /* #meta
 
     DIAGNOSTICS = ( # Ordered from highest priority to lowest priority.
-        ('watchdog_reset'   , ('toggle'  , 'inactive', 'inactive'), 200, 3000),
-        ('wiping_filesystem', ('toggle'  , 'toggle'  , 'toggle'  ),  25, 4000),
-        ('logging_mishap'   , ('toggle'  , 'inactive', 'toggle'  ),  25,  250),
-        ('esp32_mishap'     , ('inactive', 'inactive', 'toggle'  ),  50,  500),
-        ('logging_heartbeat', ('inactive', 'active'  , 'inactive'),  25,   25),
+        ('watchdog_reset'          , ('toggle'  , 'inactive', 'inactive'), 200, 3000),
+        ('wiping_filesystem'       , ('toggle'  , 'toggle'  , 'toggle'  ),  25, 4000),
+        ('logging_mishap'          , ('toggle'  , 'inactive', 'toggle'  ),  25,  250),
+        ('esp32_mishap'            , ('inactive', 'inactive', 'toggle'  ),  50,  500),
+        ('vehicle_interface_mishap', ('toggle'  , 'toggle'  , 'toggle'  ),  25,  250),
+        ('logging_heartbeat'       , ('inactive', 'active'  , 'inactive'),  25,   25),
     )
 
     Meta.enums('DiagnosticMask', 'u32', (
@@ -629,6 +630,8 @@ FREERTOS_TASK(esp32, 0)
 
 
 
+        // Something went wrong... We'll reinitialize in a bit...
+
         xTaskNotify
         (
             diagnostics_handle,
@@ -646,6 +649,8 @@ FREERTOS_TASK(esp32, 0)
 ////////////////////////////////////////////////////////////////////////////////
 
 
+
+static RingBuffer(struct VehicleInterfacePayload, 16) vehicle_interface_payloads = {0};
 
 FREERTOS_TASK(vehicle_interface, 0)
 {
@@ -680,40 +685,65 @@ FREERTOS_TASK(vehicle_interface, 0)
                 switch (result)
                 {
 
+
+
+                    // Still transferring...
+
                     case I2CDoResult_working:
                     {
                         FREERTOS_delay_ms(1); // We'll keep on spin-locking until the transfer is done...
                     } break;
 
+
+
+                    // Got something from vehicle...
+
                     case I2CDoResult_success:
                     {
 
-                        // TODO CRC.
-
-                        #if 1
-                        {
-                            stlink_tx
+                        u8 digest =
+                            VEHICLE_INTERFACE_calculate_crc
                             (
-                                "timestamp_us   : %u"   "\n"
-                                "stepper_issues : %d"   "\n"
-                                "vn100_issues   : %d"   "\n"
-                                "openmv_issues  : %d"   "\n"
-                                "esp32_issues   : %d"   "\n"
-                                "\n",
-                                payload.timestamp_us,
-                                payload.stepper_issues,
-                                payload.vn100_issues,
-                                payload.openmv_issues,
-                                payload.esp32_issues
+                                (u8*) &payload,
+                                sizeof(payload)
+                            );
+
+                        if (digest)
+                        {
+                            xTaskNotify // CRC mismatch!
+                            (
+                                diagnostics_handle,
+                                DiagnosticMask_vehicle_interface_mishap,
+                                eSetBits
                             );
                         }
-                        #endif
+                        else if (!RingBuffer_push(&vehicle_interface_payloads, &payload))
+                        {
+                            xTaskNotify // Ring-buffer over-run!
+                            (
+                                diagnostics_handle,
+                                DiagnosticMask_vehicle_interface_mishap,
+                                eSetBits
+                            );
+                        }
 
                         yield = true;
 
                     } break;
 
+
+
+                    // No response; vehicle probably ejected.
+
                     case I2CDoResult_no_acknowledge:
+                    {
+                        yield = true;
+                    } break;
+
+
+
+                    // Something weird happened.
+
                     case I2CDoResult_clock_stretch_timeout:
                     case I2CDoResult_bus_misbehaved:
                     case I2CDoResult_watchdog_expired:
@@ -731,6 +761,19 @@ FREERTOS_TASK(vehicle_interface, 0)
             FREERTOS_delay_ms(100);
 
         }
+
+
+
+        // Something went wrong... We'll reinitialize in a bit...
+
+        xTaskNotify
+        (
+            diagnostics_handle,
+            DiagnosticMask_vehicle_interface_mishap,
+            eSetBits
+        );
+
+        FREERTOS_delay_ms(100);
 
     }
 }

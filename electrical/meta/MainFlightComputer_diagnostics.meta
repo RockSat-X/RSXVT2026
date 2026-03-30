@@ -1,17 +1,19 @@
 enum DiagnosticMask : u32
 {
-    DiagnosticMask_watchdog_reset    = 1 << 0,
-    DiagnosticMask_wiping_filesystem = 1 << 1,
-    DiagnosticMask_logging_mishap    = 1 << 2,
-    DiagnosticMask_esp32_mishap      = 1 << 3,
-    DiagnosticMask_logging_heartbeat = 1 << 4,
+    DiagnosticMask_watchdog_reset           = 1 << 0,
+    DiagnosticMask_wiping_filesystem        = 1 << 1,
+    DiagnosticMask_logging_mishap           = 1 << 2,
+    DiagnosticMask_esp32_mishap             = 1 << 3,
+    DiagnosticMask_vehicle_interface_mishap = 1 << 4,
+    DiagnosticMask_logging_heartbeat        = 1 << 5,
 };
-static constexpr u32 DiagnosticMask_COUNT = 5;
+static constexpr u32 DiagnosticMask_COUNT = 6;
 static const struct { typeof(DiagnosticLEDBehavior_toggle) behavior_red; typeof(DiagnosticLEDBehavior_inactive) behavior_green; typeof(DiagnosticLEDBehavior_inactive) behavior_blue; typeof(200U) delay_ms; typeof(3000U) duration_ms; } DIAGNOSTIC_TABLE[] =
     {
         { .behavior_red = DiagnosticLEDBehavior_toggle  , .behavior_green = DiagnosticLEDBehavior_inactive, .behavior_blue = DiagnosticLEDBehavior_inactive, .delay_ms = 200U, .duration_ms = 3000U },
         { .behavior_red = DiagnosticLEDBehavior_toggle  , .behavior_green = DiagnosticLEDBehavior_toggle  , .behavior_blue = DiagnosticLEDBehavior_toggle  , .delay_ms = 25U , .duration_ms = 4000U },
         { .behavior_red = DiagnosticLEDBehavior_toggle  , .behavior_green = DiagnosticLEDBehavior_inactive, .behavior_blue = DiagnosticLEDBehavior_toggle  , .delay_ms = 25U , .duration_ms = 250U  },
         { .behavior_red = DiagnosticLEDBehavior_inactive, .behavior_green = DiagnosticLEDBehavior_inactive, .behavior_blue = DiagnosticLEDBehavior_toggle  , .delay_ms = 50U , .duration_ms = 500U  },
+        { .behavior_red = DiagnosticLEDBehavior_toggle  , .behavior_green = DiagnosticLEDBehavior_toggle  , .behavior_blue = DiagnosticLEDBehavior_toggle  , .delay_ms = 25U , .duration_ms = 250U  },
         { .behavior_red = DiagnosticLEDBehavior_inactive, .behavior_green = DiagnosticLEDBehavior_active  , .behavior_blue = DiagnosticLEDBehavior_inactive, .delay_ms = 25U , .duration_ms = 25U   },
     };
