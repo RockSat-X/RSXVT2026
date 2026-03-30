@@ -318,6 +318,9 @@ FREERTOS_TASK(watchdog, 3)
 
 
 
+static RingBuffer(struct ESP32Packet, 256) esp32_packets = {0};
+static RingBuffer(struct LoRaPacket , 256) lora_packets  = {0};
+
 static useret b32
 esp32_get_byte(u8* dst)
 {
@@ -508,63 +511,12 @@ FREERTOS_TASK(esp32, 0)
 
                     consecutive_crc_mismatches = 0;
 
-                    #if 0
+                    if (!RingBuffer_push(&esp32_packets, &packet))
                     {
-                        stlink_tx
-                        (
-                            "QuatX                      : %f"    "\n"
-                            "QuatY                      : %f"    "\n"
-                            "QuatZ                      : %f"    "\n"
-                            "QuatS                      : %f"    "\n"
-                            "MagX                       : %f"    "\n"
-                            "MagY                       : %f"    "\n"
-                            "MagZ                       : %f"    "\n"
-                            "AccelX                     : %f"    "\n"
-                            "AccelY                     : %f"    "\n"
-                            "AccelZ                     : %f"    "\n"
-                            "GyroX                      : %f"    "\n"
-                            "GyroY                      : %f"    "\n"
-                            "GyroZ                      : %f"    "\n"
-                            "timestamp_ms               : %u ms" "\n"
-                            "rolling_sequence_number    : %u"    "\n"
-                            "computer_vision_confidence : %u"    "\n"
-                            "image_sequence_number      : %u"    "\n"
-                            "\n",
-                            packet.nonredundant.QuatX,
-                            packet.nonredundant.QuatY,
-                            packet.nonredundant.QuatZ,
-                            packet.nonredundant.QuatS,
-                            packet.MagX,
-                            packet.MagY,
-                            packet.MagZ,
-                            packet.nonredundant.AccelX,
-                            packet.nonredundant.AccelY,
-                            packet.nonredundant.AccelZ,
-                            packet.nonredundant.GyroX,
-                            packet.nonredundant.GyroY,
-                            packet.nonredundant.GyroZ,
-                            packet.nonredundant.timestamp_ms,
-                            packet.nonredundant.rolling_sequence_number,
-                            packet.nonredundant.computer_vision_confidence,
-                            packet.image_sequence_number
-                        );
+                        // ESP-NOW ring-buffer over-run!
+                        // Not much we can honestly do...
                     }
-                    #elif 1
-                    {
 
-                        if (packet.image_sequence_number == 1) // @/`ESP32 Sequence Numbers`.
-                        {
-                            stlink_tx(TV_TOKEN_END);
-                            stlink_tx(TV_TOKEN_START);
-                        }
-
-                        if (packet.image_sequence_number) // @/`ESP32 Sequence Numbers`.
-                        {
-                            UXART_tx_bytes(UXARTHandle_stlink, packet.image_bytes, countof(packet.image_bytes));
-                        }
-
-                    }
-                    #endif
                 } break;
 
 
@@ -576,7 +528,11 @@ FREERTOS_TASK(esp32, 0)
 
                     consecutive_crc_mismatches = 0;
 
-                    sorry
+                    if (!RingBuffer_push(&lora_packets, &packet.nonredundant))
+                    {
+                        // LoRa ring-buffer over-run!
+                        // Not much we can honestly do...
+                    }
 
                 } break;
 
@@ -927,7 +883,7 @@ FREERTOS_TASK(logger, 0)
         // Alright, file-system is ready. Let's start logging!
 
         u32 most_recent_heartbeat_timestamp_us  = 0;
-        u32 most_recent_stlink_log_timestamp_us = 0;
+        u32 most_recent_stlink_log_timestamp_us = 0; // TODO Use.
 
         while (true)
         {
