@@ -485,7 +485,8 @@ FREERTOS_TASK(esp32, 0)
 
         // Begin parsing incoming packets.
 
-        b32 need_to_reinitialize = false;
+        b32 need_to_reinitialize       = false;
+        i32 consecutive_crc_mismatches = 0;
 
         while (!need_to_reinitialize)
         {
@@ -502,6 +503,9 @@ FREERTOS_TASK(esp32, 0)
 
                 case ESP32GetPacketResult_esp32:
                 {
+
+                    consecutive_crc_mismatches = 0;
+
                     #if 0
                     {
                         stlink_tx
@@ -567,7 +571,11 @@ FREERTOS_TASK(esp32, 0)
 
                 case ESP32GetPacketResult_lora:
                 {
+
+                    consecutive_crc_mismatches = 0;
+
                     sorry
+
                 } break;
 
 
@@ -585,7 +593,23 @@ FREERTOS_TASK(esp32, 0)
 
                 case ESP32GetPacketResult_crc_mismatch:
                 {
-                    // TODO.
+
+                    consecutive_crc_mismatches += 1;
+
+                    if (consecutive_crc_mismatches > 8)
+                    {
+                        need_to_reinitialize = true; // Too many errors... suspicious!
+                    }
+                    else // Hmm, maybe nothing to really worry yet.
+                    {
+                        xTaskNotify
+                        (
+                            diagnostics_handle,
+                            DiagnosticMask_esp32_mishap,
+                            eSetBits
+                        );
+                    }
+
                 } break;
 
 
@@ -603,8 +627,6 @@ FREERTOS_TASK(esp32, 0)
         }
 
 
-
-        // TODO Indicate there was an ESP32 error.
 
         xTaskNotify
         (
