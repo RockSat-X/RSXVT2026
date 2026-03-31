@@ -938,13 +938,26 @@ FREERTOS_TASK(logger, 0)
             for (i32 i = 0; i < countof(pool.log_entries); i += 1)
             {
 
-                pool.log_entries[i].magic[0]                        = 'M';
-                pool.log_entries[i].magic[1]                        = 'E';
-                pool.log_entries[i].magic[2]                        = 'O';
-                pool.log_entries[i].magic[3]                        = 'W';
-                pool.log_entries[i].esp32_packet_exist              = !!RingBuffer_pop(&esp32_packets             , &pool.log_entries[i].esp32_packet_data             );
-                pool.log_entries[i].lora_packet_exist               = !!RingBuffer_pop(&lora_packets              , &pool.log_entries[i].lora_packet_data              );
-                pool.log_entries[i].vehicle_interface_payload_exist = !!RingBuffer_pop(&vehicle_interface_payloads, &pool.log_entries[i].vehicle_interface_payload_data);
+
+
+                // We only do a log entry when there's actual data.
+
+                do
+                {
+                    pool.log_entries[i].magic[0]                        = 'M';
+                    pool.log_entries[i].magic[1]                        = 'E';
+                    pool.log_entries[i].magic[2]                        = 'O';
+                    pool.log_entries[i].magic[3]                        = 'W';
+                    pool.log_entries[i].esp32_packet_exist              = !!RingBuffer_pop(&esp32_packets             , &pool.log_entries[i].esp32_packet_data             );
+                    pool.log_entries[i].lora_packet_exist               = !!RingBuffer_pop(&lora_packets              , &pool.log_entries[i].lora_packet_data              );
+                    pool.log_entries[i].vehicle_interface_payload_exist = !!RingBuffer_pop(&vehicle_interface_payloads, &pool.log_entries[i].vehicle_interface_payload_data);
+                }
+                while
+                (
+                    !pool.log_entries[i].esp32_packet_exist &&
+                    !pool.log_entries[i].lora_packet_exist  &&
+                    !pool.log_entries[i].vehicle_interface_payload_exist
+                );
 
 
 
