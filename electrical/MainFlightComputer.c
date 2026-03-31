@@ -319,8 +319,10 @@ FREERTOS_TASK(watchdog, 3)
 
 
 
-static RingBuffer(struct ESP32Packet, 256) esp32_packets = {0};
-static RingBuffer(struct LoRaPacket , 256) lora_packets  = {0};
+static volatile _Atomic u32                most_recent_esp32_reception_timestamp_us = {0};
+static volatile _Atomic u32                most_recent_lora_reception_timestamp_us  = {0};
+static RingBuffer(struct ESP32Packet, 256) esp32_packets                            = {0};
+static RingBuffer(struct LoRaPacket , 256) lora_packets                             = {0};
 
 static useret b32
 esp32_get_byte(u8* dst)
@@ -518,6 +520,13 @@ FREERTOS_TASK(esp32, 0)
                         // Not much we can honestly do...
                     }
 
+                    atomic_store_explicit
+                    (
+                        &most_recent_esp32_reception_timestamp_us,
+                        TIMEKEEPING_microseconds(),
+                        memory_order_relaxed // No synchronization necessary.
+                    );
+
                 } break;
 
 
@@ -534,6 +543,13 @@ FREERTOS_TASK(esp32, 0)
                         // LoRa ring-buffer over-run!
                         // Not much we can honestly do...
                     }
+
+                    atomic_store_explicit
+                    (
+                        &most_recent_lora_reception_timestamp_us,
+                        TIMEKEEPING_microseconds(),
+                        memory_order_relaxed // No synchronization necessary.
+                    );
 
                 } break;
 
@@ -1162,6 +1178,20 @@ FREERTOS_TASK(debug_board, 0)
             // We consider the logger to be doing fine if we
             // have successfully logged data somewhat recently.
 
+            u32 observed_most_recent_esp32_reception_timestamp_us =
+                atomic_load_explicit
+                (
+                    &most_recent_esp32_reception_timestamp_us,
+                    memory_order_relaxed // No synchronization needed.
+                );
+
+            u32 observed_most_recent_lora_reception_timestamp_us =
+                atomic_load_explicit
+                (
+                    &most_recent_lora_reception_timestamp_us,
+                    memory_order_relaxed // No synchronization needed.
+                );
+
             u32 observed_most_recent_logging_timestamp_us =
                 atomic_load_explicit
                 (
@@ -1169,7 +1199,9 @@ FREERTOS_TASK(debug_board, 0)
                     memory_order_relaxed // No synchronization needed.
                 );
 
-            b32 logger_good = TIMEKEEPING_microseconds() - observed_most_recent_logging_timestamp_us < 500'000;
+            b32 esp32_good  = TIMEKEEPING_microseconds() - observed_most_recent_esp32_reception_timestamp_us <   100'000;
+            b32 lora_good   = TIMEKEEPING_microseconds() - observed_most_recent_lora_reception_timestamp_us  < 1'000'000;
+            b32 logger_good = TIMEKEEPING_microseconds() - observed_most_recent_logging_timestamp_us         <   500'000;
 
 
 
@@ -1182,6 +1214,8 @@ FREERTOS_TASK(debug_board, 0)
                     .solarboard_voltages[1] = 69, // TODO.
                     .flags                  =
                         (
+                            (!!esp32_good ) << MainFlightComputerDebugStatusFlag_esp32 |
+                            (!!lora_good  ) << MainFlightComputerDebugStatusFlag_lora  |
                             (!!logger_good) << MainFlightComputerDebugStatusFlag_logger
                         ),
                 };

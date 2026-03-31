@@ -875,7 +875,7 @@ pack_push
 
         FLAGS = '''
 
-            wifi
+            esp32
             lora
             lis2mdl
             lsm6dsv32x
