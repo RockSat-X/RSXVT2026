@@ -744,11 +744,31 @@ FREERTOS_TASK(vehicle_interface, 0)
 FREERTOS_TASK(logger, 0)
 {
 
-    static union
-    {
-        struct Sector formatting[8];
-        struct Sector logging[2];
-    } sectors = {0};
+    pack_push
+
+        static union
+        {
+            struct Sector formatting[8];
+            union
+            {
+                struct Sector sectors[1];
+                struct LogEntry
+                {
+                    char                           magic[4];
+                    b8                             esp32_packet_exist;
+                    b8                             lora_packet_exist;
+                    b8                             vehicle_interface_payload_exist;
+                    u8                             padding;
+                    struct ESP32Packet             esp32_packet_data;
+                    struct LoRaPacket              lora_packet_data;
+                    struct VehicleInterfacePayload vehicle_interface_payload_data;
+                } fields;
+            } logging;
+        } sectors = {0};
+
+        static_assert(sizeof(struct LogEntry) <= sizeof(sectors.logging.sectors));
+
+    pack_pop
 
     #if ALLOW_FILESYSTEM_TO_BE_FORMATTED
     #define WIPE_FILESYSTEM_THRESHOLD 16
@@ -893,56 +913,14 @@ FREERTOS_TASK(logger, 0)
 
             // Make the log entry.
 
-            struct ESP32Packet esp32_packet_data  = {0};
-            b32                esp32_packet_exist = RingBuffer_pop(&esp32_packets, &esp32_packet_data);
-            struct LoRaPacket  lora_packet_data   = {0};
-            b32                lora_packet_exist  = RingBuffer_pop(&lora_packets, &lora_packet_data);
-
-            i32 log_entry_length =
-                snprintf_
-                (
-                    (char*) sectors.logging,
-                    sizeof(sectors.logging),
-                    "[%lu us]"            "\n"
-                    "Something here : %s" "\n"
-                    "\n",
-                    TIMEKEEPING_microseconds(),
-                    "meow!"
-                );
-
-
-
-            // Formatting error, if for some reason.
-
-            if (log_entry_length <= -1)
-            {
-                sus;
-                log_entry_length = 0;
-            }
-
-
-
-            // Log entry too long; just truncate.
-
-            if (log_entry_length > sizeof(sectors.logging))
-            {
-                sus;
-                log_entry_length = sizeof(sectors.logging);
-            }
-
-
-
-            // The remaining space in the log buffer will be used for the divider.
-
-            memset
-            (
-                (u8*) sectors.logging + log_entry_length,
-                '.',
-                (u32) (sizeof(sectors.logging) - log_entry_length)
-            );
-
-            sectors.logging[countof(sectors.logging) - 1].bytes[sizeof(struct Sector) - 2] = '\n'; // Don't care if this stamps over the string.
-            sectors.logging[countof(sectors.logging) - 1].bytes[sizeof(struct Sector) - 1] = '\n'; // "
+            memzero(&sectors.logging);
+            sectors.logging.fields.magic[0]                        = 'M';
+            sectors.logging.fields.magic[1]                        = 'E';
+            sectors.logging.fields.magic[2]                        = 'O';
+            sectors.logging.fields.magic[3]                        = 'W';
+            sectors.logging.fields.esp32_packet_exist              = !!RingBuffer_pop(&esp32_packets             , &sectors.logging.fields.esp32_packet_data             );
+            sectors.logging.fields.lora_packet_exist               = !!RingBuffer_pop(&lora_packets              , &sectors.logging.fields.lora_packet_data              );
+            sectors.logging.fields.vehicle_interface_payload_exist = !!RingBuffer_pop(&vehicle_interface_payloads, &sectors.logging.fields.vehicle_interface_payload_data);
 
 
 
@@ -975,9 +953,63 @@ FREERTOS_TASK(logger, 0)
 
                     stlink_tx
                     (
-                        "%.*s",
-                        log_entry_length,
-                        (char*) sectors.logging
+                        "[%lu us]"                                      "\n"
+                        "> esp32_packets              : %d"             "\n"
+                        "> lora_packets               : %d"             "\n"
+                        "> vehicle_interface_payloads : %d"             "\n"
+                        "LoRa?                        : %s"             "\n"
+                        "- QuatXYZS                   : %f, %f, %f, %f" "\n"
+                        "- AccelXYZ                   : %f, %f, %f"     "\n"
+                        "- GyroXYZ                    : %f, %f, %f"     "\n"
+                        "- Timestamp ms.              : %d"             "\n"
+                        "- Rolling Seq.               : %d"             "\n"
+                        "- CV Confidence              : %d"             "\n"
+                        "ESP-NOW?                     : %s"             "\n"
+                        "- MagXYZ                     : %f, %f, %f"     "\n"
+                        "- QuatXYZS                   : %f, %f, %f, %f" "\n"
+                        "- AccelXYZ                   : %f, %f, %f"     "\n"
+                        "- GyroXYZ                    : %f, %f, %f"     "\n"
+                        "- Timestamp ms.              : %d"             "\n"
+                        "- Rolling Seq.               : %d"             "\n"
+                        "- CV Confidence              : %d"             "\n"
+                        "- Img. Seq.                  : %d"             "\n"
+                        "\n",
+                        TIMEKEEPING_microseconds(),
+                        RingBuffer_amount_in_queue(&esp32_packets),
+                        RingBuffer_amount_in_queue(&lora_packets),
+                        RingBuffer_amount_in_queue(&vehicle_interface_payloads),
+                        sectors.logging.fields.lora_packet_exist  ? "true"                                                                           : "false",
+                        sectors.logging.fields.lora_packet_exist  ? sectors.logging.fields.lora_packet_data.QuatX                                    : NAN,
+                        sectors.logging.fields.lora_packet_exist  ? sectors.logging.fields.lora_packet_data.QuatY                                    : NAN,
+                        sectors.logging.fields.lora_packet_exist  ? sectors.logging.fields.lora_packet_data.QuatZ                                    : NAN,
+                        sectors.logging.fields.lora_packet_exist  ? sectors.logging.fields.lora_packet_data.QuatS                                    : NAN,
+                        sectors.logging.fields.lora_packet_exist  ? sectors.logging.fields.lora_packet_data.AccelX                                   : NAN,
+                        sectors.logging.fields.lora_packet_exist  ? sectors.logging.fields.lora_packet_data.AccelY                                   : NAN,
+                        sectors.logging.fields.lora_packet_exist  ? sectors.logging.fields.lora_packet_data.AccelZ                                   : NAN,
+                        sectors.logging.fields.lora_packet_exist  ? sectors.logging.fields.lora_packet_data.GyroX                                    : NAN,
+                        sectors.logging.fields.lora_packet_exist  ? sectors.logging.fields.lora_packet_data.GyroY                                    : NAN,
+                        sectors.logging.fields.lora_packet_exist  ? sectors.logging.fields.lora_packet_data.GyroZ                                    : NAN,
+                        sectors.logging.fields.lora_packet_exist  ? sectors.logging.fields.lora_packet_data.timestamp_ms                             : -1,
+                        sectors.logging.fields.lora_packet_exist  ? sectors.logging.fields.lora_packet_data.rolling_sequence_number                  : -1,
+                        sectors.logging.fields.lora_packet_exist  ? sectors.logging.fields.lora_packet_data.computer_vision_confidence               : -1,
+                        sectors.logging.fields.esp32_packet_exist ? "true"                                                                           : "false",
+                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.MagX                                    : NAN,
+                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.MagY                                    : NAN,
+                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.MagZ                                    : NAN,
+                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.nonredundant.QuatX                      : NAN,
+                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.nonredundant.QuatY                      : NAN,
+                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.nonredundant.QuatZ                      : NAN,
+                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.nonredundant.QuatS                      : NAN,
+                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.nonredundant.AccelX                     : NAN,
+                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.nonredundant.AccelY                     : NAN,
+                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.nonredundant.AccelZ                     : NAN,
+                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.nonredundant.GyroX                      : NAN,
+                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.nonredundant.GyroY                      : NAN,
+                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.nonredundant.GyroZ                      : NAN,
+                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.nonredundant.timestamp_ms               : -1,
+                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.nonredundant.rolling_sequence_number    : -1,
+                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.nonredundant.computer_vision_confidence : -1,
+                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.image_sequence_number                   : -1
                     );
 
                 }
@@ -993,8 +1025,8 @@ FREERTOS_TASK(logger, 0)
                 FILESYSTEM_save
                 (
                     SDHandle_primary,
-                    sectors.logging,
-                    countof(sectors.logging)
+                    sectors.logging.sectors,
+                    countof(sectors.logging.sectors)
                 );
 
             switch (save_result)
