@@ -869,6 +869,8 @@ FREERTOS_TASK(logger, 0)
             case FileSystemReinitResult_success:
             {
 
+                stlink_tx("File-system ready!\n");
+
                 completely_wipe_filesystem_tick = 0;
 
                 xTaskNotify
