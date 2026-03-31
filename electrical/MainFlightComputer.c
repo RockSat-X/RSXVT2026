@@ -744,15 +744,28 @@ FREERTOS_TASK(vehicle_interface, 0)
 FREERTOS_TASK(logger, 0)
 {
 
+    #if ALLOW_FILESYSTEM_TO_BE_FORMATTED
+    #define WIPE_FILESYSTEM_THRESHOLD 16
+    i32 completely_wipe_filesystem_tick = 0;
+    #endif
+
+
+
+    // To keep up with the maximum throughput of the ESP32s,
+    // we're going to have to save the data as a packed binary structure.
+    // Furthermore, we're going to have to slightly buffer the data.
+    // This does introduce the severity of data loss if we failed to
+    // save the data, but it's not by that much honestly.
+
     pack_push
 
-        static union
+
+        struct LogEntry
         {
-            struct Sector formatting[8];
             union
             {
-                struct Sector sectors[1];
-                struct LogEntry
+                struct Sector sectors[1]; // Pad to the size of sectors.
+                struct
                 {
                     char                           magic[4];
                     b8                             esp32_packet_exist;
@@ -762,18 +775,21 @@ FREERTOS_TASK(logger, 0)
                     struct ESP32Packet             esp32_packet_data;
                     struct LoRaPacket              lora_packet_data;
                     struct VehicleInterfacePayload vehicle_interface_payload_data;
-                } fields;
-            } logging;
-        } sectors = {0};
+                };
+            };
+        };
 
-        static_assert(sizeof(struct LogEntry) <= sizeof(sectors.logging.sectors));
+        static_assert(sizeof(struct LogEntry) == sizeof(((struct LogEntry*) 0)->sectors));
+
+        static union
+        {
+            struct Sector   sectors[8];
+            struct LogEntry log_entries[2];
+        } pool = {0};
 
     pack_pop
 
-    #if ALLOW_FILESYSTEM_TO_BE_FORMATTED
-    #define WIPE_FILESYSTEM_THRESHOLD 16
-    i32 completely_wipe_filesystem_tick = 0;
-    #endif
+
 
     for (;;)
     {
@@ -804,11 +820,11 @@ FREERTOS_TASK(logger, 0)
             FILESYSTEM_reinit
             (
                 SDHandle_primary,
-                sectors.formatting,
+                pool.sectors,
                 #if ALLOW_FILESYSTEM_TO_BE_FORMATTED
                 (
                     completely_wipe_filesystem_tick >= WIPE_FILESYSTEM_THRESHOLD
-                        ? countof(sectors.formatting)
+                        ? countof(pool.sectors)
                         : 0
                 )
                 #else
@@ -911,122 +927,138 @@ FREERTOS_TASK(logger, 0)
         while (true)
         {
 
-            // Make the log entry.
-
-            memzero(&sectors.logging);
-            sectors.logging.fields.magic[0]                        = 'M';
-            sectors.logging.fields.magic[1]                        = 'E';
-            sectors.logging.fields.magic[2]                        = 'O';
-            sectors.logging.fields.magic[3]                        = 'W';
-            sectors.logging.fields.esp32_packet_exist              = !!RingBuffer_pop(&esp32_packets             , &sectors.logging.fields.esp32_packet_data             );
-            sectors.logging.fields.lora_packet_exist               = !!RingBuffer_pop(&lora_packets              , &sectors.logging.fields.lora_packet_data              );
-            sectors.logging.fields.vehicle_interface_payload_exist = !!RingBuffer_pop(&vehicle_interface_payloads, &sectors.logging.fields.vehicle_interface_payload_data);
 
 
+            // Fill out the log entries.
+            // We do multiple before we actually write it
+            // to the SD card for performance reasons.
 
-            // Also send the log out through the ST-Link periodically for convenience.
+            memzero(&pool.log_entries);
 
-            #if TRANSMIT_TV
+            for (i32 i = 0; i < countof(pool.log_entries); i += 1)
             {
-                if (esp32_packet_exist)
+
+                pool.log_entries[i].magic[0]                        = 'M';
+                pool.log_entries[i].magic[1]                        = 'E';
+                pool.log_entries[i].magic[2]                        = 'O';
+                pool.log_entries[i].magic[3]                        = 'W';
+                pool.log_entries[i].esp32_packet_exist              = !!RingBuffer_pop(&esp32_packets             , &pool.log_entries[i].esp32_packet_data             );
+                pool.log_entries[i].lora_packet_exist               = !!RingBuffer_pop(&lora_packets              , &pool.log_entries[i].lora_packet_data              );
+                pool.log_entries[i].vehicle_interface_payload_exist = !!RingBuffer_pop(&vehicle_interface_payloads, &pool.log_entries[i].vehicle_interface_payload_data);
+
+
+
+                // Also send the log out through the ST-Link periodically for convenience.
+
+                #if TRANSMIT_TV
                 {
-
-                    if (esp32_packet_data.image_sequence_number == 1) // @/`ESP32 Sequence Numbers`.
+                    if (pool.log_entries[i].esp32_packet_exist)
                     {
-                        stlink_tx(TV_TOKEN_END);
-                        stlink_tx(TV_TOKEN_START);
-                    }
 
-                    if (esp32_packet_data.image_sequence_number) // @/`ESP32 Sequence Numbers`.
-                    {
-                        UXART_tx_bytes(UXARTHandle_stlink, esp32_packet_data.image_bytes, countof(esp32_packet_data.image_bytes));
-                    }
+                        if (pool.log_entries[i].esp32_packet_data.image_sequence_number == 1) // @/`ESP32 Sequence Numbers`.
+                        {
+                            stlink_tx(TV_TOKEN_END);
+                            stlink_tx(TV_TOKEN_START);
+                        }
 
+                        if (pool.log_entries[i].esp32_packet_data.image_sequence_number) // @/`ESP32 Sequence Numbers`.
+                        {
+                            UXART_tx_bytes
+                            (
+                                UXARTHandle_stlink,
+                                pool.log_entries[i].esp32_packet_data.image_bytes,
+                                countof(pool.log_entries[i].esp32_packet_data.image_bytes)
+                            );
+                        }
+
+                    }
                 }
-            }
-            #else
-            {
-                if (TIMEKEEPING_microseconds() - most_recent_stlink_log_timestamp_us >= 250'000)
+                #else
                 {
+                    if (TIMEKEEPING_microseconds() - most_recent_stlink_log_timestamp_us >= 250'000)
+                    {
 
-                    most_recent_stlink_log_timestamp_us = TIMEKEEPING_microseconds();
+                        most_recent_stlink_log_timestamp_us = TIMEKEEPING_microseconds();
 
-                    stlink_tx
-                    (
-                        "[%lu us]"                                      "\n"
-                        "> esp32_packets              : %d"             "\n"
-                        "> lora_packets               : %d"             "\n"
-                        "> vehicle_interface_payloads : %d"             "\n"
-                        "LoRa?                        : %s"             "\n"
-                        "- QuatXYZS                   : %f, %f, %f, %f" "\n"
-                        "- AccelXYZ                   : %f, %f, %f"     "\n"
-                        "- GyroXYZ                    : %f, %f, %f"     "\n"
-                        "- Timestamp ms.              : %d"             "\n"
-                        "- Rolling Seq.               : %d"             "\n"
-                        "- CV Confidence              : %d"             "\n"
-                        "ESP-NOW?                     : %s"             "\n"
-                        "- MagXYZ                     : %f, %f, %f"     "\n"
-                        "- QuatXYZS                   : %f, %f, %f, %f" "\n"
-                        "- AccelXYZ                   : %f, %f, %f"     "\n"
-                        "- GyroXYZ                    : %f, %f, %f"     "\n"
-                        "- Timestamp ms.              : %d"             "\n"
-                        "- Rolling Seq.               : %d"             "\n"
-                        "- CV Confidence              : %d"             "\n"
-                        "- Img. Seq.                  : %d"             "\n"
-                        "\n",
-                        TIMEKEEPING_microseconds(),
-                        RingBuffer_amount_in_queue(&esp32_packets),
-                        RingBuffer_amount_in_queue(&lora_packets),
-                        RingBuffer_amount_in_queue(&vehicle_interface_payloads),
-                        sectors.logging.fields.lora_packet_exist  ? "true"                                                                           : "false",
-                        sectors.logging.fields.lora_packet_exist  ? sectors.logging.fields.lora_packet_data.QuatX                                    : NAN,
-                        sectors.logging.fields.lora_packet_exist  ? sectors.logging.fields.lora_packet_data.QuatY                                    : NAN,
-                        sectors.logging.fields.lora_packet_exist  ? sectors.logging.fields.lora_packet_data.QuatZ                                    : NAN,
-                        sectors.logging.fields.lora_packet_exist  ? sectors.logging.fields.lora_packet_data.QuatS                                    : NAN,
-                        sectors.logging.fields.lora_packet_exist  ? sectors.logging.fields.lora_packet_data.AccelX                                   : NAN,
-                        sectors.logging.fields.lora_packet_exist  ? sectors.logging.fields.lora_packet_data.AccelY                                   : NAN,
-                        sectors.logging.fields.lora_packet_exist  ? sectors.logging.fields.lora_packet_data.AccelZ                                   : NAN,
-                        sectors.logging.fields.lora_packet_exist  ? sectors.logging.fields.lora_packet_data.GyroX                                    : NAN,
-                        sectors.logging.fields.lora_packet_exist  ? sectors.logging.fields.lora_packet_data.GyroY                                    : NAN,
-                        sectors.logging.fields.lora_packet_exist  ? sectors.logging.fields.lora_packet_data.GyroZ                                    : NAN,
-                        sectors.logging.fields.lora_packet_exist  ? sectors.logging.fields.lora_packet_data.timestamp_ms                             : -1,
-                        sectors.logging.fields.lora_packet_exist  ? sectors.logging.fields.lora_packet_data.rolling_sequence_number                  : -1,
-                        sectors.logging.fields.lora_packet_exist  ? sectors.logging.fields.lora_packet_data.computer_vision_confidence               : -1,
-                        sectors.logging.fields.esp32_packet_exist ? "true"                                                                           : "false",
-                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.MagX                                    : NAN,
-                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.MagY                                    : NAN,
-                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.MagZ                                    : NAN,
-                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.nonredundant.QuatX                      : NAN,
-                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.nonredundant.QuatY                      : NAN,
-                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.nonredundant.QuatZ                      : NAN,
-                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.nonredundant.QuatS                      : NAN,
-                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.nonredundant.AccelX                     : NAN,
-                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.nonredundant.AccelY                     : NAN,
-                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.nonredundant.AccelZ                     : NAN,
-                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.nonredundant.GyroX                      : NAN,
-                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.nonredundant.GyroY                      : NAN,
-                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.nonredundant.GyroZ                      : NAN,
-                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.nonredundant.timestamp_ms               : -1,
-                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.nonredundant.rolling_sequence_number    : -1,
-                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.nonredundant.computer_vision_confidence : -1,
-                        sectors.logging.fields.esp32_packet_exist ? sectors.logging.fields.esp32_packet_data.image_sequence_number                   : -1
-                    );
+                        stlink_tx
+                        (
+                            "[%lu us]"                                      "\n"
+                            "> esp32_packets              : %d"             "\n"
+                            "> lora_packets               : %d"             "\n"
+                            "> vehicle_interface_payloads : %d"             "\n"
+                            "LoRa?                        : %s"             "\n"
+                            "- QuatXYZS                   : %f, %f, %f, %f" "\n"
+                            "- AccelXYZ                   : %f, %f, %f"     "\n"
+                            "- GyroXYZ                    : %f, %f, %f"     "\n"
+                            "- Timestamp ms.              : %d"             "\n"
+                            "- Rolling Seq.               : %d"             "\n"
+                            "- CV Confidence              : %d"             "\n"
+                            "ESP-NOW?                     : %s"             "\n"
+                            "- MagXYZ                     : %f, %f, %f"     "\n"
+                            "- QuatXYZS                   : %f, %f, %f, %f" "\n"
+                            "- AccelXYZ                   : %f, %f, %f"     "\n"
+                            "- GyroXYZ                    : %f, %f, %f"     "\n"
+                            "- Timestamp ms.              : %d"             "\n"
+                            "- Rolling Seq.               : %d"             "\n"
+                            "- CV Confidence              : %d"             "\n"
+                            "- Img. Seq.                  : %d"             "\n"
+                            "\n",
+                            TIMEKEEPING_microseconds(),
+                            RingBuffer_amount_in_queue(&esp32_packets),
+                            RingBuffer_amount_in_queue(&lora_packets),
+                            RingBuffer_amount_in_queue(&vehicle_interface_payloads),
+                            pool.log_entries[i].lora_packet_exist  ? "true"                                                                        : "false",
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.QuatX                                    : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.QuatY                                    : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.QuatZ                                    : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.QuatS                                    : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.AccelX                                   : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.AccelY                                   : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.AccelZ                                   : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.GyroX                                    : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.GyroY                                    : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.GyroZ                                    : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.timestamp_ms                             : -1,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.rolling_sequence_number                  : -1,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.computer_vision_confidence               : -1,
+                            pool.log_entries[i].esp32_packet_exist ? "true"                                                                        : "false",
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.MagX                                    : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.MagY                                    : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.MagZ                                    : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.QuatX                      : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.QuatY                      : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.QuatZ                      : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.QuatS                      : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.AccelX                     : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.AccelY                     : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.AccelZ                     : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.GyroX                      : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.GyroY                      : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.GyroZ                      : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.timestamp_ms               : -1,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.rolling_sequence_number    : -1,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.computer_vision_confidence : -1,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.image_sequence_number                   : -1
+                        );
 
+                    }
                 }
+                #endif
+
             }
-            #endif
 
 
 
-            // Save onto SD card for us to verify the vehicle
-            // is operating as intended after sequence testing.
+            // Save the received data!
+
+            static_assert(sizeof(pool.log_entries) % sizeof(struct Sector) == 0);
 
             enum FileSystemSaveResult save_result =
                 FILESYSTEM_save
                 (
                     SDHandle_primary,
-                    sectors.logging.sectors,
-                    countof(sectors.logging.sectors)
+                    pool.sectors,
+                    sizeof(pool.log_entries) / sizeof(struct Sector)
                 );
 
             switch (save_result)
