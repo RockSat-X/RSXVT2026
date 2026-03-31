@@ -1157,15 +1157,40 @@ FREERTOS_TASK(debug_board, 0)
         while (!need_to_reinitialize)
         {
 
+
+
+            // We consider the logger to be doing fine if we
+            // have successfully logged data somewhat recently.
+
+            u32 observed_most_recent_logging_timestamp_us =
+                atomic_load_explicit
+                (
+                    &most_recent_logging_timestamp_us,
+                    memory_order_relaxed // No synchronization needed.
+                );
+
+            b32 logger_good = TIMEKEEPING_microseconds() - observed_most_recent_logging_timestamp_us < 500'000;
+
+
+
+            // Put together the debug packet.
+
             struct MainFlightComputerDebugPacket packet =
                 {
                     .timestamp_us           = TIMEKEEPING_microseconds(),
                     .solarboard_voltages[0] = 67, // TODO.
                     .solarboard_voltages[1] = 69, // TODO.
-                    .flags                  = 0,  // TODO.
+                    .flags                  =
+                        (
+                            (!!logger_good) << MainFlightComputerDebugStatusFlag_logger
+                        ),
                 };
 
             packet.crc = DEBUG_BOARD_calculate_crc((u8*) &packet, sizeof(packet) - sizeof(packet.crc));
+
+
+
+            // Send it out.
 
             struct I2CDoJob job =
                 {

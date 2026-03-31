@@ -879,7 +879,7 @@ pack_push
             lora
             lis2mdl
             lsm6dsv32x
-            filesystem
+            logger
 
         '''.split()
 
