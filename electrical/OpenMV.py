@@ -515,9 +515,6 @@ def process_framebuffer():
 
     # Get attitude.
     error = get_attitude(coefficients, orientation)
-    print(f"Yaw: {error[0]:.3f}, Pitch: {error[1]:.3f}, Roll: {error[2]:.3f} (deg)")
-
-
 
 
 
@@ -679,7 +676,7 @@ def process_framebuffer():
             b_c,
             c_c,
         ),
-        f'{orientation=} {dark_side=} {len(inliers)=} {a_c=:.7f} {b_c=:.4f} {c_c=:.1f}'
+        f'Yaw: {error[0] :8.3f}, Pitch: {error[1] :8.3f}, Roll: {error[2] :8.3f} (deg) {orientation=} {dark_side=} {len(inliers)=} {a_c=:.7f} {b_c=:.4f} {c_c=:.1f}'
     )
 
 
@@ -703,7 +700,7 @@ if USE_SAMPLE_FRAMES:
         if file_name.endswith('.jpg')
     )
 
-    # print(f'Found {len(sample_frame_file_paths)} sample frames.')
+    print(f'Found {len(sample_frame_file_paths)} sample frames.')
 
     sample_frame_file_path_i = -1 # To be immediately incremented later on.
 
@@ -771,8 +768,8 @@ while True:
 
     processing_result, processing_message = process_framebuffer()
 
-    # if USE_SAMPLE_FRAMES:
-    #     print(f'[{sample_frame_file_path_i + 1}/{len(sample_frame_file_paths)}] `{sample_frame_file_path}` : {processing_message}')
+    if USE_SAMPLE_FRAMES:
+        print(f'[{sample_frame_file_path_i + 1}/{len(sample_frame_file_paths)}] `{sample_frame_file_path}` : {processing_message}')
 
 
 
