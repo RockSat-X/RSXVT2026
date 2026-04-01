@@ -279,27 +279,34 @@ def process_framebuffer():
 
 
 
-    # if orientation == 'h':
+    ########################################
+    #
+    # Draw broad scan.
+    #
 
-    #     sensor.get_fb().draw_line(
-    #         0,
-    #         coarse_position,
-    #         sensor.get_fb().width(),
-    #         coarse_position,
-    #         color     = (0, 255, 255),
-    #         thickness = STRIP_THICKNESS,
-    #     )
+    if False:
 
-    # else:
+        if orientation == 'h':
 
-    #     sensor.get_fb().draw_line(
-    #         coarse_position,
-    #         0,
-    #         coarse_position,
-    #         sensor.get_fb().height(),
-    #         color     = (0, 255, 255),
-    #         thickness = STRIP_THICKNESS,
-    #     )
+            sensor.get_fb().draw_line(
+                0,
+                coarse_position,
+                sensor.get_fb().width(),
+                coarse_position,
+                color     = (0, 255, 255),
+                thickness = STRIP_THICKNESS,
+            )
+
+        else:
+
+            sensor.get_fb().draw_line(
+                coarse_position,
+                0,
+                coarse_position,
+                sensor.get_fb().height(),
+                color     = (0, 255, 255),
+                thickness = STRIP_THICKNESS,
+            )
 
 
 
