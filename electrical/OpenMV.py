@@ -162,45 +162,6 @@ def residual(point, coefficients, orientation):
         return abs(point[0] - (a * t * t + b * t + c))
 
 
-def get_attitude(coefficients, orientation):
-    a, b, c = coefficients
-
-    if a == 0:
-        return
-
-    err = [0.0, 0.0, 0.0]   # [x_error, y_error, angle_error]
-
-    pix2deg_x = 0.2059
-    pix2deg_y = 0.2158
-
-    # Vertex (in pixels)
-    vx = -b / (2 * a)
-    vy = c - (b * b) / (4 * a)
-
-    cx = sensor.get_fb().width() / 2
-    cy = sensor.get_fb().height() / 2
-
-    if orientation == 'h':
-        ex_pix = vx - cx
-        ey_pix = vy - cy
-
-        slope = 2 * a * cx + b
-    else:
-        # swap axes
-        ex_pix = vy - cy
-        ey_pix = vx - cx
-
-        slope = 2 * a * cy + b
-
-    # Convert to degrees
-    err[0] = ex_pix * pix2deg_x
-    err[1] = ey_pix * pix2deg_y
-    err[2] = math.degrees(math.atan(slope))
-
-    return err
-
-
-
 
 ################################################################################
 #
@@ -513,7 +474,40 @@ def process_framebuffer():
         return (None, f'Rejected :: Curve barely crosses frame (only {in_frame} points visible).')
 
 
-    error = get_attitude(coefficients, orientation)
+
+    ########################################
+    #
+    # Estimate attitude.
+    #
+
+    error = [0.0, 0.0, 0.0]   # [x_error, y_error, angle_error]
+
+    pix2deg_x = 0.2059
+    pix2deg_y = 0.2158
+
+    # Vertex (in pixels)
+    vx = -b / (2 * a)
+    vy = c - (b * b) / (4 * a)
+
+    cx = sensor.get_fb().width() / 2
+    cy = sensor.get_fb().height() / 2
+
+    if orientation == 'h':
+        ex_pix = vx - cx
+        ey_pix = vy - cy
+
+        slope = 2 * a * cx + b
+    else:
+        # swap axes
+        ex_pix = vy - cy
+        ey_pix = vx - cx
+
+        slope = 2 * a * cy + b
+
+    # Convert to degrees
+    error[0] = ex_pix * pix2deg_x
+    error[1] = ey_pix * pix2deg_y
+    error[2] = math.degrees(math.atan(slope))
 
 
 
