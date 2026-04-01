@@ -496,8 +496,8 @@ def process_framebuffer():
     vx = -b / (2 * a)
     vy = c - (b * b) / (4 * a)
 
-    cx = sensor.get_fb().width() / 2
-    cy = sensor.get_fb().height() / 2
+    cx = working_framebuffer.width() / 2
+    cy = working_framebuffer.height() / 2
 
     if orientation == 'h':
         ex_pix = vx - cx
