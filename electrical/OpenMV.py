@@ -1,4 +1,4 @@
-import sensor, image, time, os, gc, micropython, struct
+import sensor, image, time, os, gc, micropython, struct, math
 
 
 
@@ -162,6 +162,45 @@ def residual(point, coefficients, orientation):
         return abs(point[0] - (a * t * t + b * t + c))
 
 
+def get_attitude(coefficients, orientation):
+    a, b, c = coefficients
+
+    if a == 0:
+        return
+
+    err = [0.0, 0.0, 0.0]   # [x_error, y_error, angle_error]
+
+    pix2deg_x = 0.2059
+    pix2deg_y = 0.2158
+
+    # Vertex (in pixels)
+    vx = -b / (2 * a)
+    vy = c - (b * b) / (4 * a)
+
+    cx = sensor.get_fb().width() / 2
+    cy = sensor.get_fb().height() / 2
+
+    if orientation == 'h':
+        ex_pix = vx - cx
+        ey_pix = vy - cy
+
+        slope = 2 * a * cx + b
+    else:
+        # swap axes
+        ex_pix = vy - cy
+        ey_pix = vx - cx
+
+        slope = 2 * a * cy + b
+
+    # Convert to degrees
+    err[0] = ex_pix * pix2deg_x
+    err[1] = ey_pix * pix2deg_y
+    err[2] = math.degrees(math.atan(slope))
+
+    return err
+
+
+
 
 ################################################################################
 #
@@ -279,27 +318,27 @@ def process_framebuffer():
 
 
 
-    if orientation == 'h':
+    # if orientation == 'h':
 
-        sensor.get_fb().draw_line(
-            0,
-            coarse_position,
-            sensor.get_fb().width(),
-            coarse_position,
-            color     = (0, 255, 255),
-            thickness = STRIP_THICKNESS,
-        )
+    #     sensor.get_fb().draw_line(
+    #         0,
+    #         coarse_position,
+    #         sensor.get_fb().width(),
+    #         coarse_position,
+    #         color     = (0, 255, 255),
+    #         thickness = STRIP_THICKNESS,
+    #     )
 
-    else:
+    # else:
 
-        sensor.get_fb().draw_line(
-            coarse_position,
-            0,
-            coarse_position,
-            sensor.get_fb().height(),
-            color     = (0, 255, 255),
-            thickness = STRIP_THICKNESS,
-        )
+    #     sensor.get_fb().draw_line(
+    #         coarse_position,
+    #         0,
+    #         coarse_position,
+    #         sensor.get_fb().height(),
+    #         color     = (0, 255, 255),
+    #         thickness = STRIP_THICKNESS,
+    #     )
 
 
 
@@ -413,6 +452,8 @@ def process_framebuffer():
 
     if abs(a) > 0.003:
         return (None, f'Rejected :: Too large of a curvature (|a| = {abs(a) :.5f}).')
+    elif a == 0:
+        return (None, f'Rejected :: Prevent division by zero (a = {a :.5f}).')
 
 
 
@@ -474,22 +515,69 @@ def process_framebuffer():
         return (None, f'Rejected :: Curve barely crosses frame (only {in_frame} points visible).')
 
 
+    # Get attitude.
+    error = get_attitude(coefficients, orientation)
+    print(f"Yaw: {error[0]:.3f}, Pitch: {error[1]:.3f}, Roll: {error[2]:.3f} (deg)")
+
+
+
+
 
     ########################################
     #
     # Draw results.
     #
 
-    for point in inliers:
+    # for point in inliers:
 
-        sensor.get_fb().draw_circle(
-            round(point[0]),
-            round(point[1]),
-            3,
-            color     = (255, 0, 0),
-            thickness = 1,
-            fill      = True,
-        )
+    #     sensor.get_fb().draw_circle(
+    #         round(point[0]),
+    #         round(point[1]),
+    #         3,
+    #         color     = (255, 0, 0),
+    #         thickness = 1,
+    #         fill      = True,
+    #     )
+
+    vertex = [0.0, 0.0]     # [x_vertex, y_vertex]
+
+    if orientation == 'h':
+        vertex[0] = -b / (2*a)
+        vertex[1] = c - (b*b)/(4*a)
+    else:
+        vertex[1] = -b / (2*a)
+        vertex[0] = c - (b*b)/(4*a)
+
+
+    # Image center
+    fb = sensor.get_fb()
+    cx = fb.width() // 2
+    cy = fb.height() // 2
+
+    # Draw arrow: vertex → center
+    sensor.get_fb().draw_line(cx, cy, round(vertex[0]), round(vertex[1]),(0, 0, 255), 3)
+
+    # Draw vertex
+    sensor.get_fb().draw_circle(
+
+        round(vertex[0]),
+        round(vertex[1]),
+        3,
+        color     = (255, 0, 0),
+        thickness = 1,
+        fill      = True,
+    )
+
+    # Draw center
+    sensor.get_fb().draw_circle(
+
+        round(cx),
+        round(cy),
+        3,
+        color     = (0, 255, 0),
+        thickness = 1,
+        fill      = True,
+    )
 
 
 
@@ -570,16 +658,19 @@ def process_framebuffer():
 
     ax1, ay1, ax2, ay2 = arrow_map[dark_side]
 
-    sensor.get_fb().draw_arrow(
-        ax1,
-        ay1,
-        ax2,
-        ay2,
-        color     = (0, 0, 255),
-        thickness = 3,
-    )
+    # sensor.get_fb().draw_arrow(
+    #     ax1,
+    #     ay1,
+    #     ax2,
+    #     ay2,
+    #     color     = (0, 0, 255),
+    #     thickness = 3,
+    # )
+
 
     a_c, b_c, c_c = coefficients
+
+
 
     return (
         (
@@ -606,7 +697,7 @@ def process_framebuffer():
 
 if USE_SAMPLE_FRAMES:
 
-    SAMPLE_FRAME_DIRECTORY_PATH = 'frames'
+    SAMPLE_FRAME_DIRECTORY_PATH = 'test2'
 
     sample_frame_file_paths = sorted(
         f'{SAMPLE_FRAME_DIRECTORY_PATH}/{file_name}'
@@ -614,10 +705,13 @@ if USE_SAMPLE_FRAMES:
         if file_name.endswith('.jpg')
     )
 
-    print(f'Found {len(sample_frame_file_paths)} sample frames.')
+    # print(f'Found {len(sample_frame_file_paths)} sample frames.')
 
     sample_frame_file_path_i = -1 # To be immediately incremented later on.
 
+
+
+################################################################################
 
 
 while True:
@@ -679,8 +773,8 @@ while True:
 
     processing_result, processing_message = process_framebuffer()
 
-    if USE_SAMPLE_FRAMES:
-        print(f'[{sample_frame_file_path_i + 1}/{len(sample_frame_file_paths)}] `{sample_frame_file_path}` : {processing_message}')
+    # if USE_SAMPLE_FRAMES:
+    #     print(f'[{sample_frame_file_path_i + 1}/{len(sample_frame_file_paths)}] `{sample_frame_file_path}` : {processing_message}')
 
 
 
