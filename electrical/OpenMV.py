@@ -47,7 +47,7 @@ led_blue  = pyb.LED(3)
 
 sensor.reset()
 sensor.set_pixformat(sensor.RGB565)
-sensor.set_framesize(sensor.QVGA) # TODO Use SIF?
+sensor.set_framesize(sensor.QQVGA) # TODO Use SIF?
 
 working_framebuffer = sensor.alloc_extra_fb(sensor.width(), sensor.height(), sensor.GRAYSCALE)
 
@@ -162,64 +162,22 @@ def residual(point, coefficients, orientation):
         return abs(point[0] - (a * t * t + b * t + c))
 
 
-def get_attitude(inliers, coefficients, orientation):
-    a, b, c = coefficients
 
-    if a == 0:
-        return
+def cubic_roots_of(a, b, c, d): # TODO Check edge cases.
 
-    err = [0.0, 0.0, 0.0]   # [x_error, y_error, angle_error]
+    d0 = b**2 - 3 * a * c
+    d1 = 2 * b**3 - 9 * a * b * c + 27 * a**2 * d
+    ks = [
+        ((d1 + (d1**2 - 4 * d0**3)**0.5) / 2)**(1/3) * ((-1 + (-3)**0.5) / 2)**n
+        for n in (0, 1, 2)
+    ]
 
-    pix2deg_x = 0.2059
-    pix2deg_y = 0.2158
+    roots = [
+        -1 / (3 * a) * (b + k + d0 / k)
+        for k in ks
+    ]
 
-    # Vertex (in pixels)
-    # vx = -b / (2 * a)
-    # vy = c - (b * b) / (4 * a)
-
-    cx = sensor.get_fb().width() / 2
-    cy = sensor.get_fb().height() / 2
-
-    if orientation == 'h':
-        # ex_pix = vx - cx
-        # ey_pix = vy - cy
-
-        slope = 2 * a * cx + b
-
-        mean_y = sum(point[1] for point in inliers) / len(inliers)
-
-        y0 = mean_y
-        yf = slope*sensor.get_fb().width() + mean_y
-
-        mp_x = cx
-        mp_y = (yf + y0) / 2
-
-    else:
-        # swap axes
-        # ex_pix = vy - cy
-        # ey_pix = vx - cx
-
-        slope = 2 * a * cy + b
-
-        mean_y = sum(point[0] for point in inliers) / len(inliers)
-
-        y0 = mean_y
-        yf = slope*sensor.get_fb().height() + mean_y
-
-        mp_x = (yf + y0) / 2
-        mp_y = cy
-
-    ex_pix = mp_x - cx
-    ey_pix = mp_y - cy
-
-
-    # Convert to degrees
-    err[0] = ex_pix * pix2deg_x
-    err[1] = ey_pix * pix2deg_y
-    err[2] = math.degrees(math.atan(slope))
-
-    return err
-
+    return roots
 
 
 
@@ -339,27 +297,34 @@ def process_framebuffer():
 
 
 
-    # if orientation == 'h':
+    ########################################
+    #
+    # Draw broad scan.
+    #
 
-    #     sensor.get_fb().draw_line(
-    #         0,
-    #         coarse_position,
-    #         sensor.get_fb().width(),
-    #         coarse_position,
-    #         color     = (0, 255, 255),
-    #         thickness = STRIP_THICKNESS,
-    #     )
+    if False:
 
-    # else:
+        if orientation == 'h':
 
-    #     sensor.get_fb().draw_line(
-    #         coarse_position,
-    #         0,
-    #         coarse_position,
-    #         sensor.get_fb().height(),
-    #         color     = (0, 255, 255),
-    #         thickness = STRIP_THICKNESS,
-    #     )
+            sensor.get_fb().draw_line(
+                0,
+                coarse_position,
+                sensor.get_fb().width(),
+                coarse_position,
+                color     = (0, 255, 255),
+                thickness = STRIP_THICKNESS,
+            )
+
+        else:
+
+            sensor.get_fb().draw_line(
+                coarse_position,
+                0,
+                coarse_position,
+                sensor.get_fb().height(),
+                color     = (0, 255, 255),
+                thickness = STRIP_THICKNESS,
+            )
 
 
 
@@ -471,10 +436,8 @@ def process_framebuffer():
 
     a, b, c = coefficients
 
-    if abs(a) > 0.003:
-        return (None, f'Rejected :: Too large of a curvature (|a| = {abs(a) :.5f}).')
-    elif a == 0:
-        return (None, f'Rejected :: Prevent division by zero (a = {a :.5f}).')
+    if not (0.000001 <= abs(a) < 0.003):
+        return (None, f'Rejected :: Curvature not within desired range (|a| = {abs(a) :.5f}).')
 
 
 
@@ -536,126 +499,105 @@ def process_framebuffer():
         return (None, f'Rejected :: Curve barely crosses frame (only {in_frame} points visible).')
 
 
-    # Get attitude.
-    error = get_attitude(inliers, coefficients, orientation)
-    print(f"X: {error[0]:.3f}, Y: {error[1]:.3f}, Z: {error[2]:.3f} (deg)")
 
-    # print("[")
-    # for x, y in inliers:
-    #     print(f"({x}, {y}),")
-    # print("]")
+    ########################################
+    #
+    # Estimate attitude.
+    #
 
+    error = [0.0, 0.0, 0.0]   # [x_error, y_error, angle_error]
 
+    pix2deg_x = 0.2059
+    pix2deg_y = 0.2158
+
+    # Vertex (in pixels)
+    vx = -b / (2 * a)
+    vy = c - (b * b) / (4 * a)
+
+    cx = working_framebuffer.width() / 2
+    cy = working_framebuffer.height() / 2
+
+    if orientation == 'h':
+        ex_pix = vx - cx
+        ey_pix = vy - cy
+
+        slope = 2 * a * cx + b
+    else:
+        # swap axes
+        ex_pix = vy - cy
+        ey_pix = vx - cx
+
+        slope = 2 * a * cy + b
+
+    # Convert to degrees
+    error[0] = ex_pix * pix2deg_x
+    error[1] = ey_pix * pix2deg_y
+    error[2] = math.degrees(math.atan(slope))
 
 
 
     ########################################
     #
-    # Draw results.
+    # Draw inliers.
     #
 
-    # for point in inliers:
+    if False:
 
-    #     sensor.get_fb().draw_circle(
-    #         round(point[0]),
-    #         round(point[1]),
-    #         3,
-    #         color     = (255, 0, 0),
-    #         thickness = 1,
-    #         fill      = True,
-    #     )
+        for point in inliers:
 
-    # vertex = [0.0, 0.0]     # [x_vertex, y_vertex]
-
-    # if orientation == 'h':
-    #     vertex[0] = -b / (2*a)
-    #     vertex[1] = c - (b*b)/(4*a)
-    # else:
-    #     vertex[1] = -b / (2*a)
-    #     vertex[0] = c - (b*b)/(4*a)
-
-    # Image center
-    fb = sensor.get_fb()
-    cx = fb.width() // 2
-    cy = fb.height() // 2
-
-    # if orientation == 'h':
-    #     slope = 2 * a * cx + b
-
-    #     mean_y = sum(point[1] for point in inliers) / len(inliers)
-
-    #     x0 = 0 + cx*0.9
-    #     xf = sensor.get_fb().width() - cx*0.9
-
-    #     y0 = slope*(x0-cx) + mean_y
-    #     yf = slope*(xf-cx) + mean_y
-
-    #     mp_x = cx
-    #     mp_y = (yf + y0) / 2
-
-    # else:
-    #     # swap axes
-    #     slope = 2 * a * cy + b
-
-    #     mean_x = sum(point[0] for point in inliers) / len(inliers)
-
-    #     y0 = 0 + cy*0.9
-    #     yf = sensor.get_fb().height() - cy*0.9
-
-    #     x0 = slope*(y0-cy) + mean_x
-    #     xf = slope*(yf-cy) + mean_x
-
-    #     mp_x = (xf + x0) / 2
-    #     mp_y = cy
-
-    idx = 0
-    dist = [0]*len(inliers)
-
-    for point in inliers:
-        dist[idx] = math.sqrt((point[0]-cx)**2 + (point[1]-cy)**2)
-        idx = idx + 1
-
-    min_val = dist[0]
-    idx = 0
-
-    for i in range(1, len(dist)):
-        if dist[i] < min_val:
-            min_val = dist[i]
-            idx = i
-
-    x_min = inliers[idx][0]
-    y_min = inliers[idx][1]
+            sensor.get_fb().draw_circle(
+                round(point[0]),
+                round(point[1]),
+                3,
+                color     = (255, 0, 0),
+                thickness = 1,
+                fill      = True,
+            )
 
 
-    # sensor.get_fb().draw_line(round(x0), round(y0), round(xf), round(yf), color=(255, 255, 0), thickness=2)
 
-    # Draw arrow: vertex → center
-    # sensor.get_fb().draw_line(cx, cy, round(vertex[0]), round(vertex[1]),(0, 0, 255), 3)
-    sensor.get_fb().draw_line(cx, cy, round(x_min), round(y_min),(0, 0, 255), 3)
+    ########################################
+    #
+    # Draw attitude.
+    #
 
-    # Draw vertex
-    sensor.get_fb().draw_circle(
+    if True:
 
-        # round(vertex[0]),
-        # round(vertex[1]),
-        round(x_min),
-        round(y_min),
-        3,
-        color     = (255, 0, 0),
-        thickness = 1,
-        fill      = True,
-    )
+        vertex = [0.0, 0.0]
 
-    # Draw center
-    sensor.get_fb().draw_circle(
+        if orientation == 'h':
+            vertex[0] = -b / (2*a)
+            vertex[1] = c - (b*b)/(4*a)
+        else:
+            vertex[1] = -b / (2*a)
+            vertex[0] = c - (b*b)/(4*a)
 
-        round(cx),
-        round(cy),
-        3,
-        color     = (0, 255, 0),
-        thickness = 1,
-        fill      = True,
-    )
+
+        fb = sensor.get_fb()
+        cx = fb.width() // 2
+        cy = fb.height() // 2
+
+        sensor.get_fb().draw_line(cx, cy, round(vertex[0]), round(vertex[1]),(0, 0, 255), 3)
+
+        sensor.get_fb().draw_circle(
+
+            round(vertex[0]),
+            round(vertex[1]),
+            3,
+            color     = (255, 0, 0),
+            thickness = 1,
+            fill      = True,
+        )
+
+        sensor.get_fb().draw_circle(
+
+            round(cx),
+            round(cy),
+            3,
+            color     = (0, 255, 0),
+            thickness = 1,
+            fill      = True,
+        )
 
 
 
@@ -664,58 +606,60 @@ def process_framebuffer():
     # Draw the fitted quadratic curve.
     #
 
-    DRAW_STEP      = 3   # Pixel step when drawing the fitted curve
+    if True:
 
-    a, b, c = coefficients
-    prev    = None
+        DRAW_STEP = 3   # Pixel step when drawing the fitted curve
 
-    if orientation == 'h':
+        a, b, c = coefficients
+        prev    = None
 
-        for x in range(0, sensor.get_fb().width(), DRAW_STEP):
+        if orientation == 'h':
 
-            y = round(a*x**2 + b*x + c)
+            for x in range(0, sensor.get_fb().width(), DRAW_STEP):
 
-            if 0 <= y < sensor.get_fb().height():
+                y = round(a*x**2 + b*x + c)
 
-                if prev:
-                    sensor.get_fb().draw_line(
-                        prev[0],
-                        prev[1],
-                        x,
-                        y,
-                        color     = (0, 255, 0),
-                        thickness = 2,
-                    )
+                if 0 <= y < sensor.get_fb().height():
 
-                prev = (x, y)
+                    if prev:
+                        sensor.get_fb().draw_line(
+                            prev[0],
+                            prev[1],
+                            x,
+                            y,
+                            color     = (0, 255, 0),
+                            thickness = 2,
+                        )
 
-            else:
+                    prev = (x, y)
 
-                prev = None
+                else:
 
-    else:
+                    prev = None
 
-        for y in range(0, sensor.get_fb().height(), DRAW_STEP):
+        else:
 
-            x = round(a*y**2 + b*y + c)
+            for y in range(0, sensor.get_fb().height(), DRAW_STEP):
 
-            if 0 <= x < sensor.get_fb().width():
+                x = round(a*y**2 + b*y + c)
 
-                if prev:
-                    sensor.get_fb().draw_line(
-                        prev[0],
-                        prev[1],
-                        x,
-                        y,
-                        color     = (0, 255, 0),
-                        thickness = 2,
-                    )
+                if 0 <= x < sensor.get_fb().width():
 
-                prev = (x, y)
+                    if prev:
+                        sensor.get_fb().draw_line(
+                            prev[0],
+                            prev[1],
+                            x,
+                            y,
+                            color     = (0, 255, 0),
+                            thickness = 2,
+                        )
 
-            else:
+                    prev = (x, y)
 
-                prev = None
+                else:
+
+                    prev = None
 
 
 
@@ -724,29 +668,95 @@ def process_framebuffer():
     # Arrow to point to space.
     #
 
-    cx = sensor.get_fb().width()  // 2
-    cy = sensor.get_fb().height() // 2
+    if False:
 
-    arrow_map = {
-        'top':    (cx     , cy + 20, cx     , cy - 20),
-        'bottom': (cx     , cy - 20, cx     , cy + 20),
-        'left':   (cx + 20, cy     , cx - 20, cy     ),
-        'right':  (cx - 20, cy     , cx + 20, cy     ),
-    }
+        cx = sensor.get_fb().width()  // 2
+        cy = sensor.get_fb().height() // 2
 
-    ax1, ay1, ax2, ay2 = arrow_map[dark_side]
+        arrow_map = {
+            'top':    (cx     , cy + 20, cx     , cy - 20),
+            'bottom': (cx     , cy - 20, cx     , cy + 20),
+            'left':   (cx + 20, cy     , cx - 20, cy     ),
+            'right':  (cx - 20, cy     , cx + 20, cy     ),
+        }
 
-    # sensor.get_fb().draw_arrow(
-    #     ax1,
-    #     ay1,
-    #     ax2,
-    #     ay2,
-    #     color     = (0, 0, 255),
-    #     thickness = 3,
-    # )
+        ax1, ay1, ax2, ay2 = arrow_map[dark_side]
+
+        sensor.get_fb().draw_arrow(
+            ax1,
+            ay1,
+            ax2,
+            ay2,
+            color     = (0, 0, 255),
+            thickness = 3,
+        )
+
 
 
     a_c, b_c, c_c = coefficients
+
+
+
+    ########################################
+    #
+    # Find closest point to the parabola.
+    #
+
+    if orientation == 'h':
+
+        px = cx
+        py = cy
+
+        roots = cubic_roots_of(
+            4 * a**2,
+            6 * a * b,
+            2 * b**2 + 2 - 4 * a * py + 4 * a * c,
+            2 * b * c - 2 * px - 2 * b * py,
+        )
+
+        root_points = [
+            (root.real, a * root.real**2 + b * root.real + c)
+            for root in roots
+            if abs(root.imag) <= 0.0001
+        ]
+
+    else:
+
+        px = cy
+        py = cx
+
+        roots = cubic_roots_of(
+            4 * a**2,
+            6 * a * b,
+            2 * b**2 + 2 - 4 * a * py + 4 * a * c,
+            2 * b * c - 2 * px - 2 * b * py,
+        )
+
+        root_points = [
+            (a * root.real**2 + b * root.real + c, root.real)
+            for root in roots
+            if abs(root.imag) <= 0.0001
+        ]
+
+    if root_points:
+
+        closest_distance_squared, closest_point = min(
+            ((x**2 + y**2), (x, y))
+            for x, y in root_points
+        )
+
+        sensor.get_fb().draw_line(
+            cx,
+            cy,
+            round(closest_point[0]),
+            round(closest_point[1]),
+            (255, 0, 255),
+            3
+        )
+
+
+
+    ########################################
 
 
 
@@ -759,7 +769,7 @@ def process_framebuffer():
             b_c,
             c_c,
         ),
-        f'{orientation=} {dark_side=} {len(inliers)=} {a_c=:.7f} {b_c=:.4f} {c_c=:.1f}'
+        f'Yaw: {error[0] :8.3f}, Pitch: {error[1] :8.3f}, Roll: {error[2] :8.3f} (deg) {orientation=} {dark_side=} {len(inliers)=} {a_c=:.7f} {b_c=:.4f} {c_c=:.1f}'
     )
 
 
@@ -783,7 +793,7 @@ if USE_SAMPLE_FRAMES:
         if file_name.endswith('.jpg')
     )
 
-    # print(f'Found {len(sample_frame_file_paths)} sample frames.')
+    print(f'Found {len(sample_frame_file_paths)} sample frames.')
 
     sample_frame_file_path_i = -1 # To be immediately incremented later on.
 
@@ -851,8 +861,8 @@ while True:
 
     processing_result, processing_message = process_framebuffer()
 
-    # if USE_SAMPLE_FRAMES:
-    #     print(f'[{sample_frame_file_path_i + 1}/{len(sample_frame_file_paths)}] `{sample_frame_file_path}` : {processing_message}')
+    if USE_SAMPLE_FRAMES:
+        print(f'[{sample_frame_file_path_i + 1}/{len(sample_frame_file_paths)}] `{sample_frame_file_path}` : {processing_message}')
 
 
 

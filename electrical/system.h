@@ -875,11 +875,11 @@ pack_push
 
         FLAGS = '''
 
-            wifi
+            esp32
             lora
             lis2mdl
             lsm6dsv32x
-            filesystem
+            logger
 
         '''.split()
 
@@ -896,7 +896,7 @@ pack_push
     struct MainFlightComputerDebugPacket
     {
         u32                                            timestamp_us;
-        i16                                            solarboard_voltages[2];
+        f32                                            solarboard_voltages[2];
         typeof(enum MainFlightComputerDebugStatusFlag) flags;
         u8                                             crc;
     };

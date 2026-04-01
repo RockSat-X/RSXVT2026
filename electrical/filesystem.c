@@ -55,6 +55,7 @@ static_assert(FF_MIN_SS == FF_MAX_SS && FF_MIN_SS == sizeof(struct Sector));
 
 struct FileSystemDriver
 {
+    u32   reinit_timestamp_us;
     FATFS fatfs;
     i32   file_number;
     char  file_name[16];
@@ -168,6 +169,7 @@ static useret enum FileSystemDiskInitializeImplementationResult : u32
 {
     FileSystemDiskInitializeImplementationResult_ready,
     FileSystemDiskInitializeImplementationResult_yield,
+    FileSystemDiskInitializeImplementationResult_initer_timeout,
     FileSystemDiskInitializeImplementationResult_driver_error,
     FileSystemDiskInitializeImplementationResult_bug = BUG_CODE,
 }
@@ -189,7 +191,17 @@ FILESYSTEM_disk_initialize_implementation(BYTE pdrv)
 
         case SDDriverState_initer:
         {
-            return FileSystemDiskInitializeImplementationResult_yield;
+            if (TIMEKEEPING_microseconds() - _FILESYSTEM_driver.reinit_timestamp_us < 1'000'000)
+            {
+                return FileSystemDiskInitializeImplementationResult_yield;
+            }
+            else
+            {
+                // TODO This shouldn't be something that the filesystem driver have to handle,
+                //      but until the SD driver API is improved to do it this is what we'll
+                //      have to do in order to prevent a hardware deadlock.
+                return FileSystemDiskInitializeImplementationResult_initer_timeout;
+            }
         } break;
 
         case SDDriverState_active:
@@ -230,6 +242,7 @@ disk_initialize(BYTE pdrv)
                 FREERTOS_delay_ms(1); // We'll keep on spin-locking until the SD driver is ready...
             } break;
 
+            case FileSystemDiskInitializeImplementationResult_initer_timeout:
             case FileSystemDiskInitializeImplementationResult_driver_error:
             case FileSystemDiskInitializeImplementationResult_bug:
             default:
@@ -683,7 +696,11 @@ FILESYSTEM_reinit_(enum SDHandle sd_handle, struct Sector* formatting_sector_buf
 
     SD_reinit(sd_handle);
 
-    _FILESYSTEM_driver = (struct FileSystemDriver) {0};
+    _FILESYSTEM_driver =
+        (struct FileSystemDriver)
+        {
+            .reinit_timestamp_us = TIMEKEEPING_microseconds(),
+        };
 
 
 
@@ -786,6 +803,57 @@ FILESYSTEM_reinit_(enum SDHandle sd_handle, struct Sector* formatting_sector_buf
         case FR_TOO_MANY_OPEN_FILES : bug; // "
         case FR_INVALID_PARAMETER   : bug; // "
         default                     : bug; // "
+    }
+
+
+
+    // Check if the file-system is full.
+
+    DWORD   nclst       = {0};
+    FRESULT free_result =
+        f_getfree
+        (
+            "",
+            &nclst,
+            &(FATFS*) { &_FILESYSTEM_driver.fatfs }
+        );
+
+    switch (free_result)
+    {
+
+        case FR_OK:
+        {
+            if (nclst)
+            {
+                // There's still some space left on the card.
+            }
+            else
+            {
+                return FileSystemReinitResult_no_more_space_for_new_file;
+            }
+        } break;
+
+        case FR_DISK_ERR            : return FileSystemReinitResult_transfer_error;
+        case FR_INT_ERR             : return FileSystemReinitResult_fatfs_internal_error;
+        case FR_NOT_READY           : return FileSystemReinitResult_couldnt_ready_card;
+        case FR_NO_FILESYSTEM       : return FileSystemReinitResult_invalid_filesystem;
+        case FR_NOT_ENABLED         : bug; // Shouldn't happen in practice...
+        case FR_INVALID_DRIVE       : bug; // "
+        case FR_TIMEOUT             : bug; // "
+        case FR_NO_FILE             : bug; // Not "valid" return value according to documentation.
+        case FR_NO_PATH             : bug; // "
+        case FR_INVALID_NAME        : bug; // "
+        case FR_DENIED              : bug; // "
+        case FR_EXIST               : bug; // "
+        case FR_INVALID_OBJECT      : bug; // "
+        case FR_WRITE_PROTECTED     : bug; // "
+        case FR_MKFS_ABORTED        : bug; // "
+        case FR_LOCKED              : bug; // "
+        case FR_NOT_ENOUGH_CORE     : bug; // "
+        case FR_TOO_MANY_OPEN_FILES : bug; // "
+        case FR_INVALID_PARAMETER   : bug; // "
+        default                     : bug; // "
+
     }
 
 
