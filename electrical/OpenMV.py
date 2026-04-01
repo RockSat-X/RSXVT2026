@@ -450,10 +450,8 @@ def process_framebuffer():
 
     a, b, c = coefficients
 
-    if abs(a) > 0.003:
-        return (None, f'Rejected :: Too large of a curvature (|a| = {abs(a) :.5f}).')
-    elif a == 0:
-        return (None, f'Rejected :: Prevent division by zero (a = {a :.5f}).')
+    if not (0.000001 <= abs(a) < 0.003):
+        return (None, f'Rejected :: Curvature not within desired range (|a| = {abs(a) :.5f}).')
 
 
 
