@@ -163,6 +163,24 @@ def residual(point, coefficients, orientation):
 
 
 
+def cubic_roots_of(a, b, c, d): # TODO Check edge cases.
+
+    d0 = b**2 - 3 * a * c
+    d1 = 2 * b**3 - 9 * a * b * c + 27 * a**2 * d
+    ks = [
+        ((d1 + (d1**2 - 4 * d0**3)**0.5) / 2)**(1/3) * ((-1 + (-3)**0.5) / 2)**n
+        for n in (0, 1, 2)
+    ]
+
+    roots = [
+        -1 / (3 * a) * (b + k + d0 / k)
+        for k in ks
+    ]
+
+    return roots
+
+
+
 ################################################################################
 #
 # The actual CVT algorithm.
@@ -676,6 +694,71 @@ def process_framebuffer():
 
 
     a_c, b_c, c_c = coefficients
+
+
+
+    ########################################
+    #
+    # Find closest point to the parabola.
+    #
+
+    if orientation == 'h':
+
+        px = cx
+        py = cy
+
+        roots = cubic_roots_of(
+            4 * a**2,
+            6 * a * b,
+            2 * b**2 + 2 - 4 * a * py + 4 * a * c,
+            2 * b * c - 2 * px - 2 * b * py,
+        )
+
+        root_points = [
+            (root.real, a * root.real**2 + b * root.real + c)
+            for root in roots
+            if abs(root.imag) <= 0.0001
+        ]
+
+    else:
+
+        px = cy
+        py = cx
+
+        roots = cubic_roots_of(
+            4 * a**2,
+            6 * a * b,
+            2 * b**2 + 2 - 4 * a * py + 4 * a * c,
+            2 * b * c - 2 * px - 2 * b * py,
+        )
+
+        root_points = [
+            (a * root.real**2 + b * root.real + c, root.real)
+            for root in roots
+            if abs(root.imag) <= 0.0001
+        ]
+
+    if root_points:
+
+        closest_distance_squared, closest_point = min(
+            ((x**2 + y**2), (x, y))
+            for x, y in root_points
+        )
+
+        sensor.get_fb().draw_line(
+            cx,
+            cy,
+            round(closest_point[0]),
+            round(closest_point[1]),
+            (255, 0, 255),
+            3
+        )
+
+
+
+    ########################################
+
+
 
     return (
         (
