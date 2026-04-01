@@ -513,66 +513,72 @@ def process_framebuffer():
         return (None, f'Rejected :: Curve barely crosses frame (only {in_frame} points visible).')
 
 
-    # Get attitude.
     error = get_attitude(coefficients, orientation)
 
 
 
     ########################################
     #
-    # Draw results.
+    # Draw inliers.
     #
 
-    # for point in inliers:
+    if False:
 
-    #     sensor.get_fb().draw_circle(
-    #         round(point[0]),
-    #         round(point[1]),
-    #         3,
-    #         color     = (255, 0, 0),
-    #         thickness = 1,
-    #         fill      = True,
-    #     )
+        for point in inliers:
 
-    vertex = [0.0, 0.0]     # [x_vertex, y_vertex]
-
-    if orientation == 'h':
-        vertex[0] = -b / (2*a)
-        vertex[1] = c - (b*b)/(4*a)
-    else:
-        vertex[1] = -b / (2*a)
-        vertex[0] = c - (b*b)/(4*a)
+            sensor.get_fb().draw_circle(
+                round(point[0]),
+                round(point[1]),
+                3,
+                color     = (255, 0, 0),
+                thickness = 1,
+                fill      = True,
+            )
 
 
-    # Image center
-    fb = sensor.get_fb()
-    cx = fb.width() // 2
-    cy = fb.height() // 2
 
-    # Draw arrow: vertex → center
-    sensor.get_fb().draw_line(cx, cy, round(vertex[0]), round(vertex[1]),(0, 0, 255), 3)
+    ########################################
+    #
+    # Draw attitude.
+    #
 
-    # Draw vertex
-    sensor.get_fb().draw_circle(
+    if True:
 
-        round(vertex[0]),
-        round(vertex[1]),
-        3,
-        color     = (255, 0, 0),
-        thickness = 1,
-        fill      = True,
-    )
+        vertex = [0.0, 0.0]
 
-    # Draw center
-    sensor.get_fb().draw_circle(
+        if orientation == 'h':
+            vertex[0] = -b / (2*a)
+            vertex[1] = c - (b*b)/(4*a)
+        else:
+            vertex[1] = -b / (2*a)
+            vertex[0] = c - (b*b)/(4*a)
 
-        round(cx),
-        round(cy),
-        3,
-        color     = (0, 255, 0),
-        thickness = 1,
-        fill      = True,
-    )
+
+        fb = sensor.get_fb()
+        cx = fb.width() // 2
+        cy = fb.height() // 2
+
+        sensor.get_fb().draw_line(cx, cy, round(vertex[0]), round(vertex[1]),(0, 0, 255), 3)
+
+        sensor.get_fb().draw_circle(
+
+            round(vertex[0]),
+            round(vertex[1]),
+            3,
+            color     = (255, 0, 0),
+            thickness = 1,
+            fill      = True,
+        )
+
+        sensor.get_fb().draw_circle(
+
+            round(cx),
+            round(cy),
+            3,
+            color     = (0, 255, 0),
+            thickness = 1,
+            fill      = True,
+        )
 
 
 
@@ -581,58 +587,60 @@ def process_framebuffer():
     # Draw the fitted quadratic curve.
     #
 
-    DRAW_STEP      = 3   # Pixel step when drawing the fitted curve
+    if True:
 
-    a, b, c = coefficients
-    prev    = None
+        DRAW_STEP = 3   # Pixel step when drawing the fitted curve
 
-    if orientation == 'h':
+        a, b, c = coefficients
+        prev    = None
 
-        for x in range(0, sensor.get_fb().width(), DRAW_STEP):
+        if orientation == 'h':
 
-            y = round(a*x**2 + b*x + c)
+            for x in range(0, sensor.get_fb().width(), DRAW_STEP):
 
-            if 0 <= y < sensor.get_fb().height():
+                y = round(a*x**2 + b*x + c)
 
-                if prev:
-                    sensor.get_fb().draw_line(
-                        prev[0],
-                        prev[1],
-                        x,
-                        y,
-                        color     = (0, 255, 0),
-                        thickness = 2,
-                    )
+                if 0 <= y < sensor.get_fb().height():
 
-                prev = (x, y)
+                    if prev:
+                        sensor.get_fb().draw_line(
+                            prev[0],
+                            prev[1],
+                            x,
+                            y,
+                            color     = (0, 255, 0),
+                            thickness = 2,
+                        )
 
-            else:
+                    prev = (x, y)
 
-                prev = None
+                else:
 
-    else:
+                    prev = None
 
-        for y in range(0, sensor.get_fb().height(), DRAW_STEP):
+        else:
 
-            x = round(a*y**2 + b*y + c)
+            for y in range(0, sensor.get_fb().height(), DRAW_STEP):
 
-            if 0 <= x < sensor.get_fb().width():
+                x = round(a*y**2 + b*y + c)
 
-                if prev:
-                    sensor.get_fb().draw_line(
-                        prev[0],
-                        prev[1],
-                        x,
-                        y,
-                        color     = (0, 255, 0),
-                        thickness = 2,
-                    )
+                if 0 <= x < sensor.get_fb().width():
 
-                prev = (x, y)
+                    if prev:
+                        sensor.get_fb().draw_line(
+                            prev[0],
+                            prev[1],
+                            x,
+                            y,
+                            color     = (0, 255, 0),
+                            thickness = 2,
+                        )
 
-            else:
+                    prev = (x, y)
 
-                prev = None
+                else:
+
+                    prev = None
 
 
 
@@ -641,31 +649,32 @@ def process_framebuffer():
     # Arrow to point to space.
     #
 
-    cx = sensor.get_fb().width()  // 2
-    cy = sensor.get_fb().height() // 2
+    if False:
 
-    arrow_map = {
-        'top':    (cx     , cy + 20, cx     , cy - 20),
-        'bottom': (cx     , cy - 20, cx     , cy + 20),
-        'left':   (cx + 20, cy     , cx - 20, cy     ),
-        'right':  (cx - 20, cy     , cx + 20, cy     ),
-    }
+        cx = sensor.get_fb().width()  // 2
+        cy = sensor.get_fb().height() // 2
 
-    ax1, ay1, ax2, ay2 = arrow_map[dark_side]
+        arrow_map = {
+            'top':    (cx     , cy + 20, cx     , cy - 20),
+            'bottom': (cx     , cy - 20, cx     , cy + 20),
+            'left':   (cx + 20, cy     , cx - 20, cy     ),
+            'right':  (cx - 20, cy     , cx + 20, cy     ),
+        }
 
-    # sensor.get_fb().draw_arrow(
-    #     ax1,
-    #     ay1,
-    #     ax2,
-    #     ay2,
-    #     color     = (0, 0, 255),
-    #     thickness = 3,
-    # )
+        ax1, ay1, ax2, ay2 = arrow_map[dark_side]
+
+        sensor.get_fb().draw_arrow(
+            ax1,
+            ay1,
+            ax2,
+            ay2,
+            color     = (0, 0, 255),
+            thickness = 3,
+        )
+
 
 
     a_c, b_c, c_c = coefficients
-
-
 
     return (
         (
