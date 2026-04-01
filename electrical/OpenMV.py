@@ -47,7 +47,7 @@ led_blue  = pyb.LED(3)
 
 sensor.reset()
 sensor.set_pixformat(sensor.RGB565)
-sensor.set_framesize(sensor.QQVGA) # TODO Use SIF?
+sensor.set_framesize(sensor.QVGA) # TODO Use SIF?
 
 working_framebuffer = sensor.alloc_extra_fb(sensor.width(), sensor.height(), sensor.GRAYSCALE)
 
@@ -162,7 +162,7 @@ def residual(point, coefficients, orientation):
         return abs(point[0] - (a * t * t + b * t + c))
 
 
-def get_attitude(coefficients, orientation):
+def get_attitude(inliers, coefficients, orientation):
     a, b, c = coefficients
 
     if a == 0:
@@ -174,23 +174,44 @@ def get_attitude(coefficients, orientation):
     pix2deg_y = 0.2158
 
     # Vertex (in pixels)
-    vx = -b / (2 * a)
-    vy = c - (b * b) / (4 * a)
+    # vx = -b / (2 * a)
+    # vy = c - (b * b) / (4 * a)
 
     cx = sensor.get_fb().width() / 2
     cy = sensor.get_fb().height() / 2
 
     if orientation == 'h':
-        ex_pix = vx - cx
-        ey_pix = vy - cy
+        # ex_pix = vx - cx
+        # ey_pix = vy - cy
 
         slope = 2 * a * cx + b
+
+        mean_y = sum(point[1] for point in inliers) / len(inliers)
+
+        y0 = mean_y
+        yf = slope*sensor.get_fb().width() + mean_y
+
+        mp_x = cx
+        mp_y = (yf + y0) / 2
+
     else:
         # swap axes
-        ex_pix = vy - cy
-        ey_pix = vx - cx
+        # ex_pix = vy - cy
+        # ey_pix = vx - cx
 
         slope = 2 * a * cy + b
+
+        mean_y = sum(point[0] for point in inliers) / len(inliers)
+
+        y0 = mean_y
+        yf = slope*sensor.get_fb().height() + mean_y
+
+        mp_x = (yf + y0) / 2
+        mp_y = cy
+
+    ex_pix = mp_x - cx
+    ey_pix = mp_y - cy
+
 
     # Convert to degrees
     err[0] = ex_pix * pix2deg_x
@@ -516,8 +537,13 @@ def process_framebuffer():
 
 
     # Get attitude.
-    error = get_attitude(coefficients, orientation)
-    print(f"Yaw: {error[0]:.3f}, Pitch: {error[1]:.3f}, Roll: {error[2]:.3f} (deg)")
+    error = get_attitude(inliers, coefficients, orientation)
+    print(f"X: {error[0]:.3f}, Y: {error[1]:.3f}, Z: {error[2]:.3f} (deg)")
+
+    # print("[")
+    # for x, y in inliers:
+    #     print(f"({x}, {y}),")
+    # print("]")
 
 
 
@@ -539,29 +565,81 @@ def process_framebuffer():
     #         fill      = True,
     #     )
 
-    vertex = [0.0, 0.0]     # [x_vertex, y_vertex]
+    # vertex = [0.0, 0.0]     # [x_vertex, y_vertex]
 
-    if orientation == 'h':
-        vertex[0] = -b / (2*a)
-        vertex[1] = c - (b*b)/(4*a)
-    else:
-        vertex[1] = -b / (2*a)
-        vertex[0] = c - (b*b)/(4*a)
-
+    # if orientation == 'h':
+    #     vertex[0] = -b / (2*a)
+    #     vertex[1] = c - (b*b)/(4*a)
+    # else:
+    #     vertex[1] = -b / (2*a)
+    #     vertex[0] = c - (b*b)/(4*a)
 
     # Image center
     fb = sensor.get_fb()
     cx = fb.width() // 2
     cy = fb.height() // 2
 
+    # if orientation == 'h':
+    #     slope = 2 * a * cx + b
+
+    #     mean_y = sum(point[1] for point in inliers) / len(inliers)
+
+    #     x0 = 0 + cx*0.9
+    #     xf = sensor.get_fb().width() - cx*0.9
+
+    #     y0 = slope*(x0-cx) + mean_y
+    #     yf = slope*(xf-cx) + mean_y
+
+    #     mp_x = cx
+    #     mp_y = (yf + y0) / 2
+
+    # else:
+    #     # swap axes
+    #     slope = 2 * a * cy + b
+
+    #     mean_x = sum(point[0] for point in inliers) / len(inliers)
+
+    #     y0 = 0 + cy*0.9
+    #     yf = sensor.get_fb().height() - cy*0.9
+
+    #     x0 = slope*(y0-cy) + mean_x
+    #     xf = slope*(yf-cy) + mean_x
+
+    #     mp_x = (xf + x0) / 2
+    #     mp_y = cy
+
+    idx = 0
+    dist = [0]*len(inliers)
+
+    for point in inliers:
+        dist[idx] = math.sqrt((point[0]-cx)**2 + (point[1]-cy)**2)
+        idx = idx + 1
+
+    min_val = dist[0]
+    idx = 0
+
+    for i in range(1, len(dist)):
+        if dist[i] < min_val:
+            min_val = dist[i]
+            idx = i
+
+    x_min = inliers[idx][0]
+    y_min = inliers[idx][1]
+
+
+    # sensor.get_fb().draw_line(round(x0), round(y0), round(xf), round(yf), color=(255, 255, 0), thickness=2)
+
     # Draw arrow: vertex → center
-    sensor.get_fb().draw_line(cx, cy, round(vertex[0]), round(vertex[1]),(0, 0, 255), 3)
+    # sensor.get_fb().draw_line(cx, cy, round(vertex[0]), round(vertex[1]),(0, 0, 255), 3)
+    sensor.get_fb().draw_line(cx, cy, round(x_min), round(y_min),(0, 0, 255), 3)
 
     # Draw vertex
     sensor.get_fb().draw_circle(
 
-        round(vertex[0]),
-        round(vertex[1]),
+        # round(vertex[0]),
+        # round(vertex[1]),
+        round(x_min),
+        round(y_min),
         3,
         color     = (255, 0, 0),
         thickness = 1,
