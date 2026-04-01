@@ -729,8 +729,8 @@ TARGETS = ( # @/`Defining Targets`.
             ('spi_mosi_B'                     , 'B5' , 'ALTERNATE' , { 'altfunc' : 'SPI1_MOSI'                                 }),
             ('spi_miso_B'                     , 'A6' , 'ALTERNATE' , { 'altfunc' : 'SPI1_MISO'                                 }),
             ('spi_ready_B'                    , 'B2' , 'ALTERNATE' , { 'altfunc' : 'SPI1_RDY'                                  }),
-            ('vehicle_interface_i2c_data'     , 'B7' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA', 'open_drain' : True             }),
-            ('vehicle_interface_i2c_clock'    , 'B6' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL', 'open_drain' : True             }),
+            ('vehicle_interface_i2c_data'     , 'B7' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA', 'open_drain' : True, 'pull' : 'UP' }),
+            ('vehicle_interface_i2c_clock'    , 'B6' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL', 'open_drain' : True, 'pull' : 'UP' }),
             ('sensor_i2c_data'                , 'B12', 'ALTERNATE' , { 'altfunc' : 'I2C2_SDA', 'open_drain' : True             }),
             ('sensor_i2c_clock'               , 'B10', 'ALTERNATE' , { 'altfunc' : 'I2C2_SCL', 'open_drain' : True             }),
             ('flight_computer_debug_i2c_data' , 'D7' , 'ALTERNATE' , { 'altfunc' : 'I2C3_SDA', 'open_drain' : True             }),
@@ -771,7 +771,6 @@ TARGETS = ( # @/`Defining Targets`.
             ('I2C1_ER', 3),
             ('I2C3_EV', 4),
             ('I2C3_ER', 4),
-            ('USART3' , 5), # TODO Here just to mock a VN-100.
         ),
 
         drivers = (
@@ -803,12 +802,6 @@ TARGETS = ( # @/`Defining Targets`.
                 'handle'     : 'debug_board',
                 'mode'       : 'master',
             },
-            { # TODO Here just to mock a VN-100.
-                'type'       : 'UXART',
-                'peripheral' : 'USART3',
-                'handle'     : 'vn100',
-                'mode'       : 'full_duplex',
-            },
             {
                 'type'       : 'SD',
                 'peripheral' : 'SDMMC1',
@@ -829,7 +822,6 @@ TARGETS = ( # @/`Defining Targets`.
             'APB3_CK'                      : 250_000_000,
             'USART1_BAUD'                  : ESP32_BAUD,
             'USART2_BAUD'                  : STLINK_BAUD,
-            'USART3_BAUD'                  : VN100_BAUD, # TODO Here just to mock a VN-100.
             'TIM1_UPDATE_RATE'             : 1 / 0.001,
             'TIM2_COUNTER_RATE'            : 1_000_000,
             'ANALOG_POSTDIVIDER_KERNEL_CK' : 32_000_000,
@@ -840,6 +832,7 @@ TARGETS = ( # @/`Defining Targets`.
             'SDMMC1_TIMEOUT'               : 0.250,
             'SDMMC1_INITIAL_BAUD'          :    400_000,
             'SDMMC1_FULL_BAUD'             : 24_000_000,
+            'WATCHDOG_DURATION'            : 10,
         },
 
         flight_ready = False,

@@ -1,3 +1,5 @@
+#define ALLOW_FILESYSTEM_TO_BE_FORMATTED true
+
 #include "system.h"
 #include "timekeeping.c"
 #include "uxart.c"
@@ -208,8 +210,6 @@ main(void)
                     // What we will likely do in the end is have one camera system be programmed to wipe the filesystem
                     // and another to never do it. This doesn't really eliminate the problem, but it's a compromise of
                     // something at least...
-
-                    #define ALLOW_FILESYSTEM_TO_BE_FORMATTED true
 
                     if (!ALLOW_FILESYSTEM_TO_BE_FORMATTED)
                     {
