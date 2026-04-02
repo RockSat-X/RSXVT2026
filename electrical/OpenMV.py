@@ -477,11 +477,13 @@ def process_framebuffer():
     # Check inlier residual.
     #
 
-    res     = sorted([residual(point, coefficients, orientation) for point in inliers])
-    med_res = res[len(res) // 2]
+    res = sorted([residual(point, coefficients, orientation) for point in inliers])
 
-    if med_res > 12.0:
-        return (None, f'Rejected :: Median residual too large ({med_res :.1f}).')
+    # TODO: med_res = res[len(res) // 2]
+    mean_res = sum(res)/len(res)
+
+    if mean_res > 2.0:
+        return (None, f'Rejected :: Median residual too large ({mean_res :.1f}).') # TODO Mean or median?
 
 
 
@@ -541,64 +543,18 @@ def process_framebuffer():
     # Draw inliers.
     #
 
-    if False:
+    if True:
 
         for point in inliers:
 
             sensor.get_fb().draw_circle(
                 round(point[0]),
                 round(point[1]),
-                3,
+                2,
                 color     = (255, 0, 0),
                 thickness = 1,
                 fill      = True,
             )
-
-
-
-    ########################################
-    #
-    # Draw attitude.
-    #
-
-    if True:
-
-        vertex = [0.0, 0.0]
-
-        if orientation == 'h':
-            vertex[0] = -b / (2*a)
-            vertex[1] = c - (b*b)/(4*a)
-        else:
-            vertex[1] = -b / (2*a)
-            vertex[0] = c - (b*b)/(4*a)
-
-
-        fb = sensor.get_fb()
-        cx = fb.width() // 2
-        cy = fb.height() // 2
-
-        sensor.get_fb().draw_line(cx, cy, round(vertex[0]), round(vertex[1]),(0, 0, 255), 3)
-
-        sensor.get_fb().draw_circle(
-
-            round(vertex[0]),
-            round(vertex[1]),
-            3,
-            color     = (255, 0, 0),
-            thickness = 1,
-            fill      = True,
-        )
-
-        sensor.get_fb().draw_circle(
-
-            round(cx),
-            round(cy),
-            3,
-            color     = (0, 255, 0),
-            thickness = 1,
-            fill      = True,
-        )
-
 
 
     ########################################
@@ -720,6 +676,8 @@ def process_framebuffer():
             if abs(root.imag) <= 0.0001
         ]
 
+        slope = 2 * a * cx + b
+
     else:
 
         px = cy
@@ -738,6 +696,8 @@ def process_framebuffer():
             if abs(root.imag) <= 0.0001
         ]
 
+        # TODO Calculate slope.
+
     if root_points:
 
         closest_distance_squared, closest_point = min(
@@ -745,13 +705,51 @@ def process_framebuffer():
             for x, y in root_points
         )
 
+        error = [ 0.0, 0.0, 0.0 ]
+
+        ex_pix = closest_point[0] - cx
+        ey_pix = closest_point[1] - cy
+
+        # Convert to degrees
+        error[0] = ex_pix * pix2deg_x
+        error[1] = ey_pix * pix2deg_y
+        error[2] = math.degrees(math.atan(slope))
+
         sensor.get_fb().draw_line(
-            cx,
-            cy,
+            round(cx),
+            round(cy),
             round(closest_point[0]),
             round(closest_point[1]),
             (255, 0, 255),
             3
+        )
+
+
+
+    ########################################
+    #
+    # Draw attitude estimate.
+    #
+
+    if True:
+
+        sensor.get_fb().draw_circle(
+            round(cx),
+            round(cy),
+            3,
+            color     = (0, 255, 0),
+            thickness = 1,
+            fill      = True,
+        )
+
+        sensor.get_fb().draw_circle(
+
+            round(closest_point[0]),
+            round(closest_point[1]),
+            3,
+            color     = (255, 0, 0),
+            thickness = 1,
+            fill      = True,
         )
 
 
@@ -769,7 +767,7 @@ def process_framebuffer():
             b_c,
             c_c,
         ),
-        f'Yaw: {error[0] :8.3f}, Pitch: {error[1] :8.3f}, Roll: {error[2] :8.3f} (deg) {orientation=} {dark_side=} {len(inliers)=} {a_c=:.7f} {b_c=:.4f} {c_c=:.1f}'
+        f'X: {error[0] :8.3f}, Y: {error[1] :8.3f}, Z: {error[2] :8.3f} (deg) {orientation=} {dark_side=} {len(inliers)=} {a_c=:.7f} {b_c=:.4f} {c_c=:.1f}'
     )
 
 
