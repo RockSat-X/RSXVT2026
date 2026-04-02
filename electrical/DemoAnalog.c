@@ -20,7 +20,7 @@ main(void)
 
         stlink_tx
         (
-            "%6d : %f | %6d : %f\r\n",
+            "%6d : %f | %6d : %f\n",
             measurement_A, (f32) measurement_A / (1 << 12),
             measurement_B, (f32) measurement_B / (1 << 12)
         );
