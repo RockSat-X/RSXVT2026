@@ -377,7 +377,7 @@ def process_framebuffer():
 
 
 
-    ########################################x
+    ########################################
     #
     # RANSAC.
     #
@@ -477,12 +477,13 @@ def process_framebuffer():
     # Check inlier residual.
     #
 
-    res     = sorted([residual(point, coefficients, orientation) for point in inliers])
-    # med_res = res[len(res) // 2]
+    res = sorted([residual(point, coefficients, orientation) for point in inliers])
+
+    # TODO: med_res = res[len(res) // 2]
     mean_res = sum(res)/len(res)
 
     if mean_res > 2.0:
-        return (None, f'Rejected :: Median residual too large ({mean_res :.1f}).')
+        return (None, f'Rejected :: Median residual too large ({mean_res :.1f}).') # TODO Mean or median?
 
 
 
@@ -648,9 +649,6 @@ def process_framebuffer():
 
 
 
-
-
-
     a_c, b_c, c_c = coefficients
 
 
@@ -698,6 +696,8 @@ def process_framebuffer():
             if abs(root.imag) <= 0.0001
         ]
 
+        # TODO Calculate slope.
+
     if root_points:
 
         closest_distance_squared, closest_point = min(
@@ -724,8 +724,16 @@ def process_framebuffer():
             3
         )
 
-        sensor.get_fb().draw_circle(
 
+
+    ########################################
+    #
+    # Draw attitude estimate.
+    #
+
+    if True:
+
+        sensor.get_fb().draw_circle(
             round(cx),
             round(cy),
             3,
@@ -743,6 +751,7 @@ def process_framebuffer():
             thickness = 1,
             fill      = True,
         )
+
 
 
     ########################################
