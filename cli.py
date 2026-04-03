@@ -2483,9 +2483,19 @@ def parseFlight(parameters):
         if not sector:
             break
 
+        log_entry = MainFlightComputerLogEntry.from_buffer_copy(sector)
+
         writer.writerow([
-            field_value
-            for field_prefix, field_value in get_fields_for_csv(MainFlightComputerLogEntry.from_buffer_copy(sector))
+            (
+                field_value if
+                (
+                    ('esp32_packet_data'              not in field_prefix or log_entry.esp32_packet_exist             ) and
+                    ('lora_packet_data'               not in field_prefix or log_entry.lora_packet_exist              ) and
+                    ('vehicle_interface_payload_data' not in field_prefix or log_entry.vehicle_interface_payload_exist)
+                )
+                else None
+            )
+            for field_prefix, field_value in get_fields_for_csv(log_entry)
         ])
 
 
