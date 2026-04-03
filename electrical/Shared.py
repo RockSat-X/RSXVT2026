@@ -83,7 +83,7 @@ class UnpaddedMainFlightComputerLogEntry(ctypes.Structure):
         ('esp32_packet_exist'              , ctypes.c_uint8         ),
         ('lora_packet_exist'               , ctypes.c_uint8         ),
         ('vehicle_interface_payload_exist' , ctypes.c_uint8         ),
-        ('padding'                         , ctypes.c_uint8         ),
+        ('padding_'                        , ctypes.c_uint8         ),
         ('esp32_packet_data'               , ESP32Packet            ),
         ('lora_packet_data'                , LoRaPacket             ),
         ('vehicle_interface_payload_data'  , VehicleInterfacePayload),
@@ -93,7 +93,7 @@ class MainFlightComputerLogEntry(ctypes.Structure):
     _pack_   = True
     _fields_ = (
         *(UnpaddedMainFlightComputerLogEntry._fields_),
-        ('sector_padding', ctypes.c_uint8 * (512 - ctypes.sizeof(UnpaddedMainFlightComputerLogEntry))),
+        ('sector_padding_', ctypes.c_uint8 * (512 - ctypes.sizeof(UnpaddedMainFlightComputerLogEntry))),
     )
 
 

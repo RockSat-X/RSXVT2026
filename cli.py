@@ -2419,22 +2419,60 @@ def parseFlight(parameters):
 
     input_file_path = pathlib.Path(parameters.input_file_path)
 
-    sector = input_file_path.read_bytes()[:512]
 
-    log_entry = MainFlightComputerLogEntry.from_buffer_copy(sector)
 
-    def print_struct(prefix, structure):
+    # To iterate through the C structure, which may have other nesting C structures.
+
+    def get_fields_for_csv(structure):
 
         for field_name, field_type in structure._fields_:
 
             field_value = getattr(structure, field_name)
 
             if isinstance(field_value, ctypes.Structure):
-                print_struct(f'\t{prefix}.{field_name}', field_value)
-            else:
-                print(f'{prefix}.{field_name}', field_value)
 
-    print_struct('', log_entry)
+                for subfield_prefix, subfield_value in get_fields_for_csv(field_value):
+                    yield f'{field_name}.{subfield_prefix}', subfield_value
+
+            elif (
+                not field_name.endswith('_')    # Skip fields that aren't meant to be used (e.g. padding).
+                and field_name != 'image_bytes' # Skip the image data.
+            ):
+
+                yield f'{field_name}', field_value
+
+
+
+    # Make the header for the CSV.
+
+    import csv
+
+    file_handle = open('output.csv', 'w')
+
+    writer = csv.writer(file_handle)
+
+    writer.writerow([
+        field_prefix
+        for field_prefix, field_value in get_fields_for_csv(MainFlightComputerLogEntry())
+    ])
+
+
+
+    # Parse the log entries.
+
+    input_file_handle = open(input_file_path, 'rb')
+
+    while True:
+
+        sector = input_file_handle.read(512)
+
+        if not sector:
+            break
+
+        writer.writerow([
+            field_value
+            for field_prefix, field_value in get_fields_for_csv(MainFlightComputerLogEntry.from_buffer_copy(sector))
+        ])
 
 
 
