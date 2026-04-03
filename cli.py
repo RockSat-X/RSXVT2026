@@ -2368,7 +2368,7 @@ def parseVideo(parameters):
 
         output_compressed_file_path = output_file_path.with_name(f'{output_file_path.stem}-compressed.mp4')
 
-        output_compressed_file_path.unlink()
+        output_compressed_file_path.unlink(missing_ok = True)
 
         pxd.execute_shell_command(f'''
             ffmpeg
