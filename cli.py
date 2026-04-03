@@ -2373,7 +2373,7 @@ def parseVideo(parameters):
         pxd.execute_shell_command(f'''
             ffmpeg
                 -i {input_file_path.as_posix()}
-                -vcodec libx264
+                -vcodec libx265
                 -crf 28
                 -loglevel warning
                 {output_compressed_file_path.as_posix()}
