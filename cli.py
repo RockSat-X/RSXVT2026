@@ -2358,7 +2358,7 @@ def parseVideo(parameters):
             '`ffmpeg` was not found on your machine, so no compression will be done.' '\n'
             ''                                                                        '\n'
             'If you want, install `ffmpeg` on Windows with:'                          '\n'
-            '> winget install Gyan.FFmpeg.Full'                                       '\n'
+            '> winget install Gyan.FFmpeg'                                            '\n'
             ''                                                                        '\n'
             '... or on a Debian-based distro with:'                                   '\n'
             '> sudo apt install ffmpeg'
