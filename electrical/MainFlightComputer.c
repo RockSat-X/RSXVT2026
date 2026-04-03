@@ -773,37 +773,13 @@ FREERTOS_TASK(logger, 0)
     // This does introduce the severity of data loss if we failed to
     // save the data, but it's not by that much honestly.
 
-    pack_push
+    static union
+    {
+        struct Sector                     sectors[8];
+        struct MainFlightComputerLogEntry log_entries[2];
+    } pool = {0};
 
-
-        struct LogEntry
-        {
-            union
-            {
-                struct Sector sectors[1]; // Pad to the size of sectors.
-                struct
-                {
-                    char                           magic[4];
-                    b8                             esp32_packet_exist;
-                    b8                             lora_packet_exist;
-                    b8                             vehicle_interface_payload_exist;
-                    u8                             padding;
-                    struct ESP32Packet             esp32_packet_data;
-                    struct LoRaPacket              lora_packet_data;
-                    struct VehicleInterfacePayload vehicle_interface_payload_data;
-                };
-            };
-        };
-
-        static_assert(sizeof(struct LogEntry) == sizeof(((struct LogEntry*) 0)->sectors));
-
-        static union
-        {
-            struct Sector   sectors[8];
-            struct LogEntry log_entries[2];
-        } pool = {0};
-
-    pack_pop
+    static_assert(sizeof(pool) == sizeof(pool.sectors));
 
 
 
@@ -1082,14 +1058,14 @@ FREERTOS_TASK(logger, 0)
 
             // Save the received data!
 
-            static_assert(sizeof(pool.log_entries) % sizeof(struct Sector) == 0);
+            static_assert(sizeof(*pool.log_entries) % sizeof(struct Sector) == 0);
 
             enum FileSystemSaveResult save_result =
                 FILESYSTEM_save
                 (
                     SDHandle_primary,
                     pool.sectors,
-                    sizeof(pool.log_entries) / sizeof(struct Sector)
+                    sizeof(pool.log_entries) / sizeof(*pool.log_entries)
                 );
 
             switch (save_result)
