@@ -2389,14 +2389,14 @@ def parseVideo(parameters):
     duration         = frame_count / parameters.fps
 
     pxd.pxd_logger.info(
-        f'Uncompressed video file path  : {repr(output_file_path.resolve().as_posix())}.'                          '\n'
-        f'Compressed video file path    : {repr(output_compressed_file_path.resolve().as_posix())}.'               '\n'
-        f'Input file size               : {input_file_size  :,} bytes.'                                            '\n'
-        f'Uncompressed output file size : {output_file_size :,} bytes.'                                            '\n'
-        f'Compressed output file size   : {output_compressed_file_size :,} bytes.'                                 '\n'
-        f'Frame count                   : {repr(frame_count)}.'                                                    '\n'
-        f'Duration                      : {repr(math.floor(duration // 60))}m {repr(math.floor(duration % 60))}s.' '\n'
-        f'Estimated write throughput    : {round(input_file_size / duration / 1024) :,} KiB/s.'                    '\n'
+        f'Uncompressed video file path  : {repr(output_file_path.resolve().as_posix())}.'                                                                 '\n'
+        f'Compressed video file path    : {repr(output_compressed_file_path.resolve().as_posix()) if output_compressed_file_path is not None else None}.' '\n'
+        f'Input file size               : {input_file_size  :,} bytes.'                                                                                   '\n'
+        f'Uncompressed output file size : {output_file_size :,} bytes.'                                                                                   '\n'
+        f'Compressed output file size   : {f'{output_compressed_file_size :,} bytes' if output_compressed_file_size is not None else None}.'              '\n'
+        f'Frame count                   : {repr(frame_count)}.'                                                                                           '\n'
+        f'Duration                      : {repr(math.floor(duration // 60))}m {repr(math.floor(duration % 60))}s.'                                        '\n'
+        f'Estimated write throughput    : {round(input_file_size / duration / 1024) :,} KiB/s.'                                                           '\n'
     )
 
 
