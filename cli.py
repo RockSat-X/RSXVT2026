@@ -95,6 +95,24 @@ def import_pygame():
 
     return pygame, pygame_gui
 
+def import_cv2_numpy():
+
+    try:
+
+        import cv2
+        import numpy
+
+    except ModuleNotFoundError as error:
+
+        pxd.pxd_logger.error(
+            f'Python got {type(error).__name__} ({error}); try doing:' '\n'
+            f'> pip install opencv-python'
+        )
+
+        sys.exit(1)
+
+    return cv2, numpy
+
 
 
 # Routine for ensuring the user has the required programs
@@ -2221,10 +2239,7 @@ def parseVideo(parameters):
     else:
         output_file_path = parameters.output_file_path
 
-
-
-    import cv2
-    import numpy
+    cv2, numpy = import_cv2_numpy()
 
 
 
