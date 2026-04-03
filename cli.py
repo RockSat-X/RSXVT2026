@@ -2342,22 +2342,61 @@ def parseVideo(parameters):
                 f'Processing {input_file_cursor_position / input_file_size * 100 :.2f}%...'
             )
 
-
-
-    # Done processing!
-
     writer.release()
+
+
+
+    # The generated video can be pretty big, so if the user has FFMPEG already installed,
+    # we'll make it conveniently be invoked to compress the video down a bit.
+
+    output_compressed_file_path = None
+    output_compressed_file_size = None
+
+    if shutil.which('ffmpeg') is None:
+
+        pxd.pxd_logger.warning(
+            '`ffmpeg` was not found on your machine, so no compression will be done.' '\n'
+            ''                                                                        '\n'
+            'If you want, install `ffmpeg` on Windows with:'                          '\n'
+            '> winget install Gyan.FFmpeg.Full'                                       '\n'
+            ''                                                                        '\n'
+            '... or on a Debian-based distro with:'                                   '\n'
+            '> sudo apt install ffmpeg'
+        )
+
+    else:
+
+        output_compressed_file_path = output_file_path.with_name(f'{output_file_path.stem}-compressed.mp4')
+
+        output_compressed_file_path.unlink()
+
+        pxd.execute_shell_command(f'''
+            ffmpeg
+                -i {input_file_path.as_posix()}
+                -vcodec libx264
+                -crf 28
+                -loglevel warning
+                {output_compressed_file_path.as_posix()}
+        ''')
+
+        output_compressed_file_size = output_compressed_file_path.stat().st_size
+
+
+
+    # Report results.
 
     output_file_size = output_file_path.stat().st_size
     duration         = frame_count / parameters.fps
 
     pxd.pxd_logger.info(
-        f'Video written to {repr(output_file_path.resolve().as_posix())}.'                                      '\n'
-        f'Input file size            : {input_file_size  :,} bytes.'                                            '\n'
-        f'Output file size           : {output_file_size :,} bytes.'                                            '\n'
-        f'Frame count                : {repr(frame_count)}.'                                                    '\n'
-        f'Duration                   : {repr(math.floor(duration // 60))}m {repr(math.floor(duration % 60))}s.' '\n'
-        f'Estimated write throughput : {round(input_file_size / duration / 1024) :,} KiB/s.'                    '\n'
+        f'Uncompressed video file path  : {repr(output_file_path.resolve().as_posix())}.'                          '\n'
+        f'Compressed video file path    : {repr(output_compressed_file_path.resolve().as_posix())}.'               '\n'
+        f'Input file size               : {input_file_size  :,} bytes.'                                            '\n'
+        f'Uncompressed output file size : {output_file_size :,} bytes.'                                            '\n'
+        f'Compressed output file size   : {output_compressed_file_size :,} bytes.'                                 '\n'
+        f'Frame count                   : {repr(frame_count)}.'                                                    '\n'
+        f'Duration                      : {repr(math.floor(duration // 60))}m {repr(math.floor(duration % 60))}s.' '\n'
+        f'Estimated write throughput    : {round(input_file_size / duration / 1024) :,} KiB/s.'                    '\n'
     )
 
 
