@@ -2216,7 +2216,7 @@ def verifyLogs(parameters):
     },
     {
         'name'        : 'output_file_path',
-        'description' : 'Path to the output MP4 video; otherwise, output the video in current working directory.',
+        'description' : 'Path to the output MP4 video; otherwise, output the video in the current working directory.',
         'type'        : str,
         'default'     : None
     },
@@ -2414,10 +2414,23 @@ def parseVideo(parameters):
         'description' : 'Path to the input log file.',
         'type'        : str,
     },
+    {
+        'name'        : 'output_directory_path',
+        'description' : 'Path to the output CSV file; otherwise, output the CSV in the current working directory.',
+        'type'        : str,
+        'default'     : None
+    },
 )
 def parseFlight(parameters):
 
     input_file_path = pathlib.Path(parameters.input_file_path)
+
+    if parameters.output_directory_path is None:
+        output_directory_path = pathlib.Path(f'./{input_file_path.stem}')
+    else:
+        output_directory_path = parameters.output_directory_path
+
+    output_directory_path.mkdir(parents = True, exist_ok = True)
 
 
 
@@ -2447,7 +2460,7 @@ def parseFlight(parameters):
 
     import csv
 
-    file_handle = open('output.csv', 'w')
+    file_handle = open(pathlib.Path(output_directory_path, 'log.csv'), 'w')
 
     writer = csv.writer(file_handle)
 
