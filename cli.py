@@ -2450,6 +2450,7 @@ def parseFlight(parameters):
             elif (
                 not field_name.endswith('_')    # Skip fields that aren't meant to be used (e.g. padding).
                 and field_name != 'image_bytes' # Skip the image data.
+                and 'crc' not in field_name     # Skip checksums.
             ):
 
                 yield f'{field_name}', field_value
