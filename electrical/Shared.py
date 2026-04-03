@@ -1,10 +1,100 @@
 #meta global STLINK_BAUD, TARGETS, PER_MCU, PER_TARGET
 #meta global OVCAM_DEFAULT_RESOLUTION
 #meta global STACK_SIZE, TV_WRITE_BYTE, TV_TOKEN, OVCAM_JPEG_CTRL3_FIELDS
+#meta global LoRaPacket, ESP32Packet, VehicleInterfacePayload, MainFlightComputerLogEntry
 
-import types, collections
+import types, collections, ctypes
 import deps.stpy.pxd.pxd as pxd
 from deps.stpy.mcus import MCUS
+
+
+
+################################################################################
+
+
+
+# @/`ESP32 Sequence Numbers`:
+#
+# The `.rolling_sequence_number` field is automatically filled out by the
+# vehicle ESP32, thus the vehicle FC should leave it empty. This is
+# because the ESP32 will handle the buffering of ESP-NOW and LoRa packets,
+# and based on when it can queue up packets for those buffers, it'll
+# automatically increment the rolling sequence number.
+#
+# In other words, the `rolling_sequence_number` is how the main FC can
+# tell whether or not an ESP-NOW packet has been dropped, and likewise
+# with LoRa packets.
+#
+# The `.timestamp_ms` field should be used to determine the elapsed time
+# since the last received packet, but it can also be used to determine if
+# a LoRa packet and ESP-NOW packet are the same (when their timestamps are
+# also equal).
+#
+# The `.image_sequence_number` field is just to make it easier to
+# determine the start of the OpenMV image data, although with how JPEG
+# works, this could be omitted. If the field is zero, this means no image
+# data; otherwise the first image chunk begins with sequence number of 1.
+
+class LoRaPacket(ctypes.Structure):
+    _pack_   = True
+    _fields_ = (
+        ('QuatX'                     , ctypes.c_float ),
+        ('QuatY'                     , ctypes.c_float ),
+        ('QuatZ'                     , ctypes.c_float ),
+        ('QuatS'                     , ctypes.c_float ),
+        ('AccelX'                    , ctypes.c_float ),
+        ('AccelY'                    , ctypes.c_float ),
+        ('AccelZ'                    , ctypes.c_float ),
+        ('GyroX'                     , ctypes.c_float ),
+        ('GyroY'                     , ctypes.c_float ),
+        ('GyroZ'                     , ctypes.c_float ),
+        ('timestamp_ms'              , ctypes.c_uint16), # @/`ESP32 Sequence Numbers`.
+        ('rolling_sequence_number'   , ctypes.c_uint16), # @/`ESP32 Sequence Numbers`.
+        ('computer_vision_confidence', ctypes.c_uint8 ),
+        ('crc'                       , ctypes.c_uint8 ),
+    )
+
+class ESP32Packet(ctypes.Structure):
+    _pack_   = True
+    _fields_ = (
+        ('MagX'                 , ctypes.c_float      ),
+        ('MagY'                 , ctypes.c_float      ),
+        ('MagZ'                 , ctypes.c_float      ),
+        ('image_sequence_number', ctypes.c_uint16     ), # @/`ESP32 Sequence Numbers`.
+        ('image_bytes'          , ctypes.c_uint8 * 190),
+        ('nonredundant'         , LoRaPacket          ),
+    )
+
+class VehicleInterfacePayload(ctypes.Structure):
+    _pack_   = True
+    _fields_ = (
+        ('timestamp_us'  , ctypes.c_uint32),
+        ('stepper_issues', ctypes.c_uint8 ),
+        ('vn100_issues'  , ctypes.c_uint8 ),
+        ('openmv_issues' , ctypes.c_uint8 ),
+        ('esp32_issues'  , ctypes.c_uint8 ),
+        ('crc'           , ctypes.c_uint8 ),
+    )
+
+class UnpaddedMainFlightComputerLogEntry(ctypes.Structure):
+    _pack_   = True
+    _fields_ = (
+        ('magic'                           , ctypes.c_char * 4      ),
+        ('esp32_packet_exist'              , ctypes.c_uint8         ),
+        ('lora_packet_exist'               , ctypes.c_uint8         ),
+        ('vehicle_interface_payload_exist' , ctypes.c_uint8         ),
+        ('padding'                         , ctypes.c_uint8         ),
+        ('esp32_packet_data'               , ESP32Packet            ),
+        ('lora_packet_data'                , LoRaPacket             ),
+        ('vehicle_interface_payload_data'  , VehicleInterfacePayload),
+    )
+
+class MainFlightComputerLogEntry(ctypes.Structure):
+    _pack_   = True
+    _fields_ = (
+        *(UnpaddedMainFlightComputerLogEntry._fields_),
+        ('sector_padding', ctypes.c_uint8 * (512 - ctypes.sizeof(UnpaddedMainFlightComputerLogEntry))),
+    )
 
 
 

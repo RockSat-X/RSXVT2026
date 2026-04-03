@@ -945,55 +945,54 @@ DEBUG_BOARD_calculate_crc(u8* data, i32 length)
 
 pack_push
 
-    // @/`ESP32 Sequence Numbers`:
-    //
-    // The `.rolling_sequence_number` field is automatically filled out by the
-    // vehicle ESP32, thus the vehicle FC should leave it empty. This is
-    // because the ESP32 will handle the buffering of ESP-NOW and LoRa packets,
-    // and based on when it can queue up packets for those buffers, it'll
-    // automatically increment the rolling sequence number.
-    //
-    // In other words, the `rolling_sequence_number` is how the main FC can
-    // tell whether or not an ESP-NOW packet has been dropped, and likewise
-    // with LoRa packets.
-    //
-    // The `.timestamp_ms` field should be used to determine the elapsed time
-    // since the last received packet, but it can also be used to determine if
-    // a LoRa packet and ESP-NOW packet are the same (when their timestamps are
-    // also equal).
-    //
-    // The `.image_sequence_number` field is just to make it easier to
-    // determine the start of the OpenMV image data, although with how JPEG
-    // works, this could be omitted. If the field is zero, this means no image
-    // data; otherwise the first image chunk begins with sequence number of 1.
+    // The include file path is like this so it'll compile in the Arduino IDE.
+    #include "../meta/PacketStructures.meta"
+    /* #meta
 
-    struct LoRaPacket
-    {
-        f32 QuatX;
-        f32 QuatY;
-        f32 QuatZ;
-        f32 QuatS;
-        f32 AccelX;
-        f32 AccelY;
-        f32 AccelZ;
-        f32 GyroX;
-        f32 GyroY;
-        f32 GyroZ;
-        u16 timestamp_ms;            // @/`ESP32 Sequence Numbers`.
-        u16 rolling_sequence_number; // @/`ESP32 Sequence Numbers`.
-        u8  computer_vision_confidence;
-        u8  crc;
-    };
+        import ctypes
 
-    struct ESP32Packet
-    {
-        f32               MagX;
-        f32               MagY;
-        f32               MagZ;
-        u16               image_sequence_number; // @/`ESP32 Sequence Numbers`.
-        u8                image_bytes[190];
-        struct LoRaPacket nonredundant;
-    };
+        for struct_type in (
+            LoRaPacket,
+            ESP32Packet,
+            VehicleInterfacePayload,
+            MainFlightComputerLogEntry,
+        ):
+
+            with Meta.enter(f'struct {struct_type.__name__}'):
+
+                for field_name, field_type in struct_type._fields_:
+
+                    if issubclass(field_type, ctypes.Array):
+                        elemental_type = field_type._type_
+                        array_length   = field_type._length_
+                    else:
+                        elemental_type = field_type
+                        array_length   = None
+
+                    match elemental_type:
+
+                        case ctypes.c_char   : base_type = 'char'
+                        case ctypes.c_uint8  : base_type = 'u8'
+                        case ctypes.c_uint16 : base_type = 'u16'
+                        case ctypes.c_uint32 : base_type = 'u32'
+                        case ctypes.c_uint64 : base_type = 'u64'
+                        case ctypes.c_int8   : base_type = 'i8'
+                        case ctypes.c_int16  : base_type = 'i16'
+                        case ctypes.c_int32  : base_type = 'i32'
+                        case ctypes.c_int64  : base_type = 'i64'
+                        case ctypes.c_float  : base_type = 'f32'
+
+                        case substruct_type if issubclass(substruct_type, ctypes.Structure):
+                            base_type = f'struct {substruct_type.__name__}'
+
+                        case idk:
+                            raise NotImplementedError(f'Field {repr(field_name)} has unsupported type {repr(field_type)}.')
+
+                    Meta.line(f'''
+                        {base_type} {field_name}{f'[{array_length}]' if array_length is not None else ''};
+                    ''')
+
+    */
 
 pack_pop
 
@@ -1155,13 +1154,6 @@ ESP32_calculate_crc(u8* data, i32 length)
 
 
 
-////////////////////////////////////////////////////////////////////////////////
-//
-// Vehicle interface.
-//
-
-
-
 // TODO Document.
 // TODO Have look-up table.
 extern useret u8
@@ -1183,20 +1175,6 @@ VEHICLE_INTERFACE_calculate_crc(u8* data, i32 length)
 
     return crc;
 }
-
-
-
-pack_push
-    struct VehicleInterfacePayload
-    {
-        u32 timestamp_us;
-        u8  stepper_issues;
-        u8  vn100_issues;
-        u8  openmv_issues;
-        u8  esp32_issues;
-        u8  crc;
-    };
-pack_pop
 
 
 
