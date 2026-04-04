@@ -383,8 +383,6 @@ static void
 GNC_update(const struct GNCInput input, struct GNCContext* context)
 {
 
-    #define SEARCH_AMPLITUDE       0.3491f
-    #define SEARCH_FREQUENCY       3.0f
     #define SEARCH_RATE            0.1745f
     #define REACTION_WHEEL_INERTIA 0.01f // TODO: Get actual value for this.
 
@@ -435,35 +433,59 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
 
 
-            // TODO.
+            ////////////////////////////////////////
+            //
+            // Right after the vehicle has ejected,
+            // the motors need to be kept disabled
+            // so that the VN-100 can obtain an
+            // accurate heading estimate without any
+            // magnetic interference.
+            //
+            ////////////////////////////////////////
 
             case GNCOperationMode_obtaining_heading_estimate:
             {
-
                 if (input.current_timestamp_us - input.ejection_timestamp_us < 10'000'000)
                 {
-                    // TODO: Motors Disabled
-                    // TODO: Send VNKMD OFF
-                    yield = true;
+
+                    // We're still letting the VN-100 get a heading estimate.
+                    // It'll be the responsibility of the caller to ensure
+                    // that the motors are disabled and that the VNKMD-OFF
+                    // command has been sent to the VN-100.
+
+                    yield = true; // TODO No `quaternion_target` and `rates_target`?
+
                 }
                 else
                 {
-                    context->operation_mode = GNCOperationMode_stabilizing;
-                }
 
+                    // We can now move onto actually using the stepper motors.
+                    // It'll be the responsibility of the caller to ensure
+                    // that the VNKMD-ON command gets sent to the VN-100
+                    // before enabling the motors.
+
+                    context->operation_mode = GNCOperationMode_stabilizing;
+
+                }
             } break;
 
 
 
-            // TODO.
+            ////////////////////////////////////////
+            //
+            // The vehicle might be tumbling a bit
+            // after it has ejected, so we're going
+            // so spend some time here undoing that.
+            //
+            ////////////////////////////////////////
 
             case GNCOperationMode_stabilizing:
             {
                 if (input.current_timestamp_us - input.ejection_timestamp_us < 30'000'000)
                 {
 
-                    // TODO: Align to intial target
-                    // TODO: Send VMKMD ON
+                    // To stabilize, we want to get rid of
+                    // any pitch or roll; yaw is fine.
 
                     quaternion_target =
                         QUATERNION_from_euler_zyx
@@ -479,7 +501,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
                     yield = true;
 
                 }
-                else
+                else // We spent enough time stabilizing; move onto finding the horizon.
                 {
                     context->operation_mode = GNCOperationMode_searching;
                 }
@@ -487,16 +509,31 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
 
 
-            // TODO.
+            ////////////////////////////////////////
+            //
+            // We're currently not confident we have
+            // found the horizon yet, so we're going
+            // to do some motions in hopes that the
+            // OpenMV will eventually pick something up.
+            //
+            ////////////////////////////////////////
 
             case GNCOperationMode_searching:
             {
                 if (context->target_found)
                 {
+
+                    // Got something! Move onto aligning the vehicle
+                    // towards the target that's hopefully the horizon.
+
                     context->operation_mode = GNCOperationMode_aligning;
+
                 }
                 else
                 {
+
+                    // Here we want to reorientate the vehicle as a
+                    // function of `t` over time in a control manner.
 
                     quaternion_target =
                         QUATERNION_from_euler_zyx
@@ -504,7 +541,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
                             (struct EulerZYX)
                             {
                                 .yaw   = QUATERNION_to_euler_zyx(quaternion_current).yaw,
-                                .pitch = SEARCH_AMPLITUDE *arm_sin_f32(SEARCH_FREQUENCY * (f32) input.current_timestamp_us / 1'000'000.0f),
+                                .pitch = 0.3491f * arm_sin_f32(3.0f * (f32) input.current_timestamp_us / 1'000'000.0f),
                                 .roll  = 0.0f,
                             }
                         );
@@ -527,13 +564,20 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
 
 
-            // TODO.
+            ////////////////////////////////////////
+            //
+            // We've found the target is our goal is
+            // now to align the vehicle towards it.
+            //
+            ////////////////////////////////////////
 
             case GNCOperationMode_aligning:
             {
-
                 if (context->target_found)
                 {
+
+                    // Keep aligning towards the horizon according
+                    // to whatever the OpenMV is saying.
 
                     quaternion_target =
                         QUATERNION_from_euler_zyx
@@ -552,6 +596,10 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
                 else if (input.current_timestamp_us - context->target_lost_timestamp_us < 10'000'000)
                 {
 
+                    // The OpenMV has lost the horizon target, but instead of
+                    // immediately switching to searching again, we're going
+                    // to try hold at the last known location for a bit.
+
                     quaternion_target =
                         (struct Quaternion)
                         {
@@ -561,11 +609,10 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
                     yield = true;
 
                 }
-                else
+                else // Alright, we've lost the horizon target for a while now.
                 {
                     context->operation_mode = GNCOperationMode_searching;
                 }
-
             } break;
 
 
