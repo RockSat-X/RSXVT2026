@@ -634,26 +634,23 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
     ////////////////////////////////////////
     //
-    // Compute errors for control law.
+    // Compute errors.
     //
 
-    struct Matrix_3x1 rates_current_body =
-        {
-            .rows =
-                {
-                    { input.most_recent_imu.GyroX },
-                    { input.most_recent_imu.GyroY },
-                    { input.most_recent_imu.GyroZ },
-                },
-        };
+    struct Quaternion orientation_error =
+        QUATERNION_multiply
+        (
+            current_orientation,
+            QUATERNION_conjugate(desired_orientation)
+        );
 
     struct Matrix_3x1 rates_error =
         {
             .rows =
                 {
-                    { desired_rates.rows[0][0] - rates_current_body.rows[0][0] },
-                    { desired_rates.rows[1][0] - rates_current_body.rows[1][0] },
-                    { desired_rates.rows[2][0] - rates_current_body.rows[2][0] },
+                    { desired_rates.rows[0][0] - input.most_recent_imu.GyroX },
+                    { desired_rates.rows[1][0] - input.most_recent_imu.GyroY },
+                    { desired_rates.rows[2][0] - input.most_recent_imu.GyroZ },
                 },
         };
 
@@ -668,7 +665,6 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     #define ANGLE_THRESHOLD_SMALL  0.924f
     #define ANGLE_THRESHOLD_MEDIUM 0.707f
 
-    struct Quaternion quaternion_error = QUATERNION_multiply(current_orientation, QUATERNION_conjugate(desired_orientation));
 
     // VERY IMPORTANT NOTE:
     //  - to avoid an additional subtraction operation, gains should be negated
@@ -692,11 +688,11 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
         case GNCOperationMode_aligning:
         case GNCOperationMode_stabilizing:
         {
-            if (quaternion_error.s > ANGLE_THRESHOLD_SMALL)
+            if (orientation_error.s > ANGLE_THRESHOLD_SMALL)
             {
                 //TODO: select small angle gain matrix
             }
-            else if (quaternion_error.s > ANGLE_THRESHOLD_MEDIUM)
+            else if (orientation_error.s > ANGLE_THRESHOLD_MEDIUM)
             {
                 //TODO: select medium angle gain matrix
             }
@@ -714,11 +710,11 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
         case GNCOperationMode_searching:
         {
-            if (quaternion_error.s > ANGLE_THRESHOLD_SMALL)
+            if (orientation_error.s > ANGLE_THRESHOLD_SMALL)
             {
                 //TODO: select small angle gain matrix
             }
-            else if (quaternion_error.s > ANGLE_THRESHOLD_MEDIUM)
+            else if (orientation_error.s > ANGLE_THRESHOLD_MEDIUM)
             {
                 //TODO: select medium angle gain matrix
             }
@@ -748,9 +744,9 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
         {
             .rows =
                 {
-                    { quaternion_error.i     },
-                    { quaternion_error.j     },
-                    { quaternion_error.k     },
+                    { orientation_error.i    },
+                    { orientation_error.j    },
+                    { orientation_error.k    },
                     { rates_error.rows[0][0] },
                     { rates_error.rows[1][0] },
                     { rates_error.rows[2][0] },
