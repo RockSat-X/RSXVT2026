@@ -308,6 +308,28 @@ pack_pop
 
 
 
+enum GNCOperationMode : u32
+{
+
+    // - Control disabled.
+    // - Tracking only.
+    // - Obtain heading estimate (VNKMD OFF).
+    GNCOperationMode_ejection,
+
+    // - Control enabled.
+    // - Align to target.
+    // - Target rates set to zero.
+    // - Drive pitch and roll error to zero, no yaw error control.
+    GNCOperationMode_alignment,
+
+    // - Control enabled
+    // - Search for target.
+    // - Target yaw rate set to constant.
+    // - Drive pitch and roll erros to zero, no yaw error control.
+    GNCOperationMode_search,
+
+};
+
 struct GNCInput
 {
 
@@ -450,16 +472,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     f32 a = 0.3491f; // search pattern amplitude in radians (20 degrees)
     f32 b = 3.0f;  // search pattern frequency (3 pitch oscillations per yaw revolution)
 
-
-    // Operation modes:
-    // (0) Ejection: Control disabled, tracking only, obtain heading estimate (VNKMD OFF)
-    // (1) Alignment: Control enabled, align to target
-    //      - Target Rates set to zero
-    //      - Drive pitch and roll error to zero, no yaw error control
-    // (2) Search: Control enabled, search for target
-    //      - Target yaw rate set to constant
-    //      - Drive pitch and roll erros to zero, no yaw error control
-    i32     operation_mode = 0;
+    enum GNCOperationMode operation_mode = {0};
 
     struct Matrix_6x1 state = {0};              // initialize state vector
     struct Matrix_3x1 rates_target = {0};       // initialize target rates, default rates set to zero
@@ -498,17 +511,19 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
     if (time_since_ejection_us < time_to_start_us)
     {
+
         // Motors Disabled
         // TODO: Send VNKMD OFF
 
-        operation_mode = 0;
+        operation_mode = GNCOperationMode_ejection;
+
     }
     else if (time_since_ejection_us < (time_to_start_us + time_to_align_us))
     {
         // Align to intial target
         // TODO: Send VMKMD ON
 
-        operation_mode = 1;
+        operation_mode = GNCOperationMode_alignment;
 
         // Define intial target quaternion
         {
@@ -532,14 +547,14 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
             if (time_since_target_lost_us < time_to_align_us)
             {
                 // Align to intial target
-                operation_mode = 1;
+                operation_mode = GNCOperationMode_alignment;
 
                 quaternion_target = quaternion_from_last_target;
             }
             else
             {
                 // Search for Target
-                operation_mode = 2;
+                operation_mode = GNCOperationMode_search;
 
                 quaternion_target =
                     QUATERNION_from_euler_zyx
@@ -561,7 +576,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
             if (time_since_target_found_us < time_to_align_us)
             {
                 // Align to target
-                operation_mode = 1;
+                operation_mode = GNCOperationMode_alignment;
 
                 quaternion_target =
                     QUATERNION_from_euler_zyx
@@ -577,7 +592,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
             else
             {
                 // Rotate about down (D) axis
-                operation_mode = 2;
+                operation_mode = GNCOperationMode_search;
 
                 rates_target.rows[2][0] = search_rate; // search rate
 
@@ -640,42 +655,63 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
         f32 quaternion_threshold_1 = 0.924f; // small angle
         f32 quaternion_threshold_2 = 0.707f;  // medium angle
 
-        // (1) Alignment: Control enabled, align to target
-        //  - Linearize about [~, ~, ~, 15, 15, 15]
-        //  - Set Q = diag(0, a, a, b, b, b) where a and b are user-defined parameters
-        if (operation_mode == 1)
-        {
-            if (quaternion_error.s > quaternion_threshold_1)
-            {
-                //TODO: select small angle gain matrix
-            }
-            else if (quaternion_error.s > quaternion_threshold_2)
-            {
-                //TODO: select medium angle gain matrix
-            }
-            else
-            {
-                //TODO: select large angle gain matrix
-            }
-        }
 
-        // (2) Search: Control enabled, search for target
-        //  - Linearize about [~, ~, ~, 15, 15, search_rate]
-        //  - Set Q = diag(0, a, a, b, b, c>b) where a, b, c are user-defined parameters
-        else if (operation_mode == 2)
+        switch (operation_mode)
         {
-            if (quaternion_error.s > quaternion_threshold_1)
+
+            case GNCOperationMode_ejection:
             {
-                //TODO: select small angle gain matrix
-            }
-            else if (quaternion_error.s > quaternion_threshold_2)
+                // Don't care.
+            } break;
+
+
+
+            // Control enabled, align to target
+            //  - Linearize about [~, ~, ~, 15, 15, 15]
+            //  - Set Q = diag(0, a, a, b, b, b) where a and b are user-defined parameters
+
+            case GNCOperationMode_alignment:
             {
-                //TODO: select medium angle gain matrix
-            }
-            else
+                if (quaternion_error.s > quaternion_threshold_1)
+                {
+                    //TODO: select small angle gain matrix
+                }
+                else if (quaternion_error.s > quaternion_threshold_2)
+                {
+                    //TODO: select medium angle gain matrix
+                }
+                else
+                {
+                    //TODO: select large angle gain matrix
+                }
+            } break;
+
+
+
+            // Control enabled, search for target
+            //  - Linearize about [~, ~, ~, 15, 15, search_rate]
+            //  - Set Q = diag(0, a, a, b, b, c>b) where a, b, c are user-defined parameters
+
+            case GNCOperationMode_search:
             {
-                //TODO: select large angle gain matrix
-            }
+                if (quaternion_error.s > quaternion_threshold_1)
+                {
+                    //TODO: select small angle gain matrix
+                }
+                else if (quaternion_error.s > quaternion_threshold_2)
+                {
+                    //TODO: select medium angle gain matrix
+                }
+                else
+                {
+                    //TODO: select large angle gain matrix
+                }
+            } break;
+
+
+
+            default: sus;
+
         }
 
     }
@@ -694,21 +730,5 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     context->control_accelerations.rows[0][0] = control_torques.rows[0][0] / reaction_wheel_inertia;
     context->control_accelerations.rows[1][0] = control_torques.rows[1][0] / reaction_wheel_inertia;
     context->control_accelerations.rows[2][0] = control_torques.rows[2][0] / reaction_wheel_inertia;
-
-
-
-    ////////////////////////////////////////
-    //
-    // TODO.
-    //
-
-    if (operation_mode == 0)
-    {
-        // TODO: return context->control_accelerations = (struct Matrix_3x1) {0};
-    }
-    else
-    {
-        // TODO: context->control_accelerations;
-    }
 
 }
