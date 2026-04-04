@@ -120,39 +120,6 @@ MATRIX_multiply_(f32* dst, f32* lhs, f32* rhs, i32 rows, i32 columns, i32 common
 
 
 
-#define MATRIX_scale_add(DST, A, LHS, B, RHS)                              \
-    do                                                                     \
-    {                                                                      \
-        static_assert(countof((DST)->rows   ) == countof((LHS)->rows   )); \
-        static_assert(countof((DST)->rows[0]) == countof((LHS)->rows[0])); \
-        static_assert(countof((DST)->rows   ) == countof((RHS)->rows   )); \
-        static_assert(countof((DST)->rows[0]) == countof((RHS)->rows[0])); \
-        MATRIX_scale_add_                                                  \
-        (                                                                  \
-            &(DST)->rows[0][0],                                            \
-            (A),                                                           \
-            &(LHS)->rows[0][0],                                            \
-            (B),                                                           \
-            &(RHS)->rows[0][0],                                            \
-            countof((DST)->rows   ),                                       \
-            countof((DST)->rows[0])                                        \
-        );                                                                 \
-    }                                                                      \
-    while (false)
-static void
-MATRIX_scale_add_(f32* dst, f32 a, f32* lhs, f32 b, f32* rhs, i32 rows, i32 columns)
-{
-    for (i32 i = 0; i < rows; i += 1)
-    {
-        for (i32 j = 0; j < columns; j += 1)
-        {
-            dst[i * columns + j] = (a * lhs[i * columns + j]) + (b * rhs[i * columns + j]);
-        }
-    }
-}
-
-
-
 #define stlink_tx_Matrix(MATRIX)    \
     stlink_tx_Matrix_               \
     (                               \
@@ -680,14 +647,15 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
                 },
         };
 
-    struct Matrix_3x1 rates_error = {0};
-
-    MATRIX_scale_add
-    (
-        &rates_error,
-        +1.0f, &desired_rates,
-        -1.0f, &rates_current_body
-    );
+    struct Matrix_3x1 rates_error =
+        {
+            .rows =
+                {
+                    { desired_rates.rows[0][0] - rates_current_body.rows[0][0] },
+                    { desired_rates.rows[1][0] - rates_current_body.rows[1][0] },
+                    { desired_rates.rows[2][0] - rates_current_body.rows[2][0] },
+                },
+        };
 
 
 
