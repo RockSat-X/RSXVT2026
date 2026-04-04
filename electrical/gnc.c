@@ -333,8 +333,6 @@ struct GNCContext
     b32                   target_found;
     i32                   target_conflict_count;
     u32                   target_lost_timestamp_us;
-    u32                   target_found_timestamp_us;
-    struct Quaternion     desired_orientation;
 };
 
 static void
@@ -355,11 +353,14 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     if (!context->initialized)
     {
         *context =
-            (struct GNCContext) // TODO Fill out thoroughly.
+            (struct GNCContext)
             {
                 .initialized              = true,
-                .target_lost_timestamp_us = input.ejection_timestamp_us,
                 .operation_mode           = GNCOperationMode_obtaining_heading_estimate,
+                .control_accelerations    = {},
+                .target_found             = false,
+                .target_conflict_count    = 0,
+                .target_lost_timestamp_us = input.ejection_timestamp_us,
             };
     }
 
