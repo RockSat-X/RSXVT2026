@@ -344,22 +344,12 @@ pack_pop
 enum GNCOperationMode : u32
 {
 
-    // - Control disabled.
-    // - Tracking only.
-    // - Obtain heading estimate (VNKMD OFF).
-    GNCOperationMode_ejection,
+    GNCOperationMode_uninitialized,
+    GNCOperationMode_obtaining_heading_estimate,
+    GNCOperationMode_stabilizing,
+    GNCOperationMode_searching,
+    GNCOperationMode_aligning,
 
-    // - Control enabled.
-    // - Align to target.
-    // - Target rates set to zero.
-    // - Drive pitch and roll error to zero, no yaw error control.
-    GNCOperationMode_alignment,
-
-    // - Control enabled
-    // - Search for target.
-    // - Target yaw rate set to constant.
-    // - Drive pitch and roll erros to zero, no yaw error control.
-    GNCOperationMode_search,
 
 };
 
@@ -383,7 +373,6 @@ struct GNCInput
 
 struct GNCContext
 {
-    b32                   initialized;
     enum GNCOperationMode operation_mode;
     struct Matrix_3x1     control_accelerations;
     b32                   target_found;
@@ -411,44 +400,188 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
     ////////////////////////////////////////
     //
-    // See if we need to set some default
-    // values for the GNC context.
+    // TODO.
     //
 
-    if (!context->initialized)
+    u32 time_since_ejection_us     = input.current_timestamp_us - input.ejection_timestamp_us;
+    u32 time_since_target_lost_us  = input.current_timestamp_us - context->target_lost_timestamp_us;
+    u32 time_since_target_found_us = input.current_timestamp_us - context->target_found_timestamp_us;
+
+    struct Quaternion quaternion_current =
+        (struct Quaternion)
+        {
+            .s = input.most_recent_imu.QuatS,
+            .i = input.most_recent_imu.QuatX,
+            .j = input.most_recent_imu.QuatY,
+            .k = input.most_recent_imu.QuatZ,
+        };
+
+    struct Quaternion quaternion_from_last_target =
+        (struct Quaternion)
+        {
+            // TODO: get this from buffer
+        };
+
+
+
+    struct Quaternion quaternion_target = {0};
+    struct Matrix_3x1 rates_target      = {0};
+
+    for (b32 yield = false; !yield;)
     {
-
-        // Let's make sure all values are
-        // zero instead of potentially
-        // any left-over garbage.
-
-        memzero(context);
+        switch (context->operation_mode)
+        {
 
 
 
-        // We'll start off as if we lost
-        // the target from the moment we
-        // have ejected.
+            // TODO.
 
-        context->target_found             = false;
-        context->target_conflict_count    = 0;
-        context->target_lost_timestamp_us = input.ejection_timestamp_us;
-
-
-
-        // An actual value will be computed
-        // for these fields later on.
-
-        context->control_accelerations = (struct Matrix_3x1) {0};
-        context->desired_orientation   = (struct Quaternion) {0};
+            case GNCOperationMode_uninitialized:
+            {
+                *context =
+                    (struct GNCContext) // TODO.
+                    {
+                        .target_lost_timestamp_us = input.ejection_timestamp_us,
+                        .operation_mode           = GNCOperationMode_obtaining_heading_estimate,
+                    };
+            } break;
 
 
 
-        // We're done setting the initial values
-        // for the rest of the GNC algorithm to work on.
+            // TODO.
 
-        context->initialized = true;
+            case GNCOperationMode_obtaining_heading_estimate:
+            {
 
+                if (time_since_ejection_us < POST_EJECTION_MOTOR_ENABLE_US)
+                {
+                    // TODO: Motors Disabled
+                    // TODO: Send VNKMD OFF
+                    yield = true;
+                }
+                else
+                {
+                    context->operation_mode = GNCOperationMode_stabilizing;
+                }
+
+            } break;
+
+
+
+            // TODO.
+
+            case GNCOperationMode_stabilizing:
+            {
+                if (time_since_ejection_us < (POST_EJECTION_MOTOR_ENABLE_US + ALIGNMENT_DURATION_US))
+                {
+
+                    // TODO: Align to intial target
+                    // TODO: Send VMKMD ON
+
+                    quaternion_target =
+                        QUATERNION_from_euler_zyx
+                        (
+                            (struct EulerZYX)
+                            {
+                                .yaw   = QUATERNION_to_euler_zyx(quaternion_current).yaw,
+                                .pitch = 0.0f,
+                                .roll  = 0.0f,
+                            }
+                        );
+
+                    yield = true;
+
+                }
+                else
+                {
+                    context->operation_mode = GNCOperationMode_searching;
+                }
+            } break;
+
+
+
+            // TODO.
+
+            case GNCOperationMode_searching:
+            {
+                if (context->target_found)
+                {
+                    context->operation_mode = GNCOperationMode_aligning;
+                }
+                else
+                {
+
+                    quaternion_target =
+                        QUATERNION_from_euler_zyx
+                        (
+                            (struct EulerZYX)
+                            {
+                                .yaw   = QUATERNION_to_euler_zyx(quaternion_current).yaw,
+                                .pitch = SEARCH_AMPLITUDE *arm_sin_f32(SEARCH_FREQUENCY * (f32) input.current_timestamp_us / 1'000'000.0f),
+                                .roll  = 0.0f,
+                            }
+                        );
+
+                    rates_target =
+                        (struct Matrix_3x1)
+                        {
+                            .rows =
+                                {
+                                    { 0.0f        },
+                                    { 0.0f        },
+                                    { SEARCH_RATE },
+                                },
+                        };
+
+                    yield = true;
+
+                }
+            } break;
+
+
+
+            // TODO.
+
+            case GNCOperationMode_aligning:
+            {
+
+                if (context->target_found)
+                {
+                    if (time_since_target_found_us < ALIGNMENT_DURATION_US)
+                    {
+
+                        quaternion_target =
+                            QUATERNION_from_euler_zyx
+                            (
+                                (struct EulerZYX)
+                                {
+                                    .yaw   = input.most_recent_openmv_reading.attitude_yaw,
+                                    .pitch = input.most_recent_openmv_reading.attitude_pitch,
+                                    .roll  = input.most_recent_openmv_reading.attitude_roll,
+                                }
+                            );
+
+                        yield = true;
+
+                    }
+                }
+                else if (time_since_target_lost_us < ALIGNMENT_DURATION_US)
+                {
+                    quaternion_target = quaternion_from_last_target;
+                    yield             = true;
+                }
+                else
+                {
+                    context->operation_mode = GNCOperationMode_searching;
+                }
+
+            } break;
+
+
+
+            default: sus;
+
+        }
     }
 
 
@@ -489,162 +622,6 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
         {
             context->target_found          = true; // Confident we now see the target!
             context->target_conflict_count = 0;
-        }
-    }
-
-
-
-    ////////////////////////////////////////
-    //
-    // TODO.
-    //
-
-    u32 time_since_ejection_us     = input.current_timestamp_us - input.ejection_timestamp_us;
-    u32 time_since_target_lost_us  = input.current_timestamp_us - context->target_lost_timestamp_us;
-    u32 time_since_target_found_us = input.current_timestamp_us - context->target_found_timestamp_us;
-
-    struct Quaternion quaternion_current =
-        (struct Quaternion)
-        {
-            .s = input.most_recent_imu.QuatS,
-            .i = input.most_recent_imu.QuatX,
-            .j = input.most_recent_imu.QuatY,
-            .k = input.most_recent_imu.QuatZ,
-        };
-
-    struct Quaternion quaternion_from_last_target =
-        (struct Quaternion)
-        {
-            // TODO: get this from buffer
-        };
-
-
-
-    ////////////////////////////////////////
-    //
-    // TODO.
-    //
-
-    struct Quaternion quaternion_target = {0};
-    struct Matrix_3x1 rates_target      = {0};
-
-    if (time_since_ejection_us < POST_EJECTION_MOTOR_ENABLE_US)
-    {
-
-        // Motors Disabled
-        // TODO: Send VNKMD OFF
-
-        context->operation_mode = GNCOperationMode_ejection;
-
-    }
-    else if (time_since_ejection_us < (POST_EJECTION_MOTOR_ENABLE_US + ALIGNMENT_DURATION_US))
-    {
-        // Align to intial target
-        // TODO: Send VMKMD ON
-
-        context->operation_mode = GNCOperationMode_alignment;
-
-        // Define intial target quaternion
-        {
-
-            quaternion_target =
-                QUATERNION_from_euler_zyx
-                (
-                    (struct EulerZYX)
-                    {
-                        .yaw   = QUATERNION_to_euler_zyx(quaternion_current).yaw,
-                        .pitch = 0.0f,
-                        .roll  = 0.0f,
-                    }
-                );
-        }
-    }
-    else
-    {
-        if (!context->target_found)
-        {
-            if (time_since_target_lost_us < ALIGNMENT_DURATION_US)
-            {
-                // Align to intial target
-                context->operation_mode = GNCOperationMode_alignment;
-
-                quaternion_target = quaternion_from_last_target;
-            }
-            else
-            {
-                // Search for Target
-                context->operation_mode = GNCOperationMode_search;
-
-                quaternion_target =
-                    QUATERNION_from_euler_zyx
-                    (
-                        (struct EulerZYX)
-                        {
-                            .yaw   = QUATERNION_to_euler_zyx(quaternion_current).yaw,
-                            .pitch = SEARCH_AMPLITUDE *arm_sin_f32(SEARCH_FREQUENCY * (f32) input.current_timestamp_us / 1'000'000.0f),
-                            .roll  = 0.0f,
-                        }
-                    );
-
-                rates_target =
-                    (struct Matrix_3x1)
-                    {
-                        .rows =
-                            {
-                                { 0.0f        },
-                                { 0.0f        },
-                                { SEARCH_RATE },
-                            },
-                    };
-
-            }
-        }
-        else
-        {
-            // Track Target
-            if (time_since_target_found_us < ALIGNMENT_DURATION_US)
-            {
-                // Align to target
-                context->operation_mode = GNCOperationMode_alignment;
-
-                quaternion_target =
-                    QUATERNION_from_euler_zyx
-                    (
-                        (struct EulerZYX)
-                        {
-                            .yaw   = input.most_recent_openmv_reading.attitude_yaw,
-                            .pitch = input.most_recent_openmv_reading.attitude_pitch,
-                            .roll  = input.most_recent_openmv_reading.attitude_roll,
-                        }
-                    );
-            }
-            else
-            {
-                // Rotate about down (D) axis
-                context->operation_mode = GNCOperationMode_search;
-
-                rates_target =
-                    (struct Matrix_3x1)
-                    {
-                        .rows =
-                            {
-                                { 0.0f        },
-                                { 0.0f        },
-                                { SEARCH_RATE },
-                            },
-                    };
-
-                quaternion_target =
-                    QUATERNION_from_euler_zyx
-                    (
-                        (struct EulerZYX)
-                        {
-                            .yaw   = input.most_recent_openmv_reading.attitude_yaw,
-                            .pitch = input.most_recent_openmv_reading.attitude_pitch,
-                            .roll  = input.most_recent_openmv_reading.attitude_roll,
-                        }
-                    );
-            }
         }
     }
 
@@ -697,7 +674,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
         switch (context->operation_mode)
         {
 
-            case GNCOperationMode_ejection:
+            case GNCOperationMode_obtaining_heading_estimate:
             {
                 // Don't care.
             } break;
@@ -708,7 +685,8 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
             //  - Linearize about [~, ~, ~, 15, 15, 15]
             //  - Set Q = diag(0, a, a, b, b, b) where a and b are user-defined parameters
 
-            case GNCOperationMode_alignment:
+            case GNCOperationMode_aligning:
+            case GNCOperationMode_stabilizing:
             {
                 if (quaternion_error.s > ANGLE_THRESHOLD_SMALL)
                 {
@@ -730,7 +708,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
             //  - Linearize about [~, ~, ~, 15, 15, SEARCH_RATE]
             //  - Set Q = diag(0, a, a, b, b, c>b) where a, b, c are user-defined parameters
 
-            case GNCOperationMode_search:
+            case GNCOperationMode_searching:
             {
                 if (quaternion_error.s > ANGLE_THRESHOLD_SMALL)
                 {
@@ -748,7 +726,8 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
 
 
-            default: sus;
+            case GNCOperationMode_uninitialized : sus;
+            default                             : sus;
 
         }
 
