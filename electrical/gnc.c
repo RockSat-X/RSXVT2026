@@ -343,14 +343,10 @@ pack_pop
 
 enum GNCOperationMode : u32
 {
-
-    GNCOperationMode_uninitialized,
     GNCOperationMode_obtaining_heading_estimate,
     GNCOperationMode_stabilizing,
     GNCOperationMode_searching,
     GNCOperationMode_aligning,
-
-
 };
 
 struct GNCInput
@@ -373,6 +369,7 @@ struct GNCInput
 
 struct GNCContext
 {
+    b32                   initialized;
     enum GNCOperationMode operation_mode;
     struct Matrix_3x1     control_accelerations;
     b32                   target_found;
@@ -386,12 +383,10 @@ static void
 GNC_update(const struct GNCInput input, struct GNCContext* context)
 {
 
-    #define POST_EJECTION_MOTOR_ENABLE_US 10'000'000 // Time after ejection to enable motors.
-    #define ALIGNMENT_DURATION_US         20'000'000 // Align to target estimate before starting search pattern.
-    #define SEARCH_AMPLITUDE              0.3491f
-    #define SEARCH_FREQUENCY              3.0f
-    #define SEARCH_RATE                   0.1745f
-    #define REACTION_WHEEL_INERTIA        0.01f // TODO: Get actual value for this.
+    #define SEARCH_AMPLITUDE       0.3491f
+    #define SEARCH_FREQUENCY       3.0f
+    #define SEARCH_RATE            0.1745f
+    #define REACTION_WHEEL_INERTIA 0.01f // TODO: Get actual value for this.
 
     if (!context)
         sus;
@@ -403,9 +398,23 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     // TODO.
     //
 
-    u32 time_since_ejection_us     = input.current_timestamp_us - input.ejection_timestamp_us;
-    u32 time_since_target_lost_us  = input.current_timestamp_us - context->target_lost_timestamp_us;
-    u32 time_since_target_found_us = input.current_timestamp_us - context->target_found_timestamp_us;
+    if (!context->initialized)
+    {
+        *context =
+            (struct GNCContext) // TODO.
+            {
+                .initialized              = true,
+                .target_lost_timestamp_us = input.ejection_timestamp_us,
+                .operation_mode           = GNCOperationMode_obtaining_heading_estimate,
+            };
+    }
+
+
+
+    ////////////////////////////////////////
+    //
+    // TODO.
+    //
 
     struct Quaternion quaternion_current =
         (struct Quaternion)
@@ -415,14 +424,6 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
             .j = input.most_recent_imu.QuatY,
             .k = input.most_recent_imu.QuatZ,
         };
-
-    struct Quaternion quaternion_from_last_target =
-        (struct Quaternion)
-        {
-            // TODO: get this from buffer
-        };
-
-
 
     struct Quaternion quaternion_target = {0};
     struct Matrix_3x1 rates_target      = {0};
@@ -436,24 +437,10 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
             // TODO.
 
-            case GNCOperationMode_uninitialized:
-            {
-                *context =
-                    (struct GNCContext) // TODO.
-                    {
-                        .target_lost_timestamp_us = input.ejection_timestamp_us,
-                        .operation_mode           = GNCOperationMode_obtaining_heading_estimate,
-                    };
-            } break;
-
-
-
-            // TODO.
-
             case GNCOperationMode_obtaining_heading_estimate:
             {
 
-                if (time_since_ejection_us < POST_EJECTION_MOTOR_ENABLE_US)
+                if (input.current_timestamp_us - input.ejection_timestamp_us < 10'000'000)
                 {
                     // TODO: Motors Disabled
                     // TODO: Send VNKMD OFF
@@ -472,7 +459,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
             case GNCOperationMode_stabilizing:
             {
-                if (time_since_ejection_us < (POST_EJECTION_MOTOR_ENABLE_US + ALIGNMENT_DURATION_US))
+                if (input.current_timestamp_us - input.ejection_timestamp_us < 30'000'000)
                 {
 
                     // TODO: Align to intial target
@@ -547,28 +534,32 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
                 if (context->target_found)
                 {
-                    if (time_since_target_found_us < ALIGNMENT_DURATION_US)
-                    {
 
-                        quaternion_target =
-                            QUATERNION_from_euler_zyx
-                            (
-                                (struct EulerZYX)
-                                {
-                                    .yaw   = input.most_recent_openmv_reading.attitude_yaw,
-                                    .pitch = input.most_recent_openmv_reading.attitude_pitch,
-                                    .roll  = input.most_recent_openmv_reading.attitude_roll,
-                                }
-                            );
+                    quaternion_target =
+                        QUATERNION_from_euler_zyx
+                        (
+                            (struct EulerZYX)
+                            {
+                                .yaw   = input.most_recent_openmv_reading.attitude_yaw,
+                                .pitch = input.most_recent_openmv_reading.attitude_pitch,
+                                .roll  = input.most_recent_openmv_reading.attitude_roll,
+                            }
+                        );
 
-                        yield = true;
+                    yield = true;
 
-                    }
                 }
-                else if (time_since_target_lost_us < ALIGNMENT_DURATION_US)
+                else if (input.current_timestamp_us - context->target_lost_timestamp_us < 10'000'000)
                 {
-                    quaternion_target = quaternion_from_last_target;
-                    yield             = true;
+
+                    quaternion_target =
+                        (struct Quaternion)
+                        {
+                            // TODO: get this from buffer
+                        };
+
+                    yield = true;
+
                 }
                 else
                 {
@@ -726,8 +717,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
 
 
-            case GNCOperationMode_uninitialized : sus;
-            default                             : sus;
+            default : sus;
 
         }
 
