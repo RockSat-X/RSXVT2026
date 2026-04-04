@@ -470,7 +470,6 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     u32 time_since_target_lost_us  = input.current_timestamp_us - context->target_lost_timestamp_us;
     u32 time_since_target_found_us = input.current_timestamp_us - context->target_found_timestamp_us;
 
-    struct Matrix_3x1 rates_target      = {0};
     struct Quaternion quaternion_target = {0};
     struct Matrix_3x1 rates_error       = {0};
 
@@ -502,6 +501,8 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     //
     // TODO.
     //
+
+    struct Matrix_3x1 rates_target = {0};
 
     if (time_since_ejection_us < POST_EJECTION_MOTOR_ENABLE_US)
     {
@@ -561,7 +562,17 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
                         }
                     );
 
-                rates_target.rows[2][0] = SEARCH_RATE;
+                rates_target =
+                    (struct Matrix_3x1)
+                    {
+                        .rows =
+                            {
+                                { 0.0f        },
+                                { 0.0f        },
+                                { SEARCH_RATE },
+                            },
+                    };
+
             }
         }
         else
@@ -588,7 +599,16 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
                 // Rotate about down (D) axis
                 context->operation_mode = GNCOperationMode_search;
 
-                rates_target.rows[2][0] = SEARCH_RATE;
+                rates_target =
+                    (struct Matrix_3x1)
+                    {
+                        .rows =
+                            {
+                                { 0.0f        },
+                                { 0.0f        },
+                                { SEARCH_RATE },
+                            },
+                    };
 
                 quaternion_target =
                     QUATERNION_from_euler_zyx
