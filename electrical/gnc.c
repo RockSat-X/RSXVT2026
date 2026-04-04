@@ -346,18 +346,26 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
 
 
-    // See if we need to set some default values for the GNC context.
+    ////////////////////////////////////////
+    //
+    // See if we need to set some default
+    // values for the GNC context.
+    //
 
     if (!context->initialized)
     {
 
-        // Let's make sure all values are zero instead of potentially any left-over garbage.
+        // Let's make sure all values are
+        // zero instead of potentially
+        // any left-over garbage.
 
         memzero(context);
 
 
 
-        // We'll start off as if we lost the target from the moment we have ejected.
+        // We'll start off as if we lost
+        // the target from the moment we
+        // have ejected.
 
         context->target_found             = false;
         context->target_conflict_count    = 0;
@@ -365,14 +373,16 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
 
 
-        // An actual value will be computed for these fields later on.
+        // An actual value will be computed
+        // for these fields later on.
 
         context->control_accelerations = (struct Matrix_3x1) {0};
         context->desired_orientation   = (struct Quaternion) {0};
 
 
 
-        // We're done setting the initial values for the rest of the GNC algorithm to work on.
+        // We're done setting the initial values
+        // for the rest of the GNC algorithm to work on.
 
         context->initialized = true;
 
@@ -380,7 +390,10 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
 
 
+    ////////////////////////////////////////
+    //
     // Apply hesterisis to CVT's target confidence.
+    //
 
     if (context->target_found)
     {
@@ -418,7 +431,10 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
 
 
+    ////////////////////////////////////////
+    //
     // TODO.
+    //
 
     u32     time_to_start_us = 10'000'000;  // time after ejection to enable motors
     u32     time_to_align_us = 20'000'000;  // time to align to target estimate before starting search pattern
@@ -473,6 +489,12 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     rates_current_body.rows[1][0] = input.most_recent_imu.GyroY;
     rates_current_body.rows[2][0] = input.most_recent_imu.GyroZ;
 
+
+
+    ////////////////////////////////////////
+    //
+    // TODO.
+    //
 
     if (time_since_ejection_us < time_to_start_us)
     {
@@ -573,13 +595,25 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
         }
     }
 
-    // Compute errors for control law
+
+
+    ////////////////////////////////////////
+    //
+    // Compute errors for control law.
+    //
+
     struct Quaternion quaternion_error = QUATERNION_multiply(quaternion_current, QUATERNION_conjugate(quaternion_target));
     rates_error.rows[1][0] = rates_target.rows[0][0] - rates_current_body.rows[0][0];
     rates_error.rows[2][0] = rates_target.rows[1][0] - rates_current_body.rows[1][0];
     rates_error.rows[3][0] = rates_target.rows[2][0] - rates_current_body.rows[2][0];
 
+
+
+    ////////////////////////////////////////
+    //
     // Define state vector for control law
+    //
+
     state.rows[0][0] = quaternion_error.i;
     state.rows[1][0] = quaternion_error.j;
     state.rows[2][0] = quaternion_error.k;
@@ -587,8 +621,13 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     state.rows[4][0] = rates_error.rows[1][0];
     state.rows[5][0] = rates_error.rows[2][0];
 
+
+
+    ////////////////////////////////////////
+    //
     // Select appropriate gain matrix based on the current state and operation mode.
     // TODO: Implement the gain selection logic based on the current state and operation mode.
+    //
 
     struct Matrix_3x6 gain = {0};
 
@@ -643,14 +682,25 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
 
 
-    // Compute control torques
+    ////////////////////////////////////////
+    //
+    // Compute control torques and convert
+    // control torques to accelerations.
+    //
+
     struct Matrix_3x1 control_torques = {0};
     MATRIX_multiply(&control_torques, &gain, &state); // TODO: Implement the control law to compute the angular accelerations based on the gain and the state.
 
-    // Convert control torques to accelerations
     context->control_accelerations.rows[0][0] = control_torques.rows[0][0] / reaction_wheel_inertia;
     context->control_accelerations.rows[1][0] = control_torques.rows[1][0] / reaction_wheel_inertia;
     context->control_accelerations.rows[2][0] = control_torques.rows[2][0] / reaction_wheel_inertia;
+
+
+
+    ////////////////////////////////////////
+    //
+    // TODO.
+    //
 
     if (operation_mode == 0)
     {
