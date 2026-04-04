@@ -2534,24 +2534,93 @@ def plot(parameters):
 
 
 
-    main_figure  = matplotlib.pyplot.figure()
-    main_subplot = main_figure.add_subplot(projection = '3d')
+    main_figure = matplotlib.pyplot.figure()
+    main_axes   = main_figure.add_subplot(projection = '3d')
+    start_time  = time.time()
+
+
+
+    def quaternion_multiply(lhs, rhs):
+        return (
+            lhs[0]*rhs[0] - lhs[1]*rhs[1] - lhs[2]*rhs[2] - lhs[3]*rhs[3],
+            lhs[0]*rhs[1] + lhs[1]*rhs[0] + lhs[2]*rhs[3] - lhs[3]*rhs[2],
+            lhs[0]*rhs[2] - lhs[1]*rhs[3] + lhs[2]*rhs[0] + lhs[3]*rhs[1],
+            lhs[0]*rhs[3] + lhs[1]*rhs[2] - lhs[2]*rhs[1] + lhs[3]*rhs[0],
+        )
+
+    def quaternion_conjugate(q):
+        return (
+            +q[0],
+            -q[1],
+            -q[2],
+            -q[3],
+        )
+
+    def quaternion_rotate(q, rotor):
+        return quaternion_multiply(rotor, quaternion_multiply(q, quaternion_conjugate(rotor)))
+
+
+
+    VN100Register = collections.namedtuple(
+        'VN100Register',
+        (
+            'QuatX',
+            'QuatY',
+            'QuatZ',
+            'QuatS',
+            'MagX',
+            'MagY',
+            'MagZ',
+            'AccelX',
+            'AccelY',
+            'AccelZ',
+            'GyroX',
+            'GyroY',
+            'GyroZ',
+        )
+    )
+
+    entries = [
+        VN100Register(*(
+            float(field)
+            for field in line[7:-3].split(',')
+        ))
+        for line in pxd.make_main_relative_path('./gnc/vn100_scripts/vn100_dataLog.txt').read_text().splitlines()
+    ][1200:]
+
+
 
     def update(_):
 
-        t = time.time()
+        elapsed_time = time.time() - start_time
+        entry        = entries[math.floor(elapsed_time / 0.020) % len(entries)]
 
-        main_subplot.clear()
+        main_axes.clear()
+        main_axes.set_title(f'Time: {elapsed_time}')
+        main_axes.set_xlim(-2, 2)
+        main_axes.set_ylim(-2, 2)
+        main_axes.set_zlim(-2, 2)
 
-        xs = [((i / 100) - 0.5) * 10 for i in range(100)]
-        ys = [math.cos(x + t) for x in xs]
-        zs = [math.sin(x + t) for x in xs]
+        _, *orientation_axis_x = quaternion_rotate(
+            (0, 1, 0, 0),
+            (entry.QuatS, entry.QuatX, entry.QuatY, entry.QuatZ),
+        )
 
-        main_subplot.plot(xs, ys, zs)
+        _, *orientation_axis_y = quaternion_rotate(
+            (0, 0, 1, 0),
+            (entry.QuatS, entry.QuatX, entry.QuatY, entry.QuatZ),
+        )
 
-        main_subplot.set_title(f"Time: {t}")
+        _, *orientation_axis_z = quaternion_rotate(
+            (0, 0, 0, 1),
+            (entry.QuatS, entry.QuatX, entry.QuatY, entry.QuatZ),
+        )
 
-        return main_subplot,
+        main_axes.quiver(0, 0, 0, *orientation_axis_x, color = 'red'  )
+        main_axes.quiver(0, 0, 0, *orientation_axis_y, color = 'green')
+        main_axes.quiver(0, 0, 0, *orientation_axis_z, color = 'blue' )
+
+        return main_axes,
 
 
 
