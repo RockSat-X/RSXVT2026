@@ -383,9 +383,6 @@ static void
 GNC_update(const struct GNCInput input, struct GNCContext* context)
 {
 
-    #define SEARCH_RATE            0.1745f
-    #define REACTION_WHEEL_INERTIA 0.01f // TODO: Get actual value for this.
-
     if (!context)
         sus;
 
@@ -393,18 +390,60 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
     ////////////////////////////////////////
     //
-    // TODO.
+    // If needed, initialize our working
+    // variables to known values.
     //
 
     if (!context->initialized)
     {
         *context =
-            (struct GNCContext) // TODO.
+            (struct GNCContext) // TODO Fill out thoroughly.
             {
                 .initialized              = true,
                 .target_lost_timestamp_us = input.ejection_timestamp_us,
                 .operation_mode           = GNCOperationMode_obtaining_heading_estimate,
             };
+    }
+
+
+
+    ////////////////////////////////////////
+    //
+    // Apply hesterisis to CVT's target confidence.
+    //
+
+    if (context->target_found)
+    {
+        if (input.most_recent_openmv_reading.computer_vision_confidence)
+        {
+            context->target_conflict_count = 0; // We still see the target!
+        }
+        else if (context->target_conflict_count < 3) // TODO Determine hystersis threshold.
+        {
+            context->target_conflict_count += 1; // Hmm, we're losing the target..?
+        }
+        else
+        {
+            context->target_found             = false; // Target definitely lost!
+            context->target_conflict_count    = 0;
+            context->target_lost_timestamp_us = input.current_timestamp_us;
+        }
+    }
+    else
+    {
+        if (!input.most_recent_openmv_reading.computer_vision_confidence)
+        {
+            context->target_conflict_count = 0; // Target still missing...
+        }
+        else if (context->target_conflict_count < 3) // TODO Determine hystersis threshold.
+        {
+            context->target_conflict_count += 1; // Oh, we're starting to see the target..?
+        }
+        else
+        {
+            context->target_found          = true; // Confident we now see the target!
+            context->target_conflict_count = 0;
+        }
     }
 
 
@@ -554,9 +593,9 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
                     {
                         .rows =
                             {
-                                { 0.0f        },
-                                { 0.0f        },
-                                { SEARCH_RATE },
+                                { 0.0f    },
+                                { 0.0f    },
+                                { 0.1745f },
                             },
                     };
 
@@ -628,47 +667,6 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
     ////////////////////////////////////////
     //
-    // Apply hesterisis to CVT's target confidence.
-    //
-
-    if (context->target_found)
-    {
-        if (input.most_recent_openmv_reading.computer_vision_confidence)
-        {
-            context->target_conflict_count = 0; // We still see the target!
-        }
-        else if (context->target_conflict_count < 3)
-        {
-            context->target_conflict_count += 1; // Hmm, we're losing the target..?
-        }
-        else
-        {
-            context->target_found             = false; // Target definitely lost!
-            context->target_conflict_count    = 0;
-            context->target_lost_timestamp_us = input.current_timestamp_us;
-        }
-    }
-    else
-    {
-        if (!input.most_recent_openmv_reading.computer_vision_confidence)
-        {
-            context->target_conflict_count = 0; // Target still missing...
-        }
-        else if (context->target_conflict_count < 3)
-        {
-            context->target_conflict_count += 1; // Oh, we're starting to see the target..?
-        }
-        else
-        {
-            context->target_found          = true; // Confident we now see the target!
-            context->target_conflict_count = 0;
-        }
-    }
-
-
-
-    ////////////////////////////////////////
-    //
     // Compute errors for control law.
     //
 
@@ -699,6 +697,9 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     // TODO: Implement the gain selection logic based on the current state and operation mode.
     //
 
+    #define ANGLE_THRESHOLD_SMALL  0.924f
+    #define ANGLE_THRESHOLD_MEDIUM 0.707f
+
     struct Quaternion quaternion_error = QUATERNION_multiply(current_orientation, QUATERNION_conjugate(desired_orientation));
 
     // VERY IMPORTANT NOTE:
@@ -706,69 +707,62 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     //  - for (u = -Kx) -> (gain = -K)
     struct Matrix_3x6 gain = {0};
 
+    switch (context->operation_mode)
     {
 
-        #define ANGLE_THRESHOLD_SMALL  0.924f
-        #define ANGLE_THRESHOLD_MEDIUM 0.707f
-
-        switch (context->operation_mode)
+        case GNCOperationMode_obtaining_heading_estimate:
         {
+            // Don't care.
+        } break;
 
-            case GNCOperationMode_obtaining_heading_estimate:
+
+
+        // Control enabled, align to target
+        //  - Linearize about [~, ~, ~, 15, 15, 15]
+        //  - Set Q = diag(0, a, a, b, b, b) where a and b are user-defined parameters
+
+        case GNCOperationMode_aligning:
+        case GNCOperationMode_stabilizing:
+        {
+            if (quaternion_error.s > ANGLE_THRESHOLD_SMALL)
             {
-                // Don't care.
-            } break;
-
-
-
-            // Control enabled, align to target
-            //  - Linearize about [~, ~, ~, 15, 15, 15]
-            //  - Set Q = diag(0, a, a, b, b, b) where a and b are user-defined parameters
-
-            case GNCOperationMode_aligning:
-            case GNCOperationMode_stabilizing:
+                //TODO: select small angle gain matrix
+            }
+            else if (quaternion_error.s > ANGLE_THRESHOLD_MEDIUM)
             {
-                if (quaternion_error.s > ANGLE_THRESHOLD_SMALL)
-                {
-                    //TODO: select small angle gain matrix
-                }
-                else if (quaternion_error.s > ANGLE_THRESHOLD_MEDIUM)
-                {
-                    //TODO: select medium angle gain matrix
-                }
-                else
-                {
-                    //TODO: select large angle gain matrix
-                }
-            } break;
-
-
-
-            // Control enabled, search for target
-            //  - Linearize about [~, ~, ~, 15, 15, SEARCH_RATE]
-            //  - Set Q = diag(0, a, a, b, b, c>b) where a, b, c are user-defined parameters
-
-            case GNCOperationMode_searching:
+                //TODO: select medium angle gain matrix
+            }
+            else
             {
-                if (quaternion_error.s > ANGLE_THRESHOLD_SMALL)
-                {
-                    //TODO: select small angle gain matrix
-                }
-                else if (quaternion_error.s > ANGLE_THRESHOLD_MEDIUM)
-                {
-                    //TODO: select medium angle gain matrix
-                }
-                else
-                {
-                    //TODO: select large angle gain matrix
-                }
-            } break;
+                //TODO: select large angle gain matrix
+            }
+        } break;
 
 
 
-            default : sus;
+        // Control enabled, search for target
+        //  - Linearize about [~, ~, ~, 15, 15, search_rate]
+        //  - Set Q = diag(0, a, a, b, b, c>b) where a, b, c are user-defined parameters
 
-        }
+        case GNCOperationMode_searching:
+        {
+            if (quaternion_error.s > ANGLE_THRESHOLD_SMALL)
+            {
+                //TODO: select small angle gain matrix
+            }
+            else if (quaternion_error.s > ANGLE_THRESHOLD_MEDIUM)
+            {
+                //TODO: select medium angle gain matrix
+            }
+            else
+            {
+                //TODO: select large angle gain matrix
+            }
+        } break;
+
+
+
+        default : sus;
 
     }
 
@@ -779,6 +773,8 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     // Compute control torques and convert
     // control torques to accelerations.
     //
+
+    #define REACTION_WHEEL_INERTIA 0.01f // TODO Get actual value for this.
 
     struct Matrix_6x1 state =
         {
