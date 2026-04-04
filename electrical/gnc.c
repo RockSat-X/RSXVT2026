@@ -245,63 +245,6 @@ QUATERNION_to_euler_zyx(struct Quaternion q)
 
 
 
-// Select appropriate gain matrix based on the current state and operation mode.
-static useret struct Matrix_3x6
-gain_matrix_select(struct Quaternion quaternion_error, struct Matrix_3x1 rate_error, i32 operation_mode)
-{
-
-    // VERY IMPORTANT NOTE:
-    //  - to avoid an additional subtraction operation, gains should be negated
-    //  - for (u = -Kx) -> (gain = -K)
-
-    f32 quaternion_threshold_1 = 0.924f; // small angle
-    f32 quaternion_threshold_2 = 0.707f;  // medium angle
-
-    struct Matrix_3x6 gain = {0};
-
-    // (1) Alignment: Control enabled, align to target
-    //  - Linearize about [~, ~, ~, 15, 15, 15]
-    //  - Set Q = diag(0, a, a, b, b, b) where a and b are user-defined parameters
-    if (operation_mode == 1)
-    {
-        if (quaternion_error.s > quaternion_threshold_1)
-        {
-            //TODO: select small angle gain matrix
-        }
-        else if (quaternion_error.s > quaternion_threshold_2)
-        {
-            //TODO: select medium angle gain matrix
-        }
-        else
-        {
-            //TODO: select large angle gain matrix
-        }
-    }
-
-    // (2) Search: Control enabled, search for target
-    //  - Linearize about [~, ~, ~, 15, 15, search_rate]
-    //  - Set Q = diag(0, a, a, b, b, c>b) where a, b, c are user-defined parameters
-    else if (operation_mode == 2)
-    {
-        if (quaternion_error.s > quaternion_threshold_1)
-        {
-            //TODO: select small angle gain matrix
-        }
-        else if (quaternion_error.s > quaternion_threshold_2)
-        {
-            //TODO: select medium angle gain matrix
-        }
-        else
-        {
-            //TODO: select large angle gain matrix
-        }
-    }
-
-    return gain;
-}
-
-
-
 ////////////////////////////////////////////////////////////////////////////////
 //
 // Actual GNC stuff.
@@ -644,8 +587,61 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     state.rows[4][0] = rates_error.rows[1][0];
     state.rows[5][0] = rates_error.rows[2][0];
 
-    // Determine optimal gain matrix (-K)
-    struct Matrix_3x6 gain = gain_matrix_select(quaternion_error, rates_error, operation_mode); // TODO: Implement the gain selection logic based on the current state and operation mode.
+    // Select appropriate gain matrix based on the current state and operation mode.
+    // TODO: Implement the gain selection logic based on the current state and operation mode.
+
+    struct Matrix_3x6 gain = {0};
+
+    {
+
+        // VERY IMPORTANT NOTE:
+        //  - to avoid an additional subtraction operation, gains should be negated
+        //  - for (u = -Kx) -> (gain = -K)
+
+        f32 quaternion_threshold_1 = 0.924f; // small angle
+        f32 quaternion_threshold_2 = 0.707f;  // medium angle
+
+        // (1) Alignment: Control enabled, align to target
+        //  - Linearize about [~, ~, ~, 15, 15, 15]
+        //  - Set Q = diag(0, a, a, b, b, b) where a and b are user-defined parameters
+        if (operation_mode == 1)
+        {
+            if (quaternion_error.s > quaternion_threshold_1)
+            {
+                //TODO: select small angle gain matrix
+            }
+            else if (quaternion_error.s > quaternion_threshold_2)
+            {
+                //TODO: select medium angle gain matrix
+            }
+            else
+            {
+                //TODO: select large angle gain matrix
+            }
+        }
+
+        // (2) Search: Control enabled, search for target
+        //  - Linearize about [~, ~, ~, 15, 15, search_rate]
+        //  - Set Q = diag(0, a, a, b, b, c>b) where a, b, c are user-defined parameters
+        else if (operation_mode == 2)
+        {
+            if (quaternion_error.s > quaternion_threshold_1)
+            {
+                //TODO: select small angle gain matrix
+            }
+            else if (quaternion_error.s > quaternion_threshold_2)
+            {
+                //TODO: select medium angle gain matrix
+            }
+            else
+            {
+                //TODO: select large angle gain matrix
+            }
+        }
+
+    }
+
+
 
     // Compute control torques
     struct Matrix_3x1 control_torques = {0};
