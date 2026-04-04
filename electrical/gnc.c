@@ -503,9 +503,6 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     u32 time_since_target_lost_us  = input.current_timestamp_us - context->target_lost_timestamp_us;
     u32 time_since_target_found_us = input.current_timestamp_us - context->target_found_timestamp_us;
 
-    struct Quaternion quaternion_target = {0};
-    struct Matrix_3x1 rates_error       = {0};
-
     struct Quaternion quaternion_current =
         (struct Quaternion)
         {
@@ -521,13 +518,6 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
             // TODO: get this from buffer
         };
 
-    struct EulerZYX euler_current = QUATERNION_to_euler_zyx(quaternion_current);
-
-    struct Matrix_3x1 rates_current_body = {0};
-    rates_current_body.rows[0][0] = input.most_recent_imu.GyroX;
-    rates_current_body.rows[1][0] = input.most_recent_imu.GyroY;
-    rates_current_body.rows[2][0] = input.most_recent_imu.GyroZ;
-
 
 
     ////////////////////////////////////////
@@ -535,7 +525,8 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     // TODO.
     //
 
-    struct Matrix_3x1 rates_target = {0};
+    struct Quaternion quaternion_target = {0};
+    struct Matrix_3x1 rates_target      = {0};
 
     if (time_since_ejection_us < POST_EJECTION_MOTOR_ENABLE_US)
     {
@@ -561,9 +552,9 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
                 (
                     (struct EulerZYX)
                     {
-                        .yaw   = euler_current.yaw, // use current yaw angle to avoid unnecessary rotation
-                        .pitch = 0.0f, // set pitch to zero
-                        .roll  = 0.0f, // set roll to zero
+                        .yaw   = QUATERNION_to_euler_zyx(quaternion_current).yaw,
+                        .pitch = 0.0f,
+                        .roll  = 0.0f,
                     }
                 );
         }
@@ -589,8 +580,8 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
                     (
                         (struct EulerZYX)
                         {
-                            .yaw   = euler_current.yaw, // yaw doesn't matter since we're just spinning about D axis
-                            .pitch = SEARCH_AMPLITUDE *arm_sin_f32(SEARCH_FREQUENCY * (f32) input.current_timestamp_us / 1'000'000.0f), // oscillate pitch to create search pattern
+                            .yaw   = QUATERNION_to_euler_zyx(quaternion_current).yaw,
+                            .pitch = SEARCH_AMPLITUDE *arm_sin_f32(SEARCH_FREQUENCY * (f32) input.current_timestamp_us / 1'000'000.0f),
                             .roll  = 0.0f,
                         }
                     );
@@ -664,7 +655,17 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     // Compute errors for control law.
     //
 
-    struct Quaternion quaternion_error = QUATERNION_multiply(quaternion_current, QUATERNION_conjugate(quaternion_target));
+    struct Matrix_3x1 rates_current_body =
+        {
+            .rows =
+                {
+                    { input.most_recent_imu.GyroX },
+                    { input.most_recent_imu.GyroY },
+                    { input.most_recent_imu.GyroZ },
+                },
+        };
+
+    struct Matrix_3x1 rates_error = {0};
 
     MATRIX_scale_add
     (
@@ -680,6 +681,8 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     // Select appropriate gain matrix based on the current state and operation mode.
     // TODO: Implement the gain selection logic based on the current state and operation mode.
     //
+
+    struct Quaternion quaternion_error = QUATERNION_multiply(quaternion_current, QUATERNION_conjugate(quaternion_target));
 
     // VERY IMPORTANT NOTE:
     //  - to avoid an additional subtraction operation, gains should be negated
@@ -775,8 +778,15 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     struct Matrix_3x1 control_torques = {0};
     MATRIX_multiply(&control_torques, &gain, &state); // TODO: Implement the control law to compute the angular accelerations based on the gain and the state.
 
-    context->control_accelerations.rows[0][0] = control_torques.rows[0][0] / REACTION_WHEEL_INERTIA;
-    context->control_accelerations.rows[1][0] = control_torques.rows[1][0] / REACTION_WHEEL_INERTIA;
-    context->control_accelerations.rows[2][0] = control_torques.rows[2][0] / REACTION_WHEEL_INERTIA;
+    context->control_accelerations =
+        (struct Matrix_3x1)
+        {
+            .rows =
+                {
+                    { control_torques.rows[0][0] / REACTION_WHEEL_INERTIA },
+                    { control_torques.rows[1][0] / REACTION_WHEEL_INERTIA },
+                    { control_torques.rows[2][0] / REACTION_WHEEL_INERTIA },
+                },
+        };
 
 }
