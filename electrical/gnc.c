@@ -35,7 +35,7 @@ struct EulerZYX
     f32 roll;  // X-axis.
 };
 
-struct state
+
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wsign-conversion"
@@ -74,6 +74,8 @@ asin_f32(f32 x)
     return result;
 
 }
+
+
 
 #define MATRIX_multiply(DST, LHS, RHS)                                     \
     do                                                                     \
@@ -116,6 +118,8 @@ MATRIX_multiply_(f32* dst, f32* lhs, f32* rhs, i32 rows, i32 columns, i32 common
 
 }
 
+
+
 #define stlink_tx_Matrix(MATRIX)    \
     stlink_tx_Matrix_               \
     (                               \
@@ -155,6 +159,8 @@ stlink_tx_Matrix_(f32* matrix, i32 rows, i32 columns)
 
 }
 
+
+
 static useret struct Quaternion
 QUATERNION_multiply(struct Quaternion lhs, struct Quaternion rhs)
 {
@@ -171,6 +177,8 @@ QUATERNION_multiply(struct Quaternion lhs, struct Quaternion rhs)
 
 }
 
+
+
 static useret struct Quaternion
 QUATERNION_conjugate(struct Quaternion q)
 {
@@ -186,6 +194,8 @@ QUATERNION_conjugate(struct Quaternion q)
     return result;
 
 }
+
+
 
 static useret struct Quaternion
 QUATERNION_from_euler_zyx(struct EulerZYX angles)
@@ -210,6 +220,8 @@ QUATERNION_from_euler_zyx(struct EulerZYX angles)
 
 }
 
+
+
 static useret struct EulerZYX
 QUATERNION_to_euler_zyx(struct Quaternion q)
 {
@@ -231,15 +243,6 @@ QUATERNION_to_euler_zyx(struct Quaternion q)
 
 }
 
-// Convert a vector from body frame to NED frame using the quaternion attitude.
-// This function is used to convert the angular rates from body frame to NED frame.
-// This may not be needed.
-// vector_from_body_to_NED(struct Quaternion q, struct Matrix_3x1 vector_body)
-// {
-//     vector_NED.rows[0][0] = vector_body.rows[1][0]*(2*q.i*q.j - 2*q.k*q.s) - vector_body.rows[0][0]*(2*q.j^2 + 2*q.k^2 - 1) + vector_body.rows[2][0]*(2*q.i*q.k + 2*q.j*q.s);
-//     vector_NED.rows[1][0] = vector_body.rows[0][0]*(2*q.i*q.j + 2*q.k*q.s) - vector_body.rows[1][0]*(2*q.i^2 + 2*q.k^2 - 1) + vector_body.rows[2][0]*(2*q.j*q.k - 2*q.i*q.s);
-//     vector_NED.rows[2][0] = vector_body.rows[0][0]*(2*q.i*q.k - 2*q.j*q.s) - vector_body.rows[2][0]*(2*q.i^2 + 2*q.j^2 - 1) + vector_body.rows[1][0]*(2*q.j*q.k + 2*q.i*q.s);
-// }
 
 
 // Select appropriate gain matrix based on the current state and operation mode.
@@ -296,8 +299,6 @@ gain_matrix_select(struct Quaternion quaternion_error, struct Matrix_3x1 rate_er
 
     return gain;
 }
-
-
 
 
 
@@ -500,6 +501,44 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     if (!context)
         sus;
 
+
+
+    // See if we need to set some default values for the GNC context.
+
+    if (!context->initialized)
+    {
+
+        // Let's make sure all values are zero instead of potentially any left-over garbage.
+
+        memzero(context);
+
+
+
+        // We'll start off as if we lost the target from the moment we have ejected.
+
+        context->target_found             = false;
+        context->target_conflict_count    = 0;
+        context->target_lost_timestamp_us = input.ejection_timestamp_us;
+
+
+
+        // An actual value will be computed for these fields later on.
+
+        context->angular_accelerations = (struct Matrix_3x1) {0};
+        context->desired_orientation   = (struct Quaternion) {0};
+
+
+
+        // We're done setting the initial values for the rest of the GNC algorithm to work on.
+
+        context->initialized = true;
+
+    }
+
+
+
+    // Apply hesterisis to CVT's target confidence.
+
     if (context->target_found)
     {
         if (input.most_recent_openmv_reading.computer_vision_confidence)
@@ -531,9 +570,12 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
         {
             context->target_found          = true; // Confident we now see the target!
             context->target_conflict_count = 0;
-            context->target_lost_timestamp_us = input.current_timestamp_us;
         }
     }
+
+
+
+    // TODO.
 
     u32     time_to_start_us = 10'000'000;  // time after ejection to enable motors
     u32     time_to_align_us = 20'000'000;  // time to align to target estimate before starting search pattern
@@ -541,7 +583,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     u32     time_since_ejection_us = input.current_timestamp_us - input.ejection_timestamp_us;              // time since ejection
     u32     time_since_target_lost_us = input.current_timestamp_us - context->target_lost_timestamp_us;     // time since target lost
     u32     time_since_target_found_us = input.current_timestamp_us - context->target_found_timestamp_us;   // time since target found
-    
+
     u32     search_rate = 0.1745f; // search rate in radians per second (10 degrees per second)
     u32     reaction_wheel_inertia = 0.01f;     // reaction wheel inertia (kg*m^2)
     // TODO: Get actual value for this.
@@ -558,14 +600,14 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     // (2) Search: Control enabled, search for target
     //      - Target yaw rate set to constant
     //      - Drive pitch and roll erros to zero, no yaw error control
-    i32     operation_mode = 0; 
-    
+    i32     operation_mode = 0;
+
     struct Matrix_6x1 state = {0};              // initialize state vector
     struct Matrix_3x1 rates_target = {0};       // initialize target rates, default rates set to zero
     struct Quaternion quaternion_target = {0};  // initialize target quaternion
     struct Matrix_3x1 rates_error = {0};        // initialize error rates
 
-    // Convert to quaternion 
+    // Convert to quaternion
     struct Quaternion quaternion_current =
         (struct Quaternion)
         {
@@ -575,12 +617,12 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
             .k = input.most_recent_imu.QuatZ,
         };
 
-    struct Quaternion quaternion_from_last_target = 
+    struct Quaternion quaternion_from_last_target =
         (struct Quaternion)
         {
             // TODO: get this from buffer
         };
-    
+
     struct EulerZYX euler_current = QUATERNION_to_euler_zyx(quaternion_current);
 
     struct Matrix_3x1 rates_current_body = {0};
@@ -588,10 +630,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     rates_current_body.rows[1][0] = input.most_recent_imu.GyroY;
     rates_current_body.rows[2][0] = input.most_recent_imu.GyroZ;
 
-    //  Convert rates from body frame to NED frame (not needed rn)  
-    //  struct Matrix_3x1 rates_current_NED = vector_from_body_to_NED(quaternion_current, rates_current_body);
 
-    
     if (time_since_ejection_us < time_to_start_us)
     {
         // Motors Disabled
@@ -608,7 +647,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
         // Define intial target quaternion
         {
-            
+
             struct Quaternion quaternion_target = QUATERNION_from_euler_zyx
             (
                 (struct EulerZYX)
@@ -656,7 +695,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
                 // Align to target
                 operation_mode = 1;
 
-                quaternion_target = 
+                quaternion_target =
                     Quaternion_from_euler_zyx
                     (
                         (struct EulerZYX)
@@ -673,8 +712,8 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
                 operation_mode = 2;
 
                 rates_target.rows[2][0] = search_rate; // search rate
-               
-                quaternion_target = 
+
+                quaternion_target =
                     Quaternion_from_euler_zyx
                     (
                         (struct EulerZYX)
@@ -718,7 +757,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
         return context->control_accelerations = (struct Matrix_3x1) {0};
     }
     else
-    {    
+    {
         return context->control_accelerations;
     }
 }
