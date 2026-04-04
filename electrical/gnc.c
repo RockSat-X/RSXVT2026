@@ -363,6 +363,13 @@ static void
 GNC_update(const struct GNCInput input, struct GNCContext* context)
 {
 
+    #define POST_EJECTION_MOTOR_ENABLE_US 10'000'000 // Time after ejection to enable motors.
+    #define ALIGNMENT_DURATION_US         20'000'000 // Align to target estimate before starting search pattern.
+    #define SEARCH_AMPLITUDE              0.3491f
+    #define SEARCH_FREQUENCY              3.0f
+    #define SEARCH_RATE                   0.1745f
+    #define REACTION_WHEEL_INERTIA        0.01f // TODO: Get actual value for this.
+
     if (!context)
         sus;
 
@@ -458,28 +465,17 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     // TODO.
     //
 
-    u32     time_to_start_us = 10'000'000;  // time after ejection to enable motors
-    u32     time_to_align_us = 20'000'000;  // time to align to target estimate before starting search pattern
-
-    u32     time_since_ejection_us = input.current_timestamp_us - input.ejection_timestamp_us;              // time since ejection
-    u32     time_since_target_lost_us = input.current_timestamp_us - context->target_lost_timestamp_us;     // time since target lost
-    u32     time_since_target_found_us = input.current_timestamp_us - context->target_found_timestamp_us;   // time since target found
-
-    f32     search_rate = 0.1745f; // search rate in radians per second (10 degrees per second)
-    f32     reaction_wheel_inertia = 0.01f;     // reaction wheel inertia (kg*m^2)
-    // TODO: Get actual value for this.
-
-    f32 a = 0.3491f; // search pattern amplitude in radians (20 degrees)
-    f32 b = 3.0f;  // search pattern frequency (3 pitch oscillations per yaw revolution)
+    u32 time_since_ejection_us     = input.current_timestamp_us - input.ejection_timestamp_us;
+    u32 time_since_target_lost_us  = input.current_timestamp_us - context->target_lost_timestamp_us;
+    u32 time_since_target_found_us = input.current_timestamp_us - context->target_found_timestamp_us;
 
     enum GNCOperationMode operation_mode = {0};
 
-    struct Matrix_6x1 state = {0};              // initialize state vector
-    struct Matrix_3x1 rates_target = {0};       // initialize target rates, default rates set to zero
-    struct Quaternion quaternion_target = {0};  // initialize target quaternion
-    struct Matrix_3x1 rates_error = {0};        // initialize error rates
+    struct Matrix_6x1 state             = {0};
+    struct Matrix_3x1 rates_target      = {0};
+    struct Quaternion quaternion_target = {0};
+    struct Matrix_3x1 rates_error       = {0};
 
-    // Convert to quaternion
     struct Quaternion quaternion_current =
         (struct Quaternion)
         {
@@ -509,7 +505,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     // TODO.
     //
 
-    if (time_since_ejection_us < time_to_start_us)
+    if (time_since_ejection_us < POST_EJECTION_MOTOR_ENABLE_US)
     {
 
         // Motors Disabled
@@ -518,7 +514,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
         operation_mode = GNCOperationMode_ejection;
 
     }
-    else if (time_since_ejection_us < (time_to_start_us + time_to_align_us))
+    else if (time_since_ejection_us < (POST_EJECTION_MOTOR_ENABLE_US + ALIGNMENT_DURATION_US))
     {
         // Align to intial target
         // TODO: Send VMKMD ON
@@ -544,7 +540,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     {
         if (!context->target_found)
         {
-            if (time_since_target_lost_us < time_to_align_us)
+            if (time_since_target_lost_us < ALIGNMENT_DURATION_US)
             {
                 // Align to intial target
                 operation_mode = GNCOperationMode_alignment;
@@ -562,18 +558,18 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
                         (struct EulerZYX)
                         {
                             .yaw   = euler_current.yaw, // yaw doesn't matter since we're just spinning about D axis
-                            .pitch = a*arm_sin_f32(b * (f32) input.current_timestamp_us / 1'000'000.0f), // oscillate pitch to create search pattern
+                            .pitch = SEARCH_AMPLITUDE *arm_sin_f32(SEARCH_FREQUENCY * (f32) input.current_timestamp_us / 1'000'000.0f), // oscillate pitch to create search pattern
                             .roll  = 0.0f,
                         }
                     );
 
-                rates_target.rows[2][0] = search_rate;  // search rate
+                rates_target.rows[2][0] = SEARCH_RATE;
             }
         }
         else
         {
             // Track Target
-            if (time_since_target_found_us < time_to_align_us)
+            if (time_since_target_found_us < ALIGNMENT_DURATION_US)
             {
                 // Align to target
                 operation_mode = GNCOperationMode_alignment;
@@ -594,7 +590,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
                 // Rotate about down (D) axis
                 operation_mode = GNCOperationMode_search;
 
-                rates_target.rows[2][0] = search_rate; // search rate
+                rates_target.rows[2][0] = SEARCH_RATE;
 
                 quaternion_target =
                     QUATERNION_from_euler_zyx
@@ -644,17 +640,15 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     // TODO: Implement the gain selection logic based on the current state and operation mode.
     //
 
+    // VERY IMPORTANT NOTE:
+    //  - to avoid an additional subtraction operation, gains should be negated
+    //  - for (u = -Kx) -> (gain = -K)
     struct Matrix_3x6 gain = {0};
 
     {
 
-        // VERY IMPORTANT NOTE:
-        //  - to avoid an additional subtraction operation, gains should be negated
-        //  - for (u = -Kx) -> (gain = -K)
-
-        f32 quaternion_threshold_1 = 0.924f; // small angle
-        f32 quaternion_threshold_2 = 0.707f;  // medium angle
-
+        #define ANGLE_THRESHOLD_SMALL  0.924f
+        #define ANGLE_THRESHOLD_MEDIUM 0.707f
 
         switch (operation_mode)
         {
@@ -672,11 +666,11 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
             case GNCOperationMode_alignment:
             {
-                if (quaternion_error.s > quaternion_threshold_1)
+                if (quaternion_error.s > ANGLE_THRESHOLD_SMALL)
                 {
                     //TODO: select small angle gain matrix
                 }
-                else if (quaternion_error.s > quaternion_threshold_2)
+                else if (quaternion_error.s > ANGLE_THRESHOLD_MEDIUM)
                 {
                     //TODO: select medium angle gain matrix
                 }
@@ -689,16 +683,16 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
 
             // Control enabled, search for target
-            //  - Linearize about [~, ~, ~, 15, 15, search_rate]
+            //  - Linearize about [~, ~, ~, 15, 15, SEARCH_RATE]
             //  - Set Q = diag(0, a, a, b, b, c>b) where a, b, c are user-defined parameters
 
             case GNCOperationMode_search:
             {
-                if (quaternion_error.s > quaternion_threshold_1)
+                if (quaternion_error.s > ANGLE_THRESHOLD_SMALL)
                 {
                     //TODO: select small angle gain matrix
                 }
-                else if (quaternion_error.s > quaternion_threshold_2)
+                else if (quaternion_error.s > ANGLE_THRESHOLD_MEDIUM)
                 {
                     //TODO: select medium angle gain matrix
                 }
@@ -727,8 +721,8 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     struct Matrix_3x1 control_torques = {0};
     MATRIX_multiply(&control_torques, &gain, &state); // TODO: Implement the control law to compute the angular accelerations based on the gain and the state.
 
-    context->control_accelerations.rows[0][0] = control_torques.rows[0][0] / reaction_wheel_inertia;
-    context->control_accelerations.rows[1][0] = control_torques.rows[1][0] / reaction_wheel_inertia;
-    context->control_accelerations.rows[2][0] = control_torques.rows[2][0] / reaction_wheel_inertia;
+    context->control_accelerations.rows[0][0] = control_torques.rows[0][0] / REACTION_WHEEL_INERTIA;
+    context->control_accelerations.rows[1][0] = control_torques.rows[1][0] / REACTION_WHEEL_INERTIA;
+    context->control_accelerations.rows[2][0] = control_torques.rows[2][0] / REACTION_WHEEL_INERTIA;
 
 }
