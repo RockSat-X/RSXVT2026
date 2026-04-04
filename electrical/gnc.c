@@ -383,116 +383,15 @@ struct GNCInput
 
 };
 
-#include "GNCContext.meta"
-/* #meta
-
-    import deps.stpy.pxd.pxd as pxd
-    import builtins
-
-    # This structure contains stuff that `GNC_update` will use to figure out what to do,
-    # and ultimately produce an updated value of `angular_accelerations` that the caller
-    # will use to update the stepper motors.
-    #
-    # The only value the caller cares about is `angular_accelerations`; everything else
-    # is up to us to modify and use at our discretion.
-
-    FIELDS = pxd.SimpleNamespaceTable(
-        ('name'                     , 'type'             , 'format'),
-        ('initialized'              , 'b32'              , None    ),
-        ('control_accelerations'    , 'struct Matrix_3x1', ...     ),
-        ('target_found'             , 'b32'              , ...     ),
-        ('previous_target_found'    , 'b32'              , ...     ),
-        ('target_conflict_count'    , 'i32'              , ...     ),
-        ('target_lost_timestamp_us' , 'u32'              , "%u us" ),
-        ('target_found_timestamp_us', 'u32'              , "%u us" ),
-    )
-
-    with Meta.enter('struct GNCContext'):
-        for field in FIELDS:
-            Meta.line(f'''
-                {field.type} {field.name};
-            ''')
-
-
-
-    # Everything here below is just so we can print out the data in the `GNCContext`
-    # structure in a nice looking output; see `DemoGNC` for its usage.
-
-    with Meta.enter('''
-        static void
-        stlink_tx_GNCContext(struct GNCContext context)
-    '''):
-
-        format_string_argument_pairs = []
-
-        for field in FIELDS:
-
-            format_string = field.format
-            argument      = f'context.{field.name}'
-
-            if format_string is ...:
-
-                match field.type:
-
-                    case None:
-                        format_string = None
-                        argument      = None
-
-                    case 'i8' | 'i16' | 'i32' | 'i64':
-                        format_string = '%d'
-                        argument      = f'context.{field.name}'
-
-                    case 'u8' | 'u16' | 'u32' | 'u64':
-                        format_string = '%u'
-                        argument      = f'context.{field.name}'
-
-                    case 'b8' | 'b16' | 'b32' | 'b64':
-                        format_string = '%s'
-                        argument      = f'context.{field.name} ? "true " : "false"'
-
-                    case 'f32' | 'f64':
-                        format_string = '%f'
-                        argument      = f'context.{field.name}'
-
-                    case 'struct Matrix_3x1':
-                        format_string = '< (%f) (%f) (%f) >'
-                        argument      = (
-                            f'context.{field.name}.rows[0][0], '
-                            f'context.{field.name}.rows[1][0], '
-                            f'context.{field.name}.rows[2][0]'
-                        )
-
-                    case 'struct Quaternion':
-                        format_string = '(%f) + (%f) i + (%f) j + (%f) k'
-                        argument      = (
-                            f'context.{field.name}.s, '
-                            f'context.{field.name}.i, '
-                            f'context.{field.name}.j, '
-                            f'context.{field.name}.k'
-                        )
-
-                    case idk:
-                        raise NotImplementedError(f"Unhandled formatting for field's type: {repr(field)}.")
-
-            format_string_argument_pairs += [(format_string, argument)]
-
-        whole_format_string = ' | '.join(
-            f'.{field.name} = {format_string}'
-            for field, (format_string, argument) in zip(FIELDS, format_string_argument_pairs)
-            if format_string is not None
-        )
-
-        whole_argument = ', '.join(
-            argument
-            for format_string, argument in format_string_argument_pairs
-            if format_string is not None
-        )
-
-        Meta.line(f'''
-            stlink_tx("{whole_format_string}\\n", {whole_argument});
-        ''')
-
-*/
+struct GNCContext
+{
+    b32               initialized;
+    struct Matrix_3x1 angular_accelerations;
+    b32               target_found;
+    i32               target_conflict_count;
+    u32               target_lost_timestamp_us;
+    struct Quaternion desired_orientation;
+};
 
 static void
 GNC_update(const struct GNCInput input, struct GNCContext* context)
