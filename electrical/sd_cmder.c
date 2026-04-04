@@ -300,6 +300,8 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
 
     // Handle the interrupt event.
 
+    REPROCESS_INTERRUPT_EVENT:;
+
     switch (cmder->state)
     {
 
@@ -684,13 +686,31 @@ _SDCmder_iterate(SDMMC_TypeDef* SDMMC, struct SDCmder* cmder)
                 }
             } break;
 
+
+
+            // TODO This can happen if we were too slow to process the interrupt event.
+            //      There should probably be a cleaner control-flow way of handling this.
+
+            case SDMMCInterruptEvent_completed_transfer:
+            {
+
+                if (!cmder->total_blocks_to_transfer)
+                    bug; // Should've only completed a transfer when there was an actual transfer...
+
+                cmder->state = SDCmderState_undergoing_data_transfer_of_data_blocks;
+
+                goto REPROCESS_INTERRUPT_EVENT;
+
+            } break;
+
+
+
             case SDMMCInterruptEvent_command_sent_with_no_response_expected : bug;
             case SDMMCInterruptEvent_command_sent_with_good_response        : bug;
             case SDMMCInterruptEvent_command_timeout                        : bug;
             case SDMMCInterruptEvent_command_with_bad_crc                   : bug;
             case SDMMCInterruptEvent_cmd12_aborted_data_transfer            : bug;
-            case SDMMCInterruptEvent_completed_transfer                     : bug;
-            case SDMMCInterruptEvent_data_timeout                           : bug;
+            case SDMMCInterruptEvent_data_timeout                           : return SDCmderIterateResult_card_glitch; // @/`SD Bus Anomalies`.
             case SDMMCInterruptEvent_data_with_bad_crc                      : bug;
             default                                                         : bug;
 

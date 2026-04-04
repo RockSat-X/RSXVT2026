@@ -1,16 +1,16 @@
 #define STEPPER_ENABLE_DELAY_US          500'000
 #define STEPPER_VELOCITY_UPDATE_US       20'000 // @/`Sequence Angular Accelerations Delta Time`.
 #define STEPPER_UART_TIME_MARGIN_US      2'000
-#define STEPPER_RING_BUFFER_LENGTH       8      // TODO Determine latency.
+#define STEPPER_RING_BUFFER_LENGTH       8
 #define SPI_BLOCK_SIZE                   64     // @/`OpenMV SPI Block Size`.
 #define SPI_RECEPTION_RING_BUFFER_LENGTH 32
 #define WATCHDOG_DURATION_US             (10 * 60'000'000)
-#define MAX_ANGULAR_ACCELERATION         (200.0f)
-#define MAX_ANGULAR_VELOCITY             (2000.0f * 2.0f * PI / 60.0f)
+#define MAX_ANGULAR_ACCELERATION         (100.0f)
+#define MAX_ANGULAR_VELOCITY             (900.0f * 2.0f * PI / 60.0f)
 #define GOD_MODE                         true
 #define CONTROLLER_ENABLE                true
-#define VN100_ENABLE                     true
-#define OPENMV_ENABLE                    true
+#define VN100_ENABLE                     false
+#define OPENMV_ENABLE                    false
 #define ESP32_ENABLE                     true
 #define WATCHDOG_ENABLE                  true
 #define TRANSMIT_TV                      false
@@ -198,7 +198,7 @@ enum DiagnosticLEDBehavior : u32
 
 */
 
-FREERTOS_TASK(diagnostics, 1) // TODO Duplicative.
+FREERTOS_TASK(diagnostics, 1)
 {
 
     u32 current_flags = 0;
@@ -625,7 +625,7 @@ FREERTOS_TASK(controller, 0)
     )
 
     messages = [
-        f'${text}*{functools.reduce(lambda x, y: x^ord(y), text, 0):02X}'
+        f'${text}*{functools.reduce(lambda x, y: x^ord(y), text, 0):02X}\\n'
         for name, text in COMMANDS
     ]
 
@@ -635,7 +635,7 @@ FREERTOS_TASK(controller, 0)
         (
             f'VN100Command_{name}',
             ('message', f'(const u8*) "{message}"'),
-            ('length' , len(message)),
+            ('length' , f'sizeof("{message}") - 1'),
         )
         for (name, text), message in zip(COMMANDS, messages)
     ))
@@ -780,6 +780,8 @@ static enum VN100AwaitCommandResult : u32
 vn100_await_command(enum VN100Command command)
 {
 
+    while (UXART_rx(UXARTHandle_vn100, nullptr));
+
     UXART_tx_bytes
     (
         UXARTHandle_vn100,
@@ -808,12 +810,12 @@ vn100_await_command(enum VN100Command command)
             {
 
                 b32 matching_response =
-                    response_length == VN100Command_TABLE[command].length &&
+                    response_length == VN100Command_TABLE[command].length - 1 &&
                     !memcmp
                     (
                         response_buffer,
                         VN100Command_TABLE[command].message,
-                        (u32) VN100Command_TABLE[command].length
+                        (u32) VN100Command_TABLE[command].length - 1
                     );
 
                 if (matching_response)
@@ -1428,8 +1430,7 @@ FREERTOS_TASK(openmv, 0)
 
             static_assert(sizeof(struct OpenMVPacket) == sizeof(struct SPIBlock));
 
-            u32                  current_timestamp_us = TIMEKEEPING_microseconds();
-            struct OpenMVPacket* packet               = (struct OpenMVPacket*) RingBuffer_reading_pointer(SPI_reception(SPIHandle_openmv));
+            struct OpenMVPacket* packet = (struct OpenMVPacket*) RingBuffer_reading_pointer(SPI_reception(SPIHandle_openmv));
 
             if (packet)
             {
@@ -1439,7 +1440,7 @@ FREERTOS_TASK(openmv, 0)
                 if (packet->sequence_number == 0) // @/`OpenMV Sequence Number`.
                 {
 
-                    most_recent_gnc_packet_timestamp_us = current_timestamp_us;
+                    most_recent_gnc_packet_timestamp_us = TIMEKEEPING_microseconds();
 
                     if (!RingBuffer_push(&CONTROLLER.openmv_gnc_packets, &packet->gnc))
                     {
@@ -1490,7 +1491,7 @@ FREERTOS_TASK(openmv, 0)
                     sus;
 
             }
-            else if (current_timestamp_us - most_recent_gnc_packet_timestamp_us < 5'000'000)
+            else if (TIMEKEEPING_microseconds() - most_recent_gnc_packet_timestamp_us < 5'000'000)
             {
                 FREERTOS_delay_ms(1); // Keep waiting...
             }
@@ -1694,9 +1695,7 @@ FREERTOS_TASK(esp32, 0)
                     most_recent_response_timestamp_us = TIMEKEEPING_microseconds();
                 }
 
-                u32 current_timestamp_us = TIMEKEEPING_microseconds();
-
-                if (current_timestamp_us - most_recent_response_timestamp_us >= 2'000'000)
+                if (TIMEKEEPING_microseconds() - most_recent_response_timestamp_us >= 2'000'000)
                 {
                     break; // It's been too long since we last heard from the ESP32...
                 }
@@ -1778,6 +1777,8 @@ FREERTOS_TASK(logger, 0)
 
 
         // Try setting up the file-system.
+
+        stlink_tx("Trying to initialize file-system...\n");
 
         enum FileSystemReinitResult reinit_result =
             FILESYSTEM_reinit
@@ -1863,7 +1864,6 @@ FREERTOS_TASK(logger, 0)
 
             // Make the log entry.
 
-            u32                    current_timestamp_us    = TIMEKEEPING_microseconds();
             struct VN100Packet     vn100_packet_data       = {0};
             b32                    vn100_packet_exist      = RingBuffer_pop_to_latest(&LOGGER.vn100_packets, &vn100_packet_data);
             struct OpenMVPacketGNC openmv_gnc_packet_data  = {0};
@@ -1874,7 +1874,7 @@ FREERTOS_TASK(logger, 0)
                 (
                     (char*) working_sectors,
                     sizeof(working_sectors),
-                    "[%u us]"                             "\n"
+                    "[%lu us]"                            "\n"
                     "Ang. accel.    : <%.3f, %.3f, %.3f>" "\n"
                     "Ang. velocity  : <%.3f, %.3f, %.3f>" "\n"
                     "RPM            : <%.3f, %.3f, %.3f>" "\n"
@@ -1895,7 +1895,7 @@ FREERTOS_TASK(logger, 0)
                     "CV processing  : %d ms"              "\n"
                     "CV confidence  : %d"                 "\n"
                     "\n",
-                    current_timestamp_us,
+                    TIMEKEEPING_microseconds(),
                     CONTROLLER.current_angular_accelerations.values[StepperUnit_axis_x],
                     CONTROLLER.current_angular_accelerations.values[StepperUnit_axis_y],
                     CONTROLLER.current_angular_accelerations.values[StepperUnit_axis_z],
@@ -1972,10 +1972,10 @@ FREERTOS_TASK(logger, 0)
 
             #if !TRANSMIT_TV // Can't conflict with sending image data over ST-Link.
             {
-                if (current_timestamp_us - most_recent_stlink_log_timestamp_us >= 250'000)
+                if (TIMEKEEPING_microseconds() - most_recent_stlink_log_timestamp_us >= 250'000)
                 {
 
-                    most_recent_stlink_log_timestamp_us = current_timestamp_us;
+                    most_recent_stlink_log_timestamp_us = TIMEKEEPING_microseconds();
 
                     stlink_tx
                     (
@@ -2011,10 +2011,10 @@ FREERTOS_TASK(logger, 0)
 
                 case FileSystemSaveResult_success:
                 {
-                    if (current_timestamp_us - most_recent_heartbeat_timestamp_us >= 5'000'000)
+                    if (TIMEKEEPING_microseconds() - most_recent_heartbeat_timestamp_us >= 5'000'000)
                     {
 
-                        most_recent_heartbeat_timestamp_us = current_timestamp_us;
+                        most_recent_heartbeat_timestamp_us = TIMEKEEPING_microseconds();
 
                         xTaskNotify
                         (
@@ -2145,7 +2145,7 @@ FREERTOS_TASK(god, 2)
                 {
                     for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
                     {
-                        CONTROLLER.current_angular_accelerations.values[unit] -= 200.0f;
+                        CONTROLLER.current_angular_accelerations.values[unit] -= MAX_ANGULAR_ACCELERATION;
                     }
                 } break;
 
@@ -2153,7 +2153,7 @@ FREERTOS_TASK(god, 2)
                 {
                     for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
                     {
-                        CONTROLLER.current_angular_accelerations.values[unit] += 200.0f;
+                        CONTROLLER.current_angular_accelerations.values[unit] += MAX_ANGULAR_ACCELERATION;
                     }
                 } break;
 
@@ -2256,16 +2256,7 @@ FREERTOS_TASK(watchdog, 3)
 
 
 
-        // Ensure the vehicle doesn't stay on for too long and drain the battery;
-        // not completely fool-proof since the stepper motor drivers will draw
-        // some current from the batteries even when there's external power supplied,
-        // but should be good enough.
-
-        b32 live_for_too_long = TIMEKEEPING_microseconds() >= WATCHDOG_DURATION_US;
-
-
-
-        // We also need to ensure the vehicle doesn't stay on for long when it's still
+        // We need to ensure the vehicle doesn't stay on for long when it's still
         // docked in the ejection mechanism. This is especially important during sequence
         // testing when the vehicle might be powered on but no ejection will take place.
         //
@@ -2306,16 +2297,12 @@ FREERTOS_TASK(watchdog, 3)
                 TIMEKEEPING_microseconds() - observed_most_recent_transfer_timestamp_us >= 10'000'000
             );
 
-
-
-        // Say farewell.
-
-        if (live_for_too_long || docked_reset)
+        if (docked_reset)
         {
 
             // Indicate that this is why the vehicle is suddenly shut off.
 
-            BUZZER_play(live_for_too_long ? BuzzerTune_sleeping : BuzzerTune_starwars);
+            BUZZER_play(BuzzerTune_starwars);
             while (BUZZER_current_tune());
 
 
@@ -2378,12 +2365,10 @@ INTERRUPT_I2Cx_vehicle_interface(enum I2CSlaveCallbackEvent event, u8* data)
             if (!payload_has_valid_data)
             {
 
-                u32 current_timestamp_us = TIMEKEEPING_microseconds();
-
                 atomic_store_explicit
                 (
                     &VEHICLE_INTERFACE.most_recent_transfer_timestamp_us,
-                    current_timestamp_us,
+                    TIMEKEEPING_microseconds(),
                     memory_order_relaxed // No synchronization needed.
                 );
 
