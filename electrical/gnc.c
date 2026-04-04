@@ -35,6 +35,8 @@ struct EulerZYX
     f32 roll;  // X-axis.
 };
 
+struct state
+
 
 
 #pragma GCC diagnostic push
@@ -243,6 +245,74 @@ QUATERNION_to_euler_zyx(struct Quaternion q)
 
 }
 
+// Convert a vector from body frame to NED frame using the quaternion attitude.
+// This function is used to convert the angular rates from body frame to NED frame.
+// This may not be needed.
+vector_from_body_to_NED(struct Quaternion q, struct Matrix_3x1 vector_body)
+{
+    vector_NED.rows[0][0] = vector_body.rows[1][0]*(2*q.i*q.j - 2*q.k*q.s) - vector_body.rows[0][0]*(2*q.j^2 + 2*q.k^2 - 1) + vector_body.rows[2][0]*(2*q.i*q.k + 2*q.j*q.s);
+    vector_NED.rows[1][0] = vector_body.rows[0][0]*(2*q.i*q.j + 2*q.k*q.s) - vector_body.rows[1][0]*(2*q.i^2 + 2*q.k^2 - 1) + vector_body.rows[2][0]*(2*q.j*q.k - 2*q.i*q.s);
+    vector_NED.rows[2][0] = vector_body.rows[0][0]*(2*q.i*q.k - 2*q.j*q.s) - vector_body.rows[2][0]*(2*q.i^2 + 2*q.j^2 - 1) + vector_body.rows[1][0]*(2*q.j*q.k + 2*q.i*q.s);
+}
+
+
+// Select appropriate gain matrix based on the current state and operation mode.
+static useret struct Matrix_3x6
+gain_matrix_select(struct Quaternion quaternion_error, struct Matrix_3x1 rate_error, i32 operation_mode)
+{
+
+    // VERY IMPORTANT NOTE:
+    //  - to avoid an additional subtraction operation, gains should be negated
+    //  - for (u = -Kx) -> (gain = -K)
+
+    quaternion_threshold_1 = 0.924f; // small angle
+    quaternion_threshold_2 = 0.707f;  // medium angle
+
+    struct Matrix_3x6 gain = {0};
+
+    // (1) Alignment: Control enabled, align to target
+    //  - Linearize about [~, ~, ~, 15, 15, 15]
+    //  - Set Q = diag(0, a, a, b, b, b) where a and b are user-defined parameters
+    if (operation_mode == 1)
+    {
+        if quaternion_error.s > quaternion_threshold_1
+        {
+            //TODO: select small angle gain matrix
+        }
+        else if quaternion_error.s > quaternion_threshold_2
+        {
+            //TODO: select medium angle gain matrix
+        }
+        else
+        {
+            //TODO: select large angle gain matrix
+        }
+    }
+
+    // (2) Search: Control enabled, search for target
+    //  - Linearize about [~, ~, ~, 15, 15, search_rate]
+    //  - Set Q = diag(0, a, a, b, b, c>b) where a, b, c are user-defined parameters
+    else if (operation_mode == 2)
+    {
+        if quaternion_error.s > quaternion_threshold_1
+        {
+            //TODO: select small angle gain matrix
+        }
+        else if quaternion_error.s > quaternion_threshold_2
+        {
+            //TODO: select medium angle gain matrix
+        }
+        else
+        {
+            //TODO: select large angle gain matrix
+        }
+    }
+
+    return gain;
+}
+
+
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -340,13 +410,14 @@ struct GNCInput
     # is up to us to modify and use at our discretion.
 
     FIELDS = pxd.SimpleNamespaceTable(
-        ('name'                    , 'type'             , 'format'),
-        ('initialized'             , 'b32'              , None    ),
-        ('angular_accelerations'   , 'struct Matrix_3x1', ...     ),
-        ('target_found'            , 'b32'              , ...     ),
-        ('target_conflict_count'   , 'i32'              , ...     ),
-        ('target_lost_timestamp_us', 'u32'              , "%u us" ),
-        ('desired_orientation'     , 'struct Quaternion', ...     ),
+        ('name'                     , 'type'             , 'format'),
+        ('initialized'              , 'b32'              , None    ),
+        ('control_accelerations'    , 'struct Matrix_3x1', ...     ),
+        ('target_found'             , 'b32'              , ...     ),
+        ('target_conflict_count'    , 'i32'              , ...     ),
+        ('target_lost_timestamp_us' , 'u32'              , "%u us" ),
+        ('target_found_timestamp_us','u32'               , "%u us" ),
+        ('desired_orientation'      , 'struct Quaternion', ...     ),
     )
 
     with Meta.enter('struct GNCContext'):
@@ -436,6 +507,192 @@ struct GNCInput
 
 */
 
+// static void
+// GNC_update(const struct GNCInput input, struct GNCContext* context)
+// {
+
+//     if (!context)
+//         sus;
+
+
+
+//     // See if we need to set some default values for the GNC context.
+
+//     if (!context->initialized)
+//     {
+
+//         // Let's make sure all values are zero instead of potentially any left-over garbage.
+
+//         memzero(context);
+
+
+
+//         // We'll start off as if we lost the target from the moment we have ejected.
+
+//         context->target_found             = false;
+//         context->target_conflict_count    = 0;
+//         context->target_lost_timestamp_us = input.ejection_timestamp_us;
+
+
+
+//         // An actual value will be computed for these fields later on.
+
+//         context->angular_accelerations = (struct Matrix_3x1) {0};
+//         context->desired_orientation   = (struct Quaternion) {0};
+
+
+
+//         // We're done setting the initial values for the rest of the GNC algorithm to work on.
+
+//         context->initialized = true;
+
+//     }
+
+
+
+//     // Apply hesterisis to CVT's target confidence.
+
+//     if (context->target_found)
+//     {
+//         if (input.most_recent_openmv_reading.computer_vision_confidence)
+//         {
+//             context->target_conflict_count = 0; // We still see the target!
+//         }
+//         else if (context->target_conflict_count < 3)
+//         {
+//             context->target_conflict_count += 1; // Hmm, we're losing the target..?
+//         }
+//         else
+//         {
+//             context->target_found             = false; // Target definitely lost!
+//             context->target_conflict_count    = 0;
+//             context->target_lost_timestamp_us = input.current_timestamp_us;
+//         }
+//     }
+//     else
+//     {
+//         if (!input.most_recent_openmv_reading.computer_vision_confidence)
+//         {
+//             context->target_conflict_count = 0; // Target still missing...
+//         }
+//         else if (context->target_conflict_count < 3)
+//         {
+//             context->target_conflict_count += 1; // Oh, we're starting to see the target..?
+//         }
+//         else
+//         {
+//             context->target_found          = true; // Confident we now see the target!
+//             context->target_conflict_count = 0;
+//         }
+//     }
+
+
+
+//     // Determine the orientation the vehicle should have.
+
+//     u32               time_since_ejection_us = input.current_timestamp_us - input.ejection_timestamp_us;
+//     struct Matrix_3x6 gain                   = {0};
+
+//     if (context->target_found)
+//     {
+//         if (input.most_recent_openmv_reading.computer_vision_confidence)
+//         {
+
+//             context->desired_orientation =
+//                 QUATERNION_from_euler_zyx
+//                 (
+//                     (struct EulerZYX)
+//                     {
+//                         .yaw   = input.most_recent_openmv_reading.attitude_yaw,
+//                         .pitch = input.most_recent_openmv_reading.attitude_pitch,
+//                         .roll  = input.most_recent_openmv_reading.attitude_roll,
+//                     }
+//                 );
+
+//             gain =
+//                 (struct Matrix_3x6) // TODO Determine the gain matrix for this situation.
+//                 {
+//                     .rows =
+//                         {
+//                             { 1, 2, 3, 4, 5, 6, },
+//                             { 2, 3, 4, 5, 6, 7, },
+//                             { 3, 4, 5, 6, 7, 8, },
+//                         },
+//                 };
+
+//         }
+//         else
+//         {
+//             gain =
+//                 (struct Matrix_3x6) // TODO Determine the gain matrix for this situation.
+//                 {
+//                     .rows =
+//                         {
+//                             { 1, 2, 3, 4, 5, 6, },
+//                             { 2, 3, 4, 5, 6, 7, },
+//                             { 3, 4, 5, 6, 7, 8, },
+//                         },
+//                 };
+//         }
+//     }
+//     else if (time_since_ejection_us < 20'000'000)
+//     {
+
+//         context->desired_orientation =
+//             QUATERNION_from_euler_zyx
+//             (
+//                 (struct EulerZYX)
+//                 {
+//                     .yaw   = 0.0f, // TODO: Yaw value?
+//                     .pitch = 0.0f, // Reset pitch so we can do the search process.,
+//                     .roll  = 0.0f, // TODO: Roll value?
+//                 }
+//             );
+
+//         gain =
+//             (struct Matrix_3x6) // TODO Determine the gain matrix for this situation.
+//             {
+//                 .rows =
+//                     {
+//                         { 1, 2, 3, 4, 5, 6, },
+//                         { 2, 3, 4, 5, 6, 7, },
+//                         { 3, 4, 5, 6, 7, 8, },
+//                     },
+//             };
+
+//     }
+//     else // Do the process of searching.
+//     {
+
+//         f32 t = 0.0f;
+
+//         context->desired_orientation =
+//             QUATERNION_from_euler_zyx
+//             (
+//                 (struct EulerZYX)
+//                 {
+//                     .yaw   = t, // TODO: Function of t?
+//                     .pitch = arm_sin_f32(t), // TODO: Function of t?
+//                     .roll  = 0, // TODO: Function of t?
+//                 }
+//             );
+
+//         gain =
+//             (struct Matrix_3x6) // TODO Determine the gain matrix for this situation.
+//             {
+//                 .rows =
+//                     {
+//                         { 1, 2, 3, 4, 5, 6, },
+//                         { 2, 3, 4, 5, 6, 7, },
+//                         { 3, 4, 5, 6, 7, 8, },
+//                     },
+//             };
+
+//     }
+
+// }
+
+
 static void
 GNC_update(const struct GNCInput input, struct GNCContext* context)
 {
@@ -444,179 +701,174 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
         sus;
 
 
+    u32     time_since_ejection_us = input.current_timestamp_us - input.ejection_timestamp_us;
+    u32     time_since_target_lost_us = input.current_timestamp_us - context->target_lost_timestamp_us;
+    u32     time_since_target_found_us = input.current_timestamp_us - context->target_found_timestamp_us;
+    u32     time_to_start_us = 10'000'000;
+    u32     time_to_align_us = 20'000'000;
+    u32     search_rate = 0.17453292519943296f; // 10 degrees per second in radians per second.
+    u32     rotor_inertia = 0.01f; // TODO: Get actual value for this.
 
-    // See if we need to set some default values for the GNC context.
 
-    if (!context->initialized)
+    // Opertaion modes:
+    // (0) Ejection: Control disabled, tracking only, obtain heading estimate (VNKMD OFF)
+    // (1) Alignment: Control enabled, align to target
+    //      -> Target Rates set to zero
+    //      -> Drive pitch and roll error to zero, no yaw error control
+    // (2) Search: Control enabled, search for target
+    //      -> Target yaw rate set to constant
+    //      -> Drive pitch and roll erros to zero, no yaw error control
+    i32     operation_mode = 0; 
+    
+    struct Matrix_6x1 state = {0}; // TODO: Fill in the state vector with the actual values we need for the GNC algorithm to work on.
+    struct Matrix_6x3 gain  = {0}; // TODO: Determine the gain matrix for this situation.
+    struct Matrix_3x1 rates_target = {0}; // TODO: Determine the target rates based on the desired orientation and the current orientation.
+    struct Quaternion quaternion_error = {0}; // TODO: Compute the quaternion error between the current orientation and the desired orientation.
+    struct Quaternion quaternion_target = {0}; // TODO: Determine the target quaternion based on the desired orientation (which is determined by the CVT readings if we have a target, or some search pattern if we don't).
+    struct Matrix_3x1 rates_error = {0}; // TODO: Determine the error in the target rates based on the current rates and the target rates.
+    struct Matrix_3x1 control_torques = {0}; // TODO: Implement the control law to compute the angular accelerations based on the state and the gain.
+
+    // User-defined estimate for initial target
+    struct Quaternion quaternion_intial_target = 
+        (struct Quaternion)
+        {
+            .s = input.most_recent_imu.QuatS,
+            .i = input.most_recent_imu.QuatX,
+            .j = input.most_recent_imu.QuatY,
+            .k = input.most_recent_imu.QuatZ,
+        };
+
+    // Convert quaternion 
+    struct Quaternion quaternion_current =
+        (struct Quaternion)
+        {
+            .s = input.most_recent_imu.QuatS,
+            .i = input.most_recent_imu.QuatX,
+            .j = input.most_recent_imu.QuatY,
+            .k = input.most_recent_imu.QuatZ,
+        };
+
+    struct Matrix_3x1 rates_current_body = {0};
+    rates_current_body.rows[0][0] = input.most_recent_imu.GyroX;
+    rates_current_body.rows[1][0] = input.most_recent_imu.GyroY;
+    rates_current_body.rows[2][0] = input.most_recent_imu.GyroZ;
+
+    struct Matrix_3x1 rates_current_NED = vector_from_body_to_NED(quaternion_current, rates_current_body);
+
+    
+    if (time_since_ejection_us < time_to_start_us)
     {
-
-        // Let's make sure all values are zero instead of potentially any left-over garbage.
-
-        memzero(context);
-
-
-
-        // We'll start off as if we lost the target from the moment we have ejected.
-
-        context->target_found             = false;
-        context->target_conflict_count    = 0;
-        context->target_lost_timestamp_us = input.ejection_timestamp_us;
-
-
-
-        // An actual value will be computed for these fields later on.
-
-        context->angular_accelerations = (struct Matrix_3x1) {0};
-        context->desired_orientation   = (struct Quaternion) {0};
-
-
-
-        // We're done setting the initial values for the rest of the GNC algorithm to work on.
-
-        context->initialized = true;
-
+        // Motors Disabled
+        // Send VNKMD OFF
+        operation_mode = 0;
     }
-
-
-
-    // Apply hesterisis to CVT's target confidence.
-
-    if (context->target_found)
+    else if (time_since_ejection_us < (time_to_start_us + time_to_align_us))
     {
-        if (input.most_recent_openmv_reading.computer_vision_confidence)
-        {
-            context->target_conflict_count = 0; // We still see the target!
-        }
-        else if (context->target_conflict_count < 3)
-        {
-            context->target_conflict_count += 1; // Hmm, we're losing the target..?
-        }
-        else
-        {
-            context->target_found             = false; // Target definitely lost!
-            context->target_conflict_count    = 0;
-            context->target_lost_timestamp_us = input.current_timestamp_us;
-        }
+        // Enable Motors
+        // Send VMKMD ON
+        // Align to intial target
+        // Operation Mode = 1
+        // TODO: Implement the alignment logic and operation mode setting.
+
+        operation_mode = 1;
+        quaternion_target = quaternion_intial_target;
     }
     else
     {
-        if (!input.most_recent_openmv_reading.computer_vision_confidence)
+        if (!context->target_found)
         {
-            context->target_conflict_count = 0; // Target still missing...
-        }
-        else if (context->target_conflict_count < 3)
-        {
-            context->target_conflict_count += 1; // Oh, we're starting to see the target..?
-        }
+            if (time_since_target_lost_us < time_to_align_us)
+            {
+                // Align to intial target
+                // Operation Mode = 1
+                operation_mode = 1;
+                
+            }
+            else
+            {
+                // Search for Target
+                operation_mode = 2;
+                rates_target.rows[2][0] = search_rate; // Search pattern: Yaw rate is constant.
+    
+
+                quaternion_target =
+                    QUATERNION_from_euler_zyx
+                    (
+                        (struct EulerZYX)
+                        {
+                            .yaw   = 0.0f, 
+                            .pitch = 0.0f, 
+                            .roll  = 0.0f, 
+                        }
+                    );
+            }
         else
         {
-            context->target_found          = true; // Confident we now see the target!
-            context->target_conflict_count = 0;
-        }
-    }
-
-
-
-    // Determine the orientation the vehicle should have.
-
-    u32               time_since_ejection_us = input.current_timestamp_us - input.ejection_timestamp_us;
-    struct Matrix_3x6 gain                   = {0};
-
-    if (context->target_found)
-    {
-        if (input.most_recent_openmv_reading.computer_vision_confidence)
-        {
-
-            context->desired_orientation =
-                QUATERNION_from_euler_zyx
-                (
-                    (struct EulerZYX)
-                    {
-                        .yaw   = input.most_recent_openmv_reading.attitude_yaw,
-                        .pitch = input.most_recent_openmv_reading.attitude_pitch,
-                        .roll  = input.most_recent_openmv_reading.attitude_roll,
-                    }
-                );
-
-            gain =
-                (struct Matrix_3x6) // TODO Determine the gain matrix for this situation.
-                {
-                    .rows =
-                        {
-                            { 1, 2, 3, 4, 5, 6, },
-                            { 2, 3, 4, 5, 6, 7, },
-                            { 3, 4, 5, 6, 7, 8, },
-                        },
-                };
-
-        }
-        else
-        {
-            gain =
-                (struct Matrix_3x6) // TODO Determine the gain matrix for this situation.
-                {
-                    .rows =
-                        {
-                            { 1, 2, 3, 4, 5, 6, },
-                            { 2, 3, 4, 5, 6, 7, },
-                            { 3, 4, 5, 6, 7, 8, },
-                        },
-                };
-        }
-    }
-    else if (time_since_ejection_us < 20'000'000)
-    {
-
-        context->desired_orientation =
-            QUATERNION_from_euler_zyx
-            (
-                (struct EulerZYX)
-                {
-                    .yaw   = 0.0f, // TODO: Yaw value?
-                    .pitch = 0.0f, // Reset pitch so we can do the search process.,
-                    .roll  = 0.0f, // TODO: Roll value?
-                }
-            );
-
-        gain =
-            (struct Matrix_3x6) // TODO Determine the gain matrix for this situation.
+            // Track Target
+         
+            if (time_since_target_found_us < time_to_align_us)
             {
-                .rows =
-                    {
-                        { 1, 2, 3, 4, 5, 6, },
-                        { 2, 3, 4, 5, 6, 7, },
-                        { 3, 4, 5, 6, 7, 8, },
-                    },
-            };
-
-    }
-    else // Do the process of searching.
-    {
-
-        f32 t = 0.0f;
-
-        context->desired_orientation =
-            QUATERNION_from_euler_zyx
-            (
-                (struct EulerZYX)
-                {
-                    .yaw   = t, // TODO: Function of t?
-                    .pitch = arm_sin_f32(t), // TODO: Function of t?
-                    .roll  = 0, // TODO: Function of t?
-                }
-            );
-
-        gain =
-            (struct Matrix_3x6) // TODO Determine the gain matrix for this situation.
+                // Align to target
+                operation_mode = 1;
+                quaternion_target = 
+                    Quaternion_from_euler_zyx
+                    (
+                        (struct EulerZYX)
+                        {
+                            .yaw   = input.most_recent_openmv_reading.attitude_yaw,
+                            .pitch = input.most_recent_openmv_reading.attitude_pitch,
+                            .roll  = input.most_recent_openmv_reading.attitude_roll,
+                        }
+                    );
+                // gain_select = no yaw error control, min roll error control, max pitch error control
+            }
+            else
             {
-                .rows =
-                    {
-                        { 1, 2, 3, 4, 5, 6, },
-                        { 2, 3, 4, 5, 6, 7, },
-                        { 3, 4, 5, 6, 7, 8, },
-                    },
-            };
+                // Rotate about down (D) axis
+                operation_mode = 2;
+                rates_target.rows[2][0] = search_rate; // Search pattern: Yaw rate is constant.
+               
+                quaternion_target = 
+                    Quaternion_from_euler_zyx
+                    (
+                        (struct EulerZYX)
+                        {
+                            .yaw   = input.most_recent_openmv_reading.attitude_yaw,
+                            .pitch = input.most_recent_openmv_reading.attitude_pitch,
+                            .roll  = input.most_recent_openmv_reading.attitude_roll,
+                        }
+                    );
+                    
+                // gain_select = no yaw error control, min roll error control, min pitch error control
+                // max yaw rate control, min roll rate control, min pitch rate control
+            }
+
+
+        }
+
 
     }
 
+    quaternion_error = Quaternion_multiply(quaternion_current, QUATERNION_conjugate(quaternion_target));
+    rates_error.rows[1][0] = rates_target.rows[0][0] - rates_current_body.rows[0][0];
+    rates_error.rows[2][0] = rates_target.rows[1][0] - rates_current_body.rows[1][0];
+    rates_error.rows[3][0] = rates_target.rows[2][0] - rates_current_body.rows[2][0];
+
+
+    state.rows[0][0] = quaternion_error.i;
+    state.rows[1][0] = quaternion_error.j;
+    state.rows[2][0] = quaternion_error.k;
+    state.rows[3][0] = rates_error.rows[0][0];
+    state.rows[4][0] = rates_error.rows[1][0];
+    state.rows[5][0] = rates_error.rows[2][0];
+
+    gain = gain_select(quaternion_error, rates_error, operation_mode); // TODO: Implement the gain selection logic based on the current state and operation mode.
+
+    control_torques = MATRIX_multiply(gain, state); // TODO: Implement the control law to compute the angular accelerations based on the gain and the state.
+
+    context->control_accelerations.rows[0][0] = control_torques.rows[0][0] / rotor_inertia;
+    context->control_accelerations.rows[1][0] = control_torques.rows[1][0] / rotor_inertia;
+    context->control_accelerations.rows[2][0] = control_torques.rows[2][0] / rotor_inertia;
+
+    return context->control_accelerations;
 }
