@@ -411,10 +411,11 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
     ////////////////////////////////////////
     //
-    // TODO.
+    // Determine the desired vehicle
+    // orientation and angular rates.
     //
 
-    struct Quaternion quaternion_current =
+    struct Quaternion current_orientation =
         (struct Quaternion)
         {
             .s = input.most_recent_imu.QuatS,
@@ -423,203 +424,204 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
             .k = input.most_recent_imu.QuatZ,
         };
 
-    struct Quaternion quaternion_target = {0};
-    struct Matrix_3x1 rates_target      = {0};
+    struct Quaternion desired_orientation = {0};
+    struct Matrix_3x1 desired_rates       = {0};
 
-    for (b32 yield = false; !yield;)
+    switch (context->operation_mode)
     {
-        switch (context->operation_mode)
+
+
+
+        ////////////////////////////////////////
+        //
+        // Right after the vehicle has ejected,
+        // the motors need to be kept disabled
+        // so that the VN-100 can obtain an
+        // accurate heading estimate without any
+        // magnetic interference.
+        //
+        ////////////////////////////////////////
+
+        case GNCOperationMode_obtaining_heading_estimate:
         {
-
-
-
-            ////////////////////////////////////////
-            //
-            // Right after the vehicle has ejected,
-            // the motors need to be kept disabled
-            // so that the VN-100 can obtain an
-            // accurate heading estimate without any
-            // magnetic interference.
-            //
-            ////////////////////////////////////////
-
-            case GNCOperationMode_obtaining_heading_estimate:
+            if (input.current_timestamp_us - input.ejection_timestamp_us < 10'000'000)
             {
-                if (input.current_timestamp_us - input.ejection_timestamp_us < 10'000'000)
-                {
 
-                    // We're still letting the VN-100 get a heading estimate.
-                    // It'll be the responsibility of the caller to ensure
-                    // that the motors are disabled and that the VNKMD-OFF
-                    // command has been sent to the VN-100.
+                // We're still letting the VN-100 get a heading estimate.
+                // It'll be the responsibility of the caller to ensure
+                // that the motors are disabled and that the VNKMD-OFF
+                // command has been sent to the VN-100.
 
-                    yield = true; // TODO No `quaternion_target` and `rates_target`?
+                // TODO No `desired_orientation` and `desired_rates`?
 
-                }
-                else
-                {
-
-                    // We can now move onto actually using the stepper motors.
-                    // It'll be the responsibility of the caller to ensure
-                    // that the VNKMD-ON command gets sent to the VN-100
-                    // before enabling the motors.
-
-                    context->operation_mode = GNCOperationMode_stabilizing;
-
-                }
-            } break;
-
-
-
-            ////////////////////////////////////////
-            //
-            // The vehicle might be tumbling a bit
-            // after it has ejected, so we're going
-            // so spend some time here undoing that.
-            //
-            ////////////////////////////////////////
-
-            case GNCOperationMode_stabilizing:
+            }
+            else
             {
-                if (input.current_timestamp_us - input.ejection_timestamp_us < 30'000'000)
-                {
 
-                    // To stabilize, we want to get rid of
-                    // any pitch or roll; yaw is fine.
+                // We can now move onto actually using the stepper motors.
+                // It'll be the responsibility of the caller to ensure
+                // that the VNKMD-ON command gets sent to the VN-100
+                // before enabling the motors.
 
-                    quaternion_target =
-                        QUATERNION_from_euler_zyx
-                        (
-                            (struct EulerZYX)
-                            {
-                                .yaw   = QUATERNION_to_euler_zyx(quaternion_current).yaw,
-                                .pitch = 0.0f,
-                                .roll  = 0.0f,
-                            }
-                        );
+                context->operation_mode = GNCOperationMode_stabilizing;
 
-                    yield = true;
+                // TODO No `desired_orientation` and `desired_rates`?
 
-                }
-                else // We spent enough time stabilizing; move onto finding the horizon.
-                {
-                    context->operation_mode = GNCOperationMode_searching;
-                }
-            } break;
+            }
+        } break;
 
 
 
-            ////////////////////////////////////////
-            //
-            // We're currently not confident we have
-            // found the horizon yet, so we're going
-            // to do some motions in hopes that the
-            // OpenMV will eventually pick something up.
-            //
-            ////////////////////////////////////////
+        ////////////////////////////////////////
+        //
+        // The vehicle might be tumbling a bit
+        // after it has ejected, so we're going
+        // so spend some time here undoing that.
+        //
+        ////////////////////////////////////////
 
-            case GNCOperationMode_searching:
+        case GNCOperationMode_stabilizing:
+        {
+            if (input.current_timestamp_us - input.ejection_timestamp_us < 30'000'000)
             {
-                if (context->target_found)
-                {
 
-                    // Got something! Move onto aligning the vehicle
-                    // towards the target that's hopefully the horizon.
+                // To stabilize, we want to get rid of
+                // any pitch or roll; yaw is fine.
 
-                    context->operation_mode = GNCOperationMode_aligning;
-
-                }
-                else
-                {
-
-                    // Here we want to reorientate the vehicle as a
-                    // function of `t` over time in a control manner.
-
-                    quaternion_target =
-                        QUATERNION_from_euler_zyx
-                        (
-                            (struct EulerZYX)
-                            {
-                                .yaw   = QUATERNION_to_euler_zyx(quaternion_current).yaw,
-                                .pitch = 0.3491f * arm_sin_f32(3.0f * (f32) input.current_timestamp_us / 1'000'000.0f),
-                                .roll  = 0.0f,
-                            }
-                        );
-
-                    rates_target =
-                        (struct Matrix_3x1)
+                desired_orientation =
+                    QUATERNION_from_euler_zyx
+                    (
+                        (struct EulerZYX)
                         {
-                            .rows =
-                                {
-                                    { 0.0f        },
-                                    { 0.0f        },
-                                    { SEARCH_RATE },
-                                },
-                        };
+                            .yaw   = QUATERNION_to_euler_zyx(current_orientation).yaw,
+                            .pitch = 0.0f,
+                            .roll  = 0.0f,
+                        }
+                    );
 
-                    yield = true;
-
-                }
-            } break;
-
-
-
-            ////////////////////////////////////////
-            //
-            // We've found the target is our goal is
-            // now to align the vehicle towards it.
-            //
-            ////////////////////////////////////////
-
-            case GNCOperationMode_aligning:
+            }
+            else // We spent enough time stabilizing; move onto finding the horizon.
             {
-                if (context->target_found)
-                {
 
-                    // Keep aligning towards the horizon according
-                    // to whatever the OpenMV is saying.
+                context->operation_mode = GNCOperationMode_searching;
 
-                    quaternion_target =
-                        QUATERNION_from_euler_zyx
-                        (
-                            (struct EulerZYX)
-                            {
-                                .yaw   = input.most_recent_openmv_reading.attitude_yaw,
-                                .pitch = input.most_recent_openmv_reading.attitude_pitch,
-                                .roll  = input.most_recent_openmv_reading.attitude_roll,
-                            }
-                        );
+                // TODO No `desired_orientation` and `desired_rates`?
 
-                    yield = true;
+            }
+        } break;
 
-                }
-                else if (input.current_timestamp_us - context->target_lost_timestamp_us < 10'000'000)
-                {
 
-                    // The OpenMV has lost the horizon target, but instead of
-                    // immediately switching to searching again, we're going
-                    // to try hold at the last known location for a bit.
 
-                    quaternion_target =
-                        (struct Quaternion)
+        ////////////////////////////////////////
+        //
+        // We're currently not confident we have
+        // found the horizon yet, so we're going
+        // to do some motions in hopes that the
+        // OpenMV will eventually pick something up.
+        //
+        ////////////////////////////////////////
+
+        case GNCOperationMode_searching:
+        {
+            if (context->target_found)
+            {
+
+                // Got something! Move onto aligning the vehicle
+                // towards the target that's hopefully the horizon.
+
+                context->operation_mode = GNCOperationMode_aligning;
+
+            }
+            else
+            {
+
+                // Here we want to reorientate the vehicle as a
+                // function of `t` over time in a control manner.
+
+                desired_orientation =
+                    QUATERNION_from_euler_zyx
+                    (
+                        (struct EulerZYX)
                         {
-                            // TODO: get this from buffer
-                        };
+                            .yaw   = QUATERNION_to_euler_zyx(current_orientation).yaw,
+                            .pitch = 0.3491f * arm_sin_f32(3.0f * (f32) input.current_timestamp_us / 1'000'000.0f),
+                            .roll  = 0.0f,
+                        }
+                    );
 
-                    yield = true;
+                desired_rates =
+                    (struct Matrix_3x1)
+                    {
+                        .rows =
+                            {
+                                { 0.0f        },
+                                { 0.0f        },
+                                { SEARCH_RATE },
+                            },
+                    };
 
-                }
-                else // Alright, we've lost the horizon target for a while now.
-                {
-                    context->operation_mode = GNCOperationMode_searching;
-                }
-            } break;
+                // TODO No `desired_orientation` and `desired_rates`?
+
+            }
+        } break;
 
 
 
-            default: sus;
+        ////////////////////////////////////////
+        //
+        // We've found the target is our goal is
+        // now to align the vehicle towards it.
+        //
+        ////////////////////////////////////////
 
-        }
+        case GNCOperationMode_aligning:
+        {
+            if (context->target_found)
+            {
+
+                // Keep aligning towards the horizon according
+                // to whatever the OpenMV is saying.
+
+                desired_orientation =
+                    QUATERNION_from_euler_zyx
+                    (
+                        (struct EulerZYX)
+                        {
+                            .yaw   = input.most_recent_openmv_reading.attitude_yaw,
+                            .pitch = input.most_recent_openmv_reading.attitude_pitch,
+                            .roll  = input.most_recent_openmv_reading.attitude_roll,
+                        }
+                    );
+
+            }
+            else if (input.current_timestamp_us - context->target_lost_timestamp_us < 10'000'000)
+            {
+
+                // The OpenMV has lost the horizon target, but instead of
+                // immediately switching to searching again, we're going
+                // to try hold at the last known location for a bit.
+
+                desired_orientation =
+                    (struct Quaternion)
+                    {
+                        // TODO: get this from buffer
+                    };
+
+            }
+            else // Alright, we've lost the horizon target for a while now.
+            {
+
+                context->operation_mode = GNCOperationMode_searching;
+
+                // TODO No `desired_orientation` and `desired_rates`?
+
+            }
+        } break;
+
+
+
+        default: sus;
+
     }
 
 
@@ -685,7 +687,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     MATRIX_scale_add
     (
         &rates_error,
-        +1.0f, &rates_target,
+        +1.0f, &desired_rates,
         -1.0f, &rates_current_body
     );
 
@@ -697,7 +699,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     // TODO: Implement the gain selection logic based on the current state and operation mode.
     //
 
-    struct Quaternion quaternion_error = QUATERNION_multiply(quaternion_current, QUATERNION_conjugate(quaternion_target));
+    struct Quaternion quaternion_error = QUATERNION_multiply(current_orientation, QUATERNION_conjugate(desired_orientation));
 
     // VERY IMPORTANT NOTE:
     //  - to avoid an additional subtraction operation, gains should be negated
