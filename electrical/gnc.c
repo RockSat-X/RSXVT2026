@@ -308,133 +308,32 @@ pack_pop
 
 
 
+enum GNCOperationMode : u32
+{
+    GNCOperationMode_obtaining_heading_estimate,
+    GNCOperationMode_stabilizing,
+    GNCOperationMode_searching,
+    GNCOperationMode_aligning,
+};
+
 struct GNCInput
 {
-
-    // Data in here is stuff the caller of `GNC_update` will provide us,
-    // and thus shouldn't be modified (can't anyways because it's marked as `const`).
-    //
-    // All of the fields (and that field's subfields) below should have its own column
-    // in the spreadsheet `./misc/GNC_MOCK_SIMULATION.csv`. For example, there should
-    // be a column for `current_timestamp_us`, `most_recent_imu.QuatX`, `most_recent_imu.QuatY`, etc.
-
     u32                    current_timestamp_us;
     u32                    ejection_timestamp_us;
     struct VN100Packet     most_recent_imu;
     struct OpenMVPacketGNC most_recent_openmv_reading;
     u32                    most_recent_openmv_reading_timestamp_us;
-
 };
 
-#include "GNCContext.meta"
-/* #meta
-
-    import deps.stpy.pxd.pxd as pxd
-    import builtins
-
-    # This structure contains stuff that `GNC_update` will use to figure out what to do,
-    # and ultimately produce an updated value of `angular_accelerations` that the caller
-    # will use to update the stepper motors.
-    #
-    # The only value the caller cares about is `angular_accelerations`; everything else
-    # is up to us to modify and use at our discretion.
-
-    FIELDS = pxd.SimpleNamespaceTable(
-        ('name'                    , 'type'             , 'format'),
-        ('initialized'             , 'b32'              , None    ),
-        ('angular_accelerations'   , 'struct Matrix_3x1', ...     ),
-        ('target_found'            , 'b32'              , ...     ),
-        ('target_conflict_count'   , 'i32'              , ...     ),
-        ('target_lost_timestamp_us', 'u32'              , "%u us" ),
-        ('desired_orientation'     , 'struct Quaternion', ...     ),
-    )
-
-    with Meta.enter('struct GNCContext'):
-        for field in FIELDS:
-            Meta.line(f'''
-                {field.type} {field.name};
-            ''')
-
-
-
-    # Everything here below is just so we can print out the data in the `GNCContext`
-    # structure in a nice looking output; see `DemoGNC` for its usage.
-
-    with Meta.enter('''
-        static void
-        stlink_tx_GNCContext(struct GNCContext context)
-    '''):
-
-        format_string_argument_pairs = []
-
-        for field in FIELDS:
-
-            format_string = field.format
-            argument      = f'context.{field.name}'
-
-            if format_string is ...:
-
-                match field.type:
-
-                    case None:
-                        format_string = None
-                        argument      = None
-
-                    case 'i8' | 'i16' | 'i32' | 'i64':
-                        format_string = '%d'
-                        argument      = f'context.{field.name}'
-
-                    case 'u8' | 'u16' | 'u32' | 'u64':
-                        format_string = '%u'
-                        argument      = f'context.{field.name}'
-
-                    case 'b8' | 'b16' | 'b32' | 'b64':
-                        format_string = '%s'
-                        argument      = f'context.{field.name} ? "true " : "false"'
-
-                    case 'f32' | 'f64':
-                        format_string = '%f'
-                        argument      = f'context.{field.name}'
-
-                    case 'struct Matrix_3x1':
-                        format_string = '< (%f) (%f) (%f) >'
-                        argument      = (
-                            f'context.{field.name}.rows[0][0], '
-                            f'context.{field.name}.rows[1][0], '
-                            f'context.{field.name}.rows[2][0]'
-                        )
-
-                    case 'struct Quaternion':
-                        format_string = '(%f) + (%f) i + (%f) j + (%f) k'
-                        argument      = (
-                            f'context.{field.name}.s, '
-                            f'context.{field.name}.i, '
-                            f'context.{field.name}.j, '
-                            f'context.{field.name}.k'
-                        )
-
-                    case idk:
-                        raise NotImplementedError(f"Unhandled formatting for field's type: {repr(field)}.")
-
-            format_string_argument_pairs += [(format_string, argument)]
-
-        whole_format_string = ' | '.join(
-            f'.{field.name} = {format_string}'
-            for field, (format_string, argument) in zip(FIELDS, format_string_argument_pairs)
-            if format_string is not None
-        )
-
-        whole_argument = ', '.join(
-            argument
-            for format_string, argument in format_string_argument_pairs
-            if format_string is not None
-        )
-
-        Meta.line(f'''
-            stlink_tx("{whole_format_string}\\n", {whole_argument});
-        ''')
-
-*/
+struct GNCContext
+{
+    b32                   initialized;
+    enum GNCOperationMode operation_mode;
+    struct Matrix_3x1     control_accelerations;
+    b32                   target_found;
+    i32                   target_conflict_count;
+    u32                   target_lost_timestamp_us;
+};
 
 static void
 GNC_update(const struct GNCInput input, struct GNCContext* context)
@@ -445,41 +344,32 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
 
 
-    // See if we need to set some default values for the GNC context.
+    ////////////////////////////////////////
+    //
+    // If needed, initialize our working
+    // variables to known values.
+    //
 
     if (!context->initialized)
     {
-
-        // Let's make sure all values are zero instead of potentially any left-over garbage.
-
-        memzero(context);
-
-
-
-        // We'll start off as if we lost the target from the moment we have ejected.
-
-        context->target_found             = false;
-        context->target_conflict_count    = 0;
-        context->target_lost_timestamp_us = input.ejection_timestamp_us;
-
-
-
-        // An actual value will be computed for these fields later on.
-
-        context->angular_accelerations = (struct Matrix_3x1) {0};
-        context->desired_orientation   = (struct Quaternion) {0};
-
-
-
-        // We're done setting the initial values for the rest of the GNC algorithm to work on.
-
-        context->initialized = true;
-
+        *context =
+            (struct GNCContext)
+            {
+                .initialized              = true,
+                .operation_mode           = GNCOperationMode_obtaining_heading_estimate,
+                .control_accelerations    = {},
+                .target_found             = false,
+                .target_conflict_count    = 0,
+                .target_lost_timestamp_us = input.ejection_timestamp_us,
+            };
     }
 
 
 
+    ////////////////////////////////////////
+    //
     // Apply hesterisis to CVT's target confidence.
+    //
 
     if (context->target_found)
     {
@@ -487,7 +377,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
         {
             context->target_conflict_count = 0; // We still see the target!
         }
-        else if (context->target_conflict_count < 3)
+        else if (context->target_conflict_count < 3) // TODO Determine hystersis threshold.
         {
             context->target_conflict_count += 1; // Hmm, we're losing the target..?
         }
@@ -504,7 +394,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
         {
             context->target_conflict_count = 0; // Target still missing...
         }
-        else if (context->target_conflict_count < 3)
+        else if (context->target_conflict_count < 3) // TODO Determine hystersis threshold.
         {
             context->target_conflict_count += 1; // Oh, we're starting to see the target..?
         }
@@ -517,106 +407,403 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
 
 
-    // Determine the orientation the vehicle should have.
+    ////////////////////////////////////////
+    //
+    // Determine the desired vehicle
+    // orientation and angular rates.
+    //
 
-    u32               time_since_ejection_us = input.current_timestamp_us - input.ejection_timestamp_us;
-    struct Matrix_3x6 gain                   = {0};
-
-    if (context->target_found)
-    {
-        if (input.most_recent_openmv_reading.computer_vision_confidence)
+    struct Quaternion current_orientation =
+        (struct Quaternion)
         {
+            .s = input.most_recent_imu.QuatS,
+            .i = input.most_recent_imu.QuatX,
+            .j = input.most_recent_imu.QuatY,
+            .k = input.most_recent_imu.QuatZ,
+        };
 
-            context->desired_orientation =
-                QUATERNION_from_euler_zyx
-                (
-                    (struct EulerZYX)
-                    {
-                        .yaw   = input.most_recent_openmv_reading.attitude_yaw,
-                        .pitch = input.most_recent_openmv_reading.attitude_pitch,
-                        .roll  = input.most_recent_openmv_reading.attitude_roll,
-                    }
-                );
+    struct Quaternion desired_orientation = {0};
+    struct Matrix_3x1 desired_rates       = {0};
 
-            gain =
-                (struct Matrix_3x6) // TODO Determine the gain matrix for this situation.
-                {
-                    .rows =
-                        {
-                            { 1, 2, 3, 4, 5, 6, },
-                            { 2, 3, 4, 5, 6, 7, },
-                            { 3, 4, 5, 6, 7, 8, },
-                        },
-                };
+    switch (context->operation_mode)
+    {
 
-        }
-        else
+
+
+        ////////////////////////////////////////
+        //
+        // Right after the vehicle has ejected,
+        // the motors need to be kept disabled
+        // so that the VN-100 can obtain an
+        // accurate heading estimate without any
+        // magnetic interference.
+        //
+        ////////////////////////////////////////
+
+        case GNCOperationMode_obtaining_heading_estimate:
         {
-            gain =
-                (struct Matrix_3x6) // TODO Determine the gain matrix for this situation.
-                {
-                    .rows =
+            if (input.current_timestamp_us - input.ejection_timestamp_us < 10'000'000)
+            {
+
+                // We're still letting the VN-100 get a heading estimate.
+                // It'll be the responsibility of the caller to ensure
+                // that the motors are disabled and that the VNKMD-OFF
+                // command has been sent to the VN-100.
+
+                // TODO No `desired_orientation` and `desired_rates`?
+
+            }
+            else
+            {
+
+                // We can now move onto actually using the stepper motors.
+                // It'll be the responsibility of the caller to ensure
+                // that the VNKMD-ON command gets sent to the VN-100
+                // before enabling the motors.
+
+                context->operation_mode = GNCOperationMode_stabilizing;
+
+                // TODO No `desired_orientation` and `desired_rates`?
+
+            }
+        } break;
+
+
+
+        ////////////////////////////////////////
+        //
+        // The vehicle might be tumbling a bit
+        // after it has ejected, so we're going
+        // so spend some time here undoing that.
+        //
+        ////////////////////////////////////////
+
+        case GNCOperationMode_stabilizing:
+        {
+            if (input.current_timestamp_us - input.ejection_timestamp_us < 30'000'000)
+            {
+
+                // To stabilize, we want to get rid of
+                // any pitch or roll; yaw is fine.
+
+                desired_orientation =
+                    QUATERNION_from_euler_zyx
+                    (
+                        (struct EulerZYX)
                         {
-                            { 1, 2, 3, 4, 5, 6, },
-                            { 2, 3, 4, 5, 6, 7, },
-                            { 3, 4, 5, 6, 7, 8, },
-                        },
-                };
-        }
+                            .yaw   = QUATERNION_to_euler_zyx(current_orientation).yaw,
+                            .pitch = 0.0f,
+                            .roll  = 0.0f,
+                        }
+                    );
+
+            }
+            else // We spent enough time stabilizing; move onto finding the horizon.
+            {
+
+                context->operation_mode = GNCOperationMode_searching;
+
+                // TODO No `desired_orientation` and `desired_rates`?
+
+            }
+        } break;
+
+
+
+        ////////////////////////////////////////
+        //
+        // We're currently not confident we have
+        // found the horizon yet, so we're going
+        // to do some motions in hopes that the
+        // OpenMV will eventually pick something up.
+        //
+        ////////////////////////////////////////
+
+        case GNCOperationMode_searching:
+        {
+            if (context->target_found)
+            {
+
+                // Got something! Move onto aligning the vehicle
+                // towards the target that's hopefully the horizon.
+
+                context->operation_mode = GNCOperationMode_aligning;
+
+            }
+            else
+            {
+
+                // Here we want to reorientate the vehicle as a
+                // function of `t` over time in a control manner.
+
+                desired_orientation =
+                    QUATERNION_from_euler_zyx
+                    (
+                        (struct EulerZYX)
+                        {
+                            .yaw   = QUATERNION_to_euler_zyx(current_orientation).yaw,
+                            .pitch = 0.3491f * arm_sin_f32(3.0f * (f32) input.current_timestamp_us / 1'000'000.0f),
+                            .roll  = 0.0f,
+                        }
+                    );
+
+                desired_rates =
+                    (struct Matrix_3x1)
+                    {
+                        .rows =
+                            {
+                                { 0.0f    },
+                                { 0.0f    },
+                                { 0.1745f },
+                            },
+                    };
+
+                // TODO No `desired_orientation` and `desired_rates`?
+
+            }
+        } break;
+
+
+
+        ////////////////////////////////////////
+        //
+        // We've found the target is our goal is
+        // now to align the vehicle towards it.
+        //
+        ////////////////////////////////////////
+
+        case GNCOperationMode_aligning:
+        {
+            if (context->target_found)
+            {
+
+                // Keep aligning towards the horizon according
+                // to whatever the OpenMV is saying.
+
+                desired_orientation =
+                    QUATERNION_from_euler_zyx
+                    (
+                        (struct EulerZYX)
+                        {
+                            .yaw   = input.most_recent_openmv_reading.attitude_yaw,
+                            .pitch = input.most_recent_openmv_reading.attitude_pitch,
+                            .roll  = input.most_recent_openmv_reading.attitude_roll,
+                        }
+                    );
+
+            }
+            else if (input.current_timestamp_us - context->target_lost_timestamp_us < 10'000'000)
+            {
+
+                // The OpenMV has lost the horizon target, but instead of
+                // immediately switching to searching again, we're going
+                // to try hold at the last known location for a bit.
+
+                desired_orientation =
+                    (struct Quaternion)
+                    {
+                        // TODO: get this from buffer
+                    };
+
+            }
+            else // Alright, we've lost the horizon target for a while now.
+            {
+
+                context->operation_mode = GNCOperationMode_searching;
+
+                // TODO No `desired_orientation` and `desired_rates`?
+
+            }
+        } break;
+
+
+
+        default: sus;
+
     }
-    else if (time_since_ejection_us < 20'000'000)
+
+
+
+    ////////////////////////////////////////
+    //
+    // Compute errors.
+    //
+
+    struct Quaternion orientation_error =
+        QUATERNION_multiply
+        (
+            current_orientation,
+            QUATERNION_conjugate(desired_orientation)
+        );
+
+    struct Matrix_3x1 rates_error =
+        {
+            .rows =
+                {
+                    { desired_rates.rows[0][0] - input.most_recent_imu.GyroX },
+                    { desired_rates.rows[1][0] - input.most_recent_imu.GyroY },
+                    { desired_rates.rows[2][0] - input.most_recent_imu.GyroZ },
+                },
+        };
+
+
+
+    ////////////////////////////////////////
+    //
+    // TODO Get gain matrix.
+    //
+
+    #define ANGLE_THRESHOLD_SMALL  0.924f
+    #define ANGLE_THRESHOLD_MEDIUM 0.707f
+
+    struct Matrix_3x6 gain = {0};
+
+    switch (context->operation_mode)
     {
 
-        context->desired_orientation =
-            QUATERNION_from_euler_zyx
-            (
-                (struct EulerZYX)
-                {
-                    .yaw   = 0.0f, // TODO: Yaw value?
-                    .pitch = 0.0f, // Reset pitch so we can do the search process.,
-                    .roll  = 0.0f, // TODO: Roll value?
-                }
-            );
+        case GNCOperationMode_obtaining_heading_estimate:
+        {
+            // Don't care.
+        } break;
 
-        gain =
-            (struct Matrix_3x6) // TODO Determine the gain matrix for this situation.
+
+
+        // Linearize about [~, ~, ~, 15, 15, 15].
+        // Set Q = diag(0, a, a, b, b, b) where a and b are user-defined parameters.
+
+        case GNCOperationMode_aligning:
+        case GNCOperationMode_stabilizing:
+        {
+            if (orientation_error.s > ANGLE_THRESHOLD_SMALL) // TODO Absolute value?
             {
-                .rows =
+                gain =
+                    (struct Matrix_3x6) // TODO Select small angle gain matrix.
                     {
-                        { 1, 2, 3, 4, 5, 6, },
-                        { 2, 3, 4, 5, 6, 7, },
-                        { 3, 4, 5, 6, 7, 8, },
-                    },
-            };
+                        .rows =
+                            {
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                            },
+                    };
+            }
+            else if (orientation_error.s > ANGLE_THRESHOLD_MEDIUM) // TODO Absolute value?
+            {
+                gain =
+                    (struct Matrix_3x6) // TODO Select medium angle gain matrix.
+                    {
+                        .rows =
+                            {
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                            },
+                    };
+            }
+            else
+            {
+                gain =
+                    (struct Matrix_3x6) // TODO Select large angle gain matrix.
+                    {
+                        .rows =
+                            {
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                            },
+                    };
+            }
+        } break;
+
+
+
+        // Linearize about [~, ~, ~, 15, 15, search_rate].
+        // Set Q = diag(0, a, a, b, b, c > b) where a, b, c are user-defined parameters.
+
+        case GNCOperationMode_searching:
+        {
+            if (orientation_error.s > ANGLE_THRESHOLD_SMALL) // TODO Absolute value?
+            {
+                gain =
+                    (struct Matrix_3x6) // TODO Select small angle gain matrix.
+                    {
+                        .rows =
+                            {
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                            },
+                    };
+            }
+            else if (orientation_error.s > ANGLE_THRESHOLD_MEDIUM) // TODO Absolute value?
+            {
+                gain =
+                    (struct Matrix_3x6) // TODO Select medium angle gain matrix.
+                    {
+                        .rows =
+                            {
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                            },
+                    };
+            }
+            else
+            {
+                gain =
+                    (struct Matrix_3x6) // TODO Select large angle gain matrix.
+                    {
+                        .rows =
+                            {
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                            },
+                    };
+            }
+        } break;
+
+
+
+        default : sus;
 
     }
-    else // Do the process of searching.
-    {
 
-        f32 t = 0.0f;
 
-        context->desired_orientation =
-            QUATERNION_from_euler_zyx
-            (
-                (struct EulerZYX)
+
+    ////////////////////////////////////////
+    //
+    // Finally compute the stepper
+    // motors' angular accelerations.
+    //
+
+    #define REACTION_WHEEL_INERTIA 0.01f // TODO Get actual value for this.
+
+    struct Matrix_6x1 state =
+        {
+            .rows =
                 {
-                    .yaw   = t, // TODO: Function of t?
-                    .pitch = arm_sin_f32(t), // TODO: Function of t?
-                    .roll  = 0, // TODO: Function of t?
-                }
-            );
+                    { orientation_error.i    },
+                    { orientation_error.j    },
+                    { orientation_error.k    },
+                    { rates_error.rows[0][0] },
+                    { rates_error.rows[1][0] },
+                    { rates_error.rows[2][0] },
+                },
+        };
 
-        gain =
-            (struct Matrix_3x6) // TODO Determine the gain matrix for this situation.
-            {
-                .rows =
-                    {
-                        { 1, 2, 3, 4, 5, 6, },
-                        { 2, 3, 4, 5, 6, 7, },
-                        { 3, 4, 5, 6, 7, 8, },
-                    },
-            };
+    struct Matrix_3x1 control_torques = {0};
+    MATRIX_multiply(&control_torques, &gain, &state); // TODO Implement the control law to compute the angular accelerations based on the gain and the state.
 
-    }
+    context->control_accelerations =
+        (struct Matrix_3x1)
+        {
+            .rows =
+                {
+                    { control_torques.rows[0][0] / REACTION_WHEEL_INERTIA },
+                    { control_torques.rows[1][0] / REACTION_WHEEL_INERTIA },
+                    { control_torques.rows[2][0] / REACTION_WHEEL_INERTIA },
+                },
+        };
 
 }
