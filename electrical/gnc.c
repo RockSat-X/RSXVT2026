@@ -350,13 +350,14 @@ struct GNCInput
 
 struct GNCContext
 {
-    b32               initialized;
-    struct Matrix_3x1 control_accelerations;
-    b32               target_found;
-    i32               target_conflict_count;
-    u32               target_lost_timestamp_us;
-    u32               target_found_timestamp_us;
-    struct Quaternion desired_orientation;
+    b32                   initialized;
+    enum GNCOperationMode operation_mode;
+    struct Matrix_3x1     control_accelerations;
+    b32                   target_found;
+    i32                   target_conflict_count;
+    u32                   target_lost_timestamp_us;
+    u32                   target_found_timestamp_us;
+    struct Quaternion     desired_orientation;
 };
 
 static void
@@ -469,8 +470,6 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     u32 time_since_target_lost_us  = input.current_timestamp_us - context->target_lost_timestamp_us;
     u32 time_since_target_found_us = input.current_timestamp_us - context->target_found_timestamp_us;
 
-    enum GNCOperationMode operation_mode = {0};
-
     struct Matrix_6x1 state             = {0};
     struct Matrix_3x1 rates_target      = {0};
     struct Quaternion quaternion_target = {0};
@@ -511,7 +510,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
         // Motors Disabled
         // TODO: Send VNKMD OFF
 
-        operation_mode = GNCOperationMode_ejection;
+        context->operation_mode = GNCOperationMode_ejection;
 
     }
     else if (time_since_ejection_us < (POST_EJECTION_MOTOR_ENABLE_US + ALIGNMENT_DURATION_US))
@@ -519,7 +518,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
         // Align to intial target
         // TODO: Send VMKMD ON
 
-        operation_mode = GNCOperationMode_alignment;
+        context->operation_mode = GNCOperationMode_alignment;
 
         // Define intial target quaternion
         {
@@ -543,14 +542,14 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
             if (time_since_target_lost_us < ALIGNMENT_DURATION_US)
             {
                 // Align to intial target
-                operation_mode = GNCOperationMode_alignment;
+                context->operation_mode = GNCOperationMode_alignment;
 
                 quaternion_target = quaternion_from_last_target;
             }
             else
             {
                 // Search for Target
-                operation_mode = GNCOperationMode_search;
+                context->operation_mode = GNCOperationMode_search;
 
                 quaternion_target =
                     QUATERNION_from_euler_zyx
@@ -572,7 +571,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
             if (time_since_target_found_us < ALIGNMENT_DURATION_US)
             {
                 // Align to target
-                operation_mode = GNCOperationMode_alignment;
+                context->operation_mode = GNCOperationMode_alignment;
 
                 quaternion_target =
                     QUATERNION_from_euler_zyx
@@ -588,7 +587,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
             else
             {
                 // Rotate about down (D) axis
-                operation_mode = GNCOperationMode_search;
+                context->operation_mode = GNCOperationMode_search;
 
                 rates_target.rows[2][0] = SEARCH_RATE;
 
@@ -650,7 +649,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
         #define ANGLE_THRESHOLD_SMALL  0.924f
         #define ANGLE_THRESHOLD_MEDIUM 0.707f
 
-        switch (operation_mode)
+        switch (context->operation_mode)
         {
 
             case GNCOperationMode_ejection:
