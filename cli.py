@@ -2534,7 +2534,7 @@ def plot(parameters):
 
 
 
-    main_figure = matplotlib.pyplot.figure()
+    main_figure = matplotlib.pyplot.figure(figsize = (8, 8))
     main_axes   = main_figure.add_subplot(projection = '3d')
     start_time  = time.time()
 
@@ -2596,10 +2596,16 @@ def plot(parameters):
         entry        = entries[math.floor(elapsed_time / 0.020) % len(entries)]
 
         main_axes.clear()
-        main_axes.set_title(f'Time: {elapsed_time}')
+        main_axes.set_title(f'Time: {elapsed_time :.3f}')
         main_axes.set_xlim(-2, 2)
         main_axes.set_ylim(-2, 2)
         main_axes.set_zlim(-2, 2)
+        main_axes.set_xticklabels(())
+        main_axes.set_yticklabels(())
+        main_axes.set_zticklabels(())
+        main_axes.set_xlabel('X')
+        main_axes.set_ylabel('Y')
+        main_axes.set_zlabel('Z')
 
         _, *orientation_axis_x = quaternion_rotate(
             (0, 1, 0, 0),
