@@ -113,6 +113,21 @@ def import_cv2_numpy():
 
     return cv2, numpy
 
+def require_matplotlib():
+
+    try:
+
+        import matplotlib
+
+    except ModuleNotFoundError as error:
+
+        pxd.pxd_logger.error(
+            f'Python got {type(error).__name__} ({error}); try doing:' '\n'
+            f'> pip install matplotlib'
+        )
+
+        sys.exit(1)
+
 
 
 # Routine for ensuring the user has the required programs
@@ -2497,6 +2512,60 @@ def parseFlight(parameters):
             )
             for field_prefix, field_value in get_fields_for_csv(log_entry)
         ])
+
+
+
+################################################################################
+
+
+
+@main_interface.new_verb(
+    {
+        'description' : 'Make plots.',
+    },
+)
+def plot(parameters):
+
+
+
+    require_matplotlib()
+    import matplotlib.pyplot
+    import matplotlib.animation
+
+
+
+    main_figure  = matplotlib.pyplot.figure()
+    main_subplot = main_figure.add_subplot(projection = '3d')
+
+    def update(_):
+
+        t = time.time()
+
+        main_subplot.clear()
+
+        xs = [((i / 100) - 0.5) * 10 for i in range(100)]
+        ys = [math.cos(x + t) for x in xs]
+        zs = [math.sin(x + t) for x in xs]
+
+        main_subplot.plot(xs, ys, zs)
+
+        main_subplot.set_title(f"Time: {t}")
+
+        return main_subplot,
+
+
+
+    matplotlib.pyplot.rcParams['axes3d.mouserotationstyle'] = 'azel'
+
+    main_animation = matplotlib.animation.FuncAnimation(
+        main_figure,
+        update,
+        frames           = None,
+        interval         = 16,
+        cache_frame_data = False,
+    )
+
+    matplotlib.pyplot.show()
 
 
 
