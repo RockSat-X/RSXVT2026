@@ -318,20 +318,11 @@ enum GNCOperationMode : u32
 
 struct GNCInput
 {
-
-    // Data in here is stuff the caller of `GNC_update` will provide us,
-    // and thus shouldn't be modified (can't anyways because it's marked as `const`).
-    //
-    // All of the fields (and that field's subfields) below should have its own column
-    // in the spreadsheet `./misc/GNC_MOCK_SIMULATION.csv`. For example, there should
-    // be a column for `current_timestamp_us`, `most_recent_imu.QuatX`, `most_recent_imu.QuatY`, etc.
-
     u32                    current_timestamp_us;
     u32                    ejection_timestamp_us;
     struct VN100Packet     most_recent_imu;
     struct OpenMVPacketGNC most_recent_openmv_reading;
     u32                    most_recent_openmv_reading_timestamp_us;
-
 };
 
 struct GNCContext
@@ -658,17 +649,12 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
     ////////////////////////////////////////
     //
-    // Select appropriate gain matrix based on the current state and operation mode.
-    // TODO: Implement the gain selection logic based on the current state and operation mode.
+    // TODO Get gain matrix.
     //
 
     #define ANGLE_THRESHOLD_SMALL  0.924f
     #define ANGLE_THRESHOLD_MEDIUM 0.707f
 
-
-    // VERY IMPORTANT NOTE:
-    //  - to avoid an additional subtraction operation, gains should be negated
-    //  - for (u = -Kx) -> (gain = -K)
     struct Matrix_3x6 gain = {0};
 
     switch (context->operation_mode)
@@ -681,46 +667,98 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
 
 
-        // Control enabled, align to target
-        //  - Linearize about [~, ~, ~, 15, 15, 15]
-        //  - Set Q = diag(0, a, a, b, b, b) where a and b are user-defined parameters
+        // Linearize about [~, ~, ~, 15, 15, 15].
+        // Set Q = diag(0, a, a, b, b, b) where a and b are user-defined parameters.
 
         case GNCOperationMode_aligning:
         case GNCOperationMode_stabilizing:
         {
-            if (orientation_error.s > ANGLE_THRESHOLD_SMALL)
+            if (orientation_error.s > ANGLE_THRESHOLD_SMALL) // TODO Absolute value?
             {
-                //TODO: select small angle gain matrix
+                gain =
+                    (struct Matrix_3x6) // TODO Select small angle gain matrix.
+                    {
+                        .rows =
+                            {
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                            },
+                    };
             }
-            else if (orientation_error.s > ANGLE_THRESHOLD_MEDIUM)
+            else if (orientation_error.s > ANGLE_THRESHOLD_MEDIUM) // TODO Absolute value?
             {
-                //TODO: select medium angle gain matrix
+                gain =
+                    (struct Matrix_3x6) // TODO Select medium angle gain matrix.
+                    {
+                        .rows =
+                            {
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                            },
+                    };
             }
             else
             {
-                //TODO: select large angle gain matrix
+                gain =
+                    (struct Matrix_3x6) // TODO Select large angle gain matrix.
+                    {
+                        .rows =
+                            {
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                            },
+                    };
             }
         } break;
 
 
 
-        // Control enabled, search for target
-        //  - Linearize about [~, ~, ~, 15, 15, search_rate]
-        //  - Set Q = diag(0, a, a, b, b, c>b) where a, b, c are user-defined parameters
+        // Linearize about [~, ~, ~, 15, 15, search_rate].
+        // Set Q = diag(0, a, a, b, b, c > b) where a, b, c are user-defined parameters.
 
         case GNCOperationMode_searching:
         {
-            if (orientation_error.s > ANGLE_THRESHOLD_SMALL)
+            if (orientation_error.s > ANGLE_THRESHOLD_SMALL) // TODO Absolute value?
             {
-                //TODO: select small angle gain matrix
+                gain =
+                    (struct Matrix_3x6) // TODO Select small angle gain matrix.
+                    {
+                        .rows =
+                            {
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                            },
+                    };
             }
-            else if (orientation_error.s > ANGLE_THRESHOLD_MEDIUM)
+            else if (orientation_error.s > ANGLE_THRESHOLD_MEDIUM) // TODO Absolute value?
             {
-                //TODO: select medium angle gain matrix
+                gain =
+                    (struct Matrix_3x6) // TODO Select medium angle gain matrix.
+                    {
+                        .rows =
+                            {
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                            },
+                    };
             }
             else
             {
-                //TODO: select large angle gain matrix
+                gain =
+                    (struct Matrix_3x6) // TODO Select large angle gain matrix.
+                    {
+                        .rows =
+                            {
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                            },
+                    };
             }
         } break;
 
@@ -734,8 +772,8 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
     ////////////////////////////////////////
     //
-    // Compute control torques and convert
-    // control torques to accelerations.
+    // Finally compute the stepper
+    // motors' angular accelerations.
     //
 
     #define REACTION_WHEEL_INERTIA 0.01f // TODO Get actual value for this.
@@ -754,7 +792,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
         };
 
     struct Matrix_3x1 control_torques = {0};
-    MATRIX_multiply(&control_torques, &gain, &state); // TODO: Implement the control law to compute the angular accelerations based on the gain and the state.
+    MATRIX_multiply(&control_torques, &gain, &state); // TODO Implement the control law to compute the angular accelerations based on the gain and the state.
 
     context->control_accelerations =
         (struct Matrix_3x1)
