@@ -2589,11 +2589,17 @@ def plot(parameters):
     ][1200:]
 
 
+    previous_elapsed_time = time.time()
+    axis_angles           = (0, 0, 0)
 
     def update(_):
 
-        elapsed_time = time.time() - start_time
-        entry        = entries[math.floor(elapsed_time / 0.020) % len(entries)]
+        nonlocal previous_elapsed_time, axis_angles
+
+        elapsed_time          = time.time() - start_time
+        delta_time            = elapsed_time - previous_elapsed_time
+        previous_elapsed_time = elapsed_time
+        entry                 = entries[math.floor(elapsed_time / 0.020) % len(entries)]
 
         main_axes.clear()
         main_axes.set_title(f'Time: {elapsed_time :.3f}')
@@ -2607,24 +2613,80 @@ def plot(parameters):
         main_axes.set_ylabel('Y')
         main_axes.set_zlabel('Z')
 
+        vn100_orientation = (entry.QuatS, entry.QuatX, entry.QuatY, entry.QuatZ)
+
         _, *orientation_axis_x = quaternion_rotate(
             (0, 1, 0, 0),
-            (entry.QuatS, entry.QuatX, entry.QuatY, entry.QuatZ),
+            vn100_orientation,
         )
 
         _, *orientation_axis_y = quaternion_rotate(
             (0, 0, 1, 0),
-            (entry.QuatS, entry.QuatX, entry.QuatY, entry.QuatZ),
+            vn100_orientation,
         )
 
         _, *orientation_axis_z = quaternion_rotate(
             (0, 0, 0, 1),
-            (entry.QuatS, entry.QuatX, entry.QuatY, entry.QuatZ),
+            vn100_orientation,
         )
 
-        main_axes.quiver(0, 0, 0, *orientation_axis_x, color = 'red'  )
-        main_axes.quiver(0, 0, 0, *orientation_axis_y, color = 'green')
-        main_axes.quiver(0, 0, 0, *orientation_axis_z, color = 'blue' )
+        main_axes.quiver(0, 0, 0, *orientation_axis_x, color = 'red'  , linewidths = 3)
+        main_axes.quiver(0, 0, 0, *orientation_axis_y, color = 'green', linewidths = 3)
+        main_axes.quiver(0, 0, 0, *orientation_axis_z, color = 'blue' , linewidths = 3)
+
+
+
+        axis_angular_velocities = (
+            5,
+            math.cos(elapsed_time),
+            5,
+        )
+
+        axis_angles = (
+            axis_angles[0] + axis_angular_velocities[0] * delta_time,
+            axis_angles[1] + axis_angular_velocities[1] * delta_time,
+            axis_angles[2] + axis_angular_velocities[2] * delta_time,
+        )
+
+        for axis_i in (0, 1, 2):
+
+            ROTATIONAL_ARROWS_COUNT = 3
+
+            for i in range(ROTATIONAL_ARROWS_COUNT):
+
+                delta_angle  = +0.5 if axis_angular_velocities[axis_i] > 0 else -0.5
+                delta_angle *= abs(axis_angular_velocities[axis_i]) / (abs(axis_angular_velocities[axis_i]) + 1)
+
+                base_u  = math.cos(axis_angles[axis_i] + (i              ) / ROTATIONAL_ARROWS_COUNT * 2 * math.pi) * 0.3
+                base_v  = math.sin(axis_angles[axis_i] + (i              ) / ROTATIONAL_ARROWS_COUNT * 2 * math.pi) * 0.3
+                delta_u = math.cos(axis_angles[axis_i] + (i + delta_angle) / ROTATIONAL_ARROWS_COUNT * 2 * math.pi) * 0.3 - base_u
+                delta_v = math.sin(axis_angles[axis_i] + (i + delta_angle) / ROTATIONAL_ARROWS_COUNT * 2 * math.pi) * 0.3 - base_v
+
+                match axis_i:
+
+                    case 0:
+                        base  = (1, base_u , base_v )
+                        delta = (0, delta_u, delta_v)
+
+                    case 1:
+                        base  = (base_v , 1, base_u )
+                        delta = (delta_v, 0, delta_u)
+
+                    case 2:
+                        base  = (base_u , base_v , 1)
+                        delta = (delta_u, delta_v, 0)
+
+                _, *base  = quaternion_rotate((0, *base ), vn100_orientation)
+                _, *delta = quaternion_rotate((0, *delta), vn100_orientation)
+
+                main_axes.quiver(
+                    *base,
+                    *delta,
+                    color      = ('red', 'green', 'blue')[axis_i],
+                    linewidths = 1,
+                )
+
+
 
         return main_axes,
 
