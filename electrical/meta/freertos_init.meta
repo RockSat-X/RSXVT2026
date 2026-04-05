@@ -357,7 +357,7 @@
                 "diagnostics",
                 countof(diagnostics_stack),
                 nullptr,
-                1,
+                2,
                 diagnostics_stack,
                 &diagnostics_buffer
             );
@@ -401,7 +401,7 @@
                 "esp32",
                 countof(esp32_stack),
                 nullptr,
-                0,
+                1,
                 esp32_stack,
                 &esp32_buffer
             );
@@ -423,7 +423,7 @@
                 "god",
                 countof(god_stack),
                 nullptr,
-                2,
+                3,
                 god_stack,
                 &god_buffer
             );
@@ -434,7 +434,7 @@
                 "watchdog",
                 countof(watchdog_stack),
                 nullptr,
-                3,
+                4,
                 watchdog_stack,
                 &watchdog_buffer
             );

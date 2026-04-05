@@ -229,7 +229,17 @@ process_payload(struct ESP32Packet* payload)
                 packet_espnow_writer                         += 1;
                 packet_espnow_packet_count                   += 1;
 
-                Serial1.write((u8) packet_espnow_packet_count); // Indicate to the VFC that we're still transmitting over ESP-NOW.
+                i32 free_space = countof(packet_espnow_buffer) - (packet_espnow_writer - packet_espnow_reader);
+
+                if (free_space <= -1)
+                {
+                    free_space = 0;
+                }
+
+                // Indicate to the VFC that we're still transmitting over ESP-NOW.
+                // The VFC will also throttle the transmission as needed in order
+                // to prevent over-runs.
+                Serial1.write((u8) free_space);
 
             }
             else

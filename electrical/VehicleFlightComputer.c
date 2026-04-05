@@ -198,7 +198,7 @@ enum DiagnosticLEDBehavior : u32
 
 */
 
-FREERTOS_TASK(diagnostics, 1)
+FREERTOS_TASK(diagnostics, 2)
 {
 
     u32 current_flags = 0;
@@ -1539,7 +1539,7 @@ FREERTOS_TASK(openmv, 0)
 
 
 
-FREERTOS_TASK(esp32, 0)
+FREERTOS_TASK(esp32, 1)
 {
 
 #if ESP32_ENABLE
@@ -1573,6 +1573,7 @@ FREERTOS_TASK(esp32, 0)
         u16 image_sequence_number             = {0};
         i32 image_bytes_sent                  = {0};
         u32 most_recent_response_timestamp_us = TIMEKEEPING_microseconds();
+        b32 currently_known_free_space        = 0;
 
         while (true)
         {
@@ -1688,11 +1689,12 @@ FREERTOS_TASK(esp32, 0)
 
                 // Ensure the ESP32 is still transmitting.
 
-                u8 response = {0};
+                u8 reported_free_space = 0;
 
-                while (UXART_rx(UXARTHandle_esp32, &response))
+                while (UXART_rx(UXARTHandle_esp32, &reported_free_space))
                 {
                     most_recent_response_timestamp_us = TIMEKEEPING_microseconds();
+                    currently_known_free_space        = reported_free_space;
                 }
 
                 if (TIMEKEEPING_microseconds() - most_recent_response_timestamp_us >= 2'000'000)
@@ -1700,12 +1702,22 @@ FREERTOS_TASK(esp32, 0)
                     break; // It's been too long since we last heard from the ESP32...
                 }
 
-                FREERTOS_delay_ms(2); // TODO Determine how to not overwhelm the ESP32?
+
+
+                // Throttle the transmission to the ESP32
+                // to ensure we don't overwhelm it. We
+                // could do something more intelligent here,
+                // but this is sufficient.
+
+                if (currently_known_free_space < 16)
+                {
+                    FREERTOS_delay_ms(100);
+                }
 
             }
             else // Nothing new yet...
             {
-                FREERTOS_delay_ms(1);
+                FREERTOS_delay_ms(10);
             }
 
         }
@@ -2081,7 +2093,7 @@ FREERTOS_TASK(logger, 0)
 
 
 
-FREERTOS_TASK(god, 2)
+FREERTOS_TASK(god, 3)
 {
 
 #if GOD_MODE
@@ -2243,7 +2255,7 @@ FREERTOS_TASK(god, 2)
 
 
 
-FREERTOS_TASK(watchdog, 3)
+FREERTOS_TASK(watchdog, 4)
 {
 
 #if WATCHDOG_ENABLE
