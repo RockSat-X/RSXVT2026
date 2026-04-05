@@ -2531,14 +2531,18 @@ def plot(parameters):
     require_matplotlib()
     import matplotlib.pyplot
     import matplotlib.animation
+    import matplotlib.widgets
 
 
+
+    # TODO.
 
     main_figure = matplotlib.pyplot.figure(figsize = (8, 8))
-    main_axes   = main_figure.add_subplot(projection = '3d')
-    start_time  = time.time()
+    scene_axes  = main_figure.add_axes((0, 0.2, 1, 0.8), projection = '3d')
 
 
+
+    # TODO.
 
     def quaternion_multiply(lhs, rhs):
         return (
@@ -2560,6 +2564,8 @@ def plot(parameters):
         return quaternion_multiply(rotor, quaternion_multiply(q, quaternion_conjugate(rotor)))
 
 
+
+    # TODO.
 
     VN100Register = collections.namedtuple(
         'VN100Register',
@@ -2589,29 +2595,70 @@ def plot(parameters):
     ][1200:]
 
 
-    previous_elapsed_time = time.time()
+
+    # TODO.
+
+    timeline_axes   = main_figure.add_axes((0.125, 0.05, 0.75, 0.025))
+    timeline_slider = matplotlib.widgets.Slider(
+        ax      = timeline_axes,
+        label   = None,
+        valmin  = 0,
+        valmax  = (len(entries) - 1) * 0.020, # TODO.
+        valinit = 0,
+        valfmt  = 't = %.2f s',
+    )
+
+    playback_axes        = main_figure.add_axes((0.01, 0.05, 0.1, 0.025))
+    playback_checkbutton = matplotlib.widgets.CheckButtons(
+        ax      = playback_axes,
+        labels  = ('Play',),
+        actives = (True  ,),
+    )
+
+
+
+    # TODO.
+
+    start_time            = time.time()
+    previous_elapsed_time = 0
     axis_angles           = (0, 0, 0)
 
     def update(_):
 
         nonlocal previous_elapsed_time, axis_angles
 
-        elapsed_time          = time.time() - start_time
-        delta_time            = elapsed_time - previous_elapsed_time
-        previous_elapsed_time = elapsed_time
-        entry                 = entries[math.floor(elapsed_time / 0.020) % len(entries)]
 
-        main_axes.clear()
-        main_axes.set_title(f'Time: {elapsed_time :.3f}')
-        main_axes.set_xlim(-2, 2)
-        main_axes.set_ylim(-2, 2)
-        main_axes.set_zlim(-2, 2)
-        main_axes.set_xticklabels(())
-        main_axes.set_yticklabels(())
-        main_axes.set_zticklabels(())
-        main_axes.set_xlabel('X')
-        main_axes.set_ylabel('Y')
-        main_axes.set_zlabel('Z')
+
+        # TODO.
+
+        current_elapsed_time  = time.time() - start_time
+        delta_time            = current_elapsed_time - previous_elapsed_time
+        previous_elapsed_time = current_elapsed_time
+
+        if playback_checkbutton.get_status()[0]:
+            timeline_slider.set_val((timeline_slider.val + delta_time) % (len(entries) * 0.020))
+
+        entry = entries[math.floor(timeline_slider.val / 0.020)]
+
+
+
+        # TODO.
+
+        scene_axes.clear()
+        scene_axes.set_title(f'Time: {current_elapsed_time :.3f}')
+        scene_axes.set_xlim(-2, 2)
+        scene_axes.set_ylim(-2, 2)
+        scene_axes.set_zlim(-2, 2)
+        scene_axes.set_xticklabels(())
+        scene_axes.set_yticklabels(())
+        scene_axes.set_zticklabels(())
+        scene_axes.set_xlabel('X')
+        scene_axes.set_ylabel('Y')
+        scene_axes.set_zlabel('Z')
+
+
+
+        # TODO.
 
         vn100_orientation = (entry.QuatS, entry.QuatX, entry.QuatY, entry.QuatZ)
 
@@ -2630,15 +2677,17 @@ def plot(parameters):
             vn100_orientation,
         )
 
-        main_axes.quiver(0, 0, 0, *orientation_axis_x, color = 'red'  , linewidths = 3)
-        main_axes.quiver(0, 0, 0, *orientation_axis_y, color = 'green', linewidths = 3)
-        main_axes.quiver(0, 0, 0, *orientation_axis_z, color = 'blue' , linewidths = 3)
+        scene_axes.quiver(0, 0, 0, *orientation_axis_x, color = 'red'  , linewidths = 3)
+        scene_axes.quiver(0, 0, 0, *orientation_axis_y, color = 'green', linewidths = 3)
+        scene_axes.quiver(0, 0, 0, *orientation_axis_z, color = 'blue' , linewidths = 3)
 
 
+
+        # TODO.
 
         axis_angular_velocities = (
             5,
-            math.cos(elapsed_time),
+            math.cos(current_elapsed_time),
             5,
         )
 
@@ -2679,7 +2728,7 @@ def plot(parameters):
                 _, *base  = quaternion_rotate((0, *base ), vn100_orientation)
                 _, *delta = quaternion_rotate((0, *delta), vn100_orientation)
 
-                main_axes.quiver(
+                scene_axes.quiver(
                     *base,
                     *delta,
                     color      = ('red', 'green', 'blue')[axis_i],
@@ -2688,7 +2737,7 @@ def plot(parameters):
 
 
 
-        return main_axes,
+        return scene_axes,
 
 
 
