@@ -1,4 +1,4 @@
-////////////////////////////////////////////////////////////////////////////////
+﻿////////////////////////////////////////////////////////////////////////////////
 //
 // Helper routines that'll be accessible in every meta-directive.
 //
@@ -1045,9 +1045,12 @@ ESP32_calculate_crc(u8* data, i32 length)
         while (!Serial1);
     }
 
-    //variables to check status of esp init and set esp restart delay
+    //variables to check status of esp init and set esp restart based on unsuccessful init or TX/RX errors
     bool espnow_initialized = false;
     uint32_t espnow_retry_delay = 1000; 
+    uint8_t espnow_consecutive_errors = 0;
+    static const uint8_t ESPNOW_ERROR_THRESHOLD = 32;
+
 
     //initializes esp_now and checks for errors
     bool common_init_esp_now(void)
@@ -1057,6 +1060,7 @@ ESP32_calculate_crc(u8* data, i32 length)
         esp_err_t err = esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE);
         if (err != ESP_OK) {
             Serial.printf("ESP-NOW failed to set channel (%d)\n", err);
+            espnow_initialized = false;
             return false;
         }
 
@@ -1064,13 +1068,31 @@ ESP32_calculate_crc(u8* data, i32 length)
         if (err != ESP_OK)
         {
             Serial.printf("ESP-NOW init failed (%d)\n", err);
+            espnow_initialized = false;
             return false;
         }
 
         //if wifi set and init pass, print to serial
         espnow_initialized = true;
+        espnow_consecutive_errors = 0;
         Serial.println("ESP-NOW initialized.\n");
         return true;
+    }
+
+    // Call on each TX/RX error for the ESP-NOW channel.
+    // Triggers reinit after ESPNOW_ERROR_THRESHOLD consecutive errors.
+    void espnow_report_error(void) {
+        if (++espnow_consecutive_errors >= ESPNOW_ERROR_THRESHOLD) {
+            Serial.println("ESP-NOW error threshold reached, scheduling reinit.");
+            espnow_initialized = false;
+            espnow_consecutive_errors = 0;
+        }
+    }
+
+    // Call on each successful TX/RX to reset the consecutive error counter.
+    void espnow_report_success(void) {
+
+        espnow_consecutive_errors = 0;
     }
 
 
@@ -1078,15 +1100,20 @@ ESP32_calculate_crc(u8* data, i32 length)
     void handle_espnow() 
     {
         static uint32_t last_attempt = 0;
-        if (!espnow_initialized) 
+        if (!espnow_initialized && millis() - last_attempt > espnow_retry_delay)
         {
-            if (millis() - last_attempt > espnow_retry_delay) 
-            {
-                common_init_esp_now(void);
-                last_attempt = millis();
-            }
+           common_init_esp_now();
+           last_attempt = millis();
         }
     }
+
+
+
+    //variables to check status of lora init and set lora restart based on unsuccessful init or TX/RX errors
+    bool lora_initialized = false;
+    uint32_t lora_retry_delay = 1000;
+    uint8_t lora_consecutive_errors = 0;
+    static const uint8_t LORA_ERROR_THRESHOLD = 32;
 
 
     #if FSPI_PATCH
@@ -1107,10 +1134,6 @@ ESP32_calculate_crc(u8* data, i32 length)
     #endif
 
 
-	bool lora_initialized = false;
-	uint32_t lora_retry_delay = 1000;
-
-
     // TODO Make robust.
     bool common_init_lora()
  {
@@ -1128,6 +1151,7 @@ ESP32_calculate_crc(u8* data, i32 length)
     if (packet_lora_radio.begin() != RADIOLIB_ERR_NONE)
     {
         Serial.printf("Failed to initialize radio.\n");
+        lora_initialized = false;
         return false;
     }
 
@@ -1138,31 +1162,35 @@ ESP32_calculate_crc(u8* data, i32 length)
         // Find out if different frequencies affect range
     if (packet_lora_radio.setFrequency(915.0) != RADIOLIB_ERR_NONE) {
         Serial.printf("LoRa Frequency Error\n");
-            return false;
+        lora_initialized = false;
+        return false;
     }
 
         // 7.8kHz Bandwidth (Narrow)
         // Ranges from 7.8kHz to 500kHz
         // Slower data rate but longer range compare to a larger bandwidth
         if (packet_lora_radio.setBandwidth(7.8) != RADIOLIB_ERR_NONE) {
-            Serial.printf("LoRa Bandwidth Error\n");
-                return false;
+            Serial.printf("LoRa Settings Error: Bandwidth\n");
+            lora_initialized = false;
+            return false;
         }
 
         // 6 (less than 22 kbps) Usually ranges from 7-12 (22-250 kbps)
         // May need to be reconfigured depending on range/speed desired
         // What's essential to know: A higher spreading factor means slower data rate but further transmission and vice versa
         if (packet_lora_radio.setSpreadingFactor(6) != RADIOLIB_ERR_NONE) {
-            Serial.printf("LoRa Spreading Factor Error\n");
-                return false;
+            Serial.printf("LoRa Settings Error: Spreading Factor\n");
+            lora_initialized = false;
+            return false;
         }
 
         // (4/5) Coding Rate
         // Proportion of foward error correction bits added to payload
         // A higher coding rate makes transmission less noisy but reduces effective data rate
         if (packet_lora_radio.setCodingRate(5) != RADIOLIB_ERR_NONE) {
-            Serial.printf("LoRa Coding Rate Error\n");
-                return false;
+            Serial.printf("LoRa Settings Error: Coding Rate\n");
+            lora_initialized = false;
+            return false;
         }
 
         // 22 dBm, for the SX1262 this is the specified max TX output power
@@ -1170,27 +1198,31 @@ ESP32_calculate_crc(u8* data, i32 length)
         // Dont go above this or may risk damaging component
         // test to see minimum power, likely -9dBm
         if (packet_lora_radio.setOutputPower(22) != RADIOLIB_ERR_NONE) {
-            Serial.printf("LoRa Output Power Error\n");
-                return false;
+            Serial.printf("LoRa Settings Error: Output Power\n");
+            lora_initialized = false;
+            return false;
         }
 
         // 8 Symbol Preamble Length (Standard for LoRa)
         // Synchronizes reciever with transmitter
         if (packet_lora_radio.setPreambleLength(8) != RADIOLIB_ERR_NONE) {
             Serial.printf("LoRa Preamble Length Error\n");
-                return false;
+            lora_initialized = false;
+            return false;
         }
 
         // 0x34 LoRaWAN Public Network sync word
         if (packet_lora_radio.setSyncWord(0x34) != RADIOLIB_ERR_NONE) {
-            Serial.printf("LoRa Sync Word Error\n");
-                return false;
+            Serial.printf("LoRa Settings Error: Sync Word\n");
+            lora_initialized = false;
+            return false;
         }
 
         // Adds Error Detection to packets
         if (packet_lora_radio.setCRC(true) != RADIOLIB_ERR_NONE) {
-            Serial.printf("LoRa CRC Error\n");
-                return false;
+            Serial.printf("LoRa Settings Error: CRC\n");
+            lora_initialized = false;
+            return false;
         }
 
 
@@ -1200,8 +1232,26 @@ ESP32_calculate_crc(u8* data, i32 length)
 
     lora_initialized = true;
     Serial.println("LoRa initialized.\n");
+    lora_consecutive_errors = 0;
     return true;
 }
+
+
+    // Call on each TX/RX error for the LoRa channel.
+    // Triggers reinit after LORA_ERROR_THRESHOLD consecutive errors.
+    void lora_report_error(void) {
+        if (++lora_consecutive_errors >= LORA_ERROR_THRESHOLD) {
+            Serial.println("LoRa error threshold reached, scheduling reinit.");
+            lora_initialized = false;
+            lora_consecutive_errors = 0;
+        }
+    }
+
+    // Call on each successful TX/RX to reset the consecutive error counter.
+    void lora_report_success(void) {
+        lora_consecutive_errors = 0;
+    }
+
 
     //bool to determine when radio is currently hard reseting
     bool lora_resetting = false;
