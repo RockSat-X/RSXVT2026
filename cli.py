@@ -2624,7 +2624,8 @@ def plot(parameters):
 
     # TODO.
 
-    timeline_axes   = main_figure.add_axes((0.125, 0.05, 0.75, 0.025))
+    TIMELINE_BOX    = (0.125, 0.05, 0.75, 0.025)
+    timeline_axes   = main_figure.add_axes(TIMELINE_BOX)
     timeline_slider = matplotlib.widgets.Slider(
         ax      = timeline_axes,
         label   = None,
@@ -2634,7 +2635,8 @@ def plot(parameters):
         valfmt  = 't = %.2f s',
     )
 
-    playback_axes        = main_figure.add_axes((0.01, 0.05, 0.1, 0.025))
+    PLAYBACK_BOX         = (0.01, 0.05, 0.1, 0.025)
+    playback_axes        = main_figure.add_axes(PLAYBACK_BOX)
     playback_checkbutton = matplotlib.widgets.CheckButtons(
         ax      = playback_axes,
         labels  = ('Play',),
@@ -2661,10 +2663,10 @@ def plot(parameters):
         delta_time            = current_elapsed_time - previous_elapsed_time
         previous_elapsed_time = current_elapsed_time
 
-        if playback_checkbutton.get_status()[0]:
+        if snapshots and playback_checkbutton.get_status()[0]:
             timeline_slider.set_val((timeline_slider.val + delta_time) % (len(snapshots) * 0.020))
 
-        snapshot = snapshots[math.floor(timeline_slider.val / 0.020)]
+        snapshot = snapshots[math.floor(timeline_slider.val / 0.020)] if snapshots else None
 
 
 
@@ -2686,80 +2688,104 @@ def plot(parameters):
 
         # TODO.
 
-        vn100_orientation = (snapshot.QuatS, snapshot.QuatX, snapshot.QuatY, snapshot.QuatZ)
-
-        _, *orientation_axis_x = quaternion_rotate(
-            (0, 1, 0, 0),
-            vn100_orientation,
+        timeline_axes.set_position(
+            (
+                TIMELINE_BOX[0],
+                TIMELINE_BOX[1] + (0 if len(snapshots) else 10),
+                TIMELINE_BOX[2],
+                TIMELINE_BOX[3],
+            )
         )
 
-        _, *orientation_axis_y = quaternion_rotate(
-            (0, 0, 1, 0),
-            vn100_orientation,
+        playback_axes.set_position(
+            (
+                PLAYBACK_BOX[0],
+                PLAYBACK_BOX[1] + (0 if len(snapshots) else 10),
+                PLAYBACK_BOX[2],
+                PLAYBACK_BOX[3],
+            )
         )
-
-        _, *orientation_axis_z = quaternion_rotate(
-            (0, 0, 0, 1),
-            vn100_orientation,
-        )
-
-        scene_axes.quiver(0, 0, 0, *orientation_axis_x, color = 'red'  , linewidths = 3)
-        scene_axes.quiver(0, 0, 0, *orientation_axis_y, color = 'green', linewidths = 3)
-        scene_axes.quiver(0, 0, 0, *orientation_axis_z, color = 'blue' , linewidths = 3)
 
 
 
         # TODO.
 
-        axis_angular_velocities = (
-            5,
-            math.cos(current_elapsed_time),
-            5,
-        )
+        if snapshot is not None:
 
-        axis_angles = (
-            axis_angles[0] + axis_angular_velocities[0] * delta_time,
-            axis_angles[1] + axis_angular_velocities[1] * delta_time,
-            axis_angles[2] + axis_angular_velocities[2] * delta_time,
-        )
+            vn100_orientation = (snapshot.QuatS, snapshot.QuatX, snapshot.QuatY, snapshot.QuatZ)
 
-        for axis_i in (0, 1, 2):
+            _, *orientation_axis_x = quaternion_rotate(
+                (0, 1, 0, 0),
+                vn100_orientation,
+            )
 
-            ROTATIONAL_ARROWS_COUNT = 3
+            _, *orientation_axis_y = quaternion_rotate(
+                (0, 0, 1, 0),
+                vn100_orientation,
+            )
 
-            for i in range(ROTATIONAL_ARROWS_COUNT):
+            _, *orientation_axis_z = quaternion_rotate(
+                (0, 0, 0, 1),
+                vn100_orientation,
+            )
 
-                delta_angle  = +0.5 if axis_angular_velocities[axis_i] > 0 else -0.5
-                delta_angle *= abs(axis_angular_velocities[axis_i]) / (abs(axis_angular_velocities[axis_i]) + 1)
+            scene_axes.quiver(0, 0, 0, *orientation_axis_x, color = 'red'  , linewidths = 3)
+            scene_axes.quiver(0, 0, 0, *orientation_axis_y, color = 'green', linewidths = 3)
+            scene_axes.quiver(0, 0, 0, *orientation_axis_z, color = 'blue' , linewidths = 3)
 
-                base_u  = math.cos(axis_angles[axis_i] + (i              ) / ROTATIONAL_ARROWS_COUNT * 2 * math.pi) * 0.3
-                base_v  = math.sin(axis_angles[axis_i] + (i              ) / ROTATIONAL_ARROWS_COUNT * 2 * math.pi) * 0.3
-                delta_u = math.cos(axis_angles[axis_i] + (i + delta_angle) / ROTATIONAL_ARROWS_COUNT * 2 * math.pi) * 0.3 - base_u
-                delta_v = math.sin(axis_angles[axis_i] + (i + delta_angle) / ROTATIONAL_ARROWS_COUNT * 2 * math.pi) * 0.3 - base_v
 
-                match axis_i:
 
-                    case 0:
-                        base  = (1, base_u , base_v )
-                        delta = (0, delta_u, delta_v)
+            # TODO.
 
-                    case 1:
-                        base  = (base_v , 1, base_u )
-                        delta = (delta_v, 0, delta_u)
+            axis_angular_velocities = (
+                5,
+                math.cos(current_elapsed_time),
+                5,
+            )
 
-                    case 2:
-                        base  = (base_u , base_v , 1)
-                        delta = (delta_u, delta_v, 0)
+            axis_angles = (
+                axis_angles[0] + axis_angular_velocities[0] * delta_time,
+                axis_angles[1] + axis_angular_velocities[1] * delta_time,
+                axis_angles[2] + axis_angular_velocities[2] * delta_time,
+            )
 
-                _, *base  = quaternion_rotate((0, *base ), vn100_orientation)
-                _, *delta = quaternion_rotate((0, *delta), vn100_orientation)
+            for axis_i in (0, 1, 2):
 
-                scene_axes.quiver(
-                    *base,
-                    *delta,
-                    color      = ('red', 'green', 'blue')[axis_i],
-                    linewidths = 1,
-                )
+                ROTATIONAL_ARROWS_COUNT = 3
+
+                for i in range(ROTATIONAL_ARROWS_COUNT):
+
+                    delta_angle  = +0.5 if axis_angular_velocities[axis_i] > 0 else -0.5
+                    delta_angle *= abs(axis_angular_velocities[axis_i]) / (abs(axis_angular_velocities[axis_i]) + 1)
+
+                    base_u  = math.cos(axis_angles[axis_i] + (i              ) / ROTATIONAL_ARROWS_COUNT * 2 * math.pi) * 0.3
+                    base_v  = math.sin(axis_angles[axis_i] + (i              ) / ROTATIONAL_ARROWS_COUNT * 2 * math.pi) * 0.3
+                    delta_u = math.cos(axis_angles[axis_i] + (i + delta_angle) / ROTATIONAL_ARROWS_COUNT * 2 * math.pi) * 0.3 - base_u
+                    delta_v = math.sin(axis_angles[axis_i] + (i + delta_angle) / ROTATIONAL_ARROWS_COUNT * 2 * math.pi) * 0.3 - base_v
+
+                    match axis_i:
+
+                        case 0:
+                            base  = (1, base_u , base_v )
+                            delta = (0, delta_u, delta_v)
+
+                        case 1:
+                            base  = (base_v , 1, base_u )
+                            delta = (delta_v, 0, delta_u)
+
+                        case 2:
+                            base  = (base_u , base_v , 1)
+                            delta = (delta_u, delta_v, 0)
+
+                    _, *base  = quaternion_rotate((0, *base ), vn100_orientation)
+                    _, *delta = quaternion_rotate((0, *delta), vn100_orientation)
+
+                    scene_axes.quiver(
+                        *base,
+                        *delta,
+                        color      = ('red', 'green', 'blue')[axis_i],
+                        linewidths = 1,
+                    )
 
 
 
