@@ -2548,7 +2548,64 @@ def plot(parameters):
 
 
 
-    # TODO.
+    ########################################
+    #
+    # Utilities.
+    #
+
+
+
+    class Button:
+
+
+
+        def __init__(self, area, label, exists):
+
+            self.area    = area
+            self.label   = label
+            self.clicked = None
+            self.axes    = None
+            self.widget  = None
+            self.set_existence(exists)
+
+
+
+        def set_existence(self, exist):
+
+            if exist:
+
+                if self.axes is None:
+
+                    self.clicked = False
+                    self.axes    = main_figure.add_axes(self.area)
+                    self.widget  = matplotlib.widgets.Button(
+                        ax    = self.axes,
+                        label = self.label,
+                    )
+
+                    def callback(event):
+                        self.clicked = True
+
+                    self.widget.on_clicked(callback)
+
+            elif self.axes is not None:
+
+                self.axes.remove()
+                self.clicked = None
+                self.axes    = None
+                self.widget  = None
+
+
+
+        def acknowledge_click(self):
+
+            if self.clicked is not None and self.clicked:
+                self.clicked = False
+                return True
+            else:
+                return False
+
+
 
     def quaternion_multiply(lhs, rhs):
         return (
@@ -2585,10 +2642,6 @@ def plot(parameters):
         label = 'Get snapshots from ST-Link',
     )
 
-    save_axes    = None
-    save_button  = None
-    save_clicked = False
-
     snapshots = []
     stlink_clicked = False
     snapshot_blob = b''
@@ -2597,25 +2650,19 @@ def plot(parameters):
         nonlocal stlink_clicked
         stlink_clicked = True
 
-    def save_callback(event):
-        nonlocal save_clicked
-        save_clicked = True
-
     stlink_button.on_clicked(get_snapshots_from_stlink)
 
-    load_axes   = main_figure.add_axes((0.325, 0.05, 0.2, 0.035))
-    load_button = matplotlib.widgets.Button(
-        ax    = load_axes,
-        label = 'Load snapshots',
+    load_button = Button(
+        area   = (0.325, 0.05, 0.2, 0.035),
+        label  = 'Load snapshots',
+        exists = True,
     )
 
-    def load_callback(event):
-        nonlocal load_clicked
-        load_clicked = True
-
-    load_clicked = False
-
-    load_button.on_clicked(load_callback)
+    save_button = Button(
+        area   = (0.54, 0.05, 0.2, 0.035),
+        label  = 'Save snapshots',
+        exists = False,
+    )
 
 
 
@@ -2682,7 +2729,7 @@ def plot(parameters):
 
     def update(_):
 
-        nonlocal snapshot_blob, previous_elapsed_time, axis_angles, stlink_clicked, snapshots, timeline_slider, timeline_axes, playback_axes, playback_checkbutton, save_axes, save_button, save_clicked, load_clicked
+        nonlocal snapshot_blob, previous_elapsed_time, axis_angles, stlink_clicked, snapshots, timeline_slider, timeline_axes, playback_axes, playback_checkbutton, load_button, save_button
 
         if stlink_clicked:
 
@@ -2735,31 +2782,9 @@ def plot(parameters):
 
         # TODO.
 
-        if save_axes is None and snapshot_blob:
+        save_button.set_existence(snapshot_blob)
 
-            save_axes   = main_figure.add_axes((0.54, 0.05, 0.2, 0.035))
-            save_button = matplotlib.widgets.Button(
-                ax    = save_axes,
-                label = 'Save snapshots',
-            )
-
-            save_clicked = False
-
-            def save_callback(event):
-                nonlocal save_clicked
-                save_clicked = True
-
-            save_button.on_clicked(save_callback)
-
-        if not snapshot_blob and save_axes is not None:
-
-            save_axes.remove()
-            save_axes   = None
-            save_button = None
-
-        if save_axes is not None and save_clicked:
-
-            save_clicked = False
+        if save_button.acknowledge_click():
 
             from tkinter import filedialog
             import tkinter as tk
@@ -2778,9 +2803,7 @@ def plot(parameters):
             previous_elapsed_time = time.time() - start_time
 
 
-        if load_clicked:
-
-            load_clicked = False
+        if load_button.acknowledge_click():
 
             from tkinter import filedialog
             import tkinter as tk
