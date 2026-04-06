@@ -2573,19 +2573,27 @@ def plot(parameters):
     playback_axes        = None
     playback_checkbutton = None
 
-    STLINK_BOX    = (0.01, 0.05, 0.25, 0.035)
-    stlink_axes   = main_figure.add_axes(STLINK_BOX)
+    stlink_axes   = main_figure.add_axes((0.01, 0.05, 0.3, 0.035))
     stlink_button = matplotlib.widgets.Button(
         ax    = stlink_axes,
         label = 'Get snapshots from ST-Link',
     )
 
+    save_axes    = None
+    save_button  = None
+    save_clicked = False
+
     snapshots = []
     stlink_clicked = False
+    snapshot_blob = b''
 
     def get_snapshots_from_stlink(event):
         nonlocal stlink_clicked
         stlink_clicked = True
+
+    def save_callback(event):
+        nonlocal save_clicked
+        save_clicked = True
 
     stlink_button.on_clicked(get_snapshots_from_stlink)
 
@@ -2599,7 +2607,7 @@ def plot(parameters):
 
     def update(_):
 
-        nonlocal previous_elapsed_time, axis_angles, stlink_clicked, snapshots, timeline_slider, timeline_axes, playback_axes, playback_checkbutton
+        nonlocal snapshot_blob, previous_elapsed_time, axis_angles, stlink_clicked, snapshots, timeline_slider, timeline_axes, playback_axes, playback_checkbutton, save_axes, save_button, save_clicked
 
         if stlink_clicked:
 
@@ -2687,6 +2695,50 @@ def plot(parameters):
 
 
             previous_elapsed_time = time.time() - start_time
+
+
+
+        # TODO.
+
+        if save_axes is None and snapshot_blob:
+
+            save_axes   = main_figure.add_axes((0.325, 0.05, 0.2, 0.035))
+            save_button = matplotlib.widgets.Button(
+                ax    = save_axes,
+                label = 'Save snapshots',
+            )
+
+            save_clicked = False
+
+            def save_callback(event):
+                nonlocal save_clicked
+                save_clicked = True
+
+            save_button.on_clicked(save_callback)
+
+        if not snapshot_blob and save_axes is not None:
+
+            save_axes.remove()
+            save_axes   = None
+            save_button = None
+
+        if save_axes is not None and save_clicked:
+
+            save_clicked = False
+
+            from tkinter import filedialog
+            import tkinter as tk
+
+            root = tk.Tk()
+            root.withdraw()
+
+            file_path = filedialog.asksaveasfilename(
+                defaultextension = '.snapshots',
+                filetypes        = (('Snapshots', '*.snapshots'), ('All files', '*.*')),
+                title            = 'Save your file'
+            )
+
+            pathlib.Path(file_path).write_bytes(snapshot_blob)
 
 
 
