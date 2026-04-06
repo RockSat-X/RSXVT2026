@@ -2586,13 +2586,78 @@ def plot(parameters):
         )
     )
 
-    entries = [
-        VN100Register(*(
-            float(field)
-            for field in line[7:-3].split(',')
-        ))
-        for line in pxd.make_main_relative_path('./gnc/vn100_scripts/vn100_dataLog.txt').read_text().splitlines()
-    ][1200:]
+
+
+    # Receive snapshots from the ST-Link.
+    # This is primarily for `DemoGNC` where we'd want to
+    # program the target and then quickly verify the output.
+
+    serial, list_ports = import_pyserial()
+
+    stlink      = request_stlinks(specific_one = True)
+    serial_port = serial.Serial(
+        stlink.comport.device,
+        baudrate = STLINK_BAUD,
+        timeout  = 0
+    )
+
+    snapshot_blob = b''
+
+    time.sleep(0.1)                  # Flush the buffer, but for some reason we have to delay it a bit after opening the port.
+    serial_port.reset_input_buffer() # "
+
+    pxd.pxd_logger.info(f'Waiting for data from ST-Link...')
+
+    while True:
+
+        if serial_port.in_waiting:
+
+            snapshot_blob += serial_port.read_all()
+
+            pxd.pxd_logger.info(f'Received {repr(len(snapshot_blob))} bytes so far...')
+
+        else:
+
+            time.sleep(0.1)
+
+            if snapshot_blob and not serial_port.in_waiting:
+                break
+
+
+
+    # TODO.
+
+    entries = []
+
+    index = -1
+
+    while True:
+
+        index = snapshot_blob.find(PLOT_SNAPSHOT_TOKEN, index + 1)
+
+        if index == -1:
+            break
+
+        if index + ctypes.sizeof(PlotSnapshot) > len(snapshot_blob):
+            break
+
+        entry = PlotSnapshot.from_buffer_copy(snapshot_blob[index : index + ctypes.sizeof(PlotSnapshot)])
+
+        entries += [VN100Register(
+            QuatX  = entry.QuatX,
+            QuatY  = entry.QuatY,
+            QuatZ  = entry.QuatZ,
+            QuatS  = entry.QuatS,
+            MagX   = entry.MagX,
+            MagY   = entry.MagY,
+            MagZ   = entry.MagZ,
+            AccelX = entry.AccelX,
+            AccelY = entry.AccelY,
+            AccelZ = entry.AccelZ,
+            GyroX  = entry.GyroX,
+            GyroY  = entry.GyroY,
+            GyroZ  = entry.GyroZ,
+        )]
 
 
 

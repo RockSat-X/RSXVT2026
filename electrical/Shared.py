@@ -96,7 +96,7 @@ class MainFlightComputerLogEntry(ctypes.Structure):
         ('sector_padding_', ctypes.c_uint8 * (512 - ctypes.sizeof(UnpaddedMainFlightComputerLogEntry))),
     )
 
-PLOT_SNAPSHOT_TOKEN = 'WOOF'
+PLOT_SNAPSHOT_TOKEN = b'WOOF'
 
 class UnpaddedPlotSnapshot(ctypes.Structure):
     _pack_   = True
@@ -1610,19 +1610,19 @@ for target in TARGETS:
     # Additional macro defines.
 
     defines = [
-        ('TARGET_NAME'                        , target.name                                   ),
-        ('TARGET_MCU'                         , target.mcu                                    ),
-        ('TARGET_USES_FREERTOS'               , target.use_freertos                           ),
-        ('STACK_SIZE'                         , STACK_SIZE                                    ),
-        ('COMPILING_ESP32'                    , False                                         ),
-        ('VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS', VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS           ),
-        ('ESP32_BAUD'                         , ESP32_BAUD                                    ),
-        ('PLOT_SNAPSHOT_TOKEN'                , f'STRINGIFY({PLOT_SNAPSHOT_TOKEN})'           ),
-        ('TV_TOKEN_START'                     , f'STRINGIFY({TV_TOKEN.START.decode('UTF-8')})'),
-        ('TV_TOKEN_END'                       , f'STRINGIFY({TV_TOKEN.END  .decode('UTF-8')})'),
-        ('TV_WRITE_BYTE'                      , f'0x{TV_WRITE_BYTE :02X}'                     ),
-        ('MFC_DEBUG_BOARD_SEVEN_BIT_ADDRESS'  , f'0x{MFC_DEBUG_BOARD_SEVEN_BIT_ADDRESS :02X}' ),
-        ('FLIGHT_READY'                       , target.flight_ready                           ),
+        ('TARGET_NAME'                        , target.name                                        ),
+        ('TARGET_MCU'                         , target.mcu                                         ),
+        ('TARGET_USES_FREERTOS'               , target.use_freertos                                ),
+        ('STACK_SIZE'                         , STACK_SIZE                                         ),
+        ('COMPILING_ESP32'                    , False                                              ),
+        ('VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS', VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS                ),
+        ('ESP32_BAUD'                         , ESP32_BAUD                                         ),
+        ('PLOT_SNAPSHOT_TOKEN'                , f'STRINGIFY({PLOT_SNAPSHOT_TOKEN.decode('UTF-8')})'),
+        ('TV_TOKEN_START'                     , f'STRINGIFY({TV_TOKEN.START     .decode('UTF-8')})'),
+        ('TV_TOKEN_END'                       , f'STRINGIFY({TV_TOKEN.END       .decode('UTF-8')})'),
+        ('TV_WRITE_BYTE'                      , f'0x{TV_WRITE_BYTE :02X}'                          ),
+        ('MFC_DEBUG_BOARD_SEVEN_BIT_ADDRESS'  , f'0x{MFC_DEBUG_BOARD_SEVEN_BIT_ADDRESS :02X}'      ),
+        ('FLIGHT_READY'                       , target.flight_ready                                ),
     ]
 
     for other_target in TARGETS:
