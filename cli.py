@@ -2523,6 +2523,12 @@ def parseFlight(parameters):
     {
         'description' : 'Make plots.',
     },
+    {
+        'name'        : 'input_file_path',
+        'description' : 'If provided, load the file of snapshots.',
+        'type'        : str,
+        'default'     : None,
+    },
 )
 def plot(parameters):
 
@@ -2661,6 +2667,11 @@ def plot(parameters):
         )
 
 
+    # TODO.
+
+    if parameters.input_file_path is not None:
+        snapshot_blob = pathlib.Path(parameters.input_file_path).read_bytes()
+        process_snapshot_blob()
 
 
     # TODO.
