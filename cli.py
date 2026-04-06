@@ -2541,17 +2541,7 @@ def plot(parameters):
 
 
 
-    # TODO.
-
-    main_figure = matplotlib.pyplot.figure(figsize = (8, 8))
-    scene_axes  = main_figure.add_axes((0, 0.15, 1, 0.8), projection = '3d')
-
-
-
     ########################################
-    #
-    # Utilities.
-    #
 
 
 
@@ -2564,7 +2554,6 @@ def plot(parameters):
             self.area    = area
             self.label   = label
             self.clicked = None
-            self.axes    = None
             self.widget  = None
             self.set_existence(exists)
 
@@ -2574,12 +2563,11 @@ def plot(parameters):
 
             if exist:
 
-                if self.axes is None:
+                if self.widget is None:
 
                     self.clicked = False
-                    self.axes    = main_figure.add_axes(self.area)
                     self.widget  = matplotlib.widgets.Button(
-                        ax    = self.axes,
+                        ax    = main_figure.add_axes(self.area),
                         label = self.label,
                     )
 
@@ -2588,11 +2576,10 @@ def plot(parameters):
 
                     self.widget.on_clicked(callback)
 
-            elif self.axes is not None:
+            elif self.widget is not None:
 
-                self.axes.remove()
+                self.widget.ax.remove()
                 self.clicked = None
-                self.axes    = None
                 self.widget  = None
 
 
@@ -2604,8 +2591,6 @@ def plot(parameters):
                 return True
             else:
                 return False
-
-
 
     def quaternion_multiply(lhs, rhs):
         return (
@@ -2628,18 +2613,16 @@ def plot(parameters):
 
 
 
-    # TODO.
+    ########################################
 
-    timeline_axes   = None
+
+
+    main_figure = matplotlib.pyplot.figure(figsize = (8, 8))
+    scene_axes  = main_figure.add_axes((0, 0.15, 1, 0.8), projection = '3d')
+
     timeline_slider = None
 
-    playback_axes        = None
     playback_checkbutton = None
-
-    snapshots = []
-    snapshot_blob = b''
-
-
 
     stlink_button = Button(
         area   = (0.01, 0.05, 0.3, 0.035),
@@ -2661,36 +2644,73 @@ def plot(parameters):
 
 
 
-    # TODO.
+    ########################################
+
+
+
+    snapshot_blob = b''
+    snapshots     = []
 
     def process_snapshot_blob():
 
-        nonlocal snapshot_blob, snapshots, timeline_slider, timeline_axes, playback_axes, playback_checkbutton
+        nonlocal snapshot_blob, snapshots, timeline_slider, playback_checkbutton
+
+
+
+        # Clear out the old stuff.
 
         snapshots = []
 
-        index = -1
+        if playback_checkbutton is not None:
+            playback_checkbutton.ax.remove()
+            playback_checkbutton = None
+
+        if timeline_slider is not None:
+            timeline_slider.ax.remove()
+            timeline_slider = None
+
+
+
+        # Find the snapshot entries.
+
+        find_index = -1
 
         while True:
 
-            index = snapshot_blob.find(PLOT_SNAPSHOT_TOKEN, index + 1)
+            find_index = snapshot_blob.find(PLOT_SNAPSHOT_TOKEN, find_index + 1)
 
-            if index == -1:
-                break
+            if find_index == -1:
+                break # No more snapshots found.
 
-            if index + ctypes.sizeof(PlotSnapshot) > len(snapshot_blob):
-                break
+            if find_index + ctypes.sizeof(PlotSnapshot) > len(snapshot_blob):
+                break # Not enough for a full snapshot.
 
-            snapshots += [PlotSnapshot.from_buffer_copy(snapshot_blob[index : index + ctypes.sizeof(PlotSnapshot)])]
+            snapshots += [PlotSnapshot.from_buffer_copy(snapshot_blob[find_index : find_index + ctypes.sizeof(PlotSnapshot)])]
+
+        if not snapshots:
+
+            snapshot_blob = b''
+
+            pxd.pxd_logger.error(f'No snapshots found.')
+
+            return False
 
 
 
-        if timeline_axes is not None:
-            timeline_axes.remove()
+        # Have check button for playing/resuming the timeline.
 
-        timeline_axes   = main_figure.add_axes((0.125, 0.1, 0.75, 0.025))
+        playback_checkbutton = matplotlib.widgets.CheckButtons(
+            ax      = main_figure.add_axes((0.01, 0.1, 0.1, 0.025)),
+            labels  = ('Play',),
+            actives = (True  ,),
+        )
+
+
+
+        # Have slider for the timeline.
+
         timeline_slider = matplotlib.widgets.Slider(
-            ax      = timeline_axes,
+            ax      = main_figure.add_axes((0.125, 0.1, 0.75, 0.025)),
             label   = None,
             valmin  = 0,
             valmax  = (len(snapshots) - 1) * 0.020, # TODO.
@@ -2698,39 +2718,43 @@ def plot(parameters):
             valfmt  = 't = %.2f s',
         )
 
-        if playback_axes is not None:
-            playback_axes.remove()
-
-        playback_axes        = main_figure.add_axes((0.01, 0.1, 0.1, 0.025))
-        playback_checkbutton = matplotlib.widgets.CheckButtons(
-            ax      = playback_axes,
-            labels  = ('Play',),
-            actives = (True  ,),
-        )
+        return True
 
 
-    # TODO.
 
     if parameters.input_file_path is not None:
+
+        if not pathlib.Path(parameters.input_file_path).is_file():
+            pxd.pxd_logger.error(
+                f"Couldn't open {repr(pathlib.Path(parameters.input_file_path).resolve().as_posix())}."
+            )
+            sys.exit(1)
+
         snapshot_blob = pathlib.Path(parameters.input_file_path).read_bytes()
-        process_snapshot_blob()
+
+        if not process_snapshot_blob():
+            sys.exit(1)
 
 
-    # TODO.
 
-    start_time            = time.time()
-    previous_elapsed_time = 0
-    axis_angles           = (0, 0, 0)
+    ########################################
+
+
+
+    axis_angles = (0, 0, 0)
+    delta_time  = 1 / 60 # Just something to start with.
 
     def update(_):
 
-        nonlocal snapshot_blob, previous_elapsed_time, axis_angles, snapshots, timeline_slider, timeline_axes, playback_axes, playback_checkbutton
+        nonlocal delta_time, snapshot_blob, axis_angles, snapshots, timeline_slider, playback_checkbutton
+
+
+
+        # Receive snapshots from the ST-Link.
+        # This is primarily for `DemoGNC` where we'd want to
+        # program the target and then quickly verify the output.
 
         if stlink_button.acknowledge_click():
-
-            # Receive snapshots from the ST-Link.
-            # This is primarily for `DemoGNC` where we'd want to
-            # program the target and then quickly verify the output.
 
             serial, list_ports = import_pyserial()
 
@@ -2741,12 +2765,12 @@ def plot(parameters):
                 timeout  = 0
             )
 
-            snapshot_blob = b''
-
             time.sleep(0.1)                  # Flush the buffer, but for some reason we have to delay it a bit after opening the port.
             serial_port.reset_input_buffer() # "
 
             pxd.pxd_logger.info(f'Waiting for data from ST-Link...')
+
+            snapshot_blob = b''
 
             while True:
 
@@ -2763,38 +2787,11 @@ def plot(parameters):
                     if snapshot_blob and not serial_port.in_waiting:
                         break
 
-
-
-            # TODO.
-
             process_snapshot_blob()
 
-            previous_elapsed_time = time.time() - start_time
 
 
-
-        # TODO.
-
-        save_button.set_existence(snapshot_blob)
-
-        if save_button.acknowledge_click():
-
-            from tkinter import filedialog
-            import tkinter as tk
-
-            root = tk.Tk()
-            root.withdraw()
-
-            file_path = filedialog.asksaveasfilename(
-                defaultextension = '.snapshots',
-                filetypes        = (('Snapshots', '*.snapshots'), ('All files', '*.*')),
-                title            = 'Save your file'
-            )
-
-            pathlib.Path(file_path).write_bytes(snapshot_blob)
-
-            previous_elapsed_time = time.time() - start_time
-
+        # Load existing samples from a file.
 
         if load_button.acknowledge_click():
 
@@ -2814,25 +2811,38 @@ def plot(parameters):
 
             process_snapshot_blob()
 
-            previous_elapsed_time = time.time() - start_time
+
+
+        # Save the current displayed samples to a file.
+
+        save_button.set_existence(snapshots)
+
+        if save_button.acknowledge_click():
+
+            from tkinter import filedialog
+            import tkinter as tk
+
+            root = tk.Tk()
+            root.withdraw()
+
+            file_path = filedialog.asksaveasfilename(
+                defaultextension = '.snapshots',
+                filetypes        = (('Snapshots', '*.snapshots'), ('All files', '*.*')),
+                title            = 'Save your file'
+            )
+
+            pathlib.Path(file_path).write_bytes(snapshot_blob)
 
 
 
+        # We begin computing delta time from here so the stuff
+        # above blocking won't result in a large time skip.
 
-        # TODO.
-
-        current_elapsed_time  = time.time() - start_time
-        delta_time            = current_elapsed_time - previous_elapsed_time
-        previous_elapsed_time = current_elapsed_time
-
-        if timeline_slider is not None and playback_checkbutton.get_status()[0]:
-            timeline_slider.set_val((timeline_slider.val + delta_time) % (len(snapshots) * 0.020))
-
-        snapshot = snapshots[math.floor(timeline_slider.val / 0.020)] if timeline_slider is not None else None
+        start_time = time.time()
 
 
 
-        # TODO.
+        # Plot stuff.
 
         scene_axes.clear()
         scene_axes.set_xlim(-2, 2)
@@ -2845,11 +2855,22 @@ def plot(parameters):
         scene_axes.set_ylabel('Y')
         scene_axes.set_zlabel('Z')
 
+        if snapshots:
 
 
-        # TODO.
 
-        if snapshot is not None:
+            # Get current snapshot.
+
+            if playback_checkbutton.get_status()[0]:
+                timeline_slider.set_val(
+                    (timeline_slider.val + delta_time) % (len(snapshots) * 0.020)
+                )
+
+            snapshot = snapshots[math.floor(timeline_slider.val / 0.020)]
+
+
+
+            # Display vehicle orientation.
 
             vn100_orientation = (snapshot.QuatS, snapshot.QuatX, snapshot.QuatY, snapshot.QuatZ)
 
@@ -2874,11 +2895,11 @@ def plot(parameters):
 
 
 
-            # TODO.
+            # Display vehicle's stepper motor rotations.
 
-            axis_angular_velocities = (
+            axis_angular_velocities = ( # TODO.
                 5,
-                math.cos(current_elapsed_time),
+                math.cos(time.time()),
                 5,
             )
 
@@ -2928,9 +2949,16 @@ def plot(parameters):
 
 
 
+        # Compute delta time for the next frame.
+
+        end_time   = time.time()
+        delta_time = end_time - start_time
+
         return scene_axes,
 
 
+
+    # Set up the display.
 
     matplotlib.pyplot.rcParams['axes3d.mouserotationstyle'] = 'azel'
 
