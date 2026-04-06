@@ -2538,7 +2538,7 @@ def plot(parameters):
     # TODO.
 
     main_figure = matplotlib.pyplot.figure(figsize = (8, 8))
-    scene_axes  = main_figure.add_axes((0, 0.2, 1, 0.8), projection = '3d')
+    scene_axes  = main_figure.add_axes((0, 0.15, 1, 0.8), projection = '3d')
 
 
 
@@ -2565,83 +2565,29 @@ def plot(parameters):
 
 
 
-    # Receive snapshots from the ST-Link.
-    # This is primarily for `DemoGNC` where we'd want to
-    # program the target and then quickly verify the output.
-
-    serial, list_ports = import_pyserial()
-
-    stlink      = request_stlinks(specific_one = True)
-    serial_port = serial.Serial(
-        stlink.comport.device,
-        baudrate = STLINK_BAUD,
-        timeout  = 0
-    )
-
-    snapshot_blob = b''
-
-    time.sleep(0.1)                  # Flush the buffer, but for some reason we have to delay it a bit after opening the port.
-    serial_port.reset_input_buffer() # "
-
-    pxd.pxd_logger.info(f'Waiting for data from ST-Link...')
-
-    while True:
-
-        if serial_port.in_waiting:
-
-            snapshot_blob += serial_port.read_all()
-
-            pxd.pxd_logger.info(f'Received {repr(len(snapshot_blob))} bytes so far...')
-
-        else:
-
-            time.sleep(0.1)
-
-            if snapshot_blob and not serial_port.in_waiting:
-                break
-
-
-
     # TODO.
+
+    timeline_axes   = None
+    timeline_slider = None
+
+    playback_axes        = None
+    playback_checkbutton = None
+
+    STLINK_BOX    = (0.01, 0.05, 0.25, 0.035)
+    stlink_axes   = main_figure.add_axes(STLINK_BOX)
+    stlink_button = matplotlib.widgets.Button(
+        ax    = stlink_axes,
+        label = 'Get snapshots from ST-Link',
+    )
 
     snapshots = []
+    stlink_clicked = False
 
-    index = -1
+    def get_snapshots_from_stlink(event):
+        nonlocal stlink_clicked
+        stlink_clicked = True
 
-    while True:
-
-        index = snapshot_blob.find(PLOT_SNAPSHOT_TOKEN, index + 1)
-
-        if index == -1:
-            break
-
-        if index + ctypes.sizeof(PlotSnapshot) > len(snapshot_blob):
-            break
-
-        snapshots += [PlotSnapshot.from_buffer_copy(snapshot_blob[index : index + ctypes.sizeof(PlotSnapshot)])]
-
-
-
-    # TODO.
-
-    TIMELINE_BOX    = (0.125, 0.05, 0.75, 0.025)
-    timeline_axes   = main_figure.add_axes(TIMELINE_BOX)
-    timeline_slider = matplotlib.widgets.Slider(
-        ax      = timeline_axes,
-        label   = None,
-        valmin  = 0,
-        valmax  = (len(snapshots) - 1) * 0.020, # TODO.
-        valinit = 0,
-        valfmt  = 't = %.2f s',
-    )
-
-    PLAYBACK_BOX         = (0.01, 0.05, 0.1, 0.025)
-    playback_axes        = main_figure.add_axes(PLAYBACK_BOX)
-    playback_checkbutton = matplotlib.widgets.CheckButtons(
-        ax      = playback_axes,
-        labels  = ('Play',),
-        actives = (True  ,),
-    )
+    stlink_button.on_clicked(get_snapshots_from_stlink)
 
 
 
@@ -2653,7 +2599,94 @@ def plot(parameters):
 
     def update(_):
 
-        nonlocal previous_elapsed_time, axis_angles
+        nonlocal previous_elapsed_time, axis_angles, stlink_clicked, snapshots, timeline_slider, timeline_axes, playback_axes, playback_checkbutton
+
+        if stlink_clicked:
+
+            stlink_clicked = False
+
+            # Receive snapshots from the ST-Link.
+            # This is primarily for `DemoGNC` where we'd want to
+            # program the target and then quickly verify the output.
+
+            serial, list_ports = import_pyserial()
+
+            stlink      = request_stlinks(specific_one = True)
+            serial_port = serial.Serial(
+                stlink.comport.device,
+                baudrate = STLINK_BAUD,
+                timeout  = 0
+            )
+
+            snapshot_blob = b''
+
+            time.sleep(0.1)                  # Flush the buffer, but for some reason we have to delay it a bit after opening the port.
+            serial_port.reset_input_buffer() # "
+
+            pxd.pxd_logger.info(f'Waiting for data from ST-Link...')
+
+            while True:
+
+                if serial_port.in_waiting:
+
+                    snapshot_blob += serial_port.read_all()
+
+                    pxd.pxd_logger.info(f'Received {repr(len(snapshot_blob))} bytes so far...')
+
+                else:
+
+                    time.sleep(0.1)
+
+                    if snapshot_blob and not serial_port.in_waiting:
+                        break
+
+
+
+            # TODO.
+
+            snapshots = []
+
+            index = -1
+
+            while True:
+
+                index = snapshot_blob.find(PLOT_SNAPSHOT_TOKEN, index + 1)
+
+                if index == -1:
+                    break
+
+                if index + ctypes.sizeof(PlotSnapshot) > len(snapshot_blob):
+                    break
+
+                snapshots += [PlotSnapshot.from_buffer_copy(snapshot_blob[index : index + ctypes.sizeof(PlotSnapshot)])]
+
+
+
+            if timeline_axes is not None:
+                timeline_axes.remove()
+
+            timeline_axes   = main_figure.add_axes((0.125, 0.1, 0.75, 0.025))
+            timeline_slider = matplotlib.widgets.Slider(
+                ax      = timeline_axes,
+                label   = None,
+                valmin  = 0,
+                valmax  = (len(snapshots) - 1) * 0.020, # TODO.
+                valinit = 0,
+                valfmt  = 't = %.2f s',
+            )
+
+            if playback_axes is not None:
+                playback_axes.remove()
+
+            playback_axes        = main_figure.add_axes((0.01, 0.1, 0.1, 0.025))
+            playback_checkbutton = matplotlib.widgets.CheckButtons(
+                ax      = playback_axes,
+                labels  = ('Play',),
+                actives = (True  ,),
+            )
+
+
+            previous_elapsed_time = time.time() - start_time
 
 
 
@@ -2663,17 +2696,16 @@ def plot(parameters):
         delta_time            = current_elapsed_time - previous_elapsed_time
         previous_elapsed_time = current_elapsed_time
 
-        if snapshots and playback_checkbutton.get_status()[0]:
+        if timeline_slider is not None and playback_checkbutton.get_status()[0]:
             timeline_slider.set_val((timeline_slider.val + delta_time) % (len(snapshots) * 0.020))
 
-        snapshot = snapshots[math.floor(timeline_slider.val / 0.020)] if snapshots else None
+        snapshot = snapshots[math.floor(timeline_slider.val / 0.020)] if timeline_slider is not None else None
 
 
 
         # TODO.
 
         scene_axes.clear()
-        scene_axes.set_title(f'Time: {current_elapsed_time :.3f}')
         scene_axes.set_xlim(-2, 2)
         scene_axes.set_ylim(-2, 2)
         scene_axes.set_zlim(-2, 2)
@@ -2683,28 +2715,6 @@ def plot(parameters):
         scene_axes.set_xlabel('X')
         scene_axes.set_ylabel('Y')
         scene_axes.set_zlabel('Z')
-
-
-
-        # TODO.
-
-        timeline_axes.set_position(
-            (
-                TIMELINE_BOX[0],
-                TIMELINE_BOX[1] + (0 if len(snapshots) else 10),
-                TIMELINE_BOX[2],
-                TIMELINE_BOX[3],
-            )
-        )
-
-        playback_axes.set_position(
-            (
-                PLAYBACK_BOX[0],
-                PLAYBACK_BOX[1] + (0 if len(snapshots) else 10),
-                PLAYBACK_BOX[2],
-                PLAYBACK_BOX[3],
-            )
-        )
 
 
 
