@@ -2636,21 +2636,16 @@ def plot(parameters):
     playback_axes        = None
     playback_checkbutton = None
 
-    stlink_axes   = main_figure.add_axes((0.01, 0.05, 0.3, 0.035))
-    stlink_button = matplotlib.widgets.Button(
-        ax    = stlink_axes,
-        label = 'Get snapshots from ST-Link',
-    )
-
     snapshots = []
-    stlink_clicked = False
     snapshot_blob = b''
 
-    def get_snapshots_from_stlink(event):
-        nonlocal stlink_clicked
-        stlink_clicked = True
 
-    stlink_button.on_clicked(get_snapshots_from_stlink)
+
+    stlink_button = Button(
+        area   = (0.01, 0.05, 0.3, 0.035),
+        label  = 'Get snapshots from ST-Link',
+        exists = True,
+    )
 
     load_button = Button(
         area   = (0.325, 0.05, 0.2, 0.035),
@@ -2729,11 +2724,9 @@ def plot(parameters):
 
     def update(_):
 
-        nonlocal snapshot_blob, previous_elapsed_time, axis_angles, stlink_clicked, snapshots, timeline_slider, timeline_axes, playback_axes, playback_checkbutton, load_button, save_button
+        nonlocal snapshot_blob, previous_elapsed_time, axis_angles, snapshots, timeline_slider, timeline_axes, playback_axes, playback_checkbutton
 
-        if stlink_clicked:
-
-            stlink_clicked = False
+        if stlink_button.acknowledge_click():
 
             # Receive snapshots from the ST-Link.
             # This is primarily for `DemoGNC` where we'd want to
