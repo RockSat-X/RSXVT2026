@@ -2597,6 +2597,70 @@ def plot(parameters):
 
     stlink_button.on_clicked(get_snapshots_from_stlink)
 
+    load_axes   = main_figure.add_axes((0.325, 0.05, 0.2, 0.035))
+    load_button = matplotlib.widgets.Button(
+        ax    = load_axes,
+        label = 'Load snapshots',
+    )
+
+    def load_callback(event):
+        nonlocal load_clicked
+        load_clicked = True
+
+    load_clicked = False
+
+    load_button.on_clicked(load_callback)
+
+
+
+    # TODO.
+
+    def process_snapshot_blob():
+
+        nonlocal snapshot_blob, snapshots, timeline_slider, timeline_axes, playback_axes, playback_checkbutton
+
+        snapshots = []
+
+        index = -1
+
+        while True:
+
+            index = snapshot_blob.find(PLOT_SNAPSHOT_TOKEN, index + 1)
+
+            if index == -1:
+                break
+
+            if index + ctypes.sizeof(PlotSnapshot) > len(snapshot_blob):
+                break
+
+            snapshots += [PlotSnapshot.from_buffer_copy(snapshot_blob[index : index + ctypes.sizeof(PlotSnapshot)])]
+
+
+
+        if timeline_axes is not None:
+            timeline_axes.remove()
+
+        timeline_axes   = main_figure.add_axes((0.125, 0.1, 0.75, 0.025))
+        timeline_slider = matplotlib.widgets.Slider(
+            ax      = timeline_axes,
+            label   = None,
+            valmin  = 0,
+            valmax  = (len(snapshots) - 1) * 0.020, # TODO.
+            valinit = 0,
+            valfmt  = 't = %.2f s',
+        )
+
+        if playback_axes is not None:
+            playback_axes.remove()
+
+        playback_axes        = main_figure.add_axes((0.01, 0.1, 0.1, 0.025))
+        playback_checkbutton = matplotlib.widgets.CheckButtons(
+            ax      = playback_axes,
+            labels  = ('Play',),
+            actives = (True  ,),
+        )
+
+
 
 
     # TODO.
@@ -2607,7 +2671,7 @@ def plot(parameters):
 
     def update(_):
 
-        nonlocal snapshot_blob, previous_elapsed_time, axis_angles, stlink_clicked, snapshots, timeline_slider, timeline_axes, playback_axes, playback_checkbutton, save_axes, save_button, save_clicked
+        nonlocal snapshot_blob, previous_elapsed_time, axis_angles, stlink_clicked, snapshots, timeline_slider, timeline_axes, playback_axes, playback_checkbutton, save_axes, save_button, save_clicked, load_clicked
 
         if stlink_clicked:
 
@@ -2652,47 +2716,7 @@ def plot(parameters):
 
             # TODO.
 
-            snapshots = []
-
-            index = -1
-
-            while True:
-
-                index = snapshot_blob.find(PLOT_SNAPSHOT_TOKEN, index + 1)
-
-                if index == -1:
-                    break
-
-                if index + ctypes.sizeof(PlotSnapshot) > len(snapshot_blob):
-                    break
-
-                snapshots += [PlotSnapshot.from_buffer_copy(snapshot_blob[index : index + ctypes.sizeof(PlotSnapshot)])]
-
-
-
-            if timeline_axes is not None:
-                timeline_axes.remove()
-
-            timeline_axes   = main_figure.add_axes((0.125, 0.1, 0.75, 0.025))
-            timeline_slider = matplotlib.widgets.Slider(
-                ax      = timeline_axes,
-                label   = None,
-                valmin  = 0,
-                valmax  = (len(snapshots) - 1) * 0.020, # TODO.
-                valinit = 0,
-                valfmt  = 't = %.2f s',
-            )
-
-            if playback_axes is not None:
-                playback_axes.remove()
-
-            playback_axes        = main_figure.add_axes((0.01, 0.1, 0.1, 0.025))
-            playback_checkbutton = matplotlib.widgets.CheckButtons(
-                ax      = playback_axes,
-                labels  = ('Play',),
-                actives = (True  ,),
-            )
-
+            process_snapshot_blob()
 
             previous_elapsed_time = time.time() - start_time
 
@@ -2702,7 +2726,7 @@ def plot(parameters):
 
         if save_axes is None and snapshot_blob:
 
-            save_axes   = main_figure.add_axes((0.325, 0.05, 0.2, 0.035))
+            save_axes   = main_figure.add_axes((0.54, 0.05, 0.2, 0.035))
             save_button = matplotlib.widgets.Button(
                 ax    = save_axes,
                 label = 'Save snapshots',
@@ -2739,6 +2763,32 @@ def plot(parameters):
             )
 
             pathlib.Path(file_path).write_bytes(snapshot_blob)
+
+            previous_elapsed_time = time.time() - start_time
+
+
+        if load_clicked:
+
+            load_clicked = False
+
+            from tkinter import filedialog
+            import tkinter as tk
+
+            root = tk.Tk()
+            root.withdraw()
+
+            file_path = filedialog.askopenfilename(
+                defaultextension = '.snapshots',
+                filetypes        = (('Snapshots', '*.snapshots'), ('All files', '*.*')),
+                title            = 'Load a file'
+            )
+
+            snapshot_blob = pathlib.Path(file_path).read_bytes()
+
+            process_snapshot_blob()
+
+            previous_elapsed_time = time.time() - start_time
+
 
 
 
