@@ -2565,29 +2565,6 @@ def plot(parameters):
 
 
 
-    # TODO.
-
-    VN100Register = collections.namedtuple(
-        'VN100Register',
-        (
-            'QuatX',
-            'QuatY',
-            'QuatZ',
-            'QuatS',
-            'MagX',
-            'MagY',
-            'MagZ',
-            'AccelX',
-            'AccelY',
-            'AccelZ',
-            'GyroX',
-            'GyroY',
-            'GyroZ',
-        )
-    )
-
-
-
     # Receive snapshots from the ST-Link.
     # This is primarily for `DemoGNC` where we'd want to
     # program the target and then quickly verify the output.
@@ -2627,7 +2604,7 @@ def plot(parameters):
 
     # TODO.
 
-    entries = []
+    snapshots = []
 
     index = -1
 
@@ -2641,23 +2618,7 @@ def plot(parameters):
         if index + ctypes.sizeof(PlotSnapshot) > len(snapshot_blob):
             break
 
-        entry = PlotSnapshot.from_buffer_copy(snapshot_blob[index : index + ctypes.sizeof(PlotSnapshot)])
-
-        entries += [VN100Register(
-            QuatX  = entry.QuatX,
-            QuatY  = entry.QuatY,
-            QuatZ  = entry.QuatZ,
-            QuatS  = entry.QuatS,
-            MagX   = entry.MagX,
-            MagY   = entry.MagY,
-            MagZ   = entry.MagZ,
-            AccelX = entry.AccelX,
-            AccelY = entry.AccelY,
-            AccelZ = entry.AccelZ,
-            GyroX  = entry.GyroX,
-            GyroY  = entry.GyroY,
-            GyroZ  = entry.GyroZ,
-        )]
+        snapshots += [PlotSnapshot.from_buffer_copy(snapshot_blob[index : index + ctypes.sizeof(PlotSnapshot)])]
 
 
 
@@ -2668,7 +2629,7 @@ def plot(parameters):
         ax      = timeline_axes,
         label   = None,
         valmin  = 0,
-        valmax  = (len(entries) - 1) * 0.020, # TODO.
+        valmax  = (len(snapshots) - 1) * 0.020, # TODO.
         valinit = 0,
         valfmt  = 't = %.2f s',
     )
@@ -2701,9 +2662,9 @@ def plot(parameters):
         previous_elapsed_time = current_elapsed_time
 
         if playback_checkbutton.get_status()[0]:
-            timeline_slider.set_val((timeline_slider.val + delta_time) % (len(entries) * 0.020))
+            timeline_slider.set_val((timeline_slider.val + delta_time) % (len(snapshots) * 0.020))
 
-        entry = entries[math.floor(timeline_slider.val / 0.020)]
+        snapshot = snapshots[math.floor(timeline_slider.val / 0.020)]
 
 
 
@@ -2725,7 +2686,7 @@ def plot(parameters):
 
         # TODO.
 
-        vn100_orientation = (entry.QuatS, entry.QuatX, entry.QuatY, entry.QuatZ)
+        vn100_orientation = (snapshot.QuatS, snapshot.QuatX, snapshot.QuatY, snapshot.QuatZ)
 
         _, *orientation_axis_x = quaternion_rotate(
             (0, 1, 0, 0),
