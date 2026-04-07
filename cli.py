@@ -2573,17 +2573,15 @@ def plot(parameters):
 
         nonlocal snapshot_blob
 
-        from tkinter import filedialog
-        import tkinter as tk
-
-        root = tk.Tk()
-        root.withdraw()
-
-        file_path = filedialog.askopenfilename(
+        file_path = tkinter.filedialog.askopenfilename(
             defaultextension = '.snapshots',
             filetypes        = (('Snapshots', '*.snapshots'), ('All files', '*.*')),
             title            = 'Load a file'
         )
+
+        if file_path == ():
+            pxd.pxd_logger.warning(f'Cancelled loading from a snapshot file.')
+            return
 
         snapshot_blob = pathlib.Path(file_path).read_bytes()
 
@@ -2598,17 +2596,15 @@ def plot(parameters):
             pxd.pxd_logger.warning(f"There's no snapshot to save.")
             return
 
-        from tkinter import filedialog
-        import tkinter as tk
-
-        root = tk.Tk()
-        root.withdraw()
-
-        file_path = filedialog.asksaveasfilename(
+        file_path = tkinter.filedialog.asksaveasfilename(
             defaultextension = '.snapshots',
             filetypes        = (('Snapshots', '*.snapshots'), ('All files', '*.*')),
             title            = 'Save your file'
         )
+
+        if file_path == ():
+            pxd.pxd_logger.warning(f'Cancelled saving a snapshot file.')
+            return
 
         pathlib.Path(file_path).write_bytes(snapshot_blob)
 
@@ -2640,6 +2636,8 @@ def plot(parameters):
     import matplotlib.pyplot
     import matplotlib.animation
     import matplotlib.widgets
+    import tkinter
+    import tkinter.filedialog
 
 
 
