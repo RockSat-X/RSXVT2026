@@ -2638,6 +2638,7 @@ def plot(parameters):
     import matplotlib.widgets
     import tkinter
     import tkinter.filedialog
+    import bisect
 
 
 
@@ -2744,18 +2745,18 @@ def plot(parameters):
 
 
 
-    snapshot_blob = b''
-    snapshots     = []
+    snapshot_blob  = b''
+    time_snapshots = []
 
     def process_snapshot_blob():
 
-        nonlocal snapshot_blob, snapshots, timeline_slider, playback_checkbutton
+        nonlocal snapshot_blob, time_snapshots, timeline_slider, playback_checkbutton
 
 
 
         # Clear out the old stuff.
 
-        snapshots = []
+        time_snapshots = []
 
         if playback_checkbutton is not None:
             playback_checkbutton.ax.remove()
@@ -2769,9 +2770,15 @@ def plot(parameters):
 
         # Find the snapshot entries.
 
-        find_index = -1
+        find_index            = -1
+        start_timestamp_us    = None
+        previous_timestamp_us = None
 
         while True:
+
+
+
+            # Find the next snapshot, if any.
 
             find_index = snapshot_blob.find(PLOT_SNAPSHOT_TOKEN, find_index + 1)
 
@@ -2781,14 +2788,37 @@ def plot(parameters):
             if find_index + ctypes.sizeof(PlotSnapshot) > len(snapshot_blob):
                 break # Not enough for a full snapshot.
 
-            snapshots += [PlotSnapshot.from_buffer_copy(snapshot_blob[find_index : find_index + ctypes.sizeof(PlotSnapshot)])]
+            snapshot = PlotSnapshot.from_buffer_copy(snapshot_blob[find_index : find_index + ctypes.sizeof(PlotSnapshot)])
 
-        if not snapshots:
 
+
+            # If there was a big gap between the timestamps, it's probably something fishy.
+
+            if start_timestamp_us is None:
+                start_timestamp_us    = snapshot.timestamp_us
+                previous_timestamp_us = snapshot.timestamp_us
+
+            if (gap := (snapshot.timestamp_us - previous_timestamp_us) / 1_000_000) > (MAX_GAP := 0.100):
+                pxd.pxd_logger.warning(
+                    f'A gap of {repr(gap)} seconds (> {repr(MAX_GAP)} seconds) '
+                    f'was found between consecutive snapshots (t = ~{snapshot_relative_time}).'
+                )
+
+
+
+            # Append onto the timeline.
+
+            snapshot_relative_time  = ((snapshot.timestamp_us - start_timestamp_us) % (1 << 32)) / 1_000_000
+            time_snapshots         += [(snapshot_relative_time, snapshot)]
+            previous_timestamp_us   = snapshot.timestamp_us
+
+
+
+        # Check if we actually got anything.
+
+        if not time_snapshots:
             snapshot_blob = b''
-
             pxd.pxd_logger.error(f'No snapshots found.')
-
             return False
 
 
@@ -2809,7 +2839,7 @@ def plot(parameters):
             ax      = main_figure.add_axes((0.125, 0.1, 0.75, 0.025)),
             label   = None,
             valmin  = 0,
-            valmax  = (len(snapshots) - 1) * 0.020, # TODO.
+            valmax  = time_snapshots[-1][0],
             valinit = 0,
             valfmt  = 't = %.2f s',
         )
@@ -2868,7 +2898,7 @@ def plot(parameters):
 
     def update(_):
 
-        nonlocal key_presses, delta_time, snapshot_blob, axis_angles, snapshots, timeline_slider, playback_checkbutton
+        nonlocal key_presses, delta_time, snapshot_blob, axis_angles, time_snapshots, timeline_slider, playback_checkbutton
 
 
 
@@ -2922,7 +2952,7 @@ def plot(parameters):
 
         # Save the current displayed samples to a file.
 
-        save_button.set_existence(snapshots)
+        save_button.set_existence(time_snapshots)
 
         if save_button.acknowledge_click():
             save_snapshots()
@@ -2963,7 +2993,7 @@ def plot(parameters):
         scene_axes.set_ylabel('Y')
         scene_axes.set_zlabel('Z')
 
-        if snapshots:
+        if time_snapshots:
 
 
 
@@ -2971,10 +3001,19 @@ def plot(parameters):
 
             if playback_checkbutton.get_status()[0]:
                 timeline_slider.set_val(
-                    (timeline_slider.val + delta_time) % (len(snapshots) * 0.020)
+                    (timeline_slider.val + delta_time) % time_snapshots[-1][0]
                 )
 
-            snapshot = snapshots[math.floor(timeline_slider.val / 0.020)]
+            _, snapshot = time_snapshots[
+                min(
+                    bisect.bisect(
+                        time_snapshots,
+                        timeline_slider.val,
+                        key = lambda x: x[0]
+                    ),
+                    len(time_snapshots) - 1
+                )
+            ]
 
 
 
