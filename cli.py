@@ -3185,8 +3185,8 @@ def plot(parameters):
 
             for axis_i in (0, 1, 2):
 
-                rotational_arrows_count = min(2 + math.floor(abs(axis_angular_velocities[axis_i]) / 10), 10)
-                rotational_arrows_width = min(0.5 + abs(axis_angular_velocities[axis_i]) / 10, 3)
+                rotational_arrows_count = min(round(2   + 10 * abs(axis_angular_velocities[axis_i]) / (1000 * 2 * math.pi / 60)), 10)
+                rotational_arrows_width = min(      0.5 +  5 * abs(axis_angular_velocities[axis_i]) / (1000 * 2 * math.pi / 60) ,  5)
                 rotational_arrow_ratio  = rotational_arrows_width * 0.3
                 rotational_arrow_radius = rotational_arrows_width * 0.2
 

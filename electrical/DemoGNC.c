@@ -77,8 +77,8 @@ main(void)
 
         // TODO: GNC_update(GNC_MOCK_SIMULATION[index], &context);
 
-        f32 angular_acceleration_x = 0.5f + arm_cos_f32((f32) index / 30.0f + 10.0f) * 5.0f; // TODO.
-        f32 angular_acceleration_y = arm_cos_f32((f32) index / 50.0f) * 15.0f; // TODO.
+        f32 angular_acceleration_x = 1.5f + arm_cos_f32((f32) index / 30.0f + 10.0f) * 5.0f; // TODO.
+        f32 angular_acceleration_y = arm_cos_f32((f32) index / 100.0f) * 50.0f; // TODO.
         f32 angular_acceleration_z = arm_cos_f32((f32) index / 10.0f + 5.0f) * 20.0f; // TODO.
 
         angular_velocity_x += angular_acceleration_x * 0.020f;
