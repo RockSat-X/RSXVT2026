@@ -2646,6 +2646,9 @@ def plot(parameters):
     import tkinter.filedialog
     import bisect
 
+    matplotlib.pyplot.rcParams['axes3d.mouserotationstyle'] = 'azel'
+    matplotlib.pyplot.rcParams['toolbar'                  ] = 'None'
+
 
 
     class Button:
@@ -3114,8 +3117,6 @@ def plot(parameters):
 
 
     # Set up the display.
-
-    matplotlib.pyplot.rcParams['axes3d.mouserotationstyle'] = 'azel'
 
     main_animation = matplotlib.animation.FuncAnimation(
         main_figure,
