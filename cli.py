@@ -2723,12 +2723,12 @@ def plot(parameters):
 
 
 
-    main_figure = matplotlib.pyplot.figure('Plot', figsize = (13, 7))
-    scene_axes  = main_figure.add_axes((0.05, 0.15, 0.4, 0.8), projection = '3d')
-
-    timeline_slider = None
-
-    playback_checkbutton = None
+    main_figure               = matplotlib.pyplot.figure('Plot', figsize = (13, 7))
+    scene_axes                = main_figure.add_axes((0.05, 0.15, 0.4, 0.8), projection = '3d')
+    angular_velocities_axes   = None
+    angular_velocities_cursor = None
+    timeline_slider           = None
+    playback_checkbutton      = None
 
     stlink_button = Button(
         area   = (0.005, 0.05, 0.15, 0.035),
@@ -2759,13 +2759,17 @@ def plot(parameters):
 
     def process_snapshot_blob(source_name):
 
-        nonlocal snapshot_blob, time_snapshots, timeline_slider, playback_checkbutton
+        nonlocal snapshot_blob, time_snapshots, angular_velocities_axes, angular_velocities_cursor, timeline_slider, playback_checkbutton
 
 
 
         # Clear out the old stuff.
 
         time_snapshots = []
+
+        if angular_velocities_axes is not None:
+            angular_velocities_axes.remove()
+            angular_velocities_axes = None
 
         if playback_checkbutton is not None:
             playback_checkbutton.ax.remove()
@@ -2834,17 +2838,42 @@ def plot(parameters):
 
 
 
-        # Have check button for playing/resuming the timeline.
+        # Set up plots and widgets for the newly processed snapshots.
+
+        angular_velocities_axes = main_figure.add_axes(
+            (0.6, 0.15, 0.375, 0.35),
+            xlim = (0, time_snapshots[-1][0]),
+            ylim = (-200, 200),
+        )
+        angular_velocities_axes.set_xlabel('Time (s)')
+        angular_velocities_axes.set_ylabel('RPM', rotation = 0, verticalalignment = 'center_baseline')
+
+        angular_velocities_axes.plot(
+            *zip(*((relative_time, snapshot.angular_velocity_x / (2 * math.pi) * 60) for relative_time, snapshot in time_snapshots)),
+            color = 'red',
+        )
+
+        angular_velocities_axes.plot(
+            *zip(*((relative_time, snapshot.angular_velocity_y / (2 * math.pi) * 60) for relative_time, snapshot in time_snapshots)),
+            color = 'green',
+        )
+
+        angular_velocities_axes.plot(
+            *zip(*((relative_time, snapshot.angular_velocity_z / (2 * math.pi) * 60) for relative_time, snapshot in time_snapshots)),
+            color = 'blue',
+        )
+
+        angular_velocities_cursor = angular_velocities_axes.axvline(
+            x      = 0,
+            color  = 'lightgray',
+            zorder = -1,
+        )
 
         playback_checkbutton = matplotlib.widgets.CheckButtons(
             ax      = main_figure.add_axes((0.005, 0.1, 0.04, 0.025)),
             labels  = ('Play',),
             actives = (True  ,),
         )
-
-
-
-        # Have slider for the timeline.
 
         timeline_slider = matplotlib.widgets.Slider(
             ax      = main_figure.add_axes((0.055, 0.1, 0.375, 0.025)),
@@ -2854,10 +2883,6 @@ def plot(parameters):
             valinit = 0,
             valfmt  = 't = %.2f s',
         )
-
-
-
-        # Indicate source of the snapshot data.
 
         matplotlib.pyplot.get_current_fig_manager().set_window_title(f'Plot ({source_name})')
 
@@ -3048,6 +3073,8 @@ def plot(parameters):
                     len(time_snapshots) - 1
                 )
             ]
+
+            angular_velocities_cursor.set_xdata((timeline_slider.val, timeline_slider.val))
 
 
 
