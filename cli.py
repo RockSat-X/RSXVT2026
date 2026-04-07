@@ -2568,6 +2568,12 @@ def plot(parameters):
 
 
 
+    @Keybinding('f', 'Toggle full-screen.')
+    def _():
+        matplotlib.pyplot.get_current_fig_manager().full_screen_toggle()
+
+
+
     @Keybinding('ctrl-o', 'Load snapshots from a file.')
     def load_snapshots():
 
