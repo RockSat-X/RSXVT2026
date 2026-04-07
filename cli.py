@@ -2723,7 +2723,7 @@ def plot(parameters):
 
 
 
-    main_figure = matplotlib.pyplot.figure(figsize = (16, 8))
+    main_figure = matplotlib.pyplot.figure(figsize = (13, 7))
     scene_axes  = main_figure.add_axes((0.05, 0.15, 0.4, 0.8), projection = '3d')
 
     timeline_slider = None
