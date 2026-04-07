@@ -2857,7 +2857,7 @@ def plot(parameters):
         # Plot the angular accelerations.
 
         angular_accelerations_axes = main_figure.add_axes(
-            (0.575, 0.575, 0.415, 0.375),
+            (0.56, 0.6, 0.415, 0.35),
             xlim = (0, time_snapshots[-1][0]),
             ylim = (-100, 100),
         )
@@ -2890,7 +2890,7 @@ def plot(parameters):
         # Plot the angular velocities.
 
         angular_velocities_axes = main_figure.add_axes(
-            (0.575, 0.15, 0.415, 0.375),
+            (0.56, 0.2, 0.415, 0.35),
             xlim = (0, time_snapshots[-1][0]),
             ylim = (-1000, 1000),
         )
@@ -2929,7 +2929,7 @@ def plot(parameters):
         )
 
         timeline_slider = matplotlib.widgets.Slider(
-            ax      = main_figure.add_axes((0.055, 0.1, 0.375, 0.025)),
+            ax      = main_figure.add_axes((0.055, 0.1, 0.85, 0.025)),
             label   = None,
             valmin  = 0,
             valmax  = time_snapshots[-1][0],
