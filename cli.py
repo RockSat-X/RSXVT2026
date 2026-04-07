@@ -2522,6 +2522,7 @@ def parseFlight(parameters):
 @main_interface.new_verb(
     {
         'description' : 'Make plots.',
+        'more_help'   : True,
     },
     {
         'name'        : 'input_file_path',
@@ -2534,14 +2535,111 @@ def plot(parameters):
 
 
 
-    require_matplotlib()
-    import matplotlib.pyplot
-    import matplotlib.animation
-    import matplotlib.widgets
+    ########################################
+    #
+    # Define some useful keybindings.
+    #
+
+
+
+    keybindings = []
+
+    def Keybinding(keystroke, description):
+
+        def decorator(function):
+
+            nonlocal keybindings
+
+            keybindings += [types.SimpleNamespace(
+                keystroke   = keystroke,
+                description = description,
+                function    = function,
+            )]
+
+            return function
+
+        return decorator
+
+
+
+    @Keybinding('ctrl-w', 'Exit program.')
+    def _():
+        sys.exit(0)
+
+
+
+    @Keybinding('ctrl-o', 'Load snapshots from a file.')
+    def load_snapshots():
+
+        nonlocal snapshot_blob
+
+        from tkinter import filedialog
+        import tkinter as tk
+
+        root = tk.Tk()
+        root.withdraw()
+
+        file_path = filedialog.askopenfilename(
+            defaultextension = '.snapshots',
+            filetypes        = (('Snapshots', '*.snapshots'), ('All files', '*.*')),
+            title            = 'Load a file'
+        )
+
+        snapshot_blob = pathlib.Path(file_path).read_bytes()
+
+        process_snapshot_blob()
+
+
+
+    @Keybinding('ctrl-s', 'Save current displayed snapshots to a file.')
+    def save_snapshots():
+
+        if not snapshots:
+            pxd.pxd_logger.warning(f"There's no snapshot to save.")
+            return
+
+        from tkinter import filedialog
+        import tkinter as tk
+
+        root = tk.Tk()
+        root.withdraw()
+
+        file_path = filedialog.asksaveasfilename(
+            defaultextension = '.snapshots',
+            filetypes        = (('Snapshots', '*.snapshots'), ('All files', '*.*')),
+            title            = 'Save your file'
+        )
+
+        pathlib.Path(file_path).write_bytes(snapshot_blob)
+
+
+
+    if parameters is None:
+
+        more_help = ''
+
+        for just_keystroke, just_description in pxd.justify([
+            (
+                ('<' , f'<{keybinding.keystroke}>'),
+                (None, keybinding.description     ),
+            )
+            for keybinding in keybindings
+        ]):
+
+            more_help += f'{just_keystroke} {just_description}\n'
+
+        return more_help
 
 
 
     ########################################
+
+
+
+    require_matplotlib()
+    import matplotlib.pyplot
+    import matplotlib.animation
+    import matplotlib.widgets
 
 
 
@@ -2741,12 +2839,38 @@ def plot(parameters):
 
 
 
+    # Disable all of Matplotlib's default key shortcuts;
+    # doing a save with `S` or `CTRL-S` seems to make things
+    # freeze, so this is also a way to address that.
+
+    for key, value in matplotlib.rcParams.items():
+        if key.startswith('keymap.'):
+            matplotlib.rcParams[key] = ()
+
+
+
+    # We'll be process for keystrokes to do shortcuts.
+
+    key_presses = []
+
+    def key_press_event_callback(event):
+        nonlocal key_presses
+        key_presses += [event.key]
+
+    main_figure.canvas.mpl_connect('key_press_event', key_press_event_callback)
+
+
+
+    ########################################
+
+
+
     axis_angles = (0, 0, 0)
     delta_time  = 1 / 60 # Just something to start with.
 
     def update(_):
 
-        nonlocal delta_time, snapshot_blob, axis_angles, snapshots, timeline_slider, playback_checkbutton
+        nonlocal key_presses, delta_time, snapshot_blob, axis_angles, snapshots, timeline_slider, playback_checkbutton
 
 
 
@@ -2794,22 +2918,7 @@ def plot(parameters):
         # Load existing samples from a file.
 
         if load_button.acknowledge_click():
-
-            from tkinter import filedialog
-            import tkinter as tk
-
-            root = tk.Tk()
-            root.withdraw()
-
-            file_path = filedialog.askopenfilename(
-                defaultextension = '.snapshots',
-                filetypes        = (('Snapshots', '*.snapshots'), ('All files', '*.*')),
-                title            = 'Load a file'
-            )
-
-            snapshot_blob = pathlib.Path(file_path).read_bytes()
-
-            process_snapshot_blob()
+            load_snapshots()
 
 
 
@@ -2818,20 +2927,21 @@ def plot(parameters):
         save_button.set_existence(snapshots)
 
         if save_button.acknowledge_click():
+            save_snapshots()
 
-            from tkinter import filedialog
-            import tkinter as tk
 
-            root = tk.Tk()
-            root.withdraw()
 
-            file_path = filedialog.asksaveasfilename(
-                defaultextension = '.snapshots',
-                filetypes        = (('Snapshots', '*.snapshots'), ('All files', '*.*')),
-                title            = 'Save your file'
-            )
+        # Process any keystrokes made.
 
-            pathlib.Path(file_path).write_bytes(snapshot_blob)
+        while key_presses:
+
+            key_press, *key_presses = key_presses
+
+            keystroke = key_press.replace('+', '-')
+
+            for keybinding in keybindings:
+                if keybinding.keystroke == keystroke:
+                    keybinding.function()
 
 
 
@@ -2953,8 +3063,6 @@ def plot(parameters):
 
         end_time   = time.time()
         delta_time = end_time - start_time
-
-        return scene_axes,
 
 
 
