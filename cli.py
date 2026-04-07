@@ -3058,17 +3058,20 @@ def plot(parameters):
 
             for axis_i in (0, 1, 2):
 
-                ROTATIONAL_ARROWS_COUNT = 3
+                rotational_arrows_count = min(2 + math.floor(abs(axis_angular_velocities[axis_i]) / 10), 10)
+                rotational_arrows_width = min(0.5 + abs(axis_angular_velocities[axis_i]) / 10, 3)
+                rotational_arrow_ratio  = rotational_arrows_width * 0.3
+                rotational_arrow_radius = rotational_arrows_width * 0.2
 
-                for i in range(ROTATIONAL_ARROWS_COUNT):
+                for i in range(rotational_arrows_count):
 
-                    delta_angle  = +0.5 if axis_angular_velocities[axis_i] > 0 else -0.5
-                    delta_angle *= abs(axis_angular_velocities[axis_i]) / (abs(axis_angular_velocities[axis_i]) + 1)
+                    delta_angle  = 0.8 * (+1 if axis_angular_velocities[axis_i] > 0 else -1)
+                    delta_angle *= abs(axis_angular_velocities[axis_i]) / (abs(axis_angular_velocities[axis_i]) + 10)
 
-                    base_u  = math.cos(axis_angles[axis_i] + (i              ) / ROTATIONAL_ARROWS_COUNT * 2 * math.pi) * 0.3
-                    base_v  = math.sin(axis_angles[axis_i] + (i              ) / ROTATIONAL_ARROWS_COUNT * 2 * math.pi) * 0.3
-                    delta_u = math.cos(axis_angles[axis_i] + (i + delta_angle) / ROTATIONAL_ARROWS_COUNT * 2 * math.pi) * 0.3 - base_u
-                    delta_v = math.sin(axis_angles[axis_i] + (i + delta_angle) / ROTATIONAL_ARROWS_COUNT * 2 * math.pi) * 0.3 - base_v
+                    base_u  = math.cos(axis_angles[axis_i] + (i              ) / rotational_arrows_count * 2 * math.pi) * rotational_arrow_radius
+                    base_v  = math.sin(axis_angles[axis_i] + (i              ) / rotational_arrows_count * 2 * math.pi) * rotational_arrow_radius
+                    delta_u = math.cos(axis_angles[axis_i] + (i + delta_angle) / rotational_arrows_count * 2 * math.pi) * rotational_arrow_radius - base_u
+                    delta_v = math.sin(axis_angles[axis_i] + (i + delta_angle) / rotational_arrows_count * 2 * math.pi) * rotational_arrow_radius - base_v
 
                     match axis_i:
 
@@ -3090,8 +3093,9 @@ def plot(parameters):
                     scene_axes.quiver(
                         *base,
                         *delta,
-                        color      = ('red', 'green', 'blue')[axis_i],
-                        linewidths = 1,
+                        color              = ('red', 'green', 'blue')[axis_i],
+                        linewidths         = rotational_arrows_width,
+                        arrow_length_ratio = rotational_arrow_ratio,
                     )
 
 
