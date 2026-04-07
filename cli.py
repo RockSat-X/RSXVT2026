@@ -2616,6 +2616,16 @@ def plot(parameters):
 
 
 
+    @Keybinding('space', 'Toggle playback.')
+    def _():
+
+        nonlocal playback_checkbutton
+
+        if playback_checkbutton is not None:
+            playback_checkbutton.set_active(0, not playback_checkbutton.get_status()[0])
+
+
+
     if parameters is None:
 
         more_help = ''
@@ -3036,7 +3046,7 @@ def plot(parameters):
 
             key_press, *key_presses = key_presses
 
-            keystroke = key_press.replace('+', '-')
+            keystroke = key_press.replace('+', '-').replace(' ', 'space')
 
             for keybinding in keybindings:
                 if keybinding.keystroke == keystroke:
