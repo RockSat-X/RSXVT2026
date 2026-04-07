@@ -2938,11 +2938,18 @@ def plot(parameters):
 
 
     axis_angles = (0, 0, 0)
-    delta_time  = 1 / 60 # Just something to start with.
+    start_time  = time.time()
+    delta_time  = None
 
     def update(_):
 
-        nonlocal key_presses, delta_time, snapshot_blob, axis_angles, time_snapshots, timeline_slider, playback_checkbutton
+        nonlocal start_time, key_presses, delta_time, snapshot_blob, axis_angles, time_snapshots, timeline_slider, playback_checkbutton
+
+
+
+        # Compute delta time for the current frame.
+
+        delta_time = time.time() - start_time
 
 
 
@@ -3158,13 +3165,6 @@ def plot(parameters):
                         linewidths         = rotational_arrows_width,
                         arrow_length_ratio = rotational_arrow_ratio,
                     )
-
-
-
-        # Compute delta time for the next frame.
-
-        end_time   = time.time()
-        delta_time = end_time - start_time
 
 
 
