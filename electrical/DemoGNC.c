@@ -75,15 +75,11 @@ main(void)
     for (i32 index = 0; index < countof(GNC_MOCK_SIMULATION); index += 1)
     {
 
-        // TODO: GNC_update(GNC_MOCK_SIMULATION[index], &context);
+        GNC_update(GNC_MOCK_SIMULATION[index], &context);
 
-        f32 angular_acceleration_x = 1.5f + arm_cos_f32((f32) index / 30.0f + 10.0f) * 5.0f; // TODO.
-        f32 angular_acceleration_y = arm_cos_f32((f32) index / 100.0f) * 50.0f; // TODO.
-        f32 angular_acceleration_z = arm_cos_f32((f32) index / 10.0f + 5.0f) * 20.0f; // TODO.
-
-        angular_velocity_x += angular_acceleration_x * 0.020f;
-        angular_velocity_y += angular_acceleration_y * 0.020f;
-        angular_velocity_z += angular_acceleration_z * 0.020f;
+        angular_velocity_x += context.control_accelerations.rows[0][0] * 0.020f;
+        angular_velocity_y += context.control_accelerations.rows[1][0] * 0.020f;
+        angular_velocity_z += context.control_accelerations.rows[2][0] * 0.020f;
 
         struct PlotSnapshot plot_snapshot =
             {
@@ -105,9 +101,9 @@ main(void)
                 .angular_velocity_x     = angular_velocity_x,
                 .angular_velocity_y     = angular_velocity_y,
                 .angular_velocity_z     = angular_velocity_z,
-                .angular_acceleration_x = angular_acceleration_x,
-                .angular_acceleration_y = angular_acceleration_y,
-                .angular_acceleration_z = angular_acceleration_z,
+                .angular_acceleration_x = context.control_accelerations.rows[0][0],
+                .angular_acceleration_y = context.control_accelerations.rows[1][0],
+                .angular_acceleration_z = context.control_accelerations.rows[2][0],
             };
 
         UXART_tx_bytes(UXARTHandle_stlink, (u8*) &plot_snapshot, sizeof(plot_snapshot));
