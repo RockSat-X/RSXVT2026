@@ -2941,7 +2941,9 @@ def plot(parameters):
 
             pxd.pxd_logger.info(f'Waiting for data from ST-Link...')
 
-            snapshot_blob = b''
+            snapshot_blob      = b''
+            timeout_start_time = time.time()
+            timeout_counter    = 0
 
             while True:
 
@@ -2955,8 +2957,21 @@ def plot(parameters):
 
                     time.sleep(0.1)
 
-                    if snapshot_blob and not serial_port.in_waiting:
-                        break
+                    if snapshot_blob:
+
+                        if not serial_port.in_waiting:
+                            break
+
+                    elif time.time() - timeout_start_time >= 2:
+
+                        timeout_start_time  = time.time()
+                        timeout_counter    += 1
+
+                        if timeout_counter <= (MAX_TIMEOUT_COUNT := 4):
+                            pxd.pxd_logger.info(f'({timeout_counter}/{MAX_TIMEOUT_COUNT}) Still waiting for data from the ST-Link...')
+                        else:
+                            pxd.pxd_logger.warning(f'Timed out!')
+                            break
 
             process_snapshot_blob('ST-Link')
 
