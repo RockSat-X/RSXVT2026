@@ -65,5 +65,8 @@ struct PlotSnapshot
     f32 angular_velocity_x;
     f32 angular_velocity_y;
     f32 angular_velocity_z;
-    u8 sector_padding_[440];
+    f32 angular_acceleration_x;
+    f32 angular_acceleration_y;
+    f32 angular_acceleration_z;
+    u8 sector_padding_[44];
 };

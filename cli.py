@@ -3044,10 +3044,10 @@ def plot(parameters):
 
             # Display vehicle's stepper motor rotations.
 
-            axis_angular_velocities = ( # TODO.
-                5,
-                math.cos(time.time()),
-                5,
+            axis_angular_velocities = (
+                snapshot.angular_velocity_x,
+                snapshot.angular_velocity_y,
+                snapshot.angular_velocity_z,
             )
 
             axis_angles = (

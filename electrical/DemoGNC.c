@@ -68,34 +68,51 @@ main(void)
 
     struct GNCContext context = {0};
 
+    f32 angular_velocity_x = 0.0f;
+    f32 angular_velocity_y = 0.0f;
+    f32 angular_velocity_z = 0.0f;
+
     for (i32 index = 0; index < countof(GNC_MOCK_SIMULATION); index += 1)
     {
 
         // TODO: GNC_update(GNC_MOCK_SIMULATION[index], &context);
 
-        struct PlotSnapshot plot_snapshot = // TODO.
+        f32 angular_acceleration_x = 1.0f; // TODO.
+        f32 angular_acceleration_y = 2.0f; // TODO.
+        f32 angular_acceleration_z = 3.0f; // TODO.
+
+        angular_velocity_x += angular_acceleration_x * 0.020f;
+        angular_velocity_y += angular_acceleration_y * 0.020f;
+        angular_velocity_z += angular_acceleration_z * 0.020f;
+
+        struct PlotSnapshot plot_snapshot =
             {
-                .magic               = PLOT_SNAPSHOT_TOKEN,
-                .timestamp_us        = (u32) index * 20'000,
-                .QuatX               = GNC_MOCK_SIMULATION[index].most_recent_imu.QuatX,
-                .QuatY               = GNC_MOCK_SIMULATION[index].most_recent_imu.QuatY,
-                .QuatZ               = GNC_MOCK_SIMULATION[index].most_recent_imu.QuatZ,
-                .QuatS               = GNC_MOCK_SIMULATION[index].most_recent_imu.QuatS,
-                .MagX                = GNC_MOCK_SIMULATION[index].most_recent_imu.MagX,
-                .MagY                = GNC_MOCK_SIMULATION[index].most_recent_imu.MagY,
-                .MagZ                = GNC_MOCK_SIMULATION[index].most_recent_imu.MagZ,
-                .AccelX              = GNC_MOCK_SIMULATION[index].most_recent_imu.AccelX,
-                .AccelY              = GNC_MOCK_SIMULATION[index].most_recent_imu.AccelY,
-                .AccelZ              = GNC_MOCK_SIMULATION[index].most_recent_imu.AccelZ,
-                .GyroX               = GNC_MOCK_SIMULATION[index].most_recent_imu.GyroX,
-                .GyroY               = GNC_MOCK_SIMULATION[index].most_recent_imu.GyroY,
-                .GyroZ               = GNC_MOCK_SIMULATION[index].most_recent_imu.GyroZ,
-                .angular_velocity_x  = 0,
-                .angular_velocity_y  = 5,
-                .angular_velocity_z  = 20,
+                .magic                  = PLOT_SNAPSHOT_TOKEN,
+                .timestamp_us           = (u32) index * 20'000,
+                .QuatX                  = GNC_MOCK_SIMULATION[index].most_recent_imu.QuatX,
+                .QuatY                  = GNC_MOCK_SIMULATION[index].most_recent_imu.QuatY,
+                .QuatZ                  = GNC_MOCK_SIMULATION[index].most_recent_imu.QuatZ,
+                .QuatS                  = GNC_MOCK_SIMULATION[index].most_recent_imu.QuatS,
+                .MagX                   = GNC_MOCK_SIMULATION[index].most_recent_imu.MagX,
+                .MagY                   = GNC_MOCK_SIMULATION[index].most_recent_imu.MagY,
+                .MagZ                   = GNC_MOCK_SIMULATION[index].most_recent_imu.MagZ,
+                .AccelX                 = GNC_MOCK_SIMULATION[index].most_recent_imu.AccelX,
+                .AccelY                 = GNC_MOCK_SIMULATION[index].most_recent_imu.AccelY,
+                .AccelZ                 = GNC_MOCK_SIMULATION[index].most_recent_imu.AccelZ,
+                .GyroX                  = GNC_MOCK_SIMULATION[index].most_recent_imu.GyroX,
+                .GyroY                  = GNC_MOCK_SIMULATION[index].most_recent_imu.GyroY,
+                .GyroZ                  = GNC_MOCK_SIMULATION[index].most_recent_imu.GyroZ,
+                .angular_velocity_x     = angular_velocity_x,
+                .angular_velocity_y     = angular_velocity_y,
+                .angular_velocity_z     = angular_velocity_z,
+                .angular_acceleration_x = angular_acceleration_x,
+                .angular_acceleration_y = angular_acceleration_y,
+                .angular_acceleration_z = angular_acceleration_z,
             };
 
         UXART_tx_bytes(UXARTHandle_stlink, (u8*) &plot_snapshot, sizeof(plot_snapshot));
+
+        spinlock_nop(250'000); // To not overwhelm the host machine's serial port.
 
     }
 
