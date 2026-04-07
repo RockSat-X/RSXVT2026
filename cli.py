@@ -2714,27 +2714,27 @@ def plot(parameters):
 
 
 
-    main_figure = matplotlib.pyplot.figure(figsize = (8, 8))
-    scene_axes  = main_figure.add_axes((0, 0.15, 1, 0.8), projection = '3d')
+    main_figure = matplotlib.pyplot.figure(figsize = (16, 8))
+    scene_axes  = main_figure.add_axes((0.05, 0.15, 0.4, 0.8), projection = '3d')
 
     timeline_slider = None
 
     playback_checkbutton = None
 
     stlink_button = Button(
-        area   = (0.01, 0.05, 0.3, 0.035),
+        area   = (0.005, 0.05, 0.15, 0.035),
         label  = 'Get snapshots from ST-Link',
         exists = True,
     )
 
     load_button = Button(
-        area   = (0.325, 0.05, 0.2, 0.035),
+        area   = (0.1625, 0.05, 0.1, 0.035),
         label  = 'Load snapshots',
         exists = True,
     )
 
     save_button = Button(
-        area   = (0.54, 0.05, 0.2, 0.035),
+        area   = (0.27, 0.05, 0.1, 0.035),
         label  = 'Save snapshots',
         exists = False,
     )
@@ -2826,7 +2826,7 @@ def plot(parameters):
         # Have check button for playing/resuming the timeline.
 
         playback_checkbutton = matplotlib.widgets.CheckButtons(
-            ax      = main_figure.add_axes((0.01, 0.1, 0.1, 0.025)),
+            ax      = main_figure.add_axes((0.005, 0.1, 0.04, 0.025)),
             labels  = ('Play',),
             actives = (True  ,),
         )
@@ -2836,7 +2836,7 @@ def plot(parameters):
         # Have slider for the timeline.
 
         timeline_slider = matplotlib.widgets.Slider(
-            ax      = main_figure.add_axes((0.125, 0.1, 0.75, 0.025)),
+            ax      = main_figure.add_axes((0.055, 0.1, 0.375, 0.025)),
             label   = None,
             valmin  = 0,
             valmax  = time_snapshots[-1][0],
