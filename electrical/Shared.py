@@ -1,7 +1,7 @@
 #meta global STLINK_BAUD, TARGETS, PER_MCU, PER_TARGET
 #meta global OVCAM_DEFAULT_RESOLUTION
 #meta global STACK_SIZE, TV_WRITE_BYTE, TV_TOKEN, OVCAM_JPEG_CTRL3_FIELDS
-#meta global LoRaPacket, ESP32Packet, VehicleInterfacePayload, MainFlightComputerLogEntry
+#meta global LoRaPacket, ESP32Packet, VehicleInterfacePayload, MainFlightComputerLogEntry, PlotSnapshot
 
 import types, collections, ctypes
 import deps.stpy.pxd.pxd as pxd
@@ -79,7 +79,7 @@ class VehicleInterfacePayload(ctypes.Structure):
 class UnpaddedMainFlightComputerLogEntry(ctypes.Structure):
     _pack_   = True
     _fields_ = (
-        ('magic'                           , ctypes.c_char * 4      ),
+        ('magic'                           , ctypes.c_char * 4      ), # As a precaution; currently not used for synchronization.
         ('esp32_packet_exist'              , ctypes.c_uint8         ),
         ('lora_packet_exist'               , ctypes.c_uint8         ),
         ('vehicle_interface_payload_exist' , ctypes.c_uint8         ),
@@ -94,6 +94,41 @@ class MainFlightComputerLogEntry(ctypes.Structure):
     _fields_ = (
         *(UnpaddedMainFlightComputerLogEntry._fields_),
         ('sector_padding_', ctypes.c_uint8 * (512 - ctypes.sizeof(UnpaddedMainFlightComputerLogEntry))),
+    )
+
+PLOT_SNAPSHOT_TOKEN = b'BARK'
+
+class UnpaddedPlotSnapshot(ctypes.Structure):
+    _pack_   = True
+    _fields_ = (
+        ('magic'                 , ctypes.c_char * len(PLOT_SNAPSHOT_TOKEN)),
+        ('timestamp_us'          , ctypes.c_uint32                         ),
+        ('QuatX'                 , ctypes.c_float                          ),
+        ('QuatY'                 , ctypes.c_float                          ),
+        ('QuatZ'                 , ctypes.c_float                          ),
+        ('QuatS'                 , ctypes.c_float                          ),
+        ('MagX'                  , ctypes.c_float                          ),
+        ('MagY'                  , ctypes.c_float                          ),
+        ('MagZ'                  , ctypes.c_float                          ),
+        ('AccelX'                , ctypes.c_float                          ),
+        ('AccelY'                , ctypes.c_float                          ),
+        ('AccelZ'                , ctypes.c_float                          ),
+        ('GyroX'                 , ctypes.c_float                          ),
+        ('GyroY'                 , ctypes.c_float                          ),
+        ('GyroZ'                 , ctypes.c_float                          ),
+        ('angular_velocity_x'    , ctypes.c_float                          ),
+        ('angular_velocity_y'    , ctypes.c_float                          ),
+        ('angular_velocity_z'    , ctypes.c_float                          ),
+        ('angular_acceleration_x', ctypes.c_float                          ),
+        ('angular_acceleration_y', ctypes.c_float                          ),
+        ('angular_acceleration_z', ctypes.c_float                          ),
+    )
+
+class PlotSnapshot(ctypes.Structure):
+    _pack_   = True
+    _fields_ = (
+        *(UnpaddedPlotSnapshot._fields_),
+        ('sector_padding_', ctypes.c_uint8 * (128 - ctypes.sizeof(UnpaddedPlotSnapshot))),
     )
 
 
@@ -1578,18 +1613,19 @@ for target in TARGETS:
     # Additional macro defines.
 
     defines = [
-        ('TARGET_NAME'                        , target.name                                   ),
-        ('TARGET_MCU'                         , target.mcu                                    ),
-        ('TARGET_USES_FREERTOS'               , target.use_freertos                           ),
-        ('STACK_SIZE'                         , STACK_SIZE                                    ),
-        ('COMPILING_ESP32'                    , False                                         ),
-        ('VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS', VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS           ),
-        ('ESP32_BAUD'                         , ESP32_BAUD                                    ),
-        ('TV_TOKEN_START'                     , f'STRINGIFY({TV_TOKEN.START.decode('UTF-8')})'),
-        ('TV_TOKEN_END'                       , f'STRINGIFY({TV_TOKEN.END  .decode('UTF-8')})'),
-        ('TV_WRITE_BYTE'                      , f'0x{TV_WRITE_BYTE :02X}'                     ),
-        ('MFC_DEBUG_BOARD_SEVEN_BIT_ADDRESS'  , f'0x{MFC_DEBUG_BOARD_SEVEN_BIT_ADDRESS :02X}' ),
-        ('FLIGHT_READY'                       , target.flight_ready                           ),
+        ('TARGET_NAME'                        , target.name                                        ),
+        ('TARGET_MCU'                         , target.mcu                                         ),
+        ('TARGET_USES_FREERTOS'               , target.use_freertos                                ),
+        ('STACK_SIZE'                         , STACK_SIZE                                         ),
+        ('COMPILING_ESP32'                    , False                                              ),
+        ('VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS', VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS                ),
+        ('ESP32_BAUD'                         , ESP32_BAUD                                         ),
+        ('PLOT_SNAPSHOT_TOKEN'                , f'STRINGIFY({PLOT_SNAPSHOT_TOKEN.decode('UTF-8')})'),
+        ('TV_TOKEN_START'                     , f'STRINGIFY({TV_TOKEN.START     .decode('UTF-8')})'),
+        ('TV_TOKEN_END'                       , f'STRINGIFY({TV_TOKEN.END       .decode('UTF-8')})'),
+        ('TV_WRITE_BYTE'                      , f'0x{TV_WRITE_BYTE :02X}'                          ),
+        ('MFC_DEBUG_BOARD_SEVEN_BIT_ADDRESS'  , f'0x{MFC_DEBUG_BOARD_SEVEN_BIT_ADDRESS :02X}'      ),
+        ('FLIGHT_READY'                       , target.flight_ready                                ),
     ]
 
     for other_target in TARGETS:

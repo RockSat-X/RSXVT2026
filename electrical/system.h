@@ -956,6 +956,7 @@ pack_push
             ESP32Packet,
             VehicleInterfacePayload,
             MainFlightComputerLogEntry,
+            PlotSnapshot,
         ):
 
             with Meta.enter(f'struct {struct_type.__name__}'):
