@@ -2733,12 +2733,14 @@ def plot(parameters):
 
 
 
-    main_figure               = matplotlib.pyplot.figure('Plot', figsize = (13, 7))
-    scene_axes                = main_figure.add_axes((0.05, 0.15, 0.4, 0.8), projection = '3d')
-    angular_velocities_axes   = None
-    angular_velocities_cursor = None
-    timeline_slider           = None
-    playback_checkbutton      = None
+    main_figure                  = matplotlib.pyplot.figure('Plot', figsize = (13, 7))
+    scene_axes                   = main_figure.add_axes((0.05, 0.15, 0.4, 0.8), projection = '3d')
+    angular_accelerations_axes   = None
+    angular_accelerations_cursor = None
+    angular_velocities_axes      = None
+    angular_velocities_cursor    = None
+    timeline_slider              = None
+    playback_checkbutton         = None
 
     stlink_button = Button(
         area   = (0.005, 0.05, 0.15, 0.035),
@@ -2769,13 +2771,17 @@ def plot(parameters):
 
     def process_snapshot_blob(source_name):
 
-        nonlocal snapshot_blob, time_snapshots, angular_velocities_axes, angular_velocities_cursor, timeline_slider, playback_checkbutton
+        nonlocal snapshot_blob, time_snapshots, angular_accelerations_axes, angular_accelerations_cursor, angular_velocities_axes, angular_velocities_cursor, timeline_slider, playback_checkbutton
 
 
 
         # Clear out the old stuff.
 
         time_snapshots = []
+
+        if angular_accelerations_axes is not None:
+            angular_accelerations_axes.remove()
+            angular_accelerations_axes = None
 
         if angular_velocities_axes is not None:
             angular_velocities_axes.remove()
@@ -2848,13 +2854,47 @@ def plot(parameters):
 
 
 
-        # Set up plots and widgets for the newly processed snapshots.
+        # Plot the angular accelerations.
+
+        angular_accelerations_axes = main_figure.add_axes(
+            (0.575, 0.575, 0.415, 0.375),
+            xlim = (0, time_snapshots[-1][0]),
+            ylim = (-100, 100),
+        )
+
+        angular_accelerations_axes.set_ylabel('rad/s^2', rotation = 0, verticalalignment = 'center_baseline')
+        angular_accelerations_axes.set_xticklabels(())
+
+        angular_accelerations_axes.plot(
+            *zip(*((relative_time, snapshot.angular_acceleration_x) for relative_time, snapshot in time_snapshots)),
+            color = 'red',
+        )
+
+        angular_accelerations_axes.plot(
+            *zip(*((relative_time, snapshot.angular_acceleration_y) for relative_time, snapshot in time_snapshots)),
+            color = 'green',
+        )
+
+        angular_accelerations_axes.plot(
+            *zip(*((relative_time, snapshot.angular_acceleration_z) for relative_time, snapshot in time_snapshots)),
+            color = 'blue',
+        )
+
+        angular_accelerations_cursor = angular_accelerations_axes.axvline(
+            x     = 0,
+            color = 'gray',
+        )
+
+
+
+        # Plot the angular velocities.
 
         angular_velocities_axes = main_figure.add_axes(
-            (0.6, 0.15, 0.375, 0.35),
+            (0.575, 0.15, 0.415, 0.375),
             xlim = (0, time_snapshots[-1][0]),
-            ylim = (-200, 200),
+            ylim = (-1000, 1000),
         )
+
         angular_velocities_axes.set_xlabel('Time (s)')
         angular_velocities_axes.set_ylabel('RPM', rotation = 0, verticalalignment = 'center_baseline')
 
@@ -2874,10 +2914,13 @@ def plot(parameters):
         )
 
         angular_velocities_cursor = angular_velocities_axes.axvline(
-            x      = 0,
-            color  = 'lightgray',
-            zorder = -1,
+            x     = 0,
+            color = 'gray',
         )
+
+
+
+        # Make the widgets.
 
         playback_checkbutton = matplotlib.widgets.CheckButtons(
             ax      = main_figure.add_axes((0.005, 0.1, 0.04, 0.025)),
@@ -3096,7 +3139,8 @@ def plot(parameters):
                 )
             ]
 
-            angular_velocities_cursor.set_xdata((timeline_slider.val, timeline_slider.val))
+            angular_accelerations_cursor.set_xdata((timeline_slider.val, timeline_slider.val))
+            angular_velocities_cursor   .set_xdata((timeline_slider.val, timeline_slider.val))
 
 
 
