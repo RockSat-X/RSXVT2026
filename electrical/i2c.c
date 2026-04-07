@@ -998,13 +998,10 @@ _I2C_update_once(enum I2CHandle handle)
 
 
 
-                    // Begin sending out the STOP signal.
-
-                    CMSIS_SET(I2Cx, CR2, STOP, true);
-
-
-
-                    // We now wait for the STOP condition on the bus to truly end the transfer.
+                    // The I2C hardware will automatically send the STOP condition
+                    // for NACK conditions. So we just now wait for the STOP condition
+                    // on the bus to truly end the transfer.
+                    // @/pg 2095/sec 48.4.9/`H533rm`.
 
                     driver->master.issue = I2CDriverJobIssue_no_acknowledge;
 
@@ -1144,6 +1141,9 @@ _I2C_update_once(enum I2CHandle handle)
                     else // Try sending the STOP condition onto the bus and wait for it.
                     {
 
+                        if (CMSIS_GET(I2Cx, CR2, STOP))
+                            bug; // Shouldn't already be set...
+
                         CMSIS_SET(I2Cx, CR2, STOP, true);
 
                         atomic_store_explicit
@@ -1219,13 +1219,16 @@ _I2C_update_once(enum I2CHandle handle)
 
                 case I2CInterruptEvent_stop_signaled:
                 {
+
+                    if (CMSIS_GET(I2Cx, CR2, START))
+                        bug; // Should've been cleared long ago...
+
                     if (CMSIS_GET(I2Cx, CR2, STOP))
+                        bug; // Should've been cleared automatically...
+
+                    if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, BUSY))
                     {
-                        return I2CUpdateOnceResult_bus_misbehaved; // The STOP bit should've been cleared by the hardware...
-                    }
-                    else if (CMSIS_GET_FROM(interrupt_status, I2Cx, ISR, BUSY))
-                    {
-                        return I2CUpdateOnceResult_bus_misbehaved; // The bus should be no longer busy now.
+                        return I2CUpdateOnceResult_bus_misbehaved; // The bus should've been no longer busy now.
                     }
                     else
                     {
@@ -1237,6 +1240,7 @@ _I2C_update_once(enum I2CHandle handle)
                         );
                         return I2CUpdateOnceResult_again;
                     }
+
                 } break;
 
 
