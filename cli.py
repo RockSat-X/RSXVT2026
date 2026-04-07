@@ -2592,7 +2592,7 @@ def plot(parameters):
     @Keybinding('ctrl-s', 'Save current displayed snapshots to a file.')
     def save_snapshots():
 
-        if not snapshots:
+        if not time_snapshots:
             pxd.pxd_logger.warning(f"There's no snapshot to save.")
             return
 
