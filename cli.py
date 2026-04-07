@@ -2998,232 +2998,248 @@ def plot(parameters):
 
         nonlocal start_time, key_presses, delta_time, snapshot_blob, axis_angles, time_snapshots, timeline_slider, playback_checkbutton
 
-
-
-        # Compute delta time for the current frame.
-
-        delta_time = time.time() - start_time
+        try:
 
 
 
-        # Receive snapshots from the ST-Link.
-        # This is primarily for `DemoGNC` where we'd want to
-        # program the target and then quickly verify the output.
+            # Compute delta time for the current frame.
 
-        if stlink_button.acknowledge_click():
-
-            serial, list_ports = import_pyserial()
-
-            stlink      = request_stlinks(specific_one = True)
-            serial_port = serial.Serial(
-                stlink.comport.device,
-                baudrate = STLINK_BAUD,
-                timeout  = 0
-            )
-
-            time.sleep(0.1)                  # Flush the buffer, but for some reason we have to delay it a bit after opening the port.
-            serial_port.reset_input_buffer() # "
-
-            pxd.pxd_logger.info(f'Waiting for data from ST-Link...')
-
-            snapshot_blob      = b''
-            timeout_start_time = time.time()
-            timeout_counter    = 0
-
-            while True:
-
-                if serial_port.in_waiting:
-
-                    snapshot_blob += serial_port.read_all()
-
-                    pxd.pxd_logger.info(f'Received {repr(len(snapshot_blob))} bytes so far...')
-
-                else:
-
-                    for i in range(10):
-
-                        time.sleep(0.01)
-
-                        if serial_port.in_waiting:
-                            break
-
-                    if snapshot_blob:
-
-                        if not serial_port.in_waiting:
-                            break
-
-                    elif time.time() - timeout_start_time >= 2:
-
-                        timeout_start_time  = time.time()
-                        timeout_counter    += 1
-
-                        if timeout_counter <= (MAX_TIMEOUT_COUNT := 4):
-                            pxd.pxd_logger.info(f'({timeout_counter}/{MAX_TIMEOUT_COUNT}) Still waiting for data from the ST-Link...')
-                        else:
-                            pxd.pxd_logger.warning(f'Timed out!')
-                            break
-
-            process_snapshot_blob('ST-Link')
+            delta_time = time.time() - start_time
 
 
 
-        # Load existing samples from a file.
+            # Receive snapshots from the ST-Link.
+            # This is primarily for `DemoGNC` where we'd want to
+            # program the target and then quickly verify the output.
 
-        if load_button.acknowledge_click():
-            load_snapshots()
+            if stlink_button.acknowledge_click():
 
+                serial, list_ports = import_pyserial()
 
-
-        # Save the current displayed samples to a file.
-
-        save_button.set_existence(time_snapshots)
-
-        if save_button.acknowledge_click():
-            save_snapshots()
-
-
-
-        # Process any keystrokes made.
-
-        while key_presses:
-
-            key_press, *key_presses = key_presses
-
-            keystroke = key_press.replace('+', '-').replace(' ', 'space')
-
-            for keybinding in keybindings:
-                if keybinding.keystroke == keystroke:
-                    keybinding.function()
-
-
-
-        # We begin computing delta time from here so the stuff
-        # above blocking won't result in a large time skip.
-
-        start_time = time.time()
-
-
-
-        # Plot stuff.
-
-        scene_axes.clear()
-        scene_axes.set_xlim(-2, 2)
-        scene_axes.set_ylim(-2, 2)
-        scene_axes.set_zlim(-2, 2)
-        scene_axes.set_xticklabels(())
-        scene_axes.set_yticklabels(())
-        scene_axes.set_zticklabels(())
-        scene_axes.set_xlabel('X')
-        scene_axes.set_ylabel('Y')
-        scene_axes.set_zlabel('Z')
-
-        if time_snapshots:
-
-
-
-            # Get current snapshot.
-
-            if playback_checkbutton.get_status()[0]:
-                timeline_slider.set_val(
-                    (timeline_slider.val + delta_time) % time_snapshots[-1][0]
+                stlink      = request_stlinks(specific_one = True)
+                serial_port = serial.Serial(
+                    stlink.comport.device,
+                    baudrate = STLINK_BAUD,
+                    timeout  = 0
                 )
 
-            _, snapshot = time_snapshots[
-                min(
-                    bisect.bisect(
-                        time_snapshots,
-                        timeline_slider.val,
-                        key = lambda x: x[0]
-                    ),
-                    len(time_snapshots) - 1
-                )
-            ]
+                time.sleep(0.1)                  # Flush the buffer, but for some reason we have to delay it a bit after opening the port.
+                serial_port.reset_input_buffer() # "
 
-            angular_accelerations_cursor.set_xdata((timeline_slider.val, timeline_slider.val))
-            angular_velocities_cursor   .set_xdata((timeline_slider.val, timeline_slider.val))
+                pxd.pxd_logger.info(f'Waiting for data from ST-Link...')
+
+                snapshot_blob      = b''
+                timeout_start_time = time.time()
+                timeout_counter    = 0
+
+                while True:
+
+                    if serial_port.in_waiting:
+
+                        snapshot_blob += serial_port.read_all()
+
+                        pxd.pxd_logger.info(f'Received {repr(len(snapshot_blob))} bytes so far...')
+
+                    else:
+
+                        for i in range(10):
+
+                            time.sleep(0.01)
+
+                            if serial_port.in_waiting:
+                                break
+
+                        if snapshot_blob:
+
+                            if not serial_port.in_waiting:
+                                break
+
+                        elif time.time() - timeout_start_time >= 2:
+
+                            timeout_start_time  = time.time()
+                            timeout_counter    += 1
+
+                            if timeout_counter <= (MAX_TIMEOUT_COUNT := 4):
+                                pxd.pxd_logger.info(f'({timeout_counter}/{MAX_TIMEOUT_COUNT}) Still waiting for data from the ST-Link...')
+                            else:
+                                pxd.pxd_logger.warning(f'Timed out!')
+                                break
+
+                process_snapshot_blob('ST-Link')
 
 
 
-            # Display vehicle orientation.
+            # Load existing samples from a file.
 
-            vn100_orientation = (snapshot.QuatS, snapshot.QuatX, snapshot.QuatY, snapshot.QuatZ)
-
-            _, *orientation_axis_x = quaternion_rotate(
-                (0, 1, 0, 0),
-                vn100_orientation,
-            )
-
-            _, *orientation_axis_y = quaternion_rotate(
-                (0, 0, 1, 0),
-                vn100_orientation,
-            )
-
-            _, *orientation_axis_z = quaternion_rotate(
-                (0, 0, 0, 1),
-                vn100_orientation,
-            )
-
-            scene_axes.quiver(0, 0, 0, *orientation_axis_x, color = 'red'  , linewidths = 3)
-            scene_axes.quiver(0, 0, 0, *orientation_axis_y, color = 'green', linewidths = 3)
-            scene_axes.quiver(0, 0, 0, *orientation_axis_z, color = 'blue' , linewidths = 3)
+            if load_button.acknowledge_click():
+                load_snapshots()
 
 
 
-            # Display vehicle's stepper motor rotations.
+            # Save the current displayed samples to a file.
 
-            axis_angular_velocities = (
-                snapshot.angular_velocity_x,
-                snapshot.angular_velocity_y,
-                snapshot.angular_velocity_z,
-            )
+            save_button.set_existence(time_snapshots)
 
-            axis_angles = (
-                axis_angles[0] + axis_angular_velocities[0] * delta_time,
-                axis_angles[1] + axis_angular_velocities[1] * delta_time,
-                axis_angles[2] + axis_angular_velocities[2] * delta_time,
-            )
+            if save_button.acknowledge_click():
+                save_snapshots()
 
-            for axis_i in (0, 1, 2):
 
-                rotational_arrows_count = min(round(2   + 10 * abs(axis_angular_velocities[axis_i]) / (1000 * 2 * math.pi / 60)), 10)
-                rotational_arrows_width = min(      0.5 +  5 * abs(axis_angular_velocities[axis_i]) / (1000 * 2 * math.pi / 60) ,  5)
-                rotational_arrow_ratio  = rotational_arrows_width * 0.3
-                rotational_arrow_radius = rotational_arrows_width * 0.2
 
-                for i in range(rotational_arrows_count):
+            # Process any keystrokes made.
 
-                    delta_angle  = 0.8 * (+1 if axis_angular_velocities[axis_i] > 0 else -1)
-                    delta_angle *= abs(axis_angular_velocities[axis_i]) / (abs(axis_angular_velocities[axis_i]) + 10)
+            while key_presses:
 
-                    base_u  = math.cos(axis_angles[axis_i] + (i              ) / rotational_arrows_count * 2 * math.pi) * rotational_arrow_radius
-                    base_v  = math.sin(axis_angles[axis_i] + (i              ) / rotational_arrows_count * 2 * math.pi) * rotational_arrow_radius
-                    delta_u = math.cos(axis_angles[axis_i] + (i + delta_angle) / rotational_arrows_count * 2 * math.pi) * rotational_arrow_radius - base_u
-                    delta_v = math.sin(axis_angles[axis_i] + (i + delta_angle) / rotational_arrows_count * 2 * math.pi) * rotational_arrow_radius - base_v
+                key_press, *key_presses = key_presses
 
-                    match axis_i:
+                keystroke = key_press.replace('+', '-').replace(' ', 'space')
 
-                        case 0:
-                            base  = (1, base_u , base_v )
-                            delta = (0, delta_u, delta_v)
+                for keybinding in keybindings:
+                    if keybinding.keystroke == keystroke:
+                        keybinding.function()
 
-                        case 1:
-                            base  = (base_v , 1, base_u )
-                            delta = (delta_v, 0, delta_u)
 
-                        case 2:
-                            base  = (base_u , base_v , 1)
-                            delta = (delta_u, delta_v, 0)
 
-                    _, *base  = quaternion_rotate((0, *base ), vn100_orientation)
-                    _, *delta = quaternion_rotate((0, *delta), vn100_orientation)
+            # We begin computing delta time from here so the stuff
+            # above blocking won't result in a large time skip.
 
-                    scene_axes.quiver(
-                        *base,
-                        *delta,
-                        color              = ('red', 'green', 'blue')[axis_i],
-                        linewidths         = rotational_arrows_width,
-                        arrow_length_ratio = rotational_arrow_ratio,
+            start_time = time.time()
+
+
+
+            # Plot stuff.
+
+            scene_axes.clear()
+            scene_axes.set_xlim(-2, 2)
+            scene_axes.set_ylim(-2, 2)
+            scene_axes.set_zlim(-2, 2)
+            scene_axes.set_xticklabels(())
+            scene_axes.set_yticklabels(())
+            scene_axes.set_zticklabels(())
+            scene_axes.set_xlabel('X')
+            scene_axes.set_ylabel('Y')
+            scene_axes.set_zlabel('Z')
+
+            if time_snapshots:
+
+
+
+                # Get current snapshot.
+
+                if playback_checkbutton.get_status()[0]:
+                    timeline_slider.set_val(
+                        (timeline_slider.val + delta_time) % time_snapshots[-1][0]
                     )
+
+                _, snapshot = time_snapshots[
+                    min(
+                        bisect.bisect(
+                            time_snapshots,
+                            timeline_slider.val,
+                            key = lambda x: x[0]
+                        ),
+                        len(time_snapshots) - 1
+                    )
+                ]
+
+                angular_accelerations_cursor.set_xdata((timeline_slider.val, timeline_slider.val))
+                angular_velocities_cursor   .set_xdata((timeline_slider.val, timeline_slider.val))
+
+
+
+                # Display vehicle orientation.
+
+                vn100_orientation = (snapshot.QuatS, snapshot.QuatX, snapshot.QuatY, snapshot.QuatZ)
+
+                _, *orientation_axis_x = quaternion_rotate(
+                    (0, 1, 0, 0),
+                    vn100_orientation,
+                )
+
+                _, *orientation_axis_y = quaternion_rotate(
+                    (0, 0, 1, 0),
+                    vn100_orientation,
+                )
+
+                _, *orientation_axis_z = quaternion_rotate(
+                    (0, 0, 0, 1),
+                    vn100_orientation,
+                )
+
+                scene_axes.quiver(0, 0, 0, *orientation_axis_x, color = 'red'  , linewidths = 3)
+                scene_axes.quiver(0, 0, 0, *orientation_axis_y, color = 'green', linewidths = 3)
+                scene_axes.quiver(0, 0, 0, *orientation_axis_z, color = 'blue' , linewidths = 3)
+
+
+
+                # Display vehicle's stepper motor rotations.
+
+                axis_angular_velocities = (
+                    snapshot.angular_velocity_x,
+                    snapshot.angular_velocity_y,
+                    snapshot.angular_velocity_z,
+                )
+
+                axis_angles = (
+                    axis_angles[0] + axis_angular_velocities[0] * delta_time,
+                    axis_angles[1] + axis_angular_velocities[1] * delta_time,
+                    axis_angles[2] + axis_angular_velocities[2] * delta_time,
+                )
+
+                for axis_i in (0, 1, 2):
+
+                    rotational_arrows_count = min(round(2   + 10 * abs(axis_angular_velocities[axis_i]) / (1000 * 2 * math.pi / 60)), 10)
+                    rotational_arrows_width = min(      0.5 +  5 * abs(axis_angular_velocities[axis_i]) / (1000 * 2 * math.pi / 60) ,  5)
+                    rotational_arrow_ratio  = rotational_arrows_width * 0.3
+                    rotational_arrow_radius = rotational_arrows_width * 0.2
+
+                    for i in range(rotational_arrows_count):
+
+                        delta_angle  = 0.8 * (+1 if axis_angular_velocities[axis_i] > 0 else -1)
+                        delta_angle *= abs(axis_angular_velocities[axis_i]) / (abs(axis_angular_velocities[axis_i]) + 10)
+
+                        base_u  = math.cos(axis_angles[axis_i] + (i              ) / rotational_arrows_count * 2 * math.pi) * rotational_arrow_radius
+                        base_v  = math.sin(axis_angles[axis_i] + (i              ) / rotational_arrows_count * 2 * math.pi) * rotational_arrow_radius
+                        delta_u = math.cos(axis_angles[axis_i] + (i + delta_angle) / rotational_arrows_count * 2 * math.pi) * rotational_arrow_radius - base_u
+                        delta_v = math.sin(axis_angles[axis_i] + (i + delta_angle) / rotational_arrows_count * 2 * math.pi) * rotational_arrow_radius - base_v
+
+                        match axis_i:
+
+                            case 0:
+                                base  = (1, base_u , base_v )
+                                delta = (0, delta_u, delta_v)
+
+                            case 1:
+                                base  = (base_v , 1, base_u )
+                                delta = (delta_v, 0, delta_u)
+
+                            case 2:
+                                base  = (base_u , base_v , 1)
+                                delta = (delta_u, delta_v, 0)
+
+                        _, *base  = quaternion_rotate((0, *base ), vn100_orientation)
+                        _, *delta = quaternion_rotate((0, *delta), vn100_orientation)
+
+                        scene_axes.quiver(
+                            *base,
+                            *delta,
+                            color              = ('red', 'green', 'blue')[axis_i],
+                            linewidths         = rotational_arrows_width,
+                            arrow_length_ratio = rotational_arrow_ratio,
+                        )
+
+
+
+        # If an exception gets thrown, Matplotlib won't
+        # automatically close, so we have to do it manually.
+
+        except SystemExit:
+            raise
+
+        except:
+
+            import traceback
+            traceback.print_exc()
+            sys.exit(1)
 
 
 
