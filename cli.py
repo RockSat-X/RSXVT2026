@@ -2801,9 +2801,9 @@ def plot(parameters):
 
         # Find the snapshot entries.
 
-        find_index            = -1
-        start_timestamp_us    = None
-        previous_timestamp_us = None
+        find_index               = -1
+        previous_timestamp_us    = None
+        current_accumulated_time = 0
 
         while True:
 
@@ -2825,22 +2825,24 @@ def plot(parameters):
 
             # If there was a big gap between the timestamps, it's probably something fishy.
 
-            if start_timestamp_us is None:
-                start_timestamp_us    = snapshot.timestamp_us
+            if previous_timestamp_us is None:
                 previous_timestamp_us = snapshot.timestamp_us
 
-            if (gap := (snapshot.timestamp_us - previous_timestamp_us) / 1_000_000) > (MAX_GAP := 0.100):
+            elapsed_time = ((snapshot.timestamp_us - previous_timestamp_us) % (1 << 32)) / 1_000_000
+
+            if elapsed_time > (MAX_GAP := 0.100):
                 pxd.pxd_logger.warning(
-                    f'A gap of {repr(gap)} seconds (> {repr(MAX_GAP)} seconds) '
-                    f'was found between consecutive snapshots (t = ~{snapshot_relative_time}).'
+                    f'A gap of {repr(elapsed_time)} seconds (> {repr(MAX_GAP)} seconds) '
+                    f'was found between consecutive snapshots (t = ~{current_accumulated_time :.3f} seconds).'
                 )
+
+            current_accumulated_time += elapsed_time
 
 
 
             # Append onto the timeline.
 
-            snapshot_relative_time  = ((snapshot.timestamp_us - start_timestamp_us) % (1 << 32)) / 1_000_000
-            time_snapshots         += [(snapshot_relative_time, snapshot)]
+            time_snapshots         += [(current_accumulated_time, snapshot)]
             previous_timestamp_us   = snapshot.timestamp_us
 
 
