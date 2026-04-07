@@ -2987,7 +2987,12 @@ def plot(parameters):
 
                 else:
 
-                    time.sleep(0.1)
+                    for i in range(10):
+
+                        time.sleep(0.01)
+
+                        if serial_port.in_waiting:
+                            break
 
                     if snapshot_blob:
 

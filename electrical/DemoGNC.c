@@ -112,8 +112,6 @@ main(void)
 
         UXART_tx_bytes(UXARTHandle_stlink, (u8*) &plot_snapshot, sizeof(plot_snapshot));
 
-        spinlock_nop(250'000); // To not overwhelm the host machine's serial port.
-
     }
 
     for (;;)
