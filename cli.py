@@ -2591,7 +2591,7 @@ def plot(parameters):
 
         snapshot_blob = pathlib.Path(file_path).read_bytes()
 
-        process_snapshot_blob()
+        process_snapshot_blob(repr(pathlib.Path(file_path).resolve().as_posix()))
 
 
 
@@ -2723,7 +2723,7 @@ def plot(parameters):
 
 
 
-    main_figure = matplotlib.pyplot.figure(figsize = (13, 7))
+    main_figure = matplotlib.pyplot.figure('Plot', figsize = (13, 7))
     scene_axes  = main_figure.add_axes((0.05, 0.15, 0.4, 0.8), projection = '3d')
 
     timeline_slider = None
@@ -2757,7 +2757,7 @@ def plot(parameters):
     snapshot_blob  = b''
     time_snapshots = []
 
-    def process_snapshot_blob():
+    def process_snapshot_blob(source_name):
 
         nonlocal snapshot_blob, time_snapshots, timeline_slider, playback_checkbutton
 
@@ -2774,6 +2774,8 @@ def plot(parameters):
         if timeline_slider is not None:
             timeline_slider.ax.remove()
             timeline_slider = None
+
+        matplotlib.pyplot.get_current_fig_manager().set_window_title('Plot')
 
 
 
@@ -2853,6 +2855,14 @@ def plot(parameters):
             valfmt  = 't = %.2f s',
         )
 
+
+
+        # Indicate source of the snapshot data.
+
+        matplotlib.pyplot.get_current_fig_manager().set_window_title(f'Plot ({source_name})')
+
+
+
         return True
 
 
@@ -2867,7 +2877,7 @@ def plot(parameters):
 
         snapshot_blob = pathlib.Path(parameters.input_file_path).read_bytes()
 
-        if not process_snapshot_blob():
+        if not process_snapshot_blob(repr(pathlib.Path(parameters.input_file_path).resolve().as_posix())):
             sys.exit(1)
 
 
@@ -2948,7 +2958,7 @@ def plot(parameters):
                     if snapshot_blob and not serial_port.in_waiting:
                         break
 
-            process_snapshot_blob()
+            process_snapshot_blob('ST-Link')
 
 
 
