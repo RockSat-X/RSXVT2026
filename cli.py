@@ -2496,6 +2496,7 @@ def parseFlight(parameters):
     # Parse the log entries.
 
     input_file_handle = open(input_file_path, 'rb')
+    heartbeat_time    = 0
 
     while True:
 
@@ -2506,7 +2507,7 @@ def parseFlight(parameters):
 
         log_entry = MainFlightComputerLogEntry.from_buffer_copy(sector)
 
-        writer.writerow([
+        writer.writerow((
             (
                 field_value if
                 (
@@ -2517,7 +2518,23 @@ def parseFlight(parameters):
                 else None
             )
             for field_prefix, field_value in get_fields_for_csv(log_entry)
-        ])
+        ))
+
+        if time.time() - heartbeat_time >= 0.1:
+
+            heartbeat_time = time.time()
+
+            pxd.pxd_logger.info(
+                f'Processing {input_file_handle.tell() / input_file_path.stat().st_size * 100 :.2f}%...'
+            )
+
+
+
+    # Report results.
+
+    pxd.pxd_logger.info(
+        f'Data written to directory {repr(output_directory_path.resolve().as_posix())}.'
+    )
 
 
 
