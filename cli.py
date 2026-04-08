@@ -435,11 +435,13 @@ class VideoMaker:
 
     def __init__(self, file_path, fps, max_delta_time):
 
-        self.file_path      = pathlib.Path(file_path)
-        self.fps            = fps
-        self.max_delta_time = max_delta_time
-        self.writer         = None
-        self.current_time   = 0
+        self.file_path            = pathlib.Path(file_path)
+        self.compressed_file_path = None
+        self.fps                  = fps
+        self.max_delta_time       = max_delta_time
+        self.writer               = None
+        self.current_time         = 0
+        self.image_count          = 0
 
 
 
@@ -485,6 +487,8 @@ class VideoMaker:
 
         end_time = self.current_time + min(delta_time, self.max_delta_time)
 
+        self.image_count += 1
+
         while True:
 
             self.writer.write(frame)
@@ -520,9 +524,9 @@ class VideoMaker:
 
             else:
 
-                compressed_file_path = self.file_path.with_name(f'{self.file_path.stem}-compressed.mp4')
+                self.compressed_file_path = self.file_path.with_name(f'{self.file_path.stem}-compressed.mp4')
 
-                compressed_file_path.unlink(missing_ok = True)
+                self.compressed_file_path.unlink(missing_ok = True)
 
                 pxd.execute_shell_command(f'''
                     ffmpeg
@@ -530,7 +534,7 @@ class VideoMaker:
                         -vcodec libx265
                         -crf 28
                         -loglevel warning
-                        {compressed_file_path.as_posix()}
+                        {self.compressed_file_path.as_posix()}
                 ''')
 
 
@@ -2357,169 +2361,90 @@ def parseVideo(parameters):
 
     input_file_path = pathlib.Path(parameters.input_file_path)
 
+    if not input_file_path.is_file():
+        pxd.pxd_logger.error(
+            f"Couldn't open {repr(input_file_path.resolve().as_posix())}."
+        )
+        sys.exit(1)
+
     if parameters.output_file_path is None:
         output_file_path = pathlib.Path(f'./{input_file_path.stem}.mp4')
     else:
         output_file_path = parameters.output_file_path
 
-    cv2, numpy = import_cv2_numpy()
 
 
-
-    # Lazily parse for image frames.
-
-    def frame_generator():
-
-        file_handle    = open(input_file_path, 'rb')
-        working_window = b''
-
-        while True:
-
-
-
-            # If the binary blob is massive, we load it in chunks at a time
-            # and process it as so. This breaks if the image frame is larger
-            # than the specified chunk here, but for our situation, this is
-            # good enough.
-
-            if len(working_window) < 1024 * 1024:
-                working_window += file_handle.read(1024 * 1024)
-
-
-
-            # Find the start and end of the image frame, if any.
-
-            if (start := working_window.find(TV_TOKEN.START)) == -1:
-                break
-
-            if (end := working_window.find(TV_TOKEN.END, start)) == -1:
-                break
-
-
-
-            # Try decoding the image.
-
-            image_array = numpy.frombuffer(
-                working_window[start + len(TV_TOKEN.START) : end],
-                dtype = numpy.uint8
-            )
-
-            frame = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
-
-            if frame is not None:
-                yield file_handle.tell(), frame
-
-
-
-            # Move onto next frame.
-
-            working_window = working_window[end + len(TV_TOKEN.END):]
-
-
-
-    # Have the video's settings be based on the first frame.
-
-    frames = frame_generator()
-
-    _, first_frame = next(frames, (None, None))
-
-    if first_frame is None:
-
-        pxd.pxd_logger.warning(
-            f'No valid frames found in {repr(input_file_path.as_posix())}.'
-        )
-
-        return
-
-    frame_count                  = 1
-    video_height, video_width, _ = first_frame.shape
-
-    writer = cv2.VideoWriter(
-        output_file_path,
-        cv2.VideoWriter_fourcc(*'mp4v'),
-        parameters.fps,
-        (video_width, video_height)
+    video_maker = VideoMaker(
+        file_path      = output_file_path,
+        fps            = parameters.fps,
+        max_delta_time = 5,
     )
 
-    writer.write(first_frame)
+    input_file_handle = open(input_file_path, 'rb')
+    working_window    = b''
+    heartbeat_time    = 0
+
+    while True:
 
 
 
-    # Process the rest of the frames in the file.
+        # If the binary blob is massive, we load it in chunks at a time
+        # and process it as so. This breaks if the image frame is larger
+        # than the specified chunk here, but for our situation, this is
+        # good enough.
 
-    input_file_size = input_file_path.stat().st_size
-
-    for input_file_cursor_position, frame in frames:
-
-        frame_count                  += 1
-        frame_height, frame_width, _  = frame.shape
-
-        if (frame_width, frame_height) != (video_width, video_height):
-            frame = cv2.resize(frame, (video_width, video_height))
-
-        writer.write(frame)
-
-        if frame_count % 100 == 0:
-
-            pxd.pxd_logger.info(
-                f'Processing {input_file_cursor_position / input_file_size * 100 :.2f}%...'
-            )
-
-    writer.release()
+        if len(working_window) < 1024 * 1024:
+            working_window += input_file_handle.read(1024 * 1024)
 
 
 
-    # The generated video can be pretty big, so if the user has FFMPEG already installed,
-    # we'll make it conveniently be invoked to compress the video down a bit.
+        # Find the start and end of the image frame, if any.
 
-    output_compressed_file_path = None
-    output_compressed_file_size = None
+        if (start := working_window.find(TV_TOKEN.START)) == -1:
+            break
 
-    if shutil.which('ffmpeg') is None:
+        if (end := working_window.find(TV_TOKEN.END, start)) == -1:
+            break
 
-        pxd.pxd_logger.warning(
-            '`ffmpeg` was not found on your machine, so no compression will be done.' '\n'
-            ''                                                                        '\n'
-            'If you want, install `ffmpeg` on Windows with:'                          '\n'
-            '> winget install Gyan.FFmpeg'                                            '\n'
-            ''                                                                        '\n'
-            '... or on a Debian-based distro with:'                                   '\n'
-            '> sudo apt install ffmpeg'
+        video_maker.append(
+            image      = working_window[start + len(TV_TOKEN.START) : end],
+            delta_time = 1 / parameters.fps, # TODO.
         )
 
-    else:
 
-        output_compressed_file_path = output_file_path.with_name(f'{output_file_path.stem}-compressed.mp4')
 
-        output_compressed_file_path.unlink(missing_ok = True)
+        # Move onto next frame.
 
-        pxd.execute_shell_command(f'''
-            ffmpeg
-                -i {output_file_path.as_posix()}
-                -vcodec libx265
-                -crf 28
-                -loglevel warning
-                {output_compressed_file_path.as_posix()}
-        ''')
+        working_window = working_window[end + len(TV_TOKEN.END):]
 
-        output_compressed_file_size = output_compressed_file_path.stat().st_size
+        if time.time() - heartbeat_time >= 0.1:
+
+            heartbeat_time = time.time()
+
+            pxd.pxd_logger.info(
+                f'Processing {input_file_handle.tell() / input_file_path.stat().st_size * 100 :.2f}%...'
+            )
 
 
 
-    # Report results.
+    # Done generating the video.
 
-    output_file_size = output_file_path.stat().st_size
-    duration         = frame_count / parameters.fps
+    video_maker.release()
+
+    input_file_size             = input_file_path.stat().st_size
+    output_file_size            = video_maker.file_path.stat().st_size
+    output_compressed_file_size = video_maker.compressed_file_path.stat().st_size
+    duration                    = video_maker.image_count / parameters.fps
 
     pxd.pxd_logger.info(
-        f'Uncompressed video file path  : {repr(output_file_path.resolve().as_posix())}.'                                                                 '\n'
-        f'Compressed video file path    : {repr(output_compressed_file_path.resolve().as_posix()) if output_compressed_file_path is not None else None}.' '\n'
-        f'Input file size               : {input_file_size  :,} bytes.'                                                                                   '\n'
-        f'Uncompressed output file size : {output_file_size :,} bytes.'                                                                                   '\n'
-        f'Compressed output file size   : {f'{output_compressed_file_size :,} bytes' if output_compressed_file_size is not None else None}.'              '\n'
-        f'Frame count                   : {repr(frame_count)}.'                                                                                           '\n'
-        f'Duration                      : {repr(math.floor(duration // 60))}m {repr(math.floor(duration % 60))}s.'                                        '\n'
-        f'Estimated write throughput    : {round(input_file_size / duration / 1024) :,} KiB/s.'                                                           '\n'
+        f'Uncompressed video file path  : {repr(video_maker.file_path.resolve().as_posix())}.'                                                                      '\n'
+        f'Compressed video file path    : {repr(video_maker.compressed_file_path.resolve().as_posix()) if video_maker.compressed_file_path is not None else None}.' '\n'
+        f'Input file size               : {input_file_size  :,} bytes.'                                                                                             '\n'
+        f'Uncompressed output file size : {output_file_size :,} bytes.'                                                                                             '\n'
+        f'Compressed output file size   : {f'{output_compressed_file_size :,} bytes' if output_compressed_file_size is not None else None}.'                        '\n'
+        f'Image count                   : {repr(video_maker.image_count)}.'                                                                                         '\n'
+        f'Duration                      : {repr(math.floor(duration // 60))}m {repr(math.floor(duration % 60))}s.'                                                  '\n'
+        f'Estimated write throughput    : {round(input_file_size / duration / 1024) :,} KiB/s.'                                                                     '\n'
     )
 
 
