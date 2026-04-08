@@ -427,6 +427,87 @@ def request_stlinks(
 
 
 
+# Helper to make videos from image frames easily.
+
+class VideoMaker:
+
+
+
+    def __init__(self, file_path, fps, max_delta_time):
+
+        self.file_path      = file_path
+        self.fps            = fps
+        self.max_delta_time = max_delta_time
+        self.writer         = None
+        self.current_time   = 0
+
+
+
+    def append(self, image, delta_time = 0):
+
+
+
+        # The video resolution will be based on the first image.
+
+        cv2, numpy = import_cv2_numpy()
+
+        frame = cv2.imdecode(numpy.frombuffer(image, dtype = numpy.uint8), cv2.IMREAD_COLOR)
+
+        if self.writer is None:
+
+            height, width, _ = frame.shape
+            self.writer      = cv2.VideoWriter(
+                self.file_path,
+                cv2.VideoWriter_fourcc(*'mp4v'),
+                self.fps,
+                (width, height)
+            )
+
+
+
+        # If the delta time is large, then the frame will be shown for quite a while.
+        # Just give warning on this and limit the delta time.
+
+        if delta_time > self.max_delta_time:
+
+            pxd.pxd_logger.warning(
+                f'A gap of {delta_time :.3f} seconds (> {self.max_delta_time} seconds) '
+                f'was found between frames '
+                f'(t = ~{math.floor(self.current_time // 60 // 60)}h {math.floor(self.current_time // 60)}m {self.current_time % 60 :.2f}s); '
+                f'capping the delta time to {self.max_delta_time} seconds.'
+            )
+
+
+
+        # Write the frames multiple times to get the delta time right.
+        # Note that we always at least show the frame once, so no frames
+        # will ever be dropped.
+
+        end_time = self.current_time + min(delta_time, self.max_delta_time)
+
+        while True:
+
+            self.writer.write(frame)
+
+            self.current_time += 1 / self.fps
+
+            if self.current_time >= end_time:
+                break
+
+
+
+    def release(self):
+
+        if self.writer is None:
+
+            pxd.pxd_logger.warning(f'No image frames were found, so no video will be made.')
+
+        else:
+
+            self.writer.release()
+
+
+
 ################################################################################
 
 
@@ -2495,17 +2576,15 @@ def parseFlight(parameters):
 
     # Parse the log entries.
 
-    cv2, numpy = import_cv2_numpy()
-
     input_file_handle           = open(input_file_path, 'rb')
     heartbeat_time              = 0
     image_data                  = b''
-    image_index                 = 0
-    image_relative_time         = 0
     previous_image_timestamp_ms = None
-    video_writer                = None
-
-    FPS = 10
+    video_maker                 = VideoMaker(
+        file_path      = pathlib.Path(output_directory_path, f'video.mp4'),
+        fps            = 10,
+        max_delta_time = 5,
+    )
 
     while True:
 
@@ -2551,46 +2630,13 @@ def parseFlight(parameters):
 
                 if image_data:
 
-                    frame = cv2.imdecode(
-                        numpy.frombuffer(
-                            image_data,
-                            dtype = numpy.uint8
-                        ),
-                        cv2.IMREAD_COLOR
+                    video_maker.append(
+                        image      = image_data,
+                        delta_time = ((log_entry.esp32_packet_data.nonredundant.timestamp_ms - previous_image_timestamp_ms) % (1 << 16)) / 1_000,
                     )
 
-                    if video_writer is None:
-
-                        video_height, video_width, _ = frame.shape
-                        video_writer                 = cv2.VideoWriter(
-                            pathlib.Path(output_directory_path, f'video.mp4'),
-                            cv2.VideoWriter_fourcc(*'mp4v'),
-                            FPS,
-                            (video_width, video_height)
-                        )
-
-                    elapsed_time = ((log_entry.esp32_packet_data.nonredundant.timestamp_ms - previous_image_timestamp_ms) % (1 << 16)) / 1_000
-
-                    if elapsed_time > (MAX_GAP := 5):
-
-                        pxd.pxd_logger.warning(
-                            f'A gap of {elapsed_time :.3f} seconds (> {repr(MAX_GAP)} seconds) '
-                            f'was found between consecutive snapshots (t = ~{image_relative_time :.3f} seconds); '
-                            f'capping the delta time to {MAX_GAP} seconds.'
-                        )
-
-                        elapsed_time = MAX_GAP
-
+                    image_data                  = b''
                     previous_image_timestamp_ms = log_entry.esp32_packet_data.nonredundant.timestamp_ms
-
-                    post_elapse_time = image_relative_time + elapsed_time
-
-                    while image_relative_time <= post_elapse_time:
-                        video_writer.write(frame)
-                        image_relative_time += 1 / FPS
-
-                image_data   = b''
-                image_index += 1
 
 
 
@@ -2606,8 +2652,7 @@ def parseFlight(parameters):
 
             elif image_data:
 
-                image_data   = b''
-                image_index += 1
+                image_data = b''
 
 
 
@@ -2627,10 +2672,7 @@ def parseFlight(parameters):
 
     pxd.pxd_logger.info(f'Data written to directory {repr(output_directory_path.resolve().as_posix())}.')
 
-    if video_writer is None:
-        pxd.pxd_logger.warning(f'No image frames were found, so no video will be made.')
-    else:
-        video_writer.release()
+    video_maker.release()
 
 
 
