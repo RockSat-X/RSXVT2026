@@ -2497,11 +2497,15 @@ def parseFlight(parameters):
 
     cv2, numpy = import_cv2_numpy()
 
-    input_file_handle = open(input_file_path, 'rb')
-    heartbeat_time    = 0
-    image_data        = b''
-    image_index       = 0
-    video_writer      = None
+    input_file_handle           = open(input_file_path, 'rb')
+    heartbeat_time              = 0
+    image_data                  = b''
+    image_index                 = 0
+    image_relative_time         = 0
+    previous_image_timestamp_ms = None
+    video_writer                = None
+
+    FPS = 10
 
     while True:
 
@@ -2542,6 +2546,9 @@ def parseFlight(parameters):
 
             if log_entry.esp32_packet_data.image_sequence_number == 1:
 
+                if previous_image_timestamp_ms is None:
+                    previous_image_timestamp_ms = log_entry.esp32_packet_data.nonredundant.timestamp_ms
+
                 if image_data:
 
                     frame = cv2.imdecode(
@@ -2558,12 +2565,29 @@ def parseFlight(parameters):
                         video_writer                 = cv2.VideoWriter(
                             pathlib.Path(output_directory_path, f'video.mp4'),
                             cv2.VideoWriter_fourcc(*'mp4v'),
-                            4,
+                            FPS,
                             (video_width, video_height)
                         )
 
-                    video_writer.write(frame)
+                    elapsed_time = ((log_entry.esp32_packet_data.nonredundant.timestamp_ms - previous_image_timestamp_ms) % (1 << 16)) / 1_000
 
+                    if elapsed_time > (MAX_GAP := 5):
+
+                        pxd.pxd_logger.warning(
+                            f'A gap of {elapsed_time :.3f} seconds (> {repr(MAX_GAP)} seconds) '
+                            f'was found between consecutive snapshots (t = ~{image_relative_time :.3f} seconds); '
+                            f'capping the delta time to {MAX_GAP} seconds.'
+                        )
+
+                        elapsed_time = MAX_GAP
+
+                    previous_image_timestamp_ms = log_entry.esp32_packet_data.nonredundant.timestamp_ms
+
+                    post_elapse_time = image_relative_time + elapsed_time
+
+                    while image_relative_time <= post_elapse_time:
+                        video_writer.write(frame)
+                        image_relative_time += 1 / FPS
 
                 image_data   = b''
                 image_index += 1
