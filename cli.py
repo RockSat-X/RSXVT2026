@@ -2440,6 +2440,12 @@ def parseFlight(parameters):
 
     input_file_path = pathlib.Path(parameters.input_file_path)
 
+    if not input_file_path.is_file():
+        pxd.pxd_logger.error(
+            f"Couldn't open {repr(input_file_path.resolve().as_posix())}."
+        )
+        sys.exit(1)
+
     if parameters.output_directory_path is None:
         output_directory_path = pathlib.Path(f'./{input_file_path.stem}')
     else:
