@@ -435,7 +435,7 @@ class VideoMaker:
 
     def __init__(self, file_path, fps, max_delta_time):
 
-        self.file_path      = file_path
+        self.file_path      = pathlib.Path(file_path)
         self.fps            = fps
         self.max_delta_time = max_delta_time
         self.writer         = None
@@ -505,6 +505,33 @@ class VideoMaker:
         else:
 
             self.writer.release()
+
+            if shutil.which('ffmpeg') is None:
+
+                pxd.pxd_logger.warning(
+                    '`ffmpeg` was not found on your machine, so no compression will be done.' '\n'
+                    ''                                                                        '\n'
+                    'If you want, install `ffmpeg` on Windows with:'                          '\n'
+                    '> winget install Gyan.FFmpeg'                                            '\n'
+                    ''                                                                        '\n'
+                    '... or on a Debian-based distro with:'                                   '\n'
+                    '> sudo apt install ffmpeg'
+                )
+
+            else:
+
+                compressed_file_path = self.file_path.with_name(f'{self.file_path.stem}-compressed.mp4')
+
+                compressed_file_path.unlink(missing_ok = True)
+
+                pxd.execute_shell_command(f'''
+                    ffmpeg
+                        -i {self.file_path.as_posix()}
+                        -vcodec libx265
+                        -crf 28
+                        -loglevel warning
+                        {compressed_file_path.as_posix()}
+                ''')
 
 
 
