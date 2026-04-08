@@ -2495,8 +2495,13 @@ def parseFlight(parameters):
 
     # Parse the log entries.
 
+    cv2, numpy = import_cv2_numpy()
+
     input_file_handle = open(input_file_path, 'rb')
     heartbeat_time    = 0
+    image_data        = b''
+    image_index       = 0
+    video_writer      = None
 
     while True:
 
@@ -2506,6 +2511,10 @@ def parseFlight(parameters):
             break
 
         log_entry = MainFlightComputerLogEntry.from_buffer_copy(sector)
+
+
+
+        # Add row to the CSV.
 
         writer.writerow((
             (
@@ -2520,6 +2529,66 @@ def parseFlight(parameters):
             for field_prefix, field_value in get_fields_for_csv(log_entry)
         ))
 
+
+
+        # Process image data chunk, if any.
+
+        if log_entry.esp32_packet_exist and log_entry.esp32_packet_data.image_sequence_number:
+
+
+
+            # Image data begins with sequence number of one.
+            # @/`ESP32 Sequence Numbers`.
+
+            if log_entry.esp32_packet_data.image_sequence_number == 1:
+
+                if image_data:
+
+                    frame = cv2.imdecode(
+                        numpy.frombuffer(
+                            image_data,
+                            dtype = numpy.uint8
+                        ),
+                        cv2.IMREAD_COLOR
+                    )
+
+                    if video_writer is None:
+
+                        video_height, video_width, _ = frame.shape
+                        video_writer                 = cv2.VideoWriter(
+                            pathlib.Path(output_directory_path, f'video.mp4'),
+                            cv2.VideoWriter_fourcc(*'mp4v'),
+                            4,
+                            (video_width, video_height)
+                        )
+
+                    video_writer.write(frame)
+
+
+                image_data   = b''
+                image_index += 1
+
+
+
+            # Append the image chunk if it's the expected sequence number.
+
+            if log_entry.esp32_packet_data.image_sequence_number == 1 + len(image_data) // ctypes.sizeof(log_entry.esp32_packet_data.image_bytes):
+
+                image_data += log_entry.esp32_packet_data.image_bytes
+
+
+
+            # Broken sequence number; flush the incomplete image data.
+
+            elif image_data:
+
+                image_data   = b''
+                image_index += 1
+
+
+
+        # Indicate progress.
+
         if time.time() - heartbeat_time >= 0.1:
 
             heartbeat_time = time.time()
@@ -2532,9 +2601,12 @@ def parseFlight(parameters):
 
     # Report results.
 
-    pxd.pxd_logger.info(
-        f'Data written to directory {repr(output_directory_path.resolve().as_posix())}.'
-    )
+    pxd.pxd_logger.info(f'Data written to directory {repr(output_directory_path.resolve().as_posix())}.')
+
+    if video_writer is None:
+        pxd.pxd_logger.warning(f'No image frames were found, so no video will be made.')
+    else:
+        video_writer.release()
 
 
 
