@@ -294,7 +294,7 @@ main(void)
                             FILESYSTEM_save
                             (
                                 SDHandle_primary,
-                                (struct Sector*) &metadata,
+                                &metadata.sector,
                                 1
                             );
 

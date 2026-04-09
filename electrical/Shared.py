@@ -144,7 +144,7 @@ class UnpaddedImageMetadata(ctypes.Structure):
         ('image_size'        , ctypes.c_uint32                     ),
         ('image_timestamp_us', ctypes.c_uint32                     ),
         ('cpu_cycle_counter' , ctypes.c_uint32                     ),
-        ('padding'           , ctypes.c_uint8 * 0                  ),
+        ('padding'           , ctypes.c_uint8 * 0                  ), # To be padded out.
         ('starting_token'    , ctypes.c_uint8 * len(TV_TOKEN.START)),
     )
 
