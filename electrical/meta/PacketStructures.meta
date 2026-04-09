@@ -70,3 +70,13 @@ struct PlotSnapshot
     f32 angular_acceleration_z;
     u8 sector_padding_[44];
 };
+struct ImageMetadata
+{
+    u8 ending_token[5];
+    u32 image_index;
+    u32 image_size;
+    u32 image_timestamp_us;
+    u32 cpu_cycle_counter;
+    u8 padding[487];
+    u8 starting_token[4];
+};

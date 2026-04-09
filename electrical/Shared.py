@@ -1,7 +1,7 @@
 #meta global STLINK_BAUD, TARGETS, PER_MCU, PER_TARGET
 #meta global OVCAM_DEFAULT_RESOLUTION
 #meta global STACK_SIZE, TV_WRITE_BYTE, TV_TOKEN, OVCAM_JPEG_CTRL3_FIELDS
-#meta global LoRaPacket, ESP32Packet, VehicleInterfacePayload, MainFlightComputerLogEntry, PlotSnapshot
+#meta global LoRaPacket, ESP32Packet, VehicleInterfacePayload, MainFlightComputerLogEntry, PlotSnapshot, ImageMetadata
 
 import types, collections, ctypes
 import deps.stpy.pxd.pxd as pxd
@@ -131,6 +131,34 @@ class PlotSnapshot(ctypes.Structure):
         ('sector_padding_', ctypes.c_uint8 * (128 - ctypes.sizeof(UnpaddedPlotSnapshot))),
     )
 
+TV_TOKEN = types.SimpleNamespace(
+    START = b'<TV>',
+    END   = b'</TV>',
+)
+
+class UnpaddedImageMetadata(ctypes.Structure):
+    _pack_   = True
+    _fields_ = (
+        ('ending_token'      , ctypes.c_uint8 * len(TV_TOKEN.END)  ),
+        ('image_index'       , ctypes.c_uint32                     ),
+        ('image_size'        , ctypes.c_uint32                     ),
+        ('image_timestamp_us', ctypes.c_uint32                     ),
+        ('cpu_cycle_counter' , ctypes.c_uint32                     ),
+        ('padding'           , ctypes.c_uint8 * 0                  ),
+        ('starting_token'    , ctypes.c_uint8 * len(TV_TOKEN.START)),
+    )
+
+class ImageMetadata(ctypes.Structure):
+    _pack_   = True
+    _fields_ = (
+        *(
+            (field_name, ctypes.c_uint8 * (512 - ctypes.sizeof(UnpaddedImageMetadata)))
+            if field_name == 'padding' else
+            (field_name, field_type)
+            for field_name, field_type in UnpaddedImageMetadata._fields_
+        ),
+    )
+
 
 
 ################################################################################
@@ -172,11 +200,6 @@ PRE_ISP_TEST_SETTING_FIELDS = pxd.SimpleNamespaceTable(
 )
 
 TV_WRITE_BYTE = 0x01
-
-TV_TOKEN = types.SimpleNamespace(
-    START = b'<TV>',
-    END   = b'</TV>',
-)
 
 STLINK_BAUD = 1_000_000
 ESP32_BAUD  = 1_000_000 # @/`Coupled Baud Rate between STM32 and ESP32`.

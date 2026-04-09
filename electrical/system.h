@@ -957,6 +957,7 @@ pack_push
             VehicleInterfacePayload,
             MainFlightComputerLogEntry,
             PlotSnapshot,
+            ImageMetadata,
         ):
 
             with Meta.enter(f'struct {struct_type.__name__}'):
