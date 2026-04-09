@@ -1,120 +1,122 @@
-struct LoRaPacket
-{
-    union
+pack_push
+    struct LoRaPacket
     {
-        struct
+        union
         {
-            f32 QuatX;
-            f32 QuatY;
-            f32 QuatZ;
-            f32 QuatS;
-            f32 AccelX;
-            f32 AccelY;
-            f32 AccelZ;
-            f32 GyroX;
-            f32 GyroY;
-            f32 GyroZ;
-            u16 timestamp_ms;
-            u16 rolling_sequence_number;
-            u8 computer_vision_confidence;
-            u8 crc;
+            struct
+            {
+                f32 QuatX;
+                f32 QuatY;
+                f32 QuatZ;
+                f32 QuatS;
+                f32 AccelX;
+                f32 AccelY;
+                f32 AccelZ;
+                f32 GyroX;
+                f32 GyroY;
+                f32 GyroZ;
+                u16 timestamp_ms;
+                u16 rolling_sequence_number;
+                u8 computer_vision_confidence;
+                u8 crc;
+            };
         };
     };
-};
-struct ESP32Packet
-{
-    union
+    struct ESP32Packet
     {
-        struct
+        union
         {
-            f32 MagX;
-            f32 MagY;
-            f32 MagZ;
-            u16 image_sequence_number;
-            u8 image_bytes[190];
-            struct LoRaPacket nonredundant;
+            struct
+            {
+                f32 MagX;
+                f32 MagY;
+                f32 MagZ;
+                u16 image_sequence_number;
+                u8 image_bytes[190];
+                struct LoRaPacket nonredundant;
+            };
         };
     };
-};
-struct VehicleInterfacePayload
-{
-    union
+    struct VehicleInterfacePayload
     {
-        struct
+        union
         {
-            u32 timestamp_us;
-            u8 stepper_issues;
-            u8 vn100_issues;
-            u8 openmv_issues;
-            u8 esp32_issues;
-            u8 crc;
+            struct
+            {
+                u32 timestamp_us;
+                u8 stepper_issues;
+                u8 vn100_issues;
+                u8 openmv_issues;
+                u8 esp32_issues;
+                u8 crc;
+            };
         };
     };
-};
-struct MainFlightComputerLogEntry
-{
-    union
+    struct MainFlightComputerLogEntry
     {
-        struct Sector sector;
-        struct
+        union
         {
-            char magic[4];
-            u8 esp32_packet_exist;
-            u8 lora_packet_exist;
-            u8 vehicle_interface_payload_exist;
-            u8 padding_;
-            struct ESP32Packet esp32_packet_data;
-            struct LoRaPacket lora_packet_data;
-            struct VehicleInterfacePayload vehicle_interface_payload_data;
-            u8 sector_padding_[199];
+            struct Sector sector;
+            struct
+            {
+                char magic[4];
+                u8 esp32_packet_exist;
+                u8 lora_packet_exist;
+                u8 vehicle_interface_payload_exist;
+                u8 padding_;
+                struct ESP32Packet esp32_packet_data;
+                struct LoRaPacket lora_packet_data;
+                struct VehicleInterfacePayload vehicle_interface_payload_data;
+                u8 sector_padding_[199];
+            };
         };
     };
-};
-struct PlotSnapshot
-{
-    union
+    struct PlotSnapshot
     {
-        struct
+        union
         {
-            char magic[4];
-            u32 timestamp_us;
-            f32 QuatX;
-            f32 QuatY;
-            f32 QuatZ;
-            f32 QuatS;
-            f32 MagX;
-            f32 MagY;
-            f32 MagZ;
-            f32 AccelX;
-            f32 AccelY;
-            f32 AccelZ;
-            f32 GyroX;
-            f32 GyroY;
-            f32 GyroZ;
-            f32 angular_velocity_x;
-            f32 angular_velocity_y;
-            f32 angular_velocity_z;
-            f32 angular_acceleration_x;
-            f32 angular_acceleration_y;
-            f32 angular_acceleration_z;
-            u8 sector_padding_[44];
+            struct
+            {
+                char magic[4];
+                u32 timestamp_us;
+                f32 QuatX;
+                f32 QuatY;
+                f32 QuatZ;
+                f32 QuatS;
+                f32 MagX;
+                f32 MagY;
+                f32 MagZ;
+                f32 AccelX;
+                f32 AccelY;
+                f32 AccelZ;
+                f32 GyroX;
+                f32 GyroY;
+                f32 GyroZ;
+                f32 angular_velocity_x;
+                f32 angular_velocity_y;
+                f32 angular_velocity_z;
+                f32 angular_acceleration_x;
+                f32 angular_acceleration_y;
+                f32 angular_acceleration_z;
+                u8 sector_padding_[44];
+            };
         };
     };
-};
-struct ImageMetadata
-{
-    union
+    struct ImageMetadata
     {
-        struct Sector sector;
-        struct
+        union
         {
-            char ending_token[5];
-            u32 image_index;
-            u32 image_size;
-            u32 image_timestamp_us;
-            u32 cpu_cycle_counter;
-            u8 padding[487];
-            char starting_token[4];
+            struct Sector sector;
+            struct
+            {
+                char ending_token[5];
+                u32 image_index;
+                u32 image_size;
+                u32 image_timestamp_us;
+                u32 cpu_cycle_counter;
+                u8 padding[487];
+                char starting_token[4];
+            };
         };
     };
-};
+pack_pop

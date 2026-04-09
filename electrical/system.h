@@ -950,13 +950,13 @@ DEBUG_BOARD_calculate_crc(u8* data, i32 length)
 #define ESP32_TOKEN_START "<ESP32>"
 #define LORA_TOKEN_START  "<LORA>"
 
-pack_push
+// The include file path is like this so it'll compile in the Arduino IDE.
+#include "../meta/PacketStructures.meta"
+/* #meta
 
-    // The include file path is like this so it'll compile in the Arduino IDE.
-    #include "../meta/PacketStructures.meta"
-    /* #meta
+    import ctypes
 
-        import ctypes
+    with Meta.enter('', 'pack_push', 'pack_pop'):
 
         for struct_type in (
             LoRaPacket,
@@ -1010,9 +1010,7 @@ pack_push
                                 {base_type} {field_name}{f'[{array_length}]' if array_length is not None else ''};
                             ''')
 
-    */
-
-pack_pop
+*/
 
 static_assert(sizeof(struct ESP32Packet) <= 250);
 
