@@ -2466,21 +2466,23 @@ def parseVideo(parameters):
 
     video_maker.release()
 
-    input_file_size             = input_file_path.stat().st_size
-    output_file_size            = video_maker.file_path.stat().st_size
-    output_compressed_file_size = video_maker.compressed_file_path.stat().st_size
-    duration                    = video_maker.image_count / parameters.fps
+    if video_maker.image_count:
 
-    pxd.pxd_logger.info(
-        f'Uncompressed video file path  : {repr(video_maker.file_path.resolve().as_posix())}.'                                                                      '\n'
-        f'Compressed video file path    : {repr(video_maker.compressed_file_path.resolve().as_posix()) if video_maker.compressed_file_path is not None else None}.' '\n'
-        f'Input file size               : {input_file_size  :,} bytes.'                                                                                             '\n'
-        f'Uncompressed output file size : {output_file_size :,} bytes.'                                                                                             '\n'
-        f'Compressed output file size   : {f'{output_compressed_file_size :,} bytes' if output_compressed_file_size is not None else None}.'                        '\n'
-        f'Image count                   : {repr(video_maker.image_count)}.'                                                                                         '\n'
-        f'Duration                      : {repr(math.floor(duration // 60))}m {repr(math.floor(duration % 60))}s.'                                                  '\n'
-        f'Estimated write throughput    : {round(input_file_size / duration / 1024) :,} KiB/s.'                                                                     '\n'
-    )
+        input_file_size             = input_file_path.stat().st_size
+        output_file_size            = video_maker.file_path.stat().st_size
+        output_compressed_file_size = video_maker.compressed_file_path.stat().st_size
+        duration                    = video_maker.image_count / parameters.fps
+
+        pxd.pxd_logger.info(
+            f'Uncompressed video file path  : {repr(video_maker.file_path.resolve().as_posix())}.'                                                                      '\n'
+            f'Compressed video file path    : {repr(video_maker.compressed_file_path.resolve().as_posix()) if video_maker.compressed_file_path is not None else None}.' '\n'
+            f'Input file size               : {input_file_size  :,} bytes.'                                                                                             '\n'
+            f'Uncompressed output file size : {output_file_size :,} bytes.'                                                                                             '\n'
+            f'Compressed output file size   : {f'{output_compressed_file_size :,} bytes' if output_compressed_file_size is not None else None}.'                        '\n'
+            f'Image count                   : {repr(video_maker.image_count)}.'                                                                                         '\n'
+            f'Duration                      : {repr(math.floor(duration // 60))}m {repr(math.floor(duration % 60))}s.'                                                  '\n'
+            f'Estimated write throughput    : {round(input_file_size / duration / 1024) :,} KiB/s.'                                                                     '\n'
+        )
 
 
 
