@@ -93,6 +93,13 @@ typedef double             f64; static_assert(sizeof(f64) == 8);
 
 
 
+struct Sector
+{
+    u8 bytes[512] __attribute__ ((aligned(4))); // Alignment of 32-bit words because things like SDMMC's IDMA assume this.
+};
+
+
+
 #if !COMPILING_ESP32
 
 
@@ -858,13 +865,6 @@ sorry_(void) // @/`Halting`.
 #pragma GCC diagnostic pop
 
 #include "ringbuffer.c"
-
-
-
-struct Sector
-{
-    u8 bytes[512] __attribute__ ((aligned(4))); // Alignment of 32-bit words because things like SDMMC's IDMA assume this.
-};
 
 
 
