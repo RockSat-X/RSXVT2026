@@ -2352,7 +2352,7 @@ def verifyLogs(parameters):
         'description' : 'Frame rate of the video.',
         'type'        : int,
         'flag_only'   : True,
-        'default'     : 24
+        'default'     : 60
     },
 )
 def parseVideo(parameters):
@@ -2380,9 +2380,10 @@ def parseVideo(parameters):
         max_delta_time = 5,
     )
 
-    input_file_handle = open(input_file_path, 'rb')
-    working_window    = b''
-    heartbeat_time    = 0
+    input_file_handle     = open(input_file_path, 'rb')
+    working_window        = b''
+    heartbeat_time        = 0
+    previous_timestamp_us = None
 
     while True:
 
@@ -2398,7 +2399,9 @@ def parseVideo(parameters):
 
 
 
-        # Find the start and end of the image frame, if any.
+        # Find the start and end of the image frame alongside its meta-data, if any.
+        # Currently we don't use the image meta-data for much besides the delta-time,
+        # but there may be some interesting statistics in there if it ever becomes needed.
 
         if (start := working_window.find(TV_TOKEN.START)) == -1:
             break
@@ -2406,16 +2409,48 @@ def parseVideo(parameters):
         if (end := working_window.find(TV_TOKEN.END, start)) == -1:
             break
 
+        meta_index = start + ImageMetadata.starting_token.size - ctypes.sizeof(ImageMetadata)
+        meta_data  = None
+
+        if meta_index >= 0:
+
+            meta_data = ImageMetadata.from_buffer_copy(working_window[meta_index : meta_index + ctypes.sizeof(ImageMetadata)])
+
+            assert meta_data.starting_token == TV_TOKEN.START
+
+            if meta_data.ending_token != TV_TOKEN.END:
+                meta_data = None
+
+
+
+        # Figure out the delta time as best as we can.
+
+        if previous_timestamp_us is None:
+            if meta_data is not None:
+                previous_timestamp_us = meta_data.image_timestamp_us
+
+        if meta_data is None:
+            delta_time = 0
+        else:
+            delta_time = ((meta_data.image_timestamp_us - previous_timestamp_us) % (1 << 32)) / 1_000_000
+
+        if meta_data is not None:
+            previous_timestamp_us = meta_data.image_timestamp_us
+
+
+
+        # Insert the image frame into the video.
+
         video_maker.append(
             image      = working_window[start + len(TV_TOKEN.START) : end],
-            delta_time = 1 / parameters.fps, # TODO.
+            delta_time = delta_time,
         )
 
 
 
         # Move onto next frame.
 
-        working_window = working_window[end + len(TV_TOKEN.END):]
+        working_window = working_window[end:]
 
         if time.time() - heartbeat_time >= 0.1:
 

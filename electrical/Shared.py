@@ -139,13 +139,13 @@ TV_TOKEN = types.SimpleNamespace(
 class UnpaddedImageMetadata(ctypes.Structure):
     _pack_   = True
     _fields_ = (
-        ('ending_token'      , ctypes.c_uint8 * len(TV_TOKEN.END)  ),
-        ('image_index'       , ctypes.c_uint32                     ),
-        ('image_size'        , ctypes.c_uint32                     ),
-        ('image_timestamp_us', ctypes.c_uint32                     ),
-        ('cpu_cycle_counter' , ctypes.c_uint32                     ),
-        ('padding'           , ctypes.c_uint8 * 0                  ), # To be padded out.
-        ('starting_token'    , ctypes.c_uint8 * len(TV_TOKEN.START)),
+        ('ending_token'      , ctypes.c_char * len(TV_TOKEN.END)  ),
+        ('image_index'       , ctypes.c_uint32                    ),
+        ('image_size'        , ctypes.c_uint32                    ),
+        ('image_timestamp_us', ctypes.c_uint32                    ),
+        ('cpu_cycle_counter' , ctypes.c_uint32                    ),
+        ('padding'           , ctypes.c_uint8 * 0                 ), # To be padded out.
+        ('starting_token'    , ctypes.c_char * len(TV_TOKEN.START)),
     )
 
 class ImageMetadata(ctypes.Structure):
