@@ -861,6 +861,13 @@ sorry_(void) // @/`Halting`.
 
 
 
+struct Sector
+{
+    u8 bytes[512] __attribute__ ((aligned(4))); // Alignment of 32-bit words because things like SDMMC's IDMA assume this.
+};
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 // Debug board stuff.
@@ -943,13 +950,13 @@ DEBUG_BOARD_calculate_crc(u8* data, i32 length)
 #define ESP32_TOKEN_START "<ESP32>"
 #define LORA_TOKEN_START  "<LORA>"
 
-pack_push
+// The include file path is like this so it'll compile in the Arduino IDE.
+#include "../meta/PacketStructures.meta"
+/* #meta
 
-    // The include file path is like this so it'll compile in the Arduino IDE.
-    #include "../meta/PacketStructures.meta"
-    /* #meta
+    import ctypes
 
-        import ctypes
+    with Meta.enter('', 'pack_push', 'pack_pop'):
 
         for struct_type in (
             LoRaPacket,
@@ -957,45 +964,53 @@ pack_push
             VehicleInterfacePayload,
             MainFlightComputerLogEntry,
             PlotSnapshot,
+            ImageMetadata,
         ):
 
             with Meta.enter(f'struct {struct_type.__name__}'):
 
-                for field_name, field_type in struct_type._fields_:
+                with Meta.enter('union'):
 
-                    if issubclass(field_type, ctypes.Array):
-                        elemental_type = field_type._type_
-                        array_length   = field_type._length_
-                    else:
-                        elemental_type = field_type
-                        array_length   = None
+                    if ctypes.sizeof(struct_type) == 512:
+                        Meta.line('''
+                            struct Sector sector;
+                        ''')
 
-                    match elemental_type:
+                    with Meta.enter('struct'):
 
-                        case ctypes.c_char   : base_type = 'char'
-                        case ctypes.c_uint8  : base_type = 'u8'
-                        case ctypes.c_uint16 : base_type = 'u16'
-                        case ctypes.c_uint32 : base_type = 'u32'
-                        case ctypes.c_uint64 : base_type = 'u64'
-                        case ctypes.c_int8   : base_type = 'i8'
-                        case ctypes.c_int16  : base_type = 'i16'
-                        case ctypes.c_int32  : base_type = 'i32'
-                        case ctypes.c_int64  : base_type = 'i64'
-                        case ctypes.c_float  : base_type = 'f32'
+                        for field_name, field_type in struct_type._fields_:
 
-                        case substruct_type if issubclass(substruct_type, ctypes.Structure):
-                            base_type = f'struct {substruct_type.__name__}'
+                            if issubclass(field_type, ctypes.Array):
+                                elemental_type = field_type._type_
+                                array_length   = field_type._length_
+                            else:
+                                elemental_type = field_type
+                                array_length   = None
 
-                        case idk:
-                            raise NotImplementedError(f'Field {repr(field_name)} has unsupported type {repr(field_type)}.')
+                            match elemental_type:
 
-                    Meta.line(f'''
-                        {base_type} {field_name}{f'[{array_length}]' if array_length is not None else ''};
-                    ''')
+                                case ctypes.c_char   : base_type = 'char'
+                                case ctypes.c_uint8  : base_type = 'u8'
+                                case ctypes.c_uint16 : base_type = 'u16'
+                                case ctypes.c_uint32 : base_type = 'u32'
+                                case ctypes.c_uint64 : base_type = 'u64'
+                                case ctypes.c_int8   : base_type = 'i8'
+                                case ctypes.c_int16  : base_type = 'i16'
+                                case ctypes.c_int32  : base_type = 'i32'
+                                case ctypes.c_int64  : base_type = 'i64'
+                                case ctypes.c_float  : base_type = 'f32'
 
-    */
+                                case substruct_type if issubclass(substruct_type, ctypes.Structure):
+                                    base_type = f'struct {substruct_type.__name__}'
 
-pack_pop
+                                case idk:
+                                    raise NotImplementedError(f'Field {repr(field_name)} has unsupported type {repr(field_type)}.')
+
+                            Meta.line(f'''
+                                {base_type} {field_name}{f'[{array_length}]' if array_length is not None else ''};
+                            ''')
+
+*/
 
 static_assert(sizeof(struct ESP32Packet) <= 250);
 
