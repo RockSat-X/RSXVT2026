@@ -1,4 +1,4 @@
-////////////////////////////////////////////////////////////////////////////////
+﻿////////////////////////////////////////////////////////////////////////////////
 //
 // Helper routines that'll be accessible in every meta-directive.
 //
@@ -1052,7 +1052,6 @@ ESP32_calculate_crc(u8* data, i32 length)
     #include <RadioLib.h>
 
 
-
     extern void
     common_init_uart(void)
     {
@@ -1061,26 +1060,75 @@ ESP32_calculate_crc(u8* data, i32 length)
         while (!Serial1);
     }
 
+    //variables to check status of esp init and set esp restart based on unsuccessful init or TX/RX errors
+    bool espnow_initialized = false;
+    uint32_t espnow_retry_delay = 1000; 
+    uint8_t espnow_consecutive_errors = 0;
+    static const uint8_t ESPNOW_ERROR_THRESHOLD = 32;
 
 
-    // TODO Look more into the specs.
-    // TODO Make robust.
-    extern void
-    common_init_esp_now(void)
+    //initializes esp_now and checks for errors
+    bool common_init_esp_now(void)
     {
-
         WiFi.mode(WIFI_STA);
-        esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE);
 
-        if (esp_now_init() != ESP_OK)
-        {
-            Serial.printf("Error initializing ESP-NOW.\n");
-            ESP.restart();
-            return;
+        esp_err_t err = esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE);
+        if (err != ESP_OK) {
+            Serial.printf("ESP-NOW failed to set channel (%d)\n", err);
+            espnow_initialized = false;
+            return false;
         }
 
+        err = esp_now_init();
+        if (err != ESP_OK)
+        {
+            Serial.printf("ESP-NOW init failed (%d)\n", err);
+            espnow_initialized = false;
+            return false;
+        }
+
+        //if wifi set and init pass, print to serial
+        espnow_initialized = true;
+        espnow_consecutive_errors = 0;
+        Serial.println("ESP-NOW initialized.\n");
+        return true;
     }
 
+    // Call on each TX/RX error for the ESP-NOW channel.
+    // Triggers reinit after ESPNOW_ERROR_THRESHOLD consecutive errors.
+    void espnow_report_error(void) {
+        if (++espnow_consecutive_errors >= ESPNOW_ERROR_THRESHOLD) {
+            Serial.println("ESP-NOW error threshold reached, scheduling reinit.");
+            espnow_initialized = false;
+            espnow_consecutive_errors = 0;
+        }
+    }
+
+    // Call on each successful TX/RX to reset the consecutive error counter.
+    void espnow_report_success(void) {
+
+        espnow_consecutive_errors = 0;
+    }
+
+
+    //handles esp-now reset based on retry timer (1 second)
+    void handle_espnow() 
+    {
+        static uint32_t last_attempt = 0;
+        if (!espnow_initialized && millis() - last_attempt > espnow_retry_delay)
+        {
+           common_init_esp_now();
+           last_attempt = millis();
+        }
+    }
+
+
+
+    //variables to check status of lora init and set lora restart based on unsuccessful init or TX/RX errors
+    bool lora_initialized = false;
+    uint32_t lora_retry_delay = 1000;
+    uint8_t lora_consecutive_errors = 0;
+    static const uint8_t LORA_ERROR_THRESHOLD = 32;
 
 
     #if FSPI_PATCH
@@ -1101,70 +1149,151 @@ ESP32_calculate_crc(u8* data, i32 length)
     #endif
 
 
-
     // TODO Make robust.
-    extern void
-    common_init_lora()
+    bool common_init_lora()
+ {
+
+    #if FSPI_PATCH
+
+         // Creates an instance of the SPI for the fspi hardware controller
+         // Assigns the SX1262 signals (SCK, MISO, MOSI, and NSS) to specific GPIO pins of the ESP32S3
+         // ex. SCK is assigned to GPIO36
+         fspi.begin(36, 37, 35, 41);
+
+    #endif
+
+
+    if (packet_lora_radio.begin() != RADIOLIB_ERR_NONE)
     {
+        Serial.printf("Failed to initialize radio.\n");
+        lora_initialized = false;
+        return false;
+    }
 
-        #if FSPI_PATCH
-
-            // Creates an instance of the SPI for the fspi hardware controller
-            // Assigns the SX1262 signals (SCK, MISO, MOSI, and NSS) to specific GPIO pins of the ESP32S3
-            // ex. SCK is assigned to GPIO36
-            fspi.begin(36, 37, 35, 41);
-
-        #endif
-
-        if (packet_lora_radio.begin() != RADIOLIB_ERR_NONE)
-        {
-            Serial.printf("Failed to initialize radio.\n");
-            ESP.restart();
-            return;
-        }
+	//Apply settings with error checking
 
         // 915 MHz Center Frequency (common frequency used in North America)
         // Should range from 902-928 for most cases
         // Find out if different frequencies affect range
-        packet_lora_radio.setFrequency(915.0);
+    if (packet_lora_radio.setFrequency(915.0) != RADIOLIB_ERR_NONE) {
+        Serial.printf("LoRa Frequency Error\n");
+        lora_initialized = false;
+        return false;
+    }
 
         // 7.8kHz Bandwidth (Narrow)
         // Ranges from 7.8kHz to 500kHz
         // Slower data rate but longer range compare to a larger bandwidth
-        packet_lora_radio.setBandwidth(7.8);
+        if (packet_lora_radio.setBandwidth(7.8) != RADIOLIB_ERR_NONE) {
+            Serial.printf("LoRa Settings Error: Bandwidth\n");
+            lora_initialized = false;
+            return false;
+        }
 
         // 6 (less than 22 kbps) Usually ranges from 7-12 (22-250 kbps)
         // May need to be reconfigured depending on range/speed desired
         // What's essential to know: A higher spreading factor means slower data rate but further transmission and vice versa
-        packet_lora_radio.setSpreadingFactor(6);
+        if (packet_lora_radio.setSpreadingFactor(6) != RADIOLIB_ERR_NONE) {
+            Serial.printf("LoRa Settings Error: Spreading Factor\n");
+            lora_initialized = false;
+            return false;
+        }
 
         // (4/5) Coding Rate
         // Proportion of foward error correction bits added to payload
         // A higher coding rate makes transmission less noisy but reduces effective data rate
-        packet_lora_radio.setCodingRate(5);
+        if (packet_lora_radio.setCodingRate(5) != RADIOLIB_ERR_NONE) {
+            Serial.printf("LoRa Settings Error: Coding Rate\n");
+            lora_initialized = false;
+            return false;
+        }
 
         // 22 dBm, for the SX1262 this is the specified max TX output power
         // Max output power gives the most range and its recommended to run the LoRa at this level
         // Dont go above this or may risk damaging component
         // test to see minimum power, likely -9dBm
-        packet_lora_radio.setOutputPower(22);
+        if (packet_lora_radio.setOutputPower(22) != RADIOLIB_ERR_NONE) {
+            Serial.printf("LoRa Settings Error: Output Power\n");
+            lora_initialized = false;
+            return false;
+        }
 
         // 8 Symbol Preamble Length (Standard for LoRa)
         // Synchronizes reciever with transmitter
-        packet_lora_radio.setPreambleLength(8);
+        if (packet_lora_radio.setPreambleLength(8) != RADIOLIB_ERR_NONE) {
+            Serial.printf("LoRa Preamble Length Error\n");
+            lora_initialized = false;
+            return false;
+        }
 
         // 0x34 LoRaWAN Public Network sync word
-        packet_lora_radio.setSyncWord(0x34);
+        if (packet_lora_radio.setSyncWord(0x34) != RADIOLIB_ERR_NONE) {
+            Serial.printf("LoRa Settings Error: Sync Word\n");
+            lora_initialized = false;
+            return false;
+        }
 
         // Adds Error Detection to packets
-        packet_lora_radio.setCRC(true);
+        if (packet_lora_radio.setCRC(true) != RADIOLIB_ERR_NONE) {
+            Serial.printf("LoRa Settings Error: CRC\n");
+            lora_initialized = false;
+            return false;
+        }
 
 
-        extern void packet_lora_callback(void);
+    extern void packet_lora_callback(void);
 
-        packet_lora_radio.setDio1Action(packet_lora_callback);
+    packet_lora_radio.setDio1Action(packet_lora_callback);
 
+    lora_initialized = true;
+    Serial.println("LoRa initialized.\n");
+    lora_consecutive_errors = 0;
+    return true;
+}
+
+
+    // Call on each TX/RX error for the LoRa channel.
+    // Triggers reinit after LORA_ERROR_THRESHOLD consecutive errors.
+    void lora_report_error(void) {
+        if (++lora_consecutive_errors >= LORA_ERROR_THRESHOLD) {
+            Serial.println("LoRa error threshold reached, scheduling reinit.");
+            lora_initialized = false;
+            lora_consecutive_errors = 0;
+        }
     }
+
+    // Call on each successful TX/RX to reset the consecutive error counter.
+    void lora_report_success(void) {
+        lora_consecutive_errors = 0;
+    }
+
+
+    //bool to determine when radio is currently hard reseting
+    bool lora_resetting = false;
+
+//handles lora reset based on retry timer (1 second)
+void handle_lora() 
+{
+    static uint32_t last_attempt = 0;
+    static uint32_t lora_reset_time = 0;
+
+    if (!lora_initialized)
+    {
+        if (!lora_resetting && millis() - last_attempt > lora_retry_delay)
+        {
+            last_attempt = millis();
+            lora_reset_time = millis();
+            //hard reset radio before retry
+            lora_resetting = true;
+            packet_lora_radio.sleep();
+        }
+        //wait a bit before restarting to avoid errors in SPI during radio transition
+        if (lora_resetting && millis() - lora_reset_time > 100) {
+            common_init_lora();
+            lora_resetting = false;
+        }
+    }
+}
 
 #endif
 
