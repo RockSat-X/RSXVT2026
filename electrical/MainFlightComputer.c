@@ -8,7 +8,6 @@
 #include "i2c.c"
 #include "sd.c"
 #include "filesystem.c"
-#include "buzzer.c"
 
 
 
@@ -36,12 +35,6 @@ main(void)
     // Configure the other registers to get timekeeping up and going.
 
     TIMEKEEPING_partial_init();
-
-
-
-    // Configure the other registers to get the buzzer up and going.
-
-    BUZZER_partial_init();
 
 
 

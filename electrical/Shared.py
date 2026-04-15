@@ -919,7 +919,6 @@ TARGETS = ( # @/`Defining Targets`.
             ('I2C1_ER', 3),
             ('I2C3_EV', 4),
             ('I2C3_ER', 4),
-            ('TIM8_UP', 5),
         ),
 
         drivers = (
@@ -973,7 +972,6 @@ TARGETS = ( # @/`Defining Targets`.
             'USART2_BAUD'                  : STLINK_BAUD,
             'TIM1_UPDATE_RATE'             : 1 / 0.001,
             'TIM2_COUNTER_RATE'            : 1_000_000,
-            'TIM8_COUNTER_RATE'            : 1_000_000,
             'ANALOG_POSTDIVIDER_KERNEL_CK' : 32_000_000,
             'I2C1_BAUD'                    : VEHICLE_INTERFACE_BAUD,
             'I2C1_TIMEOUT'                 : 2,
