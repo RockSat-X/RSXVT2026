@@ -226,7 +226,7 @@ main(void)
                                 .address_type = I2CAddressType_seven,
                                 .address      = I2C_TABLE[I2CHandle_bee].I2Cx_SLAVE_ADDRESS,
                                 .writing      = true,
-//                                .repeating    = !!(iteration & (1 << 2)),
+                                .repeating    = !!(iteration & (1 << 2)),
                                 .pointer      = (u8*) &message,
                                 .amount       = sizeof(message),
                             }
@@ -247,40 +247,40 @@ main(void)
                 }
                 stlink_tx("\n");
 
-//                stlink_tx("Queen : reading from bee...\n");
-//                {
-//
-//                    char response[512] = {0};
-//
-//                    b32 success =
-//                        queen_do
-//                        (
-//                            (struct I2CDoJob)
-//                            {
-//                                .handle       = I2CHandle_queen,
-//                                .address_type = I2CAddressType_seven,
-//                                .address      = I2C_TABLE[I2CHandle_bee].I2Cx_SLAVE_ADDRESS,
-//                                .writing      = false,
-//                                .repeating    = !!(iteration & (1 << 3)),
-//                                .pointer      = (u8*) response,
-//                                .amount       = sizeof(response),
-//                            }
-//                        );
-//
-//                    if (success)
-//                    {
-//                        stlink_tx("Queen : reception successful! : `%.*s`\n", sizeof(response), response);
-//                    }
-//                    else
-//                    {
-//                        spinlock_nop(1'000'000);
-//                    }
-//
-//                    GPIO_TOGGLE(led_green);
-//                    spinlock_nop(200'000'000);
-//
-//                }
-//                stlink_tx("\n\n\n");
+                stlink_tx("Queen : reading from bee...\n");
+                {
+
+                    char response[512] = {0};
+
+                    b32 success =
+                        queen_do
+                        (
+                            (struct I2CDoJob)
+                            {
+                                .handle       = I2CHandle_queen,
+                                .address_type = I2CAddressType_seven,
+                                .address      = I2C_TABLE[I2CHandle_bee].I2Cx_SLAVE_ADDRESS,
+                                .writing      = false,
+                                .repeating    = !!(iteration & (1 << 3)),
+                                .pointer      = (u8*) response,
+                                .amount       = sizeof(response),
+                            }
+                        );
+
+                    if (success)
+                    {
+                        stlink_tx("Queen : reception successful! : `%.*s`\n", sizeof(response), response);
+                    }
+                    else
+                    {
+                        spinlock_nop(1'000'000);
+                    }
+
+                    GPIO_TOGGLE(led_green);
+                    spinlock_nop(200'000'000);
+
+                }
+                stlink_tx("\n\n\n");
 
             }
 
