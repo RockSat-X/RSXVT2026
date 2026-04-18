@@ -1,6 +1,6 @@
 #define COMPILING_ESP32        true
 #define ESPNOW_ENABLE          true
-#define LORA_ENABLE            false
+#define LORA_ENABLE            true
 #define GENERATE_DUMMY_PACKETS true
 #include "../system.h"
 
@@ -107,6 +107,7 @@ packet_espnow_transmission_callback
 
     packet_espnow_reader            += 1;
     packet_espnow_transmission_busy  = false;
+    espnow_report_success();
 
 }
 #endif
@@ -122,6 +123,7 @@ packet_lora_callback(void)
 
     packet_lora_reader            += 1;
     packet_lora_transmission_busy  = false;
+    lora_report_success();
 
 }
 #endif
@@ -168,7 +170,7 @@ setup(void)
         if (esp_now_add_peer(&info) != ESP_OK)
         {
             Serial.printf("Failed to add peer.\n");
-            ESP.restart();
+            espnow_initialized = false;
             return;
         }
 
@@ -182,6 +184,8 @@ setup(void)
     #if LORA_ENABLE
     {
         common_init_lora();
+
+        lora_watchdog_arm();
     }
     #endif
 
@@ -260,6 +264,8 @@ process_payload(struct ESP32Packet* payload)
                 packet_lora_writer               += 1;
                 packet_lora_packet_count         += 1;
 
+                lora_last_activity_ms = millis();
+
             }
             else
             {
@@ -279,6 +285,9 @@ process_payload(struct ESP32Packet* payload)
 extern void
 loop(void)
 {
+    // Handle RF Channel in case of failed initialization or TX/RX error
+    handle_espnow();
+    handle_lora();
 
     // Heart-beat.
 
@@ -383,6 +392,7 @@ loop(void)
             {
                 Serial.printf("Send Error!\n");
                 packet_espnow_transmission_busy = false;
+                espnow_report_error();
             }
 
         }
@@ -403,7 +413,13 @@ loop(void)
 
             struct LoRaPacket* packet = &packet_lora_buffer[packet_lora_reader % countof(packet_lora_buffer)];
 
-            packet_lora_radio.startTransmit((u8*) packet, sizeof(*packet)); // TODO Error checking?
+            //packet_lora_radio.startTransmit((u8*) packet, sizeof(*packet)); // duplicate start Transmit call?
+
+            if (packet_lora_radio.startTransmit((u8*) packet, sizeof(*packet)) != RADIOLIB_ERR_NONE)
+            {
+            packet_lora_transmission_busy = false;
+            lora_report_error();
+            }
 
         }
     }

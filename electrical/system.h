@@ -45,9 +45,9 @@
 #define CONCAT_(X, Y)           X##Y
 #define CONCAT(X, Y)            CONCAT_(X, Y)
 #define IS_POWER_OF_TWO(X)      ((X) > 0 && ((X) & ((X) - 1)) == 0)
-#define sizeof(...)             ((signed) sizeof(__VA_ARGS__))
-#define countof(...)            (sizeof(__VA_ARGS__) / sizeof((__VA_ARGS__)[0]))
-#define bitsof(...)             (sizeof(__VA_ARGS__) * 8)
+#define ssizeof(...)            ((signed) sizeof(__VA_ARGS__))
+#define countof(...)            ((signed)(sizeof(__VA_ARGS__) / sizeof((__VA_ARGS__)[0])))
+#define bitsof(...)             ((signed)(sizeof(__VA_ARGS__) * 8))
 #define implies(P, Q)           (!(P) || (Q))
 #define iff(P, Q)               (!!(P) == !!(Q))
 #define useret                  __attribute__((warn_unused_result))
@@ -76,15 +76,15 @@
 
 
 
-typedef unsigned char      u8;  static_assert(sizeof(u8 ) == 1);
+typedef unsigned char      u8;  static_assert(sizeof(u8) == 1);
 typedef unsigned short     u16; static_assert(sizeof(u16) == 2);
 typedef unsigned           u32; static_assert(sizeof(u32) == 4);
 typedef unsigned long long u64; static_assert(sizeof(u64) == 8);
-typedef signed   char      i8;  static_assert(sizeof(i8 ) == 1);
+typedef signed   char      i8;  static_assert(sizeof(i8) == 1);
 typedef signed   short     i16; static_assert(sizeof(i16) == 2);
 typedef signed             i32; static_assert(sizeof(i32) == 4);
 typedef signed   long long i64; static_assert(sizeof(i64) == 8);
-typedef unsigned char      b8;  static_assert(sizeof(b8 ) == 1);
+typedef unsigned char      b8;  static_assert(sizeof(b8) == 1);
 typedef unsigned short     b16; static_assert(sizeof(b16) == 2);
 typedef unsigned           b32; static_assert(sizeof(b32) == 4);
 typedef unsigned long long b64; static_assert(sizeof(b64) == 8);
@@ -108,27 +108,27 @@ typedef double             f64; static_assert(sizeof(f64) == 8);
 
 #if FLIGHT_READY
 
-    #define bug return BUG_CODE // Bugs are bubbled up and handled by the caller.
-    #define sus
+#define bug return BUG_CODE // Bugs are bubbled up and handled by the caller.
+#define sus
 
 #else
 
-    static volatile struct
-    {
+static volatile struct
+{
 
-        // When `sorry` gets triggered, the debugger might show the location
-        // at a completely irrelevant line. This is very likely due to optimizations,
-        // so to aid with debugging, the file name and line number will be saved for inspection.
+    // When `sorry` gets triggered, the debugger might show the location
+    // at a completely irrelevant line. This is very likely due to optimizations,
+    // so to aid with debugging, the file name and line number will be saved for inspection.
 
-        char* file_name;
-        i32   line_number;
+    char* file_name;
+    i32   line_number;
 
-    } SORRY = {0};
+} SORRY = { 0 };
 
-    static noret
-    void sorry_(void);
+static noret
+void sorry_(void);
 
-    #define sorry                                           \
+#define sorry                                           \
         do                                                  \
         {                                                   \
             SORRY = (typeof(SORRY)) { __FILE__, __LINE__ }; \
@@ -136,9 +136,9 @@ typedef double             f64; static_assert(sizeof(f64) == 8);
         }                                                   \
         while (false); /* Semicolon on purpose. */
 
-    #define sus sorry
+#define sus sorry
 
-    #define bug                                                                  \
+#define bug                                                                  \
         do                                                                       \
         {                                                                        \
             sorry            /* Halt the CPU to make debugging issues easier. */ \
@@ -158,7 +158,7 @@ typedef double             f64; static_assert(sizeof(f64) == 8);
 
 
 #if TARGET_MCU_IS_STM32H533RET6 || TARGET_MCU_IS_STM32H533VET6
-    #include <deps/cmsis-device-h5/Include/stm32h533xx.h>
+#include <deps/cmsis-device-h5/Include/stm32h533xx.h>
 #endif
 
 
@@ -255,13 +255,13 @@ static_assert(configMAX_SYSCALL_INTERRUPT_PRIORITY <= 255);
 #include <deps/FreeRTOS_Kernel/include/semphr.h>
 
 #if TARGET_USES_FREERTOS
-    #if TARGET_MCU_IS_STM32H533RET6 || TARGET_MCU_IS_STM32H533VET6
-        #include <deps/FreeRTOS_Kernel/tasks.c>
-        #include <deps/FreeRTOS_Kernel/queue.c>
-        #include <deps/FreeRTOS_Kernel/list.c>
-        #include <deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure/port.c>
-        #include <deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure/portasm.c>
-    #endif
+#if TARGET_MCU_IS_STM32H533RET6 || TARGET_MCU_IS_STM32H533VET6
+#include <deps/FreeRTOS_Kernel/tasks.c>
+#include <deps/FreeRTOS_Kernel/queue.c>
+#include <deps/FreeRTOS_Kernel/list.c>
+#include <deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure/port.c>
+#include <deps/FreeRTOS_Kernel/portable/GCC/ARM_CM33_NTZ/non_secure/portasm.c>
+#endif
 #endif
 
 
@@ -375,7 +375,7 @@ static_assert(configMAX_SYSCALL_INTERRUPT_PRIORITY <= 255);
 static void
 FREERTOS_delay_ms(u32 ms) // Typically used within spin-lock loops.
 {
-    #if TARGET_USES_FREERTOS
+#if TARGET_USES_FREERTOS
     {
 
         BaseType_t scheduler_state = xTaskGetSchedulerState();
@@ -383,23 +383,23 @@ FREERTOS_delay_ms(u32 ms) // Typically used within spin-lock loops.
         switch (scheduler_state)
         {
 
-            case taskSCHEDULER_NOT_STARTED:
-            case taskSCHEDULER_SUSPENDED:
-            default:
-            {
-                // No scheduler yielding can be done.
-            } break;
+        case taskSCHEDULER_NOT_STARTED:
+        case taskSCHEDULER_SUSPENDED:
+        default:
+        {
+            // No scheduler yielding can be done.
+        } break;
 
-            case taskSCHEDULER_RUNNING:
-            {
-                static_assert(configTICK_RATE_HZ == 1000);
-                vTaskDelay(ms); // Spend time doing another task.
-            } break;
+        case taskSCHEDULER_RUNNING:
+        {
+            static_assert(configTICK_RATE_HZ == 1000);
+            vTaskDelay(ms); // Spend time doing another task.
+        } break;
 
         }
 
     }
-    #endif
+#endif
 }
 
 
@@ -482,7 +482,7 @@ INTERRUPT_UsageFault(void)
     // @/pg 611/sec B3.2.15/`Armv7-M`.
     // @/pg 1901/sec D1.2.267/`Armv8-M`.
     u32 usage_fault_status = CMSIS_GET(SCB, CFSR, USGFAULTSR);
-    b32 stack_overflow     = (usage_fault_status >> 4) & 1; // This is only defined on Armv8-M.
+    b32 stack_overflow = (usage_fault_status >> 4) & 1; // This is only defined on Armv8-M.
 
     sus; // See the values above to determine what caused this UsageFault.
 
@@ -497,10 +497,10 @@ INTERRUPT_BusFault(void)
 
     // @/pg 611/sec B3.2.15/`Armv7-M`.
     // @/pg 1472/sec D1.2.7/`Armv8-M`.
-    u32 bus_fault_status             = CMSIS_GET(SCB, CFSR, BUSFAULTSR);
-    b32 bus_fault_address_valid      = (bus_fault_status >> 7) & 1;
-    b32 imprecise_data_access        = (bus_fault_status >> 2) & 1;
-    b32 precise_data_access          = (bus_fault_status >> 1) & 1;
+    u32 bus_fault_status = CMSIS_GET(SCB, CFSR, BUSFAULTSR);
+    b32 bus_fault_address_valid = (bus_fault_status >> 7) & 1;
+    b32 imprecise_data_access = (bus_fault_status >> 2) & 1;
+    b32 precise_data_access = (bus_fault_status >> 1) & 1;
     b32 instruction_access_violation = (bus_fault_status >> 0) & 1;
 
     // @/pg 614/sec B3.2.18/`Armv7-M`.
@@ -520,19 +520,19 @@ INTERRUPT_Default(void)
 
     // @/pg 599/sec B3.2.4/`Armv7-M`.
     // @/pg 1680/sec D1.2.125/`Armv8-M`.
-    i32 interrupt_number = (i32) CMSIS_GET(SCB, ICSR, VECTACTIVE) - 16;
+    i32 interrupt_number = (i32)CMSIS_GET(SCB, ICSR, VECTACTIVE) - 16;
 
     switch (interrupt_number)
     {
-        case HardFault_IRQn:
-        {
-            sus; // There was a HardFault for some unhandled reason...
-        } break;
+    case HardFault_IRQn:
+    {
+        sus; // There was a HardFault for some unhandled reason...
+    } break;
 
-        default:
-        {
-            sus; // TODO.
-        } break;
+    default:
+    {
+        sus; // TODO.
+    } break;
     }
 
     WARM_RESET();
@@ -560,15 +560,15 @@ spinlock_nop(u32 count)
     // will be more inconsistent (potentially due to flash cache reasons?).
     for (u32 nop = 0; nop < count; nop += 256)
     {
-        #define NOP4   nop(); nop(); nop(); nop();
-        #define NOP16  NOP4   NOP4   NOP4   NOP4
-        #define NOP64  NOP16  NOP16  NOP16  NOP16
-        #define NOP256 NOP64  NOP64  NOP64  NOP64
+#define NOP4   nop(); nop(); nop(); nop();
+#define NOP16  NOP4   NOP4   NOP4   NOP4
+#define NOP64  NOP16  NOP16  NOP16  NOP16
+#define NOP256 NOP64  NOP64  NOP64  NOP64
         NOP256
-        #undef NOP4
-        #undef NOP16
-        #undef NOP64
-        #undef NOP256
+#undef NOP4
+#undef NOP16
+#undef NOP64
+#undef NOP256
     }
 }
 
@@ -597,39 +597,39 @@ sorry_(void) // @/`Halting`.
                 //      have the target definition be able to specify
                 //      the method to which a halt is indicated.
 
-                #if TARGET_MCU_IS_STM32H533RET6
+#if TARGET_MCU_IS_STM32H533RET6
 
-                    GPIO_ACTIVE(led_green);
-                    spinlock_nop(i);
+                GPIO_ACTIVE(led_green);
+                spinlock_nop(i);
 
-                    GPIO_INACTIVE(led_green);
-                    spinlock_nop(i);
+                GPIO_INACTIVE(led_green);
+                spinlock_nop(i);
 
-                #elif TARGET_NAME_IS_DebugBoard
+#elif TARGET_NAME_IS_DebugBoard
 
-                    GPIO_ACTIVE  (led_channel_red_A  );
-                    GPIO_INACTIVE(led_channel_green_A);
-                    GPIO_INACTIVE(led_channel_blue_A );
-                    spinlock_nop(i);
+                GPIO_ACTIVE(led_channel_red_A);
+                GPIO_INACTIVE(led_channel_green_A);
+                GPIO_INACTIVE(led_channel_blue_A);
+                spinlock_nop(i);
 
-                    GPIO_INACTIVE(led_channel_red_A  );
-                    GPIO_INACTIVE(led_channel_green_A);
-                    GPIO_INACTIVE(led_channel_blue_A );
-                    spinlock_nop(i);
+                GPIO_INACTIVE(led_channel_red_A);
+                GPIO_INACTIVE(led_channel_green_A);
+                GPIO_INACTIVE(led_channel_blue_A);
+                spinlock_nop(i);
 
-                #else
+#else
 
-                    GPIO_ACTIVE  (led_channel_red  );
-                    GPIO_INACTIVE(led_channel_green);
-                    GPIO_INACTIVE(led_channel_blue );
-                    spinlock_nop(i);
+                GPIO_ACTIVE(led_channel_red);
+                GPIO_INACTIVE(led_channel_green);
+                GPIO_INACTIVE(led_channel_blue);
+                spinlock_nop(i);
 
-                    GPIO_INACTIVE(led_channel_red  );
-                    GPIO_INACTIVE(led_channel_green);
-                    GPIO_INACTIVE(led_channel_blue );
-                    spinlock_nop(i);
+                GPIO_INACTIVE(led_channel_red);
+                GPIO_INACTIVE(led_channel_green);
+                GPIO_INACTIVE(led_channel_blue);
+                spinlock_nop(i);
 
-                #endif
+#endif
 
             }
         }
@@ -870,36 +870,36 @@ sorry_(void) // @/`Halting`.
 
 pack_push
 
-    #include "MainFlightComputerDebugStatusFlag.meta"
-    /* #meta
+#include "MainFlightComputerDebugStatusFlag.meta"
+/* #meta
 
-        FLAGS = '''
+    FLAGS = '''
 
-            wifi
-            lora
-            lis2mdl
-            lsm6dsv32x
-            filesystem
+        wifi
+        lora
+        lis2mdl
+        lsm6dsv32x
+        filesystem
 
-        '''.split()
+    '''.split()
 
-        Meta.enums('MainFlightComputerDebugStatusFlag', 'u8', FLAGS)
-        Meta.lut('MainFlightComputerDebugStatusFlag_TABLE', (
-            (
-                ('const char*', 'name', f'"{flag}"'),
-            )
-            for flag in FLAGS
-        ))
+    Meta.enums('MainFlightComputerDebugStatusFlag', 'u8', FLAGS)
+    Meta.lut('MainFlightComputerDebugStatusFlag_TABLE', (
+        (
+            ('const char*', 'name', f'"{flag}"'),
+        )
+        for flag in FLAGS
+    ))
 
-    */
+*/
 
-    struct MainFlightComputerDebugPacket
-    {
-        u32                                            timestamp_us;
-        f32                                            solarboard_voltages[2];
-        typeof(enum MainFlightComputerDebugStatusFlag) flags;
-        u8                                             crc;
-    };
+struct MainFlightComputerDebugPacket
+{
+    u32                                            timestamp_us;
+    f32                                            solarboard_voltages[2];
+    typeof(enum MainFlightComputerDebugStatusFlag) flags;
+    u8                                             crc;
+};
 
 pack_pop
 
@@ -907,7 +907,7 @@ pack_pop
 
 // TODO Document.
 // TODO Have look-up table.
-extern useret u8
+static useret u8
 DEBUG_BOARD_calculate_crc(u8* data, i32 length)
 {
     u8 crc = 0xFF;
@@ -945,55 +945,55 @@ DEBUG_BOARD_calculate_crc(u8* data, i32 length)
 
 pack_push
 
-    // @/`ESP32 Sequence Numbers`:
-    //
-    // The `.rolling_sequence_number` field is automatically filled out by the
-    // vehicle ESP32, thus the vehicle FC should leave it empty. This is
-    // because the ESP32 will handle the buffering of ESP-NOW and LoRa packets,
-    // and based on when it can queue up packets for those buffers, it'll
-    // automatically increment the rolling sequence number.
-    //
-    // In other words, the `rolling_sequence_number` is how the main FC can
-    // tell whether or not an ESP-NOW packet has been dropped, and likewise
-    // with LoRa packets.
-    //
-    // The `.timestamp_ms` field should be used to determine the elapsed time
-    // since the last received packet, but it can also be used to determine if
-    // a LoRa packet and ESP-NOW packet are the same (when their timestamps are
-    // also equal).
-    //
-    // The `.image_sequence_number` field is just to make it easier to
-    // determine the start of the OpenMV image data, although with how JPEG
-    // works, this could be omitted. If the field is zero, this means no image
-    // data; otherwise the first image chunk begins with sequence number of 1.
+// @/`ESP32 Sequence Numbers`:
+//
+// The `.rolling_sequence_number` field is automatically filled out by the
+// vehicle ESP32, thus the vehicle FC should leave it empty. This is
+// because the ESP32 will handle the buffering of ESP-NOW and LoRa packets,
+// and based on when it can queue up packets for those buffers, it'll
+// automatically increment the rolling sequence number.
+//
+// In other words, the `rolling_sequence_number` is how the main FC can
+// tell whether or not an ESP-NOW packet has been dropped, and likewise
+// with LoRa packets.
+//
+// The `.timestamp_ms` field should be used to determine the elapsed time
+// since the last received packet, but it can also be used to determine if
+// a LoRa packet and ESP-NOW packet are the same (when their timestamps are
+// also equal).
+//
+// The `.image_sequence_number` field is just to make it easier to
+// determine the start of the OpenMV image data, although with how JPEG
+// works, this could be omitted. If the field is zero, this means no image
+// data; otherwise the first image chunk begins with sequence number of 1.
 
-    struct LoRaPacket
-    {
-        f32 QuatX;
-        f32 QuatY;
-        f32 QuatZ;
-        f32 QuatS;
-        f32 AccelX;
-        f32 AccelY;
-        f32 AccelZ;
-        f32 GyroX;
-        f32 GyroY;
-        f32 GyroZ;
-        u16 timestamp_ms;            // @/`ESP32 Sequence Numbers`.
-        u16 rolling_sequence_number; // @/`ESP32 Sequence Numbers`.
-        u8  computer_vision_confidence;
-        u8  crc;
-    };
+struct LoRaPacket
+{
+    f32 QuatX;
+    f32 QuatY;
+    f32 QuatZ;
+    f32 QuatS;
+    f32 AccelX;
+    f32 AccelY;
+    f32 AccelZ;
+    f32 GyroX;
+    f32 GyroY;
+    f32 GyroZ;
+    u16 timestamp_ms;            // @/`ESP32 Sequence Numbers`.
+    u16 rolling_sequence_number; // @/`ESP32 Sequence Numbers`.
+    u8  computer_vision_confidence;
+    u8  crc;
+};
 
-    struct ESP32Packet
-    {
-        f32               MagX;
-        f32               MagY;
-        f32               MagZ;
-        u16               image_sequence_number; // @/`ESP32 Sequence Numbers`.
-        u8                image_bytes[190];
-        struct LoRaPacket nonredundant;
-    };
+struct ESP32Packet
+{
+    f32               MagX;
+    f32               MagY;
+    f32               MagZ;
+    u16               image_sequence_number; // @/`ESP32 Sequence Numbers`.
+    u8                image_bytes[190];
+    struct LoRaPacket nonredundant;
+};
 
 pack_pop
 
@@ -1003,7 +1003,7 @@ static_assert(sizeof(struct ESP32Packet) <= 250);
 
 // TODO Document.
 // TODO Have look-up table.
-extern useret u8
+static useret u8
 ESP32_calculate_crc(u8* data, i32 length)
 {
     u8 crc = 0xFF;
@@ -1029,133 +1029,139 @@ ESP32_calculate_crc(u8* data, i32 length)
 
 #if COMPILING_ESP32
 
-    #define FSPI_PATCH false // TODO Look into why it works sometimes...
+#define FSPI_PATCH false // TODO Look into why it works sometimes...
 
-    #include <WiFi.h>
-    #include <esp_wifi.h>
-    #include <esp_now.h>
-    #include <RadioLib.h>
-
-
-    extern void
-    common_init_uart(void)
-    {
-        Serial1.setRxBufferSize(1024); // TODO Look into more?
-        Serial1.begin(ESP32_BAUD, SERIAL_8N1, D7, D6);
-        while (!Serial1);
-    }
-
-    //variables to check status of esp init and set esp restart based on unsuccessful init or TX/RX errors
-    bool espnow_initialized = false;
-    uint32_t espnow_retry_delay = 1000; 
-    uint8_t espnow_consecutive_errors = 0;
-    static const uint8_t ESPNOW_ERROR_THRESHOLD = 32;
+#include <WiFi.h>
+#include <esp_wifi.h>
+#include <esp_now.h>
+#include <RadioLib.h>
 
 
-    //initializes esp_now and checks for errors
-    bool common_init_esp_now(void)
-    {
-        WiFi.mode(WIFI_STA);
+extern void
+common_init_uart(void)
+{
+    Serial1.setRxBufferSize(1024); // TODO Look into more?
+    Serial1.begin(ESP32_BAUD, SERIAL_8N1, D7, D6);
+    while (!Serial1);
+}
 
-        esp_err_t err = esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE);
-        if (err != ESP_OK) {
-            Serial.printf("ESP-NOW failed to set channel (%d)\n", err);
-            espnow_initialized = false;
-            return false;
-        }
-
-        err = esp_now_init();
-        if (err != ESP_OK)
-        {
-            Serial.printf("ESP-NOW init failed (%d)\n", err);
-            espnow_initialized = false;
-            return false;
-        }
-
-        //if wifi set and init pass, print to serial
-        espnow_initialized = true;
-        espnow_consecutive_errors = 0;
-        Serial.println("ESP-NOW initialized.\n");
-        return true;
-    }
-
-    // Call on each TX/RX error for the ESP-NOW channel.
-    // Triggers reinit after ESPNOW_ERROR_THRESHOLD consecutive errors.
-    void espnow_report_error(void) {
-        if (++espnow_consecutive_errors >= ESPNOW_ERROR_THRESHOLD) {
-            Serial.println("ESP-NOW error threshold reached, scheduling reinit.");
-            espnow_initialized = false;
-            espnow_consecutive_errors = 0;
-        }
-    }
-
-    // Call on each successful TX/RX to reset the consecutive error counter.
-    void espnow_report_success(void) {
-
-        espnow_consecutive_errors = 0;
-    }
+//variables to check status of esp init and set esp restart based on unsuccessful init or TX/RX errors
+bool espnow_initialized = false;
+uint32_t espnow_retry_delay = 1000;
+uint8_t espnow_consecutive_errors = 0;
+static const uint8_t ESPNOW_ERROR_THRESHOLD = 32;
 
 
-    //handles esp-now reset based on retry timer (1 second)
-    void handle_espnow() 
-    {
-        static uint32_t last_attempt = 0;
-        if (!espnow_initialized && millis() - last_attempt > espnow_retry_delay)
-        {
-           common_init_esp_now();
-           last_attempt = millis();
-        }
-    }
+//initializes esp_now and checks for errors
+bool common_init_esp_now(void)
+{
+    WiFi.mode(WIFI_STA);
 
-
-
-    //variables to check status of lora init and set lora restart based on unsuccessful init or TX/RX errors
-    bool lora_initialized = false;
-    uint32_t lora_retry_delay = 1000;
-    uint8_t lora_consecutive_errors = 0;
-    static const uint8_t LORA_ERROR_THRESHOLD = 32;
-
-
-    #if FSPI_PATCH
-
-        #include <SPI.h>
-
-        // Initializes SPI class and calls the fspi bus peripheral
-        SPIClass fspi(FSPI);
-
-        // Initializes LoRa radio signals with pin mapping for NSS, DIO1, RESET, BUSY, and fspi bus
-        // ex. NSS assigned to GPIO41 (NSS must be same as fspi pin mapping)
-        static SX1262 packet_lora_radio = new Module(41, 39, 42, 40, fspi);
-
-    #else
-
-        static SX1262 packet_lora_radio = new Module(41, 39, 42, 40);
-
-    #endif
-
-
-    // TODO Make robust.
-    bool common_init_lora()
- {
-
-    #if FSPI_PATCH
-
-         // Creates an instance of the SPI for the fspi hardware controller
-         // Assigns the SX1262 signals (SCK, MISO, MOSI, and NSS) to specific GPIO pins of the ESP32S3
-         // ex. SCK is assigned to GPIO36
-         fspi.begin(36, 37, 35, 41);
-
-    #endif
-
-
-    if (packet_lora_radio.begin() != RADIOLIB_ERR_NONE)
-    {
-        Serial.printf("Failed to initialize radio.\n");
-        lora_initialized = false;
+    esp_err_t err = esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE);
+    if (err != ESP_OK) {
+        Serial.printf("ESP-NOW failed to set channel (%d)\n", err);
+        espnow_initialized = false;
         return false;
     }
 
-	//Apply settings with error checking
+    err = esp_now_init();
+    if (err != ESP_OK)
+    {
+        Serial.printf("ESP-NOW init failed (%d)\n", err);
+        espnow_initialized = false;
+        return false;
+    }
+
+    //if wifi set and init pass, print to serial
+    espnow_initialized = true;
+    espnow_consecutive_errors = 0;
+    Serial.println("ESP-NOW initialized.\n");
+    return true;
+}
+
+// Call on each TX/RX error for the ESP-NOW channel.
+// Triggers reinit after ESPNOW_ERROR_THRESHOLD consecutive errors.
+void espnow_report_error(void) {
+    if (++espnow_consecutive_errors >= ESPNOW_ERROR_THRESHOLD) {
+        Serial.println("ESP-NOW error threshold reached, scheduling reinit.");
+        espnow_initialized = false;
+        espnow_consecutive_errors = 0;
+    }
+}
+
+// Call on each successful TX/RX to reset the consecutive error counter.
+void espnow_report_success(void)
+{
+    espnow_consecutive_errors = 0;
+}
+
+
+//handles esp-now reset based on retry timer (1 second)
+void handle_espnow()
+{
+    static uint32_t last_attempt = 0;
+    if (!espnow_initialized && millis() - last_attempt > espnow_retry_delay)
+    {
+        common_init_esp_now();
+        last_attempt = millis();
+    }
+}
+
+
+
+//variables to check status of lora init and set lora restart based on unsuccessful init or TX/RX errors
+bool lora_initialized = false;
+uint32_t lora_retry_delay = 5000;
+uint8_t lora_consecutive_errors = 0;
+static const uint8_t LORA_ERROR_THRESHOLD = 32;
+
+
+#if FSPI_PATCH
+
+#include <SPI.h>
+
+// Initializes SPI class and calls the fspi bus peripheral
+SPIClass fspi(FSPI);
+
+// Initializes LoRa radio signals with pin mapping for NSS, DIO1, RESET, BUSY, and fspi bus
+// ex. NSS assigned to GPIO41 (NSS must be same as fspi pin mapping)
+static SX1262 packet_lora_radio = new Module(41, 39, 42, 40, fspi);
+
+#else
+
+static SX1262 packet_lora_radio = new Module(41, 39, 42, 40);
+
+#endif
+
+
+// TODO Make robust.
+bool common_init_lora()
+{
+
+#if FSPI_PATCH
+
+    // End first in case this is a retry — calling begin() on an active SPI bus
+    // leaves it in a bad state and will cause packet_lora_radio.begin() to fail.
+    fspi.end();
+
+    // Creates an instance of the SPI for the fspi hardware controller
+    // Assigns the SX1262 signals (SCK, MISO, MOSI, and NSS) to specific GPIO pins of the ESP32S3
+    // ex. SCK is assigned to GPIO36
+    fspi.begin(36, 37, 35, 41);
+
+#endif
+
+    int state = packet_lora_radio.begin();
+
+    if (state != RADIOLIB_ERR_NONE)
+    {
+        Serial.printf("Failed to initialize radio, error code: %d\n", state);
+        lora_initialized = false;
+        return false;
+    }
+    Serial.printf("Radio begin() succeeded.\n");
+
+    //Apply settings with error checking
 
         // 915 MHz Center Frequency (common frequency used in North America)
         // Should range from 902-928 for most cases
@@ -1166,117 +1172,203 @@ ESP32_calculate_crc(u8* data, i32 length)
         return false;
     }
 
-        // 7.8kHz Bandwidth (Narrow)
-        // Ranges from 7.8kHz to 500kHz
-        // Slower data rate but longer range compare to a larger bandwidth
-        if (packet_lora_radio.setBandwidth(7.8) != RADIOLIB_ERR_NONE) {
-            Serial.printf("LoRa Settings Error: Bandwidth\n");
-            lora_initialized = false;
-            return false;
-        }
+    // 7.8kHz Bandwidth (Narrow)
+    // Ranges from 7.8kHz to 500kHz
+    // Slower data rate but longer range compare to a larger bandwidth
+    if (packet_lora_radio.setBandwidth(7.8) != RADIOLIB_ERR_NONE) {
+        Serial.printf("LoRa Settings Error: Bandwidth\n");
+        lora_initialized = false;
+        return false;
+    }
 
-        // 6 (less than 22 kbps) Usually ranges from 7-12 (22-250 kbps)
-        // May need to be reconfigured depending on range/speed desired
-        // What's essential to know: A higher spreading factor means slower data rate but further transmission and vice versa
-        if (packet_lora_radio.setSpreadingFactor(6) != RADIOLIB_ERR_NONE) {
-            Serial.printf("LoRa Settings Error: Spreading Factor\n");
-            lora_initialized = false;
-            return false;
-        }
+    // 6 (less than 22 kbps) Usually ranges from 7-12 (22-250 kbps)
+    // May need to be reconfigured depending on range/speed desired
+    // What's essential to know: A higher spreading factor means slower data rate but further transmission and vice versa
+    if (packet_lora_radio.setSpreadingFactor(6) != RADIOLIB_ERR_NONE) {
+        Serial.printf("LoRa Settings Error: Spreading Factor\n");
+        lora_initialized = false;
+        return false;
+    }
 
-        // (4/5) Coding Rate
-        // Proportion of foward error correction bits added to payload
-        // A higher coding rate makes transmission less noisy but reduces effective data rate
-        if (packet_lora_radio.setCodingRate(5) != RADIOLIB_ERR_NONE) {
-            Serial.printf("LoRa Settings Error: Coding Rate\n");
-            lora_initialized = false;
-            return false;
-        }
+    // (4/5) Coding Rate
+    // Proportion of foward error correction bits added to payload
+    // A higher coding rate makes transmission less noisy but reduces effective data rate
+    if (packet_lora_radio.setCodingRate(5) != RADIOLIB_ERR_NONE) {
+        Serial.printf("LoRa Settings Error: Coding Rate\n");
+        lora_initialized = false;
+        return false;
+    }
 
-        // 22 dBm, for the SX1262 this is the specified max TX output power
-        // Max output power gives the most range and its recommended to run the LoRa at this level
-        // Dont go above this or may risk damaging component
-        // test to see minimum power, likely -9dBm
-        if (packet_lora_radio.setOutputPower(22) != RADIOLIB_ERR_NONE) {
-            Serial.printf("LoRa Settings Error: Output Power\n");
-            lora_initialized = false;
-            return false;
-        }
+    // 22 dBm, for the SX1262 this is the specified max TX output power
+    // Max output power gives the most range and its recommended to run the LoRa at this level
+    // Dont go above this or may risk damaging component
+    // test to see minimum power, likely -9dBm
+    if (packet_lora_radio.setOutputPower(22) != RADIOLIB_ERR_NONE) {
+        Serial.printf("LoRa Settings Error: Output Power\n");
+        lora_initialized = false;
+        return false;
+    }
 
-        // 8 Symbol Preamble Length (Standard for LoRa)
-        // Synchronizes reciever with transmitter
-        if (packet_lora_radio.setPreambleLength(8) != RADIOLIB_ERR_NONE) {
-            Serial.printf("LoRa Preamble Length Error\n");
-            lora_initialized = false;
-            return false;
-        }
+    // 8 Symbol Preamble Length (Standard for LoRa)
+    // Synchronizes reciever with transmitter
+    if (packet_lora_radio.setPreambleLength(8) != RADIOLIB_ERR_NONE) {
+        Serial.printf("LoRa Preamble Length Error\n");
+        lora_initialized = false;
+        return false;
+    }
 
-        // 0x34 LoRaWAN Public Network sync word
-        if (packet_lora_radio.setSyncWord(0x34) != RADIOLIB_ERR_NONE) {
-            Serial.printf("LoRa Settings Error: Sync Word\n");
-            lora_initialized = false;
-            return false;
-        }
+    // 0x34 LoRaWAN Public Network sync word
+    if (packet_lora_radio.setSyncWord(0x34) != RADIOLIB_ERR_NONE) {
+        Serial.printf("LoRa Settings Error: Sync Word\n");
+        lora_initialized = false;
+        return false;
+    }
 
-        // Adds Error Detection to packets
-        if (packet_lora_radio.setCRC(true) != RADIOLIB_ERR_NONE) {
-            Serial.printf("LoRa Settings Error: CRC\n");
-            lora_initialized = false;
-            return false;
-        }
+    // Adds Error Detection to packets
+    if (packet_lora_radio.setCRC(true) != RADIOLIB_ERR_NONE) {
+        Serial.printf("LoRa Settings Error: CRC\n");
+        lora_initialized = false;
+        return false;
+    }
 
 
     extern void packet_lora_callback(void);
 
     packet_lora_radio.setDio1Action(packet_lora_callback);
 
+
     lora_initialized = true;
     Serial.println("LoRa initialized.\n");
     lora_consecutive_errors = 0;
+
     return true;
 }
 
 
-    // Call on each TX/RX error for the LoRa channel.
-    // Triggers reinit after LORA_ERROR_THRESHOLD consecutive errors.
-    void lora_report_error(void) {
-        if (++lora_consecutive_errors >= LORA_ERROR_THRESHOLD) {
-            Serial.println("LoRa error threshold reached, scheduling reinit.");
+// Call on each TX/RX error for the LoRa channel.
+// Triggers reinit after LORA_ERROR_THRESHOLD consecutive errors
+void lora_report_error(void) {
+    if (++lora_consecutive_errors >= LORA_ERROR_THRESHOLD) {
+        Serial.println("LoRa error threshold reached, scheduling reinit.");
+        lora_initialized = false;
+        lora_consecutive_errors = 0;
+
+    }
+}
+
+// Call on each successful TX/RX to reset the consecutive error counter
+void lora_report_success(void)
+{
+    lora_consecutive_errors = 0;
+}
+
+// Timestamp of the last successful LoRa TX or RX event
+static uint32_t lora_last_activity_ms = 0;
+
+// Max length of time without any TX/RX success before we treat the radio as dead
+static const uint32_t LORA_WATCHDOG_TIMEOUT_MS = 1000;
+
+// Set to true by the Vehicle .ino so handle_lora() knows packets are actively being queued 
+bool lora_watchdog_enabled = false;
+
+// Call this from the sketch to arm the watchdog whenever there is at least
+// one packet in the TX ring-buffer (Vehicle) or always (Main).
+void lora_watchdog_arm(void)
+{
+    lora_watchdog_enabled = true;
+}
+
+// Bool to determine when radio is currently hard reseting
+bool lora_resetting = false;
+
+// Tracks which phase of the reinit sequence we're in so that handle_lora() doesn't block wifi/uart
+enum LoRa_Reinit_Phase
+{
+    LORA_IDLE,          // Healthy — nothing to do.
+    LORA_WAIT_RETRY,    // Waiting for lora_retry_delay before starting a reset.
+    LORA_RESETTING,     // reset() has been called; waiting 100 ms for it to settle.
+    LORA_REINITING,     // common_init_lora() needs to be called once.
+};
+
+static LoRa_Reinit_Phase phase = LORA_IDLE;
+static uint32_t        lora_phase_entered = 0; // millis() when we entered the current phase.
+uint32_t LoRa_reset_timer = 500;
+
+// Handles lora reset based on retry timer (1 second)
+void handle_lora()
+{
+
+    // Watchdog: detect silent radio while initialized
+    // If LoRa is supposedly running but we haven't seen a successful TX/RX
+    if (lora_initialized && lora_watchdog_enabled)
+    {
+        if (millis() - lora_last_activity_ms > LORA_WATCHDOG_TIMEOUT_MS)
+        {
+            Serial.println("LoRa watchdog timeout — no activity, scheduling reinit.");
             lora_initialized = false;
             lora_consecutive_errors = 0;
+            phase = LORA_WAIT_RETRY;
+            lora_phase_entered = millis();
         }
     }
 
-    // Call on each successful TX/RX to reset the consecutive error counter.
-    void lora_report_success(void) {
-        lora_consecutive_errors = 0;
-    }
 
-
-    //bool to determine when radio is currently hard reseting
-    bool lora_resetting = false;
-
-//handles lora reset based on retry timer (1 second)
-void handle_lora() 
-{
-    static uint32_t last_attempt = 0;
-    static uint32_t lora_reset_time = 0;
-
-    if (!lora_initialized)
+    // Reinit state machine — each phase does at most one check per call and returns immediately
+    // ESP-NOW loop() keeps running freely.
+    switch (phase)
     {
-        if (!lora_resetting && millis() - last_attempt > lora_retry_delay)
+    case LORA_IDLE:
+    {
+        // If lora_initialized was cleared externally (error threshold) enter the wait phase
+        if (!lora_initialized)
         {
-            last_attempt = millis();
-            lora_reset_time = millis();
-            //hard reset radio before retry
-            lora_resetting = true;
-            packet_lora_radio.sleep();
+            phase = LORA_WAIT_RETRY;
+            lora_phase_entered = millis();
         }
-        //wait a bit before restarting to avoid errors in SPI during radio transition
-        if (lora_resetting && millis() - lora_reset_time > 100) {
-            common_init_lora();
-            lora_resetting = false;
+    } break;
+
+    case LORA_WAIT_RETRY:
+    {
+        if (millis() - lora_phase_entered >= lora_retry_delay)
+        {
+            // Kick off hardware reset
+            Serial.println("LoRa: issuing hardware reset.");
+            packet_lora_radio.reset();
+            phase = LORA_RESETTING;
+            lora_phase_entered = millis();
         }
+    } break;
+
+    case LORA_RESETTING:
+    {
+        // Give the SX1262 time to finish its internal reset sequence before we touch it over SPI
+        if (millis() - lora_phase_entered >= LoRa_reset_timer)
+        {
+            //LoRa_reset_timer = LoRa_reset_timer * 2;
+            phase = LORA_REINITING;
+            lora_phase_entered = millis();
+        }
+    } break;
+
+    case LORA_REINITING:
+    {
+        // common_init_lora() blocks for a handful of short SPI transactions (~few ms total), 
+        Serial.println("Begin reinit.");
+        if (common_init_lora())
+        {
+            Serial.println("Successful LoRa restart.");
+            lora_last_activity_ms = millis(); // Arm watchdog now
+            phase = LORA_IDLE;
+            lora_initialized = true;
+        }
+        else
+        {
+            Serial.println("LoRa restart failed, will retry.");
+            // Go back to the wait phase so we don't spam init calls
+            phase = LORA_WAIT_RETRY;
+            lora_phase_entered = millis();
+        }
+    } break;
     }
 }
 
@@ -1293,7 +1385,7 @@ void handle_lora()
 
 // TODO Document.
 // TODO Have look-up table.
-extern useret u8
+static useret u8
 VEHICLE_INTERFACE_calculate_crc(u8* data, i32 length)
 {
     u8 crc = 0xFF;
@@ -1316,15 +1408,15 @@ VEHICLE_INTERFACE_calculate_crc(u8* data, i32 length)
 
 
 pack_push
-    struct VehicleInterfacePayload
-    {
-        u32 timestamp_us;
-        u8  stepper_issues;
-        u8  vn100_issues;
-        u8  openmv_issues;
-        u8  esp32_issues;
-        u8  crc;
-    };
+struct VehicleInterfacePayload
+{
+    u32 timestamp_us;
+    u8  stepper_issues;
+    u8  vn100_issues;
+    u8  openmv_issues;
+    u8  esp32_issues;
+    u8  crc;
+};
 pack_pop
 
 
