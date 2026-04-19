@@ -1,3 +1,7 @@
+#define WATCHDOG_ENABLE                  true
+#define ALLOW_FILESYSTEM_TO_BE_FORMATTED true
+#define TRANSMIT_TV                      false
+
 #include "system.h"
 #include "timekeeping.c"
 #include "uxart.c"
@@ -57,8 +61,12 @@ enum DiagnosticLEDBehavior : u32
 /* #meta
 
     DIAGNOSTICS = ( # Ordered from highest priority to lowest priority.
-        ('logging_mishap'   , ('active'  , 'inactive', 'inactive'), 100, 100),
-        ('logging_heartbeat', ('inactive', 'active'  , 'inactive'),  25,  25),
+        ('watchdog_reset'          , ('toggle'  , 'inactive', 'inactive'), 200, 3000),
+        ('wiping_filesystem'       , ('toggle'  , 'toggle'  , 'toggle'  ),  25, 4000),
+        ('logging_mishap'          , ('toggle'  , 'inactive', 'toggle'  ),  25,  250),
+        ('esp32_mishap'            , ('inactive', 'inactive', 'toggle'  ),  50,  500),
+        ('vehicle_interface_mishap', ('toggle'  , 'toggle'  , 'toggle'  ),  25,  250),
+        ('logging_heartbeat'       , ('inactive', 'active'  , 'inactive'),  25,   25),
     )
 
     Meta.enums('DiagnosticMask', 'u32', (
@@ -79,7 +87,7 @@ enum DiagnosticLEDBehavior : u32
 
 */
 
-FREERTOS_TASK(diagnostics, 1) // TODO Duplicative.
+FREERTOS_TASK(diagnostics, 1)
 {
 
     u32 current_flags = 0;
@@ -134,7 +142,7 @@ FREERTOS_TASK(diagnostics, 1) // TODO Duplicative.
 
             u32 start_timestamp_us = TIMEKEEPING_microseconds();
 
-            while (TIMEKEEPING_microseconds() - start_timestamp_us < info->duration_ms)
+            while (TIMEKEEPING_microseconds() - start_timestamp_us < info->duration_ms * 1000)
             {
 
 
@@ -231,11 +239,103 @@ FREERTOS_TASK(diagnostics, 1) // TODO Duplicative.
 
 
 
+static volatile _Atomic u32 most_recent_logging_timestamp_us = 0;
+
+FREERTOS_TASK(watchdog, 3)
+{
+
+#if WATCHDOG_ENABLE
+
+    // The main flight computer is fine to be resetted
+    // as there's nothing critical to keep online throughout
+    // the entire mission. A reset will result in a gap
+    // in the data collection, but if it means potentially
+    // recovering from a bugged scenario, it's worthwhile to
+    // nonethless try. The same cannot be said about the vehicle
+    // because it runs off of battery power which is controlled
+    // by the vehicle flight computer, so if the MCU resets,
+    // the vehicle powers off entirely.
+
+    for (;;)
+    {
+
+        FREERTOS_delay_ms(1'000);
+
+        // Currently the only condition for a watchdog reset
+        // would be if we couldn't do any data logging in a while.
+        // We could also reset if we haven't received any ESP32 data
+        // in a while, but that'd be much more likely be due to the
+        // vehicle going out of range rather than any hardware issues
+        // on the main side.
+
+        u32 observed_most_recent_logging_timestamp_us =
+            atomic_load_explicit
+            (
+                &most_recent_logging_timestamp_us,
+                memory_order_relaxed // No synchronization needed.
+            );
+
+        u32 current_timestamp_us = TIMEKEEPING_microseconds();
+
+        if (current_timestamp_us - observed_most_recent_logging_timestamp_us >= 15'000'000) // Should be long enough to account for reformatting.
+        {
+
+            xTaskNotify
+            (
+                diagnostics_handle,
+                DiagnosticMask_watchdog_reset,
+                eSetBits
+            );
+
+            FREERTOS_delay_ms(3'000);
+
+            WARM_RESET();
+
+        }
+
+
+
+        // Serves as an additional layer of recovery in we for
+        // whatever reason ended up in a locked-up situation.
+
+        WATCHDOG_KICK();
+
+    }
+
+#else
+
+    for (;;)
+    {
+        FREERTOS_delay_ms(1'000);
+    }
+
+#endif
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+static volatile _Atomic u32                most_recent_esp32_reception_timestamp_us = {0};
+static volatile _Atomic u32                most_recent_lora_reception_timestamp_us  = {0};
+static RingBuffer(struct ESP32Packet, 256) esp32_packets                            = {0};
+static RingBuffer(struct LoRaPacket , 256) lora_packets                             = {0};
+
 static useret b32
 esp32_get_byte(u8* dst)
 {
 
     u32 start_timestamp_us = TIMEKEEPING_microseconds();
+
+    u32 timeout_duration_us =
+        start_timestamp_us < 10'000'000
+            ? 10'000'000  // We'd like to give the vehicle extra time when we are first powering on.
+            :  3'000'000; // Any other time, we'd like to reset the ESP32 more frequently.
+
+    b32 got_byte = {0};
 
     while (true)
     {
@@ -244,18 +344,22 @@ esp32_get_byte(u8* dst)
 
         if (UXART_rx(UXARTHandle_esp32, dst))
         {
-            return true; // Got what we needed.
+            got_byte = true; // Got what we needed.
+            break;
         }
-        else if (current_timestamp_us - start_timestamp_us < 3'000'000) // TODO Time-out duration when we first power-on?
+        else if (current_timestamp_us - start_timestamp_us < timeout_duration_us)
         {
             FREERTOS_delay_ms(1); // Hmm, just give the ESP32 a moment...
         }
         else
         {
-            return false; // The ESP32's been quiet... maybe it's bricked..?
+            got_byte = false; // The ESP32's been quiet... maybe it's bricked..?
+            break;
         }
 
     }
+
+    return got_byte;
 
 }
 
@@ -278,8 +382,8 @@ esp32_get_packet(struct ESP32Packet* dst_packet)
 
     // First find the starting token of the payload.
 
-    i32                        esp32_match_length = 0;
-    i32                        lora_match_length  = 0;
+    i32                       esp32_match_length = 0;
+    i32                       lora_match_length  = 0;
     enum ESP32GetPacketResult kind               = {0};
 
     while (true)
@@ -387,9 +491,10 @@ FREERTOS_TASK(esp32, 0)
 
 
 
-        // TODO.
+        // Begin parsing incoming packets.
 
-        b32 need_to_reinitialize = false;
+        b32 need_to_reinitialize       = false;
+        i32 consecutive_crc_mismatches = 0;
 
         while (!need_to_reinitialize)
         {
@@ -402,81 +507,55 @@ FREERTOS_TASK(esp32, 0)
 
 
 
-                // TODO.
+                // Got full ESP-NOW packet data.
 
                 case ESP32GetPacketResult_esp32:
                 {
-                    #if 0
+
+                    consecutive_crc_mismatches = 0;
+
+                    if (!RingBuffer_push(&esp32_packets, &packet))
                     {
-                        stlink_tx
-                        (
-                            "QuatX                      : %f"    "\n"
-                            "QuatY                      : %f"    "\n"
-                            "QuatZ                      : %f"    "\n"
-                            "QuatS                      : %f"    "\n"
-                            "MagX                       : %f"    "\n"
-                            "MagY                       : %f"    "\n"
-                            "MagZ                       : %f"    "\n"
-                            "AccelX                     : %f"    "\n"
-                            "AccelY                     : %f"    "\n"
-                            "AccelZ                     : %f"    "\n"
-                            "GyroX                      : %f"    "\n"
-                            "GyroY                      : %f"    "\n"
-                            "GyroZ                      : %f"    "\n"
-                            "timestamp_ms               : %u ms" "\n"
-                            "rolling_sequence_number    : %u"    "\n"
-                            "computer_vision_confidence : %u"    "\n"
-                            "image_sequence_number      : %u"    "\n"
-                            "\n",
-                            packet.nonredundant.QuatX,
-                            packet.nonredundant.QuatY,
-                            packet.nonredundant.QuatZ,
-                            packet.nonredundant.QuatS,
-                            packet.MagX,
-                            packet.MagY,
-                            packet.MagZ,
-                            packet.nonredundant.AccelX,
-                            packet.nonredundant.AccelY,
-                            packet.nonredundant.AccelZ,
-                            packet.nonredundant.GyroX,
-                            packet.nonredundant.GyroY,
-                            packet.nonredundant.GyroZ,
-                            packet.nonredundant.timestamp_ms,
-                            packet.nonredundant.rolling_sequence_number,
-                            packet.nonredundant.computer_vision_confidence,
-                            packet.image_sequence_number
-                        );
+                        // ESP-NOW ring-buffer over-run!
+                        // Not much we can honestly do...
                     }
-                    #elif 1
-                    {
 
-                        if (packet.image_sequence_number == 1) // @/`ESP32 Sequence Numbers`.
-                        {
-                            stlink_tx(TV_TOKEN_END);
-                            stlink_tx(TV_TOKEN_START);
-                        }
+                    atomic_store_explicit
+                    (
+                        &most_recent_esp32_reception_timestamp_us,
+                        TIMEKEEPING_microseconds(),
+                        memory_order_relaxed // No synchronization necessary.
+                    );
 
-                        if (packet.image_sequence_number) // @/`ESP32 Sequence Numbers`.
-                        {
-                            UXART_tx_bytes(UXARTHandle_stlink, packet.image_bytes, countof(packet.image_bytes));
-                        }
-
-                    }
-                    #endif
                 } break;
 
 
 
-                // TODO.
+                // Got the small LoRa packet data.
 
                 case ESP32GetPacketResult_lora:
                 {
-                    sorry
+
+                    consecutive_crc_mismatches = 0;
+
+                    if (!RingBuffer_push(&lora_packets, &packet.nonredundant))
+                    {
+                        // LoRa ring-buffer over-run!
+                        // Not much we can honestly do...
+                    }
+
+                    atomic_store_explicit
+                    (
+                        &most_recent_lora_reception_timestamp_us,
+                        TIMEKEEPING_microseconds(),
+                        memory_order_relaxed // No synchronization necessary.
+                    );
+
                 } break;
 
 
 
-                // TODO.
+                // Hmm, maybe the ESP32 is bricked?
 
                 case ESP32GetPacketResult_timeout:
                 {
@@ -485,16 +564,38 @@ FREERTOS_TASK(esp32, 0)
 
 
 
-                // TODO.
+                // Bad signal or perhaps the UART RX-FIFO overflowed...
 
                 case ESP32GetPacketResult_crc_mismatch:
                 {
-                    stlink_tx(">>>> CRC mismatch! Maybe due to UART RX-FIFO overflow... <<<<\n\n");
+
+                    consecutive_crc_mismatches += 1;
+
+                    if (consecutive_crc_mismatches > 8)
+                    {
+                        need_to_reinitialize = true; // Too many errors... suspicious!
+                    }
+                    else // Hmm, maybe nothing to really worry yet.
+                    {
+                        xTaskNotify
+                        (
+                            diagnostics_handle,
+                            DiagnosticMask_esp32_mishap,
+                            eSetBits
+                        );
+                    }
+
                 } break;
 
 
 
-                default: sorry
+                // Weird.
+
+                default:
+                {
+                    sus;
+                    need_to_reinitialize = true;
+                } break;
 
             }
 
@@ -502,7 +603,16 @@ FREERTOS_TASK(esp32, 0)
 
 
 
-        // TODO Indicate there was an ESP32 error.
+        // Something went wrong... We'll reinitialize in a bit...
+
+        xTaskNotify
+        (
+            diagnostics_handle,
+            DiagnosticMask_esp32_mishap,
+            eSetBits
+        );
+
+        FREERTOS_delay_ms(500);
 
     }
 }
@@ -512,6 +622,8 @@ FREERTOS_TASK(esp32, 0)
 ////////////////////////////////////////////////////////////////////////////////
 
 
+
+static RingBuffer(struct VehicleInterfacePayload, 16) vehicle_interface_payloads = {0};
 
 FREERTOS_TASK(vehicle_interface, 0)
 {
@@ -546,40 +658,65 @@ FREERTOS_TASK(vehicle_interface, 0)
                 switch (result)
                 {
 
+
+
+                    // Still transferring...
+
                     case I2CDoResult_working:
                     {
                         FREERTOS_delay_ms(1); // We'll keep on spin-locking until the transfer is done...
                     } break;
 
+
+
+                    // Got something from vehicle...
+
                     case I2CDoResult_success:
                     {
 
-                        // TODO CRC.
-
-                        #if 1
-                        {
-                            stlink_tx
+                        u8 digest =
+                            VEHICLE_INTERFACE_calculate_crc
                             (
-                                "timestamp_us   : %u"   "\n"
-                                "stepper_issues : %d"   "\n"
-                                "vn100_issues   : %d"   "\n"
-                                "openmv_issues  : %d"   "\n"
-                                "esp32_issues   : %d"   "\n"
-                                "\n",
-                                payload.timestamp_us,
-                                payload.stepper_issues,
-                                payload.vn100_issues,
-                                payload.openmv_issues,
-                                payload.esp32_issues
+                                (u8*) &payload,
+                                sizeof(payload)
+                            );
+
+                        if (digest)
+                        {
+                            xTaskNotify // CRC mismatch!
+                            (
+                                diagnostics_handle,
+                                DiagnosticMask_vehicle_interface_mishap,
+                                eSetBits
                             );
                         }
-                        #endif
+                        else if (!RingBuffer_push(&vehicle_interface_payloads, &payload))
+                        {
+                            xTaskNotify // Ring-buffer over-run!
+                            (
+                                diagnostics_handle,
+                                DiagnosticMask_vehicle_interface_mishap,
+                                eSetBits
+                            );
+                        }
 
                         yield = true;
 
                     } break;
 
+
+
+                    // No response; vehicle probably ejected.
+
                     case I2CDoResult_no_acknowledge:
+                    {
+                        yield = true;
+                    } break;
+
+
+
+                    // Something weird happened.
+
                     case I2CDoResult_clock_stretch_timeout:
                     case I2CDoResult_bus_misbehaved:
                     case I2CDoResult_watchdog_expired:
@@ -598,6 +735,19 @@ FREERTOS_TASK(vehicle_interface, 0)
 
         }
 
+
+
+        // Something went wrong... We'll reinitialize in a bit...
+
+        xTaskNotify
+        (
+            diagnostics_handle,
+            DiagnosticMask_vehicle_interface_mishap,
+            eSetBits
+        );
+
+        FREERTOS_delay_ms(100);
+
     }
 }
 
@@ -610,7 +760,28 @@ FREERTOS_TASK(vehicle_interface, 0)
 FREERTOS_TASK(logger, 0)
 {
 
-    static struct Sector working_sectors[2] = {0};
+    #if ALLOW_FILESYSTEM_TO_BE_FORMATTED
+    #define WIPE_FILESYSTEM_THRESHOLD 16
+    i32 completely_wipe_filesystem_tick = 0;
+    #endif
+
+
+
+    // To keep up with the maximum throughput of the ESP32s,
+    // we're going to have to save the data as a packed binary structure.
+    // Furthermore, we're going to have to slightly buffer the data.
+    // This does introduce the severity of data loss if we failed to
+    // save the data, but it's not by that much honestly.
+
+    static union
+    {
+        struct Sector                     sectors[8];
+        struct MainFlightComputerLogEntry log_entries[2];
+    } pool = {0};
+
+    static_assert(sizeof(pool) == sizeof(pool.sectors));
+
+
 
     for (;;)
     {
@@ -621,22 +792,70 @@ FREERTOS_TASK(logger, 0)
 
         // Try setting up the file-system.
 
+        stlink_tx("Trying to initialize file-system...\n");
+
+        #if ALLOW_FILESYSTEM_TO_BE_FORMATTED
+        {
+            if (completely_wipe_filesystem_tick >= WIPE_FILESYSTEM_THRESHOLD)
+            {
+                xTaskNotify
+                (
+                    diagnostics_handle,
+                    DiagnosticMask_wiping_filesystem,
+                    eSetBits
+                );
+            }
+        }
+        #endif
+
         enum FileSystemReinitResult reinit_result =
             FILESYSTEM_reinit
             (
                 SDHandle_primary,
-                nullptr, // TODO How to handle?
-                0        // TODO "
+                pool.sectors,
+                #if ALLOW_FILESYSTEM_TO_BE_FORMATTED
+                (
+                    completely_wipe_filesystem_tick >= WIPE_FILESYSTEM_THRESHOLD
+                        ? countof(pool.sectors)
+                        : 0
+                )
+                #else
+                (
+                    0
+                )
+                #endif
             );
+
+        #if ALLOW_FILESYSTEM_TO_BE_FORMATTED
+        {
+            if (completely_wipe_filesystem_tick >= WIPE_FILESYSTEM_THRESHOLD)
+            {
+                completely_wipe_filesystem_tick = 0;
+            }
+        }
+        #endif
 
         switch (reinit_result)
         {
 
 
 
+            // Ready to go!
+
             case FileSystemReinitResult_success:
             {
-                // Ready to go!
+
+                stlink_tx("File-system ready!\n");
+
+                completely_wipe_filesystem_tick = 0;
+
+                xTaskNotify
+                (
+                    diagnostics_handle,
+                    DiagnosticMask_logging_heartbeat,
+                    eSetBits
+                );
+
             } break;
 
 
@@ -656,8 +875,6 @@ FREERTOS_TASK(logger, 0)
                     eSetBits
                 );
 
-                FREERTOS_delay_ms(500);
-
                 goto REINITIALIZE;
 
             } break;
@@ -667,13 +884,29 @@ FREERTOS_TASK(logger, 0)
             // Something went wrong trying to mount the file-system;
             // best thing we can do is format the card and hope it'll work out.
 
-            case FileSystemReinitResult_invalid_filesystem:
             case FileSystemReinitResult_no_more_space_for_new_file:
+            case FileSystemReinitResult_invalid_filesystem:
             case FileSystemReinitResult_fatfs_internal_error:
+            {
+
+                #if ALLOW_FILESYSTEM_TO_BE_FORMATTED
+                {
+                    completely_wipe_filesystem_tick += 1;
+                }
+                #endif
+
+                goto REINITIALIZE;
+
+            } break;
+
+
+
+            // Something weird happened.
+
             case FileSystemReinitResult_bug:
             default:
             {
-                sorry
+                goto REINITIALIZE;
             } break;
 
         }
@@ -688,67 +921,151 @@ FREERTOS_TASK(logger, 0)
         while (true)
         {
 
-            // Make the log entry.
 
-            u32 current_timestamp_us = TIMEKEEPING_microseconds();
 
-            i32 log_entry_length =
-                snprintf_
+            // Fill out the log entries.
+            // We do multiple before we actually write it
+            // to the SD card for performance reasons.
+
+            memzero(&pool.log_entries);
+
+            for (i32 i = 0; i < countof(pool.log_entries); i += 1)
+            {
+
+
+
+                // We only do a log entry when there's actual data.
+
+                do
+                {
+                    pool.log_entries[i].magic[0]                        = 'M';
+                    pool.log_entries[i].magic[1]                        = 'E';
+                    pool.log_entries[i].magic[2]                        = 'O';
+                    pool.log_entries[i].magic[3]                        = 'W';
+                    pool.log_entries[i].esp32_packet_exist              = !!RingBuffer_pop(&esp32_packets             , &pool.log_entries[i].esp32_packet_data             );
+                    pool.log_entries[i].lora_packet_exist               = !!RingBuffer_pop(&lora_packets              , &pool.log_entries[i].lora_packet_data              );
+                    pool.log_entries[i].vehicle_interface_payload_exist = !!RingBuffer_pop(&vehicle_interface_payloads, &pool.log_entries[i].vehicle_interface_payload_data);
+                }
+                while
                 (
-                    (char*) working_sectors,
-                    sizeof(working_sectors),
-                    "[%u us]"             "\n"
-                    "Something here : %s" "\n"
-                    "\n",
-                    current_timestamp_us,
-                    "meow!"
+                    !pool.log_entries[i].esp32_packet_exist &&
+                    !pool.log_entries[i].lora_packet_exist  &&
+                    !pool.log_entries[i].vehicle_interface_payload_exist
                 );
 
 
 
-            // Formatting error, if for some reason.
+                // Also send the log out through the ST-Link periodically for convenience.
 
-            if (log_entry_length <= -1)
-            {
-                sus;
-                log_entry_length = 0;
+                #if TRANSMIT_TV
+                {
+                    if (pool.log_entries[i].esp32_packet_exist)
+                    {
+
+                        if (pool.log_entries[i].esp32_packet_data.image_sequence_number == 1) // @/`ESP32 Sequence Numbers`.
+                        {
+                            stlink_tx(TV_TOKEN_END);
+                            stlink_tx(TV_TOKEN_START);
+                        }
+
+                        if (pool.log_entries[i].esp32_packet_data.image_sequence_number) // @/`ESP32 Sequence Numbers`.
+                        {
+                            UXART_tx_bytes
+                            (
+                                UXARTHandle_stlink,
+                                pool.log_entries[i].esp32_packet_data.image_bytes,
+                                countof(pool.log_entries[i].esp32_packet_data.image_bytes)
+                            );
+                        }
+
+                    }
+                }
+                #else
+                {
+                    if (TIMEKEEPING_microseconds() - most_recent_stlink_log_timestamp_us >= 250'000)
+                    {
+
+                        most_recent_stlink_log_timestamp_us = TIMEKEEPING_microseconds();
+
+                        stlink_tx
+                        (
+                            "[%lu us]"                                      "\n"
+                            "> esp32_packets              : %d"             "\n"
+                            "> lora_packets               : %d"             "\n"
+                            "> vehicle_interface_payloads : %d"             "\n"
+                            "LoRa?                        : %s"             "\n"
+                            "- QuatXYZS                   : %f, %f, %f, %f" "\n"
+                            "- AccelXYZ                   : %f, %f, %f"     "\n"
+                            "- GyroXYZ                    : %f, %f, %f"     "\n"
+                            "- Timestamp ms.              : %d"             "\n"
+                            "- Rolling Seq.               : %d"             "\n"
+                            "- CV Confidence              : %d"             "\n"
+                            "ESP-NOW?                     : %s"             "\n"
+                            "- MagXYZ                     : %f, %f, %f"     "\n"
+                            "- QuatXYZS                   : %f, %f, %f, %f" "\n"
+                            "- AccelXYZ                   : %f, %f, %f"     "\n"
+                            "- GyroXYZ                    : %f, %f, %f"     "\n"
+                            "- Timestamp ms.              : %d"             "\n"
+                            "- Rolling Seq.               : %d"             "\n"
+                            "- CV Confidence              : %d"             "\n"
+                            "- Img. Seq.                  : %d"             "\n"
+                            "\n",
+                            TIMEKEEPING_microseconds(),
+                            RingBuffer_amount_in_queue(&esp32_packets),
+                            RingBuffer_amount_in_queue(&lora_packets),
+                            RingBuffer_amount_in_queue(&vehicle_interface_payloads),
+                            pool.log_entries[i].lora_packet_exist  ? "true"                                                                        : "false",
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.QuatX                                    : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.QuatY                                    : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.QuatZ                                    : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.QuatS                                    : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.AccelX                                   : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.AccelY                                   : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.AccelZ                                   : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.GyroX                                    : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.GyroY                                    : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.GyroZ                                    : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.timestamp_ms                             : -1,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.rolling_sequence_number                  : -1,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.computer_vision_confidence               : -1,
+                            pool.log_entries[i].esp32_packet_exist ? "true"                                                                        : "false",
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.MagX                                    : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.MagY                                    : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.MagZ                                    : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.QuatX                      : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.QuatY                      : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.QuatZ                      : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.QuatS                      : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.AccelX                     : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.AccelY                     : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.AccelZ                     : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.GyroX                      : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.GyroY                      : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.GyroZ                      : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.timestamp_ms               : -1,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.rolling_sequence_number    : -1,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.computer_vision_confidence : -1,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.image_sequence_number                   : -1
+                        );
+
+                    }
+                }
+                #endif
+
             }
 
 
 
-            // Log entry too long; just truncate.
+            // Save the received data!
 
-            if (log_entry_length > sizeof(working_sectors))
-            {
-                sus;
-                log_entry_length = sizeof(working_sectors);
-            }
-
-
-
-            // The remaining space in the log buffer will be used for the divider.
-
-            memset
-            (
-                (u8*) working_sectors + log_entry_length,
-                '.',
-                (u32) (sizeof(working_sectors) - log_entry_length)
-            );
-
-            working_sectors[countof(working_sectors) - 1].bytes[sizeof(struct Sector) - 2] = '\n'; // Don't care if this stamps over the string.
-            working_sectors[countof(working_sectors) - 1].bytes[sizeof(struct Sector) - 1] = '\n'; // "
-
-
-
-            // Save onto SD card for us to verify the vehicle
-            // is operating as intended after sequence testing.
+            static_assert(sizeof(*pool.log_entries) % sizeof(struct Sector) == 0);
 
             enum FileSystemSaveResult save_result =
                 FILESYSTEM_save
                 (
                     SDHandle_primary,
-                    working_sectors,
-                    countof(working_sectors)
+                    pool.sectors,
+                    sizeof(pool.log_entries) / sizeof(*pool.log_entries)
                 );
 
             switch (save_result)
@@ -761,10 +1078,18 @@ FREERTOS_TASK(logger, 0)
 
                 case FileSystemSaveResult_success:
                 {
-                    if (current_timestamp_us - most_recent_heartbeat_timestamp_us >= 500'000)
+
+                    atomic_store_explicit
+                    (
+                        &most_recent_logging_timestamp_us,
+                        TIMEKEEPING_microseconds(),
+                        memory_order_relaxed // No synchronization necessary.
+                    );
+
+                    if (TIMEKEEPING_microseconds() - most_recent_heartbeat_timestamp_us >= 1'000'000)
                     {
 
-                        most_recent_heartbeat_timestamp_us = current_timestamp_us;
+                        most_recent_heartbeat_timestamp_us = TIMEKEEPING_microseconds();
 
                         xTaskNotify
                         (
@@ -774,14 +1099,19 @@ FREERTOS_TASK(logger, 0)
                         );
 
                     }
+
                 } break;
 
 
 
-                // Small error occured; let's just reinitialize the file-system
+                // Some sort of error happened; let's just reinitialize the file-system
                 // as quickly as possible to be able to continue logging, if still possible.
 
                 case FileSystemSaveResult_transfer_error:
+                case FileSystemSaveResult_no_more_space_for_data:
+                case FileSystemSaveResult_fatfs_internal_error:
+                case FileSystemSaveResult_bug:
+                default:
                 {
 
                     xTaskNotify
@@ -793,27 +1123,6 @@ FREERTOS_TASK(logger, 0)
 
                     goto REINITIALIZE;
 
-                } break;
-
-
-
-                // Uh oh, let's just wipe the SD card so we can continue logging new data.
-
-                case FileSystemSaveResult_no_more_space_for_data:
-                case FileSystemSaveResult_fatfs_internal_error:
-                {
-                    sorry
-                } break;
-
-
-
-                // Something weird happened. Let's just reinitialize
-                // the file-system and hope for the best...
-
-                case FileSystemSaveResult_bug:
-                default:
-                {
-                    sorry
                 } break;
 
             }
@@ -842,15 +1151,58 @@ FREERTOS_TASK(debug_board, 0)
         while (!need_to_reinitialize)
         {
 
+
+
+            // We consider the logger to be doing fine if we
+            // have successfully logged data somewhat recently.
+
+            u32 observed_most_recent_esp32_reception_timestamp_us =
+                atomic_load_explicit
+                (
+                    &most_recent_esp32_reception_timestamp_us,
+                    memory_order_relaxed // No synchronization needed.
+                );
+
+            u32 observed_most_recent_lora_reception_timestamp_us =
+                atomic_load_explicit
+                (
+                    &most_recent_lora_reception_timestamp_us,
+                    memory_order_relaxed // No synchronization needed.
+                );
+
+            u32 observed_most_recent_logging_timestamp_us =
+                atomic_load_explicit
+                (
+                    &most_recent_logging_timestamp_us,
+                    memory_order_relaxed // No synchronization needed.
+                );
+
+            b32 esp32_good  = TIMEKEEPING_microseconds() - observed_most_recent_esp32_reception_timestamp_us <   100'000;
+            b32 lora_good   = TIMEKEEPING_microseconds() - observed_most_recent_lora_reception_timestamp_us  < 1'000'000;
+            b32 logger_good = TIMEKEEPING_microseconds() - observed_most_recent_logging_timestamp_us         <   500'000;
+
+
+
+            // Put together the debug packet.
+
             struct MainFlightComputerDebugPacket packet =
                 {
                     .timestamp_us           = TIMEKEEPING_microseconds(),
                     .solarboard_voltages[0] = 67, // TODO.
                     .solarboard_voltages[1] = 69, // TODO.
-                    .flags                  = 0,  // TODO.
+                    .flags                  =
+                        (
+                            (!!esp32_good ) << MainFlightComputerDebugStatusFlag_esp32 |
+                            (!!lora_good  ) << MainFlightComputerDebugStatusFlag_lora  |
+                            (!!logger_good) << MainFlightComputerDebugStatusFlag_logger
+                        ),
                 };
 
             packet.crc = DEBUG_BOARD_calculate_crc((u8*) &packet, sizeof(packet) - sizeof(packet.crc));
+
+
+
+            // Send it out.
 
             struct I2CDoJob job =
                 {
@@ -901,57 +1253,4 @@ FREERTOS_TASK(debug_board, 0)
         }
 
     }
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-FREERTOS_TASK(vn100, 0) // TODO Here just to mock a VN-100.
-{
-
-    UXART_reinit(UXARTHandle_vn100);
-
-    for (;;)
-    {
-
-        #include "VN100_DATA_LOGS.meta"
-        /* #meta
-
-            import deps.stpy.pxd.pxd as pxd
-
-            with Meta.enter('static const char* const VN100_DATA_LOGS[] ='):
-                for line in pxd.make_main_relative_path('./gnc/vn100_scripts/vn100_dataLog.txt').read_text().splitlines():
-                    Meta.line(f'''
-                        "{line}",
-                    ''')
-
-        */
-
-        for (i32 i = 0; i < countof(VN100_DATA_LOGS); i += 1)
-        {
-
-            UXART_tx_bytes(UXARTHandle_vn100, (u8*) VN100_DATA_LOGS[i], (i32) strlen(VN100_DATA_LOGS[i]));
-            FREERTOS_delay_ms(20);
-
-            if (i % 4 == 0)
-            {
-                u8 byte = {0};
-                if (UXART_rx(UXARTHandle_vn100, &byte))
-                {
-                    FREERTOS_delay_ms(1);
-                    do
-                    {
-                        UXART_tx_bytes(UXARTHandle_vn100, &byte, 1);
-                    }
-                    while (UXART_rx(UXARTHandle_vn100, &byte));
-                }
-            }
-
-        }
-
-    }
-
 }

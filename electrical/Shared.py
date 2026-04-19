@@ -1,10 +1,163 @@
 #meta global STLINK_BAUD, TARGETS, PER_MCU, PER_TARGET
 #meta global OVCAM_DEFAULT_RESOLUTION
 #meta global STACK_SIZE, TV_WRITE_BYTE, TV_TOKEN, OVCAM_JPEG_CTRL3_FIELDS
+#meta global LoRaPacket, ESP32Packet, VehicleInterfacePayload, MainFlightComputerLogEntry, PlotSnapshot, ImageMetadata
 
-import types, collections
+import types, collections, ctypes
 import deps.stpy.pxd.pxd as pxd
 from deps.stpy.mcus import MCUS
+
+
+
+################################################################################
+
+
+
+# @/`ESP32 Sequence Numbers`:
+#
+# The `.rolling_sequence_number` field is automatically filled out by the
+# vehicle ESP32, thus the vehicle FC should leave it empty. This is
+# because the ESP32 will handle the buffering of ESP-NOW and LoRa packets,
+# and based on when it can queue up packets for those buffers, it'll
+# automatically increment the rolling sequence number.
+#
+# In other words, the `rolling_sequence_number` is how the main FC can
+# tell whether or not an ESP-NOW packet has been dropped, and likewise
+# with LoRa packets.
+#
+# The `.timestamp_ms` field should be used to determine the elapsed time
+# since the last received packet, but it can also be used to determine if
+# a LoRa packet and ESP-NOW packet are the same (when their timestamps are
+# also equal).
+#
+# The `.image_sequence_number` field is just to make it easier to
+# determine the start of the OpenMV image data, although with how JPEG
+# works, this could be omitted. If the field is zero, this means no image
+# data; otherwise the first image chunk begins with sequence number of 1.
+
+class LoRaPacket(ctypes.Structure):
+    _pack_   = True
+    _fields_ = (
+        ('QuatX'                     , ctypes.c_float ),
+        ('QuatY'                     , ctypes.c_float ),
+        ('QuatZ'                     , ctypes.c_float ),
+        ('QuatS'                     , ctypes.c_float ),
+        ('AccelX'                    , ctypes.c_float ),
+        ('AccelY'                    , ctypes.c_float ),
+        ('AccelZ'                    , ctypes.c_float ),
+        ('GyroX'                     , ctypes.c_float ),
+        ('GyroY'                     , ctypes.c_float ),
+        ('GyroZ'                     , ctypes.c_float ),
+        ('timestamp_ms'              , ctypes.c_uint16), # @/`ESP32 Sequence Numbers`.
+        ('rolling_sequence_number'   , ctypes.c_uint16), # @/`ESP32 Sequence Numbers`.
+        ('computer_vision_confidence', ctypes.c_uint8 ),
+        ('crc'                       , ctypes.c_uint8 ),
+    )
+
+class ESP32Packet(ctypes.Structure):
+    _pack_   = True
+    _fields_ = (
+        ('MagX'                 , ctypes.c_float      ),
+        ('MagY'                 , ctypes.c_float      ),
+        ('MagZ'                 , ctypes.c_float      ),
+        ('image_sequence_number', ctypes.c_uint16     ), # @/`ESP32 Sequence Numbers`.
+        ('image_bytes'          , ctypes.c_uint8 * 190),
+        ('nonredundant'         , LoRaPacket          ),
+    )
+
+class VehicleInterfacePayload(ctypes.Structure):
+    _pack_   = True
+    _fields_ = (
+        ('timestamp_us'  , ctypes.c_uint32),
+        ('stepper_issues', ctypes.c_uint8 ),
+        ('vn100_issues'  , ctypes.c_uint8 ),
+        ('openmv_issues' , ctypes.c_uint8 ),
+        ('esp32_issues'  , ctypes.c_uint8 ),
+        ('crc'           , ctypes.c_uint8 ),
+    )
+
+class UnpaddedMainFlightComputerLogEntry(ctypes.Structure):
+    _pack_   = True
+    _fields_ = (
+        ('magic'                           , ctypes.c_char * 4      ), # As a precaution; currently not used for synchronization.
+        ('esp32_packet_exist'              , ctypes.c_uint8         ),
+        ('lora_packet_exist'               , ctypes.c_uint8         ),
+        ('vehicle_interface_payload_exist' , ctypes.c_uint8         ),
+        ('padding_'                        , ctypes.c_uint8         ),
+        ('esp32_packet_data'               , ESP32Packet            ),
+        ('lora_packet_data'                , LoRaPacket             ),
+        ('vehicle_interface_payload_data'  , VehicleInterfacePayload),
+    )
+
+class MainFlightComputerLogEntry(ctypes.Structure):
+    _pack_   = True
+    _fields_ = (
+        *(UnpaddedMainFlightComputerLogEntry._fields_),
+        ('sector_padding_', ctypes.c_uint8 * (512 - ctypes.sizeof(UnpaddedMainFlightComputerLogEntry))),
+    )
+
+PLOT_SNAPSHOT_TOKEN = b'BARK'
+
+class UnpaddedPlotSnapshot(ctypes.Structure):
+    _pack_   = True
+    _fields_ = (
+        ('magic'                 , ctypes.c_char * len(PLOT_SNAPSHOT_TOKEN)),
+        ('timestamp_us'          , ctypes.c_uint32                         ),
+        ('QuatX'                 , ctypes.c_float                          ),
+        ('QuatY'                 , ctypes.c_float                          ),
+        ('QuatZ'                 , ctypes.c_float                          ),
+        ('QuatS'                 , ctypes.c_float                          ),
+        ('MagX'                  , ctypes.c_float                          ),
+        ('MagY'                  , ctypes.c_float                          ),
+        ('MagZ'                  , ctypes.c_float                          ),
+        ('AccelX'                , ctypes.c_float                          ),
+        ('AccelY'                , ctypes.c_float                          ),
+        ('AccelZ'                , ctypes.c_float                          ),
+        ('GyroX'                 , ctypes.c_float                          ),
+        ('GyroY'                 , ctypes.c_float                          ),
+        ('GyroZ'                 , ctypes.c_float                          ),
+        ('angular_velocity_x'    , ctypes.c_float                          ),
+        ('angular_velocity_y'    , ctypes.c_float                          ),
+        ('angular_velocity_z'    , ctypes.c_float                          ),
+        ('angular_acceleration_x', ctypes.c_float                          ),
+        ('angular_acceleration_y', ctypes.c_float                          ),
+        ('angular_acceleration_z', ctypes.c_float                          ),
+    )
+
+class PlotSnapshot(ctypes.Structure):
+    _pack_   = True
+    _fields_ = (
+        *(UnpaddedPlotSnapshot._fields_),
+        ('sector_padding_', ctypes.c_uint8 * (128 - ctypes.sizeof(UnpaddedPlotSnapshot))),
+    )
+
+TV_TOKEN = types.SimpleNamespace(
+    START = b'<TV>',
+    END   = b'</TV>',
+)
+
+class UnpaddedImageMetadata(ctypes.Structure):
+    _pack_   = True
+    _fields_ = (
+        ('ending_token'      , ctypes.c_char * len(TV_TOKEN.END)  ),
+        ('image_index'       , ctypes.c_uint32                    ),
+        ('image_size'        , ctypes.c_uint32                    ),
+        ('image_timestamp_us', ctypes.c_uint32                    ),
+        ('cpu_cycle_counter' , ctypes.c_uint32                    ),
+        ('padding'           , ctypes.c_uint8 * 0                 ), # To be padded out.
+        ('starting_token'    , ctypes.c_char * len(TV_TOKEN.START)),
+    )
+
+class ImageMetadata(ctypes.Structure):
+    _pack_   = True
+    _fields_ = (
+        *(
+            (field_name, ctypes.c_uint8 * (512 - ctypes.sizeof(UnpaddedImageMetadata)))
+            if field_name == 'padding' else
+            (field_name, field_type)
+            for field_name, field_type in UnpaddedImageMetadata._fields_
+        ),
+    )
 
 
 
@@ -47,11 +200,6 @@ PRE_ISP_TEST_SETTING_FIELDS = pxd.SimpleNamespaceTable(
 )
 
 TV_WRITE_BYTE = 0x01
-
-TV_TOKEN = types.SimpleNamespace(
-    START = b'<TV>',
-    END   = b'</TV>',
-)
 
 STLINK_BAUD = 1_000_000
 ESP32_BAUD  = 1_000_000 # @/`Coupled Baud Rate between STM32 and ESP32`.
@@ -729,8 +877,8 @@ TARGETS = ( # @/`Defining Targets`.
             ('spi_mosi_B'                     , 'B5' , 'ALTERNATE' , { 'altfunc' : 'SPI1_MOSI'                                 }),
             ('spi_miso_B'                     , 'A6' , 'ALTERNATE' , { 'altfunc' : 'SPI1_MISO'                                 }),
             ('spi_ready_B'                    , 'B2' , 'ALTERNATE' , { 'altfunc' : 'SPI1_RDY'                                  }),
-            ('vehicle_interface_i2c_data'     , 'B7' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA', 'open_drain' : True             }),
-            ('vehicle_interface_i2c_clock'    , 'B6' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL', 'open_drain' : True             }),
+            ('vehicle_interface_i2c_data'     , 'B7' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA', 'open_drain' : True, 'pull' : 'UP' }),
+            ('vehicle_interface_i2c_clock'    , 'B6' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL', 'open_drain' : True, 'pull' : 'UP' }),
             ('sensor_i2c_data'                , 'B12', 'ALTERNATE' , { 'altfunc' : 'I2C2_SDA', 'open_drain' : True             }),
             ('sensor_i2c_clock'               , 'B10', 'ALTERNATE' , { 'altfunc' : 'I2C2_SCL', 'open_drain' : True             }),
             ('flight_computer_debug_i2c_data' , 'D7' , 'ALTERNATE' , { 'altfunc' : 'I2C3_SDA', 'open_drain' : True             }),
@@ -771,7 +919,6 @@ TARGETS = ( # @/`Defining Targets`.
             ('I2C1_ER', 3),
             ('I2C3_EV', 4),
             ('I2C3_ER', 4),
-            ('USART3' , 5), # TODO Here just to mock a VN-100.
         ),
 
         drivers = (
@@ -803,12 +950,6 @@ TARGETS = ( # @/`Defining Targets`.
                 'handle'     : 'debug_board',
                 'mode'       : 'master',
             },
-            { # TODO Here just to mock a VN-100.
-                'type'       : 'UXART',
-                'peripheral' : 'USART3',
-                'handle'     : 'vn100',
-                'mode'       : 'full_duplex',
-            },
             {
                 'type'       : 'SD',
                 'peripheral' : 'SDMMC1',
@@ -829,7 +970,6 @@ TARGETS = ( # @/`Defining Targets`.
             'APB3_CK'                      : 250_000_000,
             'USART1_BAUD'                  : ESP32_BAUD,
             'USART2_BAUD'                  : STLINK_BAUD,
-            'USART3_BAUD'                  : VN100_BAUD, # TODO Here just to mock a VN-100.
             'TIM1_UPDATE_RATE'             : 1 / 0.001,
             'TIM2_COUNTER_RATE'            : 1_000_000,
             'ANALOG_POSTDIVIDER_KERNEL_CK' : 32_000_000,
@@ -840,6 +980,7 @@ TARGETS = ( # @/`Defining Targets`.
             'SDMMC1_TIMEOUT'               : 0.250,
             'SDMMC1_INITIAL_BAUD'          :    400_000,
             'SDMMC1_FULL_BAUD'             : 24_000_000,
+            'WATCHDOG_DURATION'            : 10,
         },
 
         flight_ready = False,
@@ -1495,18 +1636,19 @@ for target in TARGETS:
     # Additional macro defines.
 
     defines = [
-        ('TARGET_NAME'                        , target.name                                   ),
-        ('TARGET_MCU'                         , target.mcu                                    ),
-        ('TARGET_USES_FREERTOS'               , target.use_freertos                           ),
-        ('STACK_SIZE'                         , STACK_SIZE                                    ),
-        ('COMPILING_ESP32'                    , False                                         ),
-        ('VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS', VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS           ),
-        ('ESP32_BAUD'                         , ESP32_BAUD                                    ),
-        ('TV_TOKEN_START'                     , f'STRINGIFY({TV_TOKEN.START.decode('UTF-8')})'),
-        ('TV_TOKEN_END'                       , f'STRINGIFY({TV_TOKEN.END  .decode('UTF-8')})'),
-        ('TV_WRITE_BYTE'                      , f'0x{TV_WRITE_BYTE :02X}'                     ),
-        ('MFC_DEBUG_BOARD_SEVEN_BIT_ADDRESS'  , f'0x{MFC_DEBUG_BOARD_SEVEN_BIT_ADDRESS :02X}' ),
-        ('FLIGHT_READY'                       , target.flight_ready                           ),
+        ('TARGET_NAME'                        , target.name                                        ),
+        ('TARGET_MCU'                         , target.mcu                                         ),
+        ('TARGET_USES_FREERTOS'               , target.use_freertos                                ),
+        ('STACK_SIZE'                         , STACK_SIZE                                         ),
+        ('COMPILING_ESP32'                    , False                                              ),
+        ('VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS', VEHICLE_INTERFACE_SEVEN_BIT_ADDRESS                ),
+        ('ESP32_BAUD'                         , ESP32_BAUD                                         ),
+        ('PLOT_SNAPSHOT_TOKEN'                , f'STRINGIFY({PLOT_SNAPSHOT_TOKEN.decode('UTF-8')})'),
+        ('TV_TOKEN_START'                     , f'STRINGIFY({TV_TOKEN.START     .decode('UTF-8')})'),
+        ('TV_TOKEN_END'                       , f'STRINGIFY({TV_TOKEN.END       .decode('UTF-8')})'),
+        ('TV_WRITE_BYTE'                      , f'0x{TV_WRITE_BYTE :02X}'                          ),
+        ('MFC_DEBUG_BOARD_SEVEN_BIT_ADDRESS'  , f'0x{MFC_DEBUG_BOARD_SEVEN_BIT_ADDRESS :02X}'      ),
+        ('FLIGHT_READY'                       , target.flight_ready                                ),
     ]
 
     for other_target in TARGETS:
