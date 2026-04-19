@@ -310,8 +310,8 @@ pack_pop
 
 enum GNCOperationMode : u32
 {
-    GNCOperationMode_obtaining_heading_estimate,
-    GNCOperationMode_stabilizing,
+    GNCOperationMode_ejecting,
+    GNCOperationMode_rate_damping,
     GNCOperationMode_searching,
     GNCOperationMode_aligning,
 };
@@ -322,7 +322,7 @@ struct GNCInput
     u32                    ejection_timestamp_us;
     struct VN100Packet     most_recent_imu;
     struct OpenMVPacketGNC most_recent_openmv_reading;
-    u32                    most_recent_openmv_reading_timestamp_us;
+    // u32                    most_recent_openmv_reading_timestamp_us;
 };
 
 struct GNCContext
@@ -331,13 +331,19 @@ struct GNCContext
     enum GNCOperationMode operation_mode;
     struct Matrix_3x1     control_accelerations;
     b32                   target_found;
+    b32                   prev_target_found;
     i32                   target_conflict_count;
     u32                   target_lost_timestamp_us;
+    u32                   search_start_timestamp_us;
 };
 
 static void
 GNC_update(const struct GNCInput input, struct GNCContext* context)
 {
+
+    u32 time_to_eject_us = 10'000'000; // (us) Time after ejection to spend in `GNCOperationMode_ejecting`.
+    u32 time_to_rate_damp_us = 20'000'000; // (us) Time after ejection to spend in `GNCOperationMode_rate_damping` before moving onto `GNCOperationMode_searching`.
+    struct Matrix_3x6 gain = {0};
 
     if (!context)
         sus;
@@ -356,9 +362,10 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
             (struct GNCContext)
             {
                 .initialized              = true,
-                .operation_mode           = GNCOperationMode_obtaining_heading_estimate,
+                .operation_mode           = GNCOperationMode_ejecting,
                 .control_accelerations    = {},
                 .target_found             = false,
+                .prev_target_found        = false,
                 .target_conflict_count    = 0,
                 .target_lost_timestamp_us = input.ejection_timestamp_us,
             };
@@ -413,17 +420,25 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     // orientation and angular rates.
     //
 
-    struct Quaternion current_orientation =
+    // struct Quaternion current_orientation =
+    //     (struct Quaternion)
+    //     {
+    //         .s = input.most_recent_imu.QuatS,
+    //         .i = input.most_recent_imu.QuatX,
+    //         .j = input.most_recent_imu.QuatY,
+    //         .k = input.most_recent_imu.QuatZ,
+    //     };
+
+    struct Quaternion desired_orientation = 
         (struct Quaternion)
         {
-            .s = input.most_recent_imu.QuatS,
-            .i = input.most_recent_imu.QuatX,
-            .j = input.most_recent_imu.QuatY,
-            .k = input.most_recent_imu.QuatZ,
+            .s = 1.0f,
+            .i = 0.0f,
+            .j = 0.0f,
+            .k = 0.0f,
         };
 
-    struct Quaternion desired_orientation = {0};
-    struct Matrix_3x1 desired_rates       = {0};
+    struct Matrix_3x1 desired_rates       = {0.0f};
 
     switch (context->operation_mode)
     {
@@ -440,9 +455,9 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
         //
         ////////////////////////////////////////
 
-        case GNCOperationMode_obtaining_heading_estimate:
+        case GNCOperationMode_ejecting:
         {
-            if (input.current_timestamp_us - input.ejection_timestamp_us < 10'000'000)
+            if (input.current_timestamp_us - input.ejection_timestamp_us < time_to_eject_us)
             {
 
                 // We're still letting the VN-100 get a heading estimate.
@@ -461,7 +476,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
                 // that the VNKMD-ON command gets sent to the VN-100
                 // before enabling the motors.
 
-                context->operation_mode = GNCOperationMode_stabilizing;
+                context->operation_mode = GNCOperationMode_rate_damping;
 
                 // TODO No `desired_orientation` and `desired_rates`?
 
@@ -478,24 +493,27 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
         //
         ////////////////////////////////////////
 
-        case GNCOperationMode_stabilizing:
+        case GNCOperationMode_rate_damping:
         {
-            if (input.current_timestamp_us - input.ejection_timestamp_us < 30'000'000)
+            if (input.current_timestamp_us - input.ejection_timestamp_us < time_to_rate_damp_us + time_to_eject_us)
             {
 
-                // To stabilize, we want to get rid of
-                // any pitch or roll; yaw is fine.
+                // Drive rates to zero before searching
 
-                desired_orientation =
-                    QUATERNION_from_euler_zyx
-                    (
-                        (struct EulerZYX)
-                        {
-                            .yaw   = QUATERNION_to_euler_zyx(current_orientation).yaw,
-                            .pitch = 0.0f,
-                            .roll  = 0.0f,
-                        }
-                    );
+                gain =
+                    (struct Matrix_3x6) // TODO Select large angle gain matrix.
+                    {
+                        .rows =
+                            {
+                                { 0.0f, 0.0f, 0.0f, 0.0120f, 0.0f, 0.0f },
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0116f, 0.0f },
+                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0111f },
+                            },
+                    };
+
+                
+
+                
 
             }
             else // We spent enough time stabilizing; move onto finding the horizon.
@@ -533,28 +551,46 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
             else
             {
 
-                // Here we want to reorientate the vehicle as a
-                // function of `t` over time in a control manner.
+                if (context->prev_target_found != context->target_found)
+                {
 
-                desired_orientation =
-                    QUATERNION_from_euler_zyx
-                    (
-                        (struct EulerZYX)
-                        {
-                            .yaw   = QUATERNION_to_euler_zyx(current_orientation).yaw,
-                            .pitch = 0.3491f * arm_sin_f32(3.0f * (f32) input.current_timestamp_us / 1'000'000.0f),
-                            .roll  = 0.0f,
-                        }
-                    );
+                    // Just lost the target; try searching around the last known location.
+
+                    context->search_start_timestamp_us = input.current_timestamp_us;
+
+                }
+
+                // We only care about rates for search algoritm
+
+                f32 search_time = (input.current_timestamp_us - context->search_start_timestamp_us)* 1e-6f; // (s) Time since we started searching.
+                f32 time_to_search = 30.0f;
+                f32 search_gain = 0.3f;
+
+                f32 omega_phi = 2.399963229728653f;
+
+                // Normlize search time
+                f32 u = search_time / time_to_search;
+
+                // Clamp u to [0, 1] to ensure normalization
+                if (u < 0.0f) u = 0.0f;
+                else if (u > 1.0f) u = 1.0f;
+          
+                // Angles for search pattern
+                f32 phi = acos(1.0f - 2.0f*u);
+                f32 theta = omega_phi * search_time;
+
+                // Rates
+                f32 dtheta = search_gain * omega_phi;
+                f32 dphi   = 2.0f * search_gain / ( time_to_search * sqrtf(1 - ((1 - 2*u) * (1 - 2*u)) + 1e-12f));
 
                 desired_rates =
                     (struct Matrix_3x1)
                     {
                         .rows =
                             {
-                                { 0.0f    },
-                                { 0.0f    },
-                                { 0.1745f },
+                                { dtheta * cos(phi)     },
+                                { dphi                  },
+                                { -dtheta * sin(phi)    },
                             },
                     };
 
@@ -592,20 +628,20 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
                     );
 
             }
-            else if (input.current_timestamp_us - context->target_lost_timestamp_us < 10'000'000)
-            {
+            // else if (input.current_timestamp_us - context->target_lost_timestamp_us < 10'000'000)
+            // {
 
-                // The OpenMV has lost the horizon target, but instead of
-                // immediately switching to searching again, we're going
-                // to try hold at the last known location for a bit.
+            //     // The OpenMV has lost the horizon target, but instead of
+            //     // immediately switching to searching again, we're going
+            //     // to try hold at the last known location for a bit.
 
-                desired_orientation =
-                    (struct Quaternion)
-                    {
-                        // TODO: get this from buffer
-                    };
+            //     desired_orientation =
+            //         (struct Quaternion)
+            //         {
+            //             // TODO: get this from buffer
+            //         };
 
-            }
+            // }
             else // Alright, we've lost the horizon target for a while now.
             {
 
@@ -616,7 +652,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
             }
         } break;
 
-
+        context->prev_target_found = context->target_found; // Update previous target found status for next iteration.
 
         default: sus;
 
@@ -661,7 +697,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     switch (context->operation_mode)
     {
 
-        case GNCOperationMode_obtaining_heading_estimate:
+        case GNCOperationMode_ejecting:
         {
             // Don't care.
         } break;
@@ -672,7 +708,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
         // Set Q = diag(0, a, a, b, b, b) where a and b are user-defined parameters.
 
         case GNCOperationMode_aligning:
-        case GNCOperationMode_stabilizing:
+        case GNCOperationMode_rate_damping:
         {
             if (orientation_error.s > ANGLE_THRESHOLD_SMALL) // TODO Absolute value?
             {
@@ -777,7 +813,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     // motors' angular accelerations.
     //
 
-    #define REACTION_WHEEL_INERTIA 0.01f // TODO Get actual value for this.
+    #define REACTION_WHEEL_INERTIA 0.000017469f // (kg-m^2)
 
     struct Matrix_6x1 state =
         {
