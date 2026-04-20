@@ -5954,13 +5954,13 @@
         CMSIS_SET
         (
             GPIOC   , OSPEEDR,
-            OSPEED8 , 0b00   ,
-            OSPEED9 , 0b00   ,
-            OSPEED10, 0b00   ,
-            OSPEED11, 0b00   ,
-            OSPEED12, 0b00   ,
+            OSPEED8 , 0b10   ,
+            OSPEED9 , 0b10   ,
+            OSPEED10, 0b10   ,
+            OSPEED11, 0b10   ,
+            OSPEED12, 0b10   ,
         );
-        CMSIS_SET(GPIOD, OSPEEDR, OSPEED2, 0b00);
+        CMSIS_SET(GPIOD, OSPEEDR, OSPEED2, 0b10);
         CMSIS_WRITE
         (
             GPIO_AFRL, GPIOA->AFR[0],
@@ -6238,8 +6238,8 @@
         #define STPY_SDMMC1_KERNEL_SOURCE 0b1
         #define STPY_SDMMC1_INITIAL_DIVIDER 0x258
         #define STPY_SDMMC1_INITIAL_DATATIME 100000
-        #define STPY_SDMMC1_FULL_DIVIDER 0x00a
-        #define STPY_SDMMC1_FULL_DATATIME 6000000
+        #define STPY_SDMMC1_FULL_DIVIDER 0x008
+        #define STPY_SDMMC1_FULL_DATATIME 7500000
 
 
 
