@@ -28,7 +28,7 @@ enum StepperMicrostepResolution : u32 // @/pg 33/tbl 5.5.1/`TMC2209`.
 };
 
 // @/`Stepper Microstepping and Step Velocity`.
-#define STEPPER_MICROSTEP_RESOLUTION StepperMicrostepResolution_8
+#define STEPPER_MICROSTEP_RESOLUTION StepperMicrostepResolution_4
 #define STEPPER_STEPS_PER_REVOLUTION ((f32) (((1 << (8 - STEPPER_MICROSTEP_RESOLUTION)) * 200) / 0.715f))
 
 static const struct StepperInitializationSequenceEntry { u8 register_address; u32 data; } STEPPER_INITIALIZATION_SEQUENCE[] =
@@ -36,25 +36,24 @@ static const struct StepperInitializationSequenceEntry { u8 register_address; u3
         {
             0x00,      // "GCONF"            : @/pg 23/tbl 5.1/`TMC2209`.
               (1 << 0) // "I_scale_analog"   : Whether or not to use VREF as current reference.
-            | (0 << 2) // "en_SpreadCycle"   : Whether or not to only use SpreadCycle (louder and more power, but more torque); otherwise, a mix of StealthChop and SpreadCycle is done.
+            | (1 << 2) // "en_SpreadCycle"   : Whether or not to only use SpreadCycle (louder and more power, but more torque); otherwise, a mix of StealthChop and SpreadCycle is done.
             | (1 << 6) // "pdn_disable"      : The power-down and UART functionality both share the same pin, so we disable the former.
             | (1 << 7) // "mstep_reg_select" : Microstep resolution determined by a register field rather than the MS1/MS2 pins.
-            | (1 << 8) // "multistep_filt"   : Apply filtering to the STEP signal.
         },
         {
             0x03,    // "NODECONF"  : @/pg 24/tbl 5.1/`TMC2209`.
-            (2 << 8) // "SENDDELAY" : Amount of delay before the read response is sent back.
+            (3 << 8) // "SENDDELAY" : Amount of delay before the read response is sent back.
         },
         {
             0x10,            // "IHOLD_IRUN" : @/pg 28/tbl 5.2/`TMC2209`.
-              ((5 - 1) << 0) // "IHOLD"      : Standstill current (out of 32) for when the motor is not turning.
-            | ((5 - 1) << 8) // "IRUN"       : Current scaling (out of 32) for when the motor is turning.
+              ((1 - 1) << 0) // "IHOLD"      : Standstill current (out of 32) for when the motor is not turning.
+            | ((8 - 1) << 8) // "IRUN"       : Current scaling (out of 32) for when the motor is turning.
         },
         {
             0x6C,                                  // "CHOPCONF" : @/pg 33/tbl 5.5.1/`TMC2209`.
               (0                            << 31) // "diss2vs"  : "0: Short protection low side is on".
             | (0                            << 30) // "diss2g"   : "0: Short to GND protection is on".
-            | (1                            << 28) // "intpol"   : The actual microstep resolution is "extrapolated to 256 microsteps for smoothest motor operation".
+            | (0                            << 28) // "intpol"   : The actual microstep resolution is "extrapolated to 256 microsteps for smoothest motor operation".
             | (STEPPER_MICROSTEP_RESOLUTION << 24) // "MRES"     : Microstep resolution.
             | (5                            <<  4) // "HSTRT"    : Addend to "hysteresis low value HEND".
             | (3                            <<  0) // "TOFF"     : "Off time setting controls duration of slow decay phase".

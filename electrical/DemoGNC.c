@@ -17,45 +17,98 @@ main(void)
         import deps.stpy.pxd.pxd as pxd
         import csv, collections
 
-        entries = collections.defaultdict(lambda: [])
+        VN100Register = collections.namedtuple(
+            'VN100Register',
+            (
+                'QuatX',
+                'QuatY',
+                'QuatZ',
+                'QuatS',
+                'MagX',
+                'MagY',
+                'MagZ',
+                'AccelX',
+                'AccelY',
+                'AccelZ',
+                'GyroX',
+                'GyroY',
+                'GyroZ',
+            )
+        )
 
-        for entry in csv.DictReader(
-            pxd.make_main_relative_path('./misc/GNC_MOCK_SIMULATION.csv')
-                .read_text()
-                .splitlines()
-        ):
-            for key, value in entry.items():
-                entries[key] += [value]
+        entries = [
+            VN100Register(*(
+                float(field)
+                for field in line[7:-3].split(',')
+            ))
+            for line in pxd.make_main_relative_path('./gnc/vn100_scripts/vn100_dataLog.txt').read_text().splitlines()
+        ][1200:]
 
         Meta.lut('struct GNCInput', 'GNC_MOCK_SIMULATION', (
             (
                 entry_i,
-                *entry.items()
+                ('most_recent_imu.QuatX' , f'{entry.QuatX  :f}f'),
+                ('most_recent_imu.QuatY' , f'{entry.QuatY  :f}f'),
+                ('most_recent_imu.QuatZ' , f'{entry.QuatZ  :f}f'),
+                ('most_recent_imu.QuatS' , f'{entry.QuatS  :f}f'),
+                ('most_recent_imu.MagX'  , f'{entry.MagX   :f}f'),
+                ('most_recent_imu.MagY'  , f'{entry.MagY   :f}f'),
+                ('most_recent_imu.MagZ'  , f'{entry.MagZ   :f}f'),
+                ('most_recent_imu.AccelX', f'{entry.AccelX :f}f'),
+                ('most_recent_imu.AccelY', f'{entry.AccelY :f}f'),
+                ('most_recent_imu.AccelZ', f'{entry.AccelZ :f}f'),
+                ('most_recent_imu.GyroX' , f'{entry.GyroX  :f}f'),
+                ('most_recent_imu.GyroY' , f'{entry.GyroY  :f}f'),
+                ('most_recent_imu.GyroZ' , f'{entry.GyroZ  :f}f'),
             )
-            for entry_i, entry in enumerate(csv.DictReader(
-                pxd.make_main_relative_path('./misc/GNC_MOCK_SIMULATION.csv')
-                    .read_text()
-                    .splitlines()
-            ))
+            for entry_i, entry in enumerate(entries)
         ))
 
     */
 
-    stlink_tx("\n>>> Beginning <<<<\n");
-
     struct GNCContext context = {0};
+
+    f32 angular_velocity_x = 0.0f;
+    f32 angular_velocity_y = 0.0f;
+    f32 angular_velocity_z = 0.0f;
 
     for (i32 index = 0; index < countof(GNC_MOCK_SIMULATION); index += 1)
     {
 
         GNC_update(GNC_MOCK_SIMULATION[index], &context);
 
-        stlink_tx("Row %-6d ", index + 2);
-        stlink_tx_GNCContext(context);
+        angular_velocity_x += context.control_accelerations.rows[0][0] * 0.020f;
+        angular_velocity_y += context.control_accelerations.rows[1][0] * 0.020f;
+        angular_velocity_z += context.control_accelerations.rows[2][0] * 0.020f;
+
+        struct PlotSnapshot plot_snapshot =
+            {
+                .magic                  = PLOT_SNAPSHOT_TOKEN,
+                .timestamp_us           = (u32) index * 20'000,
+                .QuatX                  = GNC_MOCK_SIMULATION[index].most_recent_imu.QuatX,
+                .QuatY                  = GNC_MOCK_SIMULATION[index].most_recent_imu.QuatY,
+                .QuatZ                  = GNC_MOCK_SIMULATION[index].most_recent_imu.QuatZ,
+                .QuatS                  = GNC_MOCK_SIMULATION[index].most_recent_imu.QuatS,
+                .MagX                   = GNC_MOCK_SIMULATION[index].most_recent_imu.MagX,
+                .MagY                   = GNC_MOCK_SIMULATION[index].most_recent_imu.MagY,
+                .MagZ                   = GNC_MOCK_SIMULATION[index].most_recent_imu.MagZ,
+                .AccelX                 = GNC_MOCK_SIMULATION[index].most_recent_imu.AccelX,
+                .AccelY                 = GNC_MOCK_SIMULATION[index].most_recent_imu.AccelY,
+                .AccelZ                 = GNC_MOCK_SIMULATION[index].most_recent_imu.AccelZ,
+                .GyroX                  = GNC_MOCK_SIMULATION[index].most_recent_imu.GyroX,
+                .GyroY                  = GNC_MOCK_SIMULATION[index].most_recent_imu.GyroY,
+                .GyroZ                  = GNC_MOCK_SIMULATION[index].most_recent_imu.GyroZ,
+                .angular_velocity_x     = angular_velocity_x,
+                .angular_velocity_y     = angular_velocity_y,
+                .angular_velocity_z     = angular_velocity_z,
+                .angular_acceleration_x = context.control_accelerations.rows[0][0],
+                .angular_acceleration_y = context.control_accelerations.rows[1][0],
+                .angular_acceleration_z = context.control_accelerations.rows[2][0],
+            };
+
+        UXART_tx_bytes(UXARTHandle_stlink, (u8*) &plot_snapshot, sizeof(plot_snapshot));
 
     }
-
-    stlink_tx(">>> Done <<<<\n");
 
     for (;;)
     {

@@ -1,16 +1,16 @@
 #define STEPPER_ENABLE_DELAY_US          500'000
 #define STEPPER_VELOCITY_UPDATE_US       20'000 // @/`Sequence Angular Accelerations Delta Time`.
 #define STEPPER_UART_TIME_MARGIN_US      2'000
-#define STEPPER_RING_BUFFER_LENGTH       8      // TODO Determine latency.
+#define STEPPER_RING_BUFFER_LENGTH       8
 #define SPI_BLOCK_SIZE                   64     // @/`OpenMV SPI Block Size`.
 #define SPI_RECEPTION_RING_BUFFER_LENGTH 32
 #define WATCHDOG_DURATION_US             (10 * 60'000'000)
-#define MAX_ANGULAR_ACCELERATION         (200.0f)
-#define MAX_ANGULAR_VELOCITY             (2000.0f * 2.0f * PI / 60.0f)
+#define MAX_ANGULAR_ACCELERATION         (100.0f)
+#define MAX_ANGULAR_VELOCITY             (900.0f * 2.0f * PI / 60.0f)
 #define GOD_MODE                         true
 #define CONTROLLER_ENABLE                true
-#define VN100_ENABLE                     true
-#define OPENMV_ENABLE                    true
+#define VN100_ENABLE                     false
+#define OPENMV_ENABLE                    false
 #define ESP32_ENABLE                     true
 #define WATCHDOG_ENABLE                  true
 #define TRANSMIT_TV                      false
@@ -198,7 +198,7 @@ enum DiagnosticLEDBehavior : u32
 
 */
 
-FREERTOS_TASK(diagnostics, 1) // TODO Duplicative.
+FREERTOS_TASK(diagnostics, 2)
 {
 
     u32 current_flags = 0;
@@ -1539,7 +1539,7 @@ FREERTOS_TASK(openmv, 0)
 
 
 
-FREERTOS_TASK(esp32, 0)
+FREERTOS_TASK(esp32, 1)
 {
 
 #if ESP32_ENABLE
@@ -1573,6 +1573,7 @@ FREERTOS_TASK(esp32, 0)
         u16 image_sequence_number             = {0};
         i32 image_bytes_sent                  = {0};
         u32 most_recent_response_timestamp_us = TIMEKEEPING_microseconds();
+        b32 currently_known_free_space        = 0;
 
         while (true)
         {
@@ -1688,11 +1689,12 @@ FREERTOS_TASK(esp32, 0)
 
                 // Ensure the ESP32 is still transmitting.
 
-                u8 response = {0};
+                u8 reported_free_space = 0;
 
-                while (UXART_rx(UXARTHandle_esp32, &response))
+                while (UXART_rx(UXARTHandle_esp32, &reported_free_space))
                 {
                     most_recent_response_timestamp_us = TIMEKEEPING_microseconds();
+                    currently_known_free_space        = reported_free_space;
                 }
 
                 if (TIMEKEEPING_microseconds() - most_recent_response_timestamp_us >= 2'000'000)
@@ -1700,12 +1702,22 @@ FREERTOS_TASK(esp32, 0)
                     break; // It's been too long since we last heard from the ESP32...
                 }
 
-                FREERTOS_delay_ms(2); // TODO Determine how to not overwhelm the ESP32?
+
+
+                // Throttle the transmission to the ESP32
+                // to ensure we don't overwhelm it. We
+                // could do something more intelligent here,
+                // but this is sufficient.
+
+                if (currently_known_free_space < 16)
+                {
+                    FREERTOS_delay_ms(100);
+                }
 
             }
             else // Nothing new yet...
             {
-                FREERTOS_delay_ms(1);
+                FREERTOS_delay_ms(10);
             }
 
         }
@@ -1777,6 +1789,8 @@ FREERTOS_TASK(logger, 0)
 
 
         // Try setting up the file-system.
+
+        stlink_tx("Trying to initialize file-system...\n");
 
         enum FileSystemReinitResult reinit_result =
             FILESYSTEM_reinit
@@ -2079,7 +2093,7 @@ FREERTOS_TASK(logger, 0)
 
 
 
-FREERTOS_TASK(god, 2)
+FREERTOS_TASK(god, 3)
 {
 
 #if GOD_MODE
@@ -2143,7 +2157,7 @@ FREERTOS_TASK(god, 2)
                 {
                     for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
                     {
-                        CONTROLLER.current_angular_accelerations.values[unit] -= 200.0f;
+                        CONTROLLER.current_angular_accelerations.values[unit] -= MAX_ANGULAR_ACCELERATION;
                     }
                 } break;
 
@@ -2151,7 +2165,7 @@ FREERTOS_TASK(god, 2)
                 {
                     for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
                     {
-                        CONTROLLER.current_angular_accelerations.values[unit] += 200.0f;
+                        CONTROLLER.current_angular_accelerations.values[unit] += MAX_ANGULAR_ACCELERATION;
                     }
                 } break;
 
@@ -2241,7 +2255,7 @@ FREERTOS_TASK(god, 2)
 
 
 
-FREERTOS_TASK(watchdog, 3)
+FREERTOS_TASK(watchdog, 4)
 {
 
 #if WATCHDOG_ENABLE
@@ -2254,16 +2268,7 @@ FREERTOS_TASK(watchdog, 3)
 
 
 
-        // Ensure the vehicle doesn't stay on for too long and drain the battery;
-        // not completely fool-proof since the stepper motor drivers will draw
-        // some current from the batteries even when there's external power supplied,
-        // but should be good enough.
-
-        b32 live_for_too_long = TIMEKEEPING_microseconds() >= WATCHDOG_DURATION_US;
-
-
-
-        // We also need to ensure the vehicle doesn't stay on for long when it's still
+        // We need to ensure the vehicle doesn't stay on for long when it's still
         // docked in the ejection mechanism. This is especially important during sequence
         // testing when the vehicle might be powered on but no ejection will take place.
         //
@@ -2304,16 +2309,12 @@ FREERTOS_TASK(watchdog, 3)
                 TIMEKEEPING_microseconds() - observed_most_recent_transfer_timestamp_us >= 10'000'000
             );
 
-
-
-        // Say farewell.
-
-        if (live_for_too_long || docked_reset)
+        if (docked_reset)
         {
 
             // Indicate that this is why the vehicle is suddenly shut off.
 
-            BUZZER_play(live_for_too_long ? BuzzerTune_sleeping : BuzzerTune_starwars);
+            BUZZER_play(BuzzerTune_starwars);
             while (BUZZER_current_tune());
 
 

@@ -34,7 +34,7 @@ except ModuleNotFoundError as error:
 
 # Built-in modules.
 
-import types, pathlib, shutil, subprocess, time, io, struct
+import types, pathlib, shutil, subprocess, time, io, struct, math
 
 
 
@@ -94,6 +94,39 @@ def import_pygame():
         sys.exit(1)
 
     return pygame, pygame_gui
+
+def import_cv2_numpy():
+
+    try:
+
+        import cv2
+        import numpy
+
+    except ModuleNotFoundError as error:
+
+        pxd.pxd_logger.error(
+            f'Python got {type(error).__name__} ({error}); try doing:' '\n'
+            f'> pip install opencv-python'
+        )
+
+        sys.exit(1)
+
+    return cv2, numpy
+
+def require_matplotlib():
+
+    try:
+
+        import matplotlib
+
+    except ModuleNotFoundError as error:
+
+        pxd.pxd_logger.error(
+            f'Python got {type(error).__name__} ({error}); try doing:' '\n'
+            f'> pip install matplotlib'
+        )
+
+        sys.exit(1)
 
 
 
@@ -391,6 +424,118 @@ def request_stlinks(
     # the ST-Links we found (if any).
 
     return stlinks
+
+
+
+# Helper to make videos from image frames easily.
+
+class VideoMaker:
+
+
+
+    def __init__(self, file_path, fps, max_delta_time):
+
+        self.file_path            = pathlib.Path(file_path)
+        self.compressed_file_path = None
+        self.fps                  = fps
+        self.max_delta_time       = max_delta_time
+        self.writer               = None
+        self.current_time         = 0
+        self.image_count          = 0
+
+
+
+    def append(self, image, delta_time = 0):
+
+
+
+        # The video resolution will be based on the first image.
+
+        cv2, numpy = import_cv2_numpy()
+
+        frame = cv2.imdecode(numpy.frombuffer(image, dtype = numpy.uint8), cv2.IMREAD_COLOR)
+
+        if self.writer is None:
+
+            height, width, _ = frame.shape
+            self.writer      = cv2.VideoWriter(
+                self.file_path,
+                cv2.VideoWriter_fourcc(*'mp4v'),
+                self.fps,
+                (width, height)
+            )
+
+
+
+        # If the delta time is large, then the frame will be shown for quite a while.
+        # Just give warning on this and limit the delta time.
+
+        if delta_time > self.max_delta_time:
+
+            pxd.pxd_logger.warning(
+                f'A gap of {delta_time :.3f} seconds (> {self.max_delta_time} seconds) '
+                f'was found between frames '
+                f'(t = ~{math.floor(self.current_time // 60 // 60)}h {math.floor(self.current_time // 60)}m {self.current_time % 60 :.2f}s); '
+                f'capping the delta time to {self.max_delta_time} seconds.'
+            )
+
+
+
+        # Write the frames multiple times to get the delta time right.
+        # Note that we always at least show the frame once, so no frames
+        # will ever be dropped.
+
+        end_time = self.current_time + min(delta_time, self.max_delta_time)
+
+        self.image_count += 1
+
+        while True:
+
+            self.writer.write(frame)
+
+            self.current_time += 1 / self.fps
+
+            if self.current_time >= end_time:
+                break
+
+
+
+    def release(self):
+
+        if self.writer is None:
+
+            pxd.pxd_logger.warning(f'No image frames were found, so no video will be made.')
+
+        else:
+
+            self.writer.release()
+
+            if shutil.which('ffmpeg') is None:
+
+                pxd.pxd_logger.warning(
+                    '`ffmpeg` was not found on your machine, so no compression will be done.' '\n'
+                    ''                                                                        '\n'
+                    'If you want, install `ffmpeg` on Windows with:'                          '\n'
+                    '> winget install Gyan.FFmpeg'                                            '\n'
+                    ''                                                                        '\n'
+                    '... or on a Debian-based distro with:'                                   '\n'
+                    '> sudo apt install ffmpeg'
+                )
+
+            else:
+
+                self.compressed_file_path = self.file_path.with_name(f'{self.file_path.stem}-compressed.mp4')
+
+                self.compressed_file_path.unlink(missing_ok = True)
+
+                pxd.execute_shell_command(f'''
+                    ffmpeg
+                        -i {self.file_path.as_posix()}
+                        -vcodec libx265
+                        -crf 28
+                        -loglevel warning
+                        {self.compressed_file_path.as_posix()}
+                ''')
 
 
 
@@ -2043,7 +2188,7 @@ def cite(parameters):
     },
     {
         'name'        : 'path',
-        'description' : 'Path to the generatd log file data to verify, or a directory that has log files.',
+        'description' : 'Path to the generated log file data to verify, or a directory that has log files.',
         'type'        : str,
     },
 )
@@ -2182,6 +2327,1085 @@ def verifyLogs(parameters):
         sys.exit(1)
 
 
+
+################################################################################
+
+
+
+@main_interface.new_verb(
+    {
+        'description' : 'Make video from log file generated by the Main Camera System.',
+    },
+    {
+        'name'        : 'input_file_path',
+        'description' : 'Path to the input log file.',
+        'type'        : str,
+    },
+    {
+        'name'        : 'output_file_path',
+        'description' : 'Path to the output MP4 video; otherwise, output the video in the current working directory.',
+        'type'        : str,
+        'default'     : None
+    },
+    {
+        'name'        : 'fps',
+        'description' : 'Frame rate of the video.',
+        'type'        : int,
+        'flag_only'   : True,
+        'default'     : 60
+    },
+)
+def parseVideo(parameters):
+
+
+
+    input_file_path = pathlib.Path(parameters.input_file_path)
+
+    if not input_file_path.is_file():
+        pxd.pxd_logger.error(
+            f"Couldn't open {repr(input_file_path.resolve().as_posix())}."
+        )
+        sys.exit(1)
+
+    if parameters.output_file_path is None:
+        output_file_path = pathlib.Path(f'./{input_file_path.stem}.mp4')
+    else:
+        output_file_path = parameters.output_file_path
+
+
+
+    video_maker = VideoMaker(
+        file_path      = output_file_path,
+        fps            = parameters.fps,
+        max_delta_time = 5,
+    )
+
+    input_file_handle     = open(input_file_path, 'rb')
+    working_window        = b''
+    heartbeat_time        = 0
+    previous_timestamp_us = None
+
+    while True:
+
+
+
+        # If the binary blob is massive, we load it in chunks at a time
+        # and process it as so. This breaks if the image frame is larger
+        # than the specified chunk here, but for our situation, this is
+        # good enough.
+
+        if len(working_window) < 1024 * 1024:
+            working_window += input_file_handle.read(1024 * 1024)
+
+
+
+        # Find the start and end of the image frame alongside its meta-data, if any.
+        # Currently we don't use the image meta-data for much besides the delta-time,
+        # but there may be some interesting statistics in there if it ever becomes needed.
+
+        if (start := working_window.find(TV_TOKEN.START)) == -1:
+            break
+
+        if (end := working_window.find(TV_TOKEN.END, start)) == -1:
+            break
+
+        meta_index = start + ImageMetadata.starting_token.size - ctypes.sizeof(ImageMetadata)
+        meta_data  = None
+
+        if meta_index >= 0:
+
+            meta_data = ImageMetadata.from_buffer_copy(working_window[meta_index : meta_index + ctypes.sizeof(ImageMetadata)])
+
+            assert meta_data.starting_token == TV_TOKEN.START
+
+            if meta_data.ending_token != TV_TOKEN.END:
+                meta_data = None
+
+
+
+        # Figure out the delta time as best as we can.
+
+        if previous_timestamp_us is None:
+            if meta_data is not None:
+                previous_timestamp_us = meta_data.image_timestamp_us
+
+        if meta_data is None:
+            delta_time = 0
+        else:
+            delta_time = ((meta_data.image_timestamp_us - previous_timestamp_us) % (1 << 32)) / 1_000_000
+
+        if meta_data is not None:
+            previous_timestamp_us = meta_data.image_timestamp_us
+
+
+
+        # Insert the image frame into the video.
+
+        video_maker.append(
+            image      = working_window[start + len(TV_TOKEN.START) : end],
+            delta_time = delta_time,
+        )
+
+
+
+        # Move onto next frame.
+
+        working_window = working_window[end:]
+
+        if time.time() - heartbeat_time >= 0.1:
+
+            heartbeat_time = time.time()
+
+            pxd.pxd_logger.info(
+                f'Processing {input_file_handle.tell() / input_file_path.stat().st_size * 100 :.2f}%...'
+            )
+
+
+
+    # Done generating the video.
+
+    video_maker.release()
+
+    if video_maker.image_count:
+
+        input_file_size             = input_file_path.stat().st_size
+        output_file_size            = video_maker.file_path.stat().st_size
+        output_compressed_file_size = video_maker.compressed_file_path.stat().st_size
+        duration                    = video_maker.image_count / parameters.fps
+
+        pxd.pxd_logger.info(
+            f'Uncompressed video file path  : {repr(video_maker.file_path.resolve().as_posix())}.'                                                                      '\n'
+            f'Compressed video file path    : {repr(video_maker.compressed_file_path.resolve().as_posix()) if video_maker.compressed_file_path is not None else None}.' '\n'
+            f'Input file size               : {input_file_size  :,} bytes.'                                                                                             '\n'
+            f'Uncompressed output file size : {output_file_size :,} bytes.'                                                                                             '\n'
+            f'Compressed output file size   : {f'{output_compressed_file_size :,} bytes' if output_compressed_file_size is not None else None}.'                        '\n'
+            f'Image count                   : {repr(video_maker.image_count)}.'                                                                                         '\n'
+            f'Duration                      : {repr(math.floor(duration // 60))}m {repr(math.floor(duration % 60))}s.'                                                  '\n'
+            f'Estimated write throughput    : {round(input_file_size / duration / 1024) :,} KiB/s.'                                                                     '\n'
+        )
+
+
+
+################################################################################
+
+
+
+@main_interface.new_verb(
+    {
+        'description' : 'Parse the binary log file generated by the Main Flight Computer.',
+    },
+    {
+        'name'        : 'input_file_path',
+        'description' : 'Path to the input log file.',
+        'type'        : str,
+    },
+    {
+        'name'        : 'output_directory_path',
+        'description' : 'Path to the output CSV file; otherwise, output the CSV in the current working directory.',
+        'type'        : str,
+        'default'     : None
+    },
+)
+def parseFlight(parameters):
+
+    input_file_path = pathlib.Path(parameters.input_file_path)
+
+    if not input_file_path.is_file():
+        pxd.pxd_logger.error(
+            f"Couldn't open {repr(input_file_path.resolve().as_posix())}."
+        )
+        sys.exit(1)
+
+    if parameters.output_directory_path is None:
+        output_directory_path = pathlib.Path(f'./{input_file_path.stem}')
+    else:
+        output_directory_path = parameters.output_directory_path
+
+    output_directory_path.mkdir(parents = True, exist_ok = True)
+
+
+
+    # To iterate through the C structure, which may have other nesting C structures.
+
+    def get_fields_for_csv(structure):
+
+        for field_name, field_type in structure._fields_:
+
+            field_value = getattr(structure, field_name)
+
+            if isinstance(field_value, ctypes.Structure):
+
+                for subfield_prefix, subfield_value in get_fields_for_csv(field_value):
+                    yield f'{field_name}.{subfield_prefix}', subfield_value
+
+            elif (
+                not field_name.endswith('_')    # Skip fields that aren't meant to be used (e.g. padding).
+                and field_name != 'image_bytes' # Skip the image data.
+                and 'crc' not in field_name     # Skip checksums.
+            ):
+
+                yield f'{field_name}', field_value
+
+
+
+    # Make the header for the CSV.
+
+    import csv
+
+    file_handle = open(pathlib.Path(output_directory_path, 'log.csv'), 'w')
+
+    writer = csv.writer(file_handle)
+
+    writer.writerow([
+        field_prefix
+        for field_prefix, field_value in get_fields_for_csv(MainFlightComputerLogEntry())
+    ])
+
+
+
+    # Parse the log entries.
+
+    input_file_handle           = open(input_file_path, 'rb')
+    heartbeat_time              = 0
+    image_data                  = b''
+    previous_image_timestamp_ms = None
+    video_maker                 = VideoMaker(
+        file_path      = pathlib.Path(output_directory_path, f'video.mp4'),
+        fps            = 10,
+        max_delta_time = 5,
+    )
+
+    while True:
+
+        sector = input_file_handle.read(512)
+
+        if not sector:
+            break
+
+        log_entry = MainFlightComputerLogEntry.from_buffer_copy(sector)
+
+
+
+        # Add row to the CSV.
+
+        writer.writerow((
+            (
+                field_value if
+                (
+                    ('esp32_packet_data'              not in field_prefix or log_entry.esp32_packet_exist             ) and
+                    ('lora_packet_data'               not in field_prefix or log_entry.lora_packet_exist              ) and
+                    ('vehicle_interface_payload_data' not in field_prefix or log_entry.vehicle_interface_payload_exist)
+                )
+                else None
+            )
+            for field_prefix, field_value in get_fields_for_csv(log_entry)
+        ))
+
+
+
+        # Process image data chunk, if any.
+
+        if log_entry.esp32_packet_exist and log_entry.esp32_packet_data.image_sequence_number:
+
+
+
+            # Image data begins with sequence number of one.
+            # @/`ESP32 Sequence Numbers`.
+
+            if log_entry.esp32_packet_data.image_sequence_number == 1:
+
+                if previous_image_timestamp_ms is None:
+                    previous_image_timestamp_ms = log_entry.esp32_packet_data.nonredundant.timestamp_ms
+
+                if image_data:
+
+                    video_maker.append(
+                        image      = image_data,
+                        delta_time = ((log_entry.esp32_packet_data.nonredundant.timestamp_ms - previous_image_timestamp_ms) % (1 << 16)) / 1_000,
+                    )
+
+                    image_data                  = b''
+                    previous_image_timestamp_ms = log_entry.esp32_packet_data.nonredundant.timestamp_ms
+
+
+
+            # Append the image chunk if it's the expected sequence number.
+
+            if log_entry.esp32_packet_data.image_sequence_number == 1 + len(image_data) // ctypes.sizeof(log_entry.esp32_packet_data.image_bytes):
+
+                image_data += log_entry.esp32_packet_data.image_bytes
+
+
+
+            # Broken sequence number; flush the incomplete image data.
+
+            elif image_data:
+
+                image_data = b''
+
+
+
+        # Indicate progress.
+
+        if time.time() - heartbeat_time >= 0.1:
+
+            heartbeat_time = time.time()
+
+            pxd.pxd_logger.info(
+                f'Processing {input_file_handle.tell() / input_file_path.stat().st_size * 100 :.2f}%...'
+            )
+
+
+
+    # Report results.
+
+    pxd.pxd_logger.info(f'Data written to directory {repr(output_directory_path.resolve().as_posix())}.')
+
+    video_maker.release()
+
+
+
+################################################################################
+
+
+
+@main_interface.new_verb(
+    {
+        'description' : 'Make plots.',
+        'more_help'   : True,
+    },
+    {
+        'name'        : 'input_file_path',
+        'description' : 'If provided, load the file of snapshots.',
+        'type'        : str,
+        'default'     : None,
+    },
+)
+def plot(parameters):
+
+
+
+    ########################################
+    #
+    # Define some useful keybindings.
+    #
+
+
+
+    keybindings = []
+
+    def Keybinding(keystroke, description):
+
+        def decorator(function):
+
+            nonlocal keybindings
+
+            keybindings += [types.SimpleNamespace(
+                keystroke   = keystroke,
+                description = description,
+                function    = function,
+            )]
+
+            return function
+
+        return decorator
+
+
+
+    @Keybinding('ctrl-w', 'Exit program.')
+    def _():
+        sys.exit(0)
+
+
+
+    @Keybinding('f', 'Toggle full-screen.')
+    def _():
+        matplotlib.pyplot.get_current_fig_manager().full_screen_toggle()
+
+
+
+    @Keybinding('ctrl-o', 'Load snapshots from a file.')
+    def load_snapshots():
+
+        nonlocal snapshot_blob
+
+        file_path = tkinter.filedialog.askopenfilename(
+            defaultextension = '.snapshots',
+            filetypes        = (('Snapshots', '*.snapshots'), ('All files', '*.*')),
+            title            = 'Load a file'
+        )
+
+        if file_path == ():
+            pxd.pxd_logger.warning(f'Cancelled loading from a snapshot file.')
+            return
+
+        snapshot_blob = pathlib.Path(file_path).read_bytes()
+
+        process_snapshot_blob(repr(pathlib.Path(file_path).resolve().as_posix()))
+
+
+
+    @Keybinding('ctrl-s', 'Save current displayed snapshots to a file.')
+    def save_snapshots():
+
+        if not time_snapshots:
+            pxd.pxd_logger.warning(f"There's no snapshot to save.")
+            return
+
+        file_path = tkinter.filedialog.asksaveasfilename(
+            defaultextension = '.snapshots',
+            filetypes        = (('Snapshots', '*.snapshots'), ('All files', '*.*')),
+            title            = 'Save your file'
+        )
+
+        if file_path == ():
+            pxd.pxd_logger.warning(f'Cancelled saving a snapshot file.')
+            return
+
+        pathlib.Path(file_path).write_bytes(snapshot_blob)
+
+
+
+    @Keybinding('space', 'Toggle playback.')
+    def _():
+
+        nonlocal playback_checkbutton
+
+        if playback_checkbutton is not None:
+            playback_checkbutton.set_active(0, not playback_checkbutton.get_status()[0])
+
+
+
+    if parameters is None:
+
+        more_help = ''
+
+        for just_keystroke, just_description in pxd.justify([
+            (
+                ('<' , f'<{keybinding.keystroke}>'),
+                (None, keybinding.description     ),
+            )
+            for keybinding in keybindings
+        ]):
+
+            more_help += f'{just_keystroke} {just_description}\n'
+
+        return more_help
+
+
+
+    ########################################
+
+
+
+    require_matplotlib()
+    import matplotlib.pyplot
+    import matplotlib.animation
+    import matplotlib.widgets
+    import tkinter
+    import tkinter.filedialog
+    import bisect
+
+    matplotlib.pyplot.rcParams['axes3d.mouserotationstyle'] = 'azel'
+    matplotlib.pyplot.rcParams['toolbar'                  ] = 'None'
+
+
+
+    class Button:
+
+
+
+        def __init__(self, area, label, exists):
+
+            self.area    = area
+            self.label   = label
+            self.clicked = None
+            self.widget  = None
+            self.set_existence(exists)
+
+
+
+        def set_existence(self, exist):
+
+            if exist:
+
+                if self.widget is None:
+
+                    self.clicked = False
+                    self.widget  = matplotlib.widgets.Button(
+                        ax    = main_figure.add_axes(self.area),
+                        label = self.label,
+                    )
+
+                    def callback(event):
+                        self.clicked = True
+
+                    self.widget.on_clicked(callback)
+
+            elif self.widget is not None:
+
+                self.widget.ax.remove()
+                self.clicked = None
+                self.widget  = None
+
+
+
+        def acknowledge_click(self):
+
+            if self.clicked is not None and self.clicked:
+                self.clicked = False
+                return True
+            else:
+                return False
+
+    def quaternion_multiply(lhs, rhs):
+        return (
+            lhs[0]*rhs[0] - lhs[1]*rhs[1] - lhs[2]*rhs[2] - lhs[3]*rhs[3],
+            lhs[0]*rhs[1] + lhs[1]*rhs[0] + lhs[2]*rhs[3] - lhs[3]*rhs[2],
+            lhs[0]*rhs[2] - lhs[1]*rhs[3] + lhs[2]*rhs[0] + lhs[3]*rhs[1],
+            lhs[0]*rhs[3] + lhs[1]*rhs[2] - lhs[2]*rhs[1] + lhs[3]*rhs[0],
+        )
+
+    def quaternion_conjugate(q):
+        return (
+            +q[0],
+            -q[1],
+            -q[2],
+            -q[3],
+        )
+
+    def quaternion_rotate(q, rotor):
+        return quaternion_multiply(rotor, quaternion_multiply(q, quaternion_conjugate(rotor)))
+
+
+
+    ########################################
+
+
+
+    main_figure                  = matplotlib.pyplot.figure('Plot', figsize = (13, 7))
+    scene_axes                   = main_figure.add_axes((0.05, 0.15, 0.4, 0.8), projection = '3d')
+    angular_accelerations_axes   = None
+    angular_accelerations_cursor = None
+    angular_velocities_axes      = None
+    angular_velocities_cursor    = None
+    timeline_slider              = None
+    playback_checkbutton         = None
+
+    stlink_button = Button(
+        area   = (0.005, 0.05, 0.15, 0.035),
+        label  = 'Get snapshots from ST-Link',
+        exists = True,
+    )
+
+    load_button = Button(
+        area   = (0.1625, 0.05, 0.1, 0.035),
+        label  = 'Load snapshots',
+        exists = True,
+    )
+
+    save_button = Button(
+        area   = (0.27, 0.05, 0.1, 0.035),
+        label  = 'Save snapshots',
+        exists = False,
+    )
+
+
+
+    ########################################
+
+
+
+    snapshot_blob  = b''
+    time_snapshots = []
+
+    def process_snapshot_blob(source_name):
+
+        nonlocal snapshot_blob, time_snapshots, angular_accelerations_axes, angular_accelerations_cursor, angular_velocities_axes, angular_velocities_cursor, timeline_slider, playback_checkbutton
+
+
+
+        # Clear out the old stuff.
+
+        time_snapshots = []
+
+        if angular_accelerations_axes is not None:
+            angular_accelerations_axes.remove()
+            angular_accelerations_axes = None
+
+        if angular_velocities_axes is not None:
+            angular_velocities_axes.remove()
+            angular_velocities_axes = None
+
+        if playback_checkbutton is not None:
+            playback_checkbutton.ax.remove()
+            playback_checkbutton = None
+
+        if timeline_slider is not None:
+            timeline_slider.ax.remove()
+            timeline_slider = None
+
+        matplotlib.pyplot.get_current_fig_manager().set_window_title('Plot')
+
+
+
+        # Find the snapshot entries.
+
+        find_index               = -1
+        previous_timestamp_us    = None
+        current_accumulated_time = 0
+
+        while True:
+
+
+
+            # Find the next snapshot, if any.
+
+            find_index = snapshot_blob.find(PLOT_SNAPSHOT_TOKEN, find_index + 1)
+
+            if find_index == -1:
+                break # No more snapshots found.
+
+            if find_index + ctypes.sizeof(PlotSnapshot) > len(snapshot_blob):
+                break # Not enough for a full snapshot.
+
+            snapshot = PlotSnapshot.from_buffer_copy(snapshot_blob[find_index : find_index + ctypes.sizeof(PlotSnapshot)])
+
+
+
+            # If there was a big gap between the timestamps, it's probably something fishy.
+
+            if previous_timestamp_us is None:
+                previous_timestamp_us = snapshot.timestamp_us
+
+            elapsed_time = ((snapshot.timestamp_us - previous_timestamp_us) % (1 << 32)) / 1_000_000
+
+            if elapsed_time > (MAX_GAP := 0.100):
+                pxd.pxd_logger.warning(
+                    f'A gap of {repr(elapsed_time)} seconds (> {repr(MAX_GAP)} seconds) '
+                    f'was found between consecutive snapshots (t = ~{current_accumulated_time :.3f} seconds).'
+                )
+
+            current_accumulated_time += elapsed_time
+
+
+
+            # Append onto the timeline.
+
+            time_snapshots         += [(current_accumulated_time, snapshot)]
+            previous_timestamp_us   = snapshot.timestamp_us
+
+
+
+        # Check if we actually got anything.
+
+        if not time_snapshots:
+            snapshot_blob = b''
+            pxd.pxd_logger.error(f'No snapshots found.')
+            return False
+
+
+
+        # Plot the angular accelerations.
+
+        angular_accelerations_axes = main_figure.add_axes(
+            (0.56, 0.6, 0.415, 0.35),
+            xlim = (0, time_snapshots[-1][0]),
+            ylim = (-100, 100),
+        )
+
+        angular_accelerations_axes.set_ylabel('rad/s^2', rotation = 0, verticalalignment = 'center_baseline')
+        angular_accelerations_axes.set_xticklabels(())
+
+        angular_accelerations_axes.plot(
+            *zip(*((relative_time, snapshot.angular_acceleration_x) for relative_time, snapshot in time_snapshots)),
+            color = 'red',
+        )
+
+        angular_accelerations_axes.plot(
+            *zip(*((relative_time, snapshot.angular_acceleration_y) for relative_time, snapshot in time_snapshots)),
+            color = 'green',
+        )
+
+        angular_accelerations_axes.plot(
+            *zip(*((relative_time, snapshot.angular_acceleration_z) for relative_time, snapshot in time_snapshots)),
+            color = 'blue',
+        )
+
+        angular_accelerations_cursor = angular_accelerations_axes.axvline(
+            x     = 0,
+            color = 'gray',
+        )
+
+
+
+        # Plot the angular velocities.
+
+        angular_velocities_axes = main_figure.add_axes(
+            (0.56, 0.2, 0.415, 0.35),
+            xlim = (0, time_snapshots[-1][0]),
+            ylim = (-1000, 1000),
+        )
+
+        angular_velocities_axes.set_xlabel('Time (s)')
+        angular_velocities_axes.set_ylabel('RPM', rotation = 0, verticalalignment = 'center_baseline')
+
+        angular_velocities_axes.plot(
+            *zip(*((relative_time, snapshot.angular_velocity_x / (2 * math.pi) * 60) for relative_time, snapshot in time_snapshots)),
+            color = 'red',
+        )
+
+        angular_velocities_axes.plot(
+            *zip(*((relative_time, snapshot.angular_velocity_y / (2 * math.pi) * 60) for relative_time, snapshot in time_snapshots)),
+            color = 'green',
+        )
+
+        angular_velocities_axes.plot(
+            *zip(*((relative_time, snapshot.angular_velocity_z / (2 * math.pi) * 60) for relative_time, snapshot in time_snapshots)),
+            color = 'blue',
+        )
+
+        angular_velocities_cursor = angular_velocities_axes.axvline(
+            x     = 0,
+            color = 'gray',
+        )
+
+
+
+        # Make the widgets.
+
+        playback_checkbutton = matplotlib.widgets.CheckButtons(
+            ax      = main_figure.add_axes((0.005, 0.1, 0.04, 0.025)),
+            labels  = ('Play',),
+            actives = (True  ,),
+        )
+
+        timeline_slider = matplotlib.widgets.Slider(
+            ax      = main_figure.add_axes((0.055, 0.1, 0.85, 0.025)),
+            label   = None,
+            valmin  = 0,
+            valmax  = time_snapshots[-1][0],
+            valinit = 0,
+            valfmt  = 't = %.2f s',
+        )
+
+        matplotlib.pyplot.get_current_fig_manager().set_window_title(f'Plot ({source_name})')
+
+
+
+        return True
+
+
+
+    if parameters.input_file_path is not None:
+
+        if not pathlib.Path(parameters.input_file_path).is_file():
+            pxd.pxd_logger.error(
+                f"Couldn't open {repr(pathlib.Path(parameters.input_file_path).resolve().as_posix())}."
+            )
+            sys.exit(1)
+
+        snapshot_blob = pathlib.Path(parameters.input_file_path).read_bytes()
+
+        if not process_snapshot_blob(repr(pathlib.Path(parameters.input_file_path).resolve().as_posix())):
+            sys.exit(1)
+
+
+
+    ########################################
+
+
+
+    # Disable all of Matplotlib's default key shortcuts;
+    # doing a save with `S` or `CTRL-S` seems to make things
+    # freeze, so this is also a way to address that.
+
+    for key, value in matplotlib.rcParams.items():
+        if key.startswith('keymap.'):
+            matplotlib.rcParams[key] = ()
+
+
+
+    # We'll be process for keystrokes to do shortcuts.
+
+    key_presses = []
+
+    def key_press_event_callback(event):
+        nonlocal key_presses
+        key_presses += [event.key]
+
+    main_figure.canvas.mpl_connect('key_press_event', key_press_event_callback)
+
+
+
+    ########################################
+
+
+
+    axis_angles = (0, 0, 0)
+    start_time  = time.time()
+    delta_time  = None
+
+    def update(_):
+
+        nonlocal start_time, key_presses, delta_time, snapshot_blob, axis_angles, time_snapshots, timeline_slider, playback_checkbutton
+
+        try:
+
+
+
+            # Compute delta time for the current frame.
+
+            delta_time = time.time() - start_time
+
+
+
+            # Receive snapshots from the ST-Link.
+            # This is primarily for `DemoGNC` where we'd want to
+            # program the target and then quickly verify the output.
+
+            if stlink_button.acknowledge_click():
+
+                serial, list_ports = import_pyserial()
+
+                stlink      = request_stlinks(specific_one = True)
+                serial_port = serial.Serial(
+                    stlink.comport.device,
+                    baudrate = STLINK_BAUD,
+                    timeout  = 0
+                )
+
+                time.sleep(0.1)                  # Flush the buffer, but for some reason we have to delay it a bit after opening the port.
+                serial_port.reset_input_buffer() # "
+
+                pxd.pxd_logger.info(f'Waiting for data from ST-Link...')
+
+                snapshot_blob      = b''
+                timeout_start_time = time.time()
+                timeout_counter    = 0
+
+                while True:
+
+                    if serial_port.in_waiting:
+
+                        snapshot_blob += serial_port.read_all()
+
+                        pxd.pxd_logger.info(f'Received {repr(len(snapshot_blob))} bytes so far...')
+
+                    else:
+
+                        for i in range(10):
+
+                            time.sleep(0.01)
+
+                            if serial_port.in_waiting:
+                                break
+
+                        if snapshot_blob:
+
+                            if not serial_port.in_waiting:
+                                break
+
+                        elif time.time() - timeout_start_time >= 2:
+
+                            timeout_start_time  = time.time()
+                            timeout_counter    += 1
+
+                            if timeout_counter <= (MAX_TIMEOUT_COUNT := 4):
+                                pxd.pxd_logger.info(f'({timeout_counter}/{MAX_TIMEOUT_COUNT}) Still waiting for data from the ST-Link...')
+                            else:
+                                pxd.pxd_logger.warning(f'Timed out!')
+                                break
+
+                process_snapshot_blob('ST-Link')
+
+
+
+            # Load existing samples from a file.
+
+            if load_button.acknowledge_click():
+                load_snapshots()
+
+
+
+            # Save the current displayed samples to a file.
+
+            save_button.set_existence(time_snapshots)
+
+            if save_button.acknowledge_click():
+                save_snapshots()
+
+
+
+            # Process any keystrokes made.
+
+            while key_presses:
+
+                key_press, *key_presses = key_presses
+
+                keystroke = key_press.replace('+', '-').replace(' ', 'space')
+
+                for keybinding in keybindings:
+                    if keybinding.keystroke == keystroke:
+                        keybinding.function()
+
+
+
+            # We begin computing delta time from here so the stuff
+            # above blocking won't result in a large time skip.
+
+            start_time = time.time()
+
+
+
+            # Plot stuff.
+
+            scene_axes.clear()
+            scene_axes.set_xlim(-2, 2)
+            scene_axes.set_ylim(-2, 2)
+            scene_axes.set_zlim(-2, 2)
+            scene_axes.set_xticklabels(())
+            scene_axes.set_yticklabels(())
+            scene_axes.set_zticklabels(())
+            scene_axes.set_xlabel('X')
+            scene_axes.set_ylabel('Y')
+            scene_axes.set_zlabel('Z')
+
+            if time_snapshots:
+
+
+
+                # Get current snapshot.
+
+                if playback_checkbutton.get_status()[0]:
+                    timeline_slider.set_val(
+                        (timeline_slider.val + delta_time) % time_snapshots[-1][0]
+                    )
+
+                _, snapshot = time_snapshots[
+                    min(
+                        bisect.bisect(
+                            time_snapshots,
+                            timeline_slider.val,
+                            key = lambda x: x[0]
+                        ),
+                        len(time_snapshots) - 1
+                    )
+                ]
+
+                angular_accelerations_cursor.set_xdata((timeline_slider.val, timeline_slider.val))
+                angular_velocities_cursor   .set_xdata((timeline_slider.val, timeline_slider.val))
+
+
+
+                # Display vehicle orientation.
+
+                vn100_orientation = (snapshot.QuatS, snapshot.QuatX, snapshot.QuatY, snapshot.QuatZ)
+
+                _, *orientation_axis_x = quaternion_rotate(
+                    (0, 1, 0, 0),
+                    vn100_orientation,
+                )
+
+                _, *orientation_axis_y = quaternion_rotate(
+                    (0, 0, 1, 0),
+                    vn100_orientation,
+                )
+
+                _, *orientation_axis_z = quaternion_rotate(
+                    (0, 0, 0, 1),
+                    vn100_orientation,
+                )
+
+                scene_axes.quiver(0, 0, 0, *orientation_axis_x, color = 'red'  , linewidths = 3)
+                scene_axes.quiver(0, 0, 0, *orientation_axis_y, color = 'green', linewidths = 3)
+                scene_axes.quiver(0, 0, 0, *orientation_axis_z, color = 'blue' , linewidths = 3)
+
+
+
+                # Display vehicle's stepper motor rotations.
+
+                axis_angular_velocities = (
+                    snapshot.angular_velocity_x,
+                    snapshot.angular_velocity_y,
+                    snapshot.angular_velocity_z,
+                )
+
+                axis_angles = (
+                    axis_angles[0] + axis_angular_velocities[0] * delta_time,
+                    axis_angles[1] + axis_angular_velocities[1] * delta_time,
+                    axis_angles[2] + axis_angular_velocities[2] * delta_time,
+                )
+
+                for axis_i in (0, 1, 2):
+
+                    rotational_arrows_count = min(round(2   + 10 * abs(axis_angular_velocities[axis_i]) / (1000 * 2 * math.pi / 60)), 10)
+                    rotational_arrows_width = min(      0.5 +  5 * abs(axis_angular_velocities[axis_i]) / (1000 * 2 * math.pi / 60) ,  5)
+                    rotational_arrow_ratio  = rotational_arrows_width * 0.3
+                    rotational_arrow_radius = rotational_arrows_width * 0.2
+
+                    for i in range(rotational_arrows_count):
+
+                        delta_angle  = 0.8 * (+1 if axis_angular_velocities[axis_i] > 0 else -1)
+                        delta_angle *= abs(axis_angular_velocities[axis_i]) / (abs(axis_angular_velocities[axis_i]) + 10)
+
+                        base_u  = math.cos(axis_angles[axis_i] + (i              ) / rotational_arrows_count * 2 * math.pi) * rotational_arrow_radius
+                        base_v  = math.sin(axis_angles[axis_i] + (i              ) / rotational_arrows_count * 2 * math.pi) * rotational_arrow_radius
+                        delta_u = math.cos(axis_angles[axis_i] + (i + delta_angle) / rotational_arrows_count * 2 * math.pi) * rotational_arrow_radius - base_u
+                        delta_v = math.sin(axis_angles[axis_i] + (i + delta_angle) / rotational_arrows_count * 2 * math.pi) * rotational_arrow_radius - base_v
+
+                        match axis_i:
+
+                            case 0:
+                                base  = (1, base_u , base_v )
+                                delta = (0, delta_u, delta_v)
+
+                            case 1:
+                                base  = (base_v , 1, base_u )
+                                delta = (delta_v, 0, delta_u)
+
+                            case 2:
+                                base  = (base_u , base_v , 1)
+                                delta = (delta_u, delta_v, 0)
+
+                        _, *base  = quaternion_rotate((0, *base ), vn100_orientation)
+                        _, *delta = quaternion_rotate((0, *delta), vn100_orientation)
+
+                        scene_axes.quiver(
+                            *base,
+                            *delta,
+                            color              = ('red', 'green', 'blue')[axis_i],
+                            linewidths         = rotational_arrows_width,
+                            arrow_length_ratio = rotational_arrow_ratio,
+                        )
+
+
+
+        # If an exception gets thrown, Matplotlib won't
+        # automatically close, so we have to do it manually.
+
+        except SystemExit:
+            raise
+
+        except:
+
+            import traceback
+            traceback.print_exc()
+            sys.exit(1)
+
+
+
+    # Set up the display.
+
+    main_animation = matplotlib.animation.FuncAnimation(
+        main_figure,
+        update,
+        frames           = None,
+        interval         = 16,
+        cache_frame_data = False,
+    )
+
+    matplotlib.pyplot.show()
 
 
 

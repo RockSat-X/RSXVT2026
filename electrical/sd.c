@@ -27,11 +27,6 @@
 
 */
 
-struct Sector
-{
-    u8 bytes[512] __attribute__ ((aligned(4))); // Alignment of 32-bit words because things like SDMMC's IDMA assume this.
-};
-
 enum SDDriverState : u32
 {
     SDDriverState_disabled,

@@ -55,6 +55,7 @@ static_assert(FF_MIN_SS == FF_MAX_SS && FF_MIN_SS == sizeof(struct Sector));
 
 struct FileSystemDriver
 {
+    u32   reinit_timestamp_us;
     FATFS fatfs;
     i32   file_number;
     char  file_name[16];
@@ -168,6 +169,7 @@ static useret enum FileSystemDiskInitializeImplementationResult : u32
 {
     FileSystemDiskInitializeImplementationResult_ready,
     FileSystemDiskInitializeImplementationResult_yield,
+    FileSystemDiskInitializeImplementationResult_initer_timeout,
     FileSystemDiskInitializeImplementationResult_driver_error,
     FileSystemDiskInitializeImplementationResult_bug = BUG_CODE,
 }
@@ -189,7 +191,17 @@ FILESYSTEM_disk_initialize_implementation(BYTE pdrv)
 
         case SDDriverState_initer:
         {
-            return FileSystemDiskInitializeImplementationResult_yield;
+            if (TIMEKEEPING_microseconds() - _FILESYSTEM_driver.reinit_timestamp_us < 1'000'000)
+            {
+                return FileSystemDiskInitializeImplementationResult_yield;
+            }
+            else
+            {
+                // TODO This shouldn't be something that the filesystem driver have to handle,
+                //      but until the SD driver API is improved to do it this is what we'll
+                //      have to do in order to prevent a hardware deadlock.
+                return FileSystemDiskInitializeImplementationResult_initer_timeout;
+            }
         } break;
 
         case SDDriverState_active:
@@ -230,6 +242,7 @@ disk_initialize(BYTE pdrv)
                 FREERTOS_delay_ms(1); // We'll keep on spin-locking until the SD driver is ready...
             } break;
 
+            case FileSystemDiskInitializeImplementationResult_initer_timeout:
             case FileSystemDiskInitializeImplementationResult_driver_error:
             case FileSystemDiskInitializeImplementationResult_bug:
             default:
@@ -683,7 +696,11 @@ FILESYSTEM_reinit_(enum SDHandle sd_handle, struct Sector* formatting_sector_buf
 
     SD_reinit(sd_handle);
 
-    _FILESYSTEM_driver = (struct FileSystemDriver) {0};
+    _FILESYSTEM_driver =
+        (struct FileSystemDriver)
+        {
+            .reinit_timestamp_us = TIMEKEEPING_microseconds(),
+        };
 
 
 
