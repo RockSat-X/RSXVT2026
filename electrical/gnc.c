@@ -75,6 +75,37 @@ asin_f32(f32 x)
 
 }
 
+static useret f32
+acos_f32(f32 x)
+{
+    f32        y      = {0};
+    arm_status status = arm_sqrt_f32(1 - x * x, &y);
+
+    if (status != ARM_MATH_SUCCESS)
+        sus;
+
+    f32 result = atan2_f32(y, x);
+
+    return result;
+}
+
+static useret f32
+sqrt_f32(f32 x)
+{
+
+    f32        result = {0};
+    arm_status status = arm_sqrt_f32(x, &result);
+
+    if (status != ARM_MATH_SUCCESS)
+    {
+        sus;
+        result = 0.0f;
+    }
+
+    return result;
+
+}
+
 
 
 #define MATRIX_multiply(DST, LHS, RHS)                                     \
@@ -287,7 +318,7 @@ pack_push
                 f32 attitude_yaw;
                 f32 attitude_pitch;
                 f32 attitude_roll;
-                u16 computer_vision_processing_time_ms; // Do not use in `GNC_update`! Use `.most_recent_openmv_reading_timestamp_us` instead.
+                u16 computer_vision_processing_time_ms;
                 u8  computer_vision_confidence;
                 u8  padding[47];
             } gnc;
@@ -322,7 +353,6 @@ struct GNCInput
     u32                    ejection_timestamp_us;
     struct VN100Packet     most_recent_imu;
     struct OpenMVPacketGNC most_recent_openmv_reading;
-    // u32                    most_recent_openmv_reading_timestamp_us;
 };
 
 struct GNCContext
@@ -340,10 +370,6 @@ struct GNCContext
 static void
 GNC_update(const struct GNCInput input, struct GNCContext* context)
 {
-
-    u32 time_to_eject_us = 10'000'000; // (us) Time after ejection to spend in `GNCOperationMode_ejecting`.
-    u32 time_to_rate_damp_us = 20'000'000; // (us) Time after ejection to spend in `GNCOperationMode_rate_damping` before moving onto `GNCOperationMode_searching`.
-    struct Matrix_3x6 gain = {0};
 
     if (!context)
         sus;
@@ -420,16 +446,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     // orientation and angular rates.
     //
 
-    // struct Quaternion current_orientation =
-    //     (struct Quaternion)
-    //     {
-    //         .s = input.most_recent_imu.QuatS,
-    //         .i = input.most_recent_imu.QuatX,
-    //         .j = input.most_recent_imu.QuatY,
-    //         .k = input.most_recent_imu.QuatZ,
-    //     };
-
-    struct Quaternion desired_orientation = 
+    struct Quaternion desired_orientation =
         (struct Quaternion)
         {
             .s = 1.0f,
@@ -438,7 +455,9 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
             .k = 0.0f,
         };
 
-    struct Matrix_3x1 desired_rates       = {0.0f};
+    struct Matrix_3x1 desired_rates = {0};
+
+    struct Matrix_3x6 gain = {0};
 
     switch (context->operation_mode)
     {
@@ -457,7 +476,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
         case GNCOperationMode_ejecting:
         {
-            if (input.current_timestamp_us - input.ejection_timestamp_us < time_to_eject_us)
+            if (input.current_timestamp_us - input.ejection_timestamp_us < 10'000'000)
             {
 
                 // We're still letting the VN-100 get a heading estimate.
@@ -495,7 +514,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
         case GNCOperationMode_rate_damping:
         {
-            if (input.current_timestamp_us - input.ejection_timestamp_us < time_to_rate_damp_us + time_to_eject_us)
+            if (input.current_timestamp_us - input.ejection_timestamp_us < 30'000'000)
             {
 
                 // Drive rates to zero before searching
@@ -505,15 +524,11 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
                     {
                         .rows =
                             {
-                                { 0.0f, 0.0f, 0.0f, 0.0120f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0116f, 0.0f },
-                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0111f },
+                                { 0.0f, 0.0f, 0.0f, 0.0120f, 0.0f   , 0.0f    },
+                                { 0.0f, 0.0f, 0.0f, 0.0f   , 0.0116f, 0.0f    },
+                                { 0.0f, 0.0f, 0.0f, 0.0f   , 0.0f   , 0.0111f },
                             },
                     };
-
-                
-
-                
 
             }
             else // We spent enough time stabilizing; move onto finding the horizon.
@@ -560,41 +575,39 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
                 }
 
-                // We only care about rates for search algoritm
 
-                f32 search_time = (input.current_timestamp_us - context->search_start_timestamp_us)* 1e-6f; // (s) Time since we started searching.
-                f32 time_to_search = 30.0f;
-                f32 search_gain = 0.3f;
 
-                f32 omega_phi = 2.399963229728653f;
+                #define SEARCH_DURATION 30.0f
+                #define SEARCH_GAIN      0.3f
+                #define OMEGA_PHI        2.399963229728653f
 
-                // Normlize search time
-                f32 u = search_time / time_to_search;
+                f32 search_time = (f32) (input.current_timestamp_us - context->search_start_timestamp_us) / 1'000'000.0f;
+                f32 u           = search_time / SEARCH_DURATION;
 
-                // Clamp u to [0, 1] to ensure normalization
-                if (u < 0.0f) u = 0.0f;
-                else if (u > 1.0f) u = 1.0f;
-          
-                // Angles for search pattern
-                f32 phi = acos(1.0f - 2.0f*u);
-                f32 theta = omega_phi * search_time;
+                if (u < 0.0f)
+                {
+                    u = 0.0f;
+                }
+                else if (u > 1.0f)
+                {
+                    u = 1.0f;
+                }
 
-                // Rates
-                f32 dtheta = search_gain * omega_phi;
-                f32 dphi   = 2.0f * search_gain / ( time_to_search * sqrtf(1 - ((1 - 2*u) * (1 - 2*u)) + 1e-12f));
+                f32 phi    = acos_f32(1.0f - 2.0f * u);
+                f32 theta  = OMEGA_PHI * search_time; // TODO Not used?
+                f32 dtheta = SEARCH_GAIN * OMEGA_PHI;
+                f32 dphi   = 2.0f * SEARCH_GAIN / (SEARCH_DURATION * sqrt_f32(1 - ((1 - 2*u) * (1 - 2*u))));
 
                 desired_rates =
                     (struct Matrix_3x1)
                     {
                         .rows =
                             {
-                                { dtheta * cos(phi)     },
-                                { dphi                  },
-                                { -dtheta * sin(phi)    },
+                                { dtheta * arm_cos_f32(phi)  },
+                                { dphi                       },
+                                { -dtheta * arm_sin_f32(phi) },
                             },
                     };
-
-                // TODO No `desired_orientation` and `desired_rates`?
 
             }
         } break;
@@ -628,20 +641,6 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
                     );
 
             }
-            // else if (input.current_timestamp_us - context->target_lost_timestamp_us < 10'000'000)
-            // {
-
-            //     // The OpenMV has lost the horizon target, but instead of
-            //     // immediately switching to searching again, we're going
-            //     // to try hold at the last known location for a bit.
-
-            //     desired_orientation =
-            //         (struct Quaternion)
-            //         {
-            //             // TODO: get this from buffer
-            //         };
-
-            // }
             else // Alright, we've lost the horizon target for a while now.
             {
 
@@ -652,7 +651,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
             }
         } break;
 
-        context->prev_target_found = context->target_found; // Update previous target found status for next iteration.
+
 
         default: sus;
 
@@ -668,7 +667,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     struct Quaternion orientation_error =
         QUATERNION_multiply
         (
-            current_orientation,
+            (struct Quaternion) {0}, // TODO?
             QUATERNION_conjugate(desired_orientation)
         );
 
@@ -692,8 +691,6 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
     #define ANGLE_THRESHOLD_SMALL  0.924f
     #define ANGLE_THRESHOLD_MEDIUM 0.707f
 
-    struct Matrix_3x6 gain = {0};
-
     switch (context->operation_mode)
     {
 
@@ -710,45 +707,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
         case GNCOperationMode_aligning:
         case GNCOperationMode_rate_damping:
         {
-            if (orientation_error.s > ANGLE_THRESHOLD_SMALL) // TODO Absolute value?
-            {
-                gain =
-                    (struct Matrix_3x6) // TODO Select small angle gain matrix.
-                    {
-                        .rows =
-                            {
-                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                            },
-                    };
-            }
-            else if (orientation_error.s > ANGLE_THRESHOLD_MEDIUM) // TODO Absolute value?
-            {
-                gain =
-                    (struct Matrix_3x6) // TODO Select medium angle gain matrix.
-                    {
-                        .rows =
-                            {
-                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                            },
-                    };
-            }
-            else
-            {
-                gain =
-                    (struct Matrix_3x6) // TODO Select large angle gain matrix.
-                    {
-                        .rows =
-                            {
-                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                            },
-                    };
-            }
+            // TODO.
         } break;
 
 
@@ -758,45 +717,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
 
         case GNCOperationMode_searching:
         {
-            if (orientation_error.s > ANGLE_THRESHOLD_SMALL) // TODO Absolute value?
-            {
-                gain =
-                    (struct Matrix_3x6) // TODO Select small angle gain matrix.
-                    {
-                        .rows =
-                            {
-                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                            },
-                    };
-            }
-            else if (orientation_error.s > ANGLE_THRESHOLD_MEDIUM) // TODO Absolute value?
-            {
-                gain =
-                    (struct Matrix_3x6) // TODO Select medium angle gain matrix.
-                    {
-                        .rows =
-                            {
-                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                            },
-                    };
-            }
-            else
-            {
-                gain =
-                    (struct Matrix_3x6) // TODO Select large angle gain matrix.
-                    {
-                        .rows =
-                            {
-                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                            },
-                    };
-            }
+            // TODO.
         } break;
 
 
@@ -841,5 +762,7 @@ GNC_update(const struct GNCInput input, struct GNCContext* context)
                     { control_torques.rows[2][0] / REACTION_WHEEL_INERTIA },
                 },
         };
+
+    context->prev_target_found = context->target_found; // Update previous target found status for next iteration.
 
 }
