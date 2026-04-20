@@ -1212,6 +1212,7 @@ bool common_init_lora()
 
 #endif
 
+    // Helpful for detecting LoRa radio error type
     int state = packet_lora_radio.begin();
 
     if (state != RADIOLIB_ERR_NONE)
@@ -1342,23 +1343,12 @@ void lora_watchdog_arm(void)
 // Bool to determine when radio is currently hard reseting
 bool lora_resetting = false;
 
-// Tracks which phase of the reinit sequence we're in so that handle_lora() doesn't block wifi/uart
-enum LoRa_Reinit_Phase
-{
-    LORA_IDLE,          // Healthy — nothing to do.
-    LORA_WAIT_RETRY,    // Waiting for lora_retry_delay before starting a reset.
-    LORA_RESETTING,     // reset() has been called; waiting 100 ms for it to settle.
-    LORA_REINITING,     // common_init_lora() needs to be called once.
-};
-
-static LoRa_Reinit_Phase phase = LORA_IDLE;
-static uint32_t        lora_phase_entered = 0; // millis() when we entered the current phase.
-uint32_t LoRa_reset_timer = 500;
+static uint32_t last_attempt = 0;
+static uint32_t lora_reset_time = 0;
 
 // Handles lora reset based on retry timer (1 second)
 void handle_lora()
 {
-
     // Watchdog: detect silent radio while initialized
     // If LoRa is supposedly running but we haven't seen a successful TX/RX
     if (lora_initialized && lora_watchdog_enabled)
@@ -1368,70 +1358,43 @@ void handle_lora()
             Serial.println("LoRa watchdog timeout — no activity, scheduling reinit.");
             lora_initialized = false;
             lora_consecutive_errors = 0;
-            phase = LORA_WAIT_RETRY;
-            lora_phase_entered = millis();
         }
     }
 
-
-    // Reinit state machine — each phase does at most one check per call and returns immediately
-    // ESP-NOW loop() keeps running freely.
-    switch (phase)
+    //Check if we can slim this out
+    // Now check if there is an error with the LoRa
+    if (!lora_initialized)
     {
-    case LORA_IDLE:
-    {
-        // If lora_initialized was cleared externally (error threshold) enter the wait phase
-        if (!lora_initialized)
+        // Wait between reset and reconfigure stages
+        if (!lora_resetting && millis() - last_attempt > lora_retry_delay)
         {
-            phase = LORA_WAIT_RETRY;
-            lora_phase_entered = millis();
-        }
-    } break;
-
-    case LORA_WAIT_RETRY:
-    {
-        if (millis() - lora_phase_entered >= lora_retry_delay)
-        {
-            // Kick off hardware reset
-            Serial.println("LoRa: issuing hardware reset.");
+            last_attempt = millis();
+            lora_reset_time = millis();
+            // Hard reset radio before retry
             packet_lora_radio.reset();
-            phase = LORA_RESETTING;
-            lora_phase_entered = millis();
+            lora_resetting = true;
         }
-    } break;
 
-    case LORA_RESETTING:
-    {
-        // Give the SX1262 time to finish its internal reset sequence before we touch it over SPI
-        if (millis() - lora_phase_entered >= LoRa_reset_timer)
+        // Wait a bit after restarting to avoid SPI errors during radio transition.
+        if (lora_resetting && millis() - lora_reset_time > 5000)
         {
-            //LoRa_reset_timer = LoRa_reset_timer * 2;
-            phase = LORA_REINITING;
-            lora_phase_entered = millis();
-        }
-    } break;
+            lora_resetting = false;
 
-    case LORA_REINITING:
-    {
-        // common_init_lora() blocks for a handful of short SPI transactions (~few ms total), 
-        Serial.println("Begin reinit.");
-        if (common_init_lora())
-        {
-            Serial.println("Successful LoRa restart.");
-            lora_last_activity_ms = millis(); // Arm watchdog now
-            phase = LORA_IDLE;
-            lora_initialized = true;
+            // Reconfigure lora while checking for successful reinitialization
+            if (common_init_lora())
+            {
+                Serial.println("Successful LoRa restart");
+                lora_last_activity_ms = millis(); // Reset watchdog after reinit.
+                packet_lora_transmission_busy = false;
+            }
+            else
+            {
+                Serial.println("LoRa restart failed, will retry.");
+            }
         }
-        else
-        {
-            Serial.println("LoRa restart failed, will retry.");
-            // Go back to the wait phase so we don't spam init calls
-            phase = LORA_WAIT_RETRY;
-            lora_phase_entered = millis();
-        }
-    } break;
     }
 }
+
 
 #endif
 
