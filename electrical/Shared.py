@@ -1366,10 +1366,10 @@ TARGETS = ( # @/`Defining Targets`.
             'I2C2_BAUD'           : 10_000,
             'I2C2_TIMEOUT'        : 2,
             'TIM2_COUNTER_RATE'   : 1_000_000,
-            'SDMMC1_TIMEOUT'      : 0.250,
-            'SDMMC1_INITIAL_BAUD' :    400_000,
-            'SDMMC1_FULL_BAUD'    : 24_000_000,
-            'WATCHDOG_DURATION'   : 10, # Must be long enough so that the filesystem can be formatted in time.
+            'SDMMC1_TIMEOUT'      : 0.50,
+            'SDMMC1_INITIAL_BAUD' :    200_000,
+            'SDMMC1_FULL_BAUD'    : 12_000_000,
+            'WATCHDOG_DURATION'   : 20, # Must be long enough so that the filesystem can be formatted in time.
         },
 
         flight_ready = True,
