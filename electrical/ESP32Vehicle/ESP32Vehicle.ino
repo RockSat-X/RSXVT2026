@@ -34,7 +34,6 @@ static volatile b32       packet_espnow_transmission_busy = false;
 static struct LoRaPacket packet_lora_buffer[4]         = {};
 static volatile u32      packet_lora_writer            = 0;
 static volatile u32      packet_lora_reader            = 0;
-static volatile bool     packet_lora_transmission_busy = false;
 #endif
 
 static i32 last_uart_packet_timestamp_ms = 0;
