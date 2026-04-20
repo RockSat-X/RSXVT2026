@@ -182,7 +182,9 @@ setup(void)
 
     #if LORA_ENABLE
     {
-        common_init_lora();
+        if (lora_is_physically_present()){
+            common_init_lora();
+        }
 
         lora_watchdog_arm();
     }
@@ -232,17 +234,7 @@ process_payload(struct ESP32Packet* payload)
                 packet_espnow_writer                         += 1;
                 packet_espnow_packet_count                   += 1;
 
-                i32 free_space = countof(packet_espnow_buffer) - (packet_espnow_writer - packet_espnow_reader);
-
-                if (free_space <= -1)
-                {
-                    free_space = 0;
-                }
-
-                // Indicate to the VFC that we're still transmitting over ESP-NOW.
-                // The VFC will also throttle the transmission as needed in order
-                // to prevent over-runs.
-                Serial1.write((u8) free_space);
+                Serial1.write((u8) packet_espnow_packet_count); // Indicate to the VFC that we're still transmitting over ESP-NOW.
 
             }
             else
@@ -447,23 +439,21 @@ loop(void)
 
         last_statistic_timestamp_ms = current_timestamp_ms;
 
-        Serial.printf("Last timestamp         : %d ms" "\n", last_uart_packet_timestamp_ms);
-        Serial.printf("UART packets received  : %d"    "\n", packet_uart_packet_count);
-        Serial.printf("UART CRC mismatches    : %d"    "\n", packet_uart_crc_error_count);
+        Serial.printf("Last timestamp        : %d ms" "\n", last_uart_packet_timestamp_ms);
+        Serial.printf("UART packets received : %d"    "\n", packet_uart_packet_count);
+        Serial.printf("UART CRC mismatches   : %d"    "\n", packet_uart_crc_error_count);
 
         #if ESPNOW_ENABLE
         {
-            Serial.printf("ESP32 packets queued   : %d"    "\n", packet_espnow_packet_count);
-            Serial.printf("ESP32 packets in queue : %d"    "\n", (u32) (packet_espnow_writer - packet_espnow_reader));
-            Serial.printf("ESP32 packet overruns  : %d"    "\n", packet_espnow_overrun_count);
+            Serial.printf("ESP32 packets queued  : %d"    "\n", packet_espnow_packet_count);
+            Serial.printf("ESP32 packet overruns : %d"    "\n", packet_espnow_overrun_count);
         }
         #endif
 
         #if LORA_ENABLE
         {
-            Serial.printf("LoRa packets queued    : %d"    "\n", packet_lora_packet_count);
-            Serial.printf("LoRa packets in queue  : %d"    "\n", (u32) (packet_lora_writer - packet_lora_reader));
-            Serial.printf("LoRa packet overruns   : %d"    "\n", packet_lora_overrun_count);
+            Serial.printf("LoRa packets queued   : %d"    "\n", packet_lora_packet_count);
+            Serial.printf("LoRa packet overruns  : %d"    "\n", packet_lora_overrun_count);
         }
         #endif
 

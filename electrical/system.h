@@ -93,13 +93,6 @@ typedef double             f64; static_assert(sizeof(f64) == 8);
 
 
 
-struct Sector
-{
-    u8 bytes[512] __attribute__ ((aligned(4))); // Alignment of 32-bit words because things like SDMMC's IDMA assume this.
-};
-
-
-
 #if !COMPILING_ESP32
 
 
@@ -950,9 +943,7 @@ DEBUG_BOARD_calculate_crc(u8* data, i32 length)
 #define ESP32_TOKEN_START "<ESP32>"
 #define LORA_TOKEN_START  "<LORA>"
 
-// The include file path is like this so it'll compile in the Arduino IDE.
-#include "../meta/PacketStructures.meta"
-/* #meta
+pack_push
 
 // @/`ESP32 Sequence Numbers`:
 //
@@ -1004,59 +995,7 @@ struct ESP32Packet
     struct LoRaPacket nonredundant;
 };
 
-        for struct_type in (
-            LoRaPacket,
-            ESP32Packet,
-            VehicleInterfacePayload,
-            MainFlightComputerLogEntry,
-            PlotSnapshot,
-            ImageMetadata,
-        ):
-
-            with Meta.enter(f'struct {struct_type.__name__}'):
-
-                with Meta.enter('union'):
-
-                    if ctypes.sizeof(struct_type) == 512:
-                        Meta.line('''
-                            struct Sector sector;
-                        ''')
-
-                    with Meta.enter('struct'):
-
-                        for field_name, field_type in struct_type._fields_:
-
-                            if issubclass(field_type, ctypes.Array):
-                                elemental_type = field_type._type_
-                                array_length   = field_type._length_
-                            else:
-                                elemental_type = field_type
-                                array_length   = None
-
-                            match elemental_type:
-
-                                case ctypes.c_char   : base_type = 'char'
-                                case ctypes.c_uint8  : base_type = 'u8'
-                                case ctypes.c_uint16 : base_type = 'u16'
-                                case ctypes.c_uint32 : base_type = 'u32'
-                                case ctypes.c_uint64 : base_type = 'u64'
-                                case ctypes.c_int8   : base_type = 'i8'
-                                case ctypes.c_int16  : base_type = 'i16'
-                                case ctypes.c_int32  : base_type = 'i32'
-                                case ctypes.c_int64  : base_type = 'i64'
-                                case ctypes.c_float  : base_type = 'f32'
-
-                                case substruct_type if issubclass(substruct_type, ctypes.Structure):
-                                    base_type = f'struct {substruct_type.__name__}'
-
-                                case idk:
-                                    raise NotImplementedError(f'Field {repr(field_name)} has unsupported type {repr(field_type)}.')
-
-                            Meta.line(f'''
-                                {base_type} {field_name}{f'[{array_length}]' if array_length is not None else ''};
-                            ''')
-
-*/
+pack_pop
 
 static_assert(sizeof(struct ESP32Packet) <= 250);
 
@@ -1201,17 +1140,12 @@ bool common_init_lora()
  
 #if FSPI_PATCH
  
-    // End first in case this is a retry — calling begin() on an active SPI bus
-    // leaves it in a bad state and will cause packet_lora_radio.begin() to fail.
-    fspi.end();
- 
     // Creates an instance of the SPI for the fspi hardware controller
     // Assigns the SX1262 signals (SCK, MISO, MOSI, and NSS) to specific GPIO pins of the ESP32S3
     // ex. SCK is assigned to GPIO36
     fspi.begin(36, 37, 35, 41);
  
 #endif
-
 
 
     // Helpful for detecting LoRa radio error type
@@ -1228,9 +1162,9 @@ bool common_init_lora()
 
     //Apply settings with error checking
 
-        // 915 MHz Center Frequency (common frequency used in North America)
-        // Should range from 902-928 for most cases
-        // Find out if different frequencies affect range
+    // 915 MHz Center Frequency (common frequency used in North America)
+    // Should range from 902-928 for most cases
+    // Find out if different frequencies affect range
     if (packet_lora_radio.setFrequency(915.0) != RADIOLIB_ERR_NONE) {
         Serial.printf("LoRa Frequency Error\n");
         lora_initialized = false;
@@ -1312,12 +1246,12 @@ bool common_init_lora()
 
 // Call on each TX/RX error for the LoRa channel.
 // Triggers reinit after LORA_ERROR_THRESHOLD consecutive errors
-void lora_report_error(void) {
+void lora_report_error(void) 
+{
     if (++lora_consecutive_errors >= LORA_ERROR_THRESHOLD) {
         //Serial.println("LoRa error threshold reached, scheduling reinit.");
         lora_initialized = false;
         lora_consecutive_errors = 0;
-       
     }
 }
 
@@ -1331,15 +1265,12 @@ void lora_report_success(void)
 static uint32_t lora_last_activity_ms = 0;
 
 // Max length of time without any TX/RX success before we treat the radio as dead
-static const uint32_t LORA_WATCHDOG_TIMEOUT_MS = 5000;
+static const uint32_t LORA_WATCHDOG_TIMEOUT_MS = 1000;
 
-// Set to true by the Vehicle .ino so handle_lora() knows packets are
-// actively being queued (i.e. silence isn't just "nothing to send").
-// On the Main side this flag is always true because we're always listening.
+// Set to true by the Vehicle .ino so handle_lora() knows packets are actively being queued
 bool lora_watchdog_enabled = false;
 
-// Call this from the sketch to arm the watchdog whenever there is at least
-// one packet in the TX ring-buffer (Vehicle) or always (Main).
+// Call this from the sketch to arm the watchdog whenever there is at least one packet in the TX ring-buffer
 void lora_watchdog_arm(void)
 {
     lora_watchdog_enabled = true;
@@ -1352,9 +1283,57 @@ bool lora_resetting = false;
 static uint32_t last_attempt = 0;
 static uint32_t lora_reset_time = 0;
 
+// BUSY pin for the SX1262
+static const int LORA_BUSY_PIN = 40;
+
+// Timeout for how long we'll wait for BUSY to deassert during presence check.
+static const uint32_t LORA_PRESENCE_TIMEOUT_MS = 50;
+
+// Pulse the RESET line low briefly, then wait up to LORA_PRESENCE_TIMEOUT_MS
+// for BUSY to deassert. If BUSY never goes low the module is absent/unpowered.
+static bool lora_is_physically_present(void)
+{
+    const int LORA_RESET_PIN = 42; // RESET pin is the 3rd argument of the Module constructor (GPIO 42).
+
+    // Configure pins as needed for the probe.
+    pinMode(LORA_RESET_PIN, OUTPUT);
+    pinMode(LORA_BUSY_PIN, INPUT);
+
+    // Assert reset.
+    digitalWrite(LORA_RESET_PIN, LOW);
+    delay(1); // SX1262 datasheet: hold NRESET low >= 50 µs; 1 ms is plenty.
+
+    // Release reset — the SX1262 will drive BUSY pin high while it calibrates, then pull it low when ready (~3.5 ms).
+    digitalWrite(LORA_RESET_PIN, HIGH);
+
+    uint32_t t0 = millis();
+
+    // First wait for BUSY pin to go high (it may already be there).
+    while (!digitalRead(LORA_BUSY_PIN))
+    {
+        if (millis() - t0 > LORA_PRESENCE_TIMEOUT_MS)
+        {
+            // BUSY pin never asserted — no module present.
+            return false;
+        }
+    }
+
+    // Now wait for BUSY pin to come back low (module finished internal calibration).
+    t0 = millis();
+    while (digitalRead(LORA_BUSY_PIN))
+    {
+        if (millis() - t0 > LORA_PRESENCE_TIMEOUT_MS)
+        {
+            // BUSY stuck high - module is absent or unresponsive.
+            return false;
+        }
+    }
+
+    return true;
+}
+
 // Handles lora reset based on retry timer (1 second)
 void handle_lora()
-
 {
     // Watchdog: detect silent radio while initialized
     // If LoRa is supposedly running but we haven't seen a successful TX/RX
@@ -1368,43 +1347,37 @@ void handle_lora()
         }
     }
 
-    //Check if we can take this out
-    // Now check if there is an error with the LoRa
-    if (!lora_initialized)
+    // Wait a bit after restarting to avoid SPI errors during radio transition.
+    if (!lora_initialized && millis() - lora_reset_time > 1000)
     {
-        // Wait between reset and reconfigure stages
-        if (!lora_resetting && millis() - last_attempt > lora_retry_delay)
+        lora_reset_time = millis();
+
+        // Before committing to a full RadioLib begin(), do a fast BUSY-pin presence check.
+        // Avoids blocking other channels during reset
+        if (!lora_is_physically_present())
         {
-            last_attempt = millis();
-            lora_reset_time = millis();
-            // Hard reset radio before retry
-            //packet_lora_radio.reset();
-            lora_resetting = true;
+            // LoRa shield not detected, skipping reinit.
+            return;
         }
 
-        // Wait a bit after restarting to avoid SPI errors during radio transition.
-        if (lora_resetting && millis() - lora_reset_time > 5000)
+        // Reconfigure lora while checking for successful reinitialization
+        if (common_init_lora())
         {
-            lora_resetting = false;
-
-            // Reconfigure lora while checking for successful reinitialization
-            if (common_init_lora())
-            {
-                Serial.println("Successful LoRa restart");
-                //packet_lora_radio.startReceive();
-                lora_last_activity_ms = millis(); // Reset watchdog after reinit.
-
-                packet_lora_transmission_busy = false;
-            }
-            else
-            {
-                Serial.println("LoRa restart failed, will retry.");
-            }
+            Serial.println("Successful LoRa restart");
+            lora_last_activity_ms = millis(); // Reset watchdog after reinit.
+            packet_lora_transmission_busy = false;
         }
     }
 }
 
 #endif
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// Vehicle interface.
+//
 
 
 

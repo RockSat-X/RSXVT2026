@@ -1,4 +1,4 @@
-#define COMPILING_ESP32 true
+##define COMPILING_ESP32 true
 #define ESPNOW_ENABLE   true
 #define LORA_ENABLE     true
 #include "../system.h"
@@ -122,8 +122,10 @@ setup(void)
     #if LORA_ENABLE
     {
 
-        common_init_lora();
-
+        if (lora_is_physically_present()){
+            common_init_lora();
+        }
+        
         lora_watchdog_arm();
 
     }
