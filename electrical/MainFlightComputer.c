@@ -38,6 +38,49 @@ main(void)
 
 
 
+    // Indicate we are alive and well.
+
+    for (i32 i = 0; i < 8; i += 1)
+    {
+
+        GPIO_ACTIVE  (led_channel_red  );
+        GPIO_INACTIVE(led_channel_green);
+        GPIO_INACTIVE(led_channel_blue );
+        spinlock_us(20'000);
+
+        GPIO_ACTIVE  (led_channel_red  );
+        GPIO_ACTIVE  (led_channel_green);
+        GPIO_INACTIVE(led_channel_blue );
+        spinlock_us(20'000);
+
+        GPIO_INACTIVE(led_channel_red  );
+        GPIO_ACTIVE  (led_channel_green);
+        GPIO_INACTIVE(led_channel_blue );
+        spinlock_us(20'000);
+
+        GPIO_INACTIVE(led_channel_red  );
+        GPIO_ACTIVE  (led_channel_green);
+        GPIO_ACTIVE  (led_channel_blue );
+        spinlock_us(20'000);
+
+        GPIO_INACTIVE(led_channel_red  );
+        GPIO_INACTIVE(led_channel_green);
+        GPIO_ACTIVE  (led_channel_blue );
+        spinlock_us(20'000);
+
+        GPIO_ACTIVE  (led_channel_red  );
+        GPIO_INACTIVE(led_channel_green);
+        GPIO_ACTIVE  (led_channel_blue );
+        spinlock_us(20'000);
+
+    }
+
+    GPIO_INACTIVE(led_channel_red  );
+    GPIO_INACTIVE(led_channel_green);
+    GPIO_INACTIVE(led_channel_blue );
+
+
+
     // Begin the FreeRTOS task scheduler.
 
     FREERTOS_init();
