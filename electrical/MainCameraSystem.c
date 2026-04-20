@@ -215,7 +215,7 @@ main(void)
                     {
                         // Nothing we can honestly do...
                     }
-                    else if (attempts < 256)
+                    else if (attempts < 4096)
                     {
                         // Let's recheck to be SUPER sure we actually need to wipe the SD card...
                     }
