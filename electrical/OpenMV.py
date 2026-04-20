@@ -47,7 +47,7 @@ led_blue  = pyb.LED(3)
 
 sensor.reset()
 sensor.set_pixformat(sensor.RGB565)
-sensor.set_framesize(sensor.QVGA)
+sensor.set_framesize(sensor.QQVGA)
 
 working_framebuffer = sensor.alloc_extra_fb(sensor.width(), sensor.height(), sensor.GRAYSCALE)
 
@@ -693,8 +693,8 @@ def process_framebuffer():
     if True:
 
         sensor.get_fb().draw_line(
-            round(px),
-            round(py),
+            round(sensor.get_fb().width () // 2),
+            round(sensor.get_fb().height() // 2),
             round(closest_point[0]),
             round(closest_point[1]),
             (255, 0, 255),
@@ -702,8 +702,8 @@ def process_framebuffer():
         )
 
         sensor.get_fb().draw_circle(
-            round(px),
-            round(py),
+            round(sensor.get_fb().width () // 2),
+            round(sensor.get_fb().height() // 2),
             3,
             color     = (0, 255, 0),
             thickness = 1,
