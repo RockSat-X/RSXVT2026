@@ -93,6 +93,13 @@ typedef double             f64; static_assert(sizeof(f64) == 8);
 
 
 
+struct Sector
+{
+    u8 bytes[512] __attribute__ ((aligned(4))); // Alignment of 32-bit words because things like SDMMC's IDMA assume this.
+};
+
+
+
 #if !COMPILING_ESP32
 
 
@@ -943,7 +950,9 @@ DEBUG_BOARD_calculate_crc(u8* data, i32 length)
 #define ESP32_TOKEN_START "<ESP32>"
 #define LORA_TOKEN_START  "<LORA>"
 
-pack_push
+// The include file path is like this so it'll compile in the Arduino IDE.
+#include "../meta/PacketStructures.meta"
+/* #meta
 
 // @/`ESP32 Sequence Numbers`:
 //
@@ -995,7 +1004,59 @@ struct ESP32Packet
     struct LoRaPacket nonredundant;
 };
 
-pack_pop
+        for struct_type in (
+            LoRaPacket,
+            ESP32Packet,
+            VehicleInterfacePayload,
+            MainFlightComputerLogEntry,
+            PlotSnapshot,
+            ImageMetadata,
+        ):
+
+            with Meta.enter(f'struct {struct_type.__name__}'):
+
+                with Meta.enter('union'):
+
+                    if ctypes.sizeof(struct_type) == 512:
+                        Meta.line('''
+                            struct Sector sector;
+                        ''')
+
+                    with Meta.enter('struct'):
+
+                        for field_name, field_type in struct_type._fields_:
+
+                            if issubclass(field_type, ctypes.Array):
+                                elemental_type = field_type._type_
+                                array_length   = field_type._length_
+                            else:
+                                elemental_type = field_type
+                                array_length   = None
+
+                            match elemental_type:
+
+                                case ctypes.c_char   : base_type = 'char'
+                                case ctypes.c_uint8  : base_type = 'u8'
+                                case ctypes.c_uint16 : base_type = 'u16'
+                                case ctypes.c_uint32 : base_type = 'u32'
+                                case ctypes.c_uint64 : base_type = 'u64'
+                                case ctypes.c_int8   : base_type = 'i8'
+                                case ctypes.c_int16  : base_type = 'i16'
+                                case ctypes.c_int32  : base_type = 'i32'
+                                case ctypes.c_int64  : base_type = 'i64'
+                                case ctypes.c_float  : base_type = 'f32'
+
+                                case substruct_type if issubclass(substruct_type, ctypes.Structure):
+                                    base_type = f'struct {substruct_type.__name__}'
+
+                                case idk:
+                                    raise NotImplementedError(f'Field {repr(field_name)} has unsupported type {repr(field_type)}.')
+
+                            Meta.line(f'''
+                                {base_type} {field_name}{f'[{array_length}]' if array_length is not None else ''};
+                            ''')
+
+*/
 
 static_assert(sizeof(struct ESP32Packet) <= 250);
 
@@ -1147,7 +1208,6 @@ bool common_init_lora()
  
 #endif
 
-
     // Helpful for detecting LoRa radio error type
     int state = packet_lora_radio.begin();
 
@@ -1261,27 +1321,6 @@ void lora_report_success(void)
     lora_consecutive_errors = 0;
 }
 
-// Timestamp of the last successful LoRa TX or RX event
-static uint32_t lora_last_activity_ms = 0;
-
-// Max length of time without any TX/RX success before we treat the radio as dead
-static const uint32_t LORA_WATCHDOG_TIMEOUT_MS = 1000;
-
-// Set to true by the Vehicle .ino so handle_lora() knows packets are actively being queued
-bool lora_watchdog_enabled = false;
-
-// Call this from the sketch to arm the watchdog whenever there is at least one packet in the TX ring-buffer
-void lora_watchdog_arm(void)
-{
-    lora_watchdog_enabled = true;
-}
-
-// Bool to determine when radio is currently hard reseting
-bool lora_resetting = false;
-
-
-static uint32_t last_attempt = 0;
-static uint32_t lora_reset_time = 0;
 
 // BUSY pin for the SX1262
 static const int LORA_BUSY_PIN = 40;
@@ -1332,6 +1371,28 @@ static bool lora_is_physically_present(void)
     return true;
 }
 
+// Timestamp of the last successful LoRa TX or RX event
+static uint32_t lora_last_activity_ms = 0;
+
+// Max length of time without any TX/RX success before we treat the radio as dead
+static const uint32_t LORA_WATCHDOG_TIMEOUT_MS = 1000;
+
+// Set to true by the Vehicle .ino so handle_lora() knows packets are actively being queued
+bool lora_watchdog_enabled = false;
+
+// Call this from the sketch to arm the watchdog whenever there is at least one packet in the TX ring-buffer
+void lora_watchdog_arm(void)
+{
+    lora_watchdog_enabled = true;
+}
+
+// Bool to determine when radio is currently hard reseting
+bool lora_resetting = false;
+
+static uint32_t last_attempt = 0;
+static uint32_t lora_reset_time = 0;
+
+
 // Handles lora reset based on retry timer (1 second)
 void handle_lora()
 {
@@ -1346,6 +1407,7 @@ void handle_lora()
             lora_consecutive_errors = 0;
         }
     }
+
 
     // Wait a bit after restarting to avoid SPI errors during radio transition.
     if (!lora_initialized && millis() - lora_reset_time > 1000)
@@ -1370,14 +1432,8 @@ void handle_lora()
     }
 }
 
+
 #endif
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-//
-// Vehicle interface.
-//
 
 
 
