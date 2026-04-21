@@ -1,7 +1,7 @@
 #define COMPILING_ESP32        true
 #define ESPNOW_ENABLE          true
 #define LORA_ENABLE            true
-#define GENERATE_DUMMY_PACKETS false
+#define GENERATE_DUMMY_PACKETS true
 #include "../system.h"
 
 
@@ -181,7 +181,11 @@ setup(void)
 
     #if LORA_ENABLE
     {
-        common_init_lora();
+        if (lora_is_physically_present()){
+            common_init_lora();
+        }
+
+        lora_watchdog_arm();
     }
     #endif
 
@@ -270,6 +274,8 @@ process_payload(struct ESP32Packet* payload)
                 packet_lora_writer               += 1;
                 packet_lora_packet_count         += 1;
 
+                lora_last_activity_ms = millis();
+
             }
             else
             {
@@ -289,6 +295,15 @@ process_payload(struct ESP32Packet* payload)
 extern void
 loop(void)
 {
+
+    // Handle RF Channel in case of failed initialization or TX/RX error
+    #if ESPNOW_ENABLE
+    handle_espnow();
+    #endif
+
+    #if LORA_ENABLE
+    handle_lora();
+    #endif
 
     // Heart-beat.
 
@@ -392,7 +407,7 @@ loop(void)
             if (esp_now_send(MAIN_ESP32_MAC_ADDRESS, (u8*) packet, sizeof(*packet)) != ESP_OK)
             {
                 Serial.printf("Send Error!\n");
-                packet_espnow_transmission_busy = false;
+                espnow_report_error();
             }
 
         }
@@ -413,7 +428,13 @@ loop(void)
 
             struct LoRaPacket* packet = &packet_lora_buffer[packet_lora_reader % countof(packet_lora_buffer)];
 
-            packet_lora_radio.startTransmit((u8*) packet, sizeof(*packet)); // TODO Error checking?
+            if (packet_lora_radio.startTransmit((u8*) packet, sizeof(*packet)) != RADIOLIB_ERR_NONE) // TODO Error checking?
+            {
+            packet_lora_transmission_busy = false;
+            lora_report_success();
+            lora_last_activity_ms = millis();
+            }
+            
 
         }
     }

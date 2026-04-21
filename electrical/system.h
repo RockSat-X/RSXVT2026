@@ -1061,26 +1061,78 @@ ESP32_calculate_crc(u8* data, i32 length)
         while (!Serial1);
     }
 
-
+    //variables to check status of esp init and set esp restart based on unsuccessful init or TX/RX errors
+    bool espnow_initialized = false;
+    uint32_t espnow_retry_delay = 1000;
+    uint8_t espnow_consecutive_errors = 0;
+    static const uint8_t ESPNOW_ERROR_THRESHOLD = 32;
 
     // TODO Look more into the specs.
     // TODO Make robust.
     extern void
     common_init_esp_now(void)
     {
-
         WiFi.mode(WIFI_STA);
-        esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE);
 
-        if (esp_now_init() != ESP_OK)
-        {
-            Serial.printf("Error initializing ESP-NOW.\n");
-            ESP.restart();
+        esp_err_t err = esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE);
+        if (err != ESP_OK) {
+            Serial.printf("ESP-NOW failed to set channel (%d)\n", err);
+            espnow_initialized = false;
             return;
         }
 
+        err = esp_now_init();
+        if (err != ESP_OK)
+        {
+            Serial.printf("ESP-NOW init failed (%d)\n", err);
+            espnow_initialized = false;
+            return;
+        }
+
+        // Wifi set and init are successful
+        espnow_initialized = true;
+        espnow_consecutive_errors = 0;
+        return;
     }
 
+
+    #if ESPNOW_ENABLE
+
+    // Call on each TX/RX error for the ESP-NOW channel.
+// Triggers reinit after ESPNOW_ERROR_THRESHOLD consecutive errors.
+    void espnow_report_error(void) {
+        if (++espnow_consecutive_errors >= ESPNOW_ERROR_THRESHOLD) {
+            espnow_initialized = false;
+            espnow_consecutive_errors = 0;
+        }
+    }
+
+    // Call on each successful TX/RX to reset the consecutive error counter.
+    void espnow_report_success(void)
+    {
+        espnow_consecutive_errors = 0;
+    }
+
+
+    //handles esp-now reset based on retry timer (1 second)
+    void handle_espnow()
+    {
+        static uint32_t last_attempt = 0;
+        if (!espnow_initialized && millis() - last_attempt > espnow_retry_delay)
+        {
+            common_init_esp_now();
+            last_attempt = millis();
+        }
+    }
+
+    #endif ESPNOW_ENABLE
+
+    //variables to check status of lora init and set lora restart based on unsuccessful init or TX/RX errors
+    //extern bool packet_lora_transmission_busy = false;
+    bool lora_initialized = false;
+    uint32_t lora_retry_delay = 1000;
+    uint8_t lora_consecutive_errors = 0;
+    static const uint8_t LORA_ERROR_THRESHOLD = 32;
 
 
     #if FSPI_PATCH
@@ -1103,25 +1155,29 @@ ESP32_calculate_crc(u8* data, i32 length)
 
 
     // TODO Make robust.
-    extern void
+    extern bool
     common_init_lora()
     {
 
-        #if FSPI_PATCH
+    #if FSPI_PATCH
 
-            // Creates an instance of the SPI for the fspi hardware controller
-            // Assigns the SX1262 signals (SCK, MISO, MOSI, and NSS) to specific GPIO pins of the ESP32S3
-            // ex. SCK is assigned to GPIO36
-            fspi.begin(36, 37, 35, 41);
+        // Creates an instance of the SPI for the fspi hardware controller
+        // Assigns the SX1262 signals (SCK, MISO, MOSI, and NSS) to specific GPIO pins of the ESP32S3
+        // ex. SCK is assigned to GPIO36
+        fspi.begin(36, 37, 35, 41);
 
-        #endif
+    #endif
 
-        if (packet_lora_radio.begin() != RADIOLIB_ERR_NONE)
-        {
-            Serial.printf("Failed to initialize radio.\n");
-            ESP.restart();
-            return;
-        }
+    // Helpful for detecting LoRa radio error type
+    int state = packet_lora_radio.begin();
+
+    if (state != RADIOLIB_ERR_NONE)
+    {   
+        Serial.printf("Failed to initialize radio, error code: %d\n", state);
+        lora_initialized = false;
+        return false;
+    }
+
 
         // 915 MHz Center Frequency (common frequency used in North America)
         // Should range from 902-928 for most cases
@@ -1164,7 +1220,140 @@ ESP32_calculate_crc(u8* data, i32 length)
 
         packet_lora_radio.setDio1Action(packet_lora_callback);
 
+        lora_initialized = true;
+        Serial.println("LoRa initialized.\n");
+        lora_consecutive_errors = 0;
+        return true;
     }
+
+
+    #if LORA_ENABLE
+
+    // Call on each TX/RX error for the LoRa channel.
+    // Triggers reinit after LORA_ERROR_THRESHOLD consecutive errors
+    void lora_report_error(void)
+    {
+        if (++lora_consecutive_errors >= LORA_ERROR_THRESHOLD) {
+            Serial.println("LoRa error threshold reached, scheduling reinit.");
+            lora_initialized = false;
+            lora_consecutive_errors = 0;
+        }
+    }
+
+    // Call on each successful TX/RX to reset the consecutive error counter
+    void lora_report_success(void)
+    {
+        lora_consecutive_errors = 0;
+    }
+
+    // BUSY and RESET pin for the SX1262
+    static const int LORA_BUSY_PIN = 40;
+    const int LORA_RESET_PIN = 42;
+
+    // Timeout for how long we'll wait for BUSY to deassert during presence check
+    static const uint32_t LORA_PRESENCE_TIMEOUT_MS = 50;
+
+    // Pulse the RESET line low briefly, then wait up to LORA_PRESENCE_TIMEOUT_MS for BUSY to deassert
+    static bool lora_is_physically_present(void)
+    {
+        pinMode(LORA_RESET_PIN, OUTPUT);
+        pinMode(LORA_BUSY_PIN, INPUT);
+
+        // Assert reset - hold RESET low at least 50 µs as pes the SX1262 datasheet
+        digitalWrite(LORA_RESET_PIN, LOW);
+        delay(1);
+
+        // Release reset — the SX1262 will drive BUSY pin high while it calibrates, then pull it low when ready (~3.5 ms)
+        digitalWrite(LORA_RESET_PIN, HIGH);
+
+        uint32_t t0 = millis();
+
+        // First wait for BUSY pin to go high (it may already be there).
+        while (!digitalRead(LORA_BUSY_PIN))
+        {
+            if (millis() - t0 > LORA_PRESENCE_TIMEOUT_MS)
+            {
+                // BUSY pin never asserted — no module present.
+                return false;
+            }
+        }
+
+        // Now wait for BUSY pin to come back low (module finished internal calibration).
+        t0 = millis();
+        while (digitalRead(LORA_BUSY_PIN))
+        {
+            if (millis() - t0 > LORA_PRESENCE_TIMEOUT_MS)
+            {
+                // BUSY stuck high - module is absent or unresponsive.
+                return false;
+            }
+        }
+
+        // LoRa is physically attatched
+        return true;
+    }
+
+    // Watchdog to determine dead/no activity in LoRa
+    static uint32_t lora_last_activity_ms = 0;
+    static const uint32_t LORA_WATCHDOG_TIMEOUT_MS = 5000;
+    bool lora_watchdog_enabled = false;
+
+    // Call this from the sketch to arm the watchdog whenever there is at least one packet in the TX ring-buffer
+    void lora_watchdog_arm(void)
+    {
+        lora_watchdog_enabled = true;
+    }
+
+    // Bool to determine when radio is currently hard reseting
+    bool lora_resetting = false;
+
+    static uint32_t last_attempt = 0;
+    static uint32_t lora_reset_time = 0;
+
+    
+    extern void packet_lora_callback(void);
+
+
+    // Handles lora reset based on retry timer (1 second)
+    void handle_lora()
+    {
+        // Watchdog: detect silent radio while initialized
+        // If LoRa is supposedly running but we haven't seen a successful TX/RX
+        if (lora_initialized && lora_watchdog_enabled)
+        {
+            if (millis() - lora_last_activity_ms > LORA_WATCHDOG_TIMEOUT_MS)
+            {
+                Serial.println("LoRa watchdog timeout — no activity, scheduling reinit.");
+                lora_initialized = false;
+                lora_consecutive_errors = 0;
+            }
+        }
+
+
+        // Wait a bit after restarting to avoid SPI errors during radio transition.
+        if (!lora_initialized && millis() - lora_reset_time > 1000)
+        {
+            lora_reset_time = millis();
+
+            // Before committing to a full RadioLib begin(), do a fast BUSY-pin presence check.
+            // Avoids blocking other channels during reset
+            if (!lora_is_physically_present())
+            {
+                // LoRa shield not detected, skipping reinit.
+                return;
+            }
+
+            // Reconfigure lora while checking for successful reinitialization
+            if (common_init_lora())
+            {
+                Serial.println("Successful LoRa restart");
+                lora_last_activity_ms = millis(); // Reset watchdog after reinit.
+                packet_lora_radio.startReceive();
+                packet_lora_callback();
+            }
+        }
+    }
+    #endif
 
 #endif
 

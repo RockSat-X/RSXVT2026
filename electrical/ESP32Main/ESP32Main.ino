@@ -1,6 +1,6 @@
 #define COMPILING_ESP32 true
 #define ESPNOW_ENABLE   true
-#define LORA_ENABLE     false
+#define LORA_ENABLE     true
 #include "../system.h"
 
 
@@ -120,7 +120,9 @@ setup(void)
     #if LORA_ENABLE
     {
 
-        common_init_lora();
+        if (lora_is_physically_present()){
+            common_init_lora();
+        }
 
         if (packet_lora_radio.startReceive() != RADIOLIB_ERR_NONE)
         {
@@ -128,6 +130,8 @@ setup(void)
             ESP.restart();
             return;
         }
+
+        lora_watchdog_arm();
 
     }
     #endif
@@ -140,6 +144,15 @@ setup(void)
 extern void
 loop(void)
 {
+
+    // Handle RF Channel in case of failed initialization or TX/RX error
+    #if ESPNOW_ENABLE
+    handle_espnow();
+    #endif
+
+    #if LORA_ENABLE
+    handle_lora();
+    #endif
 
     digitalWrite(BUILTIN_LED, !digitalRead(BUILTIN_LED));
 
@@ -201,6 +214,7 @@ loop(void)
             else if (packet_lora_radio.readData((u8*) packet, sizeof(*packet)) != RADIOLIB_ERR_NONE)
             {
                 packet_lora_radio_error_count += 1;
+                lora_report_error();
             }
 
 
@@ -210,6 +224,7 @@ loop(void)
             else
             {
                 packet_lora_writer += 1;
+                lora_last_activity_ms = millis();
             }
 
         }
@@ -236,6 +251,7 @@ loop(void)
             if (digest)
             {
                 packet_espnow_crc_error_count += 1;
+                espnow_report_error();
             }
             else
             {
@@ -276,6 +292,7 @@ loop(void)
             // We're done with the packet.
 
             packet_espnow_reader += 1;
+            espnow_report_success();
 
         }
     }
@@ -301,6 +318,7 @@ loop(void)
             if (digest)
             {
                 packet_lora_crc_error_count += 1;
+                lora_report_error();
             }
             else
             {
@@ -341,6 +359,8 @@ loop(void)
             // We're done with the packet.
 
             packet_lora_reader += 1;
+            lora_report_success();
+            lora_last_activity_ms = millis();
 
         }
     }
