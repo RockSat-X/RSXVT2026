@@ -4256,6 +4256,7 @@
             ADVREGEN, true ,
             ADEN    , true ,
         );
+        CMSIS_SET(ADC1, OR, OP0, true);
         while (!CMSIS_GET(ADC1, ISR, ADRDY));
         CMSIS_SET(ADC1, CR, ADCAL, true);
         while (!CMSIS_GET(ADC1, CR, ADCAL));
@@ -7142,6 +7143,7 @@
             ADVREGEN, true ,
             ADEN    , true ,
         );
+        CMSIS_SET(ADC1, OR, OP0, true);
         while (!CMSIS_GET(ADC1, ISR, ADRDY));
         CMSIS_SET(ADC1, CR, ADCAL, true);
         while (!CMSIS_GET(ADC1, CR, ADCAL));
