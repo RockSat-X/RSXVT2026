@@ -978,10 +978,18 @@ FREERTOS_TASK(logger, 0)
 
 
 
-                // We only do a log entry when there's actual data.
+                // Fill out the log entry.
 
-                do
+                u32 observed_most_recent_logging_timestamp_us =
+                    atomic_load_explicit
+                    (
+                        &most_recent_logging_timestamp_us,
+                        memory_order_relaxed // No synchronization necessary.
+                    );
+
+                while (true)
                 {
+
                     pool.log_entries[i].magic[0]                        = 'M';
                     pool.log_entries[i].magic[1]                        = 'E';
                     pool.log_entries[i].magic[2]                        = 'O';
@@ -989,15 +997,30 @@ FREERTOS_TASK(logger, 0)
                     pool.log_entries[i].esp32_packet_exist              = !!RingBuffer_pop(&esp32_packets             , &pool.log_entries[i].esp32_packet_data             );
                     pool.log_entries[i].lora_packet_exist               = !!RingBuffer_pop(&lora_packets              , &pool.log_entries[i].lora_packet_data              );
                     pool.log_entries[i].vehicle_interface_payload_exist = !!RingBuffer_pop(&vehicle_interface_payloads, &pool.log_entries[i].vehicle_interface_payload_data);
-                    pool.log_entries[i].solarboard_A                    = GPIO_SPINLOCK_ANALOG_READ(solarboard_analog_A) * SOLARBOARD_ANALOG_FACTOR;
-                    pool.log_entries[i].solarboard_B                    = GPIO_SPINLOCK_ANALOG_READ(solarboard_analog_B) * SOLARBOARD_ANALOG_FACTOR;
+
+                    if
+                    (
+                        !pool.log_entries[i].esp32_packet_exist &&
+                        !pool.log_entries[i].lora_packet_exist  &&
+                        !pool.log_entries[i].vehicle_interface_payload_exist
+                    )
+                    {
+                        break; // There's actual data; use the log entry immediately.
+                    }
+
+                    if (TIMEKEEPING_microseconds() - observed_most_recent_logging_timestamp_us >= 100'000)
+                    {
+                        // Periodically log the solarboards' voltages at least,
+                        // even if no other pieces of information exists.
+                        break;
+                    }
+
+                    FREERTOS_delay_ms(1);
+
                 }
-                while
-                (
-                    !pool.log_entries[i].esp32_packet_exist &&
-                    !pool.log_entries[i].lora_packet_exist  &&
-                    !pool.log_entries[i].vehicle_interface_payload_exist
-                );
+
+                pool.log_entries[i].solarboard_A = GPIO_SPINLOCK_ANALOG_READ(solarboard_analog_A) * SOLARBOARD_ANALOG_FACTOR;
+                pool.log_entries[i].solarboard_B = GPIO_SPINLOCK_ANALOG_READ(solarboard_analog_B) * SOLARBOARD_ANALOG_FACTOR;
 
 
 
