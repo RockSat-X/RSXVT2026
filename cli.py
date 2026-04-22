@@ -433,12 +433,13 @@ class VideoMaker:
 
 
 
-    def __init__(self, file_path, fps, max_delta_time):
+    def __init__(self, file_path, fps, max_delta_time, upside_down):
 
         self.file_path            = pathlib.Path(file_path)
         self.compressed_file_path = None
         self.fps                  = fps
         self.max_delta_time       = max_delta_time
+        self.upside_down          = upside_down
         self.writer               = None
         self.current_time         = 0
         self.image_count          = 0
@@ -488,6 +489,9 @@ class VideoMaker:
         end_time = self.current_time + min(delta_time, self.max_delta_time)
 
         self.image_count += 1
+
+        if self.upside_down:
+            frame = cv2.rotate(frame, cv2.ROTATE_180)
 
         while True:
 
@@ -2354,6 +2358,13 @@ def verifyLogs(parameters):
         'flag_only'   : True,
         'default'     : 60
     },
+    {
+        'name'        : 'upside_down',
+        'description' : 'Whether or not to rotate the images by 180 degrees.',
+        'type'        : bool,
+        'flag_only'   : True,
+        'default'     : False
+    },
 )
 def parseVideo(parameters):
 
@@ -2378,6 +2389,7 @@ def parseVideo(parameters):
         file_path      = output_file_path,
         fps            = parameters.fps,
         max_delta_time = 5,
+        upside_down    = parameters.upside_down,
     )
 
     input_file_handle     = open(input_file_path, 'rb')
@@ -2505,6 +2517,13 @@ def parseVideo(parameters):
         'type'        : str,
         'default'     : None
     },
+    {
+        'name'        : 'upside_down',
+        'description' : 'Whether or not to rotate the images by 180 degrees.',
+        'type'        : bool,
+        'flag_only'   : True,
+        'default'     : False
+    },
 )
 def parseFlight(parameters):
 
@@ -2573,6 +2592,7 @@ def parseFlight(parameters):
         file_path      = pathlib.Path(output_directory_path, f'video.mp4'),
         fps            = 10,
         max_delta_time = 5,
+        upside_down    = parameters.upside_down,
     )
 
     while True:
