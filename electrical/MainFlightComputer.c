@@ -1272,7 +1272,7 @@ FREERTOS_TASK(debug_board, 0)
                     memory_order_relaxed // No synchronization needed.
                 );
 
-            b32 esp32_good     = TIMEKEEPING_microseconds() - observed_most_recent_esp32_reception_timestamp_us           <   100'000;
+            b32 esp32_good     = TIMEKEEPING_microseconds() - observed_most_recent_esp32_reception_timestamp_us           <   500'000;
             b32 lora_good      = TIMEKEEPING_microseconds() - observed_most_recent_lora_reception_timestamp_us            < 1'000'000;
             b32 logger_good    = TIMEKEEPING_microseconds() - observed_most_recent_logging_timestamp_us                   <   500'000;
             b32 vehicle_docked = TIMEKEEPING_microseconds() - observed_most_recent_vehicle_interface_payload_timestamp_us <   500'000;
