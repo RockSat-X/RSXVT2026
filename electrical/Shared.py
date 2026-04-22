@@ -80,6 +80,7 @@ class UnpaddedMainFlightComputerLogEntry(ctypes.Structure):
     _pack_   = True
     _fields_ = (
         ('magic'                           , ctypes.c_char * 4      ), # As a precaution; currently not used for synchronization.
+        ('timestamp_us'                    , ctypes.c_uint32        ),
         ('esp32_packet_exist'              , ctypes.c_uint8         ),
         ('lora_packet_exist'               , ctypes.c_uint8         ),
         ('vehicle_interface_payload_exist' , ctypes.c_uint8         ),

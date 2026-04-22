@@ -994,6 +994,7 @@ FREERTOS_TASK(logger, 0)
                     pool.log_entries[i].magic[1]                        = 'E';
                     pool.log_entries[i].magic[2]                        = 'O';
                     pool.log_entries[i].magic[3]                        = 'W';
+                    pool.log_entries[i].timestamp_us                    = TIMEKEEPING_microseconds();
                     pool.log_entries[i].esp32_packet_exist              = !!RingBuffer_pop(&esp32_packets             , &pool.log_entries[i].esp32_packet_data             );
                     pool.log_entries[i].lora_packet_exist               = !!RingBuffer_pop(&lora_packets              , &pool.log_entries[i].lora_packet_data              );
                     pool.log_entries[i].vehicle_interface_payload_exist = !!RingBuffer_pop(&vehicle_interface_payloads, &pool.log_entries[i].vehicle_interface_payload_data);

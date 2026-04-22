@@ -60,6 +60,7 @@ pack_push
             struct
             {
                 char magic[4];
+                u32 timestamp_us;
                 u8 esp32_packet_exist;
                 u8 lora_packet_exist;
                 u8 vehicle_interface_payload_exist;
@@ -69,7 +70,7 @@ pack_push
                 struct VehicleInterfacePayload vehicle_interface_payload_data;
                 f32 solarboard_A;
                 f32 solarboard_B;
-                u8 sector_padding_[191];
+                u8 sector_padding_[187];
             };
         };
     };
