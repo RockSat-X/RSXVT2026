@@ -1266,9 +1266,11 @@ FREERTOS_TASK(debug_board, 0)
                     .solarboard_voltages[1] = GPIO_SPINLOCK_ANALOG_READ(solarboard_analog_B) * SOLARBOARD_ANALOG_FACTOR,
                     .flags                  =
                         (
-                            (!!esp32_good ) << MainFlightComputerDebugStatusFlag_esp32 |
-                            (!!lora_good  ) << MainFlightComputerDebugStatusFlag_lora  |
-                            (!!logger_good) << MainFlightComputerDebugStatusFlag_logger
+                            (!!esp32_good                    ) << MainFlightComputerDebugStatusFlag_esp32   |
+                            (!!lora_good                     ) << MainFlightComputerDebugStatusFlag_lora    |
+                            (!!logger_good                   ) << MainFlightComputerDebugStatusFlag_logger  |
+                            (!!GPIO_READ(logic_timer_event_1)) << MainFlightComputerDebugStatusFlag_te1     |
+                            (false                           ) << MainFlightComputerDebugStatusFlag_vehicle // TODO.
                         ),
                 };
 
@@ -1322,7 +1324,7 @@ FREERTOS_TASK(debug_board, 0)
 
             }
 
-            FREERTOS_delay_ms(100);
+            FREERTOS_delay_ms(50);
 
         }
 

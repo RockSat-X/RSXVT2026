@@ -886,9 +886,9 @@ pack_push
 
             esp32
             lora
-            lis2mdl
-            lsm6dsv32x
             logger
+            te1
+            vehicle
 
         '''.split()
 

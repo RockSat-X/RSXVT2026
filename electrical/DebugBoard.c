@@ -210,9 +210,7 @@ FREERTOS_TASK(display, 0)
             packet_exist ? packet_data.solarboard_voltages[1]                 : NAN
         );
 
-        GPIO_INACTIVE(led_channel_red_B  );
-        GPIO_ACTIVE  (led_channel_green_B);
-        GPIO_INACTIVE(led_channel_blue_B );
+        b32 bad_condition_found = false;
 
         for (i32 i = 0; i < 4; i += 1) // Display as many system statuses as we can on the little screen.
         {
@@ -230,39 +228,76 @@ FREERTOS_TASK(display, 0)
                 GPIO_ACTIVE(led_channel_blue_B );
 
             }
-            else if (packet_data.flags & (1 << flag)) // Debugged-device reports that this system is working.
-            {
-                condition = "OK";
-            }
-            else // Debugged-device reports that a particular system is not working.
+            else
             {
 
-                condition = "NOPE";
+                b32 status = packet_data.flags & (1 << flag);
 
-                GPIO_ACTIVE  (led_channel_red_B  );
-                GPIO_INACTIVE(led_channel_green_B);
-                GPIO_INACTIVE(led_channel_blue_B );
+                condition = status ? "OK" : "NOPE";
 
-                if (TIMEKEEPING_microseconds() - last_bad_condition_timestamp_us >= 5'000'000 && !BUZZER_current_tune())
+                switch (flag)
                 {
-                    last_bad_condition_timestamp_us = TIMEKEEPING_microseconds();
-                    BUZZER_play(BuzzerTune_deep_beep);
+
+                    case MainFlightComputerDebugStatusFlag_esp32:
+                    case MainFlightComputerDebugStatusFlag_lora:
+                    case MainFlightComputerDebugStatusFlag_logger:
+                    {
+                        if (!status)
+                        {
+                            bad_condition_found = true;
+                        }
+                    } break;
+
+                    case MainFlightComputerDebugStatusFlag_te1:
+                    case MainFlightComputerDebugStatusFlag_vehicle:
+                    {
+                        // Not a bad condition to worry about.
+                    } break;
+
+                    default:
+                    {
+                        sus;
+                    } break;
+
                 }
 
             }
+
+
 
             SSD1306_write_format
             (
                 0,
                 4 + i,
-                "%-10s %s",
+                "%10s %s",
                 MainFlightComputerDebugStatusFlag_TABLE[flag].name,
                 condition
             );
 
         }
 
-        if (TIMEKEEPING_microseconds() - status_flag_timestamp_us >= 500'000) // Scroll the statuses slowly over time.
+        if (bad_condition_found)
+        {
+
+            if (TIMEKEEPING_microseconds() - last_bad_condition_timestamp_us >= 5'000'000 && !BUZZER_current_tune())
+            {
+                last_bad_condition_timestamp_us = TIMEKEEPING_microseconds();
+                BUZZER_play(BuzzerTune_deep_beep);
+            }
+
+            GPIO_ACTIVE  (led_channel_red_B  );
+            GPIO_INACTIVE(led_channel_green_B);
+            GPIO_INACTIVE(led_channel_blue_B );
+
+        }
+        else
+        {
+            GPIO_INACTIVE(led_channel_red_B  );
+            GPIO_ACTIVE  (led_channel_green_B);
+            GPIO_INACTIVE(led_channel_blue_B );
+        }
+
+        if (TIMEKEEPING_microseconds() - status_flag_timestamp_us >= 1'000'000) // Scroll the statuses slowly over time.
         {
             status_flag_timestamp_us  = TIMEKEEPING_microseconds();
             first_status_flag        += 1;
