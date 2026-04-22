@@ -667,7 +667,8 @@ FREERTOS_TASK(esp32, 0)
 
 
 
-static RingBuffer(struct VehicleInterfacePayload, 16) vehicle_interface_payloads = {0};
+static RingBuffer(struct VehicleInterfacePayload, 16) vehicle_interface_payloads                         = {0};
+static volatile _Atomic u32                           most_recent_vehicle_interface_payload_timestamp_us = {0};
 
 FREERTOS_TASK(vehicle_interface, 0)
 {
@@ -734,14 +735,26 @@ FREERTOS_TASK(vehicle_interface, 0)
                                 eSetBits
                             );
                         }
-                        else if (!RingBuffer_push(&vehicle_interface_payloads, &payload))
+                        else
                         {
-                            xTaskNotify // Ring-buffer over-run!
+
+                            if (!RingBuffer_push(&vehicle_interface_payloads, &payload))
+                            {
+                                xTaskNotify // Ring-buffer over-run!
+                                (
+                                    diagnostics_handle,
+                                    DiagnosticMask_vehicle_interface_mishap,
+                                    eSetBits
+                                );
+                            }
+
+                            atomic_store_explicit
                             (
-                                diagnostics_handle,
-                                DiagnosticMask_vehicle_interface_mishap,
-                                eSetBits
+                                &most_recent_vehicle_interface_payload_timestamp_us,
+                                TIMEKEEPING_microseconds(),
+                                memory_order_relaxed // No synchronization necessary.
                             );
+
                         }
 
                         yield = true;
@@ -1251,9 +1264,17 @@ FREERTOS_TASK(debug_board, 0)
                     memory_order_relaxed // No synchronization needed.
                 );
 
-            b32 esp32_good  = TIMEKEEPING_microseconds() - observed_most_recent_esp32_reception_timestamp_us <   100'000;
-            b32 lora_good   = TIMEKEEPING_microseconds() - observed_most_recent_lora_reception_timestamp_us  < 1'000'000;
-            b32 logger_good = TIMEKEEPING_microseconds() - observed_most_recent_logging_timestamp_us         <   500'000;
+            u32 observed_most_recent_vehicle_interface_payload_timestamp_us =
+                atomic_load_explicit
+                (
+                    &most_recent_vehicle_interface_payload_timestamp_us,
+                    memory_order_relaxed // No synchronization needed.
+                );
+
+            b32 esp32_good     = TIMEKEEPING_microseconds() - observed_most_recent_esp32_reception_timestamp_us           <   100'000;
+            b32 lora_good      = TIMEKEEPING_microseconds() - observed_most_recent_lora_reception_timestamp_us            < 1'000'000;
+            b32 logger_good    = TIMEKEEPING_microseconds() - observed_most_recent_logging_timestamp_us                   <   500'000;
+            b32 vehicle_docked = TIMEKEEPING_microseconds() - observed_most_recent_vehicle_interface_payload_timestamp_us <   500'000;
 
 
 
@@ -1270,7 +1291,7 @@ FREERTOS_TASK(debug_board, 0)
                             (!!lora_good                     ) << MainFlightComputerDebugStatusFlag_lora    |
                             (!!logger_good                   ) << MainFlightComputerDebugStatusFlag_logger  |
                             (!!GPIO_READ(logic_timer_event_1)) << MainFlightComputerDebugStatusFlag_te1     |
-                            (false                           ) << MainFlightComputerDebugStatusFlag_vehicle // TODO.
+                            (!!vehicle_docked                ) << MainFlightComputerDebugStatusFlag_vehicle
                         ),
                 };
 
