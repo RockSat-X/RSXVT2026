@@ -249,9 +249,16 @@ FREERTOS_TASK(display, 0)
                     } break;
 
                     case MainFlightComputerDebugStatusFlag_te1:
+                    {
+                        if (status && !BUZZER_current_tune())
+                        {
+                            BUZZER_play(BuzzerTune_up_and_down); // Indicate that the burn-wire is going.
+                        }
+                    } break;
+
                     case MainFlightComputerDebugStatusFlag_vehicle:
                     {
-                        // Not a bad condition to worry about.
+                        // Not a condition to worry about.
                     } break;
 
                     default:
