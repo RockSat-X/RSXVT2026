@@ -212,7 +212,7 @@ FREERTOS_TASK(display, 0)
 
         b32 bad_condition_found = false;
 
-        for (i32 i = 0; i < 4; i += 1) // Display as many system statuses as we can on the little screen.
+        for (i32 i = 0; i < MainFlightComputerDebugStatusFlag_COUNT; i += 1) // Display as many system statuses as we can on the little screen.
         {
 
             enum MainFlightComputerDebugStatusFlag flag = (first_status_flag + i) % MainFlightComputerDebugStatusFlag_COUNT;
