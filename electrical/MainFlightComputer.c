@@ -1024,17 +1024,16 @@ FREERTOS_TASK(logger, 0)
 
                     if (TIMEKEEPING_microseconds() - observed_most_recent_logging_timestamp_us >= 100'000)
                     {
-                        // Periodically log the solarboards' voltages at least,
-                        // even if no other pieces of information exists.
-                        break;
+                        break; // Do periodic logs as necessary.
                     }
 
                     FREERTOS_delay_ms(1);
 
                 }
 
-                pool.log_entries[i].solarboard_A = GPIO_SPINLOCK_ANALOG_READ(solarboard_analog_A) * SOLARBOARD_ANALOG_FACTOR;
-                pool.log_entries[i].solarboard_B = GPIO_SPINLOCK_ANALOG_READ(solarboard_analog_B) * SOLARBOARD_ANALOG_FACTOR;
+                pool.log_entries[i].solarboard_A  = GPIO_SPINLOCK_ANALOG_READ(solarboard_analog_A) * SOLARBOARD_ANALOG_FACTOR;
+                pool.log_entries[i].solarboard_B  = GPIO_SPINLOCK_ANALOG_READ(solarboard_analog_B) * SOLARBOARD_ANALOG_FACTOR;
+                pool.log_entries[i].timer_event_1 = GPIO_READ(logic_timer_event_1);
 
 
 
@@ -1092,6 +1091,7 @@ FREERTOS_TASK(logger, 0)
                             "- Rolling Seq.               : %d"             "\n"
                             "- CV Confidence              : %d"             "\n"
                             "- Img. Seq.                  : %d"             "\n"
+                            "Timer-Event 1                : %s"             "\n"
                             "Solarboard A                 : %f"             "\n"
                             "Solarboard B                 : %f"             "\n"
                             "\n",
@@ -1131,6 +1131,7 @@ FREERTOS_TASK(logger, 0)
                             pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.rolling_sequence_number    : -1,
                             pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.computer_vision_confidence : -1,
                             pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.image_sequence_number                   : -1,
+                            pool.log_entries[i].timer_event_1      ? "true"                                                                        : "false",
                             pool.log_entries[i].solarboard_A,
                             pool.log_entries[i].solarboard_B
                         );

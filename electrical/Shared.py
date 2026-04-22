@@ -90,6 +90,7 @@ class UnpaddedMainFlightComputerLogEntry(ctypes.Structure):
         ('vehicle_interface_payload_data'  , VehicleInterfacePayload),
         ('solarboard_A'                    , ctypes.c_float         ),
         ('solarboard_B'                    , ctypes.c_float         ),
+        ('timer_event_1'                   , ctypes.c_uint8         ),
     )
 
 class MainFlightComputerLogEntry(ctypes.Structure):
