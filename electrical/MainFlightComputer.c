@@ -1,6 +1,7 @@
 #define WATCHDOG_ENABLE                  true
 #define ALLOW_FILESYSTEM_TO_BE_FORMATTED true
 #define TRANSMIT_TV                      false
+#define SOLARBOARD_ANALOG_FACTOR         (1.0f / 620.0f)
 
 #include "system.h"
 #include "timekeeping.c"
@@ -988,6 +989,8 @@ FREERTOS_TASK(logger, 0)
                     pool.log_entries[i].esp32_packet_exist              = !!RingBuffer_pop(&esp32_packets             , &pool.log_entries[i].esp32_packet_data             );
                     pool.log_entries[i].lora_packet_exist               = !!RingBuffer_pop(&lora_packets              , &pool.log_entries[i].lora_packet_data              );
                     pool.log_entries[i].vehicle_interface_payload_exist = !!RingBuffer_pop(&vehicle_interface_payloads, &pool.log_entries[i].vehicle_interface_payload_data);
+                    pool.log_entries[i].solarboard_A                    = GPIO_SPINLOCK_ANALOG_READ(solarboard_analog_A) * SOLARBOARD_ANALOG_FACTOR;
+                    pool.log_entries[i].solarboard_B                    = GPIO_SPINLOCK_ANALOG_READ(solarboard_analog_B) * SOLARBOARD_ANALOG_FACTOR;
                 }
                 while
                 (
@@ -1052,6 +1055,8 @@ FREERTOS_TASK(logger, 0)
                             "- Rolling Seq.               : %d"             "\n"
                             "- CV Confidence              : %d"             "\n"
                             "- Img. Seq.                  : %d"             "\n"
+                            "Solarboard A                 : %f"             "\n"
+                            "Solarboard B                 : %f"             "\n"
                             "\n",
                             TIMEKEEPING_microseconds(),
                             RingBuffer_amount_in_queue(&esp32_packets),
@@ -1088,7 +1093,9 @@ FREERTOS_TASK(logger, 0)
                             pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.timestamp_ms               : -1,
                             pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.rolling_sequence_number    : -1,
                             pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.computer_vision_confidence : -1,
-                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.image_sequence_number                   : -1
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.image_sequence_number                   : -1,
+                            pool.log_entries[i].solarboard_A,
+                            pool.log_entries[i].solarboard_B
                         );
 
                     }
@@ -1231,8 +1238,8 @@ FREERTOS_TASK(debug_board, 0)
             struct MainFlightComputerDebugPacket packet =
                 {
                     .timestamp_us           = TIMEKEEPING_microseconds(),
-                    .solarboard_voltages[0] = 67, // TODO.
-                    .solarboard_voltages[1] = 69, // TODO.
+                    .solarboard_voltages[0] = GPIO_SPINLOCK_ANALOG_READ(solarboard_analog_A) * SOLARBOARD_ANALOG_FACTOR,
+                    .solarboard_voltages[1] = GPIO_SPINLOCK_ANALOG_READ(solarboard_analog_B) * SOLARBOARD_ANALOG_FACTOR,
                     .flags                  =
                         (
                             (!!esp32_good ) << MainFlightComputerDebugStatusFlag_esp32 |

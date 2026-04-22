@@ -87,6 +87,8 @@ class UnpaddedMainFlightComputerLogEntry(ctypes.Structure):
         ('esp32_packet_data'               , ESP32Packet            ),
         ('lora_packet_data'                , LoRaPacket             ),
         ('vehicle_interface_payload_data'  , VehicleInterfacePayload),
+        ('solarboard_A'                    , ctypes.c_float         ),
+        ('solarboard_B'                    , ctypes.c_float         ),
     )
 
 class MainFlightComputerLogEntry(ctypes.Structure):

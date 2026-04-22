@@ -67,7 +67,9 @@ pack_push
                 struct ESP32Packet esp32_packet_data;
                 struct LoRaPacket lora_packet_data;
                 struct VehicleInterfacePayload vehicle_interface_payload_data;
-                u8 sector_padding_[199];
+                f32 solarboard_A;
+                f32 solarboard_B;
+                u8 sector_padding_[191];
             };
         };
     };
