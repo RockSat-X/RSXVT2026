@@ -427,6 +427,122 @@ def request_stlinks(
 
 
 
+# Helper to make videos from image frames easily.
+
+class VideoMaker:
+
+
+
+    def __init__(self, file_path, fps, max_delta_time, upside_down):
+
+        self.file_path            = pathlib.Path(file_path)
+        self.compressed_file_path = None
+        self.fps                  = fps
+        self.max_delta_time       = max_delta_time
+        self.upside_down          = upside_down
+        self.writer               = None
+        self.current_time         = 0
+        self.image_count          = 0
+
+
+
+    def append(self, image, delta_time = 0):
+
+
+
+        # The video resolution will be based on the first image.
+
+        cv2, numpy = import_cv2_numpy()
+
+        frame = cv2.imdecode(numpy.frombuffer(image, dtype = numpy.uint8), cv2.IMREAD_COLOR)
+
+        if self.writer is None:
+
+            height, width, _ = frame.shape
+            self.writer      = cv2.VideoWriter(
+                self.file_path,
+                cv2.VideoWriter_fourcc(*'mp4v'),
+                self.fps,
+                (width, height)
+            )
+
+
+
+        # If the delta time is large, then the frame will be shown for quite a while.
+        # Just give warning on this and limit the delta time.
+
+        if delta_time > self.max_delta_time:
+
+            pxd.pxd_logger.warning(
+                f'A gap of {delta_time :.3f} seconds (> {self.max_delta_time} seconds) '
+                f'was found between frames '
+                f'(t = ~{math.floor(self.current_time // 60 // 60)}h {math.floor(self.current_time // 60)}m {self.current_time % 60 :.2f}s); '
+                f'capping the delta time to {self.max_delta_time} seconds.'
+            )
+
+
+
+        # Write the frames multiple times to get the delta time right.
+        # Note that we always at least show the frame once, so no frames
+        # will ever be dropped.
+
+        end_time = self.current_time + min(delta_time, self.max_delta_time)
+
+        self.image_count += 1
+
+        if self.upside_down:
+            frame = cv2.rotate(frame, cv2.ROTATE_180)
+
+        while True:
+
+            self.writer.write(frame)
+
+            self.current_time += 1 / self.fps
+
+            if self.current_time >= end_time:
+                break
+
+
+
+    def release(self):
+
+        if self.writer is None:
+
+            pxd.pxd_logger.warning(f'No image frames were found, so no video will be made.')
+
+        else:
+
+            self.writer.release()
+
+            if shutil.which('ffmpeg') is None:
+
+                pxd.pxd_logger.warning(
+                    '`ffmpeg` was not found on your machine, so no compression will be done.' '\n'
+                    ''                                                                        '\n'
+                    'If you want, install `ffmpeg` on Windows with:'                          '\n'
+                    '> winget install Gyan.FFmpeg'                                            '\n'
+                    ''                                                                        '\n'
+                    '... or on a Debian-based distro with:'                                   '\n'
+                    '> sudo apt install ffmpeg'
+                )
+
+            else:
+
+                self.compressed_file_path = self.file_path.with_name(f'{self.file_path.stem}-compressed.mp4')
+
+                self.compressed_file_path.unlink(missing_ok = True)
+
+                pxd.execute_shell_command(f'''
+                    ffmpeg
+                        -i {self.file_path.as_posix()}
+                        -vcodec libx265
+                        -crf 28
+                        -loglevel warning
+                        {self.compressed_file_path.as_posix()}
+                ''')
+
+
+
 ################################################################################
 
 
@@ -2240,7 +2356,14 @@ def verifyLogs(parameters):
         'description' : 'Frame rate of the video.',
         'type'        : int,
         'flag_only'   : True,
-        'default'     : 24
+        'default'     : 60
+    },
+    {
+        'name'        : 'upside_down',
+        'description' : 'Whether or not to rotate the images by 180 degrees.',
+        'type'        : bool,
+        'flag_only'   : True,
+        'default'     : False
     },
 )
 def parseVideo(parameters):
@@ -2249,170 +2372,129 @@ def parseVideo(parameters):
 
     input_file_path = pathlib.Path(parameters.input_file_path)
 
+    if not input_file_path.is_file():
+        pxd.pxd_logger.error(
+            f"Couldn't open {repr(input_file_path.resolve().as_posix())}."
+        )
+        sys.exit(1)
+
     if parameters.output_file_path is None:
         output_file_path = pathlib.Path(f'./{input_file_path.stem}.mp4')
     else:
         output_file_path = parameters.output_file_path
 
-    cv2, numpy = import_cv2_numpy()
 
 
-
-    # Lazily parse for image frames.
-
-    def frame_generator():
-
-        file_handle    = open(input_file_path, 'rb')
-        working_window = b''
-
-        while True:
-
-
-
-            # If the binary blob is massive, we load it in chunks at a time
-            # and process it as so. This breaks if the image frame is larger
-            # than the specified chunk here, but for our situation, this is
-            # good enough.
-
-            if len(working_window) < 1024 * 1024:
-                working_window += file_handle.read(1024 * 1024)
-
-
-
-            # Find the start and end of the image frame, if any.
-
-            if (start := working_window.find(TV_TOKEN.START)) == -1:
-                break
-
-            if (end := working_window.find(TV_TOKEN.END, start)) == -1:
-                break
-
-
-
-            # Try decoding the image.
-
-            image_array = numpy.frombuffer(
-                working_window[start + len(TV_TOKEN.START) : end],
-                dtype = numpy.uint8
-            )
-
-            frame = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
-
-            if frame is not None:
-                yield file_handle.tell(), frame
-
-
-
-            # Move onto next frame.
-
-            working_window = working_window[end + len(TV_TOKEN.END):]
-
-
-
-    # Have the video's settings be based on the first frame.
-
-    frames = frame_generator()
-
-    _, first_frame = next(frames, (None, None))
-
-    if first_frame is None:
-
-        pxd.pxd_logger.warning(
-            f'No valid frames found in {repr(input_file_path.as_posix())}.'
-        )
-
-        return
-
-    frame_count                  = 1
-    video_height, video_width, _ = first_frame.shape
-
-    writer = cv2.VideoWriter(
-        output_file_path,
-        cv2.VideoWriter_fourcc(*'mp4v'),
-        parameters.fps,
-        (video_width, video_height)
+    video_maker = VideoMaker(
+        file_path      = output_file_path,
+        fps            = parameters.fps,
+        max_delta_time = 5,
+        upside_down    = parameters.upside_down,
     )
 
-    writer.write(first_frame)
+    input_file_handle     = open(input_file_path, 'rb')
+    working_window        = b''
+    heartbeat_time        = 0
+    previous_timestamp_us = None
+
+    while True:
 
 
 
-    # Process the rest of the frames in the file.
+        # If the binary blob is massive, we load it in chunks at a time
+        # and process it as so. This breaks if the image frame is larger
+        # than the specified chunk here, but for our situation, this is
+        # good enough.
 
-    input_file_size = input_file_path.stat().st_size
+        if len(working_window) < 1024 * 1024:
+            working_window += input_file_handle.read(1024 * 1024)
 
-    for input_file_cursor_position, frame in frames:
 
-        frame_count                  += 1
-        frame_height, frame_width, _  = frame.shape
 
-        if (frame_width, frame_height) != (video_width, video_height):
-            frame = cv2.resize(frame, (video_width, video_height))
+        # Find the start and end of the image frame alongside its meta-data, if any.
+        # Currently we don't use the image meta-data for much besides the delta-time,
+        # but there may be some interesting statistics in there if it ever becomes needed.
 
-        writer.write(frame)
+        if (start := working_window.find(TV_TOKEN.START)) == -1:
+            break
 
-        if frame_count % 100 == 0:
+        if (end := working_window.find(TV_TOKEN.END, start)) == -1:
+            break
+
+        meta_index = start + ImageMetadata.starting_token.size - ctypes.sizeof(ImageMetadata)
+        meta_data  = None
+
+        if meta_index >= 0:
+
+            meta_data = ImageMetadata.from_buffer_copy(working_window[meta_index : meta_index + ctypes.sizeof(ImageMetadata)])
+
+            assert meta_data.starting_token == TV_TOKEN.START
+
+            if meta_data.ending_token != TV_TOKEN.END:
+                meta_data = None
+
+
+
+        # Figure out the delta time as best as we can.
+
+        if previous_timestamp_us is None:
+            if meta_data is not None:
+                previous_timestamp_us = meta_data.image_timestamp_us
+
+        if meta_data is None:
+            delta_time = 0
+        else:
+            delta_time = ((meta_data.image_timestamp_us - previous_timestamp_us) % (1 << 32)) / 1_000_000
+
+        if meta_data is not None:
+            previous_timestamp_us = meta_data.image_timestamp_us
+
+
+
+        # Insert the image frame into the video.
+
+        video_maker.append(
+            image      = working_window[start + len(TV_TOKEN.START) : end],
+            delta_time = delta_time,
+        )
+
+
+
+        # Move onto next frame.
+
+        working_window = working_window[end:]
+
+        if time.time() - heartbeat_time >= 0.1:
+
+            heartbeat_time = time.time()
 
             pxd.pxd_logger.info(
-                f'Processing {input_file_cursor_position / input_file_size * 100 :.2f}%...'
+                f'Processing {input_file_handle.tell() / input_file_path.stat().st_size * 100 :.2f}%...'
             )
 
-    writer.release()
 
 
+    # Done generating the video.
 
-    # The generated video can be pretty big, so if the user has FFMPEG already installed,
-    # we'll make it conveniently be invoked to compress the video down a bit.
+    video_maker.release()
 
-    output_compressed_file_path = None
-    output_compressed_file_size = None
+    if video_maker.image_count:
 
-    if shutil.which('ffmpeg') is None:
+        input_file_size             = input_file_path.stat().st_size
+        output_file_size            = video_maker.file_path.stat().st_size
+        output_compressed_file_size = video_maker.compressed_file_path.stat().st_size
+        duration                    = video_maker.image_count / parameters.fps
 
-        pxd.pxd_logger.warning(
-            '`ffmpeg` was not found on your machine, so no compression will be done.' '\n'
-            ''                                                                        '\n'
-            'If you want, install `ffmpeg` on Windows with:'                          '\n'
-            '> winget install Gyan.FFmpeg'                                            '\n'
-            ''                                                                        '\n'
-            '... or on a Debian-based distro with:'                                   '\n'
-            '> sudo apt install ffmpeg'
+        pxd.pxd_logger.info(
+            f'Uncompressed video file path  : {repr(video_maker.file_path.resolve().as_posix())}.'                                                                      '\n'
+            f'Compressed video file path    : {repr(video_maker.compressed_file_path.resolve().as_posix()) if video_maker.compressed_file_path is not None else None}.' '\n'
+            f'Input file size               : {input_file_size  :,} bytes.'                                                                                             '\n'
+            f'Uncompressed output file size : {output_file_size :,} bytes.'                                                                                             '\n'
+            f'Compressed output file size   : {f'{output_compressed_file_size :,} bytes' if output_compressed_file_size is not None else None}.'                        '\n'
+            f'Image count                   : {repr(video_maker.image_count)}.'                                                                                         '\n'
+            f'Duration                      : {repr(math.floor(duration // 60))}m {repr(math.floor(duration % 60))}s.'                                                  '\n'
+            f'Estimated write throughput    : {round(input_file_size / duration / 1024) :,} KiB/s.'                                                                     '\n'
         )
-
-    else:
-
-        output_compressed_file_path = output_file_path.with_name(f'{output_file_path.stem}-compressed.mp4')
-
-        output_compressed_file_path.unlink(missing_ok = True)
-
-        pxd.execute_shell_command(f'''
-            ffmpeg
-                -i {output_file_path.as_posix()}
-                -vcodec libx265
-                -crf 28
-                -loglevel warning
-                {output_compressed_file_path.as_posix()}
-        ''')
-
-        output_compressed_file_size = output_compressed_file_path.stat().st_size
-
-
-
-    # Report results.
-
-    output_file_size = output_file_path.stat().st_size
-    duration         = frame_count / parameters.fps
-
-    pxd.pxd_logger.info(
-        f'Uncompressed video file path  : {repr(output_file_path.resolve().as_posix())}.'                                                                 '\n'
-        f'Compressed video file path    : {repr(output_compressed_file_path.resolve().as_posix()) if output_compressed_file_path is not None else None}.' '\n'
-        f'Input file size               : {input_file_size  :,} bytes.'                                                                                   '\n'
-        f'Uncompressed output file size : {output_file_size :,} bytes.'                                                                                   '\n'
-        f'Compressed output file size   : {f'{output_compressed_file_size :,} bytes' if output_compressed_file_size is not None else None}.'              '\n'
-        f'Frame count                   : {repr(frame_count)}.'                                                                                           '\n'
-        f'Duration                      : {repr(math.floor(duration // 60))}m {repr(math.floor(duration % 60))}s.'                                        '\n'
-        f'Estimated write throughput    : {round(input_file_size / duration / 1024) :,} KiB/s.'                                                           '\n'
-    )
 
 
 
@@ -2435,10 +2517,23 @@ def parseVideo(parameters):
         'type'        : str,
         'default'     : None
     },
+    {
+        'name'        : 'upside_down',
+        'description' : 'Whether or not to rotate the images by 180 degrees.',
+        'type'        : bool,
+        'flag_only'   : True,
+        'default'     : False
+    },
 )
 def parseFlight(parameters):
 
     input_file_path = pathlib.Path(parameters.input_file_path)
+
+    if not input_file_path.is_file():
+        pxd.pxd_logger.error(
+            f"Couldn't open {repr(input_file_path.resolve().as_posix())}."
+        )
+        sys.exit(1)
 
     if parameters.output_directory_path is None:
         output_directory_path = pathlib.Path(f'./{input_file_path.stem}')
@@ -2463,9 +2558,10 @@ def parseFlight(parameters):
                     yield f'{field_name}.{subfield_prefix}', subfield_value
 
             elif (
-                not field_name.endswith('_')    # Skip fields that aren't meant to be used (e.g. padding).
-                and field_name != 'image_bytes' # Skip the image data.
-                and 'crc' not in field_name     # Skip checksums.
+                not field_name.endswith('_')  # Skip fields that aren't meant to be used (e.g. padding).
+                and 'exist' not in field_name # Skip the validity fields.
+                and 'image' not in field_name # Skip the image data.
+                and 'crc' not in field_name   # Skip checksums.
             ):
 
                 yield f'{field_name}', field_value
@@ -2489,7 +2585,16 @@ def parseFlight(parameters):
 
     # Parse the log entries.
 
-    input_file_handle = open(input_file_path, 'rb')
+    input_file_handle           = open(input_file_path, 'rb')
+    heartbeat_time              = 0
+    image_data                  = b''
+    previous_image_timestamp_ms = None
+    video_maker                 = VideoMaker(
+        file_path      = pathlib.Path(output_directory_path, f'video.mp4'),
+        fps            = 10,
+        max_delta_time = 5,
+        upside_down    = parameters.upside_down,
+    )
 
     while True:
 
@@ -2500,7 +2605,11 @@ def parseFlight(parameters):
 
         log_entry = MainFlightComputerLogEntry.from_buffer_copy(sector)
 
-        writer.writerow([
+
+
+        # Add row to the CSV.
+
+        writer.writerow((
             (
                 field_value if
                 (
@@ -2511,7 +2620,69 @@ def parseFlight(parameters):
                 else None
             )
             for field_prefix, field_value in get_fields_for_csv(log_entry)
-        ])
+        ))
+
+
+
+        # Process image data chunk, if any.
+
+        if log_entry.esp32_packet_exist and log_entry.esp32_packet_data.image_sequence_number:
+
+
+
+            # Image data begins with sequence number of one.
+            # @/`ESP32 Sequence Numbers`.
+
+            if log_entry.esp32_packet_data.image_sequence_number == 1:
+
+                if previous_image_timestamp_ms is None:
+                    previous_image_timestamp_ms = log_entry.esp32_packet_data.nonredundant.timestamp_ms
+
+                if image_data:
+
+                    video_maker.append(
+                        image      = image_data,
+                        delta_time = ((log_entry.esp32_packet_data.nonredundant.timestamp_ms - previous_image_timestamp_ms) % (1 << 16)) / 1_000,
+                    )
+
+                    image_data                  = b''
+                    previous_image_timestamp_ms = log_entry.esp32_packet_data.nonredundant.timestamp_ms
+
+
+
+            # Append the image chunk if it's the expected sequence number.
+
+            if log_entry.esp32_packet_data.image_sequence_number == 1 + len(image_data) // ctypes.sizeof(log_entry.esp32_packet_data.image_bytes):
+
+                image_data += log_entry.esp32_packet_data.image_bytes
+
+
+
+            # Broken sequence number; flush the incomplete image data.
+
+            elif image_data:
+
+                image_data = b''
+
+
+
+        # Indicate progress.
+
+        if time.time() - heartbeat_time >= 0.1:
+
+            heartbeat_time = time.time()
+
+            pxd.pxd_logger.info(
+                f'Processing {input_file_handle.tell() / input_file_path.stat().st_size * 100 :.2f}%...'
+            )
+
+
+
+    # Report results.
+
+    pxd.pxd_logger.info(f'Data written to directory {repr(output_directory_path.resolve().as_posix())}.')
+
+    video_maker.release()
 
 
 

@@ -2,16 +2,16 @@ enum MainFlightComputerDebugStatusFlag : u8
 {
     MainFlightComputerDebugStatusFlag_esp32,
     MainFlightComputerDebugStatusFlag_lora,
-    MainFlightComputerDebugStatusFlag_lis2mdl,
-    MainFlightComputerDebugStatusFlag_lsm6dsv32x,
     MainFlightComputerDebugStatusFlag_logger,
+    MainFlightComputerDebugStatusFlag_te1,
+    MainFlightComputerDebugStatusFlag_vehicle,
 };
 static constexpr u8 MainFlightComputerDebugStatusFlag_COUNT = 5;
 static const struct { const char* name; } MainFlightComputerDebugStatusFlag_TABLE[] =
     {
-        { .name = "esp32"      },
-        { .name = "lora"       },
-        { .name = "lis2mdl"    },
-        { .name = "lsm6dsv32x" },
-        { .name = "logger"     },
+        { .name = "esp32"   },
+        { .name = "lora"    },
+        { .name = "logger"  },
+        { .name = "te1"     },
+        { .name = "vehicle" },
     };

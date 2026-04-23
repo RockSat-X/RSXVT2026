@@ -21,7 +21,7 @@ import pyb
 
 micropython.alloc_emergency_exception_buf(200)
 
-USE_SAMPLE_FRAMES = True
+USE_SAMPLE_FRAMES = False
 SPI_BLOCK_SIZE    = micropython.const(64) # @/`OpenMV SPI Block Size`: Coupled.
 
 clock = time.clock()
@@ -47,7 +47,7 @@ led_blue  = pyb.LED(3)
 
 sensor.reset()
 sensor.set_pixformat(sensor.RGB565)
-sensor.set_framesize(sensor.QQVGA) # TODO Use SIF?
+sensor.set_framesize(sensor.QQVGA)
 
 working_framebuffer = sensor.alloc_extra_fb(sensor.width(), sensor.height(), sensor.GRAYSCALE)
 
@@ -504,42 +504,6 @@ def process_framebuffer():
 
     ########################################
     #
-    # Estimate attitude.
-    #
-
-    error = [0.0, 0.0, 0.0]   # [x_error, y_error, angle_error]
-
-    pix2deg_x = 0.2059
-    pix2deg_y = 0.2158
-
-    # Vertex (in pixels)
-    vx = -b / (2 * a)
-    vy = c - (b * b) / (4 * a)
-
-    cx = working_framebuffer.width() / 2
-    cy = working_framebuffer.height() / 2
-
-    if orientation == 'h':
-        ex_pix = vx - cx
-        ey_pix = vy - cy
-
-        slope = 2 * a * cx + b
-    else:
-        # swap axes
-        ex_pix = vy - cy
-        ey_pix = vx - cx
-
-        slope = 2 * a * cy + b
-
-    # Convert to degrees
-    error[0] = ex_pix * pix2deg_x
-    error[1] = ey_pix * pix2deg_y
-    error[2] = math.degrees(math.atan(slope))
-
-
-
-    ########################################
-    #
     # Draw inliers.
     #
 
@@ -660,8 +624,8 @@ def process_framebuffer():
 
     if orientation == 'h':
 
-        px = cx
-        py = cy
+        px = sensor.get_fb().width()  // 2
+        py = sensor.get_fb().height() // 2
 
         roots = cubic_roots_of(
             4 * a**2,
@@ -676,12 +640,12 @@ def process_framebuffer():
             if abs(root.imag) <= 0.0001
         ]
 
-        slope = 2 * a * cx + b
+        slope = 2 * a * px + b
 
     else:
 
-        px = cy
-        py = cx
+        px = sensor.get_fb().height() // 2
+        py = sensor.get_fb().width()  // 2
 
         roots = cubic_roots_of(
             4 * a**2,
@@ -696,7 +660,9 @@ def process_framebuffer():
             if abs(root.imag) <= 0.0001
         ]
 
-        # TODO Calculate slope.
+        slope = 2 * a * py + b
+
+
 
     if root_points:
 
@@ -705,24 +671,17 @@ def process_framebuffer():
             for x, y in root_points
         )
 
-        error = [ 0.0, 0.0, 0.0 ]
+        error_x                    = (closest_point[0] - px) * 0.2059
+        error_y                    = (closest_point[1] - py) * 0.2158
+        error_z                    = math.degrees(math.atan(slope))
+        computer_vision_confidence = 1
 
-        ex_pix = closest_point[0] - cx
-        ey_pix = closest_point[1] - cy
+    else:
 
-        # Convert to degrees
-        error[0] = ex_pix * pix2deg_x
-        error[1] = ey_pix * pix2deg_y
-        error[2] = math.degrees(math.atan(slope))
-
-        sensor.get_fb().draw_line(
-            round(cx),
-            round(cy),
-            round(closest_point[0]),
-            round(closest_point[1]),
-            (255, 0, 255),
-            3
-        )
+        error_x                    = math.nan
+        error_y                    = math.nan
+        error_z                    = math.nan
+        computer_vision_confidence = 0
 
 
 
@@ -733,9 +692,18 @@ def process_framebuffer():
 
     if True:
 
+        sensor.get_fb().draw_line(
+            round(sensor.get_fb().width () // 2),
+            round(sensor.get_fb().height() // 2),
+            round(closest_point[0]),
+            round(closest_point[1]),
+            (255, 0, 255),
+            3
+        )
+
         sensor.get_fb().draw_circle(
-            round(cx),
-            round(cy),
+            round(sensor.get_fb().width () // 2),
+            round(sensor.get_fb().height() // 2),
             3,
             color     = (0, 255, 0),
             thickness = 1,
@@ -743,7 +711,6 @@ def process_framebuffer():
         )
 
         sensor.get_fb().draw_circle(
-
             round(closest_point[0]),
             round(closest_point[1]),
             3,
@@ -760,14 +727,12 @@ def process_framebuffer():
 
     return (
         (
-            orientation,
-            dark_side,
-            inliers,
-            a_c,
-            b_c,
-            c_c,
+            error_x,
+            error_y,
+            error_z,
+            computer_vision_confidence,
         ),
-        f'X: {error[0] :8.3f}, Y: {error[1] :8.3f}, Z: {error[2] :8.3f} (deg) {orientation=} {dark_side=} {len(inliers)=} {a_c=:.7f} {b_c=:.4f} {c_c=:.1f}'
+        f'X: {error_x :8.3f}, Y: {error_y :8.3f}, Z: {error_z :8.3f} (deg) {orientation=} {dark_side=} {len(inliers)=} {a_c=:.7f} {b_c=:.4f} {c_c=:.1f}'
     )
 
 
@@ -783,7 +748,7 @@ def process_framebuffer():
 
 if USE_SAMPLE_FRAMES:
 
-    SAMPLE_FRAME_DIRECTORY_PATH = 'test2'
+    SAMPLE_FRAME_DIRECTORY_PATH = 'frames'
 
     sample_frame_file_paths = sorted(
         f'{SAMPLE_FRAME_DIRECTORY_PATH}/{file_name}'
@@ -813,6 +778,7 @@ while True:
 
     # Capture an image.
 
+    snapshot_time = time.time()
     sensor.snapshot()
 
 
@@ -872,11 +838,18 @@ while True:
 
     # Send the GNC packet to VFC.
 
-    attitude_yaw                     = 1.0 # TODO.
-    attitude_pitch                   = 2.0 # TODO.
-    attitude_roll                    = 3.0 # TODO.
-    computer_vision_processing_time  = 123 # TODO.
-    computer_vision_confidence       = 456 # TODO.
+    attitude_yaw, attitude_pitch, attitude_roll, computer_vision_confidence = (
+        (
+            math.nan,
+            math.nan,
+            math.nan,
+            0,
+        )
+        if processing_result is None else
+        processing_result
+    )
+
+    computer_vision_processing_time = time.time() - snapshot_time
 
     block = struct.pack(
         '<HfffHB',  # @/`OpenMV Packet Format`.

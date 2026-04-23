@@ -215,7 +215,7 @@ main(void)
                     {
                         // Nothing we can honestly do...
                     }
-                    else if (attempts < 256)
+                    else if (attempts < 32)
                     {
                         // Let's recheck to be SUPER sure we actually need to wipe the SD card...
                     }
@@ -275,37 +275,6 @@ main(void)
 
 
                     // We first insert some meta-data about the image.
-                    //
-                    // The fact that the image meta-data header begins with the TV end token
-                    // and ends with the TV start token is to allow for the `tv` verb to be
-                    // able to parse the logged data as if it was image data that was streamed
-                    // from `DemoOVCAM`. It also furthermore denotes the start and (rough) end
-                    // of an image frame.
-
-                    pack_push
-
-                        struct ImageMetadata
-                        {
-                            union
-                            {
-                                struct Sector sector;
-                                struct
-                                {
-                                    u8  ending_token[sizeof(TV_TOKEN_END) - 1];
-                                    u32 image_index;
-                                    u32 image_size;
-                                    u32 image_timestamp_us;
-                                    u32 cpu_cycle_counter;
-                                    u8  padding[512 - (sizeof(TV_TOKEN_END) - 1) - (sizeof(TV_TOKEN_START) - 1) - 4 * sizeof(u32)];
-                                    u8  starting_token[sizeof(TV_TOKEN_START) - 1];
-
-                                };
-                            };
-                        };
-
-                        static_assert(sizeof(struct ImageMetadata) == sizeof(struct Sector));
-
-                    pack_pop
 
                     struct ImageMetadata metadata =
                         {
@@ -316,6 +285,8 @@ main(void)
                             .cpu_cycle_counter  = CPU_CYCLE_COUNTER(),
                             .starting_token     = TV_TOKEN_START,
                         };
+
+                    static_assert(sizeof(struct ImageMetadata) == sizeof(struct Sector));
 
                     {
 

@@ -1,7 +1,7 @@
 #meta global STLINK_BAUD, TARGETS, PER_MCU, PER_TARGET
 #meta global OVCAM_DEFAULT_RESOLUTION
 #meta global STACK_SIZE, TV_WRITE_BYTE, TV_TOKEN, OVCAM_JPEG_CTRL3_FIELDS
-#meta global LoRaPacket, ESP32Packet, VehicleInterfacePayload, MainFlightComputerLogEntry, PlotSnapshot
+#meta global LoRaPacket, ESP32Packet, VehicleInterfacePayload, MainFlightComputerLogEntry, PlotSnapshot, ImageMetadata
 
 import types, collections, ctypes
 import deps.stpy.pxd.pxd as pxd
@@ -80,6 +80,7 @@ class UnpaddedMainFlightComputerLogEntry(ctypes.Structure):
     _pack_   = True
     _fields_ = (
         ('magic'                           , ctypes.c_char * 4      ), # As a precaution; currently not used for synchronization.
+        ('timestamp_us'                    , ctypes.c_uint32        ),
         ('esp32_packet_exist'              , ctypes.c_uint8         ),
         ('lora_packet_exist'               , ctypes.c_uint8         ),
         ('vehicle_interface_payload_exist' , ctypes.c_uint8         ),
@@ -87,6 +88,9 @@ class UnpaddedMainFlightComputerLogEntry(ctypes.Structure):
         ('esp32_packet_data'               , ESP32Packet            ),
         ('lora_packet_data'                , LoRaPacket             ),
         ('vehicle_interface_payload_data'  , VehicleInterfacePayload),
+        ('solarboard_A'                    , ctypes.c_float         ),
+        ('solarboard_B'                    , ctypes.c_float         ),
+        ('timer_event_1'                   , ctypes.c_uint8         ),
     )
 
 class MainFlightComputerLogEntry(ctypes.Structure):
@@ -131,6 +135,34 @@ class PlotSnapshot(ctypes.Structure):
         ('sector_padding_', ctypes.c_uint8 * (128 - ctypes.sizeof(UnpaddedPlotSnapshot))),
     )
 
+TV_TOKEN = types.SimpleNamespace(
+    START = b'<TV>',
+    END   = b'</TV>',
+)
+
+class UnpaddedImageMetadata(ctypes.Structure):
+    _pack_   = True
+    _fields_ = (
+        ('ending_token'      , ctypes.c_char * len(TV_TOKEN.END)  ),
+        ('image_index'       , ctypes.c_uint32                    ),
+        ('image_size'        , ctypes.c_uint32                    ),
+        ('image_timestamp_us', ctypes.c_uint32                    ),
+        ('cpu_cycle_counter' , ctypes.c_uint32                    ),
+        ('padding'           , ctypes.c_uint8 * 0                 ), # To be padded out.
+        ('starting_token'    , ctypes.c_char * len(TV_TOKEN.START)),
+    )
+
+class ImageMetadata(ctypes.Structure):
+    _pack_   = True
+    _fields_ = (
+        *(
+            (field_name, ctypes.c_uint8 * (512 - ctypes.sizeof(UnpaddedImageMetadata)))
+            if field_name == 'padding' else
+            (field_name, field_type)
+            for field_name, field_type in UnpaddedImageMetadata._fields_
+        ),
+    )
+
 
 
 ################################################################################
@@ -172,11 +204,6 @@ PRE_ISP_TEST_SETTING_FIELDS = pxd.SimpleNamespaceTable(
 )
 
 TV_WRITE_BYTE = 0x01
-
-TV_TOKEN = types.SimpleNamespace(
-    START = b'<TV>',
-    END   = b'</TV>',
-)
 
 STLINK_BAUD = 1_000_000
 ESP32_BAUD  = 1_000_000 # @/`Coupled Baud Rate between STM32 and ESP32`.
@@ -752,18 +779,18 @@ TARGETS = ( # @/`Defining Targets`.
         kicad_project = None,
 
         gpios = (
-            ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                 }),
-            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'           }),
-            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'           }),
-            ('swdio'     , 'A13', None        , {                                   }),
-            ('swclk'     , 'A14', None        , {                                   }),
-            ('button'    , 'C13', 'INPUT'     , { 'pull'    : None, 'active' : True }),
-            ('sd_cmd'    , 'B2' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CMD'          , 'speed' : 'VERY_HIGH' }),
-            ('sd_d0'     , 'B13', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D0'           , 'speed' : 'VERY_HIGH' }),
-            ('sd_d1'     , 'C9' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D1'           , 'speed' : 'VERY_HIGH' }),
-            ('sd_d2'     , 'C10', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D2'           , 'speed' : 'VERY_HIGH' }),
-            ('sd_d3'     , 'C11', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D3'           , 'speed' : 'VERY_HIGH' }),
-            ('sd_ck'     , 'C12', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CK'           , 'speed' : 'VERY_HIGH' }),
+            ('led_green' , 'A5' , 'OUTPUT'    , { 'initlvl' : False                               }),
+            ('stlink_tx' , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'                         }),
+            ('stlink_rx' , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'                         }),
+            ('swdio'     , 'A13', None        , {                                                 }),
+            ('swclk'     , 'A14', None        , {                                                 }),
+            ('button'    , 'C13', 'INPUT'     , { 'pull'    : None, 'active' : True               }),
+            ('sd_cmd'    , 'B2' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CMD', 'speed' : 'VERY_HIGH' }),
+            ('sd_d0'     , 'B13', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D0' , 'speed' : 'VERY_HIGH' }),
+            ('sd_d1'     , 'C9' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D1' , 'speed' : 'VERY_HIGH' }),
+            ('sd_d2'     , 'C10', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D2' , 'speed' : 'VERY_HIGH' }),
+            ('sd_d3'     , 'C11', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D3' , 'speed' : 'VERY_HIGH' }),
+            ('sd_ck'     , 'C12', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CK' , 'speed' : 'VERY_HIGH' }),
         ),
 
         interrupts = (
@@ -828,64 +855,64 @@ TARGETS = ( # @/`Defining Targets`.
         kicad_project = 'MainFlightComputer',
 
         gpios = (
-            ('led_channel_red'                , 'E2' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False                     }),
-            ('led_channel_green'              , 'E3' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False                     }),
-            ('led_channel_blue'               , 'E4' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False                     }),
-            ('stlink_tx'                      , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'                                 }),
-            ('stlink_rx'                      , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'                                 }),
-            ('swdio'                          , 'A13', None        , {                                                         }),
-            ('swclk'                          , 'A14', None        , {                                                         }),
-            ('swo'                            , 'B3' , None        , {                                                         }),
-            ('logic_timer_event_1'            , 'B9' , 'INPUT'     , { 'pull'    : None                                        }),
-            ('buzzer'                         , 'C6' , 'ALTERNATE' , { 'altfunc' : 'TIM8_CH1'                                  }),
-            ('sd_cmd'                         , 'D2' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CMD'                                }),
-            ('sd_data_0'                      , 'C8' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D0'                                 }),
-            ('sd_data_1'                      , 'C9' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D1'                                 }),
-            ('sd_data_2'                      , 'C10', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D2'                                 }),
-            ('sd_data_3'                      , 'C11', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D3'                                 }),
-            ('sd_clock'                       , 'C12', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CK'                                 }),
-            ('spi_nss_A'                      , 'A11', 'ALTERNATE' , { 'altfunc' : 'SPI2_NSS'                                  }),
-            ('spi_clock_A'                    , 'B13', 'ALTERNATE' , { 'altfunc' : 'SPI2_SCK'                                  }),
-            ('spi_mosi_A'                     , 'C1' , 'ALTERNATE' , { 'altfunc' : 'SPI2_MOSI'                                 }),
-            ('spi_miso_A'                     , 'C2' , 'ALTERNATE' , { 'altfunc' : 'SPI2_MISO'                                 }),
-            ('spi_ready_A'                    , 'D5' , 'ALTERNATE' , { 'altfunc' : 'SPI2_RDY'                                  }),
-            ('spi_nss_B'                      , 'A4' , 'ALTERNATE' , { 'altfunc' : 'SPI1_NSS'                                  }),
-            ('spi_clock_B'                    , 'A5' , 'ALTERNATE' , { 'altfunc' : 'SPI1_SCK'                                  }),
-            ('spi_mosi_B'                     , 'B5' , 'ALTERNATE' , { 'altfunc' : 'SPI1_MOSI'                                 }),
-            ('spi_miso_B'                     , 'A6' , 'ALTERNATE' , { 'altfunc' : 'SPI1_MISO'                                 }),
-            ('spi_ready_B'                    , 'B2' , 'ALTERNATE' , { 'altfunc' : 'SPI1_RDY'                                  }),
+            ('led_channel_red'                , 'E2' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False                        }),
+            ('led_channel_green'              , 'E3' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False                        }),
+            ('led_channel_blue'               , 'E4' , 'OUTPUT'    , { 'initlvl' : False, 'active' : False                        }),
+            ('stlink_tx'                      , 'A2' , 'ALTERNATE' , { 'altfunc' : 'USART2_TX'                                    }),
+            ('stlink_rx'                      , 'A3' , 'ALTERNATE' , { 'altfunc' : 'USART2_RX'                                    }),
+            ('swdio'                          , 'A13', None        , {                                                            }),
+            ('swclk'                          , 'A14', None        , {                                                            }),
+            ('swo'                            , 'B3' , None        , {                                                            }),
+            ('logic_timer_event_1'            , 'B9' , 'INPUT'     , { 'pull'    : None                                           }),
+            ('buzzer'                         , 'C6' , 'ALTERNATE' , { 'altfunc' : 'TIM8_CH1'                                     }),
+            ('sd_cmd'                         , 'D2' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CMD'                                   }),
+            ('sd_data_0'                      , 'C8' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D0'                                    }),
+            ('sd_data_1'                      , 'C9' , 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D1'                                    }),
+            ('sd_data_2'                      , 'C10', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D2'                                    }),
+            ('sd_data_3'                      , 'C11', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_D3'                                    }),
+            ('sd_clock'                       , 'C12', 'ALTERNATE' , { 'altfunc' : 'SDMMC1_CK'                                    }),
+            ('spi_nss_A'                      , 'A11', 'ALTERNATE' , { 'altfunc' : 'SPI2_NSS'                                     }),
+            ('spi_clock_A'                    , 'B13', 'ALTERNATE' , { 'altfunc' : 'SPI2_SCK'                                     }),
+            ('spi_mosi_A'                     , 'C1' , 'ALTERNATE' , { 'altfunc' : 'SPI2_MOSI'                                    }),
+            ('spi_miso_A'                     , 'C2' , 'ALTERNATE' , { 'altfunc' : 'SPI2_MISO'                                    }),
+            ('spi_ready_A'                    , 'D5' , 'ALTERNATE' , { 'altfunc' : 'SPI2_RDY'                                     }),
+            ('spi_nss_B'                      , 'A4' , 'ALTERNATE' , { 'altfunc' : 'SPI1_NSS'                                     }),
+            ('spi_clock_B'                    , 'A5' , 'ALTERNATE' , { 'altfunc' : 'SPI1_SCK'                                     }),
+            ('spi_mosi_B'                     , 'B5' , 'ALTERNATE' , { 'altfunc' : 'SPI1_MOSI'                                    }),
+            ('spi_miso_B'                     , 'A6' , 'ALTERNATE' , { 'altfunc' : 'SPI1_MISO'                                    }),
+            ('spi_ready_B'                    , 'B2' , 'ALTERNATE' , { 'altfunc' : 'SPI1_RDY'                                     }),
             ('vehicle_interface_i2c_data'     , 'B7' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SDA', 'open_drain' : True, 'pull' : 'UP' }),
             ('vehicle_interface_i2c_clock'    , 'B6' , 'ALTERNATE' , { 'altfunc' : 'I2C1_SCL', 'open_drain' : True, 'pull' : 'UP' }),
-            ('sensor_i2c_data'                , 'B12', 'ALTERNATE' , { 'altfunc' : 'I2C2_SDA', 'open_drain' : True             }),
-            ('sensor_i2c_clock'               , 'B10', 'ALTERNATE' , { 'altfunc' : 'I2C2_SCL', 'open_drain' : True             }),
-            ('flight_computer_debug_i2c_data' , 'D7' , 'ALTERNATE' , { 'altfunc' : 'I2C3_SDA', 'open_drain' : True             }),
-            ('flight_computer_debug_i2c_clock', 'D6' , 'ALTERNATE' , { 'altfunc' : 'I2C3_SCL', 'open_drain' : True             }),
-            ('esp32_reset'                    , 'D10', 'OUTPUT'    , { 'initlvl' : True, 'active' : False, 'open_drain' : True }),
-            ('esp32_uart_tx'                  , 'B14', None        , {                                                         }),
-            ('esp32_uart_rx'                  , 'B15', 'ALTERNATE' , { 'altfunc' : 'USART1_RX'                                 }),
-            ('uart_tx_B'                      , 'D8' , 'ALTERNATE' , { 'altfunc' : 'USART3_TX'                                 }),
-            ('uart_rx_B'                      , 'B1' , 'ALTERNATE' , { 'altfunc' : 'USART3_RX'                                 }),
-            ('lis2mdl_chip_select'            , 'D14', None        , {                                                         }),
-            ('lis2mdl_data_ready'             , 'E13', None        , {                                                         }),
-            ('lsm6dsv32x_interrupt_1'         , 'A12', None        , {                                                         }),
-            ('lsm6dsv32x_interrupt_2'         , 'C7' , None        , {                                                         }),
-            ('lsm6dsv32x_chip_select'         , 'E14', None        , {                                                         }),
-            ('solarboard_analog_A'            , 'A0' , 'ANALOG'    , {                                                         }),
-            ('solarboard_analog_B'            , 'A1' , 'ANALOG'    , {                                                         }),
-            ('logic_gse_1'                    , 'D4' , 'INPUT'     , { 'pull'    : None                                        }),
-            ('general_purpose_B'              , 'D12', None        , {                                                         }),
-            ('general_purpose_C'              , 'C0' , None        , {                                                         }),
-            ('general_purpose_D'              , 'C15', None        , {                                                         }),
-            ('general_purpose_G'              , 'C14', None        , {                                                         }),
-            ('general_purpose_H'              , 'C13', None        , {                                                         }),
-            ('general_purpose_I'              , 'E6' , None        , {                                                         }),
-            ('general_purpose_J'              , 'D3' , None        , {                                                         }),
-            ('general_purpose_K'              , 'D1' , None        , {                                                         }),
-            ('general_purpose_N'              , 'E0' , None        , {                                                         }),
-            ('testpoint_A'                    , 'E11', None        , {                                                         }),
-            ('testpoint_B'                    , 'B0' , None        , {                                                         }),
-            ('testpoint_C'                    , 'C5' , None        , {                                                         }),
-            ('testpoint_D'                    , 'H0' , None        , {                                                         }),
+            ('sensor_i2c_data'                , 'B12', 'ALTERNATE' , { 'altfunc' : 'I2C2_SDA', 'open_drain' : True                }),
+            ('sensor_i2c_clock'               , 'B10', 'ALTERNATE' , { 'altfunc' : 'I2C2_SCL', 'open_drain' : True                }),
+            ('flight_computer_debug_i2c_data' , 'D7' , 'ALTERNATE' , { 'altfunc' : 'I2C3_SDA', 'open_drain' : True                }),
+            ('flight_computer_debug_i2c_clock', 'D6' , 'ALTERNATE' , { 'altfunc' : 'I2C3_SCL', 'open_drain' : True                }),
+            ('esp32_reset'                    , 'D10', 'OUTPUT'    , { 'initlvl' : True, 'active' : False, 'open_drain' : True    }),
+            ('esp32_uart_tx'                  , 'B14', None        , {                                                            }),
+            ('esp32_uart_rx'                  , 'B15', 'ALTERNATE' , { 'altfunc' : 'USART1_RX'                                    }),
+            ('uart_tx_B'                      , 'D8' , 'ALTERNATE' , { 'altfunc' : 'USART3_TX'                                    }),
+            ('uart_rx_B'                      , 'B1' , 'ALTERNATE' , { 'altfunc' : 'USART3_RX'                                    }),
+            ('lis2mdl_chip_select'            , 'D14', None        , {                                                            }),
+            ('lis2mdl_data_ready'             , 'E13', None        , {                                                            }),
+            ('lsm6dsv32x_interrupt_1'         , 'A12', None        , {                                                            }),
+            ('lsm6dsv32x_interrupt_2'         , 'C7' , None        , {                                                            }),
+            ('lsm6dsv32x_chip_select'         , 'E14', None        , {                                                            }),
+            ('solarboard_analog_A'            , 'A0' , 'ANALOG'    , {                                                            }),
+            ('solarboard_analog_B'            , 'A1' , 'ANALOG'    , {                                                            }),
+            ('logic_gse_1'                    , 'D4' , 'INPUT'     , { 'pull'    : None                                           }),
+            ('general_purpose_B'              , 'D12', None        , {                                                            }),
+            ('general_purpose_C'              , 'C0' , None        , {                                                            }),
+            ('general_purpose_D'              , 'C15', None        , {                                                            }),
+            ('general_purpose_G'              , 'C14', None        , {                                                            }),
+            ('general_purpose_H'              , 'C13', None        , {                                                            }),
+            ('general_purpose_I'              , 'E6' , None        , {                                                            }),
+            ('general_purpose_J'              , 'D3' , None        , {                                                            }),
+            ('general_purpose_K'              , 'D1' , None        , {                                                            }),
+            ('general_purpose_N'              , 'E0' , None        , {                                                            }),
+            ('testpoint_A'                    , 'E11', None        , {                                                            }),
+            ('testpoint_B'                    , 'B0' , None        , {                                                            }),
+            ('testpoint_C'                    , 'C5' , None        , {                                                            }),
+            ('testpoint_D'                    , 'H0' , None        , {                                                            }),
         ),
 
         interrupts = (
@@ -1272,12 +1299,12 @@ TARGETS = ( # @/`Defining Targets`.
             ('swo'              , 'B3' , None       , {                                              }),
             ('testpoint_A'      , 'D7' , None       , {                                              }),
             ('testpoint_B'      , 'A9' , None       , {                                              }),
-            ('sd_cmd'           , 'D2' , 'ALTERNATE', { 'altfunc' : 'SDMMC1_CMD', 'speed' : 'LOW'    }),
-            ('sd_data_0'        , 'C8' , 'ALTERNATE', { 'altfunc' : 'SDMMC1_D0' , 'speed' : 'LOW'    }),
-            ('sd_data_1'        , 'C9' , 'ALTERNATE', { 'altfunc' : 'SDMMC1_D1' , 'speed' : 'LOW'    }),
-            ('sd_data_2'        , 'C10', 'ALTERNATE', { 'altfunc' : 'SDMMC1_D2' , 'speed' : 'LOW'    }),
-            ('sd_data_3'        , 'C11', 'ALTERNATE', { 'altfunc' : 'SDMMC1_D3' , 'speed' : 'LOW'    }),
-            ('sd_clock'         , 'C12', 'ALTERNATE', { 'altfunc' : 'SDMMC1_CK' , 'speed' : 'LOW'    }),
+            ('sd_cmd'           , 'D2' , 'ALTERNATE', { 'altfunc' : 'SDMMC1_CMD', 'speed' : 'HIGH'   }),
+            ('sd_data_0'        , 'C8' , 'ALTERNATE', { 'altfunc' : 'SDMMC1_D0' , 'speed' : 'HIGH'   }),
+            ('sd_data_1'        , 'C9' , 'ALTERNATE', { 'altfunc' : 'SDMMC1_D1' , 'speed' : 'HIGH'   }),
+            ('sd_data_2'        , 'C10', 'ALTERNATE', { 'altfunc' : 'SDMMC1_D2' , 'speed' : 'HIGH'   }),
+            ('sd_data_3'        , 'C11', 'ALTERNATE', { 'altfunc' : 'SDMMC1_D3' , 'speed' : 'HIGH'   }),
+            ('sd_clock'         , 'C12', 'ALTERNATE', { 'altfunc' : 'SDMMC1_CK' , 'speed' : 'HIGH'   }),
             ('ovcam_y2'         , 'C6' , 'ALTERNATE', { 'altfunc' : 'DCMI_D0'                        }),
             ('ovcam_y3'         , 'C7' , 'ALTERNATE', { 'altfunc' : 'DCMI_D1'                        }),
             ('ovcam_y4'         , 'B15', 'ALTERNATE', { 'altfunc' : 'DCMI_D2'                        }),
@@ -1343,10 +1370,10 @@ TARGETS = ( # @/`Defining Targets`.
             'I2C2_BAUD'           : 10_000,
             'I2C2_TIMEOUT'        : 2,
             'TIM2_COUNTER_RATE'   : 1_000_000,
-            'SDMMC1_TIMEOUT'      : 0.250,
-            'SDMMC1_INITIAL_BAUD' :    400_000,
-            'SDMMC1_FULL_BAUD'    : 24_000_000,
-            'WATCHDOG_DURATION'   : 10, # Must be long enough so that the filesystem can be formatted in time.
+            'SDMMC1_TIMEOUT'      : 0.50,
+            'SDMMC1_INITIAL_BAUD' :    200_000,
+            'SDMMC1_FULL_BAUD'    : 15_000_000,
+            'WATCHDOG_DURATION'   : 20, # Must be long enough so that the filesystem can be formatted in time.
         },
 
         flight_ready = True,

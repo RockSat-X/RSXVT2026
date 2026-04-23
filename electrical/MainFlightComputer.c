@@ -1,6 +1,7 @@
 #define WATCHDOG_ENABLE                  true
 #define ALLOW_FILESYSTEM_TO_BE_FORMATTED true
 #define TRANSMIT_TV                      false
+#define SOLARBOARD_ANALOG_FACTOR         (1.0f / 620.0f)
 
 #include "system.h"
 #include "timekeeping.c"
@@ -35,6 +36,49 @@ main(void)
     // Configure the other registers to get timekeeping up and going.
 
     TIMEKEEPING_partial_init();
+
+
+
+    // Indicate we are alive and well.
+
+    for (i32 i = 0; i < 8; i += 1)
+    {
+
+        GPIO_ACTIVE  (led_channel_red  );
+        GPIO_INACTIVE(led_channel_green);
+        GPIO_INACTIVE(led_channel_blue );
+        spinlock_us(20'000);
+
+        GPIO_ACTIVE  (led_channel_red  );
+        GPIO_ACTIVE  (led_channel_green);
+        GPIO_INACTIVE(led_channel_blue );
+        spinlock_us(20'000);
+
+        GPIO_INACTIVE(led_channel_red  );
+        GPIO_ACTIVE  (led_channel_green);
+        GPIO_INACTIVE(led_channel_blue );
+        spinlock_us(20'000);
+
+        GPIO_INACTIVE(led_channel_red  );
+        GPIO_ACTIVE  (led_channel_green);
+        GPIO_ACTIVE  (led_channel_blue );
+        spinlock_us(20'000);
+
+        GPIO_INACTIVE(led_channel_red  );
+        GPIO_INACTIVE(led_channel_green);
+        GPIO_ACTIVE  (led_channel_blue );
+        spinlock_us(20'000);
+
+        GPIO_ACTIVE  (led_channel_red  );
+        GPIO_INACTIVE(led_channel_green);
+        GPIO_ACTIVE  (led_channel_blue );
+        spinlock_us(20'000);
+
+    }
+
+    GPIO_INACTIVE(led_channel_red  );
+    GPIO_INACTIVE(led_channel_green);
+    GPIO_INACTIVE(led_channel_blue );
 
 
 
@@ -623,7 +667,8 @@ FREERTOS_TASK(esp32, 0)
 
 
 
-static RingBuffer(struct VehicleInterfacePayload, 16) vehicle_interface_payloads = {0};
+static RingBuffer(struct VehicleInterfacePayload, 16) vehicle_interface_payloads                         = {0};
+static volatile _Atomic u32                           most_recent_vehicle_interface_payload_timestamp_us = {0};
 
 FREERTOS_TASK(vehicle_interface, 0)
 {
@@ -690,14 +735,26 @@ FREERTOS_TASK(vehicle_interface, 0)
                                 eSetBits
                             );
                         }
-                        else if (!RingBuffer_push(&vehicle_interface_payloads, &payload))
+                        else
                         {
-                            xTaskNotify // Ring-buffer over-run!
+
+                            if (!RingBuffer_push(&vehicle_interface_payloads, &payload))
+                            {
+                                xTaskNotify // Ring-buffer over-run!
+                                (
+                                    diagnostics_handle,
+                                    DiagnosticMask_vehicle_interface_mishap,
+                                    eSetBits
+                                );
+                            }
+
+                            atomic_store_explicit
                             (
-                                diagnostics_handle,
-                                DiagnosticMask_vehicle_interface_mishap,
-                                eSetBits
+                                &most_recent_vehicle_interface_payload_timestamp_us,
+                                TIMEKEEPING_microseconds(),
+                                memory_order_relaxed // No synchronization necessary.
                             );
+
                         }
 
                         yield = true;
@@ -934,24 +991,49 @@ FREERTOS_TASK(logger, 0)
 
 
 
-                // We only do a log entry when there's actual data.
+                // Fill out the log entry.
 
-                do
+                u32 observed_most_recent_logging_timestamp_us =
+                    atomic_load_explicit
+                    (
+                        &most_recent_logging_timestamp_us,
+                        memory_order_relaxed // No synchronization necessary.
+                    );
+
+                while (true)
                 {
+
                     pool.log_entries[i].magic[0]                        = 'M';
                     pool.log_entries[i].magic[1]                        = 'E';
                     pool.log_entries[i].magic[2]                        = 'O';
                     pool.log_entries[i].magic[3]                        = 'W';
+                    pool.log_entries[i].timestamp_us                    = TIMEKEEPING_microseconds();
                     pool.log_entries[i].esp32_packet_exist              = !!RingBuffer_pop(&esp32_packets             , &pool.log_entries[i].esp32_packet_data             );
                     pool.log_entries[i].lora_packet_exist               = !!RingBuffer_pop(&lora_packets              , &pool.log_entries[i].lora_packet_data              );
                     pool.log_entries[i].vehicle_interface_payload_exist = !!RingBuffer_pop(&vehicle_interface_payloads, &pool.log_entries[i].vehicle_interface_payload_data);
+
+                    if
+                    (
+                        pool.log_entries[i].esp32_packet_exist ||
+                        pool.log_entries[i].lora_packet_exist  ||
+                        pool.log_entries[i].vehicle_interface_payload_exist
+                    )
+                    {
+                        break; // There's actual data; use the log entry immediately.
+                    }
+
+                    if (TIMEKEEPING_microseconds() - observed_most_recent_logging_timestamp_us >= 100'000)
+                    {
+                        break; // Do periodic logs as necessary.
+                    }
+
+                    FREERTOS_delay_ms(1);
+
                 }
-                while
-                (
-                    !pool.log_entries[i].esp32_packet_exist &&
-                    !pool.log_entries[i].lora_packet_exist  &&
-                    !pool.log_entries[i].vehicle_interface_payload_exist
-                );
+
+                pool.log_entries[i].solarboard_A  = GPIO_SPINLOCK_ANALOG_READ(solarboard_analog_A) * SOLARBOARD_ANALOG_FACTOR;
+                pool.log_entries[i].solarboard_B  = GPIO_SPINLOCK_ANALOG_READ(solarboard_analog_B) * SOLARBOARD_ANALOG_FACTOR;
+                pool.log_entries[i].timer_event_1 = GPIO_READ(logic_timer_event_1);
 
 
 
@@ -1009,6 +1091,9 @@ FREERTOS_TASK(logger, 0)
                             "- Rolling Seq.               : %d"             "\n"
                             "- CV Confidence              : %d"             "\n"
                             "- Img. Seq.                  : %d"             "\n"
+                            "Timer-Event 1                : %s"             "\n"
+                            "Solarboard A                 : %f"             "\n"
+                            "Solarboard B                 : %f"             "\n"
                             "\n",
                             TIMEKEEPING_microseconds(),
                             RingBuffer_amount_in_queue(&esp32_packets),
@@ -1045,7 +1130,10 @@ FREERTOS_TASK(logger, 0)
                             pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.timestamp_ms               : -1,
                             pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.rolling_sequence_number    : -1,
                             pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.computer_vision_confidence : -1,
-                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.image_sequence_number                   : -1
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.image_sequence_number                   : -1,
+                            pool.log_entries[i].timer_event_1      ? "true"                                                                        : "false",
+                            pool.log_entries[i].solarboard_A,
+                            pool.log_entries[i].solarboard_B
                         );
 
                     }
@@ -1177,9 +1265,17 @@ FREERTOS_TASK(debug_board, 0)
                     memory_order_relaxed // No synchronization needed.
                 );
 
-            b32 esp32_good  = TIMEKEEPING_microseconds() - observed_most_recent_esp32_reception_timestamp_us <   100'000;
-            b32 lora_good   = TIMEKEEPING_microseconds() - observed_most_recent_lora_reception_timestamp_us  < 1'000'000;
-            b32 logger_good = TIMEKEEPING_microseconds() - observed_most_recent_logging_timestamp_us         <   500'000;
+            u32 observed_most_recent_vehicle_interface_payload_timestamp_us =
+                atomic_load_explicit
+                (
+                    &most_recent_vehicle_interface_payload_timestamp_us,
+                    memory_order_relaxed // No synchronization needed.
+                );
+
+            b32 esp32_good     = TIMEKEEPING_microseconds() - observed_most_recent_esp32_reception_timestamp_us           <   500'000;
+            b32 lora_good      = TIMEKEEPING_microseconds() - observed_most_recent_lora_reception_timestamp_us            < 1'000'000;
+            b32 logger_good    = TIMEKEEPING_microseconds() - observed_most_recent_logging_timestamp_us                   <   500'000;
+            b32 vehicle_docked = TIMEKEEPING_microseconds() - observed_most_recent_vehicle_interface_payload_timestamp_us <   500'000;
 
 
 
@@ -1188,13 +1284,15 @@ FREERTOS_TASK(debug_board, 0)
             struct MainFlightComputerDebugPacket packet =
                 {
                     .timestamp_us           = TIMEKEEPING_microseconds(),
-                    .solarboard_voltages[0] = 67, // TODO.
-                    .solarboard_voltages[1] = 69, // TODO.
+                    .solarboard_voltages[0] = GPIO_SPINLOCK_ANALOG_READ(solarboard_analog_A) * SOLARBOARD_ANALOG_FACTOR,
+                    .solarboard_voltages[1] = GPIO_SPINLOCK_ANALOG_READ(solarboard_analog_B) * SOLARBOARD_ANALOG_FACTOR,
                     .flags                  =
                         (
-                            (!!esp32_good ) << MainFlightComputerDebugStatusFlag_esp32 |
-                            (!!lora_good  ) << MainFlightComputerDebugStatusFlag_lora  |
-                            (!!logger_good) << MainFlightComputerDebugStatusFlag_logger
+                            (!!esp32_good                    ) << MainFlightComputerDebugStatusFlag_esp32   |
+                            (!!lora_good                     ) << MainFlightComputerDebugStatusFlag_lora    |
+                            (!!logger_good                   ) << MainFlightComputerDebugStatusFlag_logger  |
+                            (!!GPIO_READ(logic_timer_event_1)) << MainFlightComputerDebugStatusFlag_te1     |
+                            (!!vehicle_docked                ) << MainFlightComputerDebugStatusFlag_vehicle
                         ),
                 };
 
@@ -1248,7 +1346,7 @@ FREERTOS_TASK(debug_board, 0)
 
             }
 
-            FREERTOS_delay_ms(100);
+            FREERTOS_delay_ms(50);
 
         }
 

@@ -4256,6 +4256,7 @@
             ADVREGEN, true ,
             ADEN    , true ,
         );
+        CMSIS_SET(ADC1, OR, OP0, true);
         while (!CMSIS_GET(ADC1, ISR, ADRDY));
         CMSIS_SET(ADC1, CR, ADCAL, true);
         while (!CMSIS_GET(ADC1, CR, ADCAL));
@@ -5954,13 +5955,13 @@
         CMSIS_SET
         (
             GPIOC   , OSPEEDR,
-            OSPEED8 , 0b00   ,
-            OSPEED9 , 0b00   ,
-            OSPEED10, 0b00   ,
-            OSPEED11, 0b00   ,
-            OSPEED12, 0b00   ,
+            OSPEED8 , 0b10   ,
+            OSPEED9 , 0b10   ,
+            OSPEED10, 0b10   ,
+            OSPEED11, 0b10   ,
+            OSPEED12, 0b10   ,
         );
-        CMSIS_SET(GPIOD, OSPEEDR, OSPEED2, 0b00);
+        CMSIS_SET(GPIOD, OSPEEDR, OSPEED2, 0b10);
         CMSIS_WRITE
         (
             GPIO_AFRL, GPIOA->AFR[0],
@@ -6056,7 +6057,7 @@
 
 
         CMSIS_SET(IWDG, KR, KEY, 0x5555);
-        CMSIS_SET(IWDG, PR, PR, 0b0110);
+        CMSIS_SET(IWDG, PR, PR, 0b0111);
         CMSIS_SET(IWDG, RLR, RL, 1250);
         CMSIS_SET(IWDG, KR, KEY, 0xCCCC);
         while (CMSIS_GET(IWDG, SR, RVU));
@@ -6236,10 +6237,10 @@
 
 
         #define STPY_SDMMC1_KERNEL_SOURCE 0b1
-        #define STPY_SDMMC1_INITIAL_DIVIDER 0x12c
+        #define STPY_SDMMC1_INITIAL_DIVIDER 0x258
         #define STPY_SDMMC1_INITIAL_DATATIME 100000
-        #define STPY_SDMMC1_FULL_DIVIDER 0x005
-        #define STPY_SDMMC1_FULL_DATATIME 6000000
+        #define STPY_SDMMC1_FULL_DIVIDER 0x008
+        #define STPY_SDMMC1_FULL_DATATIME 7500000
 
 
 
@@ -7142,6 +7143,7 @@
             ADVREGEN, true ,
             ADEN    , true ,
         );
+        CMSIS_SET(ADC1, OR, OP0, true);
         while (!CMSIS_GET(ADC1, ISR, ADRDY));
         CMSIS_SET(ADC1, CR, ADCAL, true);
         while (!CMSIS_GET(ADC1, CR, ADCAL));
