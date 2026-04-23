@@ -175,6 +175,8 @@ enum DiagnosticLEDBehavior : u32
         ('esp32_mishap'              , 'mario'     , ('toggle'  , 'toggle'  , 'toggle'  ),  25),
         ('openmv_mishap'             , 'three_tone', ('toggle'  , 'toggle'  , 'toggle'  ),  25),
         ('vn100_mishap'              , 'hazard'    , ('inactive', 'inactive', 'toggle'  ),  25),
+        ('redocked'                  , 'nokia'     , ('toggle'  , 'toggle'  , 'toggle'  ), 250),
+        ('ejection'                  , 'birthday'  , ('toggle'  , 'toggle'  , 'toggle'  ), 500),
         ('logging_mishap'            , 'heavy_beep', ('toggle'  , 'inactive', 'toggle'  ), 100),
         ('vn100_heartbeat'           , 'burp'      , ('inactive', 'inactive', 'active'  ), 100),
         ('logging_heartbeat'         , 'chirp'     , ('inactive', 'active'  , 'inactive'), 100),
@@ -2255,6 +2257,8 @@ FREERTOS_TASK(god, 3)
 
 
 
+volatile _Atomic b32 vehicle_undocked = false;
+
 FREERTOS_TASK(watchdog, 4)
 {
 
@@ -2262,6 +2266,7 @@ FREERTOS_TASK(watchdog, 4)
 
     b32 noticed_vehicle_interface_pulled_down      = false;
     u32 vehicle_interface_pulled_down_timestamp_us = {0};
+    u32 same_dock_state_timestamp_us               = {0};
 
     for (;;)
     {
@@ -2333,10 +2338,64 @@ FREERTOS_TASK(watchdog, 4)
             WARM_RESET();
 
         }
-        else
+
+
+
+        // See if the vehicle's dock status has changed.
+
+        b32 observed_vehicle_undocked =
+            atomic_load_explicit
+            (
+                &vehicle_undocked,
+                memory_order_relaxed // No synchronization needed.
+            );
+
+        b32 currently_undocked =
+            (
+                !theres_still_external_power &&
+                !vehicle_interface_currently_pulled_down &&
+                TIMEKEEPING_microseconds() - observed_most_recent_transfer_timestamp_us >= 1'000'000
+            );
+
+        if (!!currently_undocked == !!observed_vehicle_undocked)
         {
-            FREERTOS_delay_ms(1'000);
+            same_dock_state_timestamp_us = TIMEKEEPING_microseconds();
         }
+
+        if (TIMEKEEPING_microseconds() - same_dock_state_timestamp_us >= 2'500'000)
+        {
+
+            atomic_store_explicit
+            (
+                &vehicle_undocked,
+                currently_undocked,
+                memory_order_relaxed // No synchronization needed.
+            );
+
+            if (currently_undocked) // We just ejected!
+            {
+                xTaskNotify
+                (
+                    diagnostics_handle,
+                    DiagnosticMask_ejection,
+                    eSetBits
+                );
+            }
+            else // We got reinserted into the ejection mechanism...
+            {
+                xTaskNotify
+                (
+                    diagnostics_handle,
+                    DiagnosticMask_redocked,
+                    eSetBits
+                );
+            }
+
+        }
+
+
+
+        FREERTOS_delay_ms(1'000);
 
     }
 
