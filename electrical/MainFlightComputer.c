@@ -1014,9 +1014,9 @@ FREERTOS_TASK(logger, 0)
 
                     if
                     (
-                        !pool.log_entries[i].esp32_packet_exist &&
-                        !pool.log_entries[i].lora_packet_exist  &&
-                        !pool.log_entries[i].vehicle_interface_payload_exist
+                        pool.log_entries[i].esp32_packet_exist ||
+                        pool.log_entries[i].lora_packet_exist  ||
+                        pool.log_entries[i].vehicle_interface_payload_exist
                     )
                     {
                         break; // There's actual data; use the log entry immediately.
