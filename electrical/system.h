@@ -1071,8 +1071,18 @@ ESP32_calculate_crc(u8* data, i32 length)
     common_init_esp_now(void)
     {
 
+        // Per FMSR action items:
+        // "Investigate switching your WiFi link to use only channel 26 @ 2480 MHz and a 2 MHz bandwidth in 802.15.4 mode (2479 – 2481 MHz).
+        // Please indicate if this change would negatively impact your mission or if testing uncovered a complication."
+        //
+        // I'm not certain if this is possible due to hardware limitations.
+        // We are using the XIAO ESP32-S3 which only supports IEEE 802.11 and not IEEE 802.15.4,
+        // which is needed for channels 11-26. It is possible for us to use channel 13 in IEEE 802.11 mode, however.
+        // It's possible I'm mistaken about this though.
+
         WiFi.mode(WIFI_STA);
-        esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE);
+        esp_wifi_set_channel(13, WIFI_SECOND_CHAN_NONE);
+        esp_wifi_set_protocol(WIFI_IF_STA, WIFI_PROTOCOL_11B);
 
         if (esp_now_init() != ESP_OK)
         {

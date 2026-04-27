@@ -162,7 +162,7 @@ setup(void)
         info.peer_addr[3] = MAIN_ESP32_MAC_ADDRESS[3];
         info.peer_addr[4] = MAIN_ESP32_MAC_ADDRESS[4];
         info.peer_addr[5] = MAIN_ESP32_MAC_ADDRESS[5];
-        info.channel      = 1;
+        info.channel      = 13;
         info.encrypt      = false;
 
         if (esp_now_add_peer(&info) != ESP_OK)
