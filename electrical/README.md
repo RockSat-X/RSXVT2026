@@ -109,5 +109,14 @@ careful documentation and testing will be done to validate them.
 
 
 
+> #### `stepper.c`
+>
+> The driver for controlling TMC2209 stepper motor drivers is **production-ready**.
+> Register settings for the TMC2209s should not be changed to avoid accidentally frying components.
+>
+> \- *Phuc Doan. April 28th, 2026.*
+
+
+
 Files not listed above are not considered **production-ready**.
 This does not mean they are unusable, just that development is still undergoing.
