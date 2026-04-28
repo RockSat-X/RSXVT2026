@@ -129,5 +129,14 @@ careful documentation and testing will be done to validate them.
 
 
 
+> #### `i2c.c`
+>
+> The driver for I2C communication is **production-ready**.
+> Issues concerning usage and behavior of the I2C driver are unlikely.
+>
+> \- *Phuc Doan. April 28th, 2026.*
+
+
+
 Files not listed above are not considered **production-ready**.
 This does not mean they are unusable, just that development is still undergoing.
