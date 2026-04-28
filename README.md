@@ -17,6 +17,17 @@
 > [!CAUTION]
 > Incomplete.
 
+<p align="center">
+<kbd>
+<img src="./misc/media/labeled_cad_experiment.png" width="600px">
+<br>
+<br>
+<em>Labeled CAD model of the experiment.</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
+
 
 
 # Wallops Testing Procedure.
