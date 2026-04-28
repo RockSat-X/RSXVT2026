@@ -1079,8 +1079,14 @@ ESP32_calculate_crc(u8* data, i32 length)
         // We are using the XIAO ESP32-S3 which only supports IEEE 802.11 and not IEEE 802.15.4,
         // which is needed for channels 11-26. It is possible for us to use channel 13 in IEEE 802.11 mode, however.
         // It's possible I'm mistaken about this though.
+        //
+        // Update (4/27/2026):
+        // "For your ESP32, If you can support ch13 at 20 MHz reliably that would be a great plan B. As a plan C
+        // you could use Ch11 20MHz but that one would need some additional coordination to avoid excessive packet
+        // loss/errors between you and UAH although it would work technically." - Wesley Perkins.
 
         WiFi.mode(WIFI_STA);
+        esp_wifi_set_bandwidth(WIFI_IF_STA, WIFI_BW_HT20);
         esp_wifi_set_channel(13, WIFI_SECOND_CHAN_NONE);
         esp_wifi_set_protocol(WIFI_IF_STA, WIFI_PROTOCOL_11B);
 
@@ -1141,9 +1147,15 @@ ESP32_calculate_crc(u8* data, i32 length)
         // "Investigate switching LoRa frequency to center on 920MHz with a maximum bandwidth of 250KHz.
         // (919.875 – 920.125 MHz). Please indicate if this change would negatively impact your mission
         // or if testing uncovered a complication."
+        //
+        // Update (4/27/2027):
+        // "Great to hear on the LoRa! I'll note that you are now on 920MHz @ 125kHz wide." - Wesley Perkins.
+        // Not sure if Wesley meant 250 kHz bandwidth or thought we were using 125 kHz,
+        // but since LoRa is redundant system anyways, we'll avoid any potential RFI issues
+        // by doing 125 kHz.
 
         packet_lora_radio.setFrequency(920.0);
-        packet_lora_radio.setBandwidth(250);
+        packet_lora_radio.setBandwidth(125);
 
 
 
