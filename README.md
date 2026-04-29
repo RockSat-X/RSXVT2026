@@ -87,6 +87,11 @@ The debug board has four RGB LEDs.
 | `C`       | Bottom Right | Toggles red when the Main Flight Computer hasn't sent a debug packet in a while; toggles green when a debug packet has been received. |
 | `D`       | Bottom Left  | White when the uSD card is being formatted; magenta when the Debug Board is failing to initialize the uSD card; toggles green periodically when data is successfully being logged to the uSD card. |
 
+> [!IMPORTANT]
+> If the Debug Board encounters an irrecoverable error,
+> it'll panic and indicate this by flashing all LEDs red.
+> The Debug Board should eventually reset itself and continue on as normal.
+
 &nbsp;
 
 The debug board plays the following buzzer tunes.
