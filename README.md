@@ -30,7 +30,43 @@
 
 
 
-### Debug Board.
+## Main Camera System.
+
+The experiment has two Main Camera Systems:
+one placed before the ejection mechnism
+and one next to a Solarboard by the burn-wire mechanism.
+
+<p align="center">
+<kbd>
+<img src="./misc/media/main_camera_system_demonstration.gif" height="600px">
+<br>
+<br>
+<em>Main camera system demonstration.</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
+
+The Main Camera System board has a single RGB LED.
+
+| Color          | Description                                                                                          |
+| :------------: | ---------------------------------------------------------------------------------------------------- |
+| White          | Reformatting uSD card. |
+| Magenta        | Initializing uSD card. |
+| Blue           | Initializing OV5640 camera module. |
+| Toggling Green | Recording successfully. |
+| Red            | Main Camera System resetting. |
+
+&nbsp;
+
+The Main Camera System creates a binary blob file for each recording.
+Use `cli.py parseVideo` to convert the binary blob file into an MP4 video.
+
+&nbsp;
+
+
+
+## Debug Board.
 
 The Debug Board has a display to indicate the status of subsystems
 from the perspective of the Main Flight Computer.
