@@ -19,7 +19,7 @@
 
 <p align="center">
 <kbd>
-<img src="./misc/media/labeled_cad_experiment.png" width="600px">
+<img src="./misc/media/labeled_cad_experiment.png" height="400px">
 <br>
 <br>
 <em>Labeled CAD model of the experiment.</em>
@@ -41,7 +41,7 @@ this is just to indicate that the Debug Board MCU is still running.
 
 <p align="center">
 <kbd>
-<img src="./misc/media/debug_board_1.png" width="600px">
+<img src="./misc/media/debug_board_1.png" height="400px">
 <br>
 <br>
 <em>Debug board.</em>
@@ -67,9 +67,18 @@ The Debug Board displays the following information.
 If the Debug Board has not received the first debug packet from the Main Flight Computer yet,
 then the field values will either be `???` or `nan` to indicate this.
 
+> [!IMPORTANT]
+> A known issue with the Debug Board's display is that it is not resettable.
+> That is, if the Debug Board MCU has a communication issue with the display driver,
+> there's a small possibility that the display ends up in a corrupted state.
+> This may appear as the screen being darker, the resolution looking off,
+> or is completely blank.
+> The MCU has no way to fix this,
+> but power-cycling will resolve this rare issue if it ever happens.
+
 &nbsp;
 
-The debug board has four RGB LEDs:
+The debug board has four RGB LEDs.
 
 | Label     | Position     | Description                                                                                          |
 | :-------: | :----------: | ---------------------------------------------------------------------------------------------------- |
@@ -80,7 +89,7 @@ The debug board has four RGB LEDs:
 
 &nbsp;
 
-The debug board plays the following buzzer tunes:
+The debug board plays the following buzzer tunes.
 
 | Name                                        | Description                                                                    |
 | :---------:                                 | ------------------------------------------------------------------------------ |
@@ -90,25 +99,47 @@ The debug board plays the following buzzer tunes:
 | [Deep Beep  ](./misc/media/deep_beep.wav  ) | Main Flight Computer is reporting a bad status (e.g. haven't received RF data in a while) |
 | [Tetris     ](./misc/media/tetris.wave    ) | The Debug Board's uSD card is being reformatted. |
 
+To mute the buzzer, leave the header above the buzzer open.
+To enable the buzzer, have a jumper shorting two adjacent pins;
+which pins are shorted determines the volume of the buzzer.
+
+&nbsp;
+
+The uSD card is optional to the operation of the Debug Board.
+The Debug Board uses LED C to indicate that it's successfully saving log data.
+
 <p align="center">
 <kbd>
-<img src="./misc/media/debug_board_2.png" width="600px">
+<img src="./misc/media/debug_board_usd_swap.gif" height="500px">
 <br>
 <br>
-<em>Debug board.</em>
+<em>
+To load a uSD card, lift the connector lid up,
+<br>
+place the uSD card,
+and slide the lid down to secure it.
+</em>
 <br>
 <br>
 </kbd>
 </p>&nbsp;
 
-> [!IMPORTANT]
-> A known issue with the Debug Board's display is that it is not resettable.
-> That is, if the Debug Board MCU has a communication issue with the display driver,
-> there's a small possibility that the display ends up in a corrupted state.
-> This may appear as the screen being darker, the resolution looking off,
-> or is completely blank.
-> The MCU has no way to fix this,
-> but power-cycling will resolve this rare issue if it ever happens.
+<p align="center">
+<kbd>
+<img src="./misc/media/debug_board_log.png" height="900px">
+<br>
+<br>
+<em>
+The Debug Board creates an ASCII text file with <br>
+the same information displayed on its screen.
+</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
+
+
+
 
 # Wallops Testing Procedure.
 
