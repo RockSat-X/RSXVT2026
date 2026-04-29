@@ -41,10 +41,10 @@ this is just to indicate that the Debug Board MCU is still running.
 
 <p align="center">
 <kbd>
-<img src="./misc/media/debug_board_1.png" height="400px">
+<img src="./misc/media/debug_board_demonstration.gif" height="400px">
 <br>
 <br>
-<em>Debug board.</em>
+<em>Debug board demonstration.</em>
 <br>
 <br>
 </kbd>
@@ -106,7 +106,7 @@ which pins are shorted determines the volume of the buzzer.
 &nbsp;
 
 The uSD card is optional to the operation of the Debug Board.
-The Debug Board uses LED C to indicate that it's successfully saving log data.
+The Debug Board uses LED D to indicate that it's successfully saving log data.
 
 <p align="center">
 <kbd>
