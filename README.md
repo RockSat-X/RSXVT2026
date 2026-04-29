@@ -56,8 +56,8 @@ The Debug Board displays the following information.
 | :-------: | ---------------------------------------------------------------------------------------------------- |
 | `DB-T`    | Time elapsed since the debug board was powered on.                                                   |
 | `MFC-T`   | Time elapsed since the Main Flight Compiuter was powered on.                                         |
-| `SCB-A`   | Voltage of SB-SCA (:warning: TODO: Fix naming).                                                                |
-| `SCB-B`   | Voltage of HP-SCA (:warning: TODO: Fix naming).                                                                |
+| `SCB-A`   | Voltage of SB-SCA.                                                                |
+| `SCB-B`   | Voltage of HP-SCA.                                                                |
 | `te1`     | Whether or not Main Flight Computer is detecting TE-1.                                               |
 | `vehicle` | Whether or not Main Flight Computer is communicating with the Vehicle Flight Computer through the vehicle interface. |
 | `esp32`   | Whether or not Main Flight Computer is receiving ESP-NOW data packets.                               |
