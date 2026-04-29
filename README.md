@@ -54,7 +54,7 @@ The Main Camera System board has a single RGB LED.
 | White          | Reformatting uSD card. |
 | Magenta        | Initializing uSD card. |
 | Blue           | Initializing OV5640 camera module. |
-| Toggling Green | Recording successfully. |
+| Toggling green | Recording successfully. |
 | Red            | Main Camera System resetting. |
 
 &nbsp;
@@ -132,7 +132,7 @@ The debug board has four RGB LEDs.
 
 The debug board plays the following buzzer tunes.
 
-| Name                                        | Description                                                                    |
+| Tune                                        | Description                                                                    |
 | :---------:                                 | ------------------------------------------------------------------------------ |
 | [Nokia      ](./misc/media/nokia.wav      ) | Debug Board is initializing (e.g. just powered on from GSE-1). |
 | [Hazard     ](./misc/media/hazard.wav     ) | Debug Board hasn't received a debug packet from the Main Flight Computer in a while. |
@@ -179,6 +179,35 @@ the same information displayed on its screen.
 </kbd>
 </p>&nbsp;
 
+
+
+# Vehicle Diagnostics.
+
+The Vehicle Flight Computer, Miscellaneous Board, and Power Distribution System has several indicators to be aware of.
+
+The following table details corresponding the buzzer tune and LED behavior for when a Vehicle Flight Computer diagnostic is reported.
+
+| Severity | Tune                                              | LED                 | Description                                                                                          |
+|:-:| :-----------------------------------------------: | :-----------------: | ---------------------------------------------------------------------------------------------------- |
+| :bangbang:         | [Ambulance  ](./misc/media/ambulance.wav      )   | Fast toggling red   | TMC2209 stepper motor drivers are failing initialization. This could be due to bad ribbon cable connection, dead batteries, inhibited batteries, or something else. |
+| :warning:          | [Heartbeat  ](./misc/media/heartbeat.wav      )   | Slow toggling red   | Vehicle Flight Computer has saturated a motor's RPM velocity. |
+| :warning:          | [Tetris     ](./misc/media/tetris.wav         )   | Slow toggling white | Vehicle Flight Computer is reformatting the uSD card. |
+| :warning:          | [Mario      ](./misc/media/mario.wav          )   | Fast toggling white | Resetting the Vehicle ESP32 due to an issue with it. |
+| :warning:          | [Three Tone ](./misc/media/three_tone.wav     )   | Fast toggling white | Resetting the Vehicle OpenMV due to an issue with it. |
+| :bangbang:         | [Hazard     ](./misc/media/hazard.wav         )   | Fast toggling blue  | Communication issue with VN-100. |
+| :white_check_mark: | [Nokia      ](./misc/media/nokia.wav          )   | Slow toggling white | Vehicle Flight Computer detecting that the vehicle has been redocked. |
+| :white_check_mark: | [Birthday   ](./misc/media/birthday.wav       )   | Slow toggling white | Vehicle Flight Computer detecting that the vehicle has been ejected. |
+| :warning:          | [Heavy Beep ](./misc/media/heavy_beep.wav     )   | Toggling magenta    | Initialization issue with uSD card. This is okay if no uSD is loaded. |
+| :white_check_mark: | [Burp       ](./misc/media/burp.wav           )   | Blue blink          | VN-100 communication okay. |
+| :white_check_mark: | [Chirp      ](./misc/media/chirp.wav          )   | Green blink         | uSD card logging okay. |
+| :white_check_mark: | [Waking Up  ](./misc/media/waking_up.wav      )   | None                | Vehicle Flight Computer initializing (i.e. on activation of GSE-1); vehicle batteries are enabled at end of buzzer tune. |
+| :white_check_mark: | [Star Wars  ](./misc/media/starwars.wav       )   | None                | Vehicle Flight Computer performing a dock shutdown (i.e. about to turn vehicle batteries off and resetting). |
+
+ Severity            | Description                                                                                          |
+| :-----------------: | ---------------------------------------------------------------------------------------------------- |
+| :bangbang:  | Something is likely very problematic that should be addressed as soon as possible. |
+| :warning:  | A non-fatal or recoverable issue. |
+| :white_check_mark:  | Positive or expected indicator of a working system. |
 
 
 
