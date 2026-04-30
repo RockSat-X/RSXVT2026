@@ -297,8 +297,47 @@ first left pin and the second right pin is broken off.
 
 # Wallops Testing Procedure.
 
-> [!CAUTION]
-> Incomplete.
+The following table summarizes the primary configurations needed to be set for tests done at Wallops.
+
+| Expected Date                           | Test                         | Allow Ejection?    | Enable TE-1?       | Enable Main GSE-1? | Enable Vehicle GSE-1? |
+| :-------------------------------------: | :--------------------------: | :-:                | :-:                | :-:                | :-:                   |
+| May 17th, 2026; Sunday                  | Pre-Flight Seq.              | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark:    |
+| May 18th-19th, 2026; Monday-Tuesday     | Pre-Vibe All-Fire Seq.       | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark:    |
+| May 18th-19th, 2026; Monday-Tuesday     | Pre-Vibe No-Fire Seq.        | :x:                | :x:                | :white_check_mark: | :white_check_mark:    |
+| May 19th, 2026; Tuesday                 | Pre-Vibe Back Up Seq.        | :x:                | :x:                | :white_check_mark: | :white_check_mark:    |
+| May 20th-21st, 2026; Wednesday-Thursday | Vibration Testing            | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark:    |
+| May 22nd, 2026; Friday                  | Post-Vibe All-Fire Seq.      | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark:    |
+| May 22nd, 2026; Friday                  | Post-Vibe No-Fire Seq.       | :x:                | :x:                | :white_check_mark: | :white_check_mark:    |
+| May 22nd, 2026; Friday                  | Post-Vibe Back Up Seq.       | :x:                | :x:                | :white_check_mark: | :white_check_mark:    |
+| May 22nd, 2026; Friday                  | GPS Roll-Out                 | :x:                | :x:                | :white_check_mark: | :white_check_mark:    |
+| June 19th, 2026; Friday                 | Final All-Fire Seq.          | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark:    |
+| June 19th, 2026; Friday                 | Final No-Fire Seq.           | :x:                | :x:                | :white_check_mark: | :white_check_mark:    |
+| June 19th, 2026; Friday                 | Final Back Up Seq.           | :x:                | :x:                | :white_check_mark: | :white_check_mark:    |
+
+To allow ejection (:white_check_mark:),
+ensure the mechanical inhibit in front of the ejection mechanism is removed.
+
+To prevent ejection (:x:),
+ensure the mechanical inhibit is secured in front of the ejection mechanism.
+
+To have TE-1, Main GSE-1, or Vehicle GSE-1 be enabled (:white_check_mark:),
+insert a screw into the corresponding electrical screw switch on the side of the ejection mechanism.
+Verify short-circuit with a multimeter.
+
+To have TE-1, Main GSE-1, or Vehicle GSE-1 be disabled (:x:),
+ensure a screw is not inserted into the corresponding electrical screw switch.
+Verify open-circuit with a multimeter.
+
+> [!IMPORTANT]
+> The experiment must be put into flight-ready configuration during vibration testing.
+> This means all electrical screw switches should be enabled and no mechanical inhibit present.
+> It should also be noted that Wallops will only provide GSE-1 and there will be no TE-1 power
+> during this vibration test (this also applies to GPS Roll-Out).
+
+> [!IMPORTANT]
+> The purpose of the electrical screw switches for Main GSE-1 and Vehicle GSE-1 is for flexibility.
+> In the event that we need to ensure that the main avionics and/or vehicle does not power on,
+> we have these as a way to do so.
 
 
 
