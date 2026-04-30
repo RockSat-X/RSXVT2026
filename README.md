@@ -343,5 +343,183 @@ Verify open-circuit with a multimeter.
 
 # Remove-Before-Flight Procedure.
 
+The following steps are to be carried out in order with minimal deviations after all final sequence tests are done.
+
+## 1. Ensure ejection inhibit is removed.
+
+> [!CAUTION]
+> Incomplete.
+
+
+
+## 2. Replace vehicle batteries.
+
+Go to the side of the vehicle where the batteries are stored.
+
+<p align="center">
+<kbd>
+<img src="./misc/media/vehicle_battery_panel_flight.png" height="500px">
+<br>
+<br>
+<em>
+Side of the vehicle where the batteries are stored.
+</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
+
+Take off the panel.
+Place the screws in a secure location.
+
+<p align="center">
+<kbd>
+<img src="./misc/media/vehicle_battery_panel_open.png" height="500px">
+<br>
+<br>
+<em>
+Panel that secured the vehicle's batteries removed.
+</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
+
+Take out the old vehicle batteries.
+It is okay to tug on the cable to do so if excessive force is not used.
+Make sure to place the old vehicle batteries somewhere secure so it will not be confused with the new batteries.
+
+<p align="center">
+<kbd>
+<img src="./misc/media/vehicle_battery_panel_empty.png" height="500px">
+<br>
+<br>
+<em>
+Vehicle batteries removed.
+</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
+
+Verify that the new batteries (EEMB LP653042 3.7V 820mAh) are fully charged.
+
+<p align="center">
+<kbd>
+<img src="./misc/media/vehicle_battery_verification.png" height="500px">
+<br>
+<br>
+<em>
+A fully charged vehicle battery should have at least 4V.
+</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
+
+Verify that the new batteries have a JST-XH plug of the correct polarity.
+
+<p align="center">
+<kbd>
+<img src="./misc/media/vehicle_battery_top_down.png" height="500px">
+<br>
+<br>
+<em>
+Note the plug polarity.
+</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
+
+Put in the new vehicle batteries.
+The order in which the vehicle batteries are connected does not matter.
+Ensure the cables are well tucked to prevent them being crushed by the panel.
+
+<p align="center">
+<kbd>
+<img src="./misc/media/vehicle_battery_panel_open.png" height="500px">
+<br>
+<br>
+<em>
+Vehicle batteries replaced.
+</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
+
+Place and align the vehicle panel with the pillar's screw holes and verify
+that the battery cables will not be crushed.
+
+<p align="center">
+<kbd>
+<img src="./misc/media/vehicle_battery_panel_unscrewed.png" width="500px">
+<br>
+<br>
+<em>
+Vehicle panel aligned on top but not yet screwed.
+</em>
+<br>
+<br>
+</kbd>
+</p>
+<p align="center">
+<kbd>
+<img src="./misc/media/vehicle_battery_panel_cable_verification.png" width="500px">
+<br>
+<br>
+<em>
+Battery cables tucked securely and not between the panel and pillar.
+</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
+
+
+
+Apply red Loctite to the threads and reinsert screws to secure the panel.
+
+<p align="center">
+<kbd>
+<img src="./misc/media/vehicle_battery_panel_flight.png" height="500px">
+<br>
+<br>
+<em>
+Side of the vehicle where the batteries are stored.
+</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
+
+> [!IMPORTANT]
+> Summary: new batteries are put in and red Loctite has been applied.
+
+
+## 3. Remove vehicle jumper inhibits.
+
+> [!CAUTION]
+> Incomplete.
+
+
+
+## 4. Remove external uSD cards.
+
+> [!CAUTION]
+> Incomplete.
+
+
+
+## 5. Insert screws into electrical screw switches.
+
+> [!CAUTION]
+> Incomplete.
+
+
+
+## 6. Redock vehicle and set burn-wire mechanism.
+
 > [!CAUTION]
 > Incomplete.
