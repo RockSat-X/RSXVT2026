@@ -500,15 +500,69 @@ Side of the vehicle where the batteries are stored.
 
 ## 3. Remove vehicle jumper inhibits.
 
-> [!CAUTION]
-> Incomplete.
+Ensure the vehicle's jumpers for disabling motors, disabling batteries, and forcing vehicle power-on
+are all open-circuit as depicted below.
+
+<p align="center">
+<kbd>
+<img src="./misc/media/vehicle_power_distribution_system_inhibits.png" height="300px">
+<br>
+<br>
+<em>
+Vehicle jumpers in flight configuration.
+</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
 
 
 
-## 4. Remove external uSD cards.
+## 4. Remove external uSD connector lids and jumpers.
 
-> [!CAUTION]
-> Incomplete.
+To prevent vibration risks,
+the Vehicle Flight Computer and Debug Board should have the lid of their uSD connectors be taken off.
+The pin header for the buzzer should also be left as an open circuit.
+
+<p align="center">
+<kbd>
+<img src="./misc/media/debug_board_flight.png" width="400px">
+<br>
+<br>
+<em>
+Debug Board without uSD card connector lid and buzzer jumper.
+</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
+
+<p align="center">
+<kbd>
+<img src="./misc/media/vehicle_flight_computer_flight_usd.png" width="400px">
+<br>
+<br>
+<em>
+Vehicle Flight Computer without uSD card connector lid.
+</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
+
+<p align="center">
+<kbd>
+<img src="./misc/media/vehicle_flight_computer_flight_buzzer.png" width="400px">
+<br>
+<br>
+<em>
+Vehicle Flight Computer without buzzer jumper. <br>
+Tweezers might be needed.
+</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
 
 
 
