@@ -314,17 +314,17 @@ The following table summarizes the primary configurations needed to be set for t
 | June 19th, 2026; Friday                 | Final No-Fire Seq.           | :x:                | :x:                | :white_check_mark: | :white_check_mark:    |
 | June 19th, 2026; Friday                 | Final Back Up Seq.           | :x:                | :x:                | :white_check_mark: | :white_check_mark:    |
 
-To allow ejection (:white_check_mark:),
+To allow ejection ( :white_check_mark: ),
 ensure the mechanical inhibit in front of the ejection mechanism is removed.
 
-To prevent ejection (:x:),
+To prevent ejection ( :x: ),
 ensure the mechanical inhibit is secured in front of the ejection mechanism.
 
-To have TE-1, Main GSE-1, or Vehicle GSE-1 be enabled (:white_check_mark:),
+To have TE-1, Main GSE-1, or Vehicle GSE-1 be enabled ( :white_check_mark: ),
 insert a screw into the corresponding electrical screw switch on the side of the ejection mechanism.
 Verify short-circuit with a multimeter.
 
-To have TE-1, Main GSE-1, or Vehicle GSE-1 be disabled (:x:),
+To have TE-1, Main GSE-1, or Vehicle GSE-1 be disabled ( :x: ),
 ensure a screw is not inserted into the corresponding electrical screw switch.
 Verify open-circuit with a multimeter.
 
