@@ -1081,7 +1081,9 @@ FREERTOS_TASK(logger, 0)
                             "- GyroXYZ                    : %f, %f, %f"     "\n"
                             "- Timestamp ms.              : %d"             "\n"
                             "- Rolling Seq.               : %d"             "\n"
-                            "- CV Confidence              : %d"             "\n"
+                            "- Attitude Yaw               : %f"             "\n"
+                            "- Attitude Pitch             : %f"             "\n"
+                            "- Attitude Roll              : %f"             "\n"
                             "ESP-NOW?                     : %s"             "\n"
                             "- MagXYZ                     : %f, %f, %f"     "\n"
                             "- QuatXYZS                   : %f, %f, %f, %f" "\n"
@@ -1089,7 +1091,9 @@ FREERTOS_TASK(logger, 0)
                             "- GyroXYZ                    : %f, %f, %f"     "\n"
                             "- Timestamp ms.              : %d"             "\n"
                             "- Rolling Seq.               : %d"             "\n"
-                            "- CV Confidence              : %d"             "\n"
+                            "- Attitude Yaw               : %f"             "\n"
+                            "- Attitude Pitch             : %f"             "\n"
+                            "- Attitude Roll              : %f"             "\n"
                             "- Img. Seq.                  : %d"             "\n"
                             "Timer-Event 1                : %s"             "\n"
                             "Solarboard A                 : %f"             "\n"
@@ -1099,39 +1103,43 @@ FREERTOS_TASK(logger, 0)
                             RingBuffer_amount_in_queue(&esp32_packets),
                             RingBuffer_amount_in_queue(&lora_packets),
                             RingBuffer_amount_in_queue(&vehicle_interface_payloads),
-                            pool.log_entries[i].lora_packet_exist  ? "true"                                                                        : "false",
-                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.QuatX                                    : NAN,
-                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.QuatY                                    : NAN,
-                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.QuatZ                                    : NAN,
-                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.QuatS                                    : NAN,
-                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.AccelX                                   : NAN,
-                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.AccelY                                   : NAN,
-                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.AccelZ                                   : NAN,
-                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.GyroX                                    : NAN,
-                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.GyroY                                    : NAN,
-                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.GyroZ                                    : NAN,
-                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.timestamp_ms                             : -1,
-                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.rolling_sequence_number                  : -1,
-                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.computer_vision_confidence               : -1,
-                            pool.log_entries[i].esp32_packet_exist ? "true"                                                                        : "false",
-                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.MagX                                    : NAN,
-                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.MagY                                    : NAN,
-                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.MagZ                                    : NAN,
-                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.QuatX                      : NAN,
-                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.QuatY                      : NAN,
-                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.QuatZ                      : NAN,
-                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.QuatS                      : NAN,
-                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.AccelX                     : NAN,
-                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.AccelY                     : NAN,
-                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.AccelZ                     : NAN,
-                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.GyroX                      : NAN,
-                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.GyroY                      : NAN,
-                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.GyroZ                      : NAN,
-                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.timestamp_ms               : -1,
-                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.rolling_sequence_number    : -1,
-                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.computer_vision_confidence : -1,
-                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.image_sequence_number                   : -1,
-                            pool.log_entries[i].timer_event_1      ? "true"                                                                        : "false",
+                            pool.log_entries[i].lora_packet_exist  ? "true"                                                                     : "false",
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.QuatX                                 : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.QuatY                                 : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.QuatZ                                 : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.QuatS                                 : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.AccelX                                : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.AccelY                                : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.AccelZ                                : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.GyroX                                 : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.GyroY                                 : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.GyroZ                                 : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.timestamp_ms                          : -1,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.rolling_sequence_number               : -1,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.attitude_yaw                          : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.attitude_pitch                        : NAN,
+                            pool.log_entries[i].lora_packet_exist  ? pool.log_entries[i].lora_packet_data.attitude_roll                         : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? "true"                                                                     : "false",
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.MagX                                 : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.MagY                                 : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.MagZ                                 : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.QuatX                   : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.QuatY                   : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.QuatZ                   : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.QuatS                   : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.AccelX                  : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.AccelY                  : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.AccelZ                  : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.GyroX                   : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.GyroY                   : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.GyroZ                   : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.timestamp_ms            : -1,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.rolling_sequence_number : -1,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.attitude_yaw            : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.attitude_pitch          : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.nonredundant.attitude_roll           : NAN,
+                            pool.log_entries[i].esp32_packet_exist ? pool.log_entries[i].esp32_packet_data.image_sequence_number                : -1,
+                            pool.log_entries[i].timer_event_1      ? "true"                                                                     : "false",
                             pool.log_entries[i].solarboard_A,
                             pool.log_entries[i].solarboard_B
                         );

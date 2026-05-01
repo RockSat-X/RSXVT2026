@@ -8,9 +8,9 @@
 #define MAX_ANGULAR_ACCELERATION         (100.0f)
 #define MAX_ANGULAR_VELOCITY             (900.0f * 2.0f * PI / 60.0f)
 #define GOD_MODE                         true
-#define CONTROLLER_MOTOR_ENABLE          false
-#define VN100_ENABLE                     false
-#define OPENMV_ENABLE                    false
+#define CONTROLLER_MOTOR_ENABLE          true
+#define VN100_ENABLE                     true
+#define OPENMV_ENABLE                    true
 #define ESP32_ENABLE                     true
 #define WATCHDOG_ENABLE                  true
 #define TRANSMIT_TV                      false
@@ -50,7 +50,9 @@ struct OpenMVImage
 struct GNCInfo
 {
     struct VN100Packet vn100_packet;
-    u8                 computer_vision_confidence;
+    f32                attitude_yaw;
+    f32                attitude_pitch;
+    f32                attitude_roll;
 };
 
 
@@ -463,8 +465,10 @@ FREERTOS_TASK(controller, 0)
 
             struct GNCInfo gnc_info =
                 {
-                    .vn100_packet               = vn100_packet_data,
-                    .computer_vision_confidence = openmv_gnc_packet_data.computer_vision_confidence,
+                    .vn100_packet   = vn100_packet_data,
+                    .attitude_yaw   = openmv_gnc_packet_data.computer_vision_confidence ? openmv_gnc_packet_data.attitude_yaw   : NAN,
+                    .attitude_pitch = openmv_gnc_packet_data.computer_vision_confidence ? openmv_gnc_packet_data.attitude_pitch : NAN,
+                    .attitude_roll  = openmv_gnc_packet_data.computer_vision_confidence ? openmv_gnc_packet_data.attitude_roll  : NAN,
                 };
 
             if (!RingBuffer_push(&ESP32.gnc_infos, &gnc_info))
@@ -1589,31 +1593,26 @@ FREERTOS_TASK(esp32, 1)
 
             // See if there's any GNC info we can transmit back to main.
 
-            struct GNCInfo gnc_info = {0};
+            struct GNCInfo gnc_info_data  = {0};
+            b32            gnc_info_exist = RingBuffer_pop_to_latest(&ESP32.gnc_infos, &gnc_info_data);
 
-            if (RingBuffer_pop_to_latest(&ESP32.gnc_infos, &gnc_info))
-            {
-                should_transmit                                = true;
-                packet.MagX                                    = gnc_info.vn100_packet.MagX;
-                packet.MagY                                    = gnc_info.vn100_packet.MagY;
-                packet.MagZ                                    = gnc_info.vn100_packet.MagZ;
-                packet.nonredundant.QuatX                      = gnc_info.vn100_packet.QuatX;
-                packet.nonredundant.QuatY                      = gnc_info.vn100_packet.QuatY;
-                packet.nonredundant.QuatZ                      = gnc_info.vn100_packet.QuatZ;
-                packet.nonredundant.QuatS                      = gnc_info.vn100_packet.QuatS;
-                packet.nonredundant.AccelX                     = gnc_info.vn100_packet.AccelX;
-                packet.nonredundant.AccelY                     = gnc_info.vn100_packet.AccelY;
-                packet.nonredundant.AccelZ                     = gnc_info.vn100_packet.AccelZ;
-                packet.nonredundant.GyroX                      = gnc_info.vn100_packet.GyroX;
-                packet.nonredundant.GyroY                      = gnc_info.vn100_packet.GyroY;
-                packet.nonredundant.GyroZ                      = gnc_info.vn100_packet.GyroZ;
-                packet.nonredundant.computer_vision_confidence = gnc_info.computer_vision_confidence;
-            }
-            else
-            {
-                // We haven't gotten the first GNC info yet. This should because we're very
-                // early on in the experiment run-time where we haven't done GNC stuff yet.
-            }
+            should_transmit                    |= gnc_info_exist;
+            packet.MagX                         = gnc_info_exist ? gnc_info_data.vn100_packet.MagX   : NAN;
+            packet.MagY                         = gnc_info_exist ? gnc_info_data.vn100_packet.MagY   : NAN;
+            packet.MagZ                         = gnc_info_exist ? gnc_info_data.vn100_packet.MagZ   : NAN;
+            packet.nonredundant.QuatX           = gnc_info_exist ? gnc_info_data.vn100_packet.QuatX  : NAN;
+            packet.nonredundant.QuatY           = gnc_info_exist ? gnc_info_data.vn100_packet.QuatY  : NAN;
+            packet.nonredundant.QuatZ           = gnc_info_exist ? gnc_info_data.vn100_packet.QuatZ  : NAN;
+            packet.nonredundant.QuatS           = gnc_info_exist ? gnc_info_data.vn100_packet.QuatS  : NAN;
+            packet.nonredundant.AccelX          = gnc_info_exist ? gnc_info_data.vn100_packet.AccelX : NAN;
+            packet.nonredundant.AccelY          = gnc_info_exist ? gnc_info_data.vn100_packet.AccelY : NAN;
+            packet.nonredundant.AccelZ          = gnc_info_exist ? gnc_info_data.vn100_packet.AccelZ : NAN;
+            packet.nonredundant.GyroX           = gnc_info_exist ? gnc_info_data.vn100_packet.GyroX  : NAN;
+            packet.nonredundant.GyroY           = gnc_info_exist ? gnc_info_data.vn100_packet.GyroY  : NAN;
+            packet.nonredundant.GyroZ           = gnc_info_exist ? gnc_info_data.vn100_packet.GyroZ  : NAN;
+            packet.nonredundant.attitude_yaw    = gnc_info_exist ? gnc_info_data.attitude_yaw        : NAN;
+            packet.nonredundant.attitude_pitch  = gnc_info_exist ? gnc_info_data.attitude_pitch      : NAN;
+            packet.nonredundant.attitude_roll   = gnc_info_exist ? gnc_info_data.attitude_roll       : NAN;
 
 
 
