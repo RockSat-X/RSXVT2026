@@ -125,8 +125,6 @@ setup(void)
         if (packet_lora_radio.startReceive() != RADIOLIB_ERR_NONE)
         {
             Serial.printf("Failed to start receiving.\n");
-            ESP.restart();
-            return;
         }
 
     }

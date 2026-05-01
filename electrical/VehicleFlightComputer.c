@@ -6,11 +6,11 @@
 #define SPI_RECEPTION_RING_BUFFER_LENGTH 32
 #define WATCHDOG_DURATION_US             (10 * 60'000'000)
 #define MAX_ANGULAR_ACCELERATION         (100.0f)
-#define MAX_ANGULAR_VELOCITY             (900.0f * 2.0f * PI / 60.0f)
-#define GOD_MODE                         true
-#define CONTROLLER_ENABLE                true
-#define VN100_ENABLE                     false
-#define OPENMV_ENABLE                    false
+#define MAX_ANGULAR_VELOCITY             (1600.0f * 2.0f * PI / 60.0f)
+#define CONTROLLER_MOTOR_DEMO            true
+#define CONTROLLER_MOTOR_ENABLE          true
+#define VN100_ENABLE                     true
+#define OPENMV_ENABLE                    true
 #define ESP32_ENABLE                     true
 #define WATCHDOG_ENABLE                  true
 #define TRANSMIT_TV                      false
@@ -50,23 +50,19 @@ struct OpenMVImage
 struct GNCInfo
 {
     struct VN100Packet vn100_packet;
-    u8                 computer_vision_confidence;
+    f32                attitude_yaw;
+    f32                attitude_pitch;
+    f32                attitude_roll;
 };
 
 
 
 static struct
 {
-
     RingBuffer(struct VN100Packet    , 8) vn100_packets;
     RingBuffer(struct OpenMVPacketGNC, 8) openmv_gnc_packets;
     volatile struct StepperTuple          current_angular_accelerations;
     volatile struct StepperTuple          current_angular_velocities;
-
-    #if GOD_MODE
-        volatile u32 replay_sequence_number;
-    #endif
-
 } CONTROLLER = {0};
 
 static struct
@@ -355,16 +351,18 @@ FREERTOS_TASK(diagnostics, 2)
 FREERTOS_TASK(controller, 0)
 {
 
-#if CONTROLLER_ENABLE
-
-    STEPPER_reinit();
+    #if CONTROLLER_MOTOR_ENABLE
+    {
+        STEPPER_reinit();
+    }
+    #endif
 
 
 
     // For diagnostic purposes, we immediately set angular velocities to
     // something non-zero so we can easily tell if something is wrong.
 
-    #if GOD_MODE
+    #if CONTROLLER_MOTOR_DEMO
     {
         for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
         {
@@ -378,65 +376,6 @@ FREERTOS_TASK(controller, 0)
     for (;;)
     {
 
-
-
-        // If requested, we play back a sequence of angular accelerations for simulation purposes.
-
-        #if GOD_MODE
-        {
-            if (CONTROLLER.replay_sequence_number)
-            {
-
-                #include "SEQUENCE_ANGULAR_ACCELERATIONS.meta"
-                /* #meta
-
-                    import deps.stpy.pxd.pxd as pxd
-                    import math
-
-                    entries = [
-                        [float(cell) for cell in line.split(',')]
-                        for line in pxd.make_main_relative_path('./misc/vel_rw.txt').read_text().splitlines()
-                    ]
-
-                    with Meta.enter('static const struct StepperTuple SEQUENCE_ANGULAR_ACCELERATIONS[] ='):
-
-                        dt = 20_000 / 1_000_000 # @/`Sequence Angular Accelerations Delta Time`: Coupled.
-
-                        for entry_i, current_entry in enumerate(entries[:-1]):
-
-                            current_t, current_x, current_y, current_z = current_entry
-                            next_t   , next_x   , next_y   , next_z    = entries[entry_i + 1]
-
-                            acceleration_x = (next_x - current_x) / (next_t - current_t)
-                            acceleration_y = (next_y - current_y) / (next_t - current_t)
-                            acceleration_z = (next_z - current_z) / (next_t - current_t)
-
-                            for i in range(round((next_t - current_t) / dt)):
-                                Meta.line(f'''
-                                    {{ {{ {acceleration_x :f}f, {acceleration_y :f}f, {acceleration_z :f}f }} }},
-                                ''')
-
-                */
-
-                CONTROLLER.current_angular_accelerations  = SEQUENCE_ANGULAR_ACCELERATIONS[CONTROLLER.replay_sequence_number - 1];
-                CONTROLLER.replay_sequence_number        += 1;
-                CONTROLLER.replay_sequence_number        %= countof(SEQUENCE_ANGULAR_ACCELERATIONS) + 1;
-
-                if (!CONTROLLER.replay_sequence_number)
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit] = 0.0f;
-                        CONTROLLER.current_angular_velocities   .values[unit] = 0.0f;
-                    }
-                }
-
-            }
-        }
-        #endif
-
-
-
         // TODO Use `pop_to_latest` or just `pop`?
 
         struct VN100Packet     vn100_packet_data       = {0};
@@ -449,7 +388,45 @@ FREERTOS_TASK(controller, 0)
         // Perform GNC calculations.
 
         {
-            // TODO.
+
+            #if CONTROLLER_MOTOR_DEMO
+            {
+
+                if (TIMEKEEPING_microseconds() >= 10'000'000)
+                {
+
+                    if ((TIMEKEEPING_microseconds() / 4'000'000) % 2)
+                    {
+                        CONTROLLER.current_angular_accelerations =
+                            (struct StepperTuple)
+                            {
+                                .values =
+                                    {
+                                        [StepperUnit_axis_x] = MAX_ANGULAR_ACCELERATION,
+                                        [StepperUnit_axis_y] = MAX_ANGULAR_ACCELERATION,
+                                        [StepperUnit_axis_z] = MAX_ANGULAR_ACCELERATION,
+                                    },
+                            };
+                    }
+                    else
+                    {
+                        CONTROLLER.current_angular_accelerations =
+                            (struct StepperTuple)
+                            {
+                                .values =
+                                    {
+                                        [StepperUnit_axis_x] = -MAX_ANGULAR_ACCELERATION,
+                                        [StepperUnit_axis_y] = -MAX_ANGULAR_ACCELERATION,
+                                        [StepperUnit_axis_z] = -MAX_ANGULAR_ACCELERATION,
+                                    },
+                            };
+                    }
+
+                }
+
+            }
+            #endif
+
         }
 
 
@@ -461,8 +438,10 @@ FREERTOS_TASK(controller, 0)
 
             struct GNCInfo gnc_info =
                 {
-                    .vn100_packet               = vn100_packet_data,
-                    .computer_vision_confidence = openmv_gnc_packet_data.computer_vision_confidence,
+                    .vn100_packet   = vn100_packet_data,
+                    .attitude_yaw   = openmv_gnc_packet_data.computer_vision_confidence ? openmv_gnc_packet_data.attitude_yaw   : NAN,
+                    .attitude_pitch = openmv_gnc_packet_data.computer_vision_confidence ? openmv_gnc_packet_data.attitude_pitch : NAN,
+                    .attitude_roll  = openmv_gnc_packet_data.computer_vision_confidence ? openmv_gnc_packet_data.attitude_roll  : NAN,
                 };
 
             if (!RingBuffer_push(&ESP32.gnc_infos, &gnc_info))
@@ -539,72 +518,67 @@ FREERTOS_TASK(controller, 0)
 
         // Queue up the new angular velocity.
 
-        for (b32 yield = false; !yield;)
+        #if CONTROLLER_MOTOR_ENABLE
         {
-
-            enum StepperPushAngularVelocitiesResult result =
-                STEPPER_push_angular_velocities
-                (
-                    (struct StepperTuple*) &CONTROLLER.current_angular_velocities
-                );
-
-            switch (result)
+            for (b32 yield = false; !yield;)
             {
 
-                case StepperPushAngularVelocitiesResult_pushed:
-                {
-                    yield = true;
-                } break;
-
-                case StepperPushAngularVelocitiesResult_full:
-                case StepperPushAngularVelocitiesResult_still_initializing:
-                {
-                    FREERTOS_delay_ms(1);
-                } break;
-
-                case StepperPushAngularVelocitiesResult_no_response_from_unit:
-                case StepperPushAngularVelocitiesResult_bad_response_from_unit:
-                case StepperPushAngularVelocitiesResult_bug:
-                default:
-                {
-
-                    xTaskNotify
+                enum StepperPushAngularVelocitiesResult result =
+                    STEPPER_push_angular_velocities
                     (
-                        diagnostics_handle,
-                        DiagnosticMask_stepper_driver_issue,
-                        eSetBits
+                        (struct StepperTuple*) &CONTROLLER.current_angular_velocities
                     );
 
-                    atomic_fetch_add_explicit
-                    (
-                        &LOGGER.stepper_issues,
-                        1,
-                        memory_order_relaxed // No synchronization needed.
-                    );
+                switch (result)
+                {
 
-                    memzero((struct StepperTuple*) &CONTROLLER.current_angular_accelerations);
-                    memzero((struct StepperTuple*) &CONTROLLER.current_angular_velocities   );
+                    case StepperPushAngularVelocitiesResult_pushed:
+                    {
+                        yield = true;
+                    } break;
 
-                    STEPPER_reinit();
+                    case StepperPushAngularVelocitiesResult_full:
+                    case StepperPushAngularVelocitiesResult_still_initializing:
+                    {
+                        FREERTOS_delay_ms(1);
+                    } break;
 
-                    yield = true;
+                    case StepperPushAngularVelocitiesResult_no_response_from_unit:
+                    case StepperPushAngularVelocitiesResult_bad_response_from_unit:
+                    case StepperPushAngularVelocitiesResult_bug:
+                    default:
+                    {
 
-                } break;
+                        xTaskNotify
+                        (
+                            diagnostics_handle,
+                            DiagnosticMask_stepper_driver_issue,
+                            eSetBits
+                        );
+
+                        atomic_fetch_add_explicit
+                        (
+                            &LOGGER.stepper_issues,
+                            1,
+                            memory_order_relaxed // No synchronization needed.
+                        );
+
+                        memzero((struct StepperTuple*) &CONTROLLER.current_angular_accelerations);
+                        memzero((struct StepperTuple*) &CONTROLLER.current_angular_velocities   );
+
+                        STEPPER_reinit();
+
+                        yield = true;
+
+                    } break;
+
+                }
 
             }
-
         }
+        #endif
 
     }
-
-#else
-
-    for (;;)
-    {
-        FREERTOS_delay_ms(1'000);
-    }
-
-#endif
 
 }
 
@@ -1592,31 +1566,26 @@ FREERTOS_TASK(esp32, 1)
 
             // See if there's any GNC info we can transmit back to main.
 
-            struct GNCInfo gnc_info = {0};
+            struct GNCInfo gnc_info_data  = {0};
+            b32            gnc_info_exist = RingBuffer_pop_to_latest(&ESP32.gnc_infos, &gnc_info_data);
 
-            if (RingBuffer_pop_to_latest(&ESP32.gnc_infos, &gnc_info))
-            {
-                should_transmit                                = true;
-                packet.MagX                                    = gnc_info.vn100_packet.MagX;
-                packet.MagY                                    = gnc_info.vn100_packet.MagY;
-                packet.MagZ                                    = gnc_info.vn100_packet.MagZ;
-                packet.nonredundant.QuatX                      = gnc_info.vn100_packet.QuatX;
-                packet.nonredundant.QuatY                      = gnc_info.vn100_packet.QuatY;
-                packet.nonredundant.QuatZ                      = gnc_info.vn100_packet.QuatZ;
-                packet.nonredundant.QuatS                      = gnc_info.vn100_packet.QuatS;
-                packet.nonredundant.AccelX                     = gnc_info.vn100_packet.AccelX;
-                packet.nonredundant.AccelY                     = gnc_info.vn100_packet.AccelY;
-                packet.nonredundant.AccelZ                     = gnc_info.vn100_packet.AccelZ;
-                packet.nonredundant.GyroX                      = gnc_info.vn100_packet.GyroX;
-                packet.nonredundant.GyroY                      = gnc_info.vn100_packet.GyroY;
-                packet.nonredundant.GyroZ                      = gnc_info.vn100_packet.GyroZ;
-                packet.nonredundant.computer_vision_confidence = gnc_info.computer_vision_confidence;
-            }
-            else
-            {
-                // We haven't gotten the first GNC info yet. This should because we're very
-                // early on in the experiment run-time where we haven't done GNC stuff yet.
-            }
+            should_transmit                    |= gnc_info_exist;
+            packet.MagX                         = gnc_info_exist ? gnc_info_data.vn100_packet.MagX   : NAN;
+            packet.MagY                         = gnc_info_exist ? gnc_info_data.vn100_packet.MagY   : NAN;
+            packet.MagZ                         = gnc_info_exist ? gnc_info_data.vn100_packet.MagZ   : NAN;
+            packet.nonredundant.QuatX           = gnc_info_exist ? gnc_info_data.vn100_packet.QuatX  : NAN;
+            packet.nonredundant.QuatY           = gnc_info_exist ? gnc_info_data.vn100_packet.QuatY  : NAN;
+            packet.nonredundant.QuatZ           = gnc_info_exist ? gnc_info_data.vn100_packet.QuatZ  : NAN;
+            packet.nonredundant.QuatS           = gnc_info_exist ? gnc_info_data.vn100_packet.QuatS  : NAN;
+            packet.nonredundant.AccelX          = gnc_info_exist ? gnc_info_data.vn100_packet.AccelX : NAN;
+            packet.nonredundant.AccelY          = gnc_info_exist ? gnc_info_data.vn100_packet.AccelY : NAN;
+            packet.nonredundant.AccelZ          = gnc_info_exist ? gnc_info_data.vn100_packet.AccelZ : NAN;
+            packet.nonredundant.GyroX           = gnc_info_exist ? gnc_info_data.vn100_packet.GyroX  : NAN;
+            packet.nonredundant.GyroY           = gnc_info_exist ? gnc_info_data.vn100_packet.GyroY  : NAN;
+            packet.nonredundant.GyroZ           = gnc_info_exist ? gnc_info_data.vn100_packet.GyroZ  : NAN;
+            packet.nonredundant.attitude_yaw    = gnc_info_exist ? gnc_info_data.attitude_yaw        : NAN;
+            packet.nonredundant.attitude_pitch  = gnc_info_exist ? gnc_info_data.attitude_pitch      : NAN;
+            packet.nonredundant.attitude_roll   = gnc_info_exist ? gnc_info_data.attitude_roll       : NAN;
 
 
 
@@ -2086,168 +2055,6 @@ FREERTOS_TASK(logger, 0)
         }
 
     }
-
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-FREERTOS_TASK(god, 3)
-{
-
-#if GOD_MODE
-
-    for (;;)
-    {
-
-        u8 input = {0};
-
-        while (stlink_rx(&input))
-        {
-            switch (input)
-            {
-
-
-
-                // Stepper motor control.
-
-                case 'j':
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit] -= 0.1f;
-                    }
-                } break;
-
-                case 'J':
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit] -= 1.0f;
-                    }
-                } break;
-
-                case 'k':
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit] += 0.1f;
-                    }
-                } break;
-
-                case 'K':
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit] += 1.0f;
-                    }
-                } break;
-
-                case '0':
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit] = 0.0f;
-                        CONTROLLER.current_angular_velocities   .values[unit] = 0.0f;
-                    }
-                } break;
-
-                case '<':
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit] -= MAX_ANGULAR_ACCELERATION;
-                    }
-                } break;
-
-                case '>':
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit] += MAX_ANGULAR_ACCELERATION;
-                    }
-                } break;
-
-                case '-':
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit]  =  0.0f;
-                        CONTROLLER.current_angular_velocities   .values[unit] *= -1.0f;
-                    }
-                } break;
-
-                case 'x':
-                {
-
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit] = 0.0f;
-                        CONTROLLER.current_angular_velocities   .values[unit] = 0.0f;
-                    }
-
-                    CONTROLLER.replay_sequence_number = 1;
-
-                } break;
-
-
-
-                // VN-100.
-
-                case 'm':
-                {
-                    atomic_fetch_xor_explicit
-                    (
-                        &VN100.magnetic_disturbance_exists,
-                        -1,
-                        memory_order_relaxed // No synchronization needed.
-                    );
-                } break;
-
-                case 'a':
-                {
-                    atomic_fetch_xor_explicit
-                    (
-                        &VN100.acceleration_disturbance_exists,
-                        -1,
-                        memory_order_relaxed // No synchronization needed.
-                    );
-                } break;
-
-
-
-                // Misc.
-
-                case 'b':
-                {
-                    GPIO_TOGGLE(battery_allowed);
-                } break;
-
-
-
-                default:
-                {
-                    // Don't care.
-                } break;
-
-            }
-        }
-
-        FREERTOS_delay_ms(10);
-
-    }
-
-#else
-
-    for (;;)
-    {
-        FREERTOS_delay_ms(1'000);
-    }
-
-#endif
 
 }
 

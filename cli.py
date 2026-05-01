@@ -456,6 +456,9 @@ class VideoMaker:
 
         frame = cv2.imdecode(numpy.frombuffer(image, dtype = numpy.uint8), cv2.IMREAD_COLOR)
 
+        if frame is None:
+            return
+
         if self.writer is None:
 
             height, width, _ = frame.shape
@@ -2572,7 +2575,7 @@ def parseFlight(parameters):
 
     import csv
 
-    file_handle = open(pathlib.Path(output_directory_path, 'log.csv'), 'w')
+    file_handle = open(pathlib.Path(output_directory_path, 'log.csv'), 'w', newline = '')
 
     writer = csv.writer(file_handle)
 
