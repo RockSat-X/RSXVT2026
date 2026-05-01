@@ -28,7 +28,7 @@ enum StepperMicrostepResolution : u32 // @/pg 33/tbl 5.5.1/`TMC2209`.
 };
 
 // @/`Stepper Microstepping and Step Velocity`.
-#define STEPPER_MICROSTEP_RESOLUTION StepperMicrostepResolution_4
+#define STEPPER_MICROSTEP_RESOLUTION StepperMicrostepResolution_16
 #define STEPPER_STEPS_PER_REVOLUTION ((f32) (((1 << (8 - STEPPER_MICROSTEP_RESOLUTION)) * 200) / 0.715f))
 
 static const struct StepperInitializationSequenceEntry { u8 register_address; u32 data; } STEPPER_INITIALIZATION_SEQUENCE[] =
@@ -47,7 +47,7 @@ static const struct StepperInitializationSequenceEntry { u8 register_address; u3
         {
             0x10,            // "IHOLD_IRUN" : @/pg 28/tbl 5.2/`TMC2209`.
               ((1 - 1) << 0) // "IHOLD"      : Standstill current (out of 32) for when the motor is not turning.
-            | ((8 - 1) << 8) // "IRUN"       : Current scaling (out of 32) for when the motor is turning.
+            | ((3 - 1) << 8) // "IRUN"       : Current scaling (out of 32) for when the motor is turning.
         },
         {
             0x6C,                                  // "CHOPCONF" : @/pg 33/tbl 5.5.1/`TMC2209`.

@@ -6,7 +6,7 @@
 #define SPI_RECEPTION_RING_BUFFER_LENGTH 32
 #define WATCHDOG_DURATION_US             (10 * 60'000'000)
 #define MAX_ANGULAR_ACCELERATION         (100.0f)
-#define MAX_ANGULAR_VELOCITY             (900.0f * 2.0f * PI / 60.0f)
+#define MAX_ANGULAR_VELOCITY             (1600.0f * 2.0f * PI / 60.0f)
 #define CONTROLLER_MOTOR_DEMO            true
 #define CONTROLLER_MOTOR_ENABLE          true
 #define VN100_ENABLE                     true
