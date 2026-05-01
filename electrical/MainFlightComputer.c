@@ -1,5 +1,5 @@
 #define WATCHDOG_ENABLE                  true
-#define ALLOW_FILESYSTEM_TO_BE_FORMATTED true
+#define ALLOW_FILESYSTEM_TO_BE_FORMATTED false
 #define TRANSMIT_TV                      false
 #define SOLARBOARD_ANALOG_FACTOR         (1.0f / 620.0f)
 
@@ -418,7 +418,9 @@ esp32_get_packet(struct ESP32Packet* dst_packet)
 {
 
     if (!dst_packet)
+    {
         sus;
+    }
 
     memzero(dst_packet);
 
@@ -904,7 +906,11 @@ FREERTOS_TASK(logger, 0)
 
                 stlink_tx("File-system ready!\n");
 
-                completely_wipe_filesystem_tick = 0;
+                #if ALLOW_FILESYSTEM_TO_BE_FORMATTED
+                {
+                    completely_wipe_filesystem_tick = 0;
+                }
+                #endif
 
                 xTaskNotify
                 (
