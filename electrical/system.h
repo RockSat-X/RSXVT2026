@@ -1092,8 +1092,6 @@ ESP32_calculate_crc(u8* data, i32 length)
 
         if (esp_now_init() != ESP_OK)
         {
-            Serial.printf("Error initializing ESP-NOW.\n");
-            ESP.restart();
             return;
         }
 
@@ -1136,8 +1134,6 @@ ESP32_calculate_crc(u8* data, i32 length)
 
         if (packet_lora_radio.begin() != RADIOLIB_ERR_NONE)
         {
-            Serial.printf("Failed to initialize radio.\n");
-            ESP.restart();
             return;
         }
 

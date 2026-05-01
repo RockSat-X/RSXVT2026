@@ -165,12 +165,7 @@ setup(void)
         info.channel      = 13;
         info.encrypt      = false;
 
-        if (esp_now_add_peer(&info) != ESP_OK)
-        {
-            Serial.printf("Failed to add peer.\n");
-            ESP.restart();
-            return;
-        }
+        esp_now_add_peer(&info);
 
     }
     #endif
