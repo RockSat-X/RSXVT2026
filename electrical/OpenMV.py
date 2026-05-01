@@ -507,7 +507,7 @@ def process_framebuffer():
     # Draw inliers.
     #
 
-    if True:
+    if False:
 
         for point in inliers:
 
@@ -526,7 +526,7 @@ def process_framebuffer():
     # Draw the fitted quadratic curve.
     #
 
-    if True:
+    if False:
 
         DRAW_STEP = 3   # Pixel step when drawing the fitted curve
 
@@ -690,7 +690,7 @@ def process_framebuffer():
     # Draw attitude estimate.
     #
 
-    if True:
+    if False:
 
         sensor.get_fb().draw_line(
             round(sensor.get_fb().width () // 2),
@@ -824,9 +824,12 @@ while True:
     # Do the CVT magic.
 
     processing_result, processing_message = process_framebuffer()
-
-    if USE_SAMPLE_FRAMES:
-        print(f'[{sample_frame_file_path_i + 1}/{len(sample_frame_file_paths)}] `{sample_frame_file_path}` : {processing_message}')
+    
+    if False:
+        if USE_SAMPLE_FRAMES:
+            print(f'[{sample_frame_file_path_i + 1}/{len(sample_frame_file_paths)}] `{sample_frame_file_path}` : {processing_message}')
+        else:
+            print(f'{processing_message}')
 
 
 
