@@ -7,7 +7,7 @@
 #define WATCHDOG_DURATION_US             (10 * 60'000'000)
 #define MAX_ANGULAR_ACCELERATION         (100.0f)
 #define MAX_ANGULAR_VELOCITY             (900.0f * 2.0f * PI / 60.0f)
-#define GOD_MODE                         true
+#define CONTROLLER_MOTOR_DEMO            true
 #define CONTROLLER_MOTOR_ENABLE          true
 #define VN100_ENABLE                     true
 #define OPENMV_ENABLE                    true
@@ -59,16 +59,10 @@ struct GNCInfo
 
 static struct
 {
-
     RingBuffer(struct VN100Packet    , 8) vn100_packets;
     RingBuffer(struct OpenMVPacketGNC, 8) openmv_gnc_packets;
     volatile struct StepperTuple          current_angular_accelerations;
     volatile struct StepperTuple          current_angular_velocities;
-
-    #if GOD_MODE
-        volatile u32 replay_sequence_number;
-    #endif
-
 } CONTROLLER = {0};
 
 static struct
@@ -368,7 +362,7 @@ FREERTOS_TASK(controller, 0)
     // For diagnostic purposes, we immediately set angular velocities to
     // something non-zero so we can easily tell if something is wrong.
 
-    #if GOD_MODE
+    #if CONTROLLER_MOTOR_DEMO
     {
         for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
         {
@@ -382,65 +376,6 @@ FREERTOS_TASK(controller, 0)
     for (;;)
     {
 
-
-
-        // If requested, we play back a sequence of angular accelerations for simulation purposes.
-
-        #if GOD_MODE
-        {
-            if (CONTROLLER.replay_sequence_number)
-            {
-
-                #include "SEQUENCE_ANGULAR_ACCELERATIONS.meta"
-                /* #meta
-
-                    import deps.stpy.pxd.pxd as pxd
-                    import math
-
-                    entries = [
-                        [float(cell) for cell in line.split(',')]
-                        for line in pxd.make_main_relative_path('./misc/vel_rw.txt').read_text().splitlines()
-                    ]
-
-                    with Meta.enter('static const struct StepperTuple SEQUENCE_ANGULAR_ACCELERATIONS[] ='):
-
-                        dt = 20_000 / 1_000_000 # @/`Sequence Angular Accelerations Delta Time`: Coupled.
-
-                        for entry_i, current_entry in enumerate(entries[:-1]):
-
-                            current_t, current_x, current_y, current_z = current_entry
-                            next_t   , next_x   , next_y   , next_z    = entries[entry_i + 1]
-
-                            acceleration_x = (next_x - current_x) / (next_t - current_t)
-                            acceleration_y = (next_y - current_y) / (next_t - current_t)
-                            acceleration_z = (next_z - current_z) / (next_t - current_t)
-
-                            for i in range(round((next_t - current_t) / dt)):
-                                Meta.line(f'''
-                                    {{ {{ {acceleration_x :f}f, {acceleration_y :f}f, {acceleration_z :f}f }} }},
-                                ''')
-
-                */
-
-                CONTROLLER.current_angular_accelerations  = SEQUENCE_ANGULAR_ACCELERATIONS[CONTROLLER.replay_sequence_number - 1];
-                CONTROLLER.replay_sequence_number        += 1;
-                CONTROLLER.replay_sequence_number        %= countof(SEQUENCE_ANGULAR_ACCELERATIONS) + 1;
-
-                if (!CONTROLLER.replay_sequence_number)
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit] = 0.0f;
-                        CONTROLLER.current_angular_velocities   .values[unit] = 0.0f;
-                    }
-                }
-
-            }
-        }
-        #endif
-
-
-
         // TODO Use `pop_to_latest` or just `pop`?
 
         struct VN100Packet     vn100_packet_data       = {0};
@@ -453,7 +388,45 @@ FREERTOS_TASK(controller, 0)
         // Perform GNC calculations.
 
         {
-            // TODO.
+
+            #if CONTROLLER_MOTOR_DEMO
+            {
+
+                if (TIMEKEEPING_microseconds() >= 10'000'000)
+                {
+
+                    if ((TIMEKEEPING_microseconds() / 4'000'000) % 2)
+                    {
+                        CONTROLLER.current_angular_accelerations =
+                            (struct StepperTuple)
+                            {
+                                .values =
+                                    {
+                                        [StepperUnit_axis_x] = MAX_ANGULAR_ACCELERATION,
+                                        [StepperUnit_axis_y] = MAX_ANGULAR_ACCELERATION,
+                                        [StepperUnit_axis_z] = MAX_ANGULAR_ACCELERATION,
+                                    },
+                            };
+                    }
+                    else
+                    {
+                        CONTROLLER.current_angular_accelerations =
+                            (struct StepperTuple)
+                            {
+                                .values =
+                                    {
+                                        [StepperUnit_axis_x] = -MAX_ANGULAR_ACCELERATION,
+                                        [StepperUnit_axis_y] = -MAX_ANGULAR_ACCELERATION,
+                                        [StepperUnit_axis_z] = -MAX_ANGULAR_ACCELERATION,
+                                    },
+                            };
+                    }
+
+                }
+
+            }
+            #endif
+
         }
 
 
@@ -2082,168 +2055,6 @@ FREERTOS_TASK(logger, 0)
         }
 
     }
-
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-FREERTOS_TASK(god, 3)
-{
-
-#if GOD_MODE
-
-    for (;;)
-    {
-
-        u8 input = {0};
-
-        while (stlink_rx(&input))
-        {
-            switch (input)
-            {
-
-
-
-                // Stepper motor control.
-
-                case 'j':
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit] -= 0.1f;
-                    }
-                } break;
-
-                case 'J':
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit] -= 1.0f;
-                    }
-                } break;
-
-                case 'k':
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit] += 0.1f;
-                    }
-                } break;
-
-                case 'K':
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit] += 1.0f;
-                    }
-                } break;
-
-                case '0':
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit] = 0.0f;
-                        CONTROLLER.current_angular_velocities   .values[unit] = 0.0f;
-                    }
-                } break;
-
-                case '<':
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit] -= MAX_ANGULAR_ACCELERATION;
-                    }
-                } break;
-
-                case '>':
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit] += MAX_ANGULAR_ACCELERATION;
-                    }
-                } break;
-
-                case '-':
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit]  =  0.0f;
-                        CONTROLLER.current_angular_velocities   .values[unit] *= -1.0f;
-                    }
-                } break;
-
-                case 'x':
-                {
-
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit] = 0.0f;
-                        CONTROLLER.current_angular_velocities   .values[unit] = 0.0f;
-                    }
-
-                    CONTROLLER.replay_sequence_number = 1;
-
-                } break;
-
-
-
-                // VN-100.
-
-                case 'm':
-                {
-                    atomic_fetch_xor_explicit
-                    (
-                        &VN100.magnetic_disturbance_exists,
-                        -1,
-                        memory_order_relaxed // No synchronization needed.
-                    );
-                } break;
-
-                case 'a':
-                {
-                    atomic_fetch_xor_explicit
-                    (
-                        &VN100.acceleration_disturbance_exists,
-                        -1,
-                        memory_order_relaxed // No synchronization needed.
-                    );
-                } break;
-
-
-
-                // Misc.
-
-                case 'b':
-                {
-                    GPIO_TOGGLE(battery_allowed);
-                } break;
-
-
-
-                default:
-                {
-                    // Don't care.
-                } break;
-
-            }
-        }
-
-        FREERTOS_delay_ms(10);
-
-    }
-
-#else
-
-    for (;;)
-    {
-        FREERTOS_delay_ms(1'000);
-    }
-
-#endif
 
 }
 
