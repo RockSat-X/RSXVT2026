@@ -9,7 +9,8 @@ careful documentation and testing will be done to validate them.
 
 
 
-- `ringbuffer.c`
+> #### `ringbuffer.c`
+> 
 > The ring-buffer implementation is **production-ready**.
 > Issues concerning usage and behavior of ring-buffers are unlikely.
 >
@@ -17,7 +18,8 @@ careful documentation and testing will be done to validate them.
 
 
 
-- `timekeeping.c`
+> #### `timekeeping.c`
+>
 > The driver for keeping track of elapsed time with microsecond granularity is **production-ready**.
 > Timer accuracy is not accounted for in this implementation,
 > but for our application, this should be fine.
@@ -26,7 +28,8 @@ careful documentation and testing will be done to validate them.
 
 
 
-- `sd_initer.c`
+> #### `sd_initer.c`
+>
 > The state-machine implementation for initializing SD cards is **production-ready**.
 > The implementation is not guaranteed to support all SD cards,
 > but all error conditions are well-defined and handled accordingly.
@@ -36,7 +39,8 @@ careful documentation and testing will be done to validate them.
 
 
 
-- `sd_cmder.c`
+> #### `sd_cmder.c`
+>
 > The state-machine implementation for handling SDMMC transfers is **production-ready**.
 > The implementation is harden towards hardware issues,
 > such as unexpected SD card ejection/reinsertion.
@@ -48,7 +52,8 @@ careful documentation and testing will be done to validate them.
 
 
 
-- `sd.c`
+> #### `sd.c`
+>
 > The API for doing read/writes to SD cards is **production-ready**.
 > Issues concerning usage and behavior of the SD API are unlikely.
 >
@@ -56,7 +61,8 @@ careful documentation and testing will be done to validate them.
 
 
 
-- `ovcam.c`
+> #### `ovcam.c`
+>
 > The driver for the OV5640 camera module is **production-ready**.
 > The register initialization sequence is open to being modified.
 > The driver is designed to work with the OV5640 module specifically,
@@ -67,7 +73,8 @@ careful documentation and testing will be done to validate them.
 
 
 
-- `uxart.c`
+> #### `uxart.c`
+>
 > The driver for UART communication is **production-ready**.
 > Because of how simple the interface is,
 > the implementation does not raise any error conditions to the user;
@@ -79,7 +86,8 @@ careful documentation and testing will be done to validate them.
 
 
 
-- `buzzer.c`
+> #### `buzzer.c`
+>
 > The buzzer driver is **production-ready**.
 > It's pretty simple.
 > There shouldn't be any issues with it.
@@ -89,7 +97,8 @@ careful documentation and testing will be done to validate them.
 
 
 
-- `ssd1306.c`
+> #### `ssd1306.c`
+>
 > The driver for displays controlled by SSD1306 is **production-ready**.
 > Main known issue is that there's no fool-proof
 > way to reset the SSD1306 without power-cycling.
@@ -97,6 +106,35 @@ careful documentation and testing will be done to validate them.
 > and should not be catastrophic to the user.
 >
 > \- *Phuc Doan. March 1st, 2026.*
+
+
+
+> #### `stepper.c`
+>
+> The driver for controlling TMC2209 stepper motor drivers is **production-ready**.
+> Register settings for the TMC2209s should not be changed to avoid accidentally frying components.
+>
+> \- *Phuc Doan. April 28th, 2026.*
+
+
+
+> #### `spi.c`
+>
+> The driver for SPI data reception is **production-ready**.
+> The implementation is very narrow in scope,
+> but should be sufficient for our project.
+> Issues concerning usage and behavior of the SPI driver are unlikely.
+>
+> \- *Phuc Doan. April 28th, 2026.*
+
+
+
+> #### `i2c.c`
+>
+> The driver for I2C communication is **production-ready**.
+> Issues concerning usage and behavior of the I2C driver are unlikely.
+>
+> \- *Phuc Doan. April 28th, 2026.*
 
 
 
