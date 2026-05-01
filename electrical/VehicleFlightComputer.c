@@ -8,7 +8,7 @@
 #define MAX_ANGULAR_ACCELERATION         (100.0f)
 #define MAX_ANGULAR_VELOCITY             (900.0f * 2.0f * PI / 60.0f)
 #define GOD_MODE                         true
-#define CONTROLLER_ENABLE                true
+#define CONTROLLER_MOTOR_ENABLE          false
 #define VN100_ENABLE                     false
 #define OPENMV_ENABLE                    false
 #define ESP32_ENABLE                     true
@@ -355,9 +355,11 @@ FREERTOS_TASK(diagnostics, 2)
 FREERTOS_TASK(controller, 0)
 {
 
-#if CONTROLLER_ENABLE
-
-    STEPPER_reinit();
+    #if CONTROLLER_MOTOR_ENABLE
+    {
+        STEPPER_reinit();
+    }
+    #endif
 
 
 
@@ -539,72 +541,67 @@ FREERTOS_TASK(controller, 0)
 
         // Queue up the new angular velocity.
 
-        for (b32 yield = false; !yield;)
+        #if CONTROLLER_MOTOR_ENABLE
         {
-
-            enum StepperPushAngularVelocitiesResult result =
-                STEPPER_push_angular_velocities
-                (
-                    (struct StepperTuple*) &CONTROLLER.current_angular_velocities
-                );
-
-            switch (result)
+            for (b32 yield = false; !yield;)
             {
 
-                case StepperPushAngularVelocitiesResult_pushed:
-                {
-                    yield = true;
-                } break;
-
-                case StepperPushAngularVelocitiesResult_full:
-                case StepperPushAngularVelocitiesResult_still_initializing:
-                {
-                    FREERTOS_delay_ms(1);
-                } break;
-
-                case StepperPushAngularVelocitiesResult_no_response_from_unit:
-                case StepperPushAngularVelocitiesResult_bad_response_from_unit:
-                case StepperPushAngularVelocitiesResult_bug:
-                default:
-                {
-
-                    xTaskNotify
+                enum StepperPushAngularVelocitiesResult result =
+                    STEPPER_push_angular_velocities
                     (
-                        diagnostics_handle,
-                        DiagnosticMask_stepper_driver_issue,
-                        eSetBits
+                        (struct StepperTuple*) &CONTROLLER.current_angular_velocities
                     );
 
-                    atomic_fetch_add_explicit
-                    (
-                        &LOGGER.stepper_issues,
-                        1,
-                        memory_order_relaxed // No synchronization needed.
-                    );
+                switch (result)
+                {
 
-                    memzero((struct StepperTuple*) &CONTROLLER.current_angular_accelerations);
-                    memzero((struct StepperTuple*) &CONTROLLER.current_angular_velocities   );
+                    case StepperPushAngularVelocitiesResult_pushed:
+                    {
+                        yield = true;
+                    } break;
 
-                    STEPPER_reinit();
+                    case StepperPushAngularVelocitiesResult_full:
+                    case StepperPushAngularVelocitiesResult_still_initializing:
+                    {
+                        FREERTOS_delay_ms(1);
+                    } break;
 
-                    yield = true;
+                    case StepperPushAngularVelocitiesResult_no_response_from_unit:
+                    case StepperPushAngularVelocitiesResult_bad_response_from_unit:
+                    case StepperPushAngularVelocitiesResult_bug:
+                    default:
+                    {
 
-                } break;
+                        xTaskNotify
+                        (
+                            diagnostics_handle,
+                            DiagnosticMask_stepper_driver_issue,
+                            eSetBits
+                        );
+
+                        atomic_fetch_add_explicit
+                        (
+                            &LOGGER.stepper_issues,
+                            1,
+                            memory_order_relaxed // No synchronization needed.
+                        );
+
+                        memzero((struct StepperTuple*) &CONTROLLER.current_angular_accelerations);
+                        memzero((struct StepperTuple*) &CONTROLLER.current_angular_velocities   );
+
+                        STEPPER_reinit();
+
+                        yield = true;
+
+                    } break;
+
+                }
 
             }
-
         }
+        #endif
 
     }
-
-#else
-
-    for (;;)
-    {
-        FREERTOS_delay_ms(1'000);
-    }
-
-#endif
 
 }
 
