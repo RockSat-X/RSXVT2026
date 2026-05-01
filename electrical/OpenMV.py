@@ -671,9 +671,9 @@ def process_framebuffer():
             for x, y in root_points
         )
 
-        error_x                    =  (closest_point[0] - sensor.get_fb().width()  / 2) * 0.0072
-        error_y                    = -(closest_point[1] - sensor.get_fb().height() / 2) * 0.0075
-        error_z                    = abs(math.atan(error_y / error_x) - math.pi / 2)
+        error_x                    = (closest_point[0] - px) * 0.2059
+        error_y                    = (closest_point[1] - py) * 0.2158
+        error_z                    = math.degrees(math.atan(slope))
         computer_vision_confidence = 1
 
     else:
@@ -732,7 +732,7 @@ def process_framebuffer():
             error_z,
             computer_vision_confidence,
         ),
-        f'X: {error_z*180/math.pi :8.3f}, Y: {error_y*180/math.pi :8.3f}, Z: {error_x*180/math.pi :8.3f} (deg) {orientation=} {dark_side=} {len(inliers)=} {a_c=:.7f} {b_c=:.4f} {c_c=:.1f}'
+        f'X: {error_x :8.3f}, Y: {error_y :8.3f}, Z: {error_z :8.3f} (deg) {orientation=} {dark_side=} {len(inliers)=} {a_c=:.7f} {b_c=:.4f} {c_c=:.1f}'
     )
 
 
