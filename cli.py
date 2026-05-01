@@ -456,6 +456,9 @@ class VideoMaker:
 
         frame = cv2.imdecode(numpy.frombuffer(image, dtype = numpy.uint8), cv2.IMREAD_COLOR)
 
+        if frame is None:
+            return
+
         if self.writer is None:
 
             height, width, _ = frame.shape
