@@ -2575,7 +2575,7 @@ def parseFlight(parameters):
 
     import csv
 
-    file_handle = open(pathlib.Path(output_directory_path, 'log.csv'), 'w')
+    file_handle = open(pathlib.Path(output_directory_path, 'log.csv'), 'w', newline = '')
 
     writer = csv.writer(file_handle)
 
