@@ -8,6 +8,8 @@
 > Also check out the [RSXVT2026 Wiki](https://github.com/RockSat-X/RSXVT2026/wiki)!
 
 
+&nbsp;
+
 # Mission Overview.
 
 Our experiment aims to evaluate the use of optical navigation
@@ -38,7 +40,7 @@ The operating principle of the CONSat will be to:
 
 The target will be the Earth's horizon as seen at ~190 km apogee.
 
-
+&nbsp;
 
 # High-Level System Overview.
 
@@ -379,15 +381,37 @@ Verify open-circuit with a multimeter.
 > we have these as a way to do so.
 
 
+&nbsp;
+
 
 # Remove-Before-Flight Procedure.
 
 The following steps are to be carried out in order with minimal deviations after all final sequence tests are done.
 
-## 1. Ensure ejection inhibit is removed.
+> [!IMPORTANT]
+> Pre-RBF procedure checklist:
+> - Multimeter.
+> - Three fully charged EEMB LP653042 3.7V 820mAh batteries.
+> - Allen key kit.
+> - Red Loctite.
+> - Tweezers.
+> - Needle-nose pliers.
+> - Phillips screwdriver.
 
-> [!CAUTION]
-> Incomplete.
+&nbsp;
+
+## 1. Take out vehicle.
+
+Remove the ejection inhibit if still in place.
+The ejection inhibit will not be used again,
+so store it away in a secure location.
+
+Take out the burn-wire mechanism in order to release the vehicle from the ejection mechanism.
+Place the burn-wire mechanism in a secure location.
+
+Carefully undock vehicle and place it down on a table to be worked on.
+
+&nbsp;
 
 
 
@@ -409,7 +433,7 @@ Side of the vehicle where the batteries are stored.
 </p>&nbsp;
 
 Take off the panel.
-Place the screws in a secure location.
+Place the panel and screws in a secure location.
 
 <p align="center">
 <kbd>
@@ -533,8 +557,6 @@ Side of the vehicle where the batteries are stored.
 </kbd>
 </p>&nbsp;
 
-> [!IMPORTANT]
-> Summary: new batteries are put in and red Loctite has been applied.
 
 
 ## 3. Remove vehicle jumper inhibits.
@@ -557,7 +579,24 @@ Vehicle jumpers in flight configuration.
 
 
 
-## 4. Remove external uSD connector lids and jumpers.
+## 4. Redock vehicle.
+
+Reinsert vehicle into the ejection mechanism.
+Make certain that the vehicle is in the correct orientation.
+Verify that the vehicle interface connectors are aligned.
+
+Put the previously removed burn-wire mechanism
+back onto the deck-plate to secure the vehicle in the ejection mechanism.
+Apply red Loctite to screws during this process.
+
+Visually verify and test that the vehicle is well secured
+by the ejection mechanism and burn-wire rope.
+
+&nbsp;
+
+
+
+## 5. Remove external uSD connector lids and jumpers.
 
 To prevent vibration risks,
 the Vehicle Flight Computer and Debug Board should have the lid of their uSD connectors be taken off.
@@ -605,14 +644,28 @@ Tweezers might be needed.
 
 
 
-## 5. Insert screws into electrical screw switches.
+## 6. Enable electrical screw switches.
 
-> [!CAUTION]
-> Incomplete.
+Insert screws with red Loctite into the three electrical screw switches
+on the side of the ejection mechanism.
+
+Verify connectivity of each electrical screw switch
+by testing continuity of the two pads.
+
+&nbsp;
 
 
 
-## 6. Redock vehicle and set burn-wire mechanism.
+## 7. Final checks.
 
-> [!CAUTION]
-> Incomplete.
+> [!IMPORTANT]
+> Verify that the following has been done:
+> - New vehicle batteries has been put in.
+> - Red Loctite has been applied to the vehicle's panel on the battery side.
+> - Red Loctite has been applied to the burn-wire mechanism.
+> - Red Loctite has been applied to the electrical screw switches.
+> - Vehicle is well secured by the burn-wire rope and ejection mechanism as a whole.
+> - No loose components like uSD card connector lids or jumpers are in place.
+> - Electrical screw switches have the expected connectivity.
+
+&nbsp;
