@@ -1,28 +1,67 @@
 # Virginia Tech RockSat-X 2026 Project.
 
 > [!IMPORTANT]
-> [Please check out the wiki!](https://github.com/RockSat-X/RSXVT2026/wiki)
-
+> Quick link to:
+> - [Wallops Testing Procedure](#wallops-testing-procedure).
+> - [Remove-Before-Flight Procedure](#remove-before-flight-procedure).
+>
+> Also check out the [RSXVT2026 Wiki](https://github.com/RockSat-X/RSXVT2026/wiki)!
 
 
 # Mission Overview.
 
-> [!CAUTION]
-> Incomplete.
+Our experiment aims to evaluate the use of optical navigation
+with Commercial-off-the-Shelf (COTS) products for use in spaceflight applications.
+To conduct the experiment,
+an autonomous attitude determination and control system (ADCS)
+employing an optical navigation system (ONS)
+will be designed to control a 1U CubeSat,
+codenamed **Commercial Optical Navigation Satellite (CONSat)**.
+
+The 2024 NASA Civil Space Shortfall Ranking lists 9 out of the top 30 shortfalls
+as limitations with autonomous deep space navigation.
+With recent advancements in computing and ML capabilities,
+optical navigation could revolutionize deep space navigation.
+Our team aims to address some of the challenges facing the space industry
+by designing a cost-effective ADCS that would rely primarily on conditions
+only available in deep space.
+
+The CONSat vehicle's Optical Navigation System (ONS) has:
+- OpenMV H7+.
+- VN-100 IMU / AHRS.
+
+The operating principle of the CONSat will be to:
+1. Capture image and isolate target.
+2. Perform LoS measurements to estimate attitude.
+3. Blend LoS solution with IMU / AHRS solution.
+4. Reorient spacecraft to align to target.
+
+The target will be the Earth's horizon as seen at ~190 km apogee.
 
 
 
-# System Overview.
+# High-Level System Overview.
 
 > [!CAUTION]
 > Incomplete.
 
 <p align="center">
 <kbd>
-<img src="./misc/media/labeled_cad_experiment.png" height="400px">
+<img src="./misc/media/labeled_cad_experiment.png" width="800px">
 <br>
 <br>
 <em>Labeled CAD model of the experiment.</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
+
+<p align="center">
+<kbd>
+<img src="./misc/media/functional_block_diagram.png" width="800px">
+<br>
+<br>
+<em>Functional block diagram of the CONSat experiment.</em>
 <br>
 <br>
 </kbd>
