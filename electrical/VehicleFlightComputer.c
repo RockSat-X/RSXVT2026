@@ -586,36 +586,6 @@ FREERTOS_TASK(controller, 0)
 
 
 
-#include "VN100Command.meta"
-/* #meta
-
-    import functools
-
-    COMMANDS = (
-        ('disable_known_magnetic_disturbance'    , 'VNKMD,0'),
-        ('enable_known_magnetic_disturbance'     , 'VNKMD,1'),
-        ('disable_known_acceleration_disturbance', 'VNKAD,0'),
-        ('enable_known_acceleration_disturbance' , 'VNKAD,1'),
-    )
-
-    messages = [
-        f'${text}*{functools.reduce(lambda x, y: x^ord(y), text, 0):02X}\\n'
-        for name, text in COMMANDS
-    ]
-
-    Meta.enums('VN100Command', 'u32', (name for name, text in COMMANDS))
-
-    Meta.lut('VN100Command_TABLE', (
-        (
-            f'VN100Command_{name}',
-            ('message', f'(const u8*) "{message}"'),
-            ('length' , f'sizeof("{message}") - 1'),
-        )
-        for (name, text), message in zip(COMMANDS, messages)
-    ))
-
-*/
-
 static enum VN100AwaitResponseResult : u32
 {
     VN100AwaitResponseResult_successful,
@@ -744,83 +714,6 @@ vn100_await_response(u8* dst_response_buffer, i32 dst_response_capacity, i32* ds
 
 }
 
-static enum VN100AwaitCommandResult : u32
-{
-    VN100AwaitCommandResult_successful,
-    VN100AwaitCommandResult_timeout,
-    VN100AwaitCommandResult_checksum_mismatch,
-    VN100AwaitCommandResult_missing_echo,
-}
-vn100_await_command(enum VN100Command command)
-{
-
-    while (UXART_rx(UXARTHandle_vn100, nullptr));
-
-    UXART_tx_bytes
-    (
-        UXARTHandle_vn100,
-        VN100Command_TABLE[command].message,
-        VN100Command_TABLE[command].length
-    );
-
-    for (i32 response_index = 0;; response_index += 1)
-    {
-
-        u8  response_buffer[256] = {0};
-        i32 response_length      = {0};
-
-        enum VN100AwaitResponseResult response_result =
-            vn100_await_response
-            (
-                response_buffer,
-                countof(response_buffer),
-                &response_length
-            );
-
-        switch (response_result)
-        {
-
-            case VN100AwaitResponseResult_successful:
-            {
-
-                b32 matching_response =
-                    response_length == VN100Command_TABLE[command].length - 1 &&
-                    !memcmp
-                    (
-                        response_buffer,
-                        VN100Command_TABLE[command].message,
-                        (u32) VN100Command_TABLE[command].length - 1
-                    );
-
-                if (matching_response)
-                {
-                    return VN100AwaitCommandResult_successful; // Yippee!
-                }
-                else if (response_index < 16)
-                {
-                    // We got some other response from the VN-100;
-                    // for now, let's just ignore it and hope the
-                    // expected response is going to come in a bit later.
-                }
-                else
-                {
-                    // Seems like the VN-100 isn't echoing back
-                    // the expected response to our command...
-                    return VN100AwaitCommandResult_missing_echo;
-                }
-
-            } break;
-
-            case VN100AwaitResponseResult_timeout           : return VN100AwaitCommandResult_timeout;
-            case VN100AwaitResponseResult_checksum_mismatch : return VN100AwaitCommandResult_checksum_mismatch;
-            default                                         : sus;
-
-        }
-
-    }
-
-}
-
 FREERTOS_TASK(vn100, 0)
 {
 
@@ -838,81 +731,6 @@ FREERTOS_TASK(vn100, 0)
 
         for (i32 iteration_index = 0;; iteration_index += 1)
         {
-
-
-
-            // See if we need to reconfigure the VN-100.
-
-            b32 current_magnetic_disturbance =
-                atomic_load_explicit
-                (
-                    &VN100.magnetic_disturbance_exists,
-                    memory_order_relaxed // No synchronization needed.
-                );
-
-            b32 current_acceleration_disturbance =
-                atomic_load_explicit
-                (
-                    &VN100.acceleration_disturbance_exists,
-                    memory_order_relaxed // No synchronization needed.
-                );
-
-            if
-            (
-                iteration_index == 0                                                ||
-                active_magnetic_disturbance     != current_magnetic_disturbance     ||
-                active_acceleration_disturbance != current_acceleration_disturbance
-            )
-            {
-
-                active_magnetic_disturbance     = current_magnetic_disturbance;
-                active_acceleration_disturbance = current_acceleration_disturbance;
-
-                { // Initialize the VNKMD state.
-
-                    enum VN100AwaitCommandResult result =
-                        vn100_await_command
-                        (
-                            active_magnetic_disturbance
-                                ?  VN100Command_enable_known_magnetic_disturbance
-                                :  VN100Command_disable_known_magnetic_disturbance
-                        );
-
-                    switch (result)
-                    {
-                        case VN100AwaitCommandResult_successful        : break;
-                        case VN100AwaitCommandResult_timeout           : goto REINITIALIZE;
-                        case VN100AwaitCommandResult_checksum_mismatch : goto REINITIALIZE;
-                        case VN100AwaitCommandResult_missing_echo      : goto REINITIALIZE;
-                        default                                        : sus;
-                    }
-
-                }
-
-                { // Initialize the VNKAD state.
-
-                    enum VN100AwaitCommandResult result =
-                        vn100_await_command
-                        (
-                            active_acceleration_disturbance
-                                ?  VN100Command_enable_known_acceleration_disturbance
-                                :  VN100Command_disable_known_acceleration_disturbance
-                        );
-
-                    switch (result)
-                    {
-                        case VN100AwaitCommandResult_successful        : break;
-                        case VN100AwaitCommandResult_timeout           : goto REINITIALIZE;
-                        case VN100AwaitCommandResult_checksum_mismatch : goto REINITIALIZE;
-                        case VN100AwaitCommandResult_missing_echo      : goto REINITIALIZE;
-                        default                                        : sus;
-                    }
-
-                }
-
-            }
-
-
 
             // The VN-100 is preprogrammed to automatically transmit the desired
             // register data; all we have to do to pick it up and parse it.
