@@ -461,6 +461,9 @@ Verify open-circuit with a multimeter.
 > [!IMPORTANT]
 > The experiment must be put into flight-ready configuration during vibration testing.
 > This means all electrical screw switches should be enabled and no mechanical inhibit present.
+> Any loose components such as external uSD cards and jumpers should be removed (see [RBF procedures](#remove-before-flight-procedure)).
+> Screws should be applied with blue Loctite.
+>
 > It should also be noted that Wallops will only provide GSE-1 and there will be no TE-1 power
 > during this vibration test (this also applies to GPS Roll-Out).
 
