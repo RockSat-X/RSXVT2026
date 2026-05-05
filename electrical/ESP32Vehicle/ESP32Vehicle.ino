@@ -408,7 +408,7 @@ loop(void)
 
             struct LoRaPacket* packet = &packet_lora_buffer[packet_lora_reader % countof(packet_lora_buffer)];
 
-            packet_lora_radio.startTransmit((u8*) packet, sizeof(*packet)); // TODO Error checking?
+            packet_lora_radio.startTransmit((u8*) packet, sizeof(*packet));
 
         }
     }
@@ -452,7 +452,3 @@ loop(void)
     }
 
 }
-
-
-
-// TODO I think after a while, ESP-NOW packets stop being sent/received. Investigate.

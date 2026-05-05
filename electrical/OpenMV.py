@@ -163,7 +163,7 @@ def residual(point, coefficients, orientation):
 
 
 
-def cubic_roots_of(a, b, c, d): # TODO Check edge cases.
+def cubic_roots_of(a, b, c, d):
 
     d0 = b**2 - 3 * a * c
     d1 = 2 * b**3 - 9 * a * b * c + 27 * a**2 * d
@@ -197,7 +197,6 @@ def process_framebuffer():
     ########################################
     #
     # Check minimum brightness.
-    # TODO Think about edge-cases.
     #
 
     mean_brightness = working_framebuffer.get_statistics().mean()
@@ -210,7 +209,6 @@ def process_framebuffer():
     ########################################
     #
     # Apply blur.
-    # TODO By what amount?
     #
 
     working_framebuffer.mean(1)
@@ -223,9 +221,6 @@ def process_framebuffer():
     # the largest change in brightness;
     # this is where we're assuming the
     # horizon will roughly be.
-    #
-    # TODO This is making the assumption that the curvature of the horizon is small
-    #      enough that it can be approximated as a rectangular strip?
     #
 
     STRIP_THICKNESS = 8
@@ -479,11 +474,10 @@ def process_framebuffer():
 
     res = sorted([residual(point, coefficients, orientation) for point in inliers])
 
-    # TODO: med_res = res[len(res) // 2]
     mean_res = sum(res)/len(res)
 
     if mean_res > 2.0:
-        return (None, f'Rejected :: Median residual too large ({mean_res :.1f}).') # TODO Mean or median?
+        return (None, f'Rejected :: Median residual too large ({mean_res :.1f}).')
 
 
 
@@ -768,8 +762,6 @@ if USE_SAMPLE_FRAMES:
 while True:
 
 
-
-    # TODO Explain.
 
     gc.collect()
     clock.tick()

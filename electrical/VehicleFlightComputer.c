@@ -376,8 +376,6 @@ FREERTOS_TASK(controller, 0)
     for (;;)
     {
 
-        // TODO Use `pop_to_latest` or just `pop`?
-
         struct VN100Packet     vn100_packet_data       = {0};
         b32                    vn100_packet_exist      = RingBuffer_pop_to_latest(&CONTROLLER.vn100_packets, &vn100_packet_data);
         struct OpenMVPacketGNC openmv_gnc_packet_data  = {0};
