@@ -217,8 +217,8 @@ extern nullptr_t INITIAL_STACK_ADDRESS[];
 
 #define configENABLE_TRUSTZONE                false
 #define configENABLE_FPU                      true
-#define configENABLE_MPU                      false // TODO Try out.
-#define configCHECK_FOR_STACK_OVERFLOW        false // TODO Try out.
+#define configENABLE_MPU                      false
+#define configCHECK_FOR_STACK_OVERFLOW        false
 #define configUSE_PREEMPTION                  true
 #define configUSE_MUTEXES                     true
 #define configUSE_IDLE_HOOK                   false
@@ -540,7 +540,7 @@ INTERRUPT_Default(void)
 
         default:
         {
-            sus; // TODO.
+            sus;
         } break;
     }
 
@@ -597,14 +597,6 @@ sorry_(void) // @/`Halting`.
         {
             for (u32 j = 0; j < 4; j += 1)
             {
-
-                // TODO For now, the way we're telling that we're on
-                //      a Nucleo-H533RE board is if we're working with
-                //      a STM32H533RET6 MCU; if it's a STM32H533VET6,
-                //      then we assume we're on a PCB with an RGB led.
-                //      The better way to do actually do this is just
-                //      have the target definition be able to specify
-                //      the method to which a halt is indicated.
 
                 #if TARGET_MCU_IS_STM32H533RET6
 
@@ -789,10 +781,6 @@ sorry_(void) // @/`Halting`.
                     f'NVICInterrupt_{nvic_peripheral}'
                 )
 
-
-
-            # TODO Rework `Meta.lut`...
-
             Meta.lut(f'{driver_type.upper()}_TABLE', (
                 (
                     f'{driver_type}Handle_{driver['handle']}',
@@ -914,8 +902,6 @@ pack_pop
 
 
 
-// TODO Document.
-// TODO Have look-up table.
 extern useret u8
 DEBUG_BOARD_calculate_crc(u8* data, i32 length)
 {
@@ -1018,8 +1004,6 @@ static_assert(sizeof(struct ESP32Packet) <= 250);
 
 
 
-// TODO Document.
-// TODO Have look-up table.
 extern useret u8
 ESP32_calculate_crc(u8* data, i32 length)
 {
@@ -1058,15 +1042,13 @@ ESP32_calculate_crc(u8* data, i32 length)
     extern void
     common_init_uart(void)
     {
-        Serial1.setRxBufferSize(1024); // TODO Look into more?
+        Serial1.setRxBufferSize(1024);
         Serial1.begin(ESP32_BAUD, SERIAL_8N1, D7, D6);
         while (!Serial1);
     }
 
 
 
-    // TODO Look more into the specs.
-    // TODO Make robust.
     extern void
     common_init_esp_now(void)
     {
@@ -1118,7 +1100,6 @@ ESP32_calculate_crc(u8* data, i32 length)
 
 
 
-    // TODO Make robust.
     extern void
     common_init_lora()
     {
@@ -1193,8 +1174,6 @@ ESP32_calculate_crc(u8* data, i32 length)
 
 
 
-// TODO Document.
-// TODO Have look-up table.
 extern useret u8
 VEHICLE_INTERFACE_calculate_crc(u8* data, i32 length)
 {

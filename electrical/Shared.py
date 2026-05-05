@@ -1215,7 +1215,7 @@ TARGETS = ( # @/`Defining Targets`.
             'WATCHDOG_DURATION'   : 10,
         },
 
-        flight_ready = False,
+        flight_ready = True,
 
     ),
 

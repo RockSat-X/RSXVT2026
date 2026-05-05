@@ -463,9 +463,6 @@ _STEPPER_update_driver_once(void)
             // the enabling of the motor that the current spike can be avoided. I can tell this works
             // by the fact that the power supply not going into current-limiting mode after the power-cycle.
             //
-            // TODO This is not very scientific however, so we definitely
-            //      at some point actually measure the current draw of
-            //      the batteries over time.
 
             case StepperDriverState_delaying_enable:
             {

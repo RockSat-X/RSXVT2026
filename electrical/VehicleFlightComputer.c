@@ -7,7 +7,7 @@
 #define WATCHDOG_DURATION_US             (10 * 60'000'000)
 #define MAX_ANGULAR_ACCELERATION         (100.0f)
 #define MAX_ANGULAR_VELOCITY             (1600.0f * 2.0f * PI / 60.0f)
-#define CONTROLLER_MOTOR_DEMO            true
+#define CONTROLLER_MOTOR_DEMO            false
 #define CONTROLLER_MOTOR_ENABLE          true
 #define VN100_ENABLE                     true
 #define OPENMV_ENABLE                    true
@@ -24,13 +24,67 @@
 #include "stepper.c"
 #include "buzzer.c"
 #include "i2c.c"
-#include "gnc.c"
+#include "mathematics.c"
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
 
 
+
+pack_push
+
+    struct VN100Packet
+    {
+        f32 QuatX;
+        f32 QuatY;
+        f32 QuatZ;
+        f32 QuatS;
+        f32 MagX;
+        f32 MagY;
+        f32 MagZ;
+        f32 AccelX;
+        f32 AccelY;
+        f32 AccelZ;
+        f32 GyroX;
+        f32 GyroY;
+        f32 GyroZ;
+    };
+
+    struct OpenMVPacket // @/`OpenMV Packet Format`: Coupled.
+    {
+        union
+        {
+
+            // @/`OpenMV Sequence Number`:
+            // First image chunk begins at `1`; zero is reserved for `OpenMVPacketGNC`.
+
+            u16 sequence_number;
+
+            struct OpenMVPacketGNC
+            {
+                u16 zero;
+                f32 attitude_yaw;
+                f32 attitude_pitch;
+                f32 attitude_roll;
+                u16 computer_vision_processing_time_ms;
+                u8  computer_vision_confidence;
+                u8  padding[47];
+            } gnc;
+
+            struct OpenMVPacketImage
+            {
+                u16 sequence_number;
+                u8  bytes[62];
+            } image;
+
+        };
+    };
+
+    static_assert(sizeof(struct OpenMVPacketGNC  ) == sizeof(struct OpenMVPacket));
+    static_assert(sizeof(struct OpenMVPacketImage) == sizeof(struct OpenMVPacket));
+
+pack_pop
 
 enum OpenMVImageState : u32
 {
@@ -54,8 +108,6 @@ struct GNCInfo
     f32                attitude_pitch;
     f32                attitude_roll;
 };
-
-
 
 static struct
 {
@@ -348,6 +400,179 @@ FREERTOS_TASK(diagnostics, 2)
 
 
 
+volatile _Atomic b32 vehicle_undocked              = false;
+volatile         u32 vehicle_ejection_timestamp_us = {0};
+
+FREERTOS_TASK(watchdog, 4)
+{
+
+#if WATCHDOG_ENABLE
+
+    b32 noticed_vehicle_interface_pulled_down      = false;
+    u32 vehicle_interface_pulled_down_timestamp_us = {0};
+    u32 same_dock_state_timestamp_us               = {0};
+
+    for (;;)
+    {
+
+
+
+        // We need to ensure the vehicle doesn't stay on for long when it's still
+        // docked in the ejection mechanism. This is especially important during sequence
+        // testing when the vehicle might be powered on but no ejection will take place.
+        //
+        // We can tell when we have ejected if we're no longer detecting external
+        // power, haven't received I2C transfers through the vehicle interface in a while,
+        // and that the I2C bus lines are held high by the on-board's pull-up resistors.
+        //
+        // However, if we're still docked, then the I2C bus lines will actually be pulled
+        // low because main is no longer powered, and the on-board's pull-up resistors are
+        // weak enough that the MCU doesn't register this as an active level. In this
+        // scenario, we should do a reset also.
+
+        u32 observed_most_recent_transfer_timestamp_us =
+            atomic_load_explicit
+            (
+                &VEHICLE_INTERFACE.most_recent_transfer_timestamp_us,
+                memory_order_relaxed // No synchronization needed.
+            );
+
+        b32 theres_still_external_power             = GPIO_READ(external_detected);
+        b32 vehicle_interface_currently_pulled_down = !GPIO_READ(vehicle_interface_i2c_clock) && !GPIO_READ(vehicle_interface_i2c_data);
+
+        if (!vehicle_interface_currently_pulled_down)
+        {
+            noticed_vehicle_interface_pulled_down = false;
+        }
+        else if (!noticed_vehicle_interface_pulled_down)
+        {
+            noticed_vehicle_interface_pulled_down      = true;
+            vehicle_interface_pulled_down_timestamp_us = TIMEKEEPING_microseconds();
+        }
+
+        b32 docked_reset =
+            (
+                !theres_still_external_power &&
+                vehicle_interface_currently_pulled_down &&
+                TIMEKEEPING_microseconds() - vehicle_interface_pulled_down_timestamp_us >= 10'000'000 &&
+                TIMEKEEPING_microseconds() - observed_most_recent_transfer_timestamp_us >= 10'000'000
+            );
+
+        if (docked_reset)
+        {
+
+            // Indicate that this is why the vehicle is suddenly shut off.
+
+            BUZZER_play(BuzzerTune_starwars);
+            while (BUZZER_current_tune());
+
+
+
+            // Try cut off battery power.
+
+            GPIO_INACTIVE(battery_allowed);
+            spinlock_us(1'000'000);
+
+
+
+            // If we're still alive by this point, then
+            // there's probably external power or something,
+            // to which we'll just do a software reset.
+
+            WARM_RESET();
+
+        }
+
+
+
+        // See if the vehicle's dock status has changed.
+
+        b32 observed_vehicle_undocked =
+            atomic_load_explicit
+            (
+                &vehicle_undocked,
+                memory_order_relaxed // No synchronization needed.
+            );
+
+        b32 currently_undocked =
+            (
+                !theres_still_external_power &&
+                !vehicle_interface_currently_pulled_down &&
+                TIMEKEEPING_microseconds() - observed_most_recent_transfer_timestamp_us >= 1'000'000
+            );
+
+        if (!!currently_undocked == !!observed_vehicle_undocked)
+        {
+            same_dock_state_timestamp_us = TIMEKEEPING_microseconds();
+        }
+
+        if (TIMEKEEPING_microseconds() - same_dock_state_timestamp_us >= 2'500'000)
+        {
+
+            if (currently_undocked) // We just ejected!
+            {
+
+                vehicle_ejection_timestamp_us = TIMEKEEPING_microseconds();
+
+                atomic_store_explicit
+                (
+                    &vehicle_undocked,
+                    currently_undocked,
+                    memory_order_release // We updated the ejection timestamp.
+                );
+
+
+                xTaskNotify
+                (
+                    diagnostics_handle,
+                    DiagnosticMask_ejection,
+                    eSetBits
+                );
+
+            }
+            else // We got reinserted into the ejection mechanism...
+            {
+
+                atomic_store_explicit
+                (
+                    &vehicle_undocked,
+                    currently_undocked,
+                    memory_order_relaxed // No synchronization necessary.
+                );
+
+                xTaskNotify
+                (
+                    diagnostics_handle,
+                    DiagnosticMask_redocked,
+                    eSetBits
+                );
+            }
+
+        }
+
+
+
+        FREERTOS_delay_ms(1'000);
+
+    }
+
+#else
+
+    for (;;)
+    {
+        FREERTOS_delay_ms(1'000);
+    }
+
+#endif
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
 FREERTOS_TASK(controller, 0)
 {
 
@@ -376,8 +601,6 @@ FREERTOS_TASK(controller, 0)
     for (;;)
     {
 
-        // TODO Use `pop_to_latest` or just `pop`?
-
         struct VN100Packet     vn100_packet_data       = {0};
         b32                    vn100_packet_exist      = RingBuffer_pop_to_latest(&CONTROLLER.vn100_packets, &vn100_packet_data);
         struct OpenMVPacketGNC openmv_gnc_packet_data  = {0};
@@ -387,45 +610,487 @@ FREERTOS_TASK(controller, 0)
 
         // Perform GNC calculations.
 
+        if (CONTROLLER_MOTOR_DEMO)
         {
 
-            #if CONTROLLER_MOTOR_DEMO
+            if (TIMEKEEPING_microseconds() >= 10'000'000)
             {
 
-                if (TIMEKEEPING_microseconds() >= 10'000'000)
+                if ((TIMEKEEPING_microseconds() / 4'000'000) % 2)
                 {
-
-                    if ((TIMEKEEPING_microseconds() / 4'000'000) % 2)
-                    {
-                        CONTROLLER.current_angular_accelerations =
-                            (struct StepperTuple)
-                            {
-                                .values =
-                                    {
-                                        [StepperUnit_axis_x] = MAX_ANGULAR_ACCELERATION,
-                                        [StepperUnit_axis_y] = MAX_ANGULAR_ACCELERATION,
-                                        [StepperUnit_axis_z] = MAX_ANGULAR_ACCELERATION,
-                                    },
-                            };
-                    }
-                    else
-                    {
-                        CONTROLLER.current_angular_accelerations =
-                            (struct StepperTuple)
-                            {
-                                .values =
-                                    {
-                                        [StepperUnit_axis_x] = -MAX_ANGULAR_ACCELERATION,
-                                        [StepperUnit_axis_y] = -MAX_ANGULAR_ACCELERATION,
-                                        [StepperUnit_axis_z] = -MAX_ANGULAR_ACCELERATION,
-                                    },
-                            };
-                    }
-
+                    CONTROLLER.current_angular_accelerations =
+                        (struct StepperTuple)
+                        {
+                            .values =
+                                {
+                                    [StepperUnit_axis_x] = MAX_ANGULAR_ACCELERATION,
+                                    [StepperUnit_axis_y] = MAX_ANGULAR_ACCELERATION,
+                                    [StepperUnit_axis_z] = MAX_ANGULAR_ACCELERATION,
+                                },
+                        };
+                }
+                else
+                {
+                    CONTROLLER.current_angular_accelerations =
+                        (struct StepperTuple)
+                        {
+                            .values =
+                                {
+                                    [StepperUnit_axis_x] = -MAX_ANGULAR_ACCELERATION,
+                                    [StepperUnit_axis_y] = -MAX_ANGULAR_ACCELERATION,
+                                    [StepperUnit_axis_z] = -MAX_ANGULAR_ACCELERATION,
+                                },
+                        };
                 }
 
             }
-            #endif
+
+        }
+        else if (vn100_packet_exist && openmv_gnc_packet_exist)
+        {
+
+
+
+            ////////////////////////////////////////
+            //
+            // Set up.
+            //
+
+            enum GNCOperationMode : u32
+            {
+                GNCOperationMode_uninitialized,
+                GNCOperationMode_ejecting,
+                GNCOperationMode_rate_damping,
+                GNCOperationMode_searching,
+                GNCOperationMode_aligning,
+            };
+
+            struct GNCDriver
+            {
+                enum GNCOperationMode operation_mode;
+                b32                   current_target_found;
+                b32                   previous_target_found;
+                i32                   target_conflict_count;
+                u32                   target_lost_timestamp_us;
+                u32                   search_start_timestamp_us;
+            };
+
+            static struct GNCDriver driver = {0};
+
+
+
+            ////////////////////////////////////////
+            //
+            // The algorithm will only run when we have actually ejected.
+            //
+
+            b32 observed_vehicle_undocked =
+                atomic_load_explicit
+                (
+                    &vehicle_undocked,
+                    memory_order_relaxed // No synchronization needed.
+                );
+
+            if (observed_vehicle_undocked)
+            {
+                // We have likely ejected.
+            }
+            else
+            {
+                driver.operation_mode = GNCOperationMode_uninitialized; // Reset back to an idle state.
+            }
+
+
+
+            ////////////////////////////////////////
+            //
+            // Apply hysteresis to CVT's target confidence.
+            //
+
+            if (driver.operation_mode)
+            {
+                if (driver.current_target_found)
+                {
+                    if (openmv_gnc_packet_data.computer_vision_confidence)
+                    {
+                        driver.target_conflict_count = 0; // We still see the target!
+                    }
+                    else if (driver.target_conflict_count < 3)
+                    {
+                        driver.target_conflict_count += 1; // Hmm, we're losing the target..?
+                    }
+                    else
+                    {
+                        driver.current_target_found     = false; // Target definitely lost!
+                        driver.target_conflict_count    = 0;
+                        driver.target_lost_timestamp_us = TIMEKEEPING_microseconds();
+                    }
+                }
+                else
+                {
+                    if (!openmv_gnc_packet_data.computer_vision_confidence)
+                    {
+                        driver.target_conflict_count = 0; // Target still missing...
+                    }
+                    else if (driver.target_conflict_count < 3)
+                    {
+                        driver.target_conflict_count += 1; // Oh, we're starting to see the target..?
+                    }
+                    else
+                    {
+                        driver.current_target_found  = true; // Confident we now see the target!
+                        driver.target_conflict_count = 0;
+                    }
+                }
+            }
+
+
+
+            ////////////////////////////////////////
+            //
+            // Determine the desired vehicle
+            // orientation and angular rates.
+            //
+
+            struct Quaternion desired_orientation =
+                (struct Quaternion)
+                {
+                    .s = 1.0f,
+                    .i = 0.0f,
+                    .j = 0.0f,
+                    .k = 0.0f,
+                };
+
+            struct Matrix_3x1 desired_rates = {0};
+
+            struct Matrix_3x6 gain = {0};
+
+            switch (driver.operation_mode)
+            {
+
+
+
+                ////////////////////////////////////////
+                //
+                // GNC driver's state machine needs to be reinitialized.
+                //
+                ////////////////////////////////////////
+
+                case GNCOperationMode_uninitialized:
+                {
+
+                    driver =
+                        (struct GNCDriver)
+                        {
+                            .operation_mode           = GNCOperationMode_ejecting,
+                            .target_lost_timestamp_us = TIMEKEEPING_microseconds(),
+                        };
+
+                } break;
+
+
+
+                ////////////////////////////////////////
+                //
+                // Right after the vehicle has ejected,
+                // the motors need to be kept disabled
+                // so that the VN-100 can obtain an
+                // accurate heading estimate without any
+                // magnetic interference.
+                //
+                ////////////////////////////////////////
+
+                case GNCOperationMode_ejecting:
+                {
+                    if (TIMEKEEPING_microseconds() - vehicle_ejection_timestamp_us < 10'000'000)
+                    {
+
+                        // We're still letting the VN-100 get a heading estimate.
+                        // It'll be the responsibility of the caller to ensure
+                        // that the motors are disabled and that the VNKMD-OFF
+                        // command has been sent to the VN-100.
+
+                    }
+                    else
+                    {
+
+                        // We can now move onto actually using the stepper motors.
+                        // It'll be the responsibility of the caller to ensure
+                        // that the VNKMD-ON command gets sent to the VN-100
+                        // before enabling the motors.
+
+                        driver.operation_mode = GNCOperationMode_rate_damping;
+
+                    }
+                } break;
+
+
+
+                ////////////////////////////////////////
+                //
+                // The vehicle might be tumbling a bit
+                // after it has ejected, so we're going
+                // so spend some time here undoing that.
+                //
+                ////////////////////////////////////////
+
+                case GNCOperationMode_rate_damping:
+                {
+                    if (TIMEKEEPING_microseconds() - vehicle_ejection_timestamp_us < 30'000'000)
+                    {
+                        // TODO.
+                    }
+                    else // We spent enough time stabilizing; move onto finding the horizon.
+                    {
+                        driver.operation_mode = GNCOperationMode_searching;
+                    }
+                } break;
+
+
+
+                ////////////////////////////////////////
+                //
+                // We're currently not confident we have
+                // found the horizon yet, so we're going
+                // to do some motions in hopes that the
+                // OpenMV will eventually pick something up.
+                //
+                ////////////////////////////////////////
+
+                case GNCOperationMode_searching:
+                {
+                    if (driver.current_target_found)
+                    {
+
+                        // Got something! Move onto aligning the vehicle
+                        // towards the target that's hopefully the horizon.
+
+                        driver.operation_mode = GNCOperationMode_aligning;
+
+                    }
+                    else
+                    {
+
+                        if (driver.previous_target_found)
+                        {
+
+                            // Just lost the target; try searching around the last known location.
+
+                            driver.search_start_timestamp_us = TIMEKEEPING_microseconds();
+
+                        }
+
+
+
+                        #define SEARCH_DURATION 30.0f
+                        #define SEARCH_GAIN      0.3f
+                        #define OMEGA_PHI        2.399963229728653f
+
+                        f32 search_time = (f32) (TIMEKEEPING_microseconds() - driver.search_start_timestamp_us) / 1'000'000.0f;
+                        f32 u           = search_time / SEARCH_DURATION;
+
+                        if (u < 0.0f)
+                        {
+                            u = 0.0f;
+                        }
+                        else if (u > 1.0f)
+                        {
+                            u = 1.0f;
+                            driver.search_start_timestamp_us = TIMEKEEPING_microseconds();
+                        }
+
+                        f32 phi    = acos_f32(1.0f - 2.0f * u);
+                        f32 dtheta = SEARCH_GAIN * OMEGA_PHI;
+                        f32 dphi   = 2.0f * SEARCH_GAIN / (SEARCH_DURATION * sqrt_f32(1 - ((1 - 2*u) * (1 - 2*u))));
+
+                        desired_rates =
+                            (struct Matrix_3x1)
+                            {
+                                .rows =
+                                    {
+                                        { dtheta * arm_cos_f32(phi)  },
+                                        { dphi                       },
+                                        { -dtheta * arm_sin_f32(phi) },
+                                    },
+                            };
+
+                    }
+                } break;
+
+
+
+                ////////////////////////////////////////
+                //
+                // We've found the target is our goal is
+                // now to align the vehicle towards it.
+                //
+                ////////////////////////////////////////
+
+                case GNCOperationMode_aligning:
+                {
+                    if (driver.current_target_found)
+                    {
+
+                        // Keep aligning towards the horizon according
+                        // to whatever the OpenMV is saying.
+
+                        desired_orientation =
+                            QUATERNION_from_euler_zyx
+                            (
+                                (struct EulerZYX)
+                                {
+                                    .yaw   = openmv_gnc_packet_data.attitude_yaw,
+                                    .pitch = openmv_gnc_packet_data.attitude_pitch,
+                                    .roll  = openmv_gnc_packet_data.attitude_roll,
+                                }
+                            );
+
+                    }
+                    else // Alright, we've lost the horizon target for a while now.
+                    {
+                        driver.operation_mode = GNCOperationMode_searching;
+                    }
+                } break;
+
+
+
+
+                default:
+                {
+                    sus;
+                    driver.operation_mode = GNCOperationMode_uninitialized;
+                } break;
+
+            }
+
+
+
+            ////////////////////////////////////////
+            //
+            // Compute errors.
+            //
+
+            struct Quaternion orientation_error =
+                QUATERNION_multiply
+                (
+                    (struct Quaternion) {0}, // TODO?
+                    QUATERNION_conjugate(desired_orientation)
+                );
+
+            struct Matrix_3x1 rates_error =
+                {
+                    .rows =
+                        {
+                            { desired_rates.rows[0][0] - vn100_packet_data.GyroX },
+                            { desired_rates.rows[1][0] - vn100_packet_data.GyroY },
+                            { desired_rates.rows[2][0] - vn100_packet_data.GyroZ },
+                        },
+                };
+
+
+
+            ////////////////////////////////////////
+            //
+            // TODO Get gain matrix.
+            //
+
+            #define ANGLE_THRESHOLD_SMALL  0.924f
+            #define ANGLE_THRESHOLD_MEDIUM 0.707f
+
+            switch (driver.operation_mode)
+            {
+
+                case GNCOperationMode_uninitialized:
+                case GNCOperationMode_ejecting:
+                {
+                    // Don't care.
+                } break;
+
+
+
+                // Linearize about [~, ~, ~, 15, 15, 15].
+                // Set Q = diag(0, a, a, b, b, b) where a and b are user-defined parameters.
+
+                case GNCOperationMode_aligning:
+                case GNCOperationMode_rate_damping:
+                {
+                    gain = // TODO.
+                        (struct Matrix_3x6)
+                        {
+                            .rows =
+                                {
+                                    { 0.0f, 0.0f, 0.0f, 0.0120f, 0.0f   , 0.0f    },
+                                    { 0.0f, 0.0f, 0.0f, 0.0f   , 0.0116f, 0.0f    },
+                                    { 0.0f, 0.0f, 0.0f, 0.0f   , 0.0f   , 0.0111f },
+                                },
+                        };
+                } break;
+
+
+
+                // Linearize about [~, ~, ~, 15, 15, search_rate].
+                // Set Q = diag(0, a, a, b, b, c > b) where a, b, c are user-defined parameters.
+
+                case GNCOperationMode_searching:
+                {
+                    gain = // TODO.
+                        (struct Matrix_3x6)
+                        {
+                            .rows =
+                                {
+                                    { 0.0f, 0.0f, 0.0f, 0.0120f, 0.0f   , 0.0f    },
+                                    { 0.0f, 0.0f, 0.0f, 0.0f   , 0.0116f, 0.0f    },
+                                    { 0.0f, 0.0f, 0.0f, 0.0f   , 0.0f   , 0.0111f },
+                                },
+                        };
+                } break;
+
+
+
+                default: sus;
+
+            }
+
+
+
+            ////////////////////////////////////////
+            //
+            // Finally compute the stepper
+            // motors' angular accelerations.
+            //
+
+            #define REACTION_WHEEL_INERTIA 0.000017469f // (kg-m^2)
+
+            struct Matrix_6x1 state =
+                {
+                    .rows =
+                        {
+                            { orientation_error.i    },
+                            { orientation_error.j    },
+                            { orientation_error.k    },
+                            { rates_error.rows[0][0] },
+                            { rates_error.rows[1][0] },
+                            { rates_error.rows[2][0] },
+                        },
+                };
+
+            struct Matrix_3x1 control_torques = {0};
+            MATRIX_multiply(&control_torques, &gain, &state); // TODO Implement the control law to compute the angular accelerations based on the gain and the state.
+
+            CONTROLLER.current_angular_accelerations =
+                (struct StepperTuple)
+                {
+                    .values =
+                        {
+                            control_torques.rows[0][0] / REACTION_WHEEL_INERTIA,
+                            control_torques.rows[1][0] / REACTION_WHEEL_INERTIA,
+                            control_torques.rows[2][0] / REACTION_WHEEL_INERTIA,
+                        },
+                };
+
+
+
+            driver.previous_target_found = driver.current_target_found;
 
         }
 
@@ -588,36 +1253,6 @@ FREERTOS_TASK(controller, 0)
 
 
 
-#include "VN100Command.meta"
-/* #meta
-
-    import functools
-
-    COMMANDS = (
-        ('disable_known_magnetic_disturbance'    , 'VNKMD,0'),
-        ('enable_known_magnetic_disturbance'     , 'VNKMD,1'),
-        ('disable_known_acceleration_disturbance', 'VNKAD,0'),
-        ('enable_known_acceleration_disturbance' , 'VNKAD,1'),
-    )
-
-    messages = [
-        f'${text}*{functools.reduce(lambda x, y: x^ord(y), text, 0):02X}\\n'
-        for name, text in COMMANDS
-    ]
-
-    Meta.enums('VN100Command', 'u32', (name for name, text in COMMANDS))
-
-    Meta.lut('VN100Command_TABLE', (
-        (
-            f'VN100Command_{name}',
-            ('message', f'(const u8*) "{message}"'),
-            ('length' , f'sizeof("{message}") - 1'),
-        )
-        for (name, text), message in zip(COMMANDS, messages)
-    ))
-
-*/
-
 static enum VN100AwaitResponseResult : u32
 {
     VN100AwaitResponseResult_successful,
@@ -746,83 +1381,6 @@ vn100_await_response(u8* dst_response_buffer, i32 dst_response_capacity, i32* ds
 
 }
 
-static enum VN100AwaitCommandResult : u32
-{
-    VN100AwaitCommandResult_successful,
-    VN100AwaitCommandResult_timeout,
-    VN100AwaitCommandResult_checksum_mismatch,
-    VN100AwaitCommandResult_missing_echo,
-}
-vn100_await_command(enum VN100Command command)
-{
-
-    while (UXART_rx(UXARTHandle_vn100, nullptr));
-
-    UXART_tx_bytes
-    (
-        UXARTHandle_vn100,
-        VN100Command_TABLE[command].message,
-        VN100Command_TABLE[command].length
-    );
-
-    for (i32 response_index = 0;; response_index += 1)
-    {
-
-        u8  response_buffer[256] = {0};
-        i32 response_length      = {0};
-
-        enum VN100AwaitResponseResult response_result =
-            vn100_await_response
-            (
-                response_buffer,
-                countof(response_buffer),
-                &response_length
-            );
-
-        switch (response_result)
-        {
-
-            case VN100AwaitResponseResult_successful:
-            {
-
-                b32 matching_response =
-                    response_length == VN100Command_TABLE[command].length - 1 &&
-                    !memcmp
-                    (
-                        response_buffer,
-                        VN100Command_TABLE[command].message,
-                        (u32) VN100Command_TABLE[command].length - 1
-                    );
-
-                if (matching_response)
-                {
-                    return VN100AwaitCommandResult_successful; // Yippee!
-                }
-                else if (response_index < 16)
-                {
-                    // We got some other response from the VN-100;
-                    // for now, let's just ignore it and hope the
-                    // expected response is going to come in a bit later.
-                }
-                else
-                {
-                    // Seems like the VN-100 isn't echoing back
-                    // the expected response to our command...
-                    return VN100AwaitCommandResult_missing_echo;
-                }
-
-            } break;
-
-            case VN100AwaitResponseResult_timeout           : return VN100AwaitCommandResult_timeout;
-            case VN100AwaitResponseResult_checksum_mismatch : return VN100AwaitCommandResult_checksum_mismatch;
-            default                                         : sus;
-
-        }
-
-    }
-
-}
-
 FREERTOS_TASK(vn100, 0)
 {
 
@@ -840,81 +1398,6 @@ FREERTOS_TASK(vn100, 0)
 
         for (i32 iteration_index = 0;; iteration_index += 1)
         {
-
-
-
-            // See if we need to reconfigure the VN-100.
-
-            b32 current_magnetic_disturbance =
-                atomic_load_explicit
-                (
-                    &VN100.magnetic_disturbance_exists,
-                    memory_order_relaxed // No synchronization needed.
-                );
-
-            b32 current_acceleration_disturbance =
-                atomic_load_explicit
-                (
-                    &VN100.acceleration_disturbance_exists,
-                    memory_order_relaxed // No synchronization needed.
-                );
-
-            if
-            (
-                iteration_index == 0                                                ||
-                active_magnetic_disturbance     != current_magnetic_disturbance     ||
-                active_acceleration_disturbance != current_acceleration_disturbance
-            )
-            {
-
-                active_magnetic_disturbance     = current_magnetic_disturbance;
-                active_acceleration_disturbance = current_acceleration_disturbance;
-
-                { // Initialize the VNKMD state.
-
-                    enum VN100AwaitCommandResult result =
-                        vn100_await_command
-                        (
-                            active_magnetic_disturbance
-                                ?  VN100Command_enable_known_magnetic_disturbance
-                                :  VN100Command_disable_known_magnetic_disturbance
-                        );
-
-                    switch (result)
-                    {
-                        case VN100AwaitCommandResult_successful        : break;
-                        case VN100AwaitCommandResult_timeout           : goto REINITIALIZE;
-                        case VN100AwaitCommandResult_checksum_mismatch : goto REINITIALIZE;
-                        case VN100AwaitCommandResult_missing_echo      : goto REINITIALIZE;
-                        default                                        : sus;
-                    }
-
-                }
-
-                { // Initialize the VNKAD state.
-
-                    enum VN100AwaitCommandResult result =
-                        vn100_await_command
-                        (
-                            active_acceleration_disturbance
-                                ?  VN100Command_enable_known_acceleration_disturbance
-                                :  VN100Command_disable_known_acceleration_disturbance
-                        );
-
-                    switch (result)
-                    {
-                        case VN100AwaitCommandResult_successful        : break;
-                        case VN100AwaitCommandResult_timeout           : goto REINITIALIZE;
-                        case VN100AwaitCommandResult_checksum_mismatch : goto REINITIALIZE;
-                        case VN100AwaitCommandResult_missing_echo      : goto REINITIALIZE;
-                        default                                        : sus;
-                    }
-
-                }
-
-            }
-
-
 
             // The VN-100 is preprogrammed to automatically transmit the desired
             // register data; all we have to do to pick it up and parse it.
@@ -2055,165 +2538,6 @@ FREERTOS_TASK(logger, 0)
         }
 
     }
-
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-volatile _Atomic b32 vehicle_undocked = false;
-
-FREERTOS_TASK(watchdog, 4)
-{
-
-#if WATCHDOG_ENABLE
-
-    b32 noticed_vehicle_interface_pulled_down      = false;
-    u32 vehicle_interface_pulled_down_timestamp_us = {0};
-    u32 same_dock_state_timestamp_us               = {0};
-
-    for (;;)
-    {
-
-
-
-        // We need to ensure the vehicle doesn't stay on for long when it's still
-        // docked in the ejection mechanism. This is especially important during sequence
-        // testing when the vehicle might be powered on but no ejection will take place.
-        //
-        // We can tell when we have ejected if we're no longer detecting external
-        // power, haven't received I2C transfers through the vehicle interface in a while,
-        // and that the I2C bus lines are held high by the on-board's pull-up resistors.
-        //
-        // However, if we're still docked, then the I2C bus lines will actually be pulled
-        // low because main is no longer powered, and the on-board's pull-up resistors are
-        // weak enough that the MCU doesn't register this as an active level. In this
-        // scenario, we should do a reset also.
-
-        u32 observed_most_recent_transfer_timestamp_us =
-            atomic_load_explicit
-            (
-                &VEHICLE_INTERFACE.most_recent_transfer_timestamp_us,
-                memory_order_relaxed // No synchronization needed.
-            );
-
-        b32 theres_still_external_power             = GPIO_READ(external_detected);
-        b32 vehicle_interface_currently_pulled_down = !GPIO_READ(vehicle_interface_i2c_clock) && !GPIO_READ(vehicle_interface_i2c_data);
-
-        if (!vehicle_interface_currently_pulled_down)
-        {
-            noticed_vehicle_interface_pulled_down = false;
-        }
-        else if (!noticed_vehicle_interface_pulled_down)
-        {
-            noticed_vehicle_interface_pulled_down      = true;
-            vehicle_interface_pulled_down_timestamp_us = TIMEKEEPING_microseconds();
-        }
-
-        b32 docked_reset =
-            (
-                !theres_still_external_power &&
-                vehicle_interface_currently_pulled_down &&
-                TIMEKEEPING_microseconds() - vehicle_interface_pulled_down_timestamp_us >= 10'000'000 &&
-                TIMEKEEPING_microseconds() - observed_most_recent_transfer_timestamp_us >= 10'000'000
-            );
-
-        if (docked_reset)
-        {
-
-            // Indicate that this is why the vehicle is suddenly shut off.
-
-            BUZZER_play(BuzzerTune_starwars);
-            while (BUZZER_current_tune());
-
-
-
-            // Try cut off battery power.
-
-            GPIO_INACTIVE(battery_allowed);
-            spinlock_us(1'000'000);
-
-
-
-            // If we're still alive by this point, then
-            // there's probably external power or something,
-            // to which we'll just do a software reset.
-
-            WARM_RESET();
-
-        }
-
-
-
-        // See if the vehicle's dock status has changed.
-
-        b32 observed_vehicle_undocked =
-            atomic_load_explicit
-            (
-                &vehicle_undocked,
-                memory_order_relaxed // No synchronization needed.
-            );
-
-        b32 currently_undocked =
-            (
-                !theres_still_external_power &&
-                !vehicle_interface_currently_pulled_down &&
-                TIMEKEEPING_microseconds() - observed_most_recent_transfer_timestamp_us >= 1'000'000
-            );
-
-        if (!!currently_undocked == !!observed_vehicle_undocked)
-        {
-            same_dock_state_timestamp_us = TIMEKEEPING_microseconds();
-        }
-
-        if (TIMEKEEPING_microseconds() - same_dock_state_timestamp_us >= 2'500'000)
-        {
-
-            atomic_store_explicit
-            (
-                &vehicle_undocked,
-                currently_undocked,
-                memory_order_relaxed // No synchronization needed.
-            );
-
-            if (currently_undocked) // We just ejected!
-            {
-                xTaskNotify
-                (
-                    diagnostics_handle,
-                    DiagnosticMask_ejection,
-                    eSetBits
-                );
-            }
-            else // We got reinserted into the ejection mechanism...
-            {
-                xTaskNotify
-                (
-                    diagnostics_handle,
-                    DiagnosticMask_redocked,
-                    eSetBits
-                );
-            }
-
-        }
-
-
-
-        FREERTOS_delay_ms(1'000);
-
-    }
-
-#else
-
-    for (;;)
-    {
-        FREERTOS_delay_ms(1'000);
-    }
-
-#endif
 
 }
 

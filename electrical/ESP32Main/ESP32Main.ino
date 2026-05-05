@@ -169,12 +169,9 @@ loop(void)
 
 
             // Received packet is of the wrong length?
-            // TODO Test.
 
             if (packet_lora_radio.getPacketLength() != sizeof(*packet))
             {
-
-                // TODO This might flush it.
 
                 u8 dummy = 0;
                 packet_lora_radio.readData(&dummy, 1);
