@@ -74,6 +74,37 @@ asin_f32(f32 x)
 
 }
 
+static useret f32
+acos_f32(f32 x)
+{
+    f32        y      = {0};
+    arm_status status = arm_sqrt_f32(1 - x * x, &y);
+
+    if (status != ARM_MATH_SUCCESS)
+        sus;
+
+    f32 result = atan2_f32(y, x);
+
+    return result;
+}
+
+static useret f32
+sqrt_f32(f32 x)
+{
+
+    f32        result = {0};
+    arm_status status = arm_sqrt_f32(x, &result);
+
+    if (status != ARM_MATH_SUCCESS)
+    {
+        sus;
+        result = 0.0f;
+    }
+
+    return result;
+
+}
+
 #define MATRIX_multiply(DST, LHS, RHS)                                     \
     do                                                                     \
     {                                                                      \
