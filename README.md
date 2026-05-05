@@ -356,6 +356,20 @@ There are two particular frequency bands of interest.
 
 Configure the spectrum analyzer to observe these frequencies.
 
+<p align="center">
+</kbd>
+<kbd>
+<img src="./misc/media/spectrum_analyzer_demonstration.gif" width="600px">
+<br>
+<br>
+<em>
+Spectrum analyzer demonstration.
+</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
+
 You should see a reading similar the following figures:
 
 <p align="center">
