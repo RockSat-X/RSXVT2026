@@ -163,7 +163,7 @@ def residual(point, coefficients, orientation):
 
 
 
-def cubic_roots_of(a, b, c, d): # TODO Check edge cases.
+def cubic_roots_of(a, b, c, d):
 
     d0 = b**2 - 3 * a * c
     d1 = 2 * b**3 - 9 * a * b * c + 27 * a**2 * d
@@ -197,7 +197,6 @@ def process_framebuffer():
     ########################################
     #
     # Check minimum brightness.
-    # TODO Think about edge-cases.
     #
 
     mean_brightness = working_framebuffer.get_statistics().mean()
@@ -210,7 +209,6 @@ def process_framebuffer():
     ########################################
     #
     # Apply blur.
-    # TODO By what amount?
     #
 
     working_framebuffer.mean(1)
@@ -223,9 +221,6 @@ def process_framebuffer():
     # the largest change in brightness;
     # this is where we're assuming the
     # horizon will roughly be.
-    #
-    # TODO This is making the assumption that the curvature of the horizon is small
-    #      enough that it can be approximated as a rectangular strip?
     #
 
     STRIP_THICKNESS = 8
@@ -479,11 +474,10 @@ def process_framebuffer():
 
     res = sorted([residual(point, coefficients, orientation) for point in inliers])
 
-    # TODO: med_res = res[len(res) // 2]
     mean_res = sum(res)/len(res)
 
     if mean_res > 2.0:
-        return (None, f'Rejected :: Median residual too large ({mean_res :.1f}).') # TODO Mean or median?
+        return (None, f'Rejected :: Median residual too large ({mean_res :.1f}).')
 
 
 
@@ -507,7 +501,7 @@ def process_framebuffer():
     # Draw inliers.
     #
 
-    if True:
+    if False:
 
         for point in inliers:
 
@@ -526,7 +520,7 @@ def process_framebuffer():
     # Draw the fitted quadratic curve.
     #
 
-    if True:
+    if False:
 
         DRAW_STEP = 3   # Pixel step when drawing the fitted curve
 
@@ -671,9 +665,9 @@ def process_framebuffer():
             for x, y in root_points
         )
 
-        error_x                    = (closest_point[0] - px) * 0.2059
-        error_y                    = (closest_point[1] - py) * 0.2158
-        error_z                    = math.degrees(math.atan(slope))
+        error_x                    = (closest_point[0] - sensor.get_fb().width() // 2) * 0.0072
+        error_y                    = -(closest_point[1] - sensor.get_fb().height() // 2) * 0.0075
+        error_z                    = abs(math.atan(error_y/error_x)-math.pi/2)
         computer_vision_confidence = 1
 
     else:
@@ -690,7 +684,7 @@ def process_framebuffer():
     # Draw attitude estimate.
     #
 
-    if True:
+    if False:
 
         sensor.get_fb().draw_line(
             round(sensor.get_fb().width () // 2),
@@ -732,7 +726,7 @@ def process_framebuffer():
             error_z,
             computer_vision_confidence,
         ),
-        f'X: {error_x :8.3f}, Y: {error_y :8.3f}, Z: {error_z :8.3f} (deg) {orientation=} {dark_side=} {len(inliers)=} {a_c=:.7f} {b_c=:.4f} {c_c=:.1f}'
+        f'X: {error_z*180/math.pi :8.3f}, Y: {error_y*180/math.pi :8.3f}, Z: {error_x*180/math.pi :8.3f} (deg) {orientation=} {dark_side=} {len(inliers)=} {a_c=:.7f} {b_c=:.4f} {c_c=:.1f}'
     )
 
 
@@ -768,8 +762,6 @@ if USE_SAMPLE_FRAMES:
 while True:
 
 
-
-    # TODO Explain.
 
     gc.collect()
     clock.tick()
@@ -824,9 +816,12 @@ while True:
     # Do the CVT magic.
 
     processing_result, processing_message = process_framebuffer()
-
-    if USE_SAMPLE_FRAMES:
-        print(f'[{sample_frame_file_path_i + 1}/{len(sample_frame_file_paths)}] `{sample_frame_file_path}` : {processing_message}')
+    
+    if False:
+        if USE_SAMPLE_FRAMES:
+            print(f'[{sample_frame_file_path_i + 1}/{len(sample_frame_file_paths)}] `{sample_frame_file_path}` : {processing_message}')
+        else:
+            print(f'{processing_message}')
 
 
 

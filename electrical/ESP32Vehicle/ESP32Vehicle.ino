@@ -162,15 +162,10 @@ setup(void)
         info.peer_addr[3] = MAIN_ESP32_MAC_ADDRESS[3];
         info.peer_addr[4] = MAIN_ESP32_MAC_ADDRESS[4];
         info.peer_addr[5] = MAIN_ESP32_MAC_ADDRESS[5];
-        info.channel      = 1;
+        info.channel      = 13;
         info.encrypt      = false;
 
-        if (esp_now_add_peer(&info) != ESP_OK)
-        {
-            Serial.printf("Failed to add peer.\n");
-            ESP.restart();
-            return;
-        }
+        esp_now_add_peer(&info);
 
     }
     #endif
@@ -413,7 +408,7 @@ loop(void)
 
             struct LoRaPacket* packet = &packet_lora_buffer[packet_lora_reader % countof(packet_lora_buffer)];
 
-            packet_lora_radio.startTransmit((u8*) packet, sizeof(*packet)); // TODO Error checking?
+            packet_lora_radio.startTransmit((u8*) packet, sizeof(*packet));
 
         }
     }
@@ -457,7 +452,3 @@ loop(void)
     }
 
 }
-
-
-
-// TODO I think after a while, ESP-NOW packets stop being sent/received. Investigate.

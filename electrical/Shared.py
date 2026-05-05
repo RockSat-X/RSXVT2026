@@ -38,20 +38,22 @@ from deps.stpy.mcus import MCUS
 class LoRaPacket(ctypes.Structure):
     _pack_   = True
     _fields_ = (
-        ('QuatX'                     , ctypes.c_float ),
-        ('QuatY'                     , ctypes.c_float ),
-        ('QuatZ'                     , ctypes.c_float ),
-        ('QuatS'                     , ctypes.c_float ),
-        ('AccelX'                    , ctypes.c_float ),
-        ('AccelY'                    , ctypes.c_float ),
-        ('AccelZ'                    , ctypes.c_float ),
-        ('GyroX'                     , ctypes.c_float ),
-        ('GyroY'                     , ctypes.c_float ),
-        ('GyroZ'                     , ctypes.c_float ),
-        ('timestamp_ms'              , ctypes.c_uint16), # @/`ESP32 Sequence Numbers`.
-        ('rolling_sequence_number'   , ctypes.c_uint16), # @/`ESP32 Sequence Numbers`.
-        ('computer_vision_confidence', ctypes.c_uint8 ),
-        ('crc'                       , ctypes.c_uint8 ),
+        ('QuatX'                  , ctypes.c_float ),
+        ('QuatY'                  , ctypes.c_float ),
+        ('QuatZ'                  , ctypes.c_float ),
+        ('QuatS'                  , ctypes.c_float ),
+        ('AccelX'                 , ctypes.c_float ),
+        ('AccelY'                 , ctypes.c_float ),
+        ('AccelZ'                 , ctypes.c_float ),
+        ('GyroX'                  , ctypes.c_float ),
+        ('GyroY'                  , ctypes.c_float ),
+        ('GyroZ'                  , ctypes.c_float ),
+        ('timestamp_ms'           , ctypes.c_uint16), # @/`ESP32 Sequence Numbers`.
+        ('rolling_sequence_number', ctypes.c_uint16), # @/`ESP32 Sequence Numbers`.
+        ('attitude_yaw'           , ctypes.c_float ),
+        ('attitude_pitch'         , ctypes.c_float ),
+        ('attitude_roll'          , ctypes.c_float ),
+        ('crc'                    , ctypes.c_uint8 ),
     )
 
 class ESP32Packet(ctypes.Structure):
@@ -61,7 +63,7 @@ class ESP32Packet(ctypes.Structure):
         ('MagY'                 , ctypes.c_float      ),
         ('MagZ'                 , ctypes.c_float      ),
         ('image_sequence_number', ctypes.c_uint16     ), # @/`ESP32 Sequence Numbers`.
-        ('image_bytes'          , ctypes.c_uint8 * 190),
+        ('image_bytes'          , ctypes.c_uint8 * 179),
         ('nonredundant'         , LoRaPacket          ),
     )
 
@@ -596,61 +598,6 @@ TARGETS = ( # @/`Defining Targets`.
 
     types.SimpleNamespace(
 
-        name              = 'DemoGNC',
-        mcu               = 'STM32H533RET6',
-        source_file_paths = (
-            pxd.make_main_relative_path('./electrical/DemoGNC.c'),
-        ),
-
-        kicad_project = None,
-
-        gpios = (
-            ('led_green', 'A5' , 'OUTPUT'   , { 'initlvl' : False                 }),
-            ('stlink_tx', 'A2' , 'ALTERNATE', { 'altfunc' : 'USART2_TX'           }),
-            ('stlink_rx', 'A3' , 'ALTERNATE', { 'altfunc' : 'USART2_RX'           }),
-            ('swdio'    , 'A13', None       , {                                   }),
-            ('swclk'    , 'A14', None       , {                                   }),
-            ('button'   , 'C13', 'INPUT'    , { 'pull'    : None, 'active' : True }),
-        ),
-
-        interrupts = (
-            ('USART2', 0),
-        ),
-
-        drivers = (
-            {
-                'type'       : 'UXART',
-                'peripheral' : 'USART2',
-                'handle'     : 'stlink',
-                'mode'       : 'full_duplex',
-            },
-        ),
-
-        use_freertos = False,
-        schema       = {
-            'HSI_ENABLE'   : True,
-            'HSI48_ENABLE' : True,
-            'CSI_ENABLE'   : True,
-            'PLL1P_CK'     : 250_000_000,
-            'CPU_CK'       : 250_000_000,
-            'APB1_CK'      : 250_000_000,
-            'APB2_CK'      : 250_000_000,
-            'APB3_CK'      : 250_000_000,
-            'USART2_BAUD'  : STLINK_BAUD,
-        },
-
-        flight_ready = False,
-
-    ),
-
-
-
-    ########################################
-
-
-
-    types.SimpleNamespace(
-
         name              = 'DemoTimer',
         mcu               = 'STM32H533RET6',
         source_file_paths = (
@@ -987,7 +934,7 @@ TARGETS = ( # @/`Defining Targets`.
             'WATCHDOG_DURATION'            : 10,
         },
 
-        flight_ready = False,
+        flight_ready = True,
 
     ),
 
@@ -1268,7 +1215,7 @@ TARGETS = ( # @/`Defining Targets`.
             'WATCHDOG_DURATION'   : 10,
         },
 
-        flight_ready = False,
+        flight_ready = True,
 
     ),
 

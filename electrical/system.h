@@ -217,8 +217,8 @@ extern nullptr_t INITIAL_STACK_ADDRESS[];
 
 #define configENABLE_TRUSTZONE                false
 #define configENABLE_FPU                      true
-#define configENABLE_MPU                      false // TODO Try out.
-#define configCHECK_FOR_STACK_OVERFLOW        false // TODO Try out.
+#define configENABLE_MPU                      false
+#define configCHECK_FOR_STACK_OVERFLOW        false
 #define configUSE_PREEMPTION                  true
 #define configUSE_MUTEXES                     true
 #define configUSE_IDLE_HOOK                   false
@@ -540,7 +540,7 @@ INTERRUPT_Default(void)
 
         default:
         {
-            sus; // TODO.
+            sus;
         } break;
     }
 
@@ -597,14 +597,6 @@ sorry_(void) // @/`Halting`.
         {
             for (u32 j = 0; j < 4; j += 1)
             {
-
-                // TODO For now, the way we're telling that we're on
-                //      a Nucleo-H533RE board is if we're working with
-                //      a STM32H533RET6 MCU; if it's a STM32H533VET6,
-                //      then we assume we're on a PCB with an RGB led.
-                //      The better way to do actually do this is just
-                //      have the target definition be able to specify
-                //      the method to which a halt is indicated.
 
                 #if TARGET_MCU_IS_STM32H533RET6
 
@@ -789,10 +781,6 @@ sorry_(void) // @/`Halting`.
                     f'NVICInterrupt_{nvic_peripheral}'
                 )
 
-
-
-            # TODO Rework `Meta.lut`...
-
             Meta.lut(f'{driver_type.upper()}_TABLE', (
                 (
                     f'{driver_type}Handle_{driver['handle']}',
@@ -914,8 +902,6 @@ pack_pop
 
 
 
-// TODO Document.
-// TODO Have look-up table.
 extern useret u8
 DEBUG_BOARD_calculate_crc(u8* data, i32 length)
 {
@@ -1018,8 +1004,6 @@ static_assert(sizeof(struct ESP32Packet) <= 250);
 
 
 
-// TODO Document.
-// TODO Have look-up table.
 extern useret u8
 ESP32_calculate_crc(u8* data, i32 length)
 {
@@ -1058,26 +1042,38 @@ ESP32_calculate_crc(u8* data, i32 length)
     extern void
     common_init_uart(void)
     {
-        Serial1.setRxBufferSize(1024); // TODO Look into more?
+        Serial1.setRxBufferSize(1024);
         Serial1.begin(ESP32_BAUD, SERIAL_8N1, D7, D6);
         while (!Serial1);
     }
 
 
 
-    // TODO Look more into the specs.
-    // TODO Make robust.
     extern void
     common_init_esp_now(void)
     {
 
+        // Per FMSR action items:
+        // "Investigate switching your WiFi link to use only channel 26 @ 2480 MHz and a 2 MHz bandwidth in 802.15.4 mode (2479 – 2481 MHz).
+        // Please indicate if this change would negatively impact your mission or if testing uncovered a complication."
+        //
+        // I'm not certain if this is possible due to hardware limitations.
+        // We are using the XIAO ESP32-S3 which only supports IEEE 802.11 and not IEEE 802.15.4,
+        // which is needed for channels 11-26. It is possible for us to use channel 13 in IEEE 802.11 mode, however.
+        // It's possible I'm mistaken about this though.
+        //
+        // Update (4/27/2026):
+        // "For your ESP32, If you can support ch13 at 20 MHz reliably that would be a great plan B. As a plan C
+        // you could use Ch11 20MHz but that one would need some additional coordination to avoid excessive packet
+        // loss/errors between you and UAH although it would work technically." - Wesley Perkins.
+
         WiFi.mode(WIFI_STA);
-        esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE);
+        esp_wifi_set_bandwidth(WIFI_IF_STA, WIFI_BW_HT20);
+        esp_wifi_set_channel(13, WIFI_SECOND_CHAN_NONE);
+        esp_wifi_set_protocol(WIFI_IF_STA, WIFI_PROTOCOL_11B);
 
         if (esp_now_init() != ESP_OK)
         {
-            Serial.printf("Error initializing ESP-NOW.\n");
-            ESP.restart();
             return;
         }
 
@@ -1104,7 +1100,6 @@ ESP32_calculate_crc(u8* data, i32 length)
 
 
 
-    // TODO Make robust.
     extern void
     common_init_lora()
     {
@@ -1120,46 +1115,53 @@ ESP32_calculate_crc(u8* data, i32 length)
 
         if (packet_lora_radio.begin() != RADIOLIB_ERR_NONE)
         {
-            Serial.printf("Failed to initialize radio.\n");
-            ESP.restart();
             return;
         }
 
-        // 915 MHz Center Frequency (common frequency used in North America)
-        // Should range from 902-928 for most cases
-        // Find out if different frequencies affect range
-        packet_lora_radio.setFrequency(915.0);
 
-        // 7.8kHz Bandwidth (Narrow)
-        // Ranges from 7.8kHz to 500kHz
-        // Slower data rate but longer range compare to a larger bandwidth
-        packet_lora_radio.setBandwidth(7.8);
 
-        // 6 (less than 22 kbps) Usually ranges from 7-12 (22-250 kbps)
-        // May need to be reconfigured depending on range/speed desired
-        // What's essential to know: A higher spreading factor means slower data rate but further transmission and vice versa
+        // Per FMSR action items:
+        // "Investigate switching LoRa frequency to center on 920MHz with a maximum bandwidth of 250KHz.
+        // (919.875 – 920.125 MHz). Please indicate if this change would negatively impact your mission
+        // or if testing uncovered a complication."
+        //
+        // Update (4/27/2027):
+        // "Great to hear on the LoRa! I'll note that you are now on 920MHz @ 125kHz wide." - Wesley Perkins.
+        // Not sure if Wesley meant 250 kHz bandwidth or thought we were using 125 kHz,
+        // but since LoRa is redundant system anyways, we'll avoid any potential RFI issues
+        // by doing 125 kHz.
+
+        packet_lora_radio.setFrequency(920.0);
+        packet_lora_radio.setBandwidth(125);
+
+
+
+        // 6 (less than 22 kbps) Usually ranges from 7-12 (22-250 kbps).
+        // May need to be reconfigured depending on range/speed desired.
+        // What's essential to know: A higher spreading factor means slower data rate but further transmission and vice versa.
         packet_lora_radio.setSpreadingFactor(6);
 
         // (4/5) Coding Rate
-        // Proportion of foward error correction bits added to payload
-        // A higher coding rate makes transmission less noisy but reduces effective data rate
+        // Proportion of foward error correction bits added to payload.
+        // A higher coding rate makes transmission less noisy but reduces effective data rate.
         packet_lora_radio.setCodingRate(5);
 
-        // 22 dBm, for the SX1262 this is the specified max TX output power
-        // Max output power gives the most range and its recommended to run the LoRa at this level
-        // Dont go above this or may risk damaging component
-        // test to see minimum power, likely -9dBm
+        // 22 dBm, for the SX1262 this is the specified max TX output power.
+        // Max output power gives the most range and its recommended to run the LoRa at this level.
+        // Dont go above this or may risk damaging component.
+        // test to see minimum power, likely -9dBm.
         packet_lora_radio.setOutputPower(22);
 
-        // 8 Symbol Preamble Length (Standard for LoRa)
-        // Synchronizes reciever with transmitter
+        // 8 Symbol Preamble Length (Standard for LoRa).
+        // Synchronizes reciever with transmitter.
         packet_lora_radio.setPreambleLength(8);
 
-        // 0x34 LoRaWAN Public Network sync word
+        // 0x34 LoRaWAN Public Network sync word.
         packet_lora_radio.setSyncWord(0x34);
 
-        // Adds Error Detection to packets
+        // Adds Error Detection to packets.
         packet_lora_radio.setCRC(true);
+
 
 
         extern void packet_lora_callback(void);
@@ -1172,8 +1174,6 @@ ESP32_calculate_crc(u8* data, i32 length)
 
 
 
-// TODO Document.
-// TODO Have look-up table.
 extern useret u8
 VEHICLE_INTERFACE_calculate_crc(u8* data, i32 length)
 {
