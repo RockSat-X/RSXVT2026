@@ -67,7 +67,7 @@ pack_push
                 f32 attitude_yaw;
                 f32 attitude_pitch;
                 f32 attitude_roll;
-                u16 computer_vision_processing_time_ms; // Do not use in `GNC_update`! Use `.most_recent_openmv_reading_timestamp_us` instead.
+                u16 computer_vision_processing_time_ms;
                 u8  computer_vision_confidence;
                 u8  padding[47];
             } gnc;
@@ -107,14 +107,6 @@ struct GNCInfo
     f32                attitude_yaw;
     f32                attitude_pitch;
     f32                attitude_roll;
-};
-
-enum GNCOperationMode : u32
-{
-    GNCOperationMode_obtaining_heading_estimate,
-    GNCOperationMode_stabilizing,
-    GNCOperationMode_searching,
-    GNCOperationMode_aligning,
 };
 
 static struct
@@ -408,6 +400,179 @@ FREERTOS_TASK(diagnostics, 2)
 
 
 
+volatile _Atomic b32 vehicle_undocked              = false;
+volatile         u32 vehicle_ejection_timestamp_us = {0};
+
+FREERTOS_TASK(watchdog, 4)
+{
+
+#if WATCHDOG_ENABLE
+
+    b32 noticed_vehicle_interface_pulled_down      = false;
+    u32 vehicle_interface_pulled_down_timestamp_us = {0};
+    u32 same_dock_state_timestamp_us               = {0};
+
+    for (;;)
+    {
+
+
+
+        // We need to ensure the vehicle doesn't stay on for long when it's still
+        // docked in the ejection mechanism. This is especially important during sequence
+        // testing when the vehicle might be powered on but no ejection will take place.
+        //
+        // We can tell when we have ejected if we're no longer detecting external
+        // power, haven't received I2C transfers through the vehicle interface in a while,
+        // and that the I2C bus lines are held high by the on-board's pull-up resistors.
+        //
+        // However, if we're still docked, then the I2C bus lines will actually be pulled
+        // low because main is no longer powered, and the on-board's pull-up resistors are
+        // weak enough that the MCU doesn't register this as an active level. In this
+        // scenario, we should do a reset also.
+
+        u32 observed_most_recent_transfer_timestamp_us =
+            atomic_load_explicit
+            (
+                &VEHICLE_INTERFACE.most_recent_transfer_timestamp_us,
+                memory_order_relaxed // No synchronization needed.
+            );
+
+        b32 theres_still_external_power             = GPIO_READ(external_detected);
+        b32 vehicle_interface_currently_pulled_down = !GPIO_READ(vehicle_interface_i2c_clock) && !GPIO_READ(vehicle_interface_i2c_data);
+
+        if (!vehicle_interface_currently_pulled_down)
+        {
+            noticed_vehicle_interface_pulled_down = false;
+        }
+        else if (!noticed_vehicle_interface_pulled_down)
+        {
+            noticed_vehicle_interface_pulled_down      = true;
+            vehicle_interface_pulled_down_timestamp_us = TIMEKEEPING_microseconds();
+        }
+
+        b32 docked_reset =
+            (
+                !theres_still_external_power &&
+                vehicle_interface_currently_pulled_down &&
+                TIMEKEEPING_microseconds() - vehicle_interface_pulled_down_timestamp_us >= 10'000'000 &&
+                TIMEKEEPING_microseconds() - observed_most_recent_transfer_timestamp_us >= 10'000'000
+            );
+
+        if (docked_reset)
+        {
+
+            // Indicate that this is why the vehicle is suddenly shut off.
+
+            BUZZER_play(BuzzerTune_starwars);
+            while (BUZZER_current_tune());
+
+
+
+            // Try cut off battery power.
+
+            GPIO_INACTIVE(battery_allowed);
+            spinlock_us(1'000'000);
+
+
+
+            // If we're still alive by this point, then
+            // there's probably external power or something,
+            // to which we'll just do a software reset.
+
+            WARM_RESET();
+
+        }
+
+
+
+        // See if the vehicle's dock status has changed.
+
+        b32 observed_vehicle_undocked =
+            atomic_load_explicit
+            (
+                &vehicle_undocked,
+                memory_order_relaxed // No synchronization needed.
+            );
+
+        b32 currently_undocked =
+            (
+                !theres_still_external_power &&
+                !vehicle_interface_currently_pulled_down &&
+                TIMEKEEPING_microseconds() - observed_most_recent_transfer_timestamp_us >= 1'000'000
+            );
+
+        if (!!currently_undocked == !!observed_vehicle_undocked)
+        {
+            same_dock_state_timestamp_us = TIMEKEEPING_microseconds();
+        }
+
+        if (TIMEKEEPING_microseconds() - same_dock_state_timestamp_us >= 2'500'000)
+        {
+
+            if (currently_undocked) // We just ejected!
+            {
+
+                vehicle_ejection_timestamp_us = TIMEKEEPING_microseconds();
+
+                atomic_store_explicit
+                (
+                    &vehicle_undocked,
+                    currently_undocked,
+                    memory_order_release // We updated the ejection timestamp.
+                );
+
+
+                xTaskNotify
+                (
+                    diagnostics_handle,
+                    DiagnosticMask_ejection,
+                    eSetBits
+                );
+
+            }
+            else // We got reinserted into the ejection mechanism...
+            {
+
+                atomic_store_explicit
+                (
+                    &vehicle_undocked,
+                    currently_undocked,
+                    memory_order_relaxed // No synchronization necessary.
+                );
+
+                xTaskNotify
+                (
+                    diagnostics_handle,
+                    DiagnosticMask_redocked,
+                    eSetBits
+                );
+            }
+
+        }
+
+
+
+        FREERTOS_delay_ms(1'000);
+
+    }
+
+#else
+
+    for (;;)
+    {
+        FREERTOS_delay_ms(1'000);
+    }
+
+#endif
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
 FREERTOS_TASK(controller, 0)
 {
 
@@ -445,531 +610,487 @@ FREERTOS_TASK(controller, 0)
 
         // Perform GNC calculations.
 
+        if (CONTROLLER_MOTOR_DEMO)
         {
 
-            #if CONTROLLER_MOTOR_DEMO
+            if (TIMEKEEPING_microseconds() >= 10'000'000)
             {
 
-                if (TIMEKEEPING_microseconds() >= 10'000'000)
+                if ((TIMEKEEPING_microseconds() / 4'000'000) % 2)
                 {
-
-                    if ((TIMEKEEPING_microseconds() / 4'000'000) % 2)
-                    {
-                        CONTROLLER.current_angular_accelerations =
-                            (struct StepperTuple)
-                            {
-                                .values =
-                                    {
-                                        [StepperUnit_axis_x] = MAX_ANGULAR_ACCELERATION,
-                                        [StepperUnit_axis_y] = MAX_ANGULAR_ACCELERATION,
-                                        [StepperUnit_axis_z] = MAX_ANGULAR_ACCELERATION,
-                                    },
-                            };
-                    }
-                    else
-                    {
-                        CONTROLLER.current_angular_accelerations =
-                            (struct StepperTuple)
-                            {
-                                .values =
-                                    {
-                                        [StepperUnit_axis_x] = -MAX_ANGULAR_ACCELERATION,
-                                        [StepperUnit_axis_y] = -MAX_ANGULAR_ACCELERATION,
-                                        [StepperUnit_axis_z] = -MAX_ANGULAR_ACCELERATION,
-                                    },
-                            };
-                    }
-
-                }
-
-            }
-            #else
-            {
-
-#if 0
-                u32                    current_timestamp_us;
-                u32                    ejection_timestamp_us;
-                struct VN100Packet     most_recent_imu;
-                struct OpenMVPacketGNC most_recent_openmv_reading;
-                u32                    most_recent_openmv_reading_timestamp_us;
-
-                b32                   initialized;
-                enum GNCOperationMode operation_mode;
-                struct Matrix_3x1     control_accelerations;
-                b32                   target_found;
-                i32                   target_conflict_count;
-                u32                   target_lost_timestamp_us;
-
-                if (!context)
-                    sus;
-
-
-
-                ////////////////////////////////////////
-                //
-                // If needed, initialize our working
-                // variables to known values.
-                //
-
-                if (!context->initialized)
-                {
-                    *context =
-                        (struct GNCContext)
+                    CONTROLLER.current_angular_accelerations =
+                        (struct StepperTuple)
                         {
-                            .initialized              = true,
-                            .operation_mode           = GNCOperationMode_obtaining_heading_estimate,
-                            .control_accelerations    = {},
-                            .target_found             = false,
-                            .target_conflict_count    = 0,
-                            .target_lost_timestamp_us = input.ejection_timestamp_us,
+                            .values =
+                                {
+                                    [StepperUnit_axis_x] = MAX_ANGULAR_ACCELERATION,
+                                    [StepperUnit_axis_y] = MAX_ANGULAR_ACCELERATION,
+                                    [StepperUnit_axis_z] = MAX_ANGULAR_ACCELERATION,
+                                },
+                        };
+                }
+                else
+                {
+                    CONTROLLER.current_angular_accelerations =
+                        (struct StepperTuple)
+                        {
+                            .values =
+                                {
+                                    [StepperUnit_axis_x] = -MAX_ANGULAR_ACCELERATION,
+                                    [StepperUnit_axis_y] = -MAX_ANGULAR_ACCELERATION,
+                                    [StepperUnit_axis_z] = -MAX_ANGULAR_ACCELERATION,
+                                },
                         };
                 }
 
+            }
+
+        }
+        else if (vn100_packet_exist && openmv_gnc_packet_exist)
+        {
 
 
-                ////////////////////////////////////////
-                //
-                // Apply hesterisis to CVT's target confidence.
-                //
 
-                if (context->target_found)
+            ////////////////////////////////////////
+            //
+            // Set up.
+            //
+
+            enum GNCOperationMode : u32
+            {
+                GNCOperationMode_uninitialized,
+                GNCOperationMode_ejecting,
+                GNCOperationMode_rate_damping,
+                GNCOperationMode_searching,
+                GNCOperationMode_aligning,
+            };
+
+            struct GNCDriver
+            {
+                enum GNCOperationMode operation_mode;
+                b32                   current_target_found;
+                b32                   previous_target_found;
+                i32                   target_conflict_count;
+                u32                   target_lost_timestamp_us;
+                u32                   search_start_timestamp_us;
+            };
+
+            static struct GNCDriver driver = {0};
+
+
+
+            ////////////////////////////////////////
+            //
+            // The algorithm will only run when we have actually ejected.
+            //
+
+            b32 observed_vehicle_undocked =
+                atomic_load_explicit
+                (
+                    &vehicle_undocked,
+                    memory_order_relaxed // No synchronization needed.
+                );
+
+            if (observed_vehicle_undocked)
+            {
+                // We have likely ejected.
+            }
+            else
+            {
+                driver.operation_mode = GNCOperationMode_uninitialized; // Reset back to an idle state.
+            }
+
+
+
+            ////////////////////////////////////////
+            //
+            // Apply hysteresis to CVT's target confidence.
+            //
+
+            if (driver.operation_mode)
+            {
+                if (driver.current_target_found)
                 {
-                    if (input.most_recent_openmv_reading.computer_vision_confidence)
+                    if (openmv_gnc_packet_data.computer_vision_confidence)
                     {
-                        context->target_conflict_count = 0; // We still see the target!
+                        driver.target_conflict_count = 0; // We still see the target!
                     }
-                    else if (context->target_conflict_count < 3) // TODO Determine hystersis threshold.
+                    else if (driver.target_conflict_count < 3)
                     {
-                        context->target_conflict_count += 1; // Hmm, we're losing the target..?
+                        driver.target_conflict_count += 1; // Hmm, we're losing the target..?
                     }
                     else
                     {
-                        context->target_found             = false; // Target definitely lost!
-                        context->target_conflict_count    = 0;
-                        context->target_lost_timestamp_us = input.current_timestamp_us;
+                        driver.current_target_found     = false; // Target definitely lost!
+                        driver.target_conflict_count    = 0;
+                        driver.target_lost_timestamp_us = TIMEKEEPING_microseconds();
                     }
                 }
                 else
                 {
-                    if (!input.most_recent_openmv_reading.computer_vision_confidence)
+                    if (!openmv_gnc_packet_data.computer_vision_confidence)
                     {
-                        context->target_conflict_count = 0; // Target still missing...
+                        driver.target_conflict_count = 0; // Target still missing...
                     }
-                    else if (context->target_conflict_count < 3) // TODO Determine hystersis threshold.
+                    else if (driver.target_conflict_count < 3)
                     {
-                        context->target_conflict_count += 1; // Oh, we're starting to see the target..?
+                        driver.target_conflict_count += 1; // Oh, we're starting to see the target..?
                     }
                     else
                     {
-                        context->target_found          = true; // Confident we now see the target!
-                        context->target_conflict_count = 0;
+                        driver.current_target_found  = true; // Confident we now see the target!
+                        driver.target_conflict_count = 0;
                     }
                 }
-
-
-
-                ////////////////////////////////////////
-                //
-                // Determine the desired vehicle
-                // orientation and angular rates.
-                //
-
-                struct Quaternion current_orientation =
-                    (struct Quaternion)
-                    {
-                        .s = input.most_recent_imu.QuatS,
-                        .i = input.most_recent_imu.QuatX,
-                        .j = input.most_recent_imu.QuatY,
-                        .k = input.most_recent_imu.QuatZ,
-                    };
-
-                struct Quaternion desired_orientation = {0};
-                struct Matrix_3x1 desired_rates       = {0};
-
-                switch (context->operation_mode)
-                {
-
-
-
-                    ////////////////////////////////////////
-                    //
-                    // Right after the vehicle has ejected,
-                    // the motors need to be kept disabled
-                    // so that the VN-100 can obtain an
-                    // accurate heading estimate without any
-                    // magnetic interference.
-                    //
-                    ////////////////////////////////////////
-
-                    case GNCOperationMode_obtaining_heading_estimate:
-                    {
-                        if (input.current_timestamp_us - input.ejection_timestamp_us < 10'000'000)
-                        {
-
-                            // We're still letting the VN-100 get a heading estimate.
-                            // It'll be the responsibility of the caller to ensure
-                            // that the motors are disabled and that the VNKMD-OFF
-                            // command has been sent to the VN-100.
-
-                            // TODO No `desired_orientation` and `desired_rates`?
-
-                        }
-                        else
-                        {
-
-                            // We can now move onto actually using the stepper motors.
-                            // It'll be the responsibility of the caller to ensure
-                            // that the VNKMD-ON command gets sent to the VN-100
-                            // before enabling the motors.
-
-                            context->operation_mode = GNCOperationMode_stabilizing;
-
-                            // TODO No `desired_orientation` and `desired_rates`?
-
-                        }
-                    } break;
-
-
-
-                    ////////////////////////////////////////
-                    //
-                    // The vehicle might be tumbling a bit
-                    // after it has ejected, so we're going
-                    // so spend some time here undoing that.
-                    //
-                    ////////////////////////////////////////
-
-                    case GNCOperationMode_stabilizing:
-                    {
-                        if (input.current_timestamp_us - input.ejection_timestamp_us < 30'000'000)
-                        {
-
-                            // To stabilize, we want to get rid of
-                            // any pitch or roll; yaw is fine.
-
-                            desired_orientation =
-                                QUATERNION_from_euler_zyx
-                                (
-                                    (struct EulerZYX)
-                                    {
-                                        .yaw   = QUATERNION_to_euler_zyx(current_orientation).yaw,
-                                        .pitch = 0.0f,
-                                        .roll  = 0.0f,
-                                    }
-                                );
-
-                        }
-                        else // We spent enough time stabilizing; move onto finding the horizon.
-                        {
-
-                            context->operation_mode = GNCOperationMode_searching;
-
-                            // TODO No `desired_orientation` and `desired_rates`?
-
-                        }
-                    } break;
-
-
-
-                    ////////////////////////////////////////
-                    //
-                    // We're currently not confident we have
-                    // found the horizon yet, so we're going
-                    // to do some motions in hopes that the
-                    // OpenMV will eventually pick something up.
-                    //
-                    ////////////////////////////////////////
-
-                    case GNCOperationMode_searching:
-                    {
-                        if (context->target_found)
-                        {
-
-                            // Got something! Move onto aligning the vehicle
-                            // towards the target that's hopefully the horizon.
-
-                            context->operation_mode = GNCOperationMode_aligning;
-
-                        }
-                        else
-                        {
-
-                            // Here we want to reorientate the vehicle as a
-                            // function of `t` over time in a control manner.
-
-                            desired_orientation =
-                                QUATERNION_from_euler_zyx
-                                (
-                                    (struct EulerZYX)
-                                    {
-                                        .yaw   = QUATERNION_to_euler_zyx(current_orientation).yaw,
-                                        .pitch = 0.3491f * arm_sin_f32(3.0f * (f32) input.current_timestamp_us / 1'000'000.0f),
-                                        .roll  = 0.0f,
-                                    }
-                                );
-
-                            desired_rates =
-                                (struct Matrix_3x1)
-                                {
-                                    .rows =
-                                        {
-                                            { 0.0f    },
-                                            { 0.0f    },
-                                            { 0.1745f },
-                                        },
-                                };
-
-                            // TODO No `desired_orientation` and `desired_rates`?
-
-                        }
-                    } break;
-
-
-
-                    ////////////////////////////////////////
-                    //
-                    // We've found the target is our goal is
-                    // now to align the vehicle towards it.
-                    //
-                    ////////////////////////////////////////
-
-                    case GNCOperationMode_aligning:
-                    {
-                        if (context->target_found)
-                        {
-
-                            // Keep aligning towards the horizon according
-                            // to whatever the OpenMV is saying.
-
-                            desired_orientation =
-                                QUATERNION_from_euler_zyx
-                                (
-                                    (struct EulerZYX)
-                                    {
-                                        .yaw   = input.most_recent_openmv_reading.attitude_yaw,
-                                        .pitch = input.most_recent_openmv_reading.attitude_pitch,
-                                        .roll  = input.most_recent_openmv_reading.attitude_roll,
-                                    }
-                                );
-
-                        }
-                        else if (input.current_timestamp_us - context->target_lost_timestamp_us < 10'000'000)
-                        {
-
-                            // The OpenMV has lost the horizon target, but instead of
-                            // immediately switching to searching again, we're going
-                            // to try hold at the last known location for a bit.
-
-                            desired_orientation =
-                                (struct Quaternion)
-                                {
-                                    // TODO: get this from buffer
-                                };
-
-                        }
-                        else // Alright, we've lost the horizon target for a while now.
-                        {
-
-                            context->operation_mode = GNCOperationMode_searching;
-
-                            // TODO No `desired_orientation` and `desired_rates`?
-
-                        }
-                    } break;
-
-
-
-                    default: sus;
-
-                }
-
-
-
-                ////////////////////////////////////////
-                //
-                // Compute errors.
-                //
-
-                struct Quaternion orientation_error =
-                    QUATERNION_multiply
-                    (
-                        current_orientation,
-                        QUATERNION_conjugate(desired_orientation)
-                    );
-
-                struct Matrix_3x1 rates_error =
-                    {
-                        .rows =
-                            {
-                                { desired_rates.rows[0][0] - input.most_recent_imu.GyroX },
-                                { desired_rates.rows[1][0] - input.most_recent_imu.GyroY },
-                                { desired_rates.rows[2][0] - input.most_recent_imu.GyroZ },
-                            },
-                    };
-
-
-
-                ////////////////////////////////////////
-                //
-                // TODO Get gain matrix.
-                //
-
-                #define ANGLE_THRESHOLD_SMALL  0.924f
-                #define ANGLE_THRESHOLD_MEDIUM 0.707f
-
-                struct Matrix_3x6 gain = {0};
-
-                switch (context->operation_mode)
-                {
-
-                    case GNCOperationMode_obtaining_heading_estimate:
-                    {
-                        // Don't care.
-                    } break;
-
-
-
-                    // Linearize about [~, ~, ~, 15, 15, 15].
-                    // Set Q = diag(0, a, a, b, b, b) where a and b are user-defined parameters.
-
-                    case GNCOperationMode_aligning:
-                    case GNCOperationMode_stabilizing:
-                    {
-                        if (orientation_error.s > ANGLE_THRESHOLD_SMALL) // TODO Absolute value?
-                        {
-                            gain =
-                                (struct Matrix_3x6) // TODO Select small angle gain matrix.
-                                {
-                                    .rows =
-                                        {
-                                            { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                                            { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                                            { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                                        },
-                                };
-                        }
-                        else if (orientation_error.s > ANGLE_THRESHOLD_MEDIUM) // TODO Absolute value?
-                        {
-                            gain =
-                                (struct Matrix_3x6) // TODO Select medium angle gain matrix.
-                                {
-                                    .rows =
-                                        {
-                                            { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                                            { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                                            { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                                        },
-                                };
-                        }
-                        else
-                        {
-                            gain =
-                                (struct Matrix_3x6) // TODO Select large angle gain matrix.
-                                {
-                                    .rows =
-                                        {
-                                            { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                                            { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                                            { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                                        },
-                                };
-                        }
-                    } break;
-
-
-
-                    // Linearize about [~, ~, ~, 15, 15, search_rate].
-                    // Set Q = diag(0, a, a, b, b, c > b) where a, b, c are user-defined parameters.
-
-                    case GNCOperationMode_searching:
-                    {
-                        if (orientation_error.s > ANGLE_THRESHOLD_SMALL) // TODO Absolute value?
-                        {
-                            gain =
-                                (struct Matrix_3x6) // TODO Select small angle gain matrix.
-                                {
-                                    .rows =
-                                        {
-                                            { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                                            { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                                            { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                                        },
-                                };
-                        }
-                        else if (orientation_error.s > ANGLE_THRESHOLD_MEDIUM) // TODO Absolute value?
-                        {
-                            gain =
-                                (struct Matrix_3x6) // TODO Select medium angle gain matrix.
-                                {
-                                    .rows =
-                                        {
-                                            { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                                            { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                                            { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                                        },
-                                };
-                        }
-                        else
-                        {
-                            gain =
-                                (struct Matrix_3x6) // TODO Select large angle gain matrix.
-                                {
-                                    .rows =
-                                        {
-                                            { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                                            { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                                            { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-                                        },
-                                };
-                        }
-                    } break;
-
-
-
-                    default : sus;
-
-                }
-
-
-
-                ////////////////////////////////////////
-                //
-                // Finally compute the stepper
-                // motors' angular accelerations.
-                //
-
-                #define REACTION_WHEEL_INERTIA 0.01f // TODO Get actual value for this.
-
-                struct Matrix_6x1 state =
-                    {
-                        .rows =
-                            {
-                                { orientation_error.i    },
-                                { orientation_error.j    },
-                                { orientation_error.k    },
-                                { rates_error.rows[0][0] },
-                                { rates_error.rows[1][0] },
-                                { rates_error.rows[2][0] },
-                            },
-                    };
-
-                struct Matrix_3x1 control_torques = {0};
-                MATRIX_multiply(&control_torques, &gain, &state); // TODO Implement the control law to compute the angular accelerations based on the gain and the state.
-
-                context->control_accelerations =
-                    (struct Matrix_3x1)
-                    {
-                        .rows =
-                            {
-                                { control_torques.rows[0][0] / REACTION_WHEEL_INERTIA },
-                                { control_torques.rows[1][0] / REACTION_WHEEL_INERTIA },
-                                { control_torques.rows[2][0] / REACTION_WHEEL_INERTIA },
-                            },
-                    };
-
-#endif
             }
-            #endif
+
+
+
+            ////////////////////////////////////////
+            //
+            // Determine the desired vehicle
+            // orientation and angular rates.
+            //
+
+            struct Quaternion desired_orientation =
+                (struct Quaternion)
+                {
+                    .s = 1.0f,
+                    .i = 0.0f,
+                    .j = 0.0f,
+                    .k = 0.0f,
+                };
+
+            struct Matrix_3x1 desired_rates = {0};
+
+            struct Matrix_3x6 gain = {0};
+
+            switch (driver.operation_mode)
+            {
+
+
+
+                ////////////////////////////////////////
+                //
+                // GNC driver's state machine needs to be reinitialized.
+                //
+                ////////////////////////////////////////
+
+                case GNCOperationMode_uninitialized:
+                {
+
+                    driver =
+                        (struct GNCDriver)
+                        {
+                            .operation_mode           = GNCOperationMode_ejecting,
+                            .target_lost_timestamp_us = TIMEKEEPING_microseconds(),
+                        };
+
+                } break;
+
+
+
+                ////////////////////////////////////////
+                //
+                // Right after the vehicle has ejected,
+                // the motors need to be kept disabled
+                // so that the VN-100 can obtain an
+                // accurate heading estimate without any
+                // magnetic interference.
+                //
+                ////////////////////////////////////////
+
+                case GNCOperationMode_ejecting:
+                {
+                    if (TIMEKEEPING_microseconds() - vehicle_ejection_timestamp_us < 10'000'000)
+                    {
+
+                        // We're still letting the VN-100 get a heading estimate.
+                        // It'll be the responsibility of the caller to ensure
+                        // that the motors are disabled and that the VNKMD-OFF
+                        // command has been sent to the VN-100.
+
+                    }
+                    else
+                    {
+
+                        // We can now move onto actually using the stepper motors.
+                        // It'll be the responsibility of the caller to ensure
+                        // that the VNKMD-ON command gets sent to the VN-100
+                        // before enabling the motors.
+
+                        driver.operation_mode = GNCOperationMode_rate_damping;
+
+                    }
+                } break;
+
+
+
+                ////////////////////////////////////////
+                //
+                // The vehicle might be tumbling a bit
+                // after it has ejected, so we're going
+                // so spend some time here undoing that.
+                //
+                ////////////////////////////////////////
+
+                case GNCOperationMode_rate_damping:
+                {
+                    if (TIMEKEEPING_microseconds() - vehicle_ejection_timestamp_us < 30'000'000)
+                    {
+                        // TODO.
+                    }
+                    else // We spent enough time stabilizing; move onto finding the horizon.
+                    {
+                        driver.operation_mode = GNCOperationMode_searching;
+                    }
+                } break;
+
+
+
+                ////////////////////////////////////////
+                //
+                // We're currently not confident we have
+                // found the horizon yet, so we're going
+                // to do some motions in hopes that the
+                // OpenMV will eventually pick something up.
+                //
+                ////////////////////////////////////////
+
+                case GNCOperationMode_searching:
+                {
+                    if (driver.current_target_found)
+                    {
+
+                        // Got something! Move onto aligning the vehicle
+                        // towards the target that's hopefully the horizon.
+
+                        driver.operation_mode = GNCOperationMode_aligning;
+
+                    }
+                    else
+                    {
+
+                        if (driver.previous_target_found)
+                        {
+
+                            // Just lost the target; try searching around the last known location.
+
+                            driver.search_start_timestamp_us = TIMEKEEPING_microseconds();
+
+                        }
+
+
+
+                        #define SEARCH_DURATION 30.0f
+                        #define SEARCH_GAIN      0.3f
+                        #define OMEGA_PHI        2.399963229728653f
+
+                        f32 search_time = (f32) (TIMEKEEPING_microseconds() - driver.search_start_timestamp_us) / 1'000'000.0f;
+                        f32 u           = search_time / SEARCH_DURATION;
+
+                        if (u < 0.0f)
+                        {
+                            u = 0.0f;
+                        }
+                        else if (u > 1.0f)
+                        {
+                            u = 1.0f;
+                            driver.search_start_timestamp_us = TIMEKEEPING_microseconds();
+                        }
+
+                        f32 phi    = acos_f32(1.0f - 2.0f * u);
+                        f32 dtheta = SEARCH_GAIN * OMEGA_PHI;
+                        f32 dphi   = 2.0f * SEARCH_GAIN / (SEARCH_DURATION * sqrt_f32(1 - ((1 - 2*u) * (1 - 2*u))));
+
+                        desired_rates =
+                            (struct Matrix_3x1)
+                            {
+                                .rows =
+                                    {
+                                        { dtheta * arm_cos_f32(phi)  },
+                                        { dphi                       },
+                                        { -dtheta * arm_sin_f32(phi) },
+                                    },
+                            };
+
+                    }
+                } break;
+
+
+
+                ////////////////////////////////////////
+                //
+                // We've found the target is our goal is
+                // now to align the vehicle towards it.
+                //
+                ////////////////////////////////////////
+
+                case GNCOperationMode_aligning:
+                {
+                    if (driver.current_target_found)
+                    {
+
+                        // Keep aligning towards the horizon according
+                        // to whatever the OpenMV is saying.
+
+                        desired_orientation =
+                            QUATERNION_from_euler_zyx
+                            (
+                                (struct EulerZYX)
+                                {
+                                    .yaw   = openmv_gnc_packet_data.attitude_yaw,
+                                    .pitch = openmv_gnc_packet_data.attitude_pitch,
+                                    .roll  = openmv_gnc_packet_data.attitude_roll,
+                                }
+                            );
+
+                    }
+                    else // Alright, we've lost the horizon target for a while now.
+                    {
+                        driver.operation_mode = GNCOperationMode_searching;
+                    }
+                } break;
+
+
+
+
+                default:
+                {
+                    sus;
+                    driver.operation_mode = GNCOperationMode_uninitialized;
+                } break;
+
+            }
+
+
+
+            ////////////////////////////////////////
+            //
+            // Compute errors.
+            //
+
+            struct Quaternion orientation_error =
+                QUATERNION_multiply
+                (
+                    (struct Quaternion) {0}, // TODO?
+                    QUATERNION_conjugate(desired_orientation)
+                );
+
+            struct Matrix_3x1 rates_error =
+                {
+                    .rows =
+                        {
+                            { desired_rates.rows[0][0] - vn100_packet_data.GyroX },
+                            { desired_rates.rows[1][0] - vn100_packet_data.GyroY },
+                            { desired_rates.rows[2][0] - vn100_packet_data.GyroZ },
+                        },
+                };
+
+
+
+            ////////////////////////////////////////
+            //
+            // TODO Get gain matrix.
+            //
+
+            #define ANGLE_THRESHOLD_SMALL  0.924f
+            #define ANGLE_THRESHOLD_MEDIUM 0.707f
+
+            switch (driver.operation_mode)
+            {
+
+                case GNCOperationMode_uninitialized:
+                case GNCOperationMode_ejecting:
+                {
+                    // Don't care.
+                } break;
+
+
+
+                // Linearize about [~, ~, ~, 15, 15, 15].
+                // Set Q = diag(0, a, a, b, b, b) where a and b are user-defined parameters.
+
+                case GNCOperationMode_aligning:
+                case GNCOperationMode_rate_damping:
+                {
+                    gain = // TODO.
+                        (struct Matrix_3x6)
+                        {
+                            .rows =
+                                {
+                                    { 0.0f, 0.0f, 0.0f, 0.0120f, 0.0f   , 0.0f    },
+                                    { 0.0f, 0.0f, 0.0f, 0.0f   , 0.0116f, 0.0f    },
+                                    { 0.0f, 0.0f, 0.0f, 0.0f   , 0.0f   , 0.0111f },
+                                },
+                        };
+                } break;
+
+
+
+                // Linearize about [~, ~, ~, 15, 15, search_rate].
+                // Set Q = diag(0, a, a, b, b, c > b) where a, b, c are user-defined parameters.
+
+                case GNCOperationMode_searching:
+                {
+                    gain = // TODO.
+                        (struct Matrix_3x6)
+                        {
+                            .rows =
+                                {
+                                    { 0.0f, 0.0f, 0.0f, 0.0120f, 0.0f   , 0.0f    },
+                                    { 0.0f, 0.0f, 0.0f, 0.0f   , 0.0116f, 0.0f    },
+                                    { 0.0f, 0.0f, 0.0f, 0.0f   , 0.0f   , 0.0111f },
+                                },
+                        };
+                } break;
+
+
+
+                default: sus;
+
+            }
+
+
+
+            ////////////////////////////////////////
+            //
+            // Finally compute the stepper
+            // motors' angular accelerations.
+            //
+
+            #define REACTION_WHEEL_INERTIA 0.000017469f // (kg-m^2)
+
+            struct Matrix_6x1 state =
+                {
+                    .rows =
+                        {
+                            { orientation_error.i    },
+                            { orientation_error.j    },
+                            { orientation_error.k    },
+                            { rates_error.rows[0][0] },
+                            { rates_error.rows[1][0] },
+                            { rates_error.rows[2][0] },
+                        },
+                };
+
+            struct Matrix_3x1 control_torques = {0};
+            MATRIX_multiply(&control_torques, &gain, &state); // TODO Implement the control law to compute the angular accelerations based on the gain and the state.
+
+            CONTROLLER.current_angular_accelerations =
+                (struct StepperTuple)
+                {
+                    .values =
+                        {
+                            control_torques.rows[0][0] / REACTION_WHEEL_INERTIA,
+                            control_torques.rows[1][0] / REACTION_WHEEL_INERTIA,
+                            control_torques.rows[2][0] / REACTION_WHEEL_INERTIA,
+                        },
+                };
+
+
+
+            driver.previous_target_found = driver.current_target_found;
 
         }
 
@@ -2417,165 +2538,6 @@ FREERTOS_TASK(logger, 0)
         }
 
     }
-
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-volatile _Atomic b32 vehicle_undocked = false;
-
-FREERTOS_TASK(watchdog, 4)
-{
-
-#if WATCHDOG_ENABLE
-
-    b32 noticed_vehicle_interface_pulled_down      = false;
-    u32 vehicle_interface_pulled_down_timestamp_us = {0};
-    u32 same_dock_state_timestamp_us               = {0};
-
-    for (;;)
-    {
-
-
-
-        // We need to ensure the vehicle doesn't stay on for long when it's still
-        // docked in the ejection mechanism. This is especially important during sequence
-        // testing when the vehicle might be powered on but no ejection will take place.
-        //
-        // We can tell when we have ejected if we're no longer detecting external
-        // power, haven't received I2C transfers through the vehicle interface in a while,
-        // and that the I2C bus lines are held high by the on-board's pull-up resistors.
-        //
-        // However, if we're still docked, then the I2C bus lines will actually be pulled
-        // low because main is no longer powered, and the on-board's pull-up resistors are
-        // weak enough that the MCU doesn't register this as an active level. In this
-        // scenario, we should do a reset also.
-
-        u32 observed_most_recent_transfer_timestamp_us =
-            atomic_load_explicit
-            (
-                &VEHICLE_INTERFACE.most_recent_transfer_timestamp_us,
-                memory_order_relaxed // No synchronization needed.
-            );
-
-        b32 theres_still_external_power             = GPIO_READ(external_detected);
-        b32 vehicle_interface_currently_pulled_down = !GPIO_READ(vehicle_interface_i2c_clock) && !GPIO_READ(vehicle_interface_i2c_data);
-
-        if (!vehicle_interface_currently_pulled_down)
-        {
-            noticed_vehicle_interface_pulled_down = false;
-        }
-        else if (!noticed_vehicle_interface_pulled_down)
-        {
-            noticed_vehicle_interface_pulled_down      = true;
-            vehicle_interface_pulled_down_timestamp_us = TIMEKEEPING_microseconds();
-        }
-
-        b32 docked_reset =
-            (
-                !theres_still_external_power &&
-                vehicle_interface_currently_pulled_down &&
-                TIMEKEEPING_microseconds() - vehicle_interface_pulled_down_timestamp_us >= 10'000'000 &&
-                TIMEKEEPING_microseconds() - observed_most_recent_transfer_timestamp_us >= 10'000'000
-            );
-
-        if (docked_reset)
-        {
-
-            // Indicate that this is why the vehicle is suddenly shut off.
-
-            BUZZER_play(BuzzerTune_starwars);
-            while (BUZZER_current_tune());
-
-
-
-            // Try cut off battery power.
-
-            GPIO_INACTIVE(battery_allowed);
-            spinlock_us(1'000'000);
-
-
-
-            // If we're still alive by this point, then
-            // there's probably external power or something,
-            // to which we'll just do a software reset.
-
-            WARM_RESET();
-
-        }
-
-
-
-        // See if the vehicle's dock status has changed.
-
-        b32 observed_vehicle_undocked =
-            atomic_load_explicit
-            (
-                &vehicle_undocked,
-                memory_order_relaxed // No synchronization needed.
-            );
-
-        b32 currently_undocked =
-            (
-                !theres_still_external_power &&
-                !vehicle_interface_currently_pulled_down &&
-                TIMEKEEPING_microseconds() - observed_most_recent_transfer_timestamp_us >= 1'000'000
-            );
-
-        if (!!currently_undocked == !!observed_vehicle_undocked)
-        {
-            same_dock_state_timestamp_us = TIMEKEEPING_microseconds();
-        }
-
-        if (TIMEKEEPING_microseconds() - same_dock_state_timestamp_us >= 2'500'000)
-        {
-
-            atomic_store_explicit
-            (
-                &vehicle_undocked,
-                currently_undocked,
-                memory_order_relaxed // No synchronization needed.
-            );
-
-            if (currently_undocked) // We just ejected!
-            {
-                xTaskNotify
-                (
-                    diagnostics_handle,
-                    DiagnosticMask_ejection,
-                    eSetBits
-                );
-            }
-            else // We got reinserted into the ejection mechanism...
-            {
-                xTaskNotify
-                (
-                    diagnostics_handle,
-                    DiagnosticMask_redocked,
-                    eSetBits
-                );
-            }
-
-        }
-
-
-
-        FREERTOS_delay_ms(1'000);
-
-    }
-
-#else
-
-    for (;;)
-    {
-        FREERTOS_delay_ms(1'000);
-    }
-
-#endif
 
 }
 
