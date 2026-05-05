@@ -336,6 +336,81 @@ first left pin and the second right pin is broken off.
 
 
 
+# RF Verification.
+
+During sequence testing and particularly GPS Roll-Out,
+it's critical to verify that RF systems are working as intended
+and to communicate this to NASA.
+
+The easiest way to do this is to use the [Debug Board](#debug-board).
+The screen will indicate if the Main Flight Computer is receiving RF data from the ESP32 and/or LoRa.
+If the Debug Board is loaded with a uSD card,
+the RF status will also be logged over time.
+
+A more robust way to verify RF is to use the TinySA Spectrum Analyzer.
+There are two particular frequency bands of interest.
+| Link  | Center         | Bandwidth      | Start          | End            |
+| :---: | :------------: | :------------: | :------------: | :------------: |
+| ESP32 | 2.472 GHz      | 20 MHz         | 2.462 GHz      | 2.482 GHz      |
+| LoRa  | 920 MHz        | 125 kHz        | 919.9375 MHz   | 920.0625 MHz   |
+
+Configure the spectrum analyzer to observe these frequencies.
+
+You should see a reading similar the following figures:
+
+<p align="center">
+<kbd>
+<img src="./misc/media/spectrum_analyzer_wifi.png" width="600px">
+<br>
+<br>
+<em>
+Spectrum analyzer measurement for the ESP32 link.
+</em>
+<br>
+<br>
+</p>
+<p align="center">
+</kbd>
+<kbd>
+<img src="./misc/media/spectrum_analyzer_lora.png" width="600px">
+<br>
+<br>
+<em>
+Spectrum analyzer measurement for the LoRa link.
+</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
+
+> [!IMPORTANT]
+> The measurements shown in the figures were taken with an RBW value of 200 Hz;
+> this makes the measurement more accurate but at the cost of being extremely slow.
+> It's probably more productive to use an auto RBW value so measurements can be done quickly.
+> Just as long there is an expected peak within frequency bands, all is good.
+
+The RF verification process and expectations should be roughly as follows:
+
+1. Before the experiment is powered on via GSE-1, no RF transmission is detected within the frequency bands.
+
+2. Shortly after the experiment is powered on via GSE-1,
+ESP32 and LoRa transmission can be seen within the frequency bands.
+
+3. RF transmission is sustained for at least the duration of a full mission;
+if applicable, the RF transmission should still be sustained even if the vehicle has ejected or becomes undocked.
+
+4. RF transmission is sustained even when main has powered off (i.e. GSE-1 deactived)
+as the vehicle will continue transmitting via battery power.
+
+5. RF transmission is no longer detected once the vehicle has powered off
+(either by using the vehicle battery inhibit or through a docked reset).
+
+
+
+&nbsp;
+
+
+
 # Wallops Testing Procedure.
 
 The following table summarizes the primary configurations needed to be set for tests done at Wallops.
