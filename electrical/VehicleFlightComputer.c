@@ -6,7 +6,7 @@
 #define SPI_RECEPTION_RING_BUFFER_LENGTH 32
 #define WATCHDOG_DURATION_US             (10 * 60'000'000)
 #define MAX_ANGULAR_ACCELERATION         (100.0f)
-#define MAX_ANGULAR_VELOCITY             (1600.0f * 2.0f * PI / 60.0f)
+#define MAX_ANGULAR_VELOCITY             (1000.0f * 2.0f * PI / 60.0f)
 #define CONTROLLER_MOTOR_DEMO            false
 #define CONTROLLER_MOTOR_ENABLE          true
 #define VN100_ENABLE                     true
@@ -506,7 +506,7 @@ FREERTOS_TASK(watchdog, 4)
             same_dock_state_timestamp_us = TIMEKEEPING_microseconds();
         }
 
-        if (TIMEKEEPING_microseconds() - same_dock_state_timestamp_us >= 2'500'000)
+        if (TIMEKEEPING_microseconds() - same_dock_state_timestamp_us >= 5'000'000)
         {
 
             if (currently_undocked) // We just ejected!
@@ -602,9 +602,16 @@ FREERTOS_TASK(controller, 0)
     {
 
         struct VN100Packet     vn100_packet_data       = {0};
-        b32                    vn100_packet_exist      = RingBuffer_pop_to_latest(&CONTROLLER.vn100_packets, &vn100_packet_data);
+        b32                    vn100_packet_exist      = RingBuffer_pop(&CONTROLLER.vn100_packets, &vn100_packet_data);
         struct OpenMVPacketGNC openmv_gnc_packet_data  = {0};
         b32                    openmv_gnc_packet_exist = RingBuffer_pop_to_latest(&CONTROLLER.openmv_gnc_packets, &openmv_gnc_packet_data);
+
+        b32 observed_vehicle_undocked =
+            atomic_load_explicit
+            (
+                &vehicle_undocked,
+                memory_order_relaxed // No synchronization needed.
+            );
 
 
 
@@ -646,33 +653,21 @@ FREERTOS_TASK(controller, 0)
             }
 
         }
-        else if (vn100_packet_exist && openmv_gnc_packet_exist)
+        else if (observed_vehicle_undocked && vn100_packet_exist && openmv_gnc_packet_exist)
         {
-
-
 
             ////////////////////////////////////////
             //
             // Set up.
             //
 
-            enum GNCOperationMode : u32
-            {
-                GNCOperationMode_uninitialized,
-                GNCOperationMode_ejecting,
-                GNCOperationMode_rate_damping,
-                GNCOperationMode_searching,
-                GNCOperationMode_aligning,
-            };
+            #define RATE_DAMP_DURATION_US 60'000'000
 
             struct GNCDriver
             {
-                enum GNCOperationMode operation_mode;
-                b32                   current_target_found;
-                b32                   previous_target_found;
-                i32                   target_conflict_count;
-                u32                   target_lost_timestamp_us;
-                u32                   search_start_timestamp_us;
+                b32 current_target_found;
+                i32 target_conflict_count;
+                u32 search_start_timestamp_us;
             };
 
             static struct GNCDriver driver = {0};
@@ -681,66 +676,39 @@ FREERTOS_TASK(controller, 0)
 
             ////////////////////////////////////////
             //
-            // The algorithm will only run when we have actually ejected.
-            //
-
-            b32 observed_vehicle_undocked =
-                atomic_load_explicit
-                (
-                    &vehicle_undocked,
-                    memory_order_relaxed // No synchronization needed.
-                );
-
-            if (observed_vehicle_undocked)
-            {
-                // We have likely ejected.
-            }
-            else
-            {
-                driver.operation_mode = GNCOperationMode_uninitialized; // Reset back to an idle state.
-            }
-
-
-
-            ////////////////////////////////////////
-            //
             // Apply hysteresis to CVT's target confidence.
             //
 
-            if (driver.operation_mode)
+            if (driver.current_target_found)
             {
-                if (driver.current_target_found)
+                if (openmv_gnc_packet_data.computer_vision_confidence)
                 {
-                    if (openmv_gnc_packet_data.computer_vision_confidence)
-                    {
-                        driver.target_conflict_count = 0; // We still see the target!
-                    }
-                    else if (driver.target_conflict_count < 3)
-                    {
-                        driver.target_conflict_count += 1; // Hmm, we're losing the target..?
-                    }
-                    else
-                    {
-                        driver.current_target_found     = false; // Target definitely lost!
-                        driver.target_conflict_count    = 0;
-                        driver.target_lost_timestamp_us = TIMEKEEPING_microseconds();
-                    }
+                    driver.target_conflict_count = 0; // We still see the target!
+                }
+                else if (driver.target_conflict_count < 3)
+                {
+                    driver.target_conflict_count += 1; // Hmm, we're losing the target..?
                 }
                 else
                 {
-                    if (!openmv_gnc_packet_data.computer_vision_confidence)
-                    {
-                        driver.target_conflict_count = 0; // Target still missing...
-                    }
-                    else if (driver.target_conflict_count < 3)
-                    {
-                        driver.target_conflict_count += 1; // Oh, we're starting to see the target..?
-                    }
-                    else
-                    {
-                        driver.current_target_found  = true; // Confident we now see the target!
-                        driver.target_conflict_count = 0;
-                    }
+                    driver.current_target_found  = false; // Target definitely lost!
+                    driver.target_conflict_count = 0;
+                }
+            }
+            else
+            {
+                if (!openmv_gnc_packet_data.computer_vision_confidence)
+                {
+                    driver.target_conflict_count = 0; // Target still missing...
+                }
+                else if (driver.target_conflict_count < 3)
+                {
+                    driver.target_conflict_count += 1; // Oh, we're starting to see the target..?
+                }
+                else
+                {
+                    driver.current_target_found  = true; // Confident we now see the target!
+                    driver.target_conflict_count = 0;
                 }
             }
 
@@ -748,234 +716,88 @@ FREERTOS_TASK(controller, 0)
 
             ////////////////////////////////////////
             //
-            // Determine the desired vehicle
-            // orientation and angular rates.
+            // Determine the desired rates.
             //
 
-            struct Quaternion desired_orientation =
-                (struct Quaternion)
-                {
-                    .s = 1.0f,
-                    .i = 0.0f,
-                    .j = 0.0f,
-                    .k = 0.0f,
-                };
+            b32 doing_search =
+                TIMEKEEPING_microseconds() - vehicle_ejection_timestamp_us >= RATE_DAMP_DURATION_US
+                && !driver.current_target_found;
 
             struct Matrix_3x1 desired_rates = {0};
 
-            struct Matrix_3x6 gain = {0};
-
-            switch (driver.operation_mode)
+            if (doing_search)
             {
 
+                // TODO Review.
 
+                #define SEARCH_DURATION 30.0f
+                #define SEARCH_GAIN      0.3f
+                #define OMEGA_PHI        2.399963229728653f
 
-                ////////////////////////////////////////
-                //
-                // GNC driver's state machine needs to be reinitialized.
-                //
-                ////////////////////////////////////////
+                f32 search_time = (f32) (TIMEKEEPING_microseconds() - driver.search_start_timestamp_us) / 1'000'000.0f;
+                f32 u           = search_time / SEARCH_DURATION;
 
-                case GNCOperationMode_uninitialized:
+                if (u < 0.0f)
                 {
-
-                    driver =
-                        (struct GNCDriver)
-                        {
-                            .operation_mode           = GNCOperationMode_ejecting,
-                            .target_lost_timestamp_us = TIMEKEEPING_microseconds(),
-                        };
-
-                } break;
-
-
-
-                ////////////////////////////////////////
-                //
-                // Right after the vehicle has ejected,
-                // the motors need to be kept disabled
-                // so that the VN-100 can obtain an
-                // accurate heading estimate without any
-                // magnetic interference.
-                //
-                ////////////////////////////////////////
-
-                case GNCOperationMode_ejecting:
+                    u = 0.0f;
+                }
+                else if (u > 1.0f)
                 {
-                    if (TIMEKEEPING_microseconds() - vehicle_ejection_timestamp_us < 10'000'000)
+                    u = 1.0f;
+                    driver.search_start_timestamp_us = TIMEKEEPING_microseconds();
+                }
+
+                f32 phi    = acos_f32(1.0f - 2.0f * u);
+                f32 dtheta = SEARCH_GAIN * OMEGA_PHI;
+                f32 dphi   = 2.0f * SEARCH_GAIN / (SEARCH_DURATION * sqrt_f32(1 - ((1 - 2*u) * (1 - 2*u))));
+
+                desired_rates =
+                    (struct Matrix_3x1)
                     {
-
-                        // We're still letting the VN-100 get a heading estimate.
-                        // It'll be the responsibility of the caller to ensure
-                        // that the motors are disabled and that the VNKMD-OFF
-                        // command has been sent to the VN-100.
-
-                    }
-                    else
-                    {
-
-                        // We can now move onto actually using the stepper motors.
-                        // It'll be the responsibility of the caller to ensure
-                        // that the VNKMD-ON command gets sent to the VN-100
-                        // before enabling the motors.
-
-                        driver.operation_mode = GNCOperationMode_rate_damping;
-
-                    }
-                } break;
-
-
-
-                ////////////////////////////////////////
-                //
-                // The vehicle might be tumbling a bit
-                // after it has ejected, so we're going
-                // so spend some time here undoing that.
-                //
-                ////////////////////////////////////////
-
-                case GNCOperationMode_rate_damping:
-                {
-                    if (TIMEKEEPING_microseconds() - vehicle_ejection_timestamp_us < 30'000'000)
-                    {
-                        // TODO.
-                    }
-                    else // We spent enough time stabilizing; move onto finding the horizon.
-                    {
-                        driver.operation_mode = GNCOperationMode_searching;
-                    }
-                } break;
-
-
-
-                ////////////////////////////////////////
-                //
-                // We're currently not confident we have
-                // found the horizon yet, so we're going
-                // to do some motions in hopes that the
-                // OpenMV will eventually pick something up.
-                //
-                ////////////////////////////////////////
-
-                case GNCOperationMode_searching:
-                {
-                    if (driver.current_target_found)
-                    {
-
-                        // Got something! Move onto aligning the vehicle
-                        // towards the target that's hopefully the horizon.
-
-                        driver.operation_mode = GNCOperationMode_aligning;
-
-                    }
-                    else
-                    {
-
-                        if (driver.previous_target_found)
-                        {
-
-                            // Just lost the target; try searching around the last known location.
-
-                            driver.search_start_timestamp_us = TIMEKEEPING_microseconds();
-
-                        }
-
-
-
-                        #define SEARCH_DURATION 30.0f
-                        #define SEARCH_GAIN      0.3f
-                        #define OMEGA_PHI        2.399963229728653f
-
-                        f32 search_time = (f32) (TIMEKEEPING_microseconds() - driver.search_start_timestamp_us) / 1'000'000.0f;
-                        f32 u           = search_time / SEARCH_DURATION;
-
-                        if (u < 0.0f)
-                        {
-                            u = 0.0f;
-                        }
-                        else if (u > 1.0f)
-                        {
-                            u = 1.0f;
-                            driver.search_start_timestamp_us = TIMEKEEPING_microseconds();
-                        }
-
-                        f32 phi    = acos_f32(1.0f - 2.0f * u);
-                        f32 dtheta = SEARCH_GAIN * OMEGA_PHI;
-                        f32 dphi   = 2.0f * SEARCH_GAIN / (SEARCH_DURATION * sqrt_f32(1 - ((1 - 2*u) * (1 - 2*u))));
-
-                        desired_rates =
-                            (struct Matrix_3x1)
+                        .rows =
                             {
-                                .rows =
-                                    {
-                                        { dtheta * arm_cos_f32(phi)  },
-                                        { dphi                       },
-                                        { -dtheta * arm_sin_f32(phi) },
-                                    },
-                            };
+                                { dtheta * arm_cos_f32(phi)  },
+                                { dphi                       },
+                                { -dtheta * arm_sin_f32(phi) },
+                            },
+                    };
 
-                    }
-                } break;
-
-
-
-                ////////////////////////////////////////
-                //
-                // We've found the target is our goal is
-                // now to align the vehicle towards it.
-                //
-                ////////////////////////////////////////
-
-                case GNCOperationMode_aligning:
-                {
-                    if (driver.current_target_found)
-                    {
-
-                        // Keep aligning towards the horizon according
-                        // to whatever the OpenMV is saying.
-
-                        desired_orientation =
-                            QUATERNION_from_euler_zyx
-                            (
-                                (struct EulerZYX)
-                                {
-                                    .yaw   = openmv_gnc_packet_data.attitude_yaw,
-                                    .pitch = openmv_gnc_packet_data.attitude_pitch,
-                                    .roll  = openmv_gnc_packet_data.attitude_roll,
-                                }
-                            );
-
-                    }
-                    else // Alright, we've lost the horizon target for a while now.
-                    {
-                        driver.operation_mode = GNCOperationMode_searching;
-                    }
-                } break;
-
-
-
-
-                default:
-                {
-                    sus;
-                    driver.operation_mode = GNCOperationMode_uninitialized;
-                } break;
-
+            }
+            else
+            {
+                driver.search_start_timestamp_us = TIMEKEEPING_microseconds();
             }
 
 
 
             ////////////////////////////////////////
             //
-            // Compute errors.
+            // Determine the quaternion error.
             //
 
-            struct Quaternion orientation_error =
-                QUATERNION_multiply
-                (
-                    (struct Quaternion) {0}, // TODO?
-                    QUATERNION_conjugate(desired_orientation)
-                );
+            struct Quaternion quaternion_error = {0};
+
+            if (openmv_gnc_packet_data.computer_vision_confidence)
+            {
+                quaternion_error =
+                    QUATERNION_from_euler_zyx
+                    (
+                        (struct EulerZYX)
+                        {
+                            .yaw   = openmv_gnc_packet_data.attitude_yaw,
+                            .pitch = openmv_gnc_packet_data.attitude_pitch,
+                            .roll  = openmv_gnc_packet_data.attitude_roll,
+                        }
+                    );
+            }
+
+
+
+            ////////////////////////////////////////
+            //
+            // Determining the rate error.
+            //
+
 
             struct Matrix_3x1 rates_error =
                 {
@@ -991,64 +813,62 @@ FREERTOS_TASK(controller, 0)
 
             ////////////////////////////////////////
             //
-            // TODO Get gain matrix.
+            // Determine gain.
             //
 
-            #define ANGLE_THRESHOLD_SMALL  0.924f
-            #define ANGLE_THRESHOLD_MEDIUM 0.707f
+            struct Matrix_3x6 gain = {0};
 
-            switch (driver.operation_mode)
+            if (TIMEKEEPING_microseconds() - vehicle_ejection_timestamp_us < RATE_DAMP_DURATION_US)
             {
-
-                case GNCOperationMode_uninitialized:
-                case GNCOperationMode_ejecting:
-                {
-                    // Don't care.
-                } break;
-
-
-
-                // Linearize about [~, ~, ~, 15, 15, 15].
-                // Set Q = diag(0, a, a, b, b, b) where a and b are user-defined parameters.
-
-                case GNCOperationMode_aligning:
-                case GNCOperationMode_rate_damping:
-                {
-                    gain = // TODO.
-                        (struct Matrix_3x6)
-                        {
-                            .rows =
-                                {
-                                    { 0.0f, 0.0f, 0.0f, 0.0120f, 0.0f   , 0.0f    },
-                                    { 0.0f, 0.0f, 0.0f, 0.0f   , 0.0116f, 0.0f    },
-                                    { 0.0f, 0.0f, 0.0f, 0.0f   , 0.0f   , 0.0111f },
-                                },
-                        };
-                } break;
-
-
-
-                // Linearize about [~, ~, ~, 15, 15, search_rate].
-                // Set Q = diag(0, a, a, b, b, c > b) where a, b, c are user-defined parameters.
-
-                case GNCOperationMode_searching:
-                {
-                    gain = // TODO.
-                        (struct Matrix_3x6)
-                        {
-                            .rows =
-                                {
-                                    { 0.0f, 0.0f, 0.0f, 0.0120f, 0.0f   , 0.0f    },
-                                    { 0.0f, 0.0f, 0.0f, 0.0f   , 0.0116f, 0.0f    },
-                                    { 0.0f, 0.0f, 0.0f, 0.0f   , 0.0f   , 0.0111f },
-                                },
-                        };
-                } break;
-
-
-
-                default: sus;
-
+                gain =
+                    (struct Matrix_3x6)
+                    {
+                        .rows = // TODO.
+                            {
+                                { 0.0f, 0.0f, 0.0f, -0.0120f, 0.0f    , 0.0f     },
+                                { 0.0f, 0.0f, 0.0f, 0.0f    , -0.0116f, 0.0f     },
+                                { 0.0f, 0.0f, 0.0f, 0.0f    , 0.0f    , -0.0111f },
+                            },
+                    };
+            }
+            else if (doing_search)
+            {
+                gain =
+                    (struct Matrix_3x6)
+                    {
+                        .rows = // TODO.
+                            {
+                                { 0.0f, 0.0f, 0.0f, -0.0120f, 0.0f    , 0.0f     },
+                                { 0.0f, 0.0f, 0.0f, 0.0f    , -0.0116f, 0.0f     },
+                                { 0.0f, 0.0f, 0.0f, 0.0f    , 0.0f    , -0.0111f },
+                            },
+                    };
+            }
+            else if (fabsf(openmv_gnc_packet_data.attitude_roll) < 0.5f) // TODO.
+            {
+                gain =
+                    (struct Matrix_3x6)
+                    {
+                        .rows = // TODO.
+                            {
+                                { -1.0f,  0.0f,  0.0f, -0.0120f,  0.0f   ,  0.0f    },
+                                {  0.0f, -1.0f,  0.0f,  0.0f   , -0.0116f,  0.0f    },
+                                {  0.0f,  0.0f, -1.0f,  0.0f   ,  0.0f   , -0.0111f },
+                            },
+                    };
+            }
+            else
+            {
+                gain =
+                    (struct Matrix_3x6)
+                    {
+                        .rows = // TODO.
+                            {
+                                { -1.0f,  0.0f,  0.0f, -0.0120f,  0.0f   ,  0.0f    },
+                                {  0.0f, -1.0f,  0.0f,  0.0f   , -0.0116f,  0.0f    },
+                                {  0.0f,  0.0f, -1.0f,  0.0f   ,  0.0f   , -0.0111f },
+                            },
+                    };
             }
 
 
@@ -1059,15 +879,15 @@ FREERTOS_TASK(controller, 0)
             // motors' angular accelerations.
             //
 
-            #define REACTION_WHEEL_INERTIA 0.000017469f // (kg-m^2)
+            #define REACTION_WHEEL_INERTIA 0.000017469f // (kg-m^2) TODO Double check.
 
             struct Matrix_6x1 state =
                 {
                     .rows =
                         {
-                            { orientation_error.i    },
-                            { orientation_error.j    },
-                            { orientation_error.k    },
+                            { quaternion_error.i     },
+                            { quaternion_error.j     },
+                            { quaternion_error.k     },
                             { rates_error.rows[0][0] },
                             { rates_error.rows[1][0] },
                             { rates_error.rows[2][0] },
@@ -1075,7 +895,7 @@ FREERTOS_TASK(controller, 0)
                 };
 
             struct Matrix_3x1 control_torques = {0};
-            MATRIX_multiply(&control_torques, &gain, &state); // TODO Implement the control law to compute the angular accelerations based on the gain and the state.
+            MATRIX_multiply(&control_torques, &gain, &state);
 
             CONTROLLER.current_angular_accelerations =
                 (struct StepperTuple)
@@ -1087,10 +907,6 @@ FREERTOS_TASK(controller, 0)
                             control_torques.rows[2][0] / REACTION_WHEEL_INERTIA,
                         },
                 };
-
-
-
-            driver.previous_target_found = driver.current_target_found;
 
         }
 
