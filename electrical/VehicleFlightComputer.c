@@ -1309,6 +1309,9 @@ FREERTOS_TASK(vn100, 0)
 
 #if VN100_ENABLE
 
+    VN100.magnetic_disturbance_exists     = true; // Stepper motors produce magnetic fields...
+    VN100.acceleration_disturbance_exists = true; // No acceleration during free-fall...
+
     for (;;)
     {
 
