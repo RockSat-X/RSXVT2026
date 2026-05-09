@@ -661,7 +661,7 @@ FREERTOS_TASK(controller, 0)
             // Set up.
             //
 
-            #define RATE_DAMP_DURATION_US 60'000'000
+            #define RATE_DAMP_DURATION_US 10'000'000
 
             struct GNCDriver
             {
