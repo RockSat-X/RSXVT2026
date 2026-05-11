@@ -728,8 +728,6 @@ FREERTOS_TASK(controller, 0)
             if (doing_search)
             {
 
-                // TODO Review.
-
                 #define SEARCH_DURATION 30.0f
                 #define SEARCH_GAIN      0.3f
                 #define OMEGA_PHI        2.399963229728653f
@@ -823,11 +821,11 @@ FREERTOS_TASK(controller, 0)
                 gain =
                     (struct Matrix_3x6)
                     {
-                        .rows = // TODO.
+                        .rows =
                             {
-                                { 0.0f, 0.0f, 0.0f, -0.0120f, 0.0f    , 0.0f     },
-                                { 0.0f, 0.0f, 0.0f, 0.0f    , -0.0116f, 0.0f     },
-                                { 0.0f, 0.0f, 0.0f, 0.0f    , 0.0f    , -0.0111f },
+                                { 0.0f, 0.0f, 0.0f, -0.0021f, 0.0f    , 0.0f     },
+                                { 0.0f, 0.0f, 0.0f, 0.0f    , -0.0020f, 0.0f     },
+                                { 0.0f, 0.0f, 0.0f, 0.0f    , 0.0f    , -0.0020f },
                             },
                     };
             }
@@ -836,24 +834,11 @@ FREERTOS_TASK(controller, 0)
                 gain =
                     (struct Matrix_3x6)
                     {
-                        .rows = // TODO.
+                        .rows =
                             {
-                                { 0.0f, 0.0f, 0.0f, -0.0120f, 0.0f    , 0.0f     },
-                                { 0.0f, 0.0f, 0.0f, 0.0f    , -0.0116f, 0.0f     },
-                                { 0.0f, 0.0f, 0.0f, 0.0f    , 0.0f    , -0.0111f },
-                            },
-                    };
-            }
-            else if (fabsf(openmv_gnc_packet_data.attitude_roll) < 0.5f) // TODO.
-            {
-                gain =
-                    (struct Matrix_3x6)
-                    {
-                        .rows = // TODO.
-                            {
-                                { -1.0f,  0.0f,  0.0f, -0.0120f,  0.0f   ,  0.0f    },
-                                {  0.0f, -1.0f,  0.0f,  0.0f   , -0.0116f,  0.0f    },
-                                {  0.0f,  0.0f, -1.0f,  0.0f   ,  0.0f   , -0.0111f },
+                                { 0.0f, 0.0f, 0.0f, -0.0021f, 0.0f    , 0.0f     },
+                                { 0.0f, 0.0f, 0.0f, 0.0f    , -0.0020f, 0.0f     },
+                                { 0.0f, 0.0f, 0.0f, 0.0f    , 0.0f    , -0.0020f },
                             },
                     };
             }
@@ -862,11 +847,11 @@ FREERTOS_TASK(controller, 0)
                 gain =
                     (struct Matrix_3x6)
                     {
-                        .rows = // TODO.
+                        .rows =
                             {
-                                { -1.0f,  0.0f,  0.0f, -0.0120f,  0.0f   ,  0.0f    },
-                                {  0.0f, -1.0f,  0.0f,  0.0f   , -0.0116f,  0.0f    },
-                                {  0.0f,  0.0f, -1.0f,  0.0f   ,  0.0f   , -0.0111f },
+                                { -0.0005f,  0.0f,  0.0f, -0.0025f,  0.0f   ,  0.0f    },
+                                {  0.0f, -0.0032f,  0.0f,  0.0f   , -0.0042f,  0.0f    },
+                                {  0.0f,  0.0f, -0.0032f,  0.0f   ,  0.0f   , -0.0041f },
                             },
                     };
             }
@@ -879,7 +864,7 @@ FREERTOS_TASK(controller, 0)
             // motors' angular accelerations.
             //
 
-            #define REACTION_WHEEL_INERTIA 0.000017469f // (kg-m^2) TODO Double check.
+            #define REACTION_WHEEL_INERTIA 0.000017469f
 
             struct Matrix_6x1 state =
                 {
