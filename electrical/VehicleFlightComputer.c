@@ -1094,13 +1094,19 @@ vn100_await_response(u8* dst_response_buffer, i32 dst_response_capacity, i32* ds
 {
 
     if (!dst_response_buffer)
+    {
         sus;
+    }
 
     if (dst_response_capacity <= -1)
+    {
         sus;
+    }
 
     if (!dst_response_length)
+    {
         sus;
+    }
 
 
 
@@ -1681,7 +1687,9 @@ openmv_use_image(struct OpenMVImage* image)
 {
 
     if (!image)
+    {
         sus;
+    }
 
     b32 observed_image_state =
         atomic_load_explicit
@@ -1743,10 +1751,14 @@ openmv_process_packet_for_image(struct OpenMVImage* image, struct OpenMVPacket* 
 {
 
     if (!image)
+    {
         sus;
+    }
 
     if (!packet)
+    {
         sus;
+    }
 
     b32 observed_image_state =
         atomic_load_explicit
@@ -1933,7 +1945,9 @@ FREERTOS_TASK(openmv, 0)
                 // Acknowledge the packet.
 
                 if (!RingBuffer_pop(SPI_reception(SPIHandle_openmv), nullptr))
+                {
                     sus;
+                }
 
             }
             else if (TIMEKEEPING_microseconds() - most_recent_gnc_packet_timestamp_us < 5'000'000)

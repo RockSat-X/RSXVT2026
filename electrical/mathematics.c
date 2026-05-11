@@ -52,7 +52,9 @@ atan2_f32(f32 y, f32 x)
     arm_status status = arm_atan2_f32(y, x, &result);
 
     if (status != ARM_MATH_SUCCESS)
+    {
         sus;
+    }
 
     return result;
 
@@ -66,7 +68,9 @@ asin_f32(f32 x)
     arm_status status = arm_sqrt_f32(1 - x * x, &y);
 
     if (status != ARM_MATH_SUCCESS)
+    {
         sus;
+    }
 
     f32 result = atan2_f32(x, y);
 
@@ -81,7 +85,9 @@ acos_f32(f32 x)
     arm_status status = arm_sqrt_f32(1 - x * x, &y);
 
     if (status != ARM_MATH_SUCCESS)
+    {
         sus;
+    }
 
     f32 result = atan2_f32(y, x);
 
@@ -127,7 +133,9 @@ MATRIX_multiply_(f32* dst, f32* lhs, f32* rhs, i32 rows, i32 columns, i32 common
 {
 
     if (dst == lhs || dst == rhs)
+    {
         sus; // No destination aliasing (e.g. `A = A * B;` is disallowed).
+    }
 
     for (i32 i = 0; i < rows; i += 1)
     {
