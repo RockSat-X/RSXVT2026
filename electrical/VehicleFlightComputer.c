@@ -747,7 +747,7 @@ FREERTOS_TASK(controller, 0)
 
                 f32 phi    = acos_f32(1.0f - 2.0f * u);
                 f32 dtheta = SEARCH_GAIN * OMEGA_PHI;
-                f32 dphi   = 2.0f * SEARCH_GAIN / (SEARCH_DURATION * sqrt_f32(1 - ((1 - 2*u) * (1 - 2*u))));
+                f32 dphi   = 2.0f * SEARCH_GAIN / (SEARCH_DURATION * sqrt_f32(1 - ((1 - 2*u) * (1 - 2*u))) + 0.0001f);
 
                 desired_rates =
                     (struct Matrix_3x1)
