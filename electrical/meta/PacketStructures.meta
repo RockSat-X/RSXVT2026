@@ -17,7 +17,9 @@ pack_push
                 f32 GyroZ;
                 u16 timestamp_ms;
                 u16 rolling_sequence_number;
-                u8 computer_vision_confidence;
+                f32 attitude_yaw;
+                f32 attitude_pitch;
+                f32 attitude_roll;
                 u8 crc;
             };
         };
@@ -32,7 +34,7 @@ pack_push
                 f32 MagY;
                 f32 MagZ;
                 u16 image_sequence_number;
-                u8 image_bytes[190];
+                u8 image_bytes[179];
                 struct LoRaPacket nonredundant;
             };
         };
@@ -71,7 +73,7 @@ pack_push
                 f32 solarboard_A;
                 f32 solarboard_B;
                 u8 timer_event_1;
-                u8 sector_padding_[186];
+                u8 sector_padding_[175];
             };
         };
     };

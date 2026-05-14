@@ -6,11 +6,11 @@
 #define SPI_RECEPTION_RING_BUFFER_LENGTH 32
 #define WATCHDOG_DURATION_US             (10 * 60'000'000)
 #define MAX_ANGULAR_ACCELERATION         (100.0f)
-#define MAX_ANGULAR_VELOCITY             (900.0f * 2.0f * PI / 60.0f)
-#define GOD_MODE                         true
-#define CONTROLLER_ENABLE                true
-#define VN100_ENABLE                     false
-#define OPENMV_ENABLE                    false
+#define MAX_ANGULAR_VELOCITY             (1000.0f * 2.0f * PI / 60.0f)
+#define CONTROLLER_MOTOR_DEMO            false
+#define CONTROLLER_MOTOR_ENABLE          true
+#define VN100_ENABLE                     true
+#define OPENMV_ENABLE                    true
 #define ESP32_ENABLE                     true
 #define WATCHDOG_ENABLE                  true
 #define TRANSMIT_TV                      false
@@ -24,13 +24,67 @@
 #include "stepper.c"
 #include "buzzer.c"
 #include "i2c.c"
-#include "gnc.c"
+#include "mathematics.c"
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
 
 
+
+pack_push
+
+    struct VN100Packet
+    {
+        f32 QuatX;
+        f32 QuatY;
+        f32 QuatZ;
+        f32 QuatS;
+        f32 MagX;
+        f32 MagY;
+        f32 MagZ;
+        f32 AccelX;
+        f32 AccelY;
+        f32 AccelZ;
+        f32 GyroX;
+        f32 GyroY;
+        f32 GyroZ;
+    };
+
+    struct OpenMVPacket // @/`OpenMV Packet Format`: Coupled.
+    {
+        union
+        {
+
+            // @/`OpenMV Sequence Number`:
+            // First image chunk begins at `1`; zero is reserved for `OpenMVPacketGNC`.
+
+            u16 sequence_number;
+
+            struct OpenMVPacketGNC
+            {
+                u16 zero;
+                f32 attitude_yaw;
+                f32 attitude_pitch;
+                f32 attitude_roll;
+                u16 computer_vision_processing_time_ms;
+                u8  computer_vision_confidence;
+                u8  padding[47];
+            } gnc;
+
+            struct OpenMVPacketImage
+            {
+                u16 sequence_number;
+                u8  bytes[62];
+            } image;
+
+        };
+    };
+
+    static_assert(sizeof(struct OpenMVPacketGNC  ) == sizeof(struct OpenMVPacket));
+    static_assert(sizeof(struct OpenMVPacketImage) == sizeof(struct OpenMVPacket));
+
+pack_pop
 
 enum OpenMVImageState : u32
 {
@@ -50,23 +104,17 @@ struct OpenMVImage
 struct GNCInfo
 {
     struct VN100Packet vn100_packet;
-    u8                 computer_vision_confidence;
+    f32                attitude_yaw;
+    f32                attitude_pitch;
+    f32                attitude_roll;
 };
-
-
 
 static struct
 {
-
     RingBuffer(struct VN100Packet    , 8) vn100_packets;
     RingBuffer(struct OpenMVPacketGNC, 8) openmv_gnc_packets;
     volatile struct StepperTuple          current_angular_accelerations;
     volatile struct StepperTuple          current_angular_velocities;
-
-    #if GOD_MODE
-        volatile u32 replay_sequence_number;
-    #endif
-
 } CONTROLLER = {0};
 
 static struct
@@ -352,19 +400,194 @@ FREERTOS_TASK(diagnostics, 2)
 
 
 
+volatile _Atomic b32 vehicle_undocked              = false;
+volatile         u32 vehicle_ejection_timestamp_us = {0};
+
+FREERTOS_TASK(watchdog, 4)
+{
+
+#if WATCHDOG_ENABLE
+
+    b32 noticed_vehicle_interface_pulled_down      = false;
+    u32 vehicle_interface_pulled_down_timestamp_us = {0};
+    u32 same_dock_state_timestamp_us               = {0};
+
+    for (;;)
+    {
+
+
+
+        // We need to ensure the vehicle doesn't stay on for long when it's still
+        // docked in the ejection mechanism. This is especially important during sequence
+        // testing when the vehicle might be powered on but no ejection will take place.
+        //
+        // We can tell when we have ejected if we're no longer detecting external
+        // power, haven't received I2C transfers through the vehicle interface in a while,
+        // and that the I2C bus lines are held high by the on-board's pull-up resistors.
+        //
+        // However, if we're still docked, then the I2C bus lines will actually be pulled
+        // low because main is no longer powered, and the on-board's pull-up resistors are
+        // weak enough that the MCU doesn't register this as an active level. In this
+        // scenario, we should do a reset also.
+
+        u32 observed_most_recent_transfer_timestamp_us =
+            atomic_load_explicit
+            (
+                &VEHICLE_INTERFACE.most_recent_transfer_timestamp_us,
+                memory_order_relaxed // No synchronization needed.
+            );
+
+        b32 theres_still_external_power             = GPIO_READ(external_detected);
+        b32 vehicle_interface_currently_pulled_down = !GPIO_READ(vehicle_interface_i2c_clock) && !GPIO_READ(vehicle_interface_i2c_data);
+
+        if (!vehicle_interface_currently_pulled_down)
+        {
+            noticed_vehicle_interface_pulled_down = false;
+        }
+        else if (!noticed_vehicle_interface_pulled_down)
+        {
+            noticed_vehicle_interface_pulled_down      = true;
+            vehicle_interface_pulled_down_timestamp_us = TIMEKEEPING_microseconds();
+        }
+
+        b32 docked_reset =
+            (
+                !theres_still_external_power &&
+                vehicle_interface_currently_pulled_down &&
+                TIMEKEEPING_microseconds() - vehicle_interface_pulled_down_timestamp_us >= 10'000'000 &&
+                TIMEKEEPING_microseconds() - observed_most_recent_transfer_timestamp_us >= 10'000'000
+            );
+
+        if (docked_reset)
+        {
+
+            // Indicate that this is why the vehicle is suddenly shut off.
+
+            BUZZER_play(BuzzerTune_starwars);
+            while (BUZZER_current_tune());
+
+
+
+            // Try cut off battery power.
+
+            GPIO_INACTIVE(battery_allowed);
+            spinlock_us(1'000'000);
+
+
+
+            // If we're still alive by this point, then
+            // there's probably external power or something,
+            // to which we'll just do a software reset.
+
+            WARM_RESET();
+
+        }
+
+
+
+        // See if the vehicle's dock status has changed.
+
+        b32 observed_vehicle_undocked =
+            atomic_load_explicit
+            (
+                &vehicle_undocked,
+                memory_order_relaxed // No synchronization needed.
+            );
+
+        b32 currently_undocked =
+            (
+                !theres_still_external_power &&
+                !vehicle_interface_currently_pulled_down &&
+                TIMEKEEPING_microseconds() - observed_most_recent_transfer_timestamp_us >= 1'000'000
+            );
+
+        if (!!currently_undocked == !!observed_vehicle_undocked)
+        {
+            same_dock_state_timestamp_us = TIMEKEEPING_microseconds();
+        }
+
+        if (TIMEKEEPING_microseconds() - same_dock_state_timestamp_us >= 5'000'000)
+        {
+
+            if (currently_undocked) // We just ejected!
+            {
+
+                vehicle_ejection_timestamp_us = TIMEKEEPING_microseconds();
+
+                atomic_store_explicit
+                (
+                    &vehicle_undocked,
+                    currently_undocked,
+                    memory_order_release // We updated the ejection timestamp.
+                );
+
+
+                xTaskNotify
+                (
+                    diagnostics_handle,
+                    DiagnosticMask_ejection,
+                    eSetBits
+                );
+
+            }
+            else // We got reinserted into the ejection mechanism...
+            {
+
+                atomic_store_explicit
+                (
+                    &vehicle_undocked,
+                    currently_undocked,
+                    memory_order_relaxed // No synchronization necessary.
+                );
+
+                xTaskNotify
+                (
+                    diagnostics_handle,
+                    DiagnosticMask_redocked,
+                    eSetBits
+                );
+            }
+
+        }
+
+
+
+        FREERTOS_delay_ms(1'000);
+
+    }
+
+#else
+
+    for (;;)
+    {
+        FREERTOS_delay_ms(1'000);
+    }
+
+#endif
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+
 FREERTOS_TASK(controller, 0)
 {
 
-#if CONTROLLER_ENABLE
-
-    STEPPER_reinit();
+    #if CONTROLLER_MOTOR_ENABLE
+    {
+        STEPPER_reinit();
+    }
+    #endif
 
 
 
     // For diagnostic purposes, we immediately set angular velocities to
     // something non-zero so we can easily tell if something is wrong.
 
-    #if GOD_MODE
+    #if CONTROLLER_MOTOR_DEMO
     {
         for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
         {
@@ -378,78 +601,298 @@ FREERTOS_TASK(controller, 0)
     for (;;)
     {
 
-
-
-        // If requested, we play back a sequence of angular accelerations for simulation purposes.
-
-        #if GOD_MODE
-        {
-            if (CONTROLLER.replay_sequence_number)
-            {
-
-                #include "SEQUENCE_ANGULAR_ACCELERATIONS.meta"
-                /* #meta
-
-                    import deps.stpy.pxd.pxd as pxd
-                    import math
-
-                    entries = [
-                        [float(cell) for cell in line.split(',')]
-                        for line in pxd.make_main_relative_path('./misc/vel_rw.txt').read_text().splitlines()
-                    ]
-
-                    with Meta.enter('static const struct StepperTuple SEQUENCE_ANGULAR_ACCELERATIONS[] ='):
-
-                        dt = 20_000 / 1_000_000 # @/`Sequence Angular Accelerations Delta Time`: Coupled.
-
-                        for entry_i, current_entry in enumerate(entries[:-1]):
-
-                            current_t, current_x, current_y, current_z = current_entry
-                            next_t   , next_x   , next_y   , next_z    = entries[entry_i + 1]
-
-                            acceleration_x = (next_x - current_x) / (next_t - current_t)
-                            acceleration_y = (next_y - current_y) / (next_t - current_t)
-                            acceleration_z = (next_z - current_z) / (next_t - current_t)
-
-                            for i in range(round((next_t - current_t) / dt)):
-                                Meta.line(f'''
-                                    {{ {{ {acceleration_x :f}f, {acceleration_y :f}f, {acceleration_z :f}f }} }},
-                                ''')
-
-                */
-
-                CONTROLLER.current_angular_accelerations  = SEQUENCE_ANGULAR_ACCELERATIONS[CONTROLLER.replay_sequence_number - 1];
-                CONTROLLER.replay_sequence_number        += 1;
-                CONTROLLER.replay_sequence_number        %= countof(SEQUENCE_ANGULAR_ACCELERATIONS) + 1;
-
-                if (!CONTROLLER.replay_sequence_number)
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit] = 0.0f;
-                        CONTROLLER.current_angular_velocities   .values[unit] = 0.0f;
-                    }
-                }
-
-            }
-        }
-        #endif
-
-
-
-        // TODO Use `pop_to_latest` or just `pop`?
-
         struct VN100Packet     vn100_packet_data       = {0};
-        b32                    vn100_packet_exist      = RingBuffer_pop_to_latest(&CONTROLLER.vn100_packets, &vn100_packet_data);
+        b32                    vn100_packet_exist      = RingBuffer_pop(&CONTROLLER.vn100_packets, &vn100_packet_data);
         struct OpenMVPacketGNC openmv_gnc_packet_data  = {0};
         b32                    openmv_gnc_packet_exist = RingBuffer_pop_to_latest(&CONTROLLER.openmv_gnc_packets, &openmv_gnc_packet_data);
+
+        b32 observed_vehicle_undocked =
+            atomic_load_explicit
+            (
+                &vehicle_undocked,
+                memory_order_relaxed // No synchronization needed.
+            );
 
 
 
         // Perform GNC calculations.
 
+        if (CONTROLLER_MOTOR_DEMO)
         {
-            // TODO.
+
+            if (TIMEKEEPING_microseconds() >= 10'000'000)
+            {
+
+                if ((TIMEKEEPING_microseconds() / 4'000'000) % 2)
+                {
+                    CONTROLLER.current_angular_accelerations =
+                        (struct StepperTuple)
+                        {
+                            .values =
+                                {
+                                    [StepperUnit_axis_x] = MAX_ANGULAR_ACCELERATION,
+                                    [StepperUnit_axis_y] = MAX_ANGULAR_ACCELERATION,
+                                    [StepperUnit_axis_z] = MAX_ANGULAR_ACCELERATION,
+                                },
+                        };
+                }
+                else
+                {
+                    CONTROLLER.current_angular_accelerations =
+                        (struct StepperTuple)
+                        {
+                            .values =
+                                {
+                                    [StepperUnit_axis_x] = -MAX_ANGULAR_ACCELERATION,
+                                    [StepperUnit_axis_y] = -MAX_ANGULAR_ACCELERATION,
+                                    [StepperUnit_axis_z] = -MAX_ANGULAR_ACCELERATION,
+                                },
+                        };
+                }
+
+            }
+
+        }
+        else if (observed_vehicle_undocked && vn100_packet_exist && openmv_gnc_packet_exist)
+        {
+
+            ////////////////////////////////////////
+            //
+            // Set up.
+            //
+
+            #define RATE_DAMP_DURATION_US 10'000'000
+
+            struct GNCDriver
+            {
+                b32 current_target_found;
+                i32 target_conflict_count;
+                u32 search_start_timestamp_us;
+            };
+
+            static struct GNCDriver driver = {0};
+
+
+
+            ////////////////////////////////////////
+            //
+            // Apply hysteresis to CVT's target confidence.
+            //
+
+            if (driver.current_target_found)
+            {
+                if (openmv_gnc_packet_data.computer_vision_confidence)
+                {
+                    driver.target_conflict_count = 0; // We still see the target!
+                }
+                else if (driver.target_conflict_count < 3)
+                {
+                    driver.target_conflict_count += 1; // Hmm, we're losing the target..?
+                }
+                else
+                {
+                    driver.current_target_found  = false; // Target definitely lost!
+                    driver.target_conflict_count = 0;
+                }
+            }
+            else
+            {
+                if (!openmv_gnc_packet_data.computer_vision_confidence)
+                {
+                    driver.target_conflict_count = 0; // Target still missing...
+                }
+                else if (driver.target_conflict_count < 3)
+                {
+                    driver.target_conflict_count += 1; // Oh, we're starting to see the target..?
+                }
+                else
+                {
+                    driver.current_target_found  = true; // Confident we now see the target!
+                    driver.target_conflict_count = 0;
+                }
+            }
+
+
+
+            ////////////////////////////////////////
+            //
+            // Determine the desired rates.
+            //
+
+            b32 doing_search =
+                TIMEKEEPING_microseconds() - vehicle_ejection_timestamp_us >= RATE_DAMP_DURATION_US
+                && !driver.current_target_found;
+
+            struct Matrix_3x1 desired_rates = {0};
+
+            if (doing_search)
+            {
+
+                #define SEARCH_DURATION 30.0f
+                #define SEARCH_GAIN      0.3f
+                #define OMEGA_PHI        2.399963229728653f
+
+                f32 search_time = (f32) (TIMEKEEPING_microseconds() - driver.search_start_timestamp_us) / 1'000'000.0f;
+                f32 u           = search_time / SEARCH_DURATION;
+
+                if (u < 0.0f)
+                {
+                    u = 0.0f;
+                }
+                else if (u > 1.0f)
+                {
+                    u = 1.0f;
+                    driver.search_start_timestamp_us = TIMEKEEPING_microseconds();
+                }
+
+                f32 phi    = acos_f32(1.0f - 2.0f * u);
+                f32 dtheta = SEARCH_GAIN * OMEGA_PHI;
+                f32 dphi   = 2.0f * SEARCH_GAIN / (SEARCH_DURATION * sqrt_f32(1 - ((1 - 2*u) * (1 - 2*u))) + 0.0001f);
+
+                desired_rates =
+                    (struct Matrix_3x1)
+                    {
+                        .rows =
+                            {
+                                { dtheta * arm_cos_f32(phi)  },
+                                { dphi                       },
+                                { -dtheta * arm_sin_f32(phi) },
+                            },
+                    };
+
+            }
+            else
+            {
+                driver.search_start_timestamp_us = TIMEKEEPING_microseconds();
+            }
+
+
+
+            ////////////////////////////////////////
+            //
+            // Determine the quaternion error.
+            //
+
+            struct Quaternion quaternion_error = {0};
+
+            if (openmv_gnc_packet_data.computer_vision_confidence)
+            {
+                quaternion_error =
+                    QUATERNION_from_euler_zyx
+                    (
+                        (struct EulerZYX)
+                        {
+                            .yaw   = openmv_gnc_packet_data.attitude_yaw,
+                            .pitch = openmv_gnc_packet_data.attitude_pitch,
+                            .roll  = openmv_gnc_packet_data.attitude_roll,
+                        }
+                    );
+            }
+
+
+
+            ////////////////////////////////////////
+            //
+            // Determining the rate error.
+            //
+
+
+            struct Matrix_3x1 rates_error =
+                {
+                    .rows =
+                        {
+                            { desired_rates.rows[0][0] - vn100_packet_data.GyroX },
+                            { desired_rates.rows[1][0] - vn100_packet_data.GyroY },
+                            { desired_rates.rows[2][0] - vn100_packet_data.GyroZ },
+                        },
+                };
+
+
+
+            ////////////////////////////////////////
+            //
+            // Determine gain.
+            //
+
+            struct Matrix_3x6 gain = {0};
+
+            if (TIMEKEEPING_microseconds() - vehicle_ejection_timestamp_us < RATE_DAMP_DURATION_US)
+            {
+                gain =
+                    (struct Matrix_3x6)
+                    {
+                        .rows =
+                            {
+                                { 0.0f, 0.0f, 0.0f, -0.0021f, 0.0f    , 0.0f     },
+                                { 0.0f, 0.0f, 0.0f, 0.0f    , -0.0020f, 0.0f     },
+                                { 0.0f, 0.0f, 0.0f, 0.0f    , 0.0f    , -0.0020f },
+                            },
+                    };
+            }
+            else if (doing_search)
+            {
+                gain =
+                    (struct Matrix_3x6)
+                    {
+                        .rows =
+                            {
+                                { 0.0f, 0.0f, 0.0f, -0.0021f, 0.0f    , 0.0f     },
+                                { 0.0f, 0.0f, 0.0f, 0.0f    , -0.0020f, 0.0f     },
+                                { 0.0f, 0.0f, 0.0f, 0.0f    , 0.0f    , -0.0020f },
+                            },
+                    };
+            }
+            else
+            {
+                gain =
+                    (struct Matrix_3x6)
+                    {
+                        .rows =
+                            {
+                                { -0.0005f,  0.0f,  0.0f, -0.0025f,  0.0f   ,  0.0f    },
+                                {  0.0f, -0.0032f,  0.0f,  0.0f   , -0.0042f,  0.0f    },
+                                {  0.0f,  0.0f, -0.0032f,  0.0f   ,  0.0f   , -0.0041f },
+                            },
+                    };
+            }
+
+
+
+            ////////////////////////////////////////
+            //
+            // Finally compute the stepper
+            // motors' angular accelerations.
+            //
+
+            #define REACTION_WHEEL_INERTIA 0.000017469f
+
+            struct Matrix_6x1 state =
+                {
+                    .rows =
+                        {
+                            { quaternion_error.i     },
+                            { quaternion_error.j     },
+                            { quaternion_error.k     },
+                            { rates_error.rows[0][0] },
+                            { rates_error.rows[1][0] },
+                            { rates_error.rows[2][0] },
+                        },
+                };
+
+            struct Matrix_3x1 control_torques = {0};
+            MATRIX_multiply(&control_torques, &gain, &state);
+
+            CONTROLLER.current_angular_accelerations =
+                (struct StepperTuple)
+                {
+                    .values =
+                        {
+                            control_torques.rows[0][0] / REACTION_WHEEL_INERTIA,
+                            control_torques.rows[1][0] / REACTION_WHEEL_INERTIA,
+                            control_torques.rows[2][0] / REACTION_WHEEL_INERTIA,
+                        },
+                };
+
         }
 
 
@@ -461,8 +904,10 @@ FREERTOS_TASK(controller, 0)
 
             struct GNCInfo gnc_info =
                 {
-                    .vn100_packet               = vn100_packet_data,
-                    .computer_vision_confidence = openmv_gnc_packet_data.computer_vision_confidence,
+                    .vn100_packet   = vn100_packet_data,
+                    .attitude_yaw   = openmv_gnc_packet_data.computer_vision_confidence ? openmv_gnc_packet_data.attitude_yaw   : NAN,
+                    .attitude_pitch = openmv_gnc_packet_data.computer_vision_confidence ? openmv_gnc_packet_data.attitude_pitch : NAN,
+                    .attitude_roll  = openmv_gnc_packet_data.computer_vision_confidence ? openmv_gnc_packet_data.attitude_roll  : NAN,
                 };
 
             if (!RingBuffer_push(&ESP32.gnc_infos, &gnc_info))
@@ -539,72 +984,67 @@ FREERTOS_TASK(controller, 0)
 
         // Queue up the new angular velocity.
 
-        for (b32 yield = false; !yield;)
+        #if CONTROLLER_MOTOR_ENABLE
         {
-
-            enum StepperPushAngularVelocitiesResult result =
-                STEPPER_push_angular_velocities
-                (
-                    (struct StepperTuple*) &CONTROLLER.current_angular_velocities
-                );
-
-            switch (result)
+            for (b32 yield = false; !yield;)
             {
 
-                case StepperPushAngularVelocitiesResult_pushed:
-                {
-                    yield = true;
-                } break;
-
-                case StepperPushAngularVelocitiesResult_full:
-                case StepperPushAngularVelocitiesResult_still_initializing:
-                {
-                    FREERTOS_delay_ms(1);
-                } break;
-
-                case StepperPushAngularVelocitiesResult_no_response_from_unit:
-                case StepperPushAngularVelocitiesResult_bad_response_from_unit:
-                case StepperPushAngularVelocitiesResult_bug:
-                default:
-                {
-
-                    xTaskNotify
+                enum StepperPushAngularVelocitiesResult result =
+                    STEPPER_push_angular_velocities
                     (
-                        diagnostics_handle,
-                        DiagnosticMask_stepper_driver_issue,
-                        eSetBits
+                        (struct StepperTuple*) &CONTROLLER.current_angular_velocities
                     );
 
-                    atomic_fetch_add_explicit
-                    (
-                        &LOGGER.stepper_issues,
-                        1,
-                        memory_order_relaxed // No synchronization needed.
-                    );
+                switch (result)
+                {
 
-                    memzero((struct StepperTuple*) &CONTROLLER.current_angular_accelerations);
-                    memzero((struct StepperTuple*) &CONTROLLER.current_angular_velocities   );
+                    case StepperPushAngularVelocitiesResult_pushed:
+                    {
+                        yield = true;
+                    } break;
 
-                    STEPPER_reinit();
+                    case StepperPushAngularVelocitiesResult_full:
+                    case StepperPushAngularVelocitiesResult_still_initializing:
+                    {
+                        FREERTOS_delay_ms(1);
+                    } break;
 
-                    yield = true;
+                    case StepperPushAngularVelocitiesResult_no_response_from_unit:
+                    case StepperPushAngularVelocitiesResult_bad_response_from_unit:
+                    case StepperPushAngularVelocitiesResult_bug:
+                    default:
+                    {
 
-                } break;
+                        xTaskNotify
+                        (
+                            diagnostics_handle,
+                            DiagnosticMask_stepper_driver_issue,
+                            eSetBits
+                        );
+
+                        atomic_fetch_add_explicit
+                        (
+                            &LOGGER.stepper_issues,
+                            1,
+                            memory_order_relaxed // No synchronization needed.
+                        );
+
+                        memzero((struct StepperTuple*) &CONTROLLER.current_angular_accelerations);
+                        memzero((struct StepperTuple*) &CONTROLLER.current_angular_velocities   );
+
+                        STEPPER_reinit();
+
+                        yield = true;
+
+                    } break;
+
+                }
 
             }
-
         }
+        #endif
 
     }
-
-#else
-
-    for (;;)
-    {
-        FREERTOS_delay_ms(1'000);
-    }
-
-#endif
 
 }
 
@@ -654,13 +1094,19 @@ vn100_await_response(u8* dst_response_buffer, i32 dst_response_capacity, i32* ds
 {
 
     if (!dst_response_buffer)
+    {
         sus;
+    }
 
     if (dst_response_capacity <= -1)
+    {
         sus;
+    }
 
     if (!dst_response_length)
+    {
         sus;
+    }
 
 
 
@@ -853,6 +1299,9 @@ FREERTOS_TASK(vn100, 0)
 {
 
 #if VN100_ENABLE
+
+    VN100.magnetic_disturbance_exists     = true; // Stepper motors produce magnetic fields...
+    VN100.acceleration_disturbance_exists = true; // No acceleration during free-fall...
 
     for (;;)
     {
@@ -1238,7 +1687,9 @@ openmv_use_image(struct OpenMVImage* image)
 {
 
     if (!image)
+    {
         sus;
+    }
 
     b32 observed_image_state =
         atomic_load_explicit
@@ -1300,10 +1751,14 @@ openmv_process_packet_for_image(struct OpenMVImage* image, struct OpenMVPacket* 
 {
 
     if (!image)
+    {
         sus;
+    }
 
     if (!packet)
+    {
         sus;
+    }
 
     b32 observed_image_state =
         atomic_load_explicit
@@ -1490,7 +1945,9 @@ FREERTOS_TASK(openmv, 0)
                 // Acknowledge the packet.
 
                 if (!RingBuffer_pop(SPI_reception(SPIHandle_openmv), nullptr))
+                {
                     sus;
+                }
 
             }
             else if (TIMEKEEPING_microseconds() - most_recent_gnc_packet_timestamp_us < 5'000'000)
@@ -1592,31 +2049,26 @@ FREERTOS_TASK(esp32, 1)
 
             // See if there's any GNC info we can transmit back to main.
 
-            struct GNCInfo gnc_info = {0};
+            struct GNCInfo gnc_info_data  = {0};
+            b32            gnc_info_exist = RingBuffer_pop_to_latest(&ESP32.gnc_infos, &gnc_info_data);
 
-            if (RingBuffer_pop_to_latest(&ESP32.gnc_infos, &gnc_info))
-            {
-                should_transmit                                = true;
-                packet.MagX                                    = gnc_info.vn100_packet.MagX;
-                packet.MagY                                    = gnc_info.vn100_packet.MagY;
-                packet.MagZ                                    = gnc_info.vn100_packet.MagZ;
-                packet.nonredundant.QuatX                      = gnc_info.vn100_packet.QuatX;
-                packet.nonredundant.QuatY                      = gnc_info.vn100_packet.QuatY;
-                packet.nonredundant.QuatZ                      = gnc_info.vn100_packet.QuatZ;
-                packet.nonredundant.QuatS                      = gnc_info.vn100_packet.QuatS;
-                packet.nonredundant.AccelX                     = gnc_info.vn100_packet.AccelX;
-                packet.nonredundant.AccelY                     = gnc_info.vn100_packet.AccelY;
-                packet.nonredundant.AccelZ                     = gnc_info.vn100_packet.AccelZ;
-                packet.nonredundant.GyroX                      = gnc_info.vn100_packet.GyroX;
-                packet.nonredundant.GyroY                      = gnc_info.vn100_packet.GyroY;
-                packet.nonredundant.GyroZ                      = gnc_info.vn100_packet.GyroZ;
-                packet.nonredundant.computer_vision_confidence = gnc_info.computer_vision_confidence;
-            }
-            else
-            {
-                // We haven't gotten the first GNC info yet. This should because we're very
-                // early on in the experiment run-time where we haven't done GNC stuff yet.
-            }
+            should_transmit                    |= gnc_info_exist;
+            packet.MagX                         = gnc_info_exist ? gnc_info_data.vn100_packet.MagX   : NAN;
+            packet.MagY                         = gnc_info_exist ? gnc_info_data.vn100_packet.MagY   : NAN;
+            packet.MagZ                         = gnc_info_exist ? gnc_info_data.vn100_packet.MagZ   : NAN;
+            packet.nonredundant.QuatX           = gnc_info_exist ? gnc_info_data.vn100_packet.QuatX  : NAN;
+            packet.nonredundant.QuatY           = gnc_info_exist ? gnc_info_data.vn100_packet.QuatY  : NAN;
+            packet.nonredundant.QuatZ           = gnc_info_exist ? gnc_info_data.vn100_packet.QuatZ  : NAN;
+            packet.nonredundant.QuatS           = gnc_info_exist ? gnc_info_data.vn100_packet.QuatS  : NAN;
+            packet.nonredundant.AccelX          = gnc_info_exist ? gnc_info_data.vn100_packet.AccelX : NAN;
+            packet.nonredundant.AccelY          = gnc_info_exist ? gnc_info_data.vn100_packet.AccelY : NAN;
+            packet.nonredundant.AccelZ          = gnc_info_exist ? gnc_info_data.vn100_packet.AccelZ : NAN;
+            packet.nonredundant.GyroX           = gnc_info_exist ? gnc_info_data.vn100_packet.GyroX  : NAN;
+            packet.nonredundant.GyroY           = gnc_info_exist ? gnc_info_data.vn100_packet.GyroY  : NAN;
+            packet.nonredundant.GyroZ           = gnc_info_exist ? gnc_info_data.vn100_packet.GyroZ  : NAN;
+            packet.nonredundant.attitude_yaw    = gnc_info_exist ? gnc_info_data.attitude_yaw        : NAN;
+            packet.nonredundant.attitude_pitch  = gnc_info_exist ? gnc_info_data.attitude_pitch      : NAN;
+            packet.nonredundant.attitude_roll   = gnc_info_exist ? gnc_info_data.attitude_roll       : NAN;
 
 
 
@@ -2086,327 +2538,6 @@ FREERTOS_TASK(logger, 0)
         }
 
     }
-
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-FREERTOS_TASK(god, 3)
-{
-
-#if GOD_MODE
-
-    for (;;)
-    {
-
-        u8 input = {0};
-
-        while (stlink_rx(&input))
-        {
-            switch (input)
-            {
-
-
-
-                // Stepper motor control.
-
-                case 'j':
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit] -= 0.1f;
-                    }
-                } break;
-
-                case 'J':
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit] -= 1.0f;
-                    }
-                } break;
-
-                case 'k':
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit] += 0.1f;
-                    }
-                } break;
-
-                case 'K':
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit] += 1.0f;
-                    }
-                } break;
-
-                case '0':
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit] = 0.0f;
-                        CONTROLLER.current_angular_velocities   .values[unit] = 0.0f;
-                    }
-                } break;
-
-                case '<':
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit] -= MAX_ANGULAR_ACCELERATION;
-                    }
-                } break;
-
-                case '>':
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit] += MAX_ANGULAR_ACCELERATION;
-                    }
-                } break;
-
-                case '-':
-                {
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit]  =  0.0f;
-                        CONTROLLER.current_angular_velocities   .values[unit] *= -1.0f;
-                    }
-                } break;
-
-                case 'x':
-                {
-
-                    for (enum StepperUnit unit = {0}; unit < StepperUnit_COUNT; unit += 1)
-                    {
-                        CONTROLLER.current_angular_accelerations.values[unit] = 0.0f;
-                        CONTROLLER.current_angular_velocities   .values[unit] = 0.0f;
-                    }
-
-                    CONTROLLER.replay_sequence_number = 1;
-
-                } break;
-
-
-
-                // VN-100.
-
-                case 'm':
-                {
-                    atomic_fetch_xor_explicit
-                    (
-                        &VN100.magnetic_disturbance_exists,
-                        -1,
-                        memory_order_relaxed // No synchronization needed.
-                    );
-                } break;
-
-                case 'a':
-                {
-                    atomic_fetch_xor_explicit
-                    (
-                        &VN100.acceleration_disturbance_exists,
-                        -1,
-                        memory_order_relaxed // No synchronization needed.
-                    );
-                } break;
-
-
-
-                // Misc.
-
-                case 'b':
-                {
-                    GPIO_TOGGLE(battery_allowed);
-                } break;
-
-
-
-                default:
-                {
-                    // Don't care.
-                } break;
-
-            }
-        }
-
-        FREERTOS_delay_ms(10);
-
-    }
-
-#else
-
-    for (;;)
-    {
-        FREERTOS_delay_ms(1'000);
-    }
-
-#endif
-
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-volatile _Atomic b32 vehicle_undocked = false;
-
-FREERTOS_TASK(watchdog, 4)
-{
-
-#if WATCHDOG_ENABLE
-
-    b32 noticed_vehicle_interface_pulled_down      = false;
-    u32 vehicle_interface_pulled_down_timestamp_us = {0};
-    u32 same_dock_state_timestamp_us               = {0};
-
-    for (;;)
-    {
-
-
-
-        // We need to ensure the vehicle doesn't stay on for long when it's still
-        // docked in the ejection mechanism. This is especially important during sequence
-        // testing when the vehicle might be powered on but no ejection will take place.
-        //
-        // We can tell when we have ejected if we're no longer detecting external
-        // power, haven't received I2C transfers through the vehicle interface in a while,
-        // and that the I2C bus lines are held high by the on-board's pull-up resistors.
-        //
-        // However, if we're still docked, then the I2C bus lines will actually be pulled
-        // low because main is no longer powered, and the on-board's pull-up resistors are
-        // weak enough that the MCU doesn't register this as an active level. In this
-        // scenario, we should do a reset also.
-
-        u32 observed_most_recent_transfer_timestamp_us =
-            atomic_load_explicit
-            (
-                &VEHICLE_INTERFACE.most_recent_transfer_timestamp_us,
-                memory_order_relaxed // No synchronization needed.
-            );
-
-        b32 theres_still_external_power             = GPIO_READ(external_detected);
-        b32 vehicle_interface_currently_pulled_down = !GPIO_READ(vehicle_interface_i2c_clock) && !GPIO_READ(vehicle_interface_i2c_data);
-
-        if (!vehicle_interface_currently_pulled_down)
-        {
-            noticed_vehicle_interface_pulled_down = false;
-        }
-        else if (!noticed_vehicle_interface_pulled_down)
-        {
-            noticed_vehicle_interface_pulled_down      = true;
-            vehicle_interface_pulled_down_timestamp_us = TIMEKEEPING_microseconds();
-        }
-
-        b32 docked_reset =
-            (
-                !theres_still_external_power &&
-                vehicle_interface_currently_pulled_down &&
-                TIMEKEEPING_microseconds() - vehicle_interface_pulled_down_timestamp_us >= 10'000'000 &&
-                TIMEKEEPING_microseconds() - observed_most_recent_transfer_timestamp_us >= 10'000'000
-            );
-
-        if (docked_reset)
-        {
-
-            // Indicate that this is why the vehicle is suddenly shut off.
-
-            BUZZER_play(BuzzerTune_starwars);
-            while (BUZZER_current_tune());
-
-
-
-            // Try cut off battery power.
-
-            GPIO_INACTIVE(battery_allowed);
-            spinlock_us(1'000'000);
-
-
-
-            // If we're still alive by this point, then
-            // there's probably external power or something,
-            // to which we'll just do a software reset.
-
-            WARM_RESET();
-
-        }
-
-
-
-        // See if the vehicle's dock status has changed.
-
-        b32 observed_vehicle_undocked =
-            atomic_load_explicit
-            (
-                &vehicle_undocked,
-                memory_order_relaxed // No synchronization needed.
-            );
-
-        b32 currently_undocked =
-            (
-                !theres_still_external_power &&
-                !vehicle_interface_currently_pulled_down &&
-                TIMEKEEPING_microseconds() - observed_most_recent_transfer_timestamp_us >= 1'000'000
-            );
-
-        if (!!currently_undocked == !!observed_vehicle_undocked)
-        {
-            same_dock_state_timestamp_us = TIMEKEEPING_microseconds();
-        }
-
-        if (TIMEKEEPING_microseconds() - same_dock_state_timestamp_us >= 2'500'000)
-        {
-
-            atomic_store_explicit
-            (
-                &vehicle_undocked,
-                currently_undocked,
-                memory_order_relaxed // No synchronization needed.
-            );
-
-            if (currently_undocked) // We just ejected!
-            {
-                xTaskNotify
-                (
-                    diagnostics_handle,
-                    DiagnosticMask_ejection,
-                    eSetBits
-                );
-            }
-            else // We got reinserted into the ejection mechanism...
-            {
-                xTaskNotify
-                (
-                    diagnostics_handle,
-                    DiagnosticMask_redocked,
-                    eSetBits
-                );
-            }
-
-        }
-
-
-
-        FREERTOS_delay_ms(1'000);
-
-    }
-
-#else
-
-    for (;;)
-    {
-        FREERTOS_delay_ms(1'000);
-    }
-
-#endif
 
 }
 

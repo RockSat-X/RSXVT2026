@@ -1,6 +1,6 @@
 #define COMPILING_ESP32 true
 #define ESPNOW_ENABLE   true
-#define LORA_ENABLE     false
+#define LORA_ENABLE     true
 #include "../system.h"
 
 
@@ -125,8 +125,6 @@ setup(void)
         if (packet_lora_radio.startReceive() != RADIOLIB_ERR_NONE)
         {
             Serial.printf("Failed to start receiving.\n");
-            ESP.restart();
-            return;
         }
 
     }
@@ -171,12 +169,9 @@ loop(void)
 
 
             // Received packet is of the wrong length?
-            // TODO Test.
 
             if (packet_lora_radio.getPacketLength() != sizeof(*packet))
             {
-
-                // TODO This might flush it.
 
                 u8 dummy = 0;
                 packet_lora_radio.readData(&dummy, 1);
