@@ -744,3 +744,128 @@ by testing continuity of the two pads.
 > - Electrical screw switches have the expected connectivity.
 
 &nbsp;
+
+# Burnwire Line Assembly Instructions
+
+## Overview
+These instructions describe how to fabricate the burnwire restraint lines using 1 mm braided line and two overhand loop knots.
+
+The finished burnwire line should have:
+- Two looped ends
+- Approximately 12.75 in finished length
+- ±0.5 in allowable tolerance
+
+---
+
+# Required Materials
+- Tape measure
+- Dorisea Extreme Braid 300 lb 1 mm line
+- Good scissors or sharp knife
+
+---
+
+# Knot Type
+Use an **Overhand Loop Knot** for both ends.
+
+Reference knot diagram:
+
+![Overhand Loop Knot](image(75).png)
+
+Video tutorial:
+- https://www.youtube.com/watch?v=7LSOyXJeUog
+
+---
+
+# Assembly Steps
+
+## Step 1 — Tie First Loop
+Tie an overhand loop knot at the end of the line.
+
+Target loop length:
+- Approximately 1 inch
+
+Leave a short tail after tightening the knot.
+
+Reference images:
+
+![Initial folded loop](image(79).png)
+
+![Loop before tightening](image(80).png)
+
+![Completed first loop knot](image(81).png)
+
+---
+
+## Step 2 — Measure Length
+Using the tape measure, measure **13.5 inches from the tip of the loop**.
+
+Mark this location with a marker.
+
+**Do NOT cut the line yet.**
+
+Reference image:
+
+![13.5 inch measurement](image(77).png)
+
+---
+
+## Step 3 — Fold the Line
+Fold the line in half at the 13.5 inch mark.
+
+Ensure the marked location becomes the tip of the second loop.
+
+Reference image:
+
+![Folded loop at marked location](image(78).png)
+
+---
+
+## Step 4 — Tie Second Loop
+Tie another overhand loop knot.
+
+Requirements:
+- Loop length should again be approximately 1 inch
+- Ensure the black mark is positioned at the tip of the loop before tightening
+
+Reference images:
+
+![Second loop positioning](image(82).png)
+
+![Second loop completed](image(83).png)
+
+---
+
+## Step 5 — Cut from Roll
+Cut the line free from the spool.
+
+Leave approximately:
+- 0.25 inch tail on the final knot
+
+Reference image:
+
+![Finished knot tail](image(76).png)
+
+---
+
+## Step 6 — Final Inspection
+Verify the completed burnwire line length.
+
+Finished length requirement:
+- 12.75 in ±0.5 in
+
+Measure from loop tip to loop tip.
+
+Reference image:
+
+![Completed burnwire line](image(84).png)
+
+---
+
+# Acceptance Criteria
+A completed burnwire line is acceptable if:
+- Both loops are securely tied using overhand loop knots
+- Both loops are approximately 1 inch long
+- Knot tails are trimmed to approximately 0.25 inch
+- Final overall length is 12.75 in ±0.5 in
+- Knots are fully tightened and seated cleanly
+
