@@ -2485,7 +2485,7 @@ def parseVideo(parameters):
 
         input_file_size             = input_file_path.stat().st_size
         output_file_size            = video_maker.file_path.stat().st_size
-        output_compressed_file_size = video_maker.compressed_file_path.stat().st_size
+        output_compressed_file_size = video_maker.compressed_file_path.stat().st_size if video_maker.compressed_file_path is not None else None
         duration                    = video_maker.image_count / parameters.fps
 
         pxd.pxd_logger.info(

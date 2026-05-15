@@ -1093,7 +1093,7 @@ TARGETS = ( # @/`Defining Targets`.
             'TIM8_COUNTER_RATE'   : 1_000_000,
         },
 
-        flight_ready = False,
+        flight_ready = True,
 
     ),
 
