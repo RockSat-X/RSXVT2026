@@ -774,18 +774,10 @@ The finished burnwire line should have:
 - Approximately 12.75 in finished length.
 - ±0.5 inch allowable tolerance.
 
-* Two looped ends
-* Approximately 12.75 in finished length
-* ±0.5 in allowable tolerance
-
----
-
-# Required Materials
-
-* Tape measure
-* Sharpie or other marker
-* Dorisea Extreme Braid 300 lb 1 mm line
-* Good scissors or sharp knife
+Required materials:
+- Tape measure.
+- Dorisea Extreme Braid, 300 lb, 1 mm.
+- Good scissors or sharp knife.
 
 Use an _**Overhand Loop Knot**_ for both ends ([video tutorial](https://www.youtube.com/watch?v=7LSOyXJeUog)).
 
