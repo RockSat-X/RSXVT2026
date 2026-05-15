@@ -766,6 +766,7 @@ The finished burnwire line should have:
 # Required Materials
 
 * Tape measure
+* Sharpie or other marker
 * Dorisea Extreme Braid 300 lb 1 mm line
 * Good scissors or sharp knife
 
