@@ -764,145 +764,180 @@ by testing continuity of the two pads.
 
 
 
-## 8. Appendix.
+# Burn-Wire Line Assembly.
 
-# Burnwire Line Assembly Instructions
-
-## Overview
-
-These instructions describe how to fabricate the burnwire restraint lines using 1 mm braided line and two overhand loop knots.
+These instructions describe how to fabricate the burnwire restraint lines
+using 1 mm braided line and two overhand loop knots.
 
 The finished burnwire line should have:
+- Two looped ends.
+- Approximately 12.75 in finished length.
+- ±0.5 inch allowable tolerance.
 
-* Two looped ends
-* Approximately 12.75 in finished length
-* ±0.5 in allowable tolerance
+Required materials:
+- Tape measure.
+- Dorisea Extreme Braid, 300 lb, 1 mm.
+- Good scissors or sharp knife.
 
----
+Use an _**Overhand Loop Knot**_ for both ends ([video tutorial](https://www.youtube.com/watch?v=7LSOyXJeUog)).
 
-# Required Materials
+<p align="center">
+<kbd>
+<img src="./misc/media/overhand_loop_knot_diagram.png" height="600px">
+<br>
+<br>
+<em>
+Overhand loop knot reference diagram.
+</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
 
-* Tape measure
-* Dorisea Extreme Braid 300 lb 1 mm line
-* Good scissors or sharp knife
-
----
-
-# Knot Type
-
-Use an **Overhand Loop Knot** for both ends.
-
-Reference knot diagram:
-
-![Overhand Loop Knot](misc/media/overhand%20loop%20knot%20diagram.png)
-
-Video tutorial:
-
-* [https://www.youtube.com/watch?v=7LSOyXJeUog](https://www.youtube.com/watch?v=7LSOyXJeUog)
-
----
-
-# Assembly Steps
-
-## Step 1 — Tie First Loop
+## 1. Tie first loop.
 
 Tie an overhand loop knot at the end of the line.
-
-Target loop length:
-
-* Approximately 1 inch
-
+Target loop length of approximately 1 inch.
 Leave a short tail after tightening the knot.
 
-Reference image:
+<p align="center">
+<kbd>
+<img src="./misc/media/1in_Loop.jpg" height="600px">
+<br>
+<br>
+<em>
+1 inch loop.
+</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
 
-![1in Loop](misc/media/1in%20Loop.jpg)
+## 2. Measure length.
 
----
-
-## Step 2 — Measure Length
-
-Using the tape measure, measure **13.5 inches from the tip of the loop**.
-
+Using the tape measure, measure _**13.5 inches from the tip of the loop**_.
 Mark this location with a marker.
 
-**Do NOT cut the line yet.**
+> [!IMPORTANT]
+> _**Do NOT cut the line yet.**_
 
-Reference image:
+<p align="center">
+<kbd>
+<img src="./misc/media/13.5in_Mark.jpg" height="600px">
+<br>
+<br>
+<em>
+13.5 inch mark.
+</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
 
-![13.5in Mark](misc/media/13.5in%20Mark.jpg)
-
----
-
-## Step 3 — Fold the Line
+## 3. Fold the line.
 
 Fold the line in half at the 13.5 inch mark.
-
 Ensure the marked location becomes the tip of the second loop.
 
-Reference image:
+<p align="center">
+<kbd>
+<img src="./misc/media/Folded_at_mark.jpg" height="600px">
+<br>
+<br>
+<em>
+Folded at mark.
+</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
 
-![Folded at Mark](misc/media/Folded%20at%20mark.jpg)
-
----
-
-## Step 4 — Tie Second Loop
+## 4. Tie second loop.
 
 Tie another overhand loop knot.
+Loop length should again be approximately 1 inch.
+Ensure the black mark is positioned at the tip of the loop before tightening.
 
-Requirements:
+<p align="center">
+<kbd>
+<img src="./misc/media/End_loop_first_step_with_mark.jpg" height="600px">
+<br>
+<br>
+<em>
+End loop first step.
+</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
 
-* Loop length should again be approximately 1 inch
-* Ensure the black mark is positioned at the tip of the loop before tightening
+<p align="center">
+<kbd>
+<img src="./misc/media/Completed_end_loop_with_mark_in_middle.jpg" height="600px">
+<br>
+<br>
+<em>
+Completed end loop.
+</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
 
-Reference images:
-
-![End Loop First Step](misc/media/End%20loop%20first%20step%20with%20mark.jpg)
-
-![Completed End Loop](misc/media/Completed%20end%20loop%20with%20mark%20in%20middle.jpg)
-
----
-
-## Step 5 — Cut from Roll
+## 5. Cut from roll.
 
 Cut the line free from the spool.
+Leave approximately 0.25 inch tail on the final knot.
 
-Leave approximately:
+<p align="center">
+<kbd>
+<img src="./misc/media/trimmed_end_loop.jpg" height="600px">
+<br>
+<br>
+<em>
+Trimmed end loop.
+</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
 
-* 0.25 inch tail on the final knot
-
-Reference image:
-
-![Trimmed End Loop](misc/media/trimmed%20end%20loop.jpg)
-
----
-
-## Step 6 — Final Inspection
+## 6. Final inspection.
 
 Verify the completed burnwire line length.
-
-Finished length requirement:
-
-* 12.75 in ±0.5 in
-
+Finished length of 12.75 ± 0.5 inches.
 Measure from loop tip to loop tip.
 
-Reference images:
+<p align="center">
+<kbd>
+<img src="./misc/media/Completed_burnwire_line.jpg" height="600px">
+<br>
+<br>
+<em>
+Completed burn-wire line.
+</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
 
-![Completed Burnwire Line](misc/media/Completed%20burnwire%20line.jpg)
-
-![12.75in Length Confirmation](misc/media/12.75in%20length%20confirmation.jpg)
-
----
-
-# Acceptance Criteria
+<p align="center">
+<kbd>
+<img src="./misc/media/12.75in_length_confirmation.jpg" height="600px">
+<br>
+<br>
+<em>
+12.75in length confirmation.
+</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
 
 A completed burnwire line is acceptable if:
 
-* Both loops are securely tied using overhand loop knots
-* Both loops are approximately 1 inch long
-* Knot tails are trimmed to approximately 0.25 inch
-* Final overall length is 12.75 in ±0.5 in
-* Knots are fully tightened and seated cleanly
-
-
+- Both loops are securely tied using overhand loop knots.
+- Both loops are approximately 1 inch long.
+- Knot tails are trimmed to approximately 0.25 inch.
+- Final overall length is 12.75 ± 0.5 in.
+- Knots are fully tightened and seated cleanly.
