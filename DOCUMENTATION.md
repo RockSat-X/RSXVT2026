@@ -506,108 +506,8 @@ there's not one thing I'd do differently about the development environment.
 
 # Build System.
 
-Like with the [Development Environment](#development-environment),
-a custom build system has also been specifically made for this project.
-Build tools like CMake and Make rely on a recipe file to specify
-what source files should be compiled and in what order.
-The typical advantage of these build tools is
-that you can do certain optimizations like incremental building,
-so rather than having to do a full build every time you make a small change,
-only the necesary build artifacts need to be recompiled and relinked.
-This is made possible by having the C/C++ program be split into multiple translation units
-that are processed by the compiler individually to produce corresponding object files;
-to create a single binary output,
-the object files are then stitched together through the process of linking.
-Having a C/C++ program be split into multiple translation units is a very common practice,
-and this manifests in the form of corresponding `.h` and `.c`/`.cpp` file pairs.
-
-However, multiple translation units are an artifact of C's history in the 70s
-when computers could just barely do enough.
-Computer architecture has radically changed since then,
-and applying the strategy of multiple translation units has incredible overhead.
-An alternative approach is we instead define the entire C/C++ program as a single "jumbo" translation unit,
-rather than many small ones.
-This build methodology is called
-[jumbo build or a unity build](https://en.wikipedia.org/wiki/Unity_build).
-Because there's only one translation unit,
-only one object file is created,
-thus no linking has to be done (sort of, but I won't get into it).
-Furthermore,
-that one translation unit describes the entire program,
-so the compiler has more leeway with how the compilation process is done;
-having many translation units artifically introduce information barriers
-for the compiler's understanding of what program it is you're trying to build.
-This isn't to say *all* C/C++ programs should be compiled using a jumbo build,
-but for the specific scope of this project,
-having a jumbo build makes sense.
-Our program is firmware for a microcontroller,
-not an enterprise application at Google.
-
-Furthermore, if incremental compilation is done,
-there's a small possibility for a stale cache bug,
-to which one would need to do a full rebuild to be fully confident in the generated binary.
-Because unity builds forces you to do a full build every time,
-there's no mental overhead in having to worry about this.
-Granted,
-the probability of a stale cache bug resulting in a bad output is rare,
-but working with hardware and software often makes one question themselves on the simpliest of things.
-
-Another important aspect of the build system is the code generation
-that is done before the compiler is invoked to process the source code.
-Specifically,
-I've written a tool called the Meta-Preprocessor
-that scans through the source code to look for specially annotated Python snippets,
-which I call Meta-Directives.
-These Meta-Directives would be executed by the Meta-Preprocessor
-and arbitrary source code could be generated as a result.
-
-Consider the following example.
-
-```C
-int main(void)
-{
-    #include "output.meta"
-    /* #meta
-        for i in range(4):
-            Meta.line(f'''
-                printf("{i**2}\\n");
-            ''')
-    */
-}
-```
-
-After running the Meta-Preprocessor and the C preprocessor,
-the above snippet is equivalent to the code below.
-
-```C
-int main(void)
-{
-    printf("0\n");
-    printf("1\n");
-    printf("4\n");
-    printf("9\n");
-}
-```
-
-The example is quite contrived,
-but it is to show that we can essentially write Python code to generate C code
-within the C source code itself.
-This makes the usage of the Meta-Preprocessor quite easy,
-as one can create a Meta-Directive within the same file at the very place where it'd be used.
-
-The best usage of the Meta-Preprocessor can be found in
-[`./electrical/Shared.py`](https://github.com/RockSat-X/RSXVT2026/blob/main/electrical/Shared.py)
-where the Python file defines various data structures for various parts of the project.
-The most important of them is the `TARGETS` data structure,
-which is just a tuple where each entry defines a particular program for an STM32 MCU.
-Information such as the program's name, the GPIOs in use, clock-tree parameters, and so on
-are all detailed within `TARGETS`.
-The Meta-Preprocessor uses all of the information in order verify consistency
-(e.g. whether or not the particular GPIO supports being analog)
-and then auto-generates the code that'd do the bulk of the initialization for the STM32 MCU.
-This auto-generated code is in
-[`./electrical/meta/STPY_init.meta`](https://github.com/RockSat-X/RSXVT2026/blob/main/electrical/meta/STPY_init.meta)
-amongst other auto-generated files by the Meta-Preprocessor in the same folder.
+> [!CAUTION]
+> Incomplete.
 
 
 &nbsp;
@@ -688,3 +588,4 @@ amongst other auto-generated files by the Meta-Preprocessor in the same folder.
 # Power Distribution System.
 
 > [!CAUTION]
+> Incomplete.
