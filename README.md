@@ -44,8 +44,82 @@ The target will be the Earth's horizon as seen at ~190 km apogee.
 
 # High-Level System Overview.
 
-> [!CAUTION]
-> Incomplete.
+<p align="center">
+<kbd>
+<img src="./misc/media/experiment.gif" width="800px">
+<br>
+<br>
+<em>Deck-plate integrated experiment.</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
+
+<p align="center">
+<kbd>
+<img src="./misc/media/top_down_experiment.png" width="800px">
+<br>
+<br>
+<em>Top-down view of the deck-plate integrated experiment.</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
+
+<p align="center">
+<kbd>
+<img src="./misc/media/weight_measurement.png" width="800px">
+<br>
+<br>
+<em>Weight of the deck-plate integrated experiment (13.935 pounds / 6.321 kilograms).</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
+
+<p align="center">
+<kbd>
+<img src="./misc/media/center_of_gravity_measurement.png" width="800px">
+<br>
+<br>
+<em>Center of gravity of the deck-plate integrated experiment.</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
+
+<p align="center">
+<kbd>
+<img src="./misc/media/electronics_box_inside.png" width="800px">
+<br>
+<br>
+<em>The inside of the main electronics box enclosure.</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
+
+<p align="center">
+<kbd>
+<img src="./misc/media/consat_vehicle.png" width="800px">
+<br>
+<br>
+<em>CONSat vehicle.</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
+
+<p align="center">
+<kbd>
+<img src="./misc/media/consat_insides.JPG" width="800px">
+<br>
+<br>
+<em>The inside of the CONSat vehicle.</em>
+<br>
+<br>
+</kbd>
+</p>&nbsp;
 
 <p align="center">
 <kbd>
